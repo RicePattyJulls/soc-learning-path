@@ -1,0 +1,261 @@
+{
+  "courseId": "splunk",
+  "regionId": "SP-R08",
+  "lab": "# LAB08-A — Hunting de solicitudes Kerberos: ¿qué es señal y qué es prueba?\n\n**Lecciones:** SP-R08-L01/L02/L07/L08. **Modo:** papel + CSV sintético (offline); búsqueda Splunk de solo lectura hipotética. **Sin explotación ni extracción de tickets.**\n\n## Contrato del dataset\n\n`fixtures/tgs_requests.csv` contiene 16 filas K01–K16 con IDs, UTC, user, src, service, encryption, authorization_context y event_id. `service` son etiquetas inventadas; **no equivalen a SPN completo ni a `ServiceName` de Windows**. La etiqueta `authorization_context` sirve para ejercicios, no se infiere del 4769.\n\n## Misión\n\n1. Escribe una hipótesis falsable sobre diversidad de servicios con una explicación alternativa inocente.\n2. Agrupa por `user`; calcula `count` y `dc(service)`. Compara RC4 (`0x17`), AES (`0x12`) y campo vacío.\n3. Prueba la regla didáctica «tgs≥5 AND servicios≥4» con ventana total del archivo (09:01–09:25 UTC). No la declares regla de producción.\n4. Examina si `svc-backup` cumple o no la condición y por qué importa un inventario autorizado.\n5. Redacta siguiente paso SOC y datos adicionales para verificar hipótesis (origen/endpoint/DC, baseline y esquema).\n\n## SPL ilustrativo (no validado en Splunk)\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4769\n| bin _time span=30m\n| stats count AS tgs dc(ServiceName) AS servicios values(TicketEncryptionType) AS cifrados BY user _time\n| where tgs>=5 AND servicios>=4\n```\n\nLos nombres `ServiceName` y `TicketEncryptionType` deben comprobarse en eventos reales; la búsqueda **no se prueba** con CSV ni es paridad directa con su campo `service`. La media hora se usa para mantener el ejemplo temporal completo y no es ajuste recomendado. `_time` requiere parsing UTC al importar.\n\n## Resultados esperados del CSV\n\n- `temp.user`: 6 filas, 6 servicios, 0x17 → candidata didáctica.\n- `svc-backup`: 5 filas, 1 servicio, 0x17, contexto aprobado → negativo bajo la condición.\n- `audit.user`: 4 filas, 4 servicios, 0x12 → fuera del umbral de 5.\n- `helpdesk.user`: 1 fila, cifrado vacío → sin información de cifrado.\n\n**Conclusión válida:** priorizar la primera cohorte para indagación; **no** concluir Kerberoasting real ni cracking. Basado en MITRE T1558.003 [D01] y MS 4769 [D06].\n\n## Evaluación (0–4)\n\nSuma, diversidad, controles benignos, límites de la fuente. Se invalida atribución sin corroboración.\n\n\n# LAB08-B — DCSync: evidencia y condiciones de observabilidad\n\n**Lecciones:** SP-R08-L01/L03/L07. **Modo:** dataset sintético y análisis de solo lectura. **No ejecutar herramientas de DCSync ni cambios de auditoría.**\n\n## Contrato\n\n`fixtures/replication_events.csv` contiene ocho filas D01–D08. `operation_kind=replication_right` es **una etiqueta pedagógica inventada**, no un campo Windows ni prueba de GUID/permiso. `authorization_context` es información externa aportada al caso.\n\n## Tareas\n\n1. Identifica los registros aprobados de DC01↔DC02 (D01–D03), la delegación aprobada de backup (D04–D05) y el origen no inventariado WKST-17 (D06–D08).\n2. Explica por qué un 4662 genérico no demuestra extracción de secretos y de qué dependen auditoría, SACL y derechos.\n3. Diseña un control de inventario para distinguir DC y delegaciones; no asumas que `subject=DC01$` basta sin validar identidad técnica.\n4. Especifica qué información faltaría: operación en GUID real, auditoría de dominio, actividad RPC/replicación, mapeo principal y trazas de cambios de permisos.\n5. Presenta hipótesis principal, hipótesis benigna y estado «indeterminado/candidato a escalado».\n\n## SPL descriptivo, no listo para Windows real\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4662\n| search operation_kind=\"replication_right\"\n| stats count AS operaciones values(object_name) AS objetos BY subject src dc\n```\n\n**`operation_kind` no es propiedad 4662 nativa**: reemplazar por lógica de campos/GUID verificados antes de cualquier búsqueda real. No hay consultas ejecutadas.\n\n## Control offline esperado\n\n- 8 operaciones sintéticas en total.\n- 5 bajo autorización descrita por el fixture (3 DC y 2 servicio delegado).\n- 3 registros D06–D08 desde WKST-17 no inventariado.\n\n**Conclusión defendible:** anomalía de origen a investigar, NO DCSync confirmado. MITRE [D02] y auditoría Windows [D05].\n\n\n# LAB08-C — Hunting por autenticación distribuida y salida de red\n\n**Lecciones:** SP-R08-L04/L05/L06. **Modo:** revisión offline de dos CSV. No se requiere ni toca red real.\n\n## Dataset\n\n- `fixtures/auth_activity.csv` contiene 12 filas S01–S07 y B01–B05. Direcciones IP de documentación, no IP de amenazas reales.\n- `fixtures/net_egress.csv` contiene 4 flujos simulados con `bytes_out` y `destination_context` aportados explícitamente para el caso.\n\n## Preguntas\n\n1. Calcula fallos y `dc(user)` por origen; compara 198.51.100.33 vs 198.51.100.44.\n2. Explica qué permite investigar S07 (éxito posterior) y qué no confirma (cuenta comprometida).\n3. Compara salida de `backup-01` vs `finance-07`, separando volumen y contexto aprobado.\n4. Define qué columnas adicionales serían necesarias para inferir exfiltración (proceso, protocolo, clasificación, proxy/DLP).\n5. Elabora un handoff N1→N2 con observables, limitaciones, prioridad y medidas no disruptivas.\n\n## Ejemplos SPL ilustrativos\n\n```spl\nindex=IDX_AUTH sourcetype=ST_AUTH status=\"failure\"\n| stats count AS fallos dc(user) AS usuarios BY src\n| where fallos>=5 AND usuarios>=5\n```\n\n```spl\nindex=IDX_NET sourcetype=ST_FLOW direction=\"outbound\"\n| stats sum(bytes_out) AS bytes_out BY src dest\n| sort - bytes_out\n```\n\nNo se han ejecutado en Splunk. `src`, `status`, `direction` y `bytes_out` dependen del mapeo.\n\n## Respuestas esperadas\n\n- Origen 198.51.100.33: 6 fallos / 6 identidades / 1 éxito separado.\n- Origen 198.51.100.44: 5 fallos / 1 identidad. No encaja con umbral de spraying.\n- Si discretizas por 15 minutos, B01–B04 producen 4/1 a las 11:00 y B05 produce 1/1 a las 11:15 UTC. El agregado global de este laboratorio no es el resultado por bucket de R08-L04; count>=5 por bucket tampoco seleccionaría ese control. La falta de coincidencia no prueba actividad benigna.\n- `backup-01`: 865.000.000 bytes a destino autorizado (850M+15M).\n- `finance-07`: 190.000.000 bytes a destino desconocido y 20.000.000 a portal aprobado.\n- Ni éxito ni salida de red constituyen compromiso/exfiltración por sí solos.\n\nEvidencia documental T1110.003 [D03] y T1021 [D04].\n",
+  "datasets": {
+    "schema_version": "1.0",
+    "revision": "2026-10-16-r1",
+    "package": "SPLUNK_LECCIONES_R08_R09",
+    "scope": "synthetic_csv_contract_offline_only",
+    "splunk_execution": false,
+    "datasets": [
+      {
+        "file": "PRACTICAS/fixtures/auth_activity.csv",
+        "sha256": "fe5e960229fb152b4a09555d4b119f0c0421a5c7be988abd5ede289a8fbda007",
+        "row_count": 12,
+        "columns": [
+          "id",
+          "event_time_utc",
+          "src",
+          "user",
+          "status",
+          "host",
+          "mfa"
+        ],
+        "row_id": "id",
+        "field_mapping_for_design": {
+          "id": "id",
+          "event_time_utc": "_time",
+          "src": "src",
+          "user": "user",
+          "status": "status",
+          "host": "host",
+          "mfa": "mfa"
+        },
+        "timezone": "UTC where a time/date column exists",
+        "time_bounds": "[start,end)",
+        "snapshot_cutoff": "synthetic_index_time < cutoff",
+        "mapping_executed_in_splunk": false
+      },
+      {
+        "file": "PRACTICAS/fixtures/net_egress.csv",
+        "sha256": "2bc759ad87eec7040ec71732d87197977327e036e851a781678318da65acf6c7",
+        "row_count": 4,
+        "columns": [
+          "id",
+          "event_time_utc",
+          "src",
+          "dest",
+          "bytes_out",
+          "direction",
+          "destination_context",
+          "business_context"
+        ],
+        "row_id": "id",
+        "field_mapping_for_design": {
+          "id": "id",
+          "event_time_utc": "_time",
+          "src": "src",
+          "dest": "dest",
+          "bytes_out": "bytes_out",
+          "direction": "direction",
+          "destination_context": "destination_context",
+          "business_context": "business_context"
+        },
+        "timezone": "UTC where a time/date column exists",
+        "time_bounds": "[start,end)",
+        "snapshot_cutoff": "synthetic_index_time < cutoff",
+        "mapping_executed_in_splunk": false
+      },
+      {
+        "file": "PRACTICAS/fixtures/replication_events.csv",
+        "sha256": "c99321c3459d48f80824a0b58f40543c898d62691646bc5b992fdd26ce26c31f",
+        "row_count": 8,
+        "columns": [
+          "id",
+          "event_time_utc",
+          "event_id",
+          "subject",
+          "src",
+          "dc",
+          "operation_kind",
+          "object_name",
+          "authorization_context",
+          "schema_note"
+        ],
+        "row_id": "id",
+        "field_mapping_for_design": {
+          "id": "fixture_id",
+          "event_time_utc": "_time",
+          "event_id": "EventCode",
+          "subject": "subject",
+          "src": "src",
+          "dc": "dc",
+          "operation_kind": "operation_kind",
+          "object_name": "object_name",
+          "authorization_context": "authorization_context",
+          "schema_note": "schema_note"
+        },
+        "timezone": "UTC where a time/date column exists",
+        "time_bounds": "[start,end)",
+        "snapshot_cutoff": "synthetic_index_time < cutoff",
+        "mapping_executed_in_splunk": false
+      },
+      {
+        "file": "PRACTICAS/fixtures/synthetic_es_findings.csv",
+        "sha256": "c3807047df4dc3a8bb080b2f07180d2fa93d234811d8f97bc26ffa5565993574",
+        "row_count": 8,
+        "columns": [
+          "finding_id",
+          "event_time_utc",
+          "entity",
+          "category",
+          "finding_type",
+          "risk_points",
+          "behavior",
+          "src"
+        ],
+        "row_id": "finding_id",
+        "field_mapping_for_design": {
+          "finding_id": "finding_id",
+          "event_time_utc": "_time",
+          "entity": "entity",
+          "category": "category",
+          "finding_type": "finding_type",
+          "risk_points": "risk_points",
+          "behavior": "behavior",
+          "src": "src"
+        },
+        "timezone": "UTC where a time/date column exists",
+        "time_bounds": "[start,end)",
+        "snapshot_cutoff": "synthetic_index_time < cutoff",
+        "mapping_executed_in_splunk": false
+      },
+      {
+        "file": "PRACTICAS/fixtures/tgs_requests.csv",
+        "sha256": "c2000654bb96c25a2316d59052fca602249f09f0eb0099848727d160aa6bc416",
+        "row_count": 16,
+        "columns": [
+          "id",
+          "event_time_utc",
+          "user",
+          "src",
+          "service",
+          "encryption",
+          "authorization_context",
+          "event_id"
+        ],
+        "row_id": "id",
+        "field_mapping_for_design": {
+          "id": "fixture_id",
+          "event_time_utc": "_time",
+          "user": "user",
+          "src": "src",
+          "service": "ServiceName",
+          "encryption": "TicketEncryptionType",
+          "authorization_context": "authorization_context",
+          "event_id": "EventCode"
+        },
+        "timezone": "UTC where a time/date column exists",
+        "time_bounds": "[start,end)",
+        "snapshot_cutoff": "synthetic_index_time < cutoff",
+        "mapping_executed_in_splunk": false
+      },
+      {
+        "file": "PRACTICAS/fixtures/ti_indicators.csv",
+        "sha256": "12c6d56e73aceb42cccbeaa1153078eae898a16b9f73a9c57b353265e7ebb4f8",
+        "row_count": 3,
+        "columns": [
+          "indicator_id",
+          "value",
+          "type",
+          "source",
+          "first_seen_utc",
+          "expires_at_utc",
+          "confidence_note"
+        ],
+        "row_id": "indicator_id",
+        "field_mapping_for_design": {
+          "indicator_id": "indicator_id",
+          "value": "value",
+          "type": "type",
+          "source": "source",
+          "first_seen_utc": "first_seen_utc",
+          "expires_at_utc": "expires_at_utc",
+          "confidence_note": "confidence_note"
+        },
+        "timezone": "UTC where a time/date column exists",
+        "time_bounds": "[start,end)",
+        "snapshot_cutoff": "synthetic_index_time < cutoff",
+        "mapping_executed_in_splunk": false
+      }
+    ],
+    "notes": [
+      "Cada dataset conserva su escenario; una IP coincidente no une escenarios.",
+      "Las asignaciones son diseño; no instalan extracciones, inputs ni lookups.",
+      "_time en el modelo offline es epoch sintético; no es metadata creada en una instancia.",
+      "fixture_index_epoch nunca sustituye al metadato _indextime real.",
+      "TI: inicio inclusivo y expiración exclusiva a medianoche UTC; referencia 2026-10-16T12:00:00Z.",
+      "ServiceName sintético no certifica un SPN nativo; operation_kind no es campo nativo 4662."
+    ]
+  },
+  "fixtures": [
+    {
+      "file": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R08_R09/PRACTICAS/fixtures/auth_activity.csv",
+      "sha256": "fe5e960229fb152b4a09555d4b119f0c0421a5c7be988abd5ede289a8fbda007",
+      "text": "id,event_time_utc,src,user,status,host,mfa\r\nS01,2026-10-16T11:01:00Z,198.51.100.33,alice,failure,vpn-gateway,unknown\r\nS02,2026-10-16T11:02:00Z,198.51.100.33,bob,failure,vpn-gateway,unknown\r\nS03,2026-10-16T11:03:00Z,198.51.100.33,charlie,failure,vpn-gateway,unknown\r\nS04,2026-10-16T11:04:00Z,198.51.100.33,david,failure,vpn-gateway,unknown\r\nS05,2026-10-16T11:05:00Z,198.51.100.33,erin,failure,vpn-gateway,unknown\r\nS06,2026-10-16T11:06:00Z,198.51.100.33,frank,failure,vpn-gateway,unknown\r\nS07,2026-10-16T11:08:00Z,198.51.100.33,charlie,success,vpn-gateway,mfa_not_verified\r\nB01,2026-10-16T11:11:00Z,198.51.100.44,paula,failure,vpn-gateway,unknown\r\nB02,2026-10-16T11:12:00Z,198.51.100.44,paula,failure,vpn-gateway,unknown\r\nB03,2026-10-16T11:13:00Z,198.51.100.44,paula,failure,vpn-gateway,unknown\r\nB04,2026-10-16T11:14:00Z,198.51.100.44,paula,failure,vpn-gateway,unknown\r\nB05,2026-10-16T11:15:00Z,198.51.100.44,paula,failure,vpn-gateway,unknown\r\n",
+      "synthetic": true,
+      "rowCount": 12
+    },
+    {
+      "file": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R08_R09/PRACTICAS/fixtures/net_egress.csv",
+      "sha256": "2bc759ad87eec7040ec71732d87197977327e036e851a781678318da65acf6c7",
+      "text": "id,event_time_utc,src,dest,bytes_out,direction,destination_context,business_context\r\nN01,2026-10-16T12:05:00Z,backup-01,203.0.113.10,850000000,outbound,approved_backup_target,scheduled\r\nN02,2026-10-16T12:06:00Z,finance-07,203.0.113.99,190000000,outbound,unknown,unknown\r\nN03,2026-10-16T12:07:00Z,finance-07,203.0.113.20,20000000,outbound,approved_document_portal,business\r\nN04,2026-10-16T12:10:00Z,backup-01,203.0.113.10,15000000,outbound,approved_backup_target,scheduled\r\n",
+      "synthetic": true,
+      "rowCount": 4
+    },
+    {
+      "file": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R08_R09/PRACTICAS/fixtures/replication_events.csv",
+      "sha256": "c99321c3459d48f80824a0b58f40543c898d62691646bc5b992fdd26ce26c31f",
+      "text": "id,event_time_utc,event_id,subject,src,dc,operation_kind,object_name,authorization_context,schema_note\r\nD01,2026-10-16T10:01:00Z,4662,DC01$,DC01,DC02,replication_right,domain-root,approved,training_label_not_native\r\nD02,2026-10-16T10:02:00Z,4662,DC02$,DC02,DC01,replication_right,domain-root,approved,training_label_not_native\r\nD03,2026-10-16T10:03:00Z,4662,DC01$,DC01,DC02,replication_right,domain-root,approved,training_label_not_native\r\nD04,2026-10-16T10:04:00Z,4662,svc-backup,backup-01,DC01,replication_right,domain-root,approved_delegated,training_label_not_native\r\nD05,2026-10-16T10:05:00Z,4662,svc-backup,backup-01,DC02,replication_right,domain-root,approved_delegated,training_label_not_native\r\nD06,2026-10-16T10:06:00Z,4662,temp.ops,WKST-17,DC01,replication_right,domain-root,unlisted,training_label_not_native\r\nD07,2026-10-16T10:07:00Z,4662,temp.ops,WKST-17,DC01,replication_right,domain-root,unlisted,training_label_not_native\r\nD08,2026-10-16T10:08:00Z,4662,temp.ops,WKST-17,DC02,replication_right,domain-root,unlisted,training_label_not_native\r\n",
+      "synthetic": true,
+      "rowCount": 8
+    },
+    {
+      "file": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R08_R09/PRACTICAS/fixtures/synthetic_es_findings.csv",
+      "sha256": "c3807047df4dc3a8bb080b2f07180d2fa93d234811d8f97bc26ffa5565993574",
+      "text": "finding_id,event_time_utc,entity,category,finding_type,risk_points,behavior,src\r\nF01,2026-10-16T13:01:00Z,alice,identity,intermediate_finding,18,auth-fails,198.51.100.33\r\nF02,2026-10-16T13:02:00Z,alice,endpoint,intermediate_finding,30,unusual-login,198.51.100.33\r\nF03,2026-10-16T13:03:00Z,alice,network,finding,27,unusual-outbound,203.0.113.99\r\nF04,2026-10-16T13:04:00Z,svc-backup,identity,intermediate_finding,18,legacy-ticket,203.0.113.20\r\nF05,2026-10-16T13:05:00Z,svc-backup,identity,intermediate_finding,18,legacy-ticket,203.0.113.20\r\nF06,2026-10-16T13:06:00Z,bob,identity,finding,22,account-change,198.51.100.33\r\nF07,2026-10-16T13:07:00Z,charlie,network,finding,15,remote-session,198.51.100.33\r\nF08,2026-10-16T13:08:00Z,sys-rproxy,network,intermediate_finding,20,proxy-noise,203.0.113.33\r\n",
+      "synthetic": true,
+      "rowCount": 8
+    },
+    {
+      "file": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R08_R09/PRACTICAS/fixtures/tgs_requests.csv",
+      "sha256": "c2000654bb96c25a2316d59052fca602249f09f0eb0099848727d160aa6bc416",
+      "text": "id,event_time_utc,user,src,service,encryption,authorization_context,event_id\r\nK01,2026-10-16T09:01:00Z,temp.user,WKST-17,web,0x17,unverified,4769\r\nK02,2026-10-16T09:02:00Z,temp.user,WKST-17,sql,0x17,unverified,4769\r\nK03,2026-10-16T09:03:00Z,temp.user,WKST-17,backup,0x17,unverified,4769\r\nK04,2026-10-16T09:04:00Z,temp.user,WKST-17,vpn,0x17,unverified,4769\r\nK05,2026-10-16T09:05:00Z,temp.user,WKST-17,files,0x17,unverified,4769\r\nK06,2026-10-16T09:06:00Z,temp.user,WKST-17,api,0x17,unverified,4769\r\nK07,2026-10-16T09:09:00Z,svc-backup,backup-01,backup-repository,0x17,approved,4769\r\nK08,2026-10-16T09:10:00Z,svc-backup,backup-01,backup-repository,0x17,approved,4769\r\nK09,2026-10-16T09:11:00Z,svc-backup,backup-01,backup-repository,0x17,approved,4769\r\nK10,2026-10-16T09:12:00Z,svc-backup,backup-01,backup-repository,0x17,approved,4769\r\nK11,2026-10-16T09:13:00Z,svc-backup,backup-01,backup-repository,0x17,approved,4769\r\nK12,2026-10-16T09:18:00Z,audit.user,WKST-22,intranet,0x12,unknown,4769\r\nK13,2026-10-16T09:19:00Z,audit.user,WKST-22,web,0x12,unknown,4769\r\nK14,2026-10-16T09:20:00Z,audit.user,WKST-22,reports,0x12,unknown,4769\r\nK15,2026-10-16T09:21:00Z,audit.user,WKST-22,api,0x12,unknown,4769\r\nK16,2026-10-16T09:25:00Z,helpdesk.user,WKST-09,api,,unknown,4769\r\n",
+      "synthetic": true,
+      "rowCount": 16
+    },
+    {
+      "file": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R08_R09/PRACTICAS/fixtures/ti_indicators.csv",
+      "sha256": "12c6d56e73aceb42cccbeaa1153078eae898a16b9f73a9c57b353265e7ebb4f8",
+      "text": "indicator_id,value,type,source,first_seen_utc,expires_at_utc,confidence_note\r\nI01,203.0.113.99,IP,mock-feed-a,2026-10-01,2026-11-01,synthetic_only_not_real_ti\r\nI02,198.51.100.33,IP,mock-feed-old,2024-01-01,2025-01-01,expired_training_entry\r\nI03,203.0.113.10,IP,mock-feed-b,2026-10-01,2026-11-01,mock_not_asserted_malicious\r\n",
+      "synthetic": true,
+      "rowCount": 3
+    }
+  ],
+  "documents": [
+    {
+      "file": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R08_R09/ACTIVIDADES/RUBRICA.md",
+      "markdown": "# Evaluación teórica y retroalimentación formativa\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## Teoría\n\nLas MCQ son candidatas a evaluación teórica: necesitan revisión humana independiente y asignación de fases antes del piloto. Para N preguntas, se requieren ceil(0,8 × N) aciertos. Dos preguntas exigen dos aciertos; esto no acredita práctica.\n\n## Prácticas abiertas\n\nCada P01 conserva sus criterios específicos en el banco y la lección. Se usan para autoexplicación y feedback humano, sin coincidencia literal, nota automática, desbloqueo o XP por una supuesta calificación práctica.\n\nSeparar observaciones, hipótesis, cobertura y siguiente paso autorizado. Una atribución sin evidencia necesita corrección, no un porcentaje automático de dominio.\n\n## Incertidumbre y estado\n\nNo coincidencia de regla no implica benignidad. TP/FP/FN/TN requieren verdad de referencia; suspicious_unconfirmed e inconclusive no acreditan ataque. Una prueba CSV solo comprueba cálculos offline, nunca sintaxis SPL o producto real.\n"
+    },
+    {
+      "file": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R08_R09/ACTIVIDADES/SOLUCIONARIO.md",
+      "markdown": "# Solucionario editorial sincronizado — SPLUNK_LECCIONES_R08_R09\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\nRespuestas orientativas; sin ejecución de Splunk/ES/SOAR.\n\n## SP-R08-L01-Q01\n\n**A — Definir qué se observará y qué condiciones refutarían la hipótesis, incluyendo una alternativa benigna**. La hipótesis especifica qué evidencia podría apoyarla o contradecirla.\n\n## SP-R08-L01-Q02\n\n**C — No es posible descartar la actividad con esa fuente ausente**. Ausencia de datos no equivale a ausencia de actividad.\n\n## SP-R08-L01-P01\n\nHipótesis: aumento atípico de servicios por solicitante en DC con datos 4769; definir período UTC, campo equivalente al solicitante, normalidad por cuenta y mantenimiento. Si no hay datos de DC o se ignora el esquema, clasificar indeterminado; escalar solo con corroboración.\n\n## SP-R08-L02-Q01\n\n**A — Petición observada de ticket de servicio**. No prueba que el ticket se haya roto offline.\n\n## SP-R08-L02-Q02\n\n**C — La diversidad de servicio por solicitante, verificando qué significa ese campo en la fuente observada**. Se necesita cardinalidad de servicios, no solo número de filas.\n\n## SP-R08-L02-P01\n\nK01–K06: 6 TGS y 6 nombres de servicio, RC4; priorizar indagación. K07–K11: 5 TGS y 1 servicio, cuenta de backup documentada; priorizar control benigno. K12–K15: 4 servicios con AES, evaluar baseline; no clasificar malicioso solo por variedad.\n\n## SP-R08-L03-Q01\n\n**D — Auditoría de Directory Service Access y SACL adecuada**. El evento depende de política de auditoría y acceso a objetos auditados.\n\n## SP-R08-L03-Q02\n\n**A — Origen no autorizado + derechos de replicación + corroboración**. Se requieren origen, permiso, contexto y señales convergentes.\n\n## SP-R08-L03-P01\n\nSe observa origen WKST-17, cuenta temporal y replicación normalizada en el fixture; no figura en inventario autorizado. Verificar GUID, auditoría/SACL, red RPC al DC, origen técnico y permisos. Estado: sospecha priorizada, no extracción confirmada.\n\n## SP-R08-L04-Q01\n\n**C — La distribución entre identidades frente a intentos concentrados en una cuenta, dentro de una ventana**. Spraying distribuye intentos entre varias cuentas.\n\n## SP-R08-L04-Q02\n\n**B — Hipótesis que requiere MFA, origen y contexto**. La sucesión temporal no prueba relación causal ni abuso.\n\n## SP-R08-L04-P01\n\nS01–S06: seis fallos y seis cuentas desde 198.51.100.33 en el bucket 11:00 UTC; candidato no confirmado. B01–B05: cinco fallos globales de una cuenta; por buckets son cuatro/una a 11:00 y uno/una a 11:15. Ninguna regla >=5 fallos por bucket selecciona esa segunda cohorte. No inferir benignidad de no coincidencia; corroborar IdP, MFA y contexto.\n\n## SP-R08-L05-Q01\n\n**D — Relación temporal entre acceso remoto y acciones verificadas en nuevo host**. El análisis multifuente reduce falsas asociaciones.\n\n## SP-R08-L05-Q02\n\n**B — Que el movimiento sea malicioso**. El acceso legítimo también cambia entre equipos.\n\n## SP-R08-L05-P01\n\nUsar identidad canónica dominio\\usuario, tiempos normalizados, tipo de logon, origen, host destino, inventario, agentes EDR y aprobaciones; evitar un join incondicional por username.\n\n## SP-R08-L06-Q01\n\n**A — Rol de activo, destinatario, baseline y cambio autorizado**. Volumen sin contexto produce falsos positivos.\n\n## SP-R08-L06-Q02\n\n**B — Exfiltración de datos confidenciales**. El contenido y propósito no se desprenden del volumen.\n\n## SP-R08-L06-P01\n\nbackup-01: 865 MB decimales al destino aprobado 203.0.113.10 (850+15). finance-07: 210 MB totales; 190 MB al destino desconocido 203.0.113.99 y 20 MB al portal aprobado 203.0.113.20. Priorizar la salida desconocida de finance-07 por contexto, sin afirmar exfiltración. Ver proceso, identidad, DLP, baseline y cambios aprobados.\n\n## SP-R08-L07-Q01\n\n**D — Hipótesis, fuentes, pruebas y limitaciones**. La cobertura exige requisitos verificables y una evidencia.\n\n## SP-R08-L07-Q02\n\n**B — Diseño/documentación, sin ejecución real**. La revisión documental no equivale a ejecutar la analítica.\n\n## SP-R08-L07-P01\n\nT1558.003: 4769 + baseline; no observa cracking offline. T1003.006: auditoría 4662/SACL y red RPC; faltan eventos si no hay SACL. T1110.003: logs IdP/DC + diversidad usuarios por origen; evasión low-and-slow y NAT.\n\n## SP-R08-L08-Q01\n\n**D — Con fuente, ejemplos, contraejemplos, propietario y respuesta especificados**. La operacionalización exige evaluación y ciclo de vida.\n\n## SP-R08-L08-Q02\n\n**C — Splunk Enterprise Security en configuración soportada**. Los findings son del flujo ES, no de toda búsqueda base.\n\n## SP-R08-L08-P01\n\nEntrada 4769 validada, agregación por identidad/servicio/ventana, caso K01–K06 positivo provisional, backup caso benigno, cifrado faltante indeterminado; runbook incluye cobertura DC, identidad, baseline, mantenimiento y aprobación de despliegue.\n\n## SP-R09-L01-Q01\n\n**B — A la plataforma Enterprise o Cloud: buscar índices es una función de plataforma y no exige ES por sí sola**. La plataforma soporta búsqueda aunque ES no esté instalado.\n\n## SP-R09-L01-Q02\n\n**C — Que Mission Control y analyst queue estén disponibles**. Mission Control forma parte del flujo ES, no del producto base sin comprobación.\n\n## SP-R09-L01-P01\n\nForwarder/HEC e indexer/search head: plataforma; detección/findings/Mission Control: ES; acción playbook e integración con terceros: SOAR, con app, permiso, pairing y human-in-loop cuando sea disruptivo.\n\n## SP-R09-L02-Q01\n\n**C — Eventos o datos de entrada que satisfacen una condición analítica y pueden producir la salida configurada**. La entrada es evidencia de evento según el caso.\n\n## SP-R09-L02-Q02\n\n**A — Se cumplió condición analítica y se creó un objeto investigable**. El finding requiere triage y contexto adicional.\n\n## SP-R09-L02-P01\n\nOrigen IdP/auth, 5 cuentas/15m ejemplo; resultado finding/intermediate según diseño, keys src/usuarios/tiempo, evidencia y excepciones NAT. Revisión N1 antes de cualquier respuesta automática.\n\n## SP-R09-L03-Q01\n\n**B — Findings o intermediate findings previos y su contexto, para relacionarlos mediante criterios explícitos**. Se construye sobre hallazgos analíticos previos.\n\n## SP-R09-L03-Q02\n\n**A — NAT y proxy pueden fusionar sujetos diferentes bajo la misma IP; la clave no identifica por sí sola al actor**. Una clave de agrupación no siempre identifica persona o activo.\n\n## SP-R09-L03-P01\n\nentity canónica + tenant/domain es más robusta que src aislado; añadir ventana e identificación de fuente. Separar casos de distintos activos y evitar umbrales de riesgo como prueba de culpabilidad.\n\n## SP-R09-L04-Q01\n\n**D — 75 % de probabilidad validada de ataque**. El score no está calibrado como probabilidad.\n\n## SP-R09-L04-Q02\n\n**C — Ventana, deduplicación y peso por detección**. El diseño de agregación determina la puntuación.\n\n## SP-R09-L04-P01\n\nalice=75 (3 registros), svc-backup=36 (2), bob=22 (1), charlie=15 (1), sys-rproxy=20 (1). Solo alice supera 60; eso demuestra la matemática del CSV, no el cálculo interno de ES ni compromiso.\n\n## SP-R09-L05-Q01\n\n**D — Priorizar y gestionar hallazgos/investigaciones**. Es un espacio de operación SOC sobre findings.\n\n## SP-R09-L05-Q02\n\n**B — Evidencia, razonamiento y decisión reproducible**. La trazabilidad es esencial para auditoría y relevo.\n\n## SP-R09-L05-P01\n\nEntidad alice y señales heterogéneas; revisar identidad/tiempo, autenticación, endpoint y excepciones, propietario N1 y posible escalado N2. El CSV no demuestra ataque.\n\n## SP-R09-L06-Q01\n\n**B — IDs de evidencia, consultas, ventana y decisiones**. La trazabilidad permite revalidar cada paso.\n\n## SP-R09-L06-Q02\n\n**A — Indeterminado por datos insuficientes con acciones de mejora**. La ausencia de información puede impedir una conclusión categórica.\n\n## SP-R09-L06-P01\n\nIDs F01/F02/F03 y tiempos UTC; hipótesis de sesión inusual, fuentes auth/endpoint, limitación proxy y baseline. Cierres: benigno corroborado por cambio, o indeterminado sin auditoría; agregar acciones y responsable.\n\n## SP-R09-L07-Q01\n\n**D — Fecha de expiración pasada**. La vigencia del indicador es relevante para interpretar el match.\n\n## SP-R09-L07-Q02\n\n**A — Toda lista CSV muestra automáticamente TI Cloud en Intelligence**. La vista Intelligence tiene requisitos de TIM Cloud específicos.\n\n## SP-R09-L07-P01\n\nA referencia fija 2026-10-16T12:00:00Z, usar inicio inclusivo y expiración exclusiva a medianoche UTC. I01 e I03 son vigentes; I02 está caducado. Con igualdad value=dest, N01/N04 coinciden con I03 y N02 con I01; N03 no tiene match. confidence_note describe datos inventados, no confianza numérica. Revisar contexto sin bloquear nada ni afirmar TI real.\n\n## SP-R09-L08-Q01\n\n**D — Aprobación humana de operador autorizado y evidencias**. El riesgo operativo exige autorización y protección contra falsos positivos.\n\n## SP-R09-L08-Q02\n\n**C — Compatibilidad de versión, roles, apps y configuración real**. No es una integración implícita ni universal.\n\n## SP-R09-L08-P01\n\nTrigger finding; step 1 recopilar eventos read-only; step 2 TI y validación de identidad; decision caso y aprobación expresa para cambios; step 3 acción opcional por operador; step 4 auditoría/rollback; si falla contexto o autorizaciones no cambiar nada.\n\n"
+    },
+    {
+      "file": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R08_R09/VALIDACION/FUENTES_Y_LIMITES.md",
+      "markdown": "# Fuentes verificables y limitaciones — R08/R09\n\n**Fecha de revisión documental: 16 de octubre de 2026.** Las URLs corresponden a referencias de Microsoft, MITRE ATT&CK y Splunk Help. Para ES se priorizó **8.7**; no está probada su disponibilidad en tu entorno. \n\n- **D01 — MITRE ATT&CK — Kerberoasting (T1558.003):** https://attack.mitre.org/techniques/T1558/003/\n- **D02 — MITRE ATT&CK — DCSync (T1003.006):** https://attack.mitre.org/techniques/T1003/006/\n- **D03 — MITRE ATT&CK — Password Spraying (T1110.003):** https://attack.mitre.org/techniques/T1110/003/\n- **D04 — MITRE ATT&CK — Remote Services (T1021):** https://attack.mitre.org/techniques/T1021/\n- **D05 — Windows — Audit Directory Service Access (4662 y SACL):** https://learn.microsoft.com/windows/security/threat-protection/auditing/audit-directory-service-access\n- **D06 — Windows Security Event 4769:** https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4769\n- **D07 — Splunk ES 8.7 — Use detections to search for threats:** https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/use-detections-to-search-for-threats-in-splunk-enterprise-security\n- **D08 — Splunk ES 8.7 — Create event-based detections:** https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/create-event-based-detections-in-splunk-enterprise-security\n- **D09 — Splunk ES 8.7 — Guidelines for finding-based detections:** https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/guidelines-to-create-a-custom-finding-based-detection\n- **D10 — Splunk ES 8.7 — Risk scoring:** https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/risk-based-alerting/risk-scoring-in-splunk-enterprise-security\n- **D11 — Splunk ES 8.7 — Overview of Mission Control:** https://help.splunk.com/en/splunk-enterprise-security-8/user-guide/8.7/mission-control/overview-of-mission-control-in-splunk-enterprise-security\n- **D12 — Splunk ES 8.7 — Threat intelligence overview:** https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/threat-intelligence/overview-of-threat-intelligence-in-splunk-enterprise-security\n- **D13 — Splunk ES 8.7 — Pair Splunk with SOAR:** https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/configuration-and-settings/pair-splunk-enterprise-security-with-splunk-soar\n- **D14 — Splunk ES 8.7 — Configure SOAR apps:** https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/automation-with-playbooks/configure-splunk-soar-apps-in-splunk-enterprise-security\n- **D15 — Splunk ES 8.7 — Tune detections:** https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/tune-detections-in-splunk-enterprise-security\n- **D16 — Splunk ES 8.7 — Customize finding-group display:** https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/specify-the-display-of-finding-groups-in-the-analyst-queue-of-splunk-enterprise-security\n\n## Grados de evidencia\n\n- **LOOKUP:** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.2/search-commands/lookup — nombres de campos de tabla, AS y OUTPUT/OUTPUTNEW; consultado 16/10/2026 para R09-L07. El lookup del ejercicio no está instalado.\n\n- **[DOC]:** afirmación contrastable en documentación externa; URL incluida. No equivale a prueba del producto.\n- **[DISEÑO]:** propuesta de ejercicios, umbrales, matrices y runbooks; no es política productiva.\n- **[OFFLINE]:** cálculo determinista comprobado por Python con CSV fabricados, sin motor SPL ni búsqueda indexada.\n- **[NO PROBADO]:** los fragmentos SPL no se ejecutaron en Splunk; no se ha comprobado sintaxis ni campos en ninguna instancia.\n\n## Cuestiones de precisión decisivas\n\n1. `ServiceName` del evento 4769 no es necesariamente un SPN completo. La columna `service` del CSV no representa automáticamente el campo de evento real. Kerberoasting no queda confirmado por RC4, ni excluido por AES.\n2. Los eventos 4662 requieren condiciones de auditoría y SACL; el CSV aporta `operation_kind` inventado como abstracción, **no un parser de `Properties`/GUID de AD**. DCSync no queda probado por 4662 aislado ni descartado por su ausencia.\n3. La investigación de spraying depende de la fuente; 4625 no cubre todos los protocolos ni identidades. IP detrás de NAT no atribuye actor único.\n4. Risk-Based Alerting de ES 8.7 utiliza configuración/modelo específico. `sum(risk_points)` sobre CSV es solo aritmética educativa: NO reproduce `entity risk score` interno ni scoring real.\n5. Las event-based detections y finding-based detections son funciones de ES con requisitos por versión. Una saved search de la plataforma base no produce automáticamente objetos ES ni Mission Control.\n6. ES 8.7 diferencia Threat Intelligence nativa y TIM Cloud; la pestaña Intelligence tiene requisitos de configuración específicos.\n7. SOAR requiere producto, permisos, conectores y pairing. No se ha implementado ni ejecutado ninguna acción; propuestas disruptivas tienen puerta humana explícita.\n8. Direcciones IP RFC 5737 y todos los datos de los CSV son **sintéticos**. La fecha es UTC, mientras `_time` de Splunk exige extracción/mapeo real.\n\n## Próximos pasos antes de React\n\n- Revisión humana independiente del contenido y de opciones de preguntas.\n- Comprobación de licencia/versión/permisos de Splunk y ES, índice/sourcetype, field aliases y timezone en laboratorio autorizado.\n- Prueba de SPL en sandbox de lectura con datos ingestados y aprobación; comparación con cálculos Python; pruebas de falsos positivos/negativos.\n- Auditoría del contrato actual de contenidos/XP/progreso e identificadores en la academia 0.2.5; este ZIP es **editorial**, no un plugin compatible automáticamente.\n"
+    }
+  ],
+  "note": "Material editorial existente, sintético y documental. Revisión humana independiente pendiente. Sin ejecución SPL, ingesta, envíos HTTP ni acciones SOAR. Los CSV conservan su namespace y escenario; sus campos son contratos de diseño, no extracciones instaladas."
+}

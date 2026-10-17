@@ -1,0 +1,199 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R03-L06",
+  "title": "Ventanas con `bin` y `timechart`",
+  "revision": "f1d64a1f516c311193f02c14",
+  "sourceVersion": "29f1d4632df5697bb16dc945d362892a108b8015514f57d801aeda0264b4ccf5",
+  "sanitizedHash": "29f1d4632df5697bb16dc945d362892a108b8015514f57d801aeda0264b4ccf5",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R01_R03/R03_SPL_BASICO/SP-R03-L06.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Agrupar autenticaciones por IP/usuario en 15 minutos",
+  "preamble": "# SP-R03-L06 — Ventanas con `bin` y `timechart`\n\n**Región:** Bosque SPL I (SP-R03) · **Prioridad:** P0 SOC N1/N2  \n**Estado:** material didáctico redactado; revisión humana recomendada. **SPL no ejecutado en Splunk real.**  \n**ID estable propuesto:** `SP-R03-L06` (no migrado a React)  \n**Prerrequisitos orientativos:** SP-R03-L01  \n**Objetivo del currículo:** Agrupar autenticaciones por IP/usuario en 15 minutos\n\n",
+  "sections": [
+    {
+      "id": "SP-R03-L06-S01",
+      "title": "1. La pregunta que resuelve esta lección",
+      "markdown": "## 1. La pregunta que resuelve esta lección\n\n`bin` discretiza el tiempo, `timechart` construye series temporales; no basta agrupar por IP sin definir el intervalo.\n\n**Al completar la lección podrás:** Agrupar autenticaciones por IP/usuario en 15 minutos. Debes explicar el porqué y los límites, no memorizar solo comandos.\n\n",
+      "line": 9,
+      "endLine": 13
+    },
+    {
+      "id": "SP-R03-L06-S02",
+      "title": "2. Desarrollo del conocimiento",
+      "markdown": "## 2. Desarrollo del conocimiento\n\nUna ventana de 15 minutos reúne eventos cuya `_time` cae en el mismo bloque temporal. `bin _time span=15m` produce el intervalo discretizado y, después, `stats ... by src _time` permite conservar desglose por IP y bloque. `timechart span=15m count` construye una serie agregada por intervalos con comportamiento específico de series y bucketing. No son sustitutos perfectos de cualquier agrupación multidimensional.\nSi el objetivo es identificar orígenes que fallaron contra muchas cuentas en una misma ventana, el `dc(user)` debe agruparse por `src` y por `_time` discretizado. Un conteo global diario podría esconder actividad concentrada o mezclar ventanas independientes.\n\n",
+      "line": 15,
+      "endLine": 18
+    },
+    {
+      "id": "SP-R03-L06-S03",
+      "title": "3. Método de trabajo reproducible",
+      "markdown": "## 3. Método de trabajo reproducible\n\n1. Verifica `_time` y la unidad del evento.\n2. Selecciona intervalo motivado por la técnica.\n3. Agrupa por identidad o IP más bucket de tiempo.\n4. Aplica el umbral después de agregar.\n5. Repite análisis con ventanas alternativas para comprobar sensibilidad.\n\n",
+      "line": 20,
+      "endLine": 26
+    },
+    {
+      "id": "SP-R03-L06-S04",
+      "title": "4. Caso guiado — de la pregunta a la evidencia",
+      "markdown": "## 4. Caso guiado — de la pregunta a la evidencia\n\nUna IP tiene tres usuarios fallidos a las 09:01–09:05 y otros tres a las 09:30–09:35. El total diario da seis, pero ninguna ventana de 15 minutos tiene seis identidades. La conclusión depende de la granularidad.\n\n### Esquema o ejemplo técnico\n\n```spl\nindex=INDICE_AUTH action=failure earliest=-24h\n| bin _time span=15m\n| stats count AS fallos dc(user) AS cuentas by src _time\n| where cuentas>=5\n```\n\n**Cómo interpretarlo:** Es una detección ilustrativa condicionada al esquema. Los eventos tardíos siguen ordenándose por `_time` asignado; revisa relojes antes de comparar.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n",
+      "line": 28,
+      "endLine": 43
+    },
+    {
+      "id": "SP-R03-L06-S05",
+      "title": "5. Diagnóstico y errores frecuentes",
+      "markdown": "## 5. Diagnóstico y errores frecuentes\n\nCalcular `dc(user)` sin incluir _time en agrupación; interpretar bin como ventana móvil; olvidar ventanas que cruzan límites de bucket.\n\n**Conexión con SC-200 (no equivalencia automática):** Cap. 13 (bin / summarize), líneas 2517–2810.. En Splunk los esquemas, permisos y familias de producto son diferentes; verifica la correspondencia antes de reutilizar una técnica.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 45,
+      "endLine": 52
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R03-L06-Q01",
+      "lessonId": "SP-R03-L06",
+      "prompt": "¿Qué hace `bin _time span=15m`?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A10",
+        "SPLUNK_LECCIONES_R01_R03:A11",
+        "SPLUNK_LECCIONES_R01_R03:A12"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R03-L06-Q01-O-a2e63719161f",
+          "text": "Asignar _time a bloques discretos de quince minutos; el conteo y la agrupación se hacen después"
+        },
+        {
+          "id": "SP-R03-L06-Q01-O-375711e16b19",
+          "text": "Calcula directamente un conteo de quince minutos por cada origen"
+        },
+        {
+          "id": "SP-R03-L06-Q01-O-b5937b69f504",
+          "text": "Reduce la búsqueda a los últimos quince minutos sin otra condición"
+        },
+        {
+          "id": "SP-R03-L06-Q01-O-e679d13b3187",
+          "text": "Crea una ventana móvil centrada en cada evento"
+        }
+      ],
+      "solution": "SP-R03-L06-Q01-O-a2e63719161f",
+      "explanation": "Discretiza la columna _time de la búsqueda para agrupar.",
+      "anchors": [
+        {
+          "file": "R03_SPL_BASICO/SP-R03-L06.md",
+          "sourceHash": "29f1d4632df5697bb16dc945d362892a108b8015514f57d801aeda0264b4ccf5",
+          "line": 15,
+          "endLine": 18,
+          "quote": "## 2. Desarrollo del conocimiento\n\nUna ventana de 15 minutos reúne eventos cuya `_time` cae en el mismo bloque temporal. `bin _time span=15m` produce el intervalo discretizado y, después, `stats ... by src _time` permite conservar desglose por IP y bloque. `timechart span=15m count` construye una serie agregada por intervalos con comportamiento específico de series y bucketing. No son sustitutos perfectos de cualquier agrupación multidimensional.\nSi el objetivo es identificar orígenes que fallaron contra muchas cuentas en una misma ventana, el `dc(user)` debe agruparse por `src` y por `_time` discretizado. Un conteo global diario podría esconder actividad concentrada o mezclar ventanas independientes.\n\n"
+        },
+        {
+          "file": "R03_SPL_BASICO/SP-R03-L06.md",
+          "sourceHash": "29f1d4632df5697bb16dc945d362892a108b8015514f57d801aeda0264b4ccf5",
+          "line": 28,
+          "endLine": 43,
+          "quote": "## 4. Caso guiado — de la pregunta a la evidencia\n\nUna IP tiene tres usuarios fallidos a las 09:01–09:05 y otros tres a las 09:30–09:35. El total diario da seis, pero ninguna ventana de 15 minutos tiene seis identidades. La conclusión depende de la granularidad.\n\n### Esquema o ejemplo técnico\n\n```spl\nindex=INDICE_AUTH action=failure earliest=-24h\n| bin _time span=15m\n| stats count AS fallos dc(user) AS cuentas by src _time\n| where cuentas>=5\n```\n\n**Cómo interpretarlo:** Es una detección ilustrativa condicionada al esquema. Los eventos tardíos siguen ordenándose por `_time` asignado; revisa relojes antes de comparar.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R03-L06-Q02",
+      "lessonId": "SP-R03-L06",
+      "prompt": "¿Por qué agrupar por `src _time` después de bin?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A10",
+        "SPLUNK_LECCIONES_R01_R03:A11",
+        "SPLUNK_LECCIONES_R01_R03:A12"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R03-L06-Q02-O-1e1cd1400cab",
+          "text": "Para agrupar solo por identidad y sumar después los orígenes"
+        },
+        {
+          "id": "SP-R03-L06-Q02-O-721915a27980",
+          "text": "Para conservar cada evento original con su hora exacta"
+        },
+        {
+          "id": "SP-R03-L06-Q02-O-a492e8fa76d2",
+          "text": "Para calcular un único total diario y distribuirlo entre los orígenes"
+        },
+        {
+          "id": "SP-R03-L06-Q02-O-a14b3923b8b4",
+          "text": "Para retener IP y ventana en cada agregado"
+        }
+      ],
+      "solution": "SP-R03-L06-Q02-O-a14b3923b8b4",
+      "explanation": "Cada fila representa un origen dentro de un bucket temporal.",
+      "anchors": [
+        {
+          "file": "R03_SPL_BASICO/SP-R03-L06.md",
+          "sourceHash": "29f1d4632df5697bb16dc945d362892a108b8015514f57d801aeda0264b4ccf5",
+          "line": 15,
+          "endLine": 18,
+          "quote": "## 2. Desarrollo del conocimiento\n\nUna ventana de 15 minutos reúne eventos cuya `_time` cae en el mismo bloque temporal. `bin _time span=15m` produce el intervalo discretizado y, después, `stats ... by src _time` permite conservar desglose por IP y bloque. `timechart span=15m count` construye una serie agregada por intervalos con comportamiento específico de series y bucketing. No son sustitutos perfectos de cualquier agrupación multidimensional.\nSi el objetivo es identificar orígenes que fallaron contra muchas cuentas en una misma ventana, el `dc(user)` debe agruparse por `src` y por `_time` discretizado. Un conteo global diario podría esconder actividad concentrada o mezclar ventanas independientes.\n\n"
+        },
+        {
+          "file": "R03_SPL_BASICO/SP-R03-L06.md",
+          "sourceHash": "29f1d4632df5697bb16dc945d362892a108b8015514f57d801aeda0264b4ccf5",
+          "line": 28,
+          "endLine": 43,
+          "quote": "## 4. Caso guiado — de la pregunta a la evidencia\n\nUna IP tiene tres usuarios fallidos a las 09:01–09:05 y otros tres a las 09:30–09:35. El total diario da seis, pero ninguna ventana de 15 minutos tiene seis identidades. La conclusión depende de la granularidad.\n\n### Esquema o ejemplo técnico\n\n```spl\nindex=INDICE_AUTH action=failure earliest=-24h\n| bin _time span=15m\n| stats count AS fallos dc(user) AS cuentas by src _time\n| where cuentas>=5\n```\n\n**Cómo interpretarlo:** Es una detección ilustrativa condicionada al esquema. Los eventos tardíos siguen ordenándose por `_time` asignado; revisa relojes antes de comparar.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R03-L06-P01",
+      "lessonId": "SP-R03-L06",
+      "prompt": "Compara conteo de seis cuentas fallidas en un día frente a dos bloques separados de tres.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A10",
+        "SPLUNK_LECCIONES_R01_R03:A11",
+        "SPLUNK_LECCIONES_R01_R03:A12"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica los datos/condiciones necesarios",
+        "Explica el razonamiento y no solo el resultado",
+        "Reconoce al menos una limitación o comprobación adicional"
+      ],
+      "referenceAnswer": "El total diario puede superar el umbral, pero `dc(user)` por ventana de 15 min da 3 y 3. No se debe concluir spray por esa regla concreta."
+    }
+  ],
+  "solutionsMarkdown": "## 7. Solucionario con razonamiento\n\n- **SP-R03-L06-Q01: A** — Discretiza la columna _time de la búsqueda para agrupar.\n\n- **SP-R03-L06-Q02: D** — Cada fila representa un origen dentro de un bucket temporal.\n\n- **SP-R03-L06-P01:** El total diario puede superar el umbral, pero `dc(user)` por ventana de 15 min da 3 y 3. No se debe concluir spray por esa regla concreta.\n\n**Guía de retroalimentación formativa:** Identifica los datos/condiciones necesarios; Explica el razonamiento y no solo el resultado; Reconoce al menos una limitación o comprobación adicional.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 8. Fuentes y trazabilidad\n\n- **Fuente de partida:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE2_BLOQUE1.md`, según la organización del paquete de investigación que conservas.\n- **Fuente Microsoft de contraste:** `../../01_FUENTE_ORIGINAL/SC-200.md`; Cap. 13 (bin / summarize), líneas 2517–2810.\n- **[A10]** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/search-commands/stats\n- **[A11]** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/search-commands/bin\n- **[A12]** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/search-commands/where\n\n**Estado de confianza:** documentación técnica citada y propuesta pedagógica; no validado contra índices, sourcetypes, roles o versiones de tu laboratorio. Las URLs provienen de la investigación del 16/10/2026, con contraste puntual adicional de documentación oficial para HEC y forwarders. Ver `FUENTES_Y_LIMITES.md`.\n",
+  "originalMarkdown": "# SP-R03-L06 — Ventanas con `bin` y `timechart`\n\n**Región:** Bosque SPL I (SP-R03) · **Prioridad:** P0 SOC N1/N2  \n**Estado:** material didáctico redactado; revisión humana recomendada. **SPL no ejecutado en Splunk real.**  \n**ID estable propuesto:** `SP-R03-L06` (no migrado a React)  \n**Prerrequisitos orientativos:** SP-R03-L01  \n**Objetivo del currículo:** Agrupar autenticaciones por IP/usuario en 15 minutos\n\n## 1. La pregunta que resuelve esta lección\n\n`bin` discretiza el tiempo, `timechart` construye series temporales; no basta agrupar por IP sin definir el intervalo.\n\n**Al completar la lección podrás:** Agrupar autenticaciones por IP/usuario en 15 minutos. Debes explicar el porqué y los límites, no memorizar solo comandos.\n\n## 2. Desarrollo del conocimiento\n\nUna ventana de 15 minutos reúne eventos cuya `_time` cae en el mismo bloque temporal. `bin _time span=15m` produce el intervalo discretizado y, después, `stats ... by src _time` permite conservar desglose por IP y bloque. `timechart span=15m count` construye una serie agregada por intervalos con comportamiento específico de series y bucketing. No son sustitutos perfectos de cualquier agrupación multidimensional.\nSi el objetivo es identificar orígenes que fallaron contra muchas cuentas en una misma ventana, el `dc(user)` debe agruparse por `src` y por `_time` discretizado. Un conteo global diario podría esconder actividad concentrada o mezclar ventanas independientes.\n\n## 3. Método de trabajo reproducible\n\n1. Verifica `_time` y la unidad del evento.\n2. Selecciona intervalo motivado por la técnica.\n3. Agrupa por identidad o IP más bucket de tiempo.\n4. Aplica el umbral después de agregar.\n5. Repite análisis con ventanas alternativas para comprobar sensibilidad.\n\n## 4. Caso guiado — de la pregunta a la evidencia\n\nUna IP tiene tres usuarios fallidos a las 09:01–09:05 y otros tres a las 09:30–09:35. El total diario da seis, pero ninguna ventana de 15 minutos tiene seis identidades. La conclusión depende de la granularidad.\n\n### Esquema o ejemplo técnico\n\n```spl\nindex=INDICE_AUTH action=failure earliest=-24h\n| bin _time span=15m\n| stats count AS fallos dc(user) AS cuentas by src _time\n| where cuentas>=5\n```\n\n**Cómo interpretarlo:** Es una detección ilustrativa condicionada al esquema. Los eventos tardíos siguen ordenándose por `_time` asignado; revisa relojes antes de comparar.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n## 5. Diagnóstico y errores frecuentes\n\nCalcular `dc(user)` sin incluir _time en agrupación; interpretar bin como ventana móvil; olvidar ventanas que cruzan límites de bucket.\n\n**Conexión con SC-200 (no equivalencia automática):** Cap. 13 (bin / summarize), líneas 2517–2810.. En Splunk los esquemas, permisos y familias de producto son diferentes; verifica la correspondencia antes de reutilizar una técnica.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 6. Actividades\n\n### SP-R03-L06-Q01 — Opción múltiple\n\n¿Qué hace `bin _time span=15m`?\n\nA. Asignar _time a bloques discretos de quince minutos; el conteo y la agrupación se hacen después\nB. Calcula directamente un conteo de quince minutos por cada origen\nC. Reduce la búsqueda a los últimos quince minutos sin otra condición\nD. Crea una ventana móvil centrada en cada evento\n\n### SP-R03-L06-Q02 — Opción múltiple\n\n¿Por qué agrupar por `src _time` después de bin?\n\nA. Para agrupar solo por identidad y sumar después los orígenes\nB. Para conservar cada evento original con su hora exacta\nC. Para calcular un único total diario y distribuirlo entre los orígenes\nD. Para retener IP y ventana en cada agregado\n\n### SP-R03-L06-P01 — Práctica abierta formativa\n\nCompara conteo de seis cuentas fallidas en un día frente a dos bloques separados de tres.\n\n## 7. Solucionario con razonamiento\n\n- **SP-R03-L06-Q01: A** — Discretiza la columna _time de la búsqueda para agrupar.\n\n- **SP-R03-L06-Q02: D** — Cada fila representa un origen dentro de un bucket temporal.\n\n- **SP-R03-L06-P01:** El total diario puede superar el umbral, pero `dc(user)` por ventana de 15 min da 3 y 3. No se debe concluir spray por esa regla concreta.\n\n**Guía de retroalimentación formativa:** Identifica los datos/condiciones necesarios; Explica el razonamiento y no solo el resultado; Reconoce al menos una limitación o comprobación adicional.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Fuentes y trazabilidad\n\n- **Fuente de partida:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE2_BLOQUE1.md`, según la organización del paquete de investigación que conservas.\n- **Fuente Microsoft de contraste:** `../../01_FUENTE_ORIGINAL/SC-200.md`; Cap. 13 (bin / summarize), líneas 2517–2810.\n- **[A10]** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/search-commands/stats\n- **[A11]** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/search-commands/bin\n- **[A12]** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/search-commands/where\n\n**Estado de confianza:** documentación técnica citada y propuesta pedagógica; no validado contra índices, sourcetypes, roles o versiones de tu laboratorio. Las URLs provienen de la investigación del 16/10/2026, con contraste puntual adicional de documentación oficial para HEC y forwarders. Ver `FUENTES_Y_LIMITES.md`.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 8,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "A10",
+      "key": "SPLUNK_LECCIONES_R01_R03:A10",
+      "url": "https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/search-commands/stats"
+    },
+    {
+      "id": "A11",
+      "key": "SPLUNK_LECCIONES_R01_R03:A11",
+      "url": "https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/search-commands/bin"
+    },
+    {
+      "id": "A12",
+      "key": "SPLUNK_LECCIONES_R01_R03:A12",
+      "url": "https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/search-commands/where"
+    }
+  ]
+}

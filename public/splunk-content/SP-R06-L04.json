@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R06-L04",
+  "title": "Cronología reproducible",
+  "revision": "db93e41dbda048efad5735c8",
+  "sourceVersion": "937cd1f0a0c5d2e409c68caeaefa61cd2b62961600d39e7a6a4b16ce8d4af442",
+  "sanitizedHash": "937cd1f0a0c5d2e409c68caeaefa61cd2b62961600d39e7a6a4b16ce8d4af442",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R06_R07/R06_CENTRO_SOC/SP-R06-L04.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Reconciliar _time, _indextime, zonas horarias y evidencias",
+  "preamble": "# SP-R06-L04 — Cronología reproducible\n\n**Región:** SP-R06 · **Prioridad:** P0 (SOC N1/N2) · **Estado:** material editorial para revisión · **SPL:** NO ejecutado en Splunk.\n\n**Objetivo curricular original:** Reconciliar _time, _indextime, zonas horarias y evidencias\n\n**Prerrequisitos:** R01–R05 y lectura de la matriz de campos. **Producto:** Splunk Enterprise/Cloud (búsquedas de lectura); funciones ES explícitamente condicionadas a Splunk Enterprise Security compatible.\n\n",
+  "sections": [
+    {
+      "id": "SP-R06-L04-S01",
+      "title": "1. Pregunta esencial y modelo mental",
+      "markdown": "## 1. Pregunta esencial y modelo mental\n\nUna línea de tiempo forense necesita comparar el momento que dice el evento (`_time`) con el momento que Splunk lo incorporó (`_indextime`). Si existe retraso de ingesta, una alerta periódica puede encontrar eventos antiguos después del turno que los produjo. El timezone de interfaz y errores de reloj pueden invertir la secuencia aparente.\n\n",
+      "line": 9,
+      "endLine": 11
+    },
+    {
+      "id": "SP-R06-L04-S02",
+      "title": "2. Conceptos que debes dominar",
+      "markdown": "## 2. Conceptos que debes dominar\n\n1. Conserva horas en UTC ISO-8601 y apunta explícitamente la zona horaria de representación.\n2. `_time` representa timestamp de evento según parseo; `_indextime` indica tiempo de indexación. Diferencia positiva grande sugiere retraso o desajuste horario.\n3. Ordenar sólo por `_time` empata algunos eventos: añade `event_id` para orden determinista en fixtures.\n4. Cuando fuentes de relojes diferentes difieren, registra precisión, drift y si tiempo procede del dispositivo o colector.\n5. La ventana de ejecución de una regla debe contemplar latencia sin duplicar notificaciones indebidamente.\n\n",
+      "line": 13,
+      "endLine": 19
+    },
+    {
+      "id": "SP-R06-L04-S03",
+      "title": "3. Práctica guiada: del dato a la conclusión",
+      "markdown": "## 3. Práctica guiada: del dato a la conclusión\n\n1. Compara A001 y A021: mismo periodo de evento, pero A021 fue indexado más tarde.\n2. Calcula latencia en segundos leyendo `event_time_utc` y `indexed_at_utc`.\n3. Ordena eventos en UTC y separa “orden de ocurrencia” de “orden de llegada al SIEM”.\n4. Escribe cómo adaptar una scheduled search para late arrivals sin afirmar que todas las fuentes tienen igual demora.\n5. Cita IDs y esquema para que un compañero reproduzca la cronología.\n\n",
+      "line": 21,
+      "endLine": 27
+    },
+    {
+      "id": "SP-R06-L04-S04",
+      "title": "4. SPL ilustrativo de solo lectura — NO probado en Splunk",
+      "markdown": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC\n| eval ingest_delay_sec=_indextime-_time\n| table _time _indextime ingest_delay_sec host EventCode event_id\n| sort 0 _time event_id\n```\n\n**Interpretación, supuestos y límites:** Se utiliza referencia oficial de Splunk sobre index delay. Los tiempos CSV son cadenas UTC, mientras `_time` y `_indextime` son campos internos epoch en Splunk; para CSV simulado debes hacer mapping/parseo antes de comparar.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n",
+      "line": 29,
+      "endLine": 40
+    },
+    {
+      "id": "SP-R06-L04-S05",
+      "title": "5. Caso del turno SOC",
+      "markdown": "## 5. Caso del turno SOC\n\nUn evento de 09:04 entra en el índice 09:24; una regla que usa solo 09:00–09:15 puede haberlo perdido si ejecutó a 09:16.\n\n## 6. Errores frecuentes\n\n1. Mezclar UTC con local sin marcarlo.\n2. Suponer que event time y index time son idénticos.\n3. Concluir actividad en otra fecha por conversiones de visualización erróneas.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 42,
+      "endLine": 53
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R06-L04-Q01",
+      "lessonId": "SP-R06-L04",
+      "prompt": "¿Qué fórmula documenta Splunk para aproximar delay de ingesta?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D03",
+        "SPLUNK_LECCIONES_R06_R07:D01"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R06-L04-Q01-O-3ab24a0cf8f6",
+          "text": "_time - _indextime"
+        },
+        {
+          "id": "SP-R06-L04-Q01-O-685d6f2c37b5",
+          "text": "now() - _time"
+        },
+        {
+          "id": "SP-R06-L04-Q01-O-bcb365361e14",
+          "text": "now() - _indextime"
+        },
+        {
+          "id": "SP-R06-L04-Q01-O-5c8b6adb0302",
+          "text": "_indextime - _time: diferencia entre indexación y tiempo de evento, que aún requiere contexto"
+        }
+      ],
+      "solution": "SP-R06-L04-Q01-O-5c8b6adb0302",
+      "explanation": "La diferencia mide retraso observado, con posibles desajustes de timestamp.",
+      "anchors": [
+        {
+          "file": "R06_CENTRO_SOC/SP-R06-L04.md",
+          "sourceHash": "937cd1f0a0c5d2e409c68caeaefa61cd2b62961600d39e7a6a4b16ce8d4af442",
+          "line": 13,
+          "endLine": 19,
+          "quote": "## 2. Conceptos que debes dominar\n\n1. Conserva horas en UTC ISO-8601 y apunta explícitamente la zona horaria de representación.\n2. `_time` representa timestamp de evento según parseo; `_indextime` indica tiempo de indexación. Diferencia positiva grande sugiere retraso o desajuste horario.\n3. Ordenar sólo por `_time` empata algunos eventos: añade `event_id` para orden determinista en fixtures.\n4. Cuando fuentes de relojes diferentes difieren, registra precisión, drift y si tiempo procede del dispositivo o colector.\n5. La ventana de ejecución de una regla debe contemplar latencia sin duplicar notificaciones indebidamente.\n\n"
+        },
+        {
+          "file": "R06_CENTRO_SOC/SP-R06-L04.md",
+          "sourceHash": "937cd1f0a0c5d2e409c68caeaefa61cd2b62961600d39e7a6a4b16ce8d4af442",
+          "line": 29,
+          "endLine": 40,
+          "quote": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC\n| eval ingest_delay_sec=_indextime-_time\n| table _time _indextime ingest_delay_sec host EventCode event_id\n| sort 0 _time event_id\n```\n\n**Interpretación, supuestos y límites:** Se utiliza referencia oficial de Splunk sobre index delay. Los tiempos CSV son cadenas UTC, mientras `_time` y `_indextime` son campos internos epoch en Splunk; para CSV simulado debes hacer mapping/parseo antes de comparar.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R06-L04-Q02",
+      "lessonId": "SP-R06-L04",
+      "prompt": "¿Puede una búsqueda tardía recuperar evento de una ventana antigua?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D03",
+        "SPLUNK_LECCIONES_R06_R07:D01"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R06-L04-Q02-O-c1deed9df3a4",
+          "text": "Sí, si el evento ha sido indexado y se consulta su _time adecuado"
+        },
+        {
+          "id": "SP-R06-L04-Q02-O-0e7729a344e1",
+          "text": "No, porque la ventana se fija definitivamente cuando termina el primer job"
+        },
+        {
+          "id": "SP-R06-L04-Q02-O-c73b313cd233",
+          "text": "Sí, porque una búsqueda posterior añade eventos sin cambiar el corte histórico original"
+        },
+        {
+          "id": "SP-R06-L04-Q02-O-c5af684008f9",
+          "text": "Sí, cambiando solo el rango de indexación aunque se excluya su _time"
+        }
+      ],
+      "solution": "SP-R06-L04-Q02-O-c1deed9df3a4",
+      "explanation": "El evento llega tarde pero puede ser consultable con su timestamp de ocurrencia.",
+      "anchors": [
+        {
+          "file": "R06_CENTRO_SOC/SP-R06-L04.md",
+          "sourceHash": "937cd1f0a0c5d2e409c68caeaefa61cd2b62961600d39e7a6a4b16ce8d4af442",
+          "line": 13,
+          "endLine": 19,
+          "quote": "## 2. Conceptos que debes dominar\n\n1. Conserva horas en UTC ISO-8601 y apunta explícitamente la zona horaria de representación.\n2. `_time` representa timestamp de evento según parseo; `_indextime` indica tiempo de indexación. Diferencia positiva grande sugiere retraso o desajuste horario.\n3. Ordenar sólo por `_time` empata algunos eventos: añade `event_id` para orden determinista en fixtures.\n4. Cuando fuentes de relojes diferentes difieren, registra precisión, drift y si tiempo procede del dispositivo o colector.\n5. La ventana de ejecución de una regla debe contemplar latencia sin duplicar notificaciones indebidamente.\n\n"
+        },
+        {
+          "file": "R06_CENTRO_SOC/SP-R06-L04.md",
+          "sourceHash": "937cd1f0a0c5d2e409c68caeaefa61cd2b62961600d39e7a6a4b16ce8d4af442",
+          "line": 29,
+          "endLine": 40,
+          "quote": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC\n| eval ingest_delay_sec=_indextime-_time\n| table _time _indextime ingest_delay_sec host EventCode event_id\n| sort 0 _time event_id\n```\n\n**Interpretación, supuestos y límites:** Se utiliza referencia oficial de Splunk sobre index delay. Los tiempos CSV son cadenas UTC, mientras `_time` y `_indextime` son campos internos epoch en Splunk; para CSV simulado debes hacer mapping/parseo antes de comparar.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R06-L04-P01",
+      "lessonId": "SP-R06-L04",
+      "prompt": "Elabora línea de tiempo con A001, A007 y A021, añade latencia e impacto sobre una detección scheduled.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D03",
+        "SPLUNK_LECCIONES_R06_R07:D01"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica datos y supuestos de la fuente",
+        "Plantea método correcto y distingue hechos de hipótesis",
+        "Explica limitaciones, alternativa benigna y telemetría ausente",
+        "Aporta evidencia, ventana e identificación reproducibles"
+      ],
+      "referenceAnswer": "A001 09:01 → index 09:01:10 (10s); A007 09:08 → 09:08:12 (12s); A021 09:04 → 09:24 (1200s). Evento tardío: controlar solapamiento ventanas, deduplicación y cobertura."
+    }
+  ],
+  "solutionsMarkdown": "### Solucionario con razonamiento\n\n- **SP-R06-L04-Q01: D** — La diferencia mide retraso observado, con posibles desajustes de timestamp.\n\n- **SP-R06-L04-Q02: A** — El evento llega tarde pero puede ser consultable con su timestamp de ocurrencia.\n\n- **SP-R06-L04-P01:** A001 09:01 → index 09:01:10 (10s); A007 09:08 → 09:08:12 (12s); A021 09:04 → 09:24 (1200s). Evento tardío: controlar solapamiento ventanas, deduplicación y cobertura.\n\n**Guía de retroalimentación formativa:** Identifica datos y supuestos de la fuente; Plantea método correcto y distingue hechos de hipótesis; Explica limitaciones, alternativa benigna y telemetría ausente; Aporta evidencia, ventana e identificación reproducibles.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 8. Bibliografía, mapeo y estatus\n\n- **D03:** Retraso de indexación y campos _time/_indextime — https://help.splunk.com/en/data-management/monitor-data-onboarding/troubleshoot-splunk-enterprise/10.6/data-acquisition-problems/event-indexing-delay\n- **D01:** Condiciones de alertas y resultados — https://help.splunk.com/en/splunk-enterprise/alert-and-respond/alerting-manual/10.0/manage-alert-trigger-conditions-and-throttling/configure-alert-trigger-conditions\n\n- **Currículo:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` — ID, título y resultado intactos.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` — los bloques R06/R07 y laboratorios de diseño.\n- **Puente SC-200:** Capítulos 08 y 09: cronología y evidencia. Documento en `../../01_FUENTE_ORIGINAL/SC-200.md`; relación conceptual, no traducción ni equivalencia garantizada.\n\n**Clasificación de evidencia:** [DOC] respaldo documental de fuentes; [DISEÑO] procedimientos y rúbricas propuestos; [OFFLINE] sólo cálculos de fixtures reproducibles; [NO PROBADO] ejemplos SPL no ejecutados en la instancia. Validación técnica/manual de contenidos pendiente antes de integrarlo en React.\n",
+  "originalMarkdown": "# SP-R06-L04 — Cronología reproducible\n\n**Región:** SP-R06 · **Prioridad:** P0 (SOC N1/N2) · **Estado:** material editorial para revisión · **SPL:** NO ejecutado en Splunk.\n\n**Objetivo curricular original:** Reconciliar _time, _indextime, zonas horarias y evidencias\n\n**Prerrequisitos:** R01–R05 y lectura de la matriz de campos. **Producto:** Splunk Enterprise/Cloud (búsquedas de lectura); funciones ES explícitamente condicionadas a Splunk Enterprise Security compatible.\n\n## 1. Pregunta esencial y modelo mental\n\nUna línea de tiempo forense necesita comparar el momento que dice el evento (`_time`) con el momento que Splunk lo incorporó (`_indextime`). Si existe retraso de ingesta, una alerta periódica puede encontrar eventos antiguos después del turno que los produjo. El timezone de interfaz y errores de reloj pueden invertir la secuencia aparente.\n\n## 2. Conceptos que debes dominar\n\n1. Conserva horas en UTC ISO-8601 y apunta explícitamente la zona horaria de representación.\n2. `_time` representa timestamp de evento según parseo; `_indextime` indica tiempo de indexación. Diferencia positiva grande sugiere retraso o desajuste horario.\n3. Ordenar sólo por `_time` empata algunos eventos: añade `event_id` para orden determinista en fixtures.\n4. Cuando fuentes de relojes diferentes difieren, registra precisión, drift y si tiempo procede del dispositivo o colector.\n5. La ventana de ejecución de una regla debe contemplar latencia sin duplicar notificaciones indebidamente.\n\n## 3. Práctica guiada: del dato a la conclusión\n\n1. Compara A001 y A021: mismo periodo de evento, pero A021 fue indexado más tarde.\n2. Calcula latencia en segundos leyendo `event_time_utc` y `indexed_at_utc`.\n3. Ordena eventos en UTC y separa “orden de ocurrencia” de “orden de llegada al SIEM”.\n4. Escribe cómo adaptar una scheduled search para late arrivals sin afirmar que todas las fuentes tienen igual demora.\n5. Cita IDs y esquema para que un compañero reproduzca la cronología.\n\n## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC\n| eval ingest_delay_sec=_indextime-_time\n| table _time _indextime ingest_delay_sec host EventCode event_id\n| sort 0 _time event_id\n```\n\n**Interpretación, supuestos y límites:** Se utiliza referencia oficial de Splunk sobre index delay. Los tiempos CSV son cadenas UTC, mientras `_time` y `_indextime` son campos internos epoch en Splunk; para CSV simulado debes hacer mapping/parseo antes de comparar.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n## 5. Caso del turno SOC\n\nUn evento de 09:04 entra en el índice 09:24; una regla que usa solo 09:00–09:15 puede haberlo perdido si ejecutó a 09:16.\n\n## 6. Errores frecuentes\n\n1. Mezclar UTC con local sin marcarlo.\n2. Suponer que event time y index time son idénticos.\n3. Concluir actividad en otra fecha por conversiones de visualización erróneas.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R06-L04-Q01 — Opción múltiple\n\n¿Qué fórmula documenta Splunk para aproximar delay de ingesta?\n\nA. _time - _indextime\nB. now() - _time\nC. now() - _indextime\nD. _indextime - _time: diferencia entre indexación y tiempo de evento, que aún requiere contexto\n\n### SP-R06-L04-Q02 — Opción múltiple\n\n¿Puede una búsqueda tardía recuperar evento de una ventana antigua?\n\nA. Sí, si el evento ha sido indexado y se consulta su _time adecuado\nB. No, porque la ventana se fija definitivamente cuando termina el primer job\nC. Sí, porque una búsqueda posterior añade eventos sin cambiar el corte histórico original\nD. Sí, cambiando solo el rango de indexación aunque se excluya su _time\n\n### SP-R06-L04-P01 — Práctica abierta formativa\n\nElabora línea de tiempo con A001, A007 y A021, añade latencia e impacto sobre una detección scheduled.\n\n### Solucionario con razonamiento\n\n- **SP-R06-L04-Q01: D** — La diferencia mide retraso observado, con posibles desajustes de timestamp.\n\n- **SP-R06-L04-Q02: A** — El evento llega tarde pero puede ser consultable con su timestamp de ocurrencia.\n\n- **SP-R06-L04-P01:** A001 09:01 → index 09:01:10 (10s); A007 09:08 → 09:08:12 (12s); A021 09:04 → 09:24 (1200s). Evento tardío: controlar solapamiento ventanas, deduplicación y cobertura.\n\n**Guía de retroalimentación formativa:** Identifica datos y supuestos de la fuente; Plantea método correcto y distingue hechos de hipótesis; Explica limitaciones, alternativa benigna y telemetría ausente; Aporta evidencia, ventana e identificación reproducibles.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Bibliografía, mapeo y estatus\n\n- **D03:** Retraso de indexación y campos _time/_indextime — https://help.splunk.com/en/data-management/monitor-data-onboarding/troubleshoot-splunk-enterprise/10.6/data-acquisition-problems/event-indexing-delay\n- **D01:** Condiciones de alertas y resultados — https://help.splunk.com/en/splunk-enterprise/alert-and-respond/alerting-manual/10.0/manage-alert-trigger-conditions-and-throttling/configure-alert-trigger-conditions\n\n- **Currículo:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` — ID, título y resultado intactos.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` — los bloques R06/R07 y laboratorios de diseño.\n- **Puente SC-200:** Capítulos 08 y 09: cronología y evidencia. Documento en `../../01_FUENTE_ORIGINAL/SC-200.md`; relación conceptual, no traducción ni equivalencia garantizada.\n\n**Clasificación de evidencia:** [DOC] respaldo documental de fuentes; [DISEÑO] procedimientos y rúbricas propuestos; [OFFLINE] sólo cálculos de fixtures reproducibles; [NO PROBADO] ejemplos SPL no ejecutados en la instancia. Validación técnica/manual de contenidos pendiente antes de integrarlo en React.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 8,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D03",
+      "key": "SPLUNK_LECCIONES_R06_R07:D03",
+      "url": "https://help.splunk.com/en/data-management/monitor-data-onboarding/troubleshoot-splunk-enterprise/10.6/data-acquisition-problems/event-indexing-delay"
+    },
+    {
+      "id": "D01",
+      "key": "SPLUNK_LECCIONES_R06_R07:D01",
+      "url": "https://help.splunk.com/en/splunk-enterprise/alert-and-respond/alerting-manual/10.0/manage-alert-trigger-conditions-and-throttling/configure-alert-trigger-conditions"
+    }
+  ]
+}

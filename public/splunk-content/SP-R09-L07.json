@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R09-L07",
+  "title": "TI y enriquecimiento de ES",
+  "revision": "128aa2cf997cc2548171923a",
+  "sourceVersion": "fe224770a77886d5aac90cf62271eb3eddbf7851e3c6917982cbd9d72fa103e6",
+  "sanitizedHash": "fe224770a77886d5aac90cf62271eb3eddbf7851e3c6917982cbd9d72fa103e6",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R08_R09/R09_ENTERPRISE_SECURITY/SP-R09-L07.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Interpretar indicadores, reputación y contexto",
+  "preamble": "# SP-R09-L07 — TI y enriquecimiento de ES\n\n**Región:** SP-R09 · **Estado:** borrador editorial para revisión · **SPL:** ilustrativo NO ejecutado.\n\n**Resultado de aprendizaje curricular:** Interpretar indicadores, reputación y contexto.\n\n**Prerrequisitos:** R01–R07 según tema; R08 para agrupación/escalado R09. **Producto:** plataforma Splunk para SPL genérico; funciones ES 8.7/SOAR solo cuando se indiquen.\n\n",
+  "sections": [
+    {
+      "id": "SP-R09-L07-S01",
+      "title": "1. Explicación técnica",
+      "markdown": "## 1. Explicación técnica\n\nThreat Intelligence (TI) relaciona observables — IP, dominio, hash u otros indicadores — con contexto de fuente, confianza, fecha y vigencia. Un match de indicador no significa necesariamente compromiso: puede ser infraestructura compartida, CDN, IP reutilizada, observación antigua o un dato erroneamente categorizado. Antes de escalar comprueba tiempo de validez y si el evento es conexión hacia la IP, desde ella o solo texto en un log.\n\nES proporciona gestión de fuentes TI y enriquecimiento; ES 8.7 diferencia fuentes nativas y Threat Intelligence Management (Cloud), con requisitos propios para determinadas vistas de investigación. Por tanto, no hay que asumir que al cargar un CSV en la plataforma aparecerá automáticamente en la pestaña Intelligence de Mission Control.\n\nEl laboratorio opera con IP reservadas para documentación (`198.51.100.0/24`, `203.0.113.0/24`) y un CSV propio. Es un ejercicio de calidad de indicadores, no un feed de amenazas activo ni una detección real.\n\n",
+      "line": 9,
+      "endLine": 15
+    },
+    {
+      "id": "SP-R09-L07-S02",
+      "title": "2. Conceptos que debes distinguir",
+      "markdown": "## 2. Conceptos que debes distinguir\n\n1. Indicador, observable, fuente, confianza y ventana de vigencia\n2. Match ≠ causalidad ni compromiso\n3. Fuentes TI nativas vs TIM Cloud: capacidades de visualización distintas\n4. Falsos positivos por infraestructura compartida y expiración\n\n",
+      "line": 17,
+      "endLine": 22
+    },
+    {
+      "id": "SP-R09-L07-S03",
+      "title": "3. Procedimiento reproducible y seguro",
+      "markdown": "## 3. Procedimiento reproducible y seguro\n\n1. Identifica qué campo contiene el observable.\n2. Une indicador solo con tipo/normalización compatible.\n3. Verifica primera/última observación y expiración.\n4. Añade reputación, contexto de activo y evidencia independiente.\n5. Marca match como candidato con confianza y siguiente comprobación.\n\n",
+      "line": 24,
+      "endLine": 30
+    },
+    {
+      "id": "SP-R09-L07-S04",
+      "title": "4. SPL ilustrativo (solo lectura; no probado)",
+      "markdown": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_NET sourcetype=ST_FLOW earliest=\"10/16/2026:12:00:00\" latest=\"10/16/2026:12:15:00\"\n| lookup IOC_LOOKUP_PEDAGOGICO value AS dest OUTPUT indicator_id type source AS ti_source first_seen_utc expires_at_utc confidence_note\n| eval referencia_utc=strptime(\"2026-10-16T12:00:00Z\",\"%Y-%m-%dT%H:%M:%SZ\")\n| eval inicio_utc=strptime(first_seen_utc.\"T00:00:00Z\",\"%Y-%m-%dT%H:%M:%SZ\"), fin_utc=strptime(expires_at_utc.\"T00:00:00Z\",\"%Y-%m-%dT%H:%M:%SZ\")\n| where type=\"IP\" AND isnotnull(inicio_utc) AND isnotnull(fin_utc) AND inicio_utc<=referencia_utc AND referencia_utc<fin_utc\n| table _time src dest indicator_id ti_source confidence_note expires_at_utc\n```\n\n**Contrato del ejemplo:** lookup hipotético con las columnas originales de ti_indicators.csv, igualdad exacta value=dest, una fila por indicador IP. La consulta no instala la definición ni importa CSV. Fechas de inicio inclusivas y expiración exclusivas a las 00:00 UTC; search head/usuario en UTC para el rango literal. La referencia fija permite repetir el ejercicio, no representa el reloj actual. Offline: I01 e I03 vigentes; N01/N04 coinciden con I03 y N02 con I01; N03 no coincide. confidence_note es una nota sintética, no una puntuación de confianza. El parser SPL y la definición real siguen pendientes. Ver también la referencia [LOOKUP] del paquete.\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n",
+      "line": 32,
+      "endLine": 45
+    },
+    {
+      "id": "SP-R09-L07-S05",
+      "title": "5. Escenario SOC",
+      "markdown": "## 5. Escenario SOC\n\nUna IP de documentación marcada en 2024 pero expirada en 2025 no debe tratarse como amenaza actual en un laboratorio 2026; un IOC vigente también requiere validación de contexto.\n\n## 6. Errores frecuentes\n\n1. Confundir cualquier lookup con feed ES operativo\n2. Ignorar TTL y fuente del indicador\n3. Hacer bloqueo automático solo por match sin aprobación\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 47,
+      "endLine": 58
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R09-L07-Q01",
+      "lessonId": "SP-R09-L07",
+      "prompt": "¿Qué disminuye la confianza de una coincidencia TI?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D12"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R09-L07-Q01-O-e8ae6dd7db38",
+          "text": "Una fuente contrastada y un período de validez compatible con el evento"
+        },
+        {
+          "id": "SP-R09-L07-Q01-O-cad6ac8b6860",
+          "text": "Un contexto reciente de uso del activo que explica la coincidencia"
+        },
+        {
+          "id": "SP-R09-L07-Q01-O-ceee5c0e1c62",
+          "text": "Un mapeo comprobado del observable a la dirección de destino"
+        },
+        {
+          "id": "SP-R09-L07-Q01-O-a2a85e9026e9",
+          "text": "Fecha de expiración pasada"
+        }
+      ],
+      "solution": "SP-R09-L07-Q01-O-a2a85e9026e9",
+      "explanation": "La vigencia del indicador es relevante para interpretar el match.",
+      "anchors": [
+        {
+          "file": "R09_ENTERPRISE_SECURITY/SP-R09-L07.md",
+          "sourceHash": "fe224770a77886d5aac90cf62271eb3eddbf7851e3c6917982cbd9d72fa103e6",
+          "line": 17,
+          "endLine": 22,
+          "quote": "## 2. Conceptos que debes distinguir\n\n1. Indicador, observable, fuente, confianza y ventana de vigencia\n2. Match ≠ causalidad ni compromiso\n3. Fuentes TI nativas vs TIM Cloud: capacidades de visualización distintas\n4. Falsos positivos por infraestructura compartida y expiración\n\n"
+        },
+        {
+          "file": "R09_ENTERPRISE_SECURITY/SP-R09-L07.md",
+          "sourceHash": "fe224770a77886d5aac90cf62271eb3eddbf7851e3c6917982cbd9d72fa103e6",
+          "line": 32,
+          "endLine": 45,
+          "quote": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_NET sourcetype=ST_FLOW earliest=\"10/16/2026:12:00:00\" latest=\"10/16/2026:12:15:00\"\n| lookup IOC_LOOKUP_PEDAGOGICO value AS dest OUTPUT indicator_id type source AS ti_source first_seen_utc expires_at_utc confidence_note\n| eval referencia_utc=strptime(\"2026-10-16T12:00:00Z\",\"%Y-%m-%dT%H:%M:%SZ\")\n| eval inicio_utc=strptime(first_seen_utc.\"T00:00:00Z\",\"%Y-%m-%dT%H:%M:%SZ\"), fin_utc=strptime(expires_at_utc.\"T00:00:00Z\",\"%Y-%m-%dT%H:%M:%SZ\")\n| where type=\"IP\" AND isnotnull(inicio_utc) AND isnotnull(fin_utc) AND inicio_utc<=referencia_utc AND referencia_utc<fin_utc\n| table _time src dest indicator_id ti_source confidence_note expires_at_utc\n```\n\n**Contrato del ejemplo:** lookup hipotético con las columnas originales de ti_indicators.csv, igualdad exacta value=dest, una fila por indicador IP. La consulta no instala la definición ni importa CSV. Fechas de inicio inclusivas y expiración exclusivas a las 00:00 UTC; search head/usuario en UTC para el rango literal. La referencia fija permite repetir el ejercicio, no representa el reloj actual. Offline: I01 e I03 vigentes; N01/N04 coinciden con I03 y N02 con I01; N03 no coincide. confidence_note es una nota sintética, no una puntuación de confianza. El parser SPL y la definición real siguen pendientes. Ver también la referencia [LOOKUP] del paquete.\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R09-L07-Q02",
+      "lessonId": "SP-R09-L07",
+      "prompt": "¿Qué es incorrecto sobre ES 8.7?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D12"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R09-L07-Q02-O-0ae48c8f41d9",
+          "text": "Toda lista CSV muestra automáticamente TI Cloud en Intelligence"
+        },
+        {
+          "id": "SP-R09-L07-Q02-O-7048b86b2d94",
+          "text": "Un match TI necesita corroboración antes de atribuir compromiso"
+        },
+        {
+          "id": "SP-R09-L07-Q02-O-341e683df355",
+          "text": "La visibilidad de las vistas TI depende de configuración y producto"
+        },
+        {
+          "id": "SP-R09-L07-Q02-O-ec2853f8b44a",
+          "text": "La procedencia y vigencia del indicador afectan la interpretación"
+        }
+      ],
+      "solution": "SP-R09-L07-Q02-O-0ae48c8f41d9",
+      "explanation": "La vista Intelligence tiene requisitos de TIM Cloud específicos.",
+      "anchors": [
+        {
+          "file": "R09_ENTERPRISE_SECURITY/SP-R09-L07.md",
+          "sourceHash": "fe224770a77886d5aac90cf62271eb3eddbf7851e3c6917982cbd9d72fa103e6",
+          "line": 17,
+          "endLine": 22,
+          "quote": "## 2. Conceptos que debes distinguir\n\n1. Indicador, observable, fuente, confianza y ventana de vigencia\n2. Match ≠ causalidad ni compromiso\n3. Fuentes TI nativas vs TIM Cloud: capacidades de visualización distintas\n4. Falsos positivos por infraestructura compartida y expiración\n\n"
+        },
+        {
+          "file": "R09_ENTERPRISE_SECURITY/SP-R09-L07.md",
+          "sourceHash": "fe224770a77886d5aac90cf62271eb3eddbf7851e3c6917982cbd9d72fa103e6",
+          "line": 32,
+          "endLine": 45,
+          "quote": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_NET sourcetype=ST_FLOW earliest=\"10/16/2026:12:00:00\" latest=\"10/16/2026:12:15:00\"\n| lookup IOC_LOOKUP_PEDAGOGICO value AS dest OUTPUT indicator_id type source AS ti_source first_seen_utc expires_at_utc confidence_note\n| eval referencia_utc=strptime(\"2026-10-16T12:00:00Z\",\"%Y-%m-%dT%H:%M:%SZ\")\n| eval inicio_utc=strptime(first_seen_utc.\"T00:00:00Z\",\"%Y-%m-%dT%H:%M:%SZ\"), fin_utc=strptime(expires_at_utc.\"T00:00:00Z\",\"%Y-%m-%dT%H:%M:%SZ\")\n| where type=\"IP\" AND isnotnull(inicio_utc) AND isnotnull(fin_utc) AND inicio_utc<=referencia_utc AND referencia_utc<fin_utc\n| table _time src dest indicator_id ti_source confidence_note expires_at_utc\n```\n\n**Contrato del ejemplo:** lookup hipotético con las columnas originales de ti_indicators.csv, igualdad exacta value=dest, una fila por indicador IP. La consulta no instala la definición ni importa CSV. Fechas de inicio inclusivas y expiración exclusivas a las 00:00 UTC; search head/usuario en UTC para el rango literal. La referencia fija permite repetir el ejercicio, no representa el reloj actual. Offline: I01 e I03 vigentes; N01/N04 coinciden con I03 y N02 con I01; N03 no coincide. confidence_note es una nota sintética, no una puntuación de confianza. El parser SPL y la definición real siguen pendientes. Ver también la referencia [LOOKUP] del paquete.\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R09-L07-P01",
+      "lessonId": "SP-R09-L07",
+      "prompt": "Compara dos indicadores del fichero ti_indicators.csv; decide vigencia y next steps sin bloqueo.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D12"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Distingue fuente, campos y alcance de la pregunta",
+        "Diseña un método reproducible sin inferencia abusiva",
+        "Separa señales, hipótesis, contraejemplos y ausencia de datos",
+        "Comunica siguiente paso seguro y evidencia para otro analista"
+      ],
+      "referenceAnswer": "A referencia fija 2026-10-16T12:00:00Z, usar inicio inclusivo y expiración exclusiva a medianoche UTC. I01 e I03 son vigentes; I02 está caducado. Con igualdad value=dest, N01/N04 coinciden con I03 y N02 con I01; N03 no tiene match. confidence_note describe datos inventados, no confianza numérica. Revisar contexto sin bloquear nada ni afirmar TI real."
+    }
+  ],
+  "solutionsMarkdown": "## 8. Solucionario con razonamiento\n\n- **SP-R09-L07-Q01: D** — La vigencia del indicador es relevante para interpretar el match.\n\n- **SP-R09-L07-Q02: A** — La vista Intelligence tiene requisitos de TIM Cloud específicos.\n\n- **SP-R09-L07-P01:** A referencia fija 2026-10-16T12:00:00Z, usar inicio inclusivo y expiración exclusiva a medianoche UTC. I01 e I03 son vigentes; I02 está caducado. Con igualdad value=dest, N01/N04 coinciden con I03 y N02 con I01; N03 no tiene match. confidence_note describe datos inventados, no confianza numérica. Revisar contexto sin bloquear nada ni afirmar TI real.\n\n**Guía de retroalimentación formativa:** Distingue fuente, campos y alcance de la pregunta; Diseña un método reproducible sin inferencia abusiva; Separa señales, hipótesis, contraejemplos y ausencia de datos; Comunica siguiente paso seguro y evidencia para otro analista.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 9. Fuentes verificables y conexiones\n\n- **LOOKUP:** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.2/search-commands/lookup — contrato de campos y alias; sin ejecución local.\n\n- **D12:** Splunk ES 8.7 — Threat intelligence overview — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/threat-intelligence/overview-of-threat-intelligence-in-splunk-enterprise-security\n\n- **Puente SC-200:** Capítulos 06 y 09 (inteligencia y enriquecimiento). La comparación es conceptual, no una equivalencia producto a producto.\n- **Fuente curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` en la carpeta padre `SPLUNK_MASTER_RESEARCH`.\n- **Calidad:** [DOC] referencias externas consultables; [DISEÑO] escenario y actividad originales; [OFFLINE] solo cálculos de fixture; [NO PROBADO] SPL no ejecutado en Splunk. La revisión técnica independiente queda pendiente.\n",
+  "originalMarkdown": "# SP-R09-L07 — TI y enriquecimiento de ES\n\n**Región:** SP-R09 · **Estado:** borrador editorial para revisión · **SPL:** ilustrativo NO ejecutado.\n\n**Resultado de aprendizaje curricular:** Interpretar indicadores, reputación y contexto.\n\n**Prerrequisitos:** R01–R07 según tema; R08 para agrupación/escalado R09. **Producto:** plataforma Splunk para SPL genérico; funciones ES 8.7/SOAR solo cuando se indiquen.\n\n## 1. Explicación técnica\n\nThreat Intelligence (TI) relaciona observables — IP, dominio, hash u otros indicadores — con contexto de fuente, confianza, fecha y vigencia. Un match de indicador no significa necesariamente compromiso: puede ser infraestructura compartida, CDN, IP reutilizada, observación antigua o un dato erroneamente categorizado. Antes de escalar comprueba tiempo de validez y si el evento es conexión hacia la IP, desde ella o solo texto en un log.\n\nES proporciona gestión de fuentes TI y enriquecimiento; ES 8.7 diferencia fuentes nativas y Threat Intelligence Management (Cloud), con requisitos propios para determinadas vistas de investigación. Por tanto, no hay que asumir que al cargar un CSV en la plataforma aparecerá automáticamente en la pestaña Intelligence de Mission Control.\n\nEl laboratorio opera con IP reservadas para documentación (`198.51.100.0/24`, `203.0.113.0/24`) y un CSV propio. Es un ejercicio de calidad de indicadores, no un feed de amenazas activo ni una detección real.\n\n## 2. Conceptos que debes distinguir\n\n1. Indicador, observable, fuente, confianza y ventana de vigencia\n2. Match ≠ causalidad ni compromiso\n3. Fuentes TI nativas vs TIM Cloud: capacidades de visualización distintas\n4. Falsos positivos por infraestructura compartida y expiración\n\n## 3. Procedimiento reproducible y seguro\n\n1. Identifica qué campo contiene el observable.\n2. Une indicador solo con tipo/normalización compatible.\n3. Verifica primera/última observación y expiración.\n4. Añade reputación, contexto de activo y evidencia independiente.\n5. Marca match como candidato con confianza y siguiente comprobación.\n\n## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_NET sourcetype=ST_FLOW earliest=\"10/16/2026:12:00:00\" latest=\"10/16/2026:12:15:00\"\n| lookup IOC_LOOKUP_PEDAGOGICO value AS dest OUTPUT indicator_id type source AS ti_source first_seen_utc expires_at_utc confidence_note\n| eval referencia_utc=strptime(\"2026-10-16T12:00:00Z\",\"%Y-%m-%dT%H:%M:%SZ\")\n| eval inicio_utc=strptime(first_seen_utc.\"T00:00:00Z\",\"%Y-%m-%dT%H:%M:%SZ\"), fin_utc=strptime(expires_at_utc.\"T00:00:00Z\",\"%Y-%m-%dT%H:%M:%SZ\")\n| where type=\"IP\" AND isnotnull(inicio_utc) AND isnotnull(fin_utc) AND inicio_utc<=referencia_utc AND referencia_utc<fin_utc\n| table _time src dest indicator_id ti_source confidence_note expires_at_utc\n```\n\n**Contrato del ejemplo:** lookup hipotético con las columnas originales de ti_indicators.csv, igualdad exacta value=dest, una fila por indicador IP. La consulta no instala la definición ni importa CSV. Fechas de inicio inclusivas y expiración exclusivas a las 00:00 UTC; search head/usuario en UTC para el rango literal. La referencia fija permite repetir el ejercicio, no representa el reloj actual. Offline: I01 e I03 vigentes; N01/N04 coinciden con I03 y N02 con I01; N03 no coincide. confidence_note es una nota sintética, no una puntuación de confianza. El parser SPL y la definición real siguen pendientes. Ver también la referencia [LOOKUP] del paquete.\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n## 5. Escenario SOC\n\nUna IP de documentación marcada en 2024 pero expirada en 2025 no debe tratarse como amenaza actual en un laboratorio 2026; un IOC vigente también requiere validación de contexto.\n\n## 6. Errores frecuentes\n\n1. Confundir cualquier lookup con feed ES operativo\n2. Ignorar TTL y fuente del indicador\n3. Hacer bloqueo automático solo por match sin aprobación\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R09-L07-Q01 — Opción múltiple\n\n¿Qué disminuye la confianza de una coincidencia TI?\n\nA. Una fuente contrastada y un período de validez compatible con el evento\nB. Un contexto reciente de uso del activo que explica la coincidencia\nC. Un mapeo comprobado del observable a la dirección de destino\nD. Fecha de expiración pasada\n\n### SP-R09-L07-Q02 — Opción múltiple\n\n¿Qué es incorrecto sobre ES 8.7?\n\nA. Toda lista CSV muestra automáticamente TI Cloud en Intelligence\nB. Un match TI necesita corroboración antes de atribuir compromiso\nC. La visibilidad de las vistas TI depende de configuración y producto\nD. La procedencia y vigencia del indicador afectan la interpretación\n\n### SP-R09-L07-P01 — Práctica abierta formativa\n\nCompara dos indicadores del fichero ti_indicators.csv; decide vigencia y next steps sin bloqueo.\n\n## 8. Solucionario con razonamiento\n\n- **SP-R09-L07-Q01: D** — La vigencia del indicador es relevante para interpretar el match.\n\n- **SP-R09-L07-Q02: A** — La vista Intelligence tiene requisitos de TIM Cloud específicos.\n\n- **SP-R09-L07-P01:** A referencia fija 2026-10-16T12:00:00Z, usar inicio inclusivo y expiración exclusiva a medianoche UTC. I01 e I03 son vigentes; I02 está caducado. Con igualdad value=dest, N01/N04 coinciden con I03 y N02 con I01; N03 no tiene match. confidence_note describe datos inventados, no confianza numérica. Revisar contexto sin bloquear nada ni afirmar TI real.\n\n**Guía de retroalimentación formativa:** Distingue fuente, campos y alcance de la pregunta; Diseña un método reproducible sin inferencia abusiva; Separa señales, hipótesis, contraejemplos y ausencia de datos; Comunica siguiente paso seguro y evidencia para otro analista.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 9. Fuentes verificables y conexiones\n\n- **LOOKUP:** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.2/search-commands/lookup — contrato de campos y alias; sin ejecución local.\n\n- **D12:** Splunk ES 8.7 — Threat intelligence overview — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/threat-intelligence/overview-of-threat-intelligence-in-splunk-enterprise-security\n\n- **Puente SC-200:** Capítulos 06 y 09 (inteligencia y enriquecimiento). La comparación es conceptual, no una equivalencia producto a producto.\n- **Fuente curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` en la carpeta padre `SPLUNK_MASTER_RESEARCH`.\n- **Calidad:** [DOC] referencias externas consultables; [DISEÑO] escenario y actividad originales; [OFFLINE] solo cálculos de fixture; [NO PROBADO] SPL no ejecutado en Splunk. La revisión técnica independiente queda pendiente.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D12",
+      "key": "SPLUNK_LECCIONES_R08_R09:D12",
+      "url": "https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/threat-intelligence/overview-of-threat-intelligence-in-splunk-enterprise-security"
+    }
+  ]
+}

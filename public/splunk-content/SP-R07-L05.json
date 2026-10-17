@@ -1,0 +1,200 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R07-L05",
+  "title": "Tuning y calidad operativa",
+  "revision": "46e76d7f14702876958d6ac9",
+  "sourceVersion": "67b3f9e23ac760d3efe44677688dc8f9f82e30108b6f1dc4878a1d428cae0f88",
+  "sanitizedHash": "67b3f9e23ac760d3efe44677688dc8f9f82e30108b6f1dc4878a1d428cae0f88",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R06_R07/R07_DETECTION_ENGINEERING/SP-R07-L05.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Investigar umbrales, excepciones, ventanas, data delay",
+  "preamble": "# SP-R07-L05 — Tuning y calidad operativa\n\n**Región:** SP-R07 · **Prioridad:** P0/P1 (SOC/Detection Engineering) · **Estado:** material editorial para revisión · **SPL:** NO ejecutado en Splunk.\n\n**Objetivo curricular original:** Investigar umbrales, excepciones, ventanas, data delay\n\n**Prerrequisitos:** R01–R06; distinguir Enterprise/Cloud y Enterprise Security. **Producto:** Splunk Enterprise/Cloud (búsquedas de lectura); funciones ES explícitamente condicionadas a Splunk Enterprise Security compatible.\n\n",
+  "sections": [
+    {
+      "id": "SP-R07-L05-S01",
+      "title": "1. Pregunta esencial y modelo mental",
+      "markdown": "## 1. Pregunta esencial y modelo mental\n\nTuning no consiste en bajar el volumen hasta que los tickets desaparezcan. Incluye calibrar ventanas, umbrales y baselines por segmentos, revisar casos benignos, medir cambios de cobertura y controlar duplicaciones por ingesta. Un ajuste que reduzca alertas a cero puede ser el peor resultado si eliminó verdaderos positivos.\n\n",
+      "line": 9,
+      "endLine": 11
+    },
+    {
+      "id": "SP-R07-L05-S02",
+      "title": "2. Conceptos que debes dominar",
+      "markdown": "## 2. Conceptos que debes dominar\n\n1. Antes/después debe comparar mismos datos, periodo, población y definiciones de éxito; documenta posibles cambios de ingestión.\n2. Excepciones son preferiblemente de alcance corto: usuario técnico + servicio + horario de mantenimiento + ticket + fecha de expiración.\n3. Un `src` de proxy compartido requiere contexto adicional, no exclusión de una /24 completa.\n4. Cambiar ventana de 15m a 5m puede perder una ráfaga dispersa; ampliar a 60m puede aumentar ruido y dependencia de baseline.\n5. Retraso de ingesta crea aparentes FN si la regla sólo busca eventos recién indexados o sólo usa un periodo estrecho.\n\n",
+      "line": 13,
+      "endLine": 19
+    },
+    {
+      "id": "SP-R07-L05-S03",
+      "title": "3. Práctica guiada: del dato a la conclusión",
+      "markdown": "## 3. Práctica guiada: del dato a la conclusión\n\n1. Toma detector sólo count>=5 y documenta por qué dispara indebidamente en svc-batch.\n2. Añade cardinalidad de usuarios y verifica resultado en fixture.\n3. Diseña excepción controlada del mantenimiento con expiración y evidencia alternativa.\n4. Evalúa cuánto cambia la salida por la ventana y por evento A021 tardío.\n5. Define KPI de ruido con denominadores, distinguiendo reducción de alertas y pérdida de TP.\n\n",
+      "line": 21,
+      "endLine": 27
+    },
+    {
+      "id": "SP-R07-L05-S04",
+      "title": "4. SPL ilustrativo de solo lectura — NO probado en Splunk",
+      "markdown": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4625\n| bin _time span=15m\n| stats count AS fallos dc(user) AS cuentas BY src _time\n| where fallos>=5 AND cuentas>=5\n```\n\n**Interpretación, supuestos y límites:** No existe “umbral perfecto” universal; las cifras son solo para ejercicios. La supresión de notificación (throttling) es independiente del tuning de SPL.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n",
+      "line": 29,
+      "endLine": 40
+    },
+    {
+      "id": "SP-R07-L05-S05",
+      "title": "5. Caso del turno SOC",
+      "markdown": "## 5. Caso del turno SOC\n\nTras un ajuste ya no llegan alertas de svc-batch; pero el proxy también desaparece. ¿Cambió comportamiento o el campo user dejó de extraerse?\n\n## 6. Errores frecuentes\n\n1. Excluir todo el tráfico de service accounts sin segmentar comportamiento.\n2. Declarar mejor regla por producir menos alertas sin medir FN.\n3. Ignorar la diferencia entre _time y _indextime en funcionamiento programado.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 42,
+      "endLine": 53
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R07-L05-Q01",
+      "lessonId": "SP-R07-L05",
+      "prompt": "¿Qué prueba mejor un tuning seguro?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D01",
+        "SPLUNK_LECCIONES_R06_R07:D02",
+        "SPLUNK_LECCIONES_R06_R07:D03"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R07-L05-Q01-O-e76b3bd19230",
+          "text": "Reducción de ruido manteniendo detección positiva en set independiente"
+        },
+        {
+          "id": "SP-R07-L05-Q01-O-9174b5456ebe",
+          "text": "Reducir alertas en el mismo único caso utilizado para escoger el umbral"
+        },
+        {
+          "id": "SP-R07-L05-Q01-O-b42d41edcc3a",
+          "text": "Mejorar el tiempo de consulta aunque cambie la población observada"
+        },
+        {
+          "id": "SP-R07-L05-Q01-O-909f3e9ceac0",
+          "text": "Eliminar excepciones y comparar solo el conteo final de alertas"
+        }
+      ],
+      "solution": "SP-R07-L05-Q01-O-e76b3bd19230",
+      "explanation": "Calidad exige controlar FN y cobertura, no solo volumen.",
+      "anchors": [
+        {
+          "file": "R07_DETECTION_ENGINEERING/SP-R07-L05.md",
+          "sourceHash": "67b3f9e23ac760d3efe44677688dc8f9f82e30108b6f1dc4878a1d428cae0f88",
+          "line": 13,
+          "endLine": 19,
+          "quote": "## 2. Conceptos que debes dominar\n\n1. Antes/después debe comparar mismos datos, periodo, población y definiciones de éxito; documenta posibles cambios de ingestión.\n2. Excepciones son preferiblemente de alcance corto: usuario técnico + servicio + horario de mantenimiento + ticket + fecha de expiración.\n3. Un `src` de proxy compartido requiere contexto adicional, no exclusión de una /24 completa.\n4. Cambiar ventana de 15m a 5m puede perder una ráfaga dispersa; ampliar a 60m puede aumentar ruido y dependencia de baseline.\n5. Retraso de ingesta crea aparentes FN si la regla sólo busca eventos recién indexados o sólo usa un periodo estrecho.\n\n"
+        },
+        {
+          "file": "R07_DETECTION_ENGINEERING/SP-R07-L05.md",
+          "sourceHash": "67b3f9e23ac760d3efe44677688dc8f9f82e30108b6f1dc4878a1d428cae0f88",
+          "line": 29,
+          "endLine": 40,
+          "quote": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4625\n| bin _time span=15m\n| stats count AS fallos dc(user) AS cuentas BY src _time\n| where fallos>=5 AND cuentas>=5\n```\n\n**Interpretación, supuestos y límites:** No existe “umbral perfecto” universal; las cifras son solo para ejercicios. La supresión de notificación (throttling) es independiente del tuning de SPL.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R07-L05-Q02",
+      "lessonId": "SP-R07-L05",
+      "prompt": "¿Por qué un problema de extracción puede parecer buen tuning?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D01",
+        "SPLUNK_LECCIONES_R06_R07:D02",
+        "SPLUNK_LECCIONES_R06_R07:D03"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R07-L05-Q02-O-47897682e5a0",
+          "text": "El campo ausente mejora la precisión porque elimina identidades ambiguas"
+        },
+        {
+          "id": "SP-R07-L05-Q02-O-3df46e97a76b",
+          "text": "El detector deja de contar usuarios, bajando resultados"
+        },
+        {
+          "id": "SP-R07-L05-Q02-O-e7a4a3c982b8",
+          "text": "El menor número de resultados demuestra que las cuentas están protegidas"
+        },
+        {
+          "id": "SP-R07-L05-Q02-O-f46f7c76afed",
+          "text": "La falta de user reduce por definición el número real de intentos"
+        }
+      ],
+      "solution": "SP-R07-L05-Q02-O-3df46e97a76b",
+      "explanation": "Un campo ausente puede ocultar actividad y producir FN.",
+      "anchors": [
+        {
+          "file": "R07_DETECTION_ENGINEERING/SP-R07-L05.md",
+          "sourceHash": "67b3f9e23ac760d3efe44677688dc8f9f82e30108b6f1dc4878a1d428cae0f88",
+          "line": 13,
+          "endLine": 19,
+          "quote": "## 2. Conceptos que debes dominar\n\n1. Antes/después debe comparar mismos datos, periodo, población y definiciones de éxito; documenta posibles cambios de ingestión.\n2. Excepciones son preferiblemente de alcance corto: usuario técnico + servicio + horario de mantenimiento + ticket + fecha de expiración.\n3. Un `src` de proxy compartido requiere contexto adicional, no exclusión de una /24 completa.\n4. Cambiar ventana de 15m a 5m puede perder una ráfaga dispersa; ampliar a 60m puede aumentar ruido y dependencia de baseline.\n5. Retraso de ingesta crea aparentes FN si la regla sólo busca eventos recién indexados o sólo usa un periodo estrecho.\n\n"
+        },
+        {
+          "file": "R07_DETECTION_ENGINEERING/SP-R07-L05.md",
+          "sourceHash": "67b3f9e23ac760d3efe44677688dc8f9f82e30108b6f1dc4878a1d428cae0f88",
+          "line": 29,
+          "endLine": 40,
+          "quote": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4625\n| bin _time span=15m\n| stats count AS fallos dc(user) AS cuentas BY src _time\n| where fallos>=5 AND cuentas>=5\n```\n\n**Interpretación, supuestos y límites:** No existe “umbral perfecto” universal; las cifras son solo para ejercicios. La supresión de notificación (throttling) es independiente del tuning de SPL.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R07-L05-P01",
+      "lessonId": "SP-R07-L05",
+      "prompt": "Elabora change request de tuning con métricas, efecto sobre positivos/negativos, fecha de expiración de excepciones y rollback.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D01",
+        "SPLUNK_LECCIONES_R06_R07:D02",
+        "SPLUNK_LECCIONES_R06_R07:D03"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica datos y supuestos de la fuente",
+        "Plantea método correcto y distingue hechos de hipótesis",
+        "Explica limitaciones, alternativa benigna y telemetría ausente",
+        "Aporta evidencia, ventana e identificación reproducibles"
+      ],
+      "referenceAnswer": "Nuevo detector cardinalidad cuentas>=5; comparar cohorte sospechosa y mantenimiento antes/después; vigilar por ingestión/campos nulos; mantener rollback y revisión a dos semanas; no suprimir toda IP."
+    }
+  ],
+  "solutionsMarkdown": "### Solucionario con razonamiento\n\n- **SP-R07-L05-Q01: A** — Calidad exige controlar FN y cobertura, no solo volumen.\n\n- **SP-R07-L05-Q02: B** — Un campo ausente puede ocultar actividad y producir FN.\n\n- **SP-R07-L05-P01:** Nuevo detector cardinalidad cuentas>=5; comparar cohorte sospechosa y mantenimiento antes/después; vigilar por ingestión/campos nulos; mantener rollback y revisión a dos semanas; no suprimir toda IP.\n\n**Guía de retroalimentación formativa:** Identifica datos y supuestos de la fuente; Plantea método correcto y distingue hechos de hipótesis; Explica limitaciones, alternativa benigna y telemetría ausente; Aporta evidencia, ventana e identificación reproducibles.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 8. Bibliografía, mapeo y estatus\n\n- **D01:** Condiciones de alertas y resultados — https://help.splunk.com/en/splunk-enterprise/alert-and-respond/alerting-manual/10.0/manage-alert-trigger-conditions-and-throttling/configure-alert-trigger-conditions\n- **D02:** Throttle en alertas, distinto del umbral — https://help.splunk.com/en/splunk-enterprise/alert-and-respond/alerting-manual/10.0/manage-alert-trigger-conditions-and-throttling/throttle-alerts\n- **D03:** Retraso de indexación y campos _time/_indextime — https://help.splunk.com/en/data-management/monitor-data-onboarding/troubleshoot-splunk-enterprise/10.6/data-acquisition-problems/event-indexing-delay\n\n- **Currículo:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` — ID, título y resultado intactos.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` — los bloques R06/R07 y laboratorios de diseño.\n- **Puente SC-200:** Capítulos 07 y 09: tuning e investigación. Documento en `../../01_FUENTE_ORIGINAL/SC-200.md`; relación conceptual, no traducción ni equivalencia garantizada.\n\n**Clasificación de evidencia:** [DOC] respaldo documental de fuentes; [DISEÑO] procedimientos y rúbricas propuestos; [OFFLINE] sólo cálculos de fixtures reproducibles; [NO PROBADO] ejemplos SPL no ejecutados en la instancia. Validación técnica/manual de contenidos pendiente antes de integrarlo en React.\n",
+  "originalMarkdown": "# SP-R07-L05 — Tuning y calidad operativa\n\n**Región:** SP-R07 · **Prioridad:** P0/P1 (SOC/Detection Engineering) · **Estado:** material editorial para revisión · **SPL:** NO ejecutado en Splunk.\n\n**Objetivo curricular original:** Investigar umbrales, excepciones, ventanas, data delay\n\n**Prerrequisitos:** R01–R06; distinguir Enterprise/Cloud y Enterprise Security. **Producto:** Splunk Enterprise/Cloud (búsquedas de lectura); funciones ES explícitamente condicionadas a Splunk Enterprise Security compatible.\n\n## 1. Pregunta esencial y modelo mental\n\nTuning no consiste en bajar el volumen hasta que los tickets desaparezcan. Incluye calibrar ventanas, umbrales y baselines por segmentos, revisar casos benignos, medir cambios de cobertura y controlar duplicaciones por ingesta. Un ajuste que reduzca alertas a cero puede ser el peor resultado si eliminó verdaderos positivos.\n\n## 2. Conceptos que debes dominar\n\n1. Antes/después debe comparar mismos datos, periodo, población y definiciones de éxito; documenta posibles cambios de ingestión.\n2. Excepciones son preferiblemente de alcance corto: usuario técnico + servicio + horario de mantenimiento + ticket + fecha de expiración.\n3. Un `src` de proxy compartido requiere contexto adicional, no exclusión de una /24 completa.\n4. Cambiar ventana de 15m a 5m puede perder una ráfaga dispersa; ampliar a 60m puede aumentar ruido y dependencia de baseline.\n5. Retraso de ingesta crea aparentes FN si la regla sólo busca eventos recién indexados o sólo usa un periodo estrecho.\n\n## 3. Práctica guiada: del dato a la conclusión\n\n1. Toma detector sólo count>=5 y documenta por qué dispara indebidamente en svc-batch.\n2. Añade cardinalidad de usuarios y verifica resultado en fixture.\n3. Diseña excepción controlada del mantenimiento con expiración y evidencia alternativa.\n4. Evalúa cuánto cambia la salida por la ventana y por evento A021 tardío.\n5. Define KPI de ruido con denominadores, distinguiendo reducción de alertas y pérdida de TP.\n\n## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4625\n| bin _time span=15m\n| stats count AS fallos dc(user) AS cuentas BY src _time\n| where fallos>=5 AND cuentas>=5\n```\n\n**Interpretación, supuestos y límites:** No existe “umbral perfecto” universal; las cifras son solo para ejercicios. La supresión de notificación (throttling) es independiente del tuning de SPL.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n## 5. Caso del turno SOC\n\nTras un ajuste ya no llegan alertas de svc-batch; pero el proxy también desaparece. ¿Cambió comportamiento o el campo user dejó de extraerse?\n\n## 6. Errores frecuentes\n\n1. Excluir todo el tráfico de service accounts sin segmentar comportamiento.\n2. Declarar mejor regla por producir menos alertas sin medir FN.\n3. Ignorar la diferencia entre _time y _indextime en funcionamiento programado.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R07-L05-Q01 — Opción múltiple\n\n¿Qué prueba mejor un tuning seguro?\n\nA. Reducción de ruido manteniendo detección positiva en set independiente\nB. Reducir alertas en el mismo único caso utilizado para escoger el umbral\nC. Mejorar el tiempo de consulta aunque cambie la población observada\nD. Eliminar excepciones y comparar solo el conteo final de alertas\n\n### SP-R07-L05-Q02 — Opción múltiple\n\n¿Por qué un problema de extracción puede parecer buen tuning?\n\nA. El campo ausente mejora la precisión porque elimina identidades ambiguas\nB. El detector deja de contar usuarios, bajando resultados\nC. El menor número de resultados demuestra que las cuentas están protegidas\nD. La falta de user reduce por definición el número real de intentos\n\n### SP-R07-L05-P01 — Práctica abierta formativa\n\nElabora change request de tuning con métricas, efecto sobre positivos/negativos, fecha de expiración de excepciones y rollback.\n\n### Solucionario con razonamiento\n\n- **SP-R07-L05-Q01: A** — Calidad exige controlar FN y cobertura, no solo volumen.\n\n- **SP-R07-L05-Q02: B** — Un campo ausente puede ocultar actividad y producir FN.\n\n- **SP-R07-L05-P01:** Nuevo detector cardinalidad cuentas>=5; comparar cohorte sospechosa y mantenimiento antes/después; vigilar por ingestión/campos nulos; mantener rollback y revisión a dos semanas; no suprimir toda IP.\n\n**Guía de retroalimentación formativa:** Identifica datos y supuestos de la fuente; Plantea método correcto y distingue hechos de hipótesis; Explica limitaciones, alternativa benigna y telemetría ausente; Aporta evidencia, ventana e identificación reproducibles.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Bibliografía, mapeo y estatus\n\n- **D01:** Condiciones de alertas y resultados — https://help.splunk.com/en/splunk-enterprise/alert-and-respond/alerting-manual/10.0/manage-alert-trigger-conditions-and-throttling/configure-alert-trigger-conditions\n- **D02:** Throttle en alertas, distinto del umbral — https://help.splunk.com/en/splunk-enterprise/alert-and-respond/alerting-manual/10.0/manage-alert-trigger-conditions-and-throttling/throttle-alerts\n- **D03:** Retraso de indexación y campos _time/_indextime — https://help.splunk.com/en/data-management/monitor-data-onboarding/troubleshoot-splunk-enterprise/10.6/data-acquisition-problems/event-indexing-delay\n\n- **Currículo:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` — ID, título y resultado intactos.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` — los bloques R06/R07 y laboratorios de diseño.\n- **Puente SC-200:** Capítulos 07 y 09: tuning e investigación. Documento en `../../01_FUENTE_ORIGINAL/SC-200.md`; relación conceptual, no traducción ni equivalencia garantizada.\n\n**Clasificación de evidencia:** [DOC] respaldo documental de fuentes; [DISEÑO] procedimientos y rúbricas propuestos; [OFFLINE] sólo cálculos de fixtures reproducibles; [NO PROBADO] ejemplos SPL no ejecutados en la instancia. Validación técnica/manual de contenidos pendiente antes de integrarlo en React.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 8,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D01",
+      "key": "SPLUNK_LECCIONES_R06_R07:D01",
+      "url": "https://help.splunk.com/en/splunk-enterprise/alert-and-respond/alerting-manual/10.0/manage-alert-trigger-conditions-and-throttling/configure-alert-trigger-conditions"
+    },
+    {
+      "id": "D02",
+      "key": "SPLUNK_LECCIONES_R06_R07:D02",
+      "url": "https://help.splunk.com/en/splunk-enterprise/alert-and-respond/alerting-manual/10.0/manage-alert-trigger-conditions-and-throttling/throttle-alerts"
+    },
+    {
+      "id": "D03",
+      "key": "SPLUNK_LECCIONES_R06_R07:D03",
+      "url": "https://help.splunk.com/en/data-management/monitor-data-onboarding/troubleshoot-splunk-enterprise/10.6/data-acquisition-problems/event-indexing-delay"
+    }
+  ]
+}

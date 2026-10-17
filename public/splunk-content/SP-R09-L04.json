@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R09-L04",
+  "title": "RBA y entidades",
+  "revision": "961a37d0d36b8295c684ccb9",
+  "sourceVersion": "cb21271642c04c1b64041eb7aae9c7ec81e62c9510ee14d3d5fa84243dcd925e",
+  "sanitizedHash": "cb21271642c04c1b64041eb7aae9c7ec81e62c9510ee14d3d5fa84243dcd925e",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R08_R09/R09_ENTERPRISE_SECURITY/SP-R09-L04.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Interpretar risk score por entidad y umbrales",
+  "preamble": "# SP-R09-L04 — RBA y entidades\n\n**Región:** SP-R09 · **Estado:** borrador editorial para revisión · **SPL:** ilustrativo NO ejecutado.\n\n**Resultado de aprendizaje curricular:** Interpretar risk score por entidad y umbrales.\n\n**Prerrequisitos:** R01–R07 según tema; R08 para agrupación/escalado R09. **Producto:** plataforma Splunk para SPL genérico; funciones ES 8.7/SOAR solo cuando se indiquen.\n\n",
+  "sections": [
+    {
+      "id": "SP-R09-L04-S01",
+      "title": "1. Explicación técnica",
+      "markdown": "## 1. Explicación técnica\n\nRisk-Based Alerting (RBA) busca priorizar conductas acumuladas en una entidad en lugar de abrir un incidente por cada señal de baja fidelidad. En ES, el riesgo asociado a entidades se analiza mediante findings/eventos de riesgo, y existen modelos y condiciones para generar findings según la versión. **Una suma de números en el CSV de práctica NO reproduce toda la lógica de entity risk score del producto**. Las reglas de cálculo y ventana deben consultarse en la documentación de ES 8.7.\n\nLos puntos de riesgo son una *puntuación operativa*, no la probabilidad estadística de que la entidad esté comprometida. Por ejemplo, 18+30+27=75 en un dataset sintético ayuda a comparar dos candidatos, pero no es «75 % de certeza» ni define por sí solo un incidente. Cambiar ventanas, pesos, identidades o fuentes modifica la priorización.\n\nPara un diseño responsable, comprueba señales independientes, críticos versus repetidos, privilegios, activos, riesgo contextual y pruebas adversarias benignas. No inventes umbrales productivos ni asumas que los scores del paquete corresponden a fórmula interna ES.\n\n",
+      "line": 9,
+      "endLine": 15
+    },
+    {
+      "id": "SP-R09-L04-S02",
+      "title": "2. Conceptos que debes distinguir",
+      "markdown": "## 2. Conceptos que debes distinguir\n\n1. RBA acumula señales contextualizadas en entidades\n2. Risk score no es porcentaje de compromiso ni severidad automática\n3. Ventanas, fuentes y duplicados cambian el ranking\n4. Mecanismos ES 8.7 requieren configuración y revisión de documentación\n\n",
+      "line": 17,
+      "endLine": 22
+    },
+    {
+      "id": "SP-R09-L04-S03",
+      "title": "3. Procedimiento reproducible y seguro",
+      "markdown": "## 3. Procedimiento reproducible y seguro\n\n1. Identifica entidades canónicas y fuentes que aportan riesgo.\n2. Calcula suma didáctica de las filas, no score ES.\n3. Compara señales heterogéneas versus repetidas.\n4. Discute un umbral hipotético con FP/FN y revisión humana.\n5. Separa riesgos de investigación, no ejecutes acciones automáticas.\n\n",
+      "line": 24,
+      "endLine": 30
+    },
+    {
+      "id": "SP-R09-L04-S04",
+      "title": "4. SPL ilustrativo (solo lectura; no probado)",
+      "markdown": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_FINDINGS_PRACTICA sourcetype=ST_SYNTH_FINDING\n| stats sum(risk_points) AS puntos_sinteticos count AS observaciones BY entity\n| sort - puntos_sinteticos\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n",
+      "line": 32,
+      "endLine": 40
+    },
+    {
+      "id": "SP-R09-L04-S05",
+      "title": "5. Escenario SOC",
+      "markdown": "## 5. Escenario SOC\n\nalice acumula 18+30+27=75 puntos sintéticos; svc-backup suma 18+18=36. Un umbral editorial de 60 solo selecciona candidata para revisión, no confirma malicia.\n\n## 6. Errores frecuentes\n\n1. Presentar puntos como probabilidad\n2. Usar score de práctica como score real de ES\n3. Olvidar desduplicación y normalización de entidad\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 42,
+      "endLine": 53
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R09-L04-Q01",
+      "lessonId": "SP-R09-L04",
+      "prompt": "¿Qué NO expresa un score de 75 en este ejercicio?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D09",
+        "SPLUNK_LECCIONES_R08_R09:D10"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R09-L04-Q01-O-cfd21c388ac2",
+          "text": "Una señal de prioridad relativa dentro de ese ejercicio"
+        },
+        {
+          "id": "SP-R09-L04-Q01-O-f0605b6153c5",
+          "text": "Una concentración de observaciones sintéticas de la entidad"
+        },
+        {
+          "id": "SP-R09-L04-Q01-O-77b45ff9b6d3",
+          "text": "El resultado aritmético definido por los pesos de la fixture"
+        },
+        {
+          "id": "SP-R09-L04-Q01-O-7993ed2c4f8f",
+          "text": "75 % de probabilidad validada de ataque"
+        }
+      ],
+      "solution": "SP-R09-L04-Q01-O-7993ed2c4f8f",
+      "explanation": "El score no está calibrado como probabilidad.",
+      "anchors": [
+        {
+          "file": "R09_ENTERPRISE_SECURITY/SP-R09-L04.md",
+          "sourceHash": "cb21271642c04c1b64041eb7aae9c7ec81e62c9510ee14d3d5fa84243dcd925e",
+          "line": 17,
+          "endLine": 22,
+          "quote": "## 2. Conceptos que debes distinguir\n\n1. RBA acumula señales contextualizadas en entidades\n2. Risk score no es porcentaje de compromiso ni severidad automática\n3. Ventanas, fuentes y duplicados cambian el ranking\n4. Mecanismos ES 8.7 requieren configuración y revisión de documentación\n\n"
+        },
+        {
+          "file": "R09_ENTERPRISE_SECURITY/SP-R09-L04.md",
+          "sourceHash": "cb21271642c04c1b64041eb7aae9c7ec81e62c9510ee14d3d5fa84243dcd925e",
+          "line": 32,
+          "endLine": 40,
+          "quote": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_FINDINGS_PRACTICA sourcetype=ST_SYNTH_FINDING\n| stats sum(risk_points) AS puntos_sinteticos count AS observaciones BY entity\n| sort - puntos_sinteticos\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R09-L04-Q02",
+      "lessonId": "SP-R09-L04",
+      "prompt": "¿Qué cambiaría un resultado RBA?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D09",
+        "SPLUNK_LECCIONES_R08_R09:D10"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R09-L04-Q02-O-457a6c477c00",
+          "text": "El orden visual de las filas sin cambiar ninguna condición ni dato"
+        },
+        {
+          "id": "SP-R09-L04-Q02-O-76f48ffcc2e1",
+          "text": "El nombre de presentación de la búsqueda sin modificar su lógica"
+        },
+        {
+          "id": "SP-R09-L04-Q02-O-87d61a0309e7",
+          "text": "Ventana, deduplicación y peso por detección"
+        },
+        {
+          "id": "SP-R09-L04-Q02-O-5397fd39bb48",
+          "text": "La etiqueta del dashboard manteniendo idénticas detecciones y pesos"
+        }
+      ],
+      "solution": "SP-R09-L04-Q02-O-87d61a0309e7",
+      "explanation": "El diseño de agregación determina la puntuación.",
+      "anchors": [
+        {
+          "file": "R09_ENTERPRISE_SECURITY/SP-R09-L04.md",
+          "sourceHash": "cb21271642c04c1b64041eb7aae9c7ec81e62c9510ee14d3d5fa84243dcd925e",
+          "line": 17,
+          "endLine": 22,
+          "quote": "## 2. Conceptos que debes distinguir\n\n1. RBA acumula señales contextualizadas en entidades\n2. Risk score no es porcentaje de compromiso ni severidad automática\n3. Ventanas, fuentes y duplicados cambian el ranking\n4. Mecanismos ES 8.7 requieren configuración y revisión de documentación\n\n"
+        },
+        {
+          "file": "R09_ENTERPRISE_SECURITY/SP-R09-L04.md",
+          "sourceHash": "cb21271642c04c1b64041eb7aae9c7ec81e62c9510ee14d3d5fa84243dcd925e",
+          "line": 32,
+          "endLine": 40,
+          "quote": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_FINDINGS_PRACTICA sourcetype=ST_SYNTH_FINDING\n| stats sum(risk_points) AS puntos_sinteticos count AS observaciones BY entity\n| sort - puntos_sinteticos\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R09-L04-P01",
+      "lessonId": "SP-R09-L04",
+      "prompt": "Calcula suma por entidad a partir de findings sintéticos y explica límites de usar umbral 60.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D09",
+        "SPLUNK_LECCIONES_R08_R09:D10"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Distingue fuente, campos y alcance de la pregunta",
+        "Diseña un método reproducible sin inferencia abusiva",
+        "Separa señales, hipótesis, contraejemplos y ausencia de datos",
+        "Comunica siguiente paso seguro y evidencia para otro analista"
+      ],
+      "referenceAnswer": "alice=75 (3 registros), svc-backup=36 (2), bob=22 (1), charlie=15 (1), sys-rproxy=20 (1). Solo alice supera 60; eso demuestra la matemática del CSV, no el cálculo interno de ES ni compromiso."
+    }
+  ],
+  "solutionsMarkdown": "## 8. Solucionario con razonamiento\n\n- **SP-R09-L04-Q01: D** — El score no está calibrado como probabilidad.\n\n- **SP-R09-L04-Q02: C** — El diseño de agregación determina la puntuación.\n\n- **SP-R09-L04-P01:** alice=75 (3 registros), svc-backup=36 (2), bob=22 (1), charlie=15 (1), sys-rproxy=20 (1). Solo alice supera 60; eso demuestra la matemática del CSV, no el cálculo interno de ES ni compromiso.\n\n**Guía de retroalimentación formativa:** Distingue fuente, campos y alcance de la pregunta; Diseña un método reproducible sin inferencia abusiva; Separa señales, hipótesis, contraejemplos y ausencia de datos; Comunica siguiente paso seguro y evidencia para otro analista.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 9. Fuentes verificables y conexiones\n\n- **D09:** Splunk ES 8.7 — Guidelines for finding-based detections — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/guidelines-to-create-a-custom-finding-based-detection\n- **D10:** Splunk ES 8.7 — Risk scoring — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/risk-based-alerting/risk-scoring-in-splunk-enterprise-security\n\n- **Puente SC-200:** Capítulos 06–09 (TI, reglas, correlación e investigación). La comparación es conceptual, no una equivalencia producto a producto.\n- **Fuente curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` en la carpeta padre `SPLUNK_MASTER_RESEARCH`.\n- **Calidad:** [DOC] referencias externas consultables; [DISEÑO] escenario y actividad originales; [OFFLINE] solo cálculos de fixture; [NO PROBADO] SPL no ejecutado en Splunk. La revisión técnica independiente queda pendiente.\n",
+  "originalMarkdown": "# SP-R09-L04 — RBA y entidades\n\n**Región:** SP-R09 · **Estado:** borrador editorial para revisión · **SPL:** ilustrativo NO ejecutado.\n\n**Resultado de aprendizaje curricular:** Interpretar risk score por entidad y umbrales.\n\n**Prerrequisitos:** R01–R07 según tema; R08 para agrupación/escalado R09. **Producto:** plataforma Splunk para SPL genérico; funciones ES 8.7/SOAR solo cuando se indiquen.\n\n## 1. Explicación técnica\n\nRisk-Based Alerting (RBA) busca priorizar conductas acumuladas en una entidad en lugar de abrir un incidente por cada señal de baja fidelidad. En ES, el riesgo asociado a entidades se analiza mediante findings/eventos de riesgo, y existen modelos y condiciones para generar findings según la versión. **Una suma de números en el CSV de práctica NO reproduce toda la lógica de entity risk score del producto**. Las reglas de cálculo y ventana deben consultarse en la documentación de ES 8.7.\n\nLos puntos de riesgo son una *puntuación operativa*, no la probabilidad estadística de que la entidad esté comprometida. Por ejemplo, 18+30+27=75 en un dataset sintético ayuda a comparar dos candidatos, pero no es «75 % de certeza» ni define por sí solo un incidente. Cambiar ventanas, pesos, identidades o fuentes modifica la priorización.\n\nPara un diseño responsable, comprueba señales independientes, críticos versus repetidos, privilegios, activos, riesgo contextual y pruebas adversarias benignas. No inventes umbrales productivos ni asumas que los scores del paquete corresponden a fórmula interna ES.\n\n## 2. Conceptos que debes distinguir\n\n1. RBA acumula señales contextualizadas en entidades\n2. Risk score no es porcentaje de compromiso ni severidad automática\n3. Ventanas, fuentes y duplicados cambian el ranking\n4. Mecanismos ES 8.7 requieren configuración y revisión de documentación\n\n## 3. Procedimiento reproducible y seguro\n\n1. Identifica entidades canónicas y fuentes que aportan riesgo.\n2. Calcula suma didáctica de las filas, no score ES.\n3. Compara señales heterogéneas versus repetidas.\n4. Discute un umbral hipotético con FP/FN y revisión humana.\n5. Separa riesgos de investigación, no ejecutes acciones automáticas.\n\n## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_FINDINGS_PRACTICA sourcetype=ST_SYNTH_FINDING\n| stats sum(risk_points) AS puntos_sinteticos count AS observaciones BY entity\n| sort - puntos_sinteticos\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n## 5. Escenario SOC\n\nalice acumula 18+30+27=75 puntos sintéticos; svc-backup suma 18+18=36. Un umbral editorial de 60 solo selecciona candidata para revisión, no confirma malicia.\n\n## 6. Errores frecuentes\n\n1. Presentar puntos como probabilidad\n2. Usar score de práctica como score real de ES\n3. Olvidar desduplicación y normalización de entidad\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R09-L04-Q01 — Opción múltiple\n\n¿Qué NO expresa un score de 75 en este ejercicio?\n\nA. Una señal de prioridad relativa dentro de ese ejercicio\nB. Una concentración de observaciones sintéticas de la entidad\nC. El resultado aritmético definido por los pesos de la fixture\nD. 75 % de probabilidad validada de ataque\n\n### SP-R09-L04-Q02 — Opción múltiple\n\n¿Qué cambiaría un resultado RBA?\n\nA. El orden visual de las filas sin cambiar ninguna condición ni dato\nB. El nombre de presentación de la búsqueda sin modificar su lógica\nC. Ventana, deduplicación y peso por detección\nD. La etiqueta del dashboard manteniendo idénticas detecciones y pesos\n\n### SP-R09-L04-P01 — Práctica abierta formativa\n\nCalcula suma por entidad a partir de findings sintéticos y explica límites de usar umbral 60.\n\n## 8. Solucionario con razonamiento\n\n- **SP-R09-L04-Q01: D** — El score no está calibrado como probabilidad.\n\n- **SP-R09-L04-Q02: C** — El diseño de agregación determina la puntuación.\n\n- **SP-R09-L04-P01:** alice=75 (3 registros), svc-backup=36 (2), bob=22 (1), charlie=15 (1), sys-rproxy=20 (1). Solo alice supera 60; eso demuestra la matemática del CSV, no el cálculo interno de ES ni compromiso.\n\n**Guía de retroalimentación formativa:** Distingue fuente, campos y alcance de la pregunta; Diseña un método reproducible sin inferencia abusiva; Separa señales, hipótesis, contraejemplos y ausencia de datos; Comunica siguiente paso seguro y evidencia para otro analista.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 9. Fuentes verificables y conexiones\n\n- **D09:** Splunk ES 8.7 — Guidelines for finding-based detections — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/guidelines-to-create-a-custom-finding-based-detection\n- **D10:** Splunk ES 8.7 — Risk scoring — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/risk-based-alerting/risk-scoring-in-splunk-enterprise-security\n\n- **Puente SC-200:** Capítulos 06–09 (TI, reglas, correlación e investigación). La comparación es conceptual, no una equivalencia producto a producto.\n- **Fuente curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` en la carpeta padre `SPLUNK_MASTER_RESEARCH`.\n- **Calidad:** [DOC] referencias externas consultables; [DISEÑO] escenario y actividad originales; [OFFLINE] solo cálculos de fixture; [NO PROBADO] SPL no ejecutado en Splunk. La revisión técnica independiente queda pendiente.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D09",
+      "key": "SPLUNK_LECCIONES_R08_R09:D09",
+      "url": "https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/guidelines-to-create-a-custom-finding-based-detection"
+    },
+    {
+      "id": "D10",
+      "key": "SPLUNK_LECCIONES_R08_R09:D10",
+      "url": "https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/risk-based-alerting/risk-scoring-in-splunk-enterprise-security"
+    }
+  ]
+}

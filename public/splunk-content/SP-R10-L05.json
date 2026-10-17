@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R10-L05",
+  "title": "Troubleshooting de licencias e ingesta",
+  "revision": "87806b59ac6d70925438de11",
+  "sourceVersion": "9903d7e5d8f3bfdd6a9da0ea0b0a39b19e90192bfd90585af903e0a69cacf011",
+  "sanitizedHash": "9903d7e5d8f3bfdd6a9da0ea0b0a39b19e90192bfd90585af903e0a69cacf011",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R10_R11/R10_ADMINISTRACION/SP-R10-L05.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Observar cola, timestamps, duplicados y pérdidas",
+  "preamble": "# SP-R10-L05 — Troubleshooting de licencias e ingesta\n\n**Región:** SP-R10 · **Producto:** Splunk Enterprise/Cloud (donde se indique) o SOAR Cloud explícito. · **Estado:** borrador documental / requiere revisión humana. · **SPL/CLI/API:** ilustrativo, NO ejecutado.\n\n**Resultado curricular:** Observar cola, timestamps, duplicados y pérdidas\n\n**Prerrequisitos:** R01–R05; revisar R06–R07 para impacto SOC\n\n",
+  "sections": [
+    {
+      "id": "SP-R10-L05-S01",
+      "title": "1. Explicación razonada",
+      "markdown": "## 1. Explicación razonada\n\nUn fallo aparente de ingesta admite varias causas: el origen no genera eventos, input deshabilitado, pérdida de conectividad, forwarder detenido, cola bloqueada, índice rechazado, asignación de sourcetype incorrecta, parsing/timestamp extraño o permisos insuficientes para buscar. El troubleshooting debe separar **generación → transporte → parsing → indexación → permisos de búsqueda**. Sin esa separación puedes diagnosticar «sin datos» cuando en realidad estás consultando la ventana o el índice equivocados.\n\nLas diferencias entre `_time` (fecha interpretada del evento) y `_indextime` (fecha de indexación) ayudan a detectar retrasos, aunque es imprescindible comprobar precisión del reloj y extracción. Un evento con `_indextime` posterior a `_time` puede ser normal por buffering; una diferencia alta y sostenida demanda correlacionar con colas y conectividad. La simple presencia de duplicados tampoco identifica su causa: pueden existir dos inputs, reenvíos, deduplicaciones imperfectas o eventos legítimos repetidos.\n\nLas licencias, límites de volumen y permisos difieren según tipo de despliegue y contrato; no enseñes «límite alcanzado ⇒ siempre se paran todos los eventos» como regla general. Revisa documentación de licencia para la versión real y condiciones de la cuenta. La matriz de este curso es un triage offline, no evidencia de estado de tu laboratorio.\n\n",
+      "line": 9,
+      "endLine": 15
+    },
+    {
+      "id": "SP-R10-L05-S02",
+      "title": "2. Conceptos clave",
+      "markdown": "## 2. Conceptos clave\n\n1. Cadena de ingesta y ubicación del fallo\n2. _time != _indextime: posible latencia, no prueba definitiva\n3. Errores de sourcetype/index y permisos imitan falta de datos\n4. Duplicados requieren rastreo de input/forwarders\n5. Los efectos de licencia dependen de versión y producto\n\n",
+      "line": 17,
+      "endLine": 23
+    },
+    {
+      "id": "SP-R10-L05-S03",
+      "title": "3. Procedimiento de estudio y verificación",
+      "markdown": "## 3. Procedimiento de estudio y verificación\n\n1. Comprueba evento en origen y última fecha conocida.\n2. Valida metadatos host/source/sourcetype/index en ventana ampliada.\n3. Verifica componentes por etapa de forma no destructiva.\n4. Mide lag de indexación y revisa relojes, sin asumir defecto.\n5. Consulta estado/licencia en documentación de versión antes de concluir.\n\n",
+      "line": 25,
+      "endLine": 31
+    },
+    {
+      "id": "SP-R10-L05-S04",
+      "title": "4. SPL de investigación — solo lectura y placeholders",
+      "markdown": "## 4. SPL de investigación — solo lectura y placeholders\n\n```text\nindex=IDX_WINDOWS earliest=-24h latest=now\n| eval lag_seg=_indextime-_time\n| stats count AS eventos max(lag_seg) AS peor_lag latest(_time) AS ultimo_evento BY host sourcetype\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n",
+      "line": 33,
+      "endLine": 41
+    },
+    {
+      "id": "SP-R10-L05-S05",
+      "title": "5. Situación profesional",
+      "markdown": "## 5. Situación profesional\n\nEn `ingestion_diagnosis.csv`, DC02 muestra latencia sintética de 1.800 s; DC03 aparece sin eventos por política de acceso. Un resultado «cero» no autoriza concluir que el DC no registra.\n\n## 6. Errores comunes\n\n1. Usar una consulta demasiado estrecha para probar ausencia absoluta\n2. Confundir host sin permiso con host sin eventos\n3. Cambiar inputs en producción antes de diagnosticar causa\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 43,
+      "endLine": 54
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R10-L05-Q01",
+      "lessonId": "SP-R10-L05",
+      "prompt": "¿Para qué sirve comparar `_indextime` y `_time`?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D02",
+        "SPLUNK_LECCIONES_R10_R11:D22"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R10-L05-Q01-O-271b5058e66f",
+          "text": "Para estimar diferencia entre indexación y tiempo de evento"
+        },
+        {
+          "id": "SP-R10-L05-Q01-O-b20aadb891bf",
+          "text": "Para calcular la duración del job que devolvió el evento"
+        },
+        {
+          "id": "SP-R10-L05-Q01-O-a0a703997222",
+          "text": "Para medir únicamente el tiempo de red excluyendo parsing y relojes"
+        },
+        {
+          "id": "SP-R10-L05-Q01-O-8be0bc889a73",
+          "text": "Para identificar qué componente del pipeline causó el retraso sin otras métricas"
+        }
+      ],
+      "solution": "SP-R10-L05-Q01-O-271b5058e66f",
+      "explanation": "Una diferencia temporal puede indicar retraso; debe contextualizarse con reloj, parsing y buffering.",
+      "anchors": [
+        {
+          "file": "R10_ADMINISTRACION/SP-R10-L05.md",
+          "sourceHash": "9903d7e5d8f3bfdd6a9da0ea0b0a39b19e90192bfd90585af903e0a69cacf011",
+          "line": 17,
+          "endLine": 23,
+          "quote": "## 2. Conceptos clave\n\n1. Cadena de ingesta y ubicación del fallo\n2. _time != _indextime: posible latencia, no prueba definitiva\n3. Errores de sourcetype/index y permisos imitan falta de datos\n4. Duplicados requieren rastreo de input/forwarders\n5. Los efectos de licencia dependen de versión y producto\n\n"
+        },
+        {
+          "file": "R10_ADMINISTRACION/SP-R10-L05.md",
+          "sourceHash": "9903d7e5d8f3bfdd6a9da0ea0b0a39b19e90192bfd90585af903e0a69cacf011",
+          "line": 33,
+          "endLine": 41,
+          "quote": "## 4. SPL de investigación — solo lectura y placeholders\n\n```text\nindex=IDX_WINDOWS earliest=-24h latest=now\n| eval lag_seg=_indextime-_time\n| stats count AS eventos max(lag_seg) AS peor_lag latest(_time) AS ultimo_evento BY host sourcetype\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R10-L05-Q02",
+      "lessonId": "SP-R10-L05",
+      "prompt": "Un usuario no ve eventos de un DC. ¿Qué debe verificarse?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D02",
+        "SPLUNK_LECCIONES_R10_R11:D22"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R10-L05-Q02-O-3e411676ae41",
+          "text": "Solo el conteo del dashboard, sin comprobar su búsqueda subyacente"
+        },
+        {
+          "id": "SP-R10-L05-Q02-O-ee815ebec7b5",
+          "text": "Solo el nombre del índice, sin verificar generación ni extracción de la fuente"
+        },
+        {
+          "id": "SP-R10-L05-Q02-O-041cb779cc3d",
+          "text": "Solo el estado del forwarder, dando por correctos el rango y el rol"
+        },
+        {
+          "id": "SP-R10-L05-Q02-O-44eb38bf8541",
+          "text": "Permisos, índice, intervalo, fuente y estado de ingesta"
+        }
+      ],
+      "solution": "SP-R10-L05-Q02-O-44eb38bf8541",
+      "explanation": "No ver datos también puede deberse a permisos o filtros.",
+      "anchors": [
+        {
+          "file": "R10_ADMINISTRACION/SP-R10-L05.md",
+          "sourceHash": "9903d7e5d8f3bfdd6a9da0ea0b0a39b19e90192bfd90585af903e0a69cacf011",
+          "line": 17,
+          "endLine": 23,
+          "quote": "## 2. Conceptos clave\n\n1. Cadena de ingesta y ubicación del fallo\n2. _time != _indextime: posible latencia, no prueba definitiva\n3. Errores de sourcetype/index y permisos imitan falta de datos\n4. Duplicados requieren rastreo de input/forwarders\n5. Los efectos de licencia dependen de versión y producto\n\n"
+        },
+        {
+          "file": "R10_ADMINISTRACION/SP-R10-L05.md",
+          "sourceHash": "9903d7e5d8f3bfdd6a9da0ea0b0a39b19e90192bfd90585af903e0a69cacf011",
+          "line": 33,
+          "endLine": 41,
+          "quote": "## 4. SPL de investigación — solo lectura y placeholders\n\n```text\nindex=IDX_WINDOWS earliest=-24h latest=now\n| eval lag_seg=_indextime-_time\n| stats count AS eventos max(lag_seg) AS peor_lag latest(_time) AS ultimo_evento BY host sourcetype\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R10-L05-P01",
+      "lessonId": "SP-R10-L05",
+      "prompt": "Diseña un árbol de decisión para cuatro incidentes de ingesta del CSV y una prueba de ausencia de cobertura.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D02",
+        "SPLUNK_LECCIONES_R10_R11:D22"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Define fuente, producto, versión y límites del contexto",
+        "Resuelve el objetivo con un procedimiento replicable y no destructivo",
+        "Identifica error, caso benigno y riesgo operacional",
+        "Documenta permisos, aprobación y evidencia para revisión humana"
+      ],
+      "referenceAnswer": "Separar origen, forwarder, red, parsing, índice, RBAC y búsqueda. Para DC02 priorizar latencia; para DC03 comprobar permiso sin solicitar ampliación irrestricta; para duplicados revisar inputs. Diagnóstico provisional."
+    }
+  ],
+  "solutionsMarkdown": "## 8. Solucionario con razonamiento\n\n- **SP-R10-L05-Q01: A** — Una diferencia temporal puede indicar retraso; debe contextualizarse con reloj, parsing y buffering.\n\n- **SP-R10-L05-Q02: D** — No ver datos también puede deberse a permisos o filtros.\n\n- **SP-R10-L05-P01:** Separar origen, forwarder, red, parsing, índice, RBAC y búsqueda. Para DC02 priorizar latencia; para DC03 comprobar permiso sin solicitar ampliación irrestricta; para duplicados revisar inputs. Diagnóstico provisional.\n\n**Guía de retroalimentación formativa:** Define fuente, producto, versión y límites del contexto; Resuelve el objetivo con un procedimiento replicable y no destructivo; Identifica error, caso benigno y riesgo operacional; Documenta permisos, aprobación y evidencia para revisión humana.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 9. Fuentes, procedencia y limitaciones\n\n- **D02:** Splunk Enterprise 10.2 — btool CLI help — https://help.splunk.com/en/splunk-enterprise/administer/troubleshoot/10.2/contact-splunk-support/command-line-tools-for-use-with-support\n- **D22:** Splunk Enterprise 10.2 — Indexing performance Monitoring Console — https://help.splunk.com/en/splunk-enterprise/administer/monitor/10.2/monitoring-console-dashboard-reference/indexing-performance\n\n- **Puente SC-200:** Capítulos 04, 05 y 09: telemetría, salud de ingesta e investigación. Es correspondencia pedagógica, no equivalencia exacta de producto.\n- **Fuente del ID y resultado:** `SPLUNK_MASTER_RESEARCH/03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`.\n- **[DOC]:** fundamentos documentados en fuentes oficiales; no equivale a prueba de todos los supuestos.\n- **[OFFLINE]:** solo verificaciones Python sobre fixtures sintéticos.\n- **[NO EJECUTADO]:** no se ha abierto Splunk, ni SOAR, ni REST, ni se han aplicado configuraciones.\n- **[REVISIÓN]:** verificación humana del texto, respuestas, versiones y supuestos antes de integrar en React.\n",
+  "originalMarkdown": "# SP-R10-L05 — Troubleshooting de licencias e ingesta\n\n**Región:** SP-R10 · **Producto:** Splunk Enterprise/Cloud (donde se indique) o SOAR Cloud explícito. · **Estado:** borrador documental / requiere revisión humana. · **SPL/CLI/API:** ilustrativo, NO ejecutado.\n\n**Resultado curricular:** Observar cola, timestamps, duplicados y pérdidas\n\n**Prerrequisitos:** R01–R05; revisar R06–R07 para impacto SOC\n\n## 1. Explicación razonada\n\nUn fallo aparente de ingesta admite varias causas: el origen no genera eventos, input deshabilitado, pérdida de conectividad, forwarder detenido, cola bloqueada, índice rechazado, asignación de sourcetype incorrecta, parsing/timestamp extraño o permisos insuficientes para buscar. El troubleshooting debe separar **generación → transporte → parsing → indexación → permisos de búsqueda**. Sin esa separación puedes diagnosticar «sin datos» cuando en realidad estás consultando la ventana o el índice equivocados.\n\nLas diferencias entre `_time` (fecha interpretada del evento) y `_indextime` (fecha de indexación) ayudan a detectar retrasos, aunque es imprescindible comprobar precisión del reloj y extracción. Un evento con `_indextime` posterior a `_time` puede ser normal por buffering; una diferencia alta y sostenida demanda correlacionar con colas y conectividad. La simple presencia de duplicados tampoco identifica su causa: pueden existir dos inputs, reenvíos, deduplicaciones imperfectas o eventos legítimos repetidos.\n\nLas licencias, límites de volumen y permisos difieren según tipo de despliegue y contrato; no enseñes «límite alcanzado ⇒ siempre se paran todos los eventos» como regla general. Revisa documentación de licencia para la versión real y condiciones de la cuenta. La matriz de este curso es un triage offline, no evidencia de estado de tu laboratorio.\n\n## 2. Conceptos clave\n\n1. Cadena de ingesta y ubicación del fallo\n2. _time != _indextime: posible latencia, no prueba definitiva\n3. Errores de sourcetype/index y permisos imitan falta de datos\n4. Duplicados requieren rastreo de input/forwarders\n5. Los efectos de licencia dependen de versión y producto\n\n## 3. Procedimiento de estudio y verificación\n\n1. Comprueba evento en origen y última fecha conocida.\n2. Valida metadatos host/source/sourcetype/index en ventana ampliada.\n3. Verifica componentes por etapa de forma no destructiva.\n4. Mide lag de indexación y revisa relojes, sin asumir defecto.\n5. Consulta estado/licencia en documentación de versión antes de concluir.\n\n## 4. SPL de investigación — solo lectura y placeholders\n\n```text\nindex=IDX_WINDOWS earliest=-24h latest=now\n| eval lag_seg=_indextime-_time\n| stats count AS eventos max(lag_seg) AS peor_lag latest(_time) AS ultimo_evento BY host sourcetype\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n## 5. Situación profesional\n\nEn `ingestion_diagnosis.csv`, DC02 muestra latencia sintética de 1.800 s; DC03 aparece sin eventos por política de acceso. Un resultado «cero» no autoriza concluir que el DC no registra.\n\n## 6. Errores comunes\n\n1. Usar una consulta demasiado estrecha para probar ausencia absoluta\n2. Confundir host sin permiso con host sin eventos\n3. Cambiar inputs en producción antes de diagnosticar causa\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R10-L05-Q01 — Opción múltiple\n\n¿Para qué sirve comparar `_indextime` y `_time`?\n\nA. Para estimar diferencia entre indexación y tiempo de evento\nB. Para calcular la duración del job que devolvió el evento\nC. Para medir únicamente el tiempo de red excluyendo parsing y relojes\nD. Para identificar qué componente del pipeline causó el retraso sin otras métricas\n\n### SP-R10-L05-Q02 — Opción múltiple\n\nUn usuario no ve eventos de un DC. ¿Qué debe verificarse?\n\nA. Solo el conteo del dashboard, sin comprobar su búsqueda subyacente\nB. Solo el nombre del índice, sin verificar generación ni extracción de la fuente\nC. Solo el estado del forwarder, dando por correctos el rango y el rol\nD. Permisos, índice, intervalo, fuente y estado de ingesta\n\n### SP-R10-L05-P01 — Práctica abierta formativa\n\nDiseña un árbol de decisión para cuatro incidentes de ingesta del CSV y una prueba de ausencia de cobertura.\n\n## 8. Solucionario con razonamiento\n\n- **SP-R10-L05-Q01: A** — Una diferencia temporal puede indicar retraso; debe contextualizarse con reloj, parsing y buffering.\n\n- **SP-R10-L05-Q02: D** — No ver datos también puede deberse a permisos o filtros.\n\n- **SP-R10-L05-P01:** Separar origen, forwarder, red, parsing, índice, RBAC y búsqueda. Para DC02 priorizar latencia; para DC03 comprobar permiso sin solicitar ampliación irrestricta; para duplicados revisar inputs. Diagnóstico provisional.\n\n**Guía de retroalimentación formativa:** Define fuente, producto, versión y límites del contexto; Resuelve el objetivo con un procedimiento replicable y no destructivo; Identifica error, caso benigno y riesgo operacional; Documenta permisos, aprobación y evidencia para revisión humana.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 9. Fuentes, procedencia y limitaciones\n\n- **D02:** Splunk Enterprise 10.2 — btool CLI help — https://help.splunk.com/en/splunk-enterprise/administer/troubleshoot/10.2/contact-splunk-support/command-line-tools-for-use-with-support\n- **D22:** Splunk Enterprise 10.2 — Indexing performance Monitoring Console — https://help.splunk.com/en/splunk-enterprise/administer/monitor/10.2/monitoring-console-dashboard-reference/indexing-performance\n\n- **Puente SC-200:** Capítulos 04, 05 y 09: telemetría, salud de ingesta e investigación. Es correspondencia pedagógica, no equivalencia exacta de producto.\n- **Fuente del ID y resultado:** `SPLUNK_MASTER_RESEARCH/03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`.\n- **[DOC]:** fundamentos documentados en fuentes oficiales; no equivale a prueba de todos los supuestos.\n- **[OFFLINE]:** solo verificaciones Python sobre fixtures sintéticos.\n- **[NO EJECUTADO]:** no se ha abierto Splunk, ni SOAR, ni REST, ni se han aplicado configuraciones.\n- **[REVISIÓN]:** verificación humana del texto, respuestas, versiones y supuestos antes de integrar en React.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D02",
+      "key": "SPLUNK_LECCIONES_R10_R11:D02",
+      "url": "https://help.splunk.com/en/splunk-enterprise/administer/troubleshoot/10.2/contact-splunk-support/command-line-tools-for-use-with-support"
+    },
+    {
+      "id": "D22",
+      "key": "SPLUNK_LECCIONES_R10_R11:D22",
+      "url": "https://help.splunk.com/en/splunk-enterprise/administer/monitor/10.2/monitoring-console-dashboard-reference/indexing-performance"
+    }
+  ]
+}

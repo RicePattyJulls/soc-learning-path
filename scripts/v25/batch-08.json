@@ -1,0 +1,969 @@
+{
+  "batch": "08",
+  "lessons": [
+    {
+      "lessonId": "capitulo-8-correlacion-e-incidentes/el-incidente-ya-formado-1",
+      "introduction": "Trabaja los conceptos de «El incidente ya formado» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Conservar decisiones y clasificar el incidente.",
+        "Distinguir merge y ampliación de contexto.",
+        "Separar un incidente clásico y un incident case."
+      ],
+      "summary": [
+        "Conservar decisiones y clasificar el incidente.",
+        "Distinguir merge y ampliación de contexto.",
+        "Separar un incidente clásico y un incident case."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "Dos incidentes se fusionan y uno actúa como source. ¿Qué ocurre con él según el apartado?",
+          "explanation": "La fusión conserva una referencia al origen; consultar incidentes asociados y fusionarlos son acciones distintas.",
+          "objective": "Interpretar trazabilidad de una fusión.",
+          "difficulty": "intermedia",
+          "id": "v25-47-merge-source",
+          "evidence": [
+            "Correlación = asignar alerta a incidente (nuevo o existente) + seguir vigilando y fusionar incidentes si corresponde. El merge es esa segunda parte, no algo aparte: cuando la correlación detecta que dos incidentes ya formados son el mismo ataque, los fusiona. Uno de los dos (`target`) absorbe todo el contenido del otro (`source`); Defender decide cuál es cuál. El `source` queda `Redirected` y cerrado, no desaparece. No fusiona automático si uno ya está `Closed`, tienen dueños distintos, clasificación distinta, o rompería un límite de entidades/device groups — ahí entra la fusión manual: se arregla el bloqueo y se fuerza la unión. `All associated incidents` no fusiona nada, solo amplía contexto."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Se elimina por completo sin dejar referencia.",
+              "why": "El texto dice expresamente que no desaparece."
+            },
+            {
+              "id": "o1",
+              "text": "All associated incidents lo vuelve a fusionar automáticamente.",
+              "why": "Esa vista amplía contexto y no ejecuta fusiones."
+            },
+            {
+              "id": "o2",
+              "text": "Queda Redirected y cerrado; el target absorbe su contenido y el source no desaparece.",
+              "why": "La fusión conserva una referencia al origen; consultar incidentes asociados y fusionarlos son acciones distintas."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Una actividad era real y esperada; la regla la detectó correctamente. ¿Qué categoría clásica evita llamarla un fallo de lógica?",
+          "explanation": "Clasificar con precisión distingue actividad legítima de errores de regla o de datos.",
+          "objective": "Clasificar sin confundir legitimidad y defecto de detección.",
+          "difficulty": "intermedia",
+          "id": "v25-47-benign",
+          "evidence": [
+            "- Nota sobre el vocabulario de cierre de Sentinel clásico: las dos razones de falso positivo separan regla mal escrita (`Incorrect alert logic`) de dato defectuoso (`Inaccurate data`); `Benign Positive` es actividad real pero esperada, no un fallo de la detección."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Benign Positive - Suspicious but expected.",
+              "why": "Clasificar con precisión distingue actividad legítima de errores de regla o de datos."
+            },
+            {
+              "id": "o1",
+              "text": "False Positive - Incorrect alert logic.",
+              "why": "Esa razón atribuye el problema a la lógica, no a una actividad real esperada."
+            },
+            {
+              "id": "o2",
+              "text": "False Positive - Inaccurate data.",
+              "why": "Esa razón atribuye el problema al dato defectuoso, no al caso descrito."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Según la distinción del apartado, se resuelve un incident case. ¿Qué debe comprobarse aparte?",
+          "explanation": "El contenedor de gestión y las alertas pueden conservar ciclos de vida distintos; no extrapolar el cierre clásico.",
+          "objective": "Separar ciclos de vida de case y alertas.",
+          "difficulty": "intermedia",
+          "id": "v25-47-case-alertas",
+          "evidence": [
+            "- Cambiar estado, clasificación o determinación en el `incident case` se sincroniza con el incidente relacionado, pero **no** resuelve sus alertas: las alertas mantienen su propio estado aunque el `incident case` se resuelva o cierre. Esto es distinto de lo que pasa al resolver un incidente clásico de Defender, que sí resuelve todas sus alertas activas vinculadas."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Que el case haya borrado todos los objetos vinculados.",
+              "why": "No se describe ese borrado como efecto de resolverlo."
+            },
+            {
+              "id": "o1",
+              "text": "El estado de sus alertas: resolver el case no las resuelve automáticamente.",
+              "why": "El contenedor de gestión y las alertas pueden conservar ciclos de vida distintos; no extrapolar el cierre clásico."
+            },
+            {
+              "id": "o2",
+              "text": "Nada; se comporta siempre igual que resolver el incidente clásico.",
+              "why": "El documento contrasta explícitamente ambos comportamientos."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [
+        "Incident case figura como preview en la fuente; el ejercicio interpreta ese comportamiento documentado, sin certificar estado actual del servicio."
+      ],
+      "audit": {
+        "mainConcepts": [
+          "Conservar decisiones y clasificar el incidente.",
+          "Distinguir merge y ampliación de contexto.",
+          "Separar un incidente clásico y un incident case."
+        ],
+        "understanding": [
+          "Conservar decisiones y clasificar el incidente.",
+          "Distinguir merge y ampliación de contexto.",
+          "Separar un incidente clásico y un incident case."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Conservar decisiones y clasificar el incidente.",
+          "Distinguir merge y ampliación de contexto.",
+          "Separar un incidente clásico y un incident case."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "El texto dice expresamente que no desaparece.",
+          "Esa vista amplía contexto y no ejecuta fusiones.",
+          "Esa razón atribuye el problema a la lógica, no a una actividad real esperada.",
+          "Esa razón atribuye el problema al dato defectuoso, no al caso descrito.",
+          "No se describe ese borrado como efecto de resolverlo."
+        ],
+        "evidence": [
+          "Correlación = asignar alerta a incidente (nuevo o existente) + seguir vigilando y fusionar incidentes si corresponde. El merge es esa segunda parte, no algo aparte: cuando la correlación detecta que dos incidentes ya formados son el mismo ataque, los fusiona. Uno de los dos (`target`) absorbe todo el contenido del otro (`source`); Defender decide cuál es cuál. El `source` queda `Redirected` y cerrado, no desaparece. No fusiona automático si uno ya está `Closed`, tienen dueños distintos, clasificación distinta, o rompería un límite de entidades/device groups — ahí entra la fusión manual: se arregla el bloqueo y se fuerza la unión. `All associated incidents` no fusiona nada, solo amplía contexto.",
+          "- Nota sobre el vocabulario de cierre de Sentinel clásico: las dos razones de falso positivo separan regla mal escrita (`Incorrect alert logic`) de dato defectuoso (`Inaccurate data`); `Benign Positive` es actividad real pero esperada, no un fallo de la detección.",
+          "- Cambiar estado, clasificación o determinación en el `incident case` se sincroniza con el incidente relacionado, pero **no** resuelve sus alertas: las alertas mantienen su propio estado aunque el `incident case` se resuelva o cierre. Esto es distinto de lo que pasa al resolver un incidente clásico de Defender, que sí resuelve todas sus alertas activas vinculadas."
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-9-investigacion/9-investigacion-1",
+      "introduction": "Trabaja los conceptos de «9 · Investigación» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Reconstruir quién, por dónde y hasta dónde llegó el ataque.",
+        "Elegir recopilación de evidencia según necesidad.",
+        "Pivotar más allá del incidente cuando falta contexto."
+      ],
+      "summary": [
+        "Reconstruir quién, por dónde y hasta dónde llegó el ataque.",
+        "Elegir recopilación de evidencia según necesidad.",
+        "Pivotar más allá del incidente cuando falta contexto."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "match",
+          "prompt": "Relaciona necesidad y capacidad de recopilación.",
+          "explanation": "El paquete reúne un estado puntual; la sesión remota permite interacción y también puede usarse para remediar.",
+          "objective": "Elegir una vía de recolección de evidencia.",
+          "difficulty": "intermedia",
+          "id": "v25-48-evidencia",
+          "evidence": [
+            "- `Collect investigation package`: descarga natural a un zip con el estado del dispositivo en ese momento — carpetas como Autoruns, Installed programs, Network connections, Prefetch files, Processes y Scheduled tasks. Sirve para identificar el estado actual del dispositivo y entender herramientas y técnicas del atacante, sin cambiar nada en él.",
+            "- `Initiate live response session`: acceso remoto instantáneo al dispositivo por shell. Permite recolectar datos forenses, correr scripts, enviar entidades sospechosas a analizar, y también corregir amenazas y buscar amenazas emergentes en tiempo real."
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "Captura del estado del dispositivo con procesos, tareas y conexiones"
+            },
+            {
+              "id": "r1",
+              "label": "Shell remota para recopilar datos y ejecutar acciones"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "Collect investigation package"
+            },
+            {
+              "id": "p1",
+              "text": "Live response"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Se abre live response durante una investigación. ¿Qué precaución conceptual destaca el texto?",
+          "explanation": "La superficie tiene capacidades de investigación y remediación; la finalidad depende de las acciones ejecutadas.",
+          "objective": "Distinguir capacidad operativa y finalidad de sesión.",
+          "difficulty": "intermedia",
+          "id": "v25-48-lectura-accion",
+          "evidence": [
+            "> Live response sí puede usarse para remediar (correr scripts, arreglar) pero su función central acá es investigativa."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Siempre remedia automáticamente todo al conectarse.",
+              "why": "Poder remediar no significa ejecutar acciones automáticamente al abrirla."
+            },
+            {
+              "id": "o1",
+              "text": "También puede corregir amenazas; no debe suponerse que toda sesión es solo lectura.",
+              "why": "La superficie tiene capacidades de investigación y remediación; la finalidad depende de las acciones ejecutadas."
+            },
+            {
+              "id": "o2",
+              "text": "Nunca puede ejecutar scripts ni modificar nada.",
+              "why": "El apartado incluye scripts y remediación."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "El incidente ya no responde qué hizo una entidad fuera de las alertas. ¿Qué recorrido plantea el capítulo?",
+          "explanation": "La historia del incidente organiza evidencias, pero el alcance puede exigir otras superficies y dominios.",
+          "objective": "Ampliar alcance cuando la vista de incidente es insuficiente.",
+          "difficulty": "intermedia",
+          "id": "v25-48-scope-investigacion",
+          "evidence": [
+            "el incidente deja de responder → se pivota por la entidad"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Pivotar por la entidad y ampliar a inventarios, producto y actividad M365.",
+              "why": "La historia del incidente organiza evidencias, pero el alcance puede exigir otras superficies y dominios."
+            },
+            {
+              "id": "o1",
+              "text": "Dar por completo el alcance porque ya existe propietario.",
+              "why": "Asignar un incidente no prueba que el alcance esté investigado."
+            },
+            {
+              "id": "o2",
+              "text": "Limitarse al título aunque la correlación lo cambie.",
+              "why": "La investigación debe reconstruir entidades y actividad, no solo el nombre."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [],
+      "audit": {
+        "mainConcepts": [
+          "Reconstruir quién, por dónde y hasta dónde llegó el ataque.",
+          "Elegir recopilación de evidencia según necesidad.",
+          "Pivotar más allá del incidente cuando falta contexto."
+        ],
+        "understanding": [
+          "Reconstruir quién, por dónde y hasta dónde llegó el ataque.",
+          "Elegir recopilación de evidencia según necesidad.",
+          "Pivotar más allá del incidente cuando falta contexto."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Reconstruir quién, por dónde y hasta dónde llegó el ataque.",
+          "Elegir recopilación de evidencia según necesidad.",
+          "Pivotar más allá del incidente cuando falta contexto."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "Poder remediar no significa ejecutar acciones automáticamente al abrirla.",
+          "El apartado incluye scripts y remediación.",
+          "Asignar un incidente no prueba que el alcance esté investigado.",
+          "La investigación debe reconstruir entidades y actividad, no solo el nombre."
+        ],
+        "evidence": [
+          "- `Collect investigation package`: descarga natural a un zip con el estado del dispositivo en ese momento — carpetas como Autoruns, Installed programs, Network connections, Prefetch files, Processes y Scheduled tasks. Sirve para identificar el estado actual del dispositivo y entender herramientas y técnicas del atacante, sin cambiar nada en él.",
+          "- `Initiate live response session`: acceso remoto instantáneo al dispositivo por shell. Permite recolectar datos forenses, correr scripts, enviar entidades sospechosas a analizar, y también corregir amenazas y buscar amenazas emergentes en tiempo real.",
+          "> Live response sí puede usarse para remediar (correr scripts, arreglar) pero su función central acá es investigativa.",
+          "el incidente deja de responder → se pivota por la entidad"
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-9-investigacion/1-el-incidente-como-punto-de-partida-1",
+      "introduction": "Trabaja los conceptos de «1. El incidente como punto de partida» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Elegir pestañas por pregunta investigativa.",
+        "Distinguir árbol de procesos, cronología y actividad del SOC.",
+        "Reconocer cuándo abrir la entidad."
+      ],
+      "summary": [
+        "Elegir pestañas por pregunta investigativa.",
+        "Distinguir árbol de procesos, cronología y actividad del SOC.",
+        "Reconocer cuándo abrir la entidad."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "match",
+          "prompt": "Relaciona la pregunta con la pestaña del incidente.",
+          "explanation": "Acciones de investigación, activos y veredictos responden a preguntas diferentes; la pestaña debe elegirse por lo que falta conocer.",
+          "objective": "Elegir la vista que responde a la pregunta.",
+          "difficulty": "intermedia",
+          "id": "v25-49-pestanas",
+          "evidence": [
+            "- `Activities`: Es la cronología de lo que ha pasado dentro del incidente, tanto acciones manuales y automáticas como eventos de correlación del tipo `Alert link` con categoría `Correlations`. Cada fila trae `Type`, `Category`, `Target`, `Performed by`, `Trigger` y `Activity status`, y el filtro `Origin: This incident` acota a lo ocurrido en este incidente.",
+            "- `Assets`: Devices, Users, Mailboxes, Apps, Cloud resources — vista unificada de todo lo afectado.",
+            "- `Evidence and Response` (pestaña del incidente) ya da un primer vistazo por entidad: veredicto (Malicious/Suspicious/Clean) y estado de remediación, con la aprobación de acciones pendientes ahí mismo. Si hace falta profundizar en una entidad puntual, ahí mismo o desde una alerta, la barra de búsqueda global, o un resultado de `Advanced Hunting` se abre su `entity page` propia: `File` con metadatos, veredicto de Antivirus y ratio VirusTotal; `IP address` con reputación, ASN y `Observed in organization` (tope 100 dispositivos); `URL`/`Domain` con veredicto de Microsoft y clics observados, agrupado por FQDN aunque cada subdominio tenga página propia (con Sentinel se suma `Insights`)."
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "¿Qué acciones manuales/automáticas y vínculos ocurrieron?"
+            },
+            {
+              "id": "r1",
+              "label": "¿Qué activos están afectados?"
+            },
+            {
+              "id": "r2",
+              "label": "¿Qué veredicto y estado de remediación tiene la evidencia?"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "Activities"
+            },
+            {
+              "id": "p1",
+              "text": "Assets"
+            },
+            {
+              "id": "p2",
+              "text": "Evidence and Response"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1",
+            "p2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Necesitas la relación padre-hijo y la línea de comandos de procesos de una alerta. ¿Qué vista indica el apartado?",
+          "explanation": "El árbol de procesos aporta la cadena de ejecución y permite navegar a entidades; una cronología lo complementa, pero no es la misma representación.",
+          "objective": "Investigar la cadena de ejecución de una alerta.",
+          "difficulty": "intermedia",
+          "id": "v25-49-arbol",
+          "evidence": [
+            "- `Process tree`: relación padre-hijo de los procesos de la alerta, con línea de comandos — navegable hacia entity pages."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Solo el propietario y la fecha de resolución del incidente.",
+              "why": "Esos metadatos no reconstruyen el árbol de ejecución."
+            },
+            {
+              "id": "o1",
+              "text": "Process tree.",
+              "why": "El árbol de procesos aporta la cadena de ejecución y permite navegar a entidades; una cronología lo complementa, pero no es la misma representación."
+            },
+            {
+              "id": "o2",
+              "text": "Solo el resumen de tags y severidad en Summary.",
+              "why": "Ese resumen no es la relación padre-hijo solicitada."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "¿Por qué abrir una entidad o la superficie de producto si ya se revisaron las pestañas del incidente?",
+          "explanation": "Las pestañas muestran entidades implicadas y lo observado por motores; el pivote amplía la evidencia más allá de esas alertas.",
+          "objective": "Justificar un pivote investigativo.",
+          "difficulty": "intermedia",
+          "id": "v25-49-fuera-alertas",
+          "evidence": [
+            "- El incidente deja de responder → se sale por la entidad. Sus pestañas dicen qué entidades están implicadas y qué vio cada motor, pero no lo que esas entidades hicieron fuera de lo que alertó — para eso se entra en el inventario, en la superficie del producto que la vio o en la actividad de Microsoft 365."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Porque el incidente borra toda entidad después de leerla.",
+              "why": "El apartado no describe ese comportamiento."
+            },
+            {
+              "id": "o1",
+              "text": "Porque toda entity page confirma automáticamente compromiso.",
+              "why": "Una ficha aporta contexto; no confirma por sí sola un ataque."
+            },
+            {
+              "id": "o2",
+              "text": "Para investigar actividad fuera de lo que alertó.",
+              "why": "Las pestañas muestran entidades implicadas y lo observado por motores; el pivote amplía la evidencia más allá de esas alertas."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [
+        "No se evalúan los límites de saltos Blast radius por entorno ni retenciones numéricas como condiciones universales."
+      ],
+      "audit": {
+        "mainConcepts": [
+          "Elegir pestañas por pregunta investigativa.",
+          "Distinguir árbol de procesos, cronología y actividad del SOC.",
+          "Reconocer cuándo abrir la entidad."
+        ],
+        "understanding": [
+          "Elegir pestañas por pregunta investigativa.",
+          "Distinguir árbol de procesos, cronología y actividad del SOC.",
+          "Reconocer cuándo abrir la entidad."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Elegir pestañas por pregunta investigativa.",
+          "Distinguir árbol de procesos, cronología y actividad del SOC.",
+          "Reconocer cuándo abrir la entidad."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "Esos metadatos no reconstruyen el árbol de ejecución.",
+          "Ese resumen no es la relación padre-hijo solicitada.",
+          "El apartado no describe ese comportamiento.",
+          "Una ficha aporta contexto; no confirma por sí sola un ataque."
+        ],
+        "evidence": [
+          "- `Activities`: Es la cronología de lo que ha pasado dentro del incidente, tanto acciones manuales y automáticas como eventos de correlación del tipo `Alert link` con categoría `Correlations`. Cada fila trae `Type`, `Category`, `Target`, `Performed by`, `Trigger` y `Activity status`, y el filtro `Origin: This incident` acota a lo ocurrido en este incidente.",
+          "- `Assets`: Devices, Users, Mailboxes, Apps, Cloud resources — vista unificada de todo lo afectado.",
+          "- `Evidence and Response` (pestaña del incidente) ya da un primer vistazo por entidad: veredicto (Malicious/Suspicious/Clean) y estado de remediación, con la aprobación de acciones pendientes ahí mismo. Si hace falta profundizar en una entidad puntual, ahí mismo o desde una alerta, la barra de búsqueda global, o un resultado de `Advanced Hunting` se abre su `entity page` propia: `File` con metadatos, veredicto de Antivirus y ratio VirusTotal; `IP address` con reputación, ASN y `Observed in organization` (tope 100 dispositivos); `URL`/`Domain` con veredicto de Microsoft y clics observados, agrupado por FQDN aunque cada subdominio tenga página propia (con Sentinel se suma `Insights`).",
+          "- `Process tree`: relación padre-hijo de los procesos de la alerta, con línea de comandos — navegable hacia entity pages.",
+          "- El incidente deja de responder → se sale por la entidad. Sus pestañas dicen qué entidades están implicadas y qué vio cada motor, pero no lo que esas entidades hicieron fuera de lo que alertó — para eso se entra en el inventario, en la superficie del producto que la vio o en la actividad de Microsoft 365."
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-9-investigacion/2-pivote-por-entidad-cuando-el-incidente-no-alcanza-1",
+      "introduction": "Trabaja los conceptos de «2. Pivote por entidad (cuando el incidente no alcanza)» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Investigar desde el activo sin exigir una alerta previa.",
+        "Distinguir riesgo, exposición e incorporación.",
+        "Elegir inventario de identidad o dispositivo."
+      ],
+      "summary": [
+        "Investigar desde el activo sin exigir una alerta previa.",
+        "Distinguir riesgo, exposición e incorporación.",
+        "Elegir inventario de identidad o dispositivo."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "Un dispositivo aparece en Device inventory pero no tiene alerta ni agente incorporado. ¿Contradice el apartado?",
+          "explanation": "Ser visible para inventario no equivale a estar incorporado ni a estar comprometido.",
+          "objective": "Interpretar presencia de activos en inventario.",
+          "difficulty": "intermedia",
+          "id": "v25-50-inventario",
+          "evidence": [
+            "- `Device inventory`: fuente autoritativa de todos los dispositivos visibles para Microsoft Defender for Endpoint — incorporados con agente y descubiertos en la red, no hace falta que tengan alertas para aparecer. Columnas clave: `Risk level` (riesgo de compromiso, sobre todo por alertas activas), `Exposure level` (por vulnerabilidades/recomendaciones pendientes, no por alertas), `Onboarding status` (`Onboarded`/`Can be onboarded`/`Unsupported`/`Insufficient info`), `Sensor health state` (`Inactive`/`Misconfigured`), `Criticality level`."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Sí; Exposure level sustituye y elimina el inventario de descubiertos.",
+              "why": "Es una columna de contexto, no una condición que elimine esos dispositivos."
+            },
+            {
+              "id": "o1",
+              "text": "No; también incluye dispositivos descubiertos y no exige que tengan alertas.",
+              "why": "Ser visible para inventario no equivale a estar incorporado ni a estar comprometido."
+            },
+            {
+              "id": "o2",
+              "text": "Sí; todos deben estar onboarded y alertados.",
+              "why": "La definición incluye incorporados y descubiertos, sin exigir alertas."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "match",
+          "prompt": "Relaciona columna y significado del inventario.",
+          "explanation": "Riesgo observado, debilidades y estado de incorporación son dimensiones diferentes.",
+          "objective": "Separar riesgo, exposición e incorporación.",
+          "difficulty": "intermedia",
+          "id": "v25-50-columnas",
+          "evidence": [
+            "- `Device inventory`: fuente autoritativa de todos los dispositivos visibles para Microsoft Defender for Endpoint — incorporados con agente y descubiertos en la red, no hace falta que tengan alertas para aparecer. Columnas clave: `Risk level` (riesgo de compromiso, sobre todo por alertas activas), `Exposure level` (por vulnerabilidades/recomendaciones pendientes, no por alertas), `Onboarding status` (`Onboarded`/`Can be onboarded`/`Unsupported`/`Insufficient info`), `Sensor health state` (`Inactive`/`Misconfigured`), `Criticality level`."
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "Risk level"
+            },
+            {
+              "id": "r1",
+              "label": "Exposure level"
+            },
+            {
+              "id": "r2",
+              "label": "Onboarding status"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "Riesgo de compromiso, sobre todo por alertas activas"
+            },
+            {
+              "id": "p1",
+              "text": "Vulnerabilidades y recomendaciones pendientes"
+            },
+            {
+              "id": "p2",
+              "text": "Situación de incorporación/compatibilidad del activo"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1",
+            "p2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Necesitas contexto de identidades AD y Entra en una sola vista. ¿Qué inventario corresponde?",
+          "explanation": "La entidad investigada orienta el inventario; no hay que forzar un pivote de usuario a una superficie de dispositivo.",
+          "objective": "Elegir inventario por tipo de activo.",
+          "difficulty": "intermedia",
+          "id": "v25-50-identidades",
+          "evidence": [
+            "- `Identity inventory`: identidades de Active Directory y Microsoft Entra ID en una sola vista."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Applications porque incluye automáticamente todos los logons de cada identidad.",
+              "why": "La descripción de Applications se centra en aplicaciones descubiertas y uso."
+            },
+            {
+              "id": "o1",
+              "text": "Identity inventory.",
+              "why": "La entidad investigada orienta el inventario; no hay que forzar un pivote de usuario a una superficie de dispositivo."
+            },
+            {
+              "id": "o2",
+              "text": "Device inventory porque cualquier usuario es una fila de dispositivo.",
+              "why": "Ese inventario tiene como sujeto los dispositivos, no la vista conjunta de identidades."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [],
+      "audit": {
+        "mainConcepts": [
+          "Investigar desde el activo sin exigir una alerta previa.",
+          "Distinguir riesgo, exposición e incorporación.",
+          "Elegir inventario de identidad o dispositivo."
+        ],
+        "understanding": [
+          "Investigar desde el activo sin exigir una alerta previa.",
+          "Distinguir riesgo, exposición e incorporación.",
+          "Elegir inventario de identidad o dispositivo."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Investigar desde el activo sin exigir una alerta previa.",
+          "Distinguir riesgo, exposición e incorporación.",
+          "Elegir inventario de identidad o dispositivo."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "Es una columna de contexto, no una condición que elimine esos dispositivos.",
+          "La definición incluye incorporados y descubiertos, sin exigir alertas.",
+          "La descripción de Applications se centra en aplicaciones descubiertas y uso.",
+          "Ese inventario tiene como sujeto los dispositivos, no la vista conjunta de identidades."
+        ],
+        "evidence": [
+          "- `Device inventory`: fuente autoritativa de todos los dispositivos visibles para Microsoft Defender for Endpoint — incorporados con agente y descubiertos en la red, no hace falta que tengan alertas para aparecer. Columnas clave: `Risk level` (riesgo de compromiso, sobre todo por alertas activas), `Exposure level` (por vulnerabilidades/recomendaciones pendientes, no por alertas), `Onboarding status` (`Onboarded`/`Can be onboarded`/`Unsupported`/`Insufficient info`), `Sensor health state` (`Inactive`/`Misconfigured`), `Criticality level`.",
+          "- `Device inventory`: fuente autoritativa de todos los dispositivos visibles para Microsoft Defender for Endpoint — incorporados con agente y descubiertos en la red, no hace falta que tengan alertas para aparecer. Columnas clave: `Risk level` (riesgo de compromiso, sobre todo por alertas activas), `Exposure level` (por vulnerabilidades/recomendaciones pendientes, no por alertas), `Onboarding status` (`Onboarded`/`Can be onboarded`/`Unsupported`/`Insufficient info`), `Sensor health state` (`Inactive`/`Misconfigured`), `Criticality level`.",
+          "- `Identity inventory`: identidades de Active Directory y Microsoft Entra ID en una sola vista."
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-9-investigacion/3-service-detection-source-1",
+      "introduction": "Trabaja los conceptos de «3. Service & Detection Source» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Separar producto que entrega y motor que detecta.",
+        "Elegir superficie de investigación por Service source.",
+        "Mantener el pivote MDE por activo."
+      ],
+      "summary": [
+        "Separar producto que entrega y motor que detecta.",
+        "Elegir superficie de investigación por Service source.",
+        "Mantener el pivote MDE por activo."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "match",
+          "prompt": "Relaciona campo y significado.",
+          "explanation": "Un motor diferente dentro de un producto cambia su interpretación/tuning, pero no convierte la alerta en otro Service source.",
+          "objective": "Interpretar metadatos de procedencia.",
+          "difficulty": "intermedia",
+          "id": "v25-51-fuentes",
+          "evidence": [
+            "`Service source` (qué producto entregó la alerta) dice cuál de estas filas usar. `Detection source` (qué motor la produjo dentro de ese producto) no cambia la fila — cambia cuánto se confía en la alerta y cómo se ajusta después. Los valores no son universales, cada producto tiene los suyos:",
+            "`Service source` (qué producto entregó la alerta) dice cuál de estas filas usar. `Detection source` (qué motor la produjo dentro de ese producto) no cambia la fila — cambia cuánto se confía en la alerta y cómo se ajusta después. Los valores no son universales, cada producto tiene los suyos:"
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "Service source"
+            },
+            {
+              "id": "r1",
+              "label": "Detection source"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "Producto que entregó la alerta"
+            },
+            {
+              "id": "p1",
+              "text": "Motor que la produjo dentro del producto"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Service source es MDO y quieres profundizar en correos, campañas y clics. ¿Qué superficie lista la tabla?",
+          "explanation": "El producto que aporta la alerta orienta la superficie; la detección concreta ayuda a entender por qué se disparó.",
+          "objective": "Seleccionar superficie por fuente de servicio.",
+          "difficulty": "intermedia",
+          "id": "v25-51-mdo-investigar",
+          "evidence": [
+            "| MDO                 | `security.microsoft.com > Email & collaboration > Explorer`                      | Emails, malware, phish, campaigns, URL clicks                                         | Safe Attachments, Safe Links, anti-phishing, reputación, detonación                                                     |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Email & collaboration > Explorer.",
+              "why": "El producto que aporta la alerta orienta la superficie; la detección concreta ayuda a entender por qué se disparó."
+            },
+            {
+              "id": "o1",
+              "text": "Cloud apps para investigar exclusivamente sesiones SaaS.",
+              "why": "Esa superficie corresponde a MDCA, no al correo MDO de la fila."
+            },
+            {
+              "id": "o2",
+              "text": "ID Protection para sustituir el análisis del mensaje.",
+              "why": "Ese producto aporta riesgo de identidad, no la superficie de correo citada."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Una alerta MDE está en Incidents & alerts, pero quieres pivotar por el dispositivo. ¿Dónde sitúa el apartado ese lugar propio?",
+          "explanation": "La ubicación de la alerta y la superficie propia del activo coexisten; no hay que confundirlas.",
+          "objective": "Distinguir cola de alertas y pivote de dispositivo.",
+          "difficulty": "intermedia",
+          "id": "v25-51-mde-pivot",
+          "evidence": [
+            "A diferencia de `MDO/MDCA` (que tienen consola propia) o MDI (que se investiga desde Alerts), MDE es el núcleo del portal unificado: sus alertas también viven en `Incidents & alerts`, pero el lugar propio para pivotar por el activo afectado es `Assets > Devices`"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Assets > Devices.",
+              "why": "La ubicación de la alerta y la superficie propia del activo coexisten; no hay que confundirlas."
+            },
+            {
+              "id": "o1",
+              "text": "Solo la página de incidente, porque los dispositivos no tienen superficie propia.",
+              "why": "El párrafo destaca Device inventory/timeline como pivote."
+            },
+            {
+              "id": "o2",
+              "text": "En cualquier producto indicado por Detection source sin mirar Service source.",
+              "why": "Detection source no cambia la fila de producto."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [],
+      "audit": {
+        "mainConcepts": [
+          "Separar producto que entrega y motor que detecta.",
+          "Elegir superficie de investigación por Service source.",
+          "Mantener el pivote MDE por activo."
+        ],
+        "understanding": [
+          "Separar producto que entrega y motor que detecta.",
+          "Elegir superficie de investigación por Service source.",
+          "Mantener el pivote MDE por activo."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Separar producto que entrega y motor que detecta.",
+          "Elegir superficie de investigación por Service source.",
+          "Mantener el pivote MDE por activo."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "Esa superficie corresponde a MDCA, no al correo MDO de la fila.",
+          "Ese producto aporta riesgo de identidad, no la superficie de correo citada.",
+          "El párrafo destaca Device inventory/timeline como pivote.",
+          "Detection source no cambia la fila de producto."
+        ],
+        "evidence": [
+          "`Service source` (qué producto entregó la alerta) dice cuál de estas filas usar. `Detection source` (qué motor la produjo dentro de ese producto) no cambia la fila — cambia cuánto se confía en la alerta y cómo se ajusta después. Los valores no son universales, cada producto tiene los suyos:",
+          "`Service source` (qué producto entregó la alerta) dice cuál de estas filas usar. `Detection source` (qué motor la produjo dentro de ese producto) no cambia la fila — cambia cuánto se confía en la alerta y cómo se ajusta después. Los valores no son universales, cada producto tiene los suyos:",
+          "| MDO                 | `security.microsoft.com > Email & collaboration > Explorer`                      | Emails, malware, phish, campaigns, URL clicks                                         | Safe Attachments, Safe Links, anti-phishing, reputación, detonación                                                     |",
+          "A diferencia de `MDO/MDCA` (que tienen consola propia) o MDI (que se investiga desde Alerts), MDE es el núcleo del portal unificado: sus alertas también viven en `Incidents & alerts`, pero el lugar propio para pivotar por el activo afectado es `Assets > Devices`"
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-9-investigacion/4-actividad-de-microsoft-365-1",
+      "introduction": "Trabaja los conceptos de «4. Actividad de Microsoft 365» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Separar acción de negocio, contenido y llamada HTTP.",
+        "Distinguir Keyword Query Language de Kusto.",
+        "Validar resultados antes de exportar."
+      ],
+      "summary": [
+        "Separar acción de negocio, contenido y llamada HTTP.",
+        "Distinguir Keyword Query Language de Kusto.",
+        "Validar resultados antes de exportar."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "match",
+          "prompt": "Relaciona la pregunta con la herramienta.",
+          "explanation": "Operación auditada, contenido y transporte API son evidencias distintas; una llamada no garantiza una operación de negocio lograda.",
+          "objective": "Elegir evidencia según el hecho que se quiere demostrar.",
+          "difficulty": "intermedia",
+          "id": "v25-52-capas",
+          "evidence": [
+            "| `Microsoft Purview Audit`       | es la capa de negocio: no le importa la llamada técnica, registra el resultado que el servicio decidió que era relevante auditar — \"se borró un correo\", \"se cambió un permiso\". Es una acción confirmada, no una solicitud | `purview.microsoft.com > Solutions > Audit`                                                                                                                   | Rango máximo 180 días, timestamps en UTC, distinto de `OfficeActivity`                             |",
+            "| `Content search` (eDiscovery)   | no registra nada que haya pasado — busca el contenido en sí mismo, ahora, tal como existe hoy en un buzón o sitio (el cuerpo del correo, el archivo). No te dice \"quién hizo qué\", te muestra el dato                       | `purview.microsoft.com > Solutions > eDiscovery`                                                                                                              | Usa Keyword Query Language (KQL, no es Kusto); validar con `Statistics`/`Sample` antes de exportar |",
+            "| `Microsoft Graph activity logs` | es la capa más baja: registra que se hizo una llamada HTTP a la API, sin importar si logró algo (puedes llamar y fallar, o llamar sin necesidad real).                                                                      | Se activa en `entra.microsoft.com > Identity > Monitoring & health > Diagnostic settings`, se consulta en la tabla `MicrosoftGraphActivityLogs` del workspace | No tiene página propia; distinto de Purview Audit (transporte vs business operation)               |"
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "¿Quién borró un correo o cambió un permiso?"
+            },
+            {
+              "id": "r1",
+              "label": "¿Qué contenido existe ahora en un buzón o sitio?"
+            },
+            {
+              "id": "r2",
+              "label": "¿Qué solicitud HTTP procesó Graph, incluso si falló?"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "Purview Audit"
+            },
+            {
+              "id": "p1",
+              "text": "Content search/eDiscovery"
+            },
+            {
+              "id": "p2",
+              "text": "Microsoft Graph activity logs"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1",
+            "p2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Una búsqueda eDiscovery usa KQL. ¿Qué distinción evita un error de consulta?",
+          "explanation": "Las siglas coinciden, pero el producto y el lenguaje de búsqueda son diferentes.",
+          "objective": "Distinguir lenguajes con siglas iguales.",
+          "difficulty": "intermedia",
+          "id": "v25-52-kql-lenguajes",
+          "evidence": [
+            "| `Content search` (eDiscovery)   | no registra nada que haya pasado — busca el contenido en sí mismo, ahora, tal como existe hoy en un buzón o sitio (el cuerpo del correo, el archivo). No te dice \"quién hizo qué\", te muestra el dato                       | `purview.microsoft.com > Solutions > eDiscovery`                                                                                                              | Usa Keyword Query Language (KQL, no es Kusto); validar con `Statistics`/`Sample` antes de exportar |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Es Keyword Query Language, no Kusto Query Language.",
+              "why": "Las siglas coinciden, pero el producto y el lenguaje de búsqueda son diferentes."
+            },
+            {
+              "id": "o1",
+              "text": "Es siempre Kusto porque comparten siglas.",
+              "why": "La tabla niega esa equivalencia."
+            },
+            {
+              "id": "o2",
+              "text": "Es GQL porque consulta un case.",
+              "why": "GQL no es el lenguaje indicado de Content search."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Antes de exportar resultados de Content search, ¿qué validación indica la tabla?",
+          "explanation": "La comprobación previa reduce errores de alcance del contenido que se va a exportar.",
+          "objective": "Comprobar alcance de una búsqueda antes de exportar.",
+          "difficulty": "intermedia",
+          "id": "v25-52-antes-exportar",
+          "evidence": [
+            "| `Content search` (eDiscovery)   | no registra nada que haya pasado — busca el contenido en sí mismo, ahora, tal como existe hoy en un buzón o sitio (el cuerpo del correo, el archivo). No te dice \"quién hizo qué\", te muestra el dato                       | `purview.microsoft.com > Solutions > eDiscovery`                                                                                                              | Usa Keyword Query Language (KQL, no es Kusto); validar con `Statistics`/`Sample` antes de exportar |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Statistics y Sample.",
+              "why": "La comprobación previa reduce errores de alcance del contenido que se va a exportar."
+            },
+            {
+              "id": "o1",
+              "text": "Dar por correcta la selección solo por haber terminado el job.",
+              "why": "Finalizar no valida que el contenido seleccionado sea el esperado."
+            },
+            {
+              "id": "o2",
+              "text": "Revisar únicamente el contador de alertas del incidente.",
+              "why": "Ese contador no comprueba el contenido de la búsqueda eDiscovery."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [],
+      "audit": {
+        "mainConcepts": [
+          "Separar acción de negocio, contenido y llamada HTTP.",
+          "Distinguir Keyword Query Language de Kusto.",
+          "Validar resultados antes de exportar."
+        ],
+        "understanding": [
+          "Separar acción de negocio, contenido y llamada HTTP.",
+          "Distinguir Keyword Query Language de Kusto.",
+          "Validar resultados antes de exportar."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Separar acción de negocio, contenido y llamada HTTP.",
+          "Distinguir Keyword Query Language de Kusto.",
+          "Validar resultados antes de exportar."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "La tabla niega esa equivalencia.",
+          "GQL no es el lenguaje indicado de Content search.",
+          "Finalizar no valida que el contenido seleccionado sea el esperado.",
+          "Ese contador no comprueba el contenido de la búsqueda eDiscovery."
+        ],
+        "evidence": [
+          "| `Microsoft Purview Audit`       | es la capa de negocio: no le importa la llamada técnica, registra el resultado que el servicio decidió que era relevante auditar — \"se borró un correo\", \"se cambió un permiso\". Es una acción confirmada, no una solicitud | `purview.microsoft.com > Solutions > Audit`                                                                                                                   | Rango máximo 180 días, timestamps en UTC, distinto de `OfficeActivity`                             |",
+          "| `Content search` (eDiscovery)   | no registra nada que haya pasado — busca el contenido en sí mismo, ahora, tal como existe hoy en un buzón o sitio (el cuerpo del correo, el archivo). No te dice \"quién hizo qué\", te muestra el dato                       | `purview.microsoft.com > Solutions > eDiscovery`                                                                                                              | Usa Keyword Query Language (KQL, no es Kusto); validar con `Statistics`/`Sample` antes de exportar |",
+          "| `Microsoft Graph activity logs` | es la capa más baja: registra que se hizo una llamada HTTP a la API, sin importar si logró algo (puedes llamar y fallar, o llamar sin necesidad real).                                                                      | Se activa en `entra.microsoft.com > Identity > Monitoring & health > Diagnostic settings`, se consulta en la tabla `MicrosoftGraphActivityLogs` del workspace | No tiene página propia; distinto de Purview Audit (transporte vs business operation)               |",
+          "| `Content search` (eDiscovery)   | no registra nada que haya pasado — busca el contenido en sí mismo, ahora, tal como existe hoy en un buzón o sitio (el cuerpo del correo, el archivo). No te dice \"quién hizo qué\", te muestra el dato                       | `purview.microsoft.com > Solutions > eDiscovery`                                                                                                              | Usa Keyword Query Language (KQL, no es Kusto); validar con `Statistics`/`Sample` antes de exportar |",
+          "| `Content search` (eDiscovery)   | no registra nada que haya pasado — busca el contenido en sí mismo, ahora, tal como existe hoy en un buzón o sitio (el cuerpo del correo, el archivo). No te dice \"quién hizo qué\", te muestra el dato                       | `purview.microsoft.com > Solutions > eDiscovery`                                                                                                              | Usa Keyword Query Language (KQL, no es Kusto); validar con `Statistics`/`Sample` antes de exportar |"
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    }
+  ]
+}

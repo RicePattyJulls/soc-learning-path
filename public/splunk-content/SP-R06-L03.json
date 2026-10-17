@@ -1,0 +1,200 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R06-L03",
+  "title": "Windows y autenticación",
+  "revision": "10088cc84c4e347f218f586a",
+  "sourceVersion": "289eb894729f34b7ea8ef6a13a6ca8dcaaa437ab577010cc22805940d2d1ed62",
+  "sanitizedHash": "289eb894729f34b7ea8ef6a13a6ca8dcaaa437ab577010cc22805940d2d1ed62",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R06_R07/R06_CENTRO_SOC/SP-R06-L03.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Analizar 4625,4624,4769,4662 con condiciones de auditoría",
+  "preamble": "# SP-R06-L03 — Windows y autenticación\n\n**Región:** SP-R06 · **Prioridad:** P0 (SOC N1/N2) · **Estado:** material editorial para revisión · **SPL:** NO ejecutado en Splunk.\n\n**Objetivo curricular original:** Analizar 4625,4624,4769,4662 con condiciones de auditoría\n\n**Prerrequisitos:** R01–R05 y lectura de la matriz de campos. **Producto:** Splunk Enterprise/Cloud (búsquedas de lectura); funciones ES explícitamente condicionadas a Splunk Enterprise Security compatible.\n\n",
+  "sections": [
+    {
+      "id": "SP-R06-L03-S01",
+      "title": "1. Pregunta esencial y modelo mental",
+      "markdown": "## 1. Pregunta esencial y modelo mental\n\nLos identificadores de Windows ayudan a construir hipótesis, pero su presencia depende de la política de auditoría, la función del equipo y los canales ingeridos. 4625 es fallo de logon en el equipo que recibe el intento; 4624 refleja inicio de sesión correcto allí; 4769 es solicitud de ticket TGS observada en el DC; 4662 se vincula a operaciones auditadas en objetos del directorio, no a una prueba automática de DCSync.\n\n",
+      "line": 9,
+      "endLine": 11
+    },
+    {
+      "id": "SP-R06-L03-S02",
+      "title": "2. Conceptos que debes dominar",
+      "markdown": "## 2. Conceptos que debes dominar\n\n1. 4625: revisa LogonType, AccountName, Status/SubStatus y origen si existen; falta de origen puede ser normal según tipo.\n2. 4624: valida usuario, LogonType, equipo, dirección de red e identificadores disponibles; éxito no acredita compromiso.\n3. 4769: se registra en controlador de dominio; nuevos campos y formatos pueden variar tras actualizaciones; revisa TicketEncryptionType, ServiceName y resultado de la solicitud.\n4. 4662: requiere auditoría/ACL de objetos para observar ciertos accesos; sin contexto de permisos o tipo de operación no sirve para afirmar replicación maliciosa.\n5. No mezcles cifrado de ticket, cifrados permitidos ni flags como si fueran el mismo campo; revisa versiones y extracciones reales.\n\n",
+      "line": 13,
+      "endLine": 19
+    },
+    {
+      "id": "SP-R06-L03-S03",
+      "title": "3. Práctica guiada: del dato a la conclusión",
+      "markdown": "## 3. Práctica guiada: del dato a la conclusión\n\n1. Crea una tabla evento → ubicación donde debería registrarse → condición de auditoría → inferencia posible.\n2. Para A001–A007 contrasta 4625 y 4624 en el endpoint de destino.\n3. Para K001–K006 examina 4769 del DC con nombre de servicio y tipo de cifrado.\n4. Si no ves 4662, diferencia “no presente en dataset” de “actividad descartada”.\n5. Anota dos fuentes complementarias para validar una hipótesis de robo de credenciales.\n\n",
+      "line": 21,
+      "endLine": 27
+    },
+    {
+      "id": "SP-R06-L03-S04",
+      "title": "4. SPL ilustrativo de solo lectura — NO probado en Splunk",
+      "markdown": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC (EventCode=4624 OR EventCode=4625 OR EventCode=4769 OR EventCode=4662)\n| stats count AS eventos values(host) AS sensores BY EventCode\n```\n\n**Interpretación, supuestos y límites:** No garantiza cobertura de los cuatro tipos ni que los campos tengan nombres homogéneos. Validar auditoría, rol del host, formatos, zona horaria y extracción antes de comparar.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n",
+      "line": 29,
+      "endLine": 38
+    },
+    {
+      "id": "SP-R06-L03-S05",
+      "title": "5. Caso del turno SOC",
+      "markdown": "## 5. Caso del turno SOC\n\nLa pista de Kerberos llega desde DC mientras los fallos de contraseña llegan desde servidores diferentes: su “host” no identifica el mismo sistema.\n\n## 6. Errores frecuentes\n\n1. Decir que el EventCode 4769 ocurre exclusivamente en el cliente.\n2. Declarar DCSync por 4662 sin sujeto, permisos y objeto.\n3. Interpretar cualquier 4624 como autenticación atacante exitosa.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 40,
+      "endLine": 51
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R06-L03-Q01",
+      "lessonId": "SP-R06-L03",
+      "prompt": "¿Dónde se suele registrar 4769 de TGS?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D06",
+        "SPLUNK_LECCIONES_R06_R07:D07",
+        "SPLUNK_LECCIONES_R06_R07:D10"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R06-L03-Q01-O-5c5debdda16e",
+          "text": "En el servidor del recurso solicitado, como prueba de ejecución del servicio"
+        },
+        {
+          "id": "SP-R06-L03-Q01-O-9ceb99fcf91b",
+          "text": "En el cliente que recibe el ticket, como único registro del TGS"
+        },
+        {
+          "id": "SP-R06-L03-Q01-O-d21d6bcecaaa",
+          "text": "En el controlador de dominio que actúa como KDC, bajo las condiciones de auditoría correspondientes"
+        },
+        {
+          "id": "SP-R06-L03-Q01-O-03788efb1c03",
+          "text": "En cualquier host con 4624, aunque no actúe como KDC"
+        }
+      ],
+      "solution": "SP-R06-L03-Q01-O-d21d6bcecaaa",
+      "explanation": "4769 surge en KDC ante solicitudes de ticket de servicio y depende de auditoría.",
+      "anchors": [
+        {
+          "file": "R06_CENTRO_SOC/SP-R06-L03.md",
+          "sourceHash": "289eb894729f34b7ea8ef6a13a6ca8dcaaa437ab577010cc22805940d2d1ed62",
+          "line": 13,
+          "endLine": 19,
+          "quote": "## 2. Conceptos que debes dominar\n\n1. 4625: revisa LogonType, AccountName, Status/SubStatus y origen si existen; falta de origen puede ser normal según tipo.\n2. 4624: valida usuario, LogonType, equipo, dirección de red e identificadores disponibles; éxito no acredita compromiso.\n3. 4769: se registra en controlador de dominio; nuevos campos y formatos pueden variar tras actualizaciones; revisa TicketEncryptionType, ServiceName y resultado de la solicitud.\n4. 4662: requiere auditoría/ACL de objetos para observar ciertos accesos; sin contexto de permisos o tipo de operación no sirve para afirmar replicación maliciosa.\n5. No mezcles cifrado de ticket, cifrados permitidos ni flags como si fueran el mismo campo; revisa versiones y extracciones reales.\n\n"
+        },
+        {
+          "file": "R06_CENTRO_SOC/SP-R06-L03.md",
+          "sourceHash": "289eb894729f34b7ea8ef6a13a6ca8dcaaa437ab577010cc22805940d2d1ed62",
+          "line": 29,
+          "endLine": 38,
+          "quote": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC (EventCode=4624 OR EventCode=4625 OR EventCode=4769 OR EventCode=4662)\n| stats count AS eventos values(host) AS sensores BY EventCode\n```\n\n**Interpretación, supuestos y límites:** No garantiza cobertura de los cuatro tipos ni que los campos tengan nombres homogéneos. Validar auditoría, rol del host, formatos, zona horaria y extracción antes de comparar.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R06-L03-Q02",
+      "lessonId": "SP-R06-L03",
+      "prompt": "¿Qué afirma un 4662 aislado?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D06",
+        "SPLUNK_LECCIONES_R06_R07:D07",
+        "SPLUNK_LECCIONES_R06_R07:D10"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R06-L03-Q02-O-6ee800408bfb",
+          "text": "Una operación registrada sobre un objeto auditado que requiere más contexto"
+        },
+        {
+          "id": "SP-R06-L03-Q02-O-b5d48f301f75",
+          "text": "Que el origen es ilegítimo por no ser el host que registra el evento"
+        },
+        {
+          "id": "SP-R06-L03-Q02-O-df088d412ed1",
+          "text": "Que la cuenta obtuvo secretos del directorio con la operación"
+        },
+        {
+          "id": "SP-R06-L03-Q02-O-02ae52405d7a",
+          "text": "Que se utilizó un derecho de replicación aunque no se hayan revisado sus propiedades"
+        }
+      ],
+      "solution": "SP-R06-L03-Q02-O-6ee800408bfb",
+      "explanation": "4662 por sí solo no clasifica replicación maliciosa.",
+      "anchors": [
+        {
+          "file": "R06_CENTRO_SOC/SP-R06-L03.md",
+          "sourceHash": "289eb894729f34b7ea8ef6a13a6ca8dcaaa437ab577010cc22805940d2d1ed62",
+          "line": 13,
+          "endLine": 19,
+          "quote": "## 2. Conceptos que debes dominar\n\n1. 4625: revisa LogonType, AccountName, Status/SubStatus y origen si existen; falta de origen puede ser normal según tipo.\n2. 4624: valida usuario, LogonType, equipo, dirección de red e identificadores disponibles; éxito no acredita compromiso.\n3. 4769: se registra en controlador de dominio; nuevos campos y formatos pueden variar tras actualizaciones; revisa TicketEncryptionType, ServiceName y resultado de la solicitud.\n4. 4662: requiere auditoría/ACL de objetos para observar ciertos accesos; sin contexto de permisos o tipo de operación no sirve para afirmar replicación maliciosa.\n5. No mezcles cifrado de ticket, cifrados permitidos ni flags como si fueran el mismo campo; revisa versiones y extracciones reales.\n\n"
+        },
+        {
+          "file": "R06_CENTRO_SOC/SP-R06-L03.md",
+          "sourceHash": "289eb894729f34b7ea8ef6a13a6ca8dcaaa437ab577010cc22805940d2d1ed62",
+          "line": 29,
+          "endLine": 38,
+          "quote": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC (EventCode=4624 OR EventCode=4625 OR EventCode=4769 OR EventCode=4662)\n| stats count AS eventos values(host) AS sensores BY EventCode\n```\n\n**Interpretación, supuestos y límites:** No garantiza cobertura de los cuatro tipos ni que los campos tengan nombres homogéneos. Validar auditoría, rol del host, formatos, zona horaria y extracción antes de comparar.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R06-L03-P01",
+      "lessonId": "SP-R06-L03",
+      "prompt": "Define matriz de 4625/4624/4769/4662 indicando qué pregunta pueden responder y qué no demuestran.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D06",
+        "SPLUNK_LECCIONES_R06_R07:D07",
+        "SPLUNK_LECCIONES_R06_R07:D10"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica datos y supuestos de la fuente",
+        "Plantea método correcto y distingue hechos de hipótesis",
+        "Explica limitaciones, alternativa benigna y telemetría ausente",
+        "Aporta evidencia, ventana e identificación reproducibles"
+      ],
+      "referenceAnswer": "4625 intento fallido; 4624 logon exitoso, no atribución; 4769 solicitud TGS en DC, no offline cracking; 4662 operación de objeto auditada, no DCSync confirmado. Cada uno requiere auditoría habilitada y contexto."
+    }
+  ],
+  "solutionsMarkdown": "### Solucionario con razonamiento\n\n- **SP-R06-L03-Q01: C** — 4769 surge en KDC ante solicitudes de ticket de servicio y depende de auditoría.\n\n- **SP-R06-L03-Q02: A** — 4662 por sí solo no clasifica replicación maliciosa.\n\n- **SP-R06-L03-P01:** 4625 intento fallido; 4624 logon exitoso, no atribución; 4769 solicitud TGS en DC, no offline cracking; 4662 operación de objeto auditada, no DCSync confirmado. Cada uno requiere auditoría habilitada y contexto.\n\n**Guía de retroalimentación formativa:** Identifica datos y supuestos de la fuente; Plantea método correcto y distingue hechos de hipótesis; Explica limitaciones, alternativa benigna y telemetría ausente; Aporta evidencia, ventana e identificación reproducibles.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 8. Bibliografía, mapeo y estatus\n\n- **D06:** Windows: 4625 fallo de inicio de sesión — https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4625\n- **D07:** Windows: 4769 solicitud de ticket de servicio — https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4769\n- **D10:** Kerberos y RC4: cambios de auditoría Windows — https://www.microsoft.com/en-us/windows-server/blog/2025/12/03/beyond-rc4-for-windows-authentication/\n\n- **Currículo:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` — ID, título y resultado intactos.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` — los bloques R06/R07 y laboratorios de diseño.\n- **Puente SC-200:** Capítulos 04 y 09: auditoría, eventos y fuentes. Documento en `../../01_FUENTE_ORIGINAL/SC-200.md`; relación conceptual, no traducción ni equivalencia garantizada.\n\n**Clasificación de evidencia:** [DOC] respaldo documental de fuentes; [DISEÑO] procedimientos y rúbricas propuestos; [OFFLINE] sólo cálculos de fixtures reproducibles; [NO PROBADO] ejemplos SPL no ejecutados en la instancia. Validación técnica/manual de contenidos pendiente antes de integrarlo en React.\n",
+  "originalMarkdown": "# SP-R06-L03 — Windows y autenticación\n\n**Región:** SP-R06 · **Prioridad:** P0 (SOC N1/N2) · **Estado:** material editorial para revisión · **SPL:** NO ejecutado en Splunk.\n\n**Objetivo curricular original:** Analizar 4625,4624,4769,4662 con condiciones de auditoría\n\n**Prerrequisitos:** R01–R05 y lectura de la matriz de campos. **Producto:** Splunk Enterprise/Cloud (búsquedas de lectura); funciones ES explícitamente condicionadas a Splunk Enterprise Security compatible.\n\n## 1. Pregunta esencial y modelo mental\n\nLos identificadores de Windows ayudan a construir hipótesis, pero su presencia depende de la política de auditoría, la función del equipo y los canales ingeridos. 4625 es fallo de logon en el equipo que recibe el intento; 4624 refleja inicio de sesión correcto allí; 4769 es solicitud de ticket TGS observada en el DC; 4662 se vincula a operaciones auditadas en objetos del directorio, no a una prueba automática de DCSync.\n\n## 2. Conceptos que debes dominar\n\n1. 4625: revisa LogonType, AccountName, Status/SubStatus y origen si existen; falta de origen puede ser normal según tipo.\n2. 4624: valida usuario, LogonType, equipo, dirección de red e identificadores disponibles; éxito no acredita compromiso.\n3. 4769: se registra en controlador de dominio; nuevos campos y formatos pueden variar tras actualizaciones; revisa TicketEncryptionType, ServiceName y resultado de la solicitud.\n4. 4662: requiere auditoría/ACL de objetos para observar ciertos accesos; sin contexto de permisos o tipo de operación no sirve para afirmar replicación maliciosa.\n5. No mezcles cifrado de ticket, cifrados permitidos ni flags como si fueran el mismo campo; revisa versiones y extracciones reales.\n\n## 3. Práctica guiada: del dato a la conclusión\n\n1. Crea una tabla evento → ubicación donde debería registrarse → condición de auditoría → inferencia posible.\n2. Para A001–A007 contrasta 4625 y 4624 en el endpoint de destino.\n3. Para K001–K006 examina 4769 del DC con nombre de servicio y tipo de cifrado.\n4. Si no ves 4662, diferencia “no presente en dataset” de “actividad descartada”.\n5. Anota dos fuentes complementarias para validar una hipótesis de robo de credenciales.\n\n## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC (EventCode=4624 OR EventCode=4625 OR EventCode=4769 OR EventCode=4662)\n| stats count AS eventos values(host) AS sensores BY EventCode\n```\n\n**Interpretación, supuestos y límites:** No garantiza cobertura de los cuatro tipos ni que los campos tengan nombres homogéneos. Validar auditoría, rol del host, formatos, zona horaria y extracción antes de comparar.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n## 5. Caso del turno SOC\n\nLa pista de Kerberos llega desde DC mientras los fallos de contraseña llegan desde servidores diferentes: su “host” no identifica el mismo sistema.\n\n## 6. Errores frecuentes\n\n1. Decir que el EventCode 4769 ocurre exclusivamente en el cliente.\n2. Declarar DCSync por 4662 sin sujeto, permisos y objeto.\n3. Interpretar cualquier 4624 como autenticación atacante exitosa.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R06-L03-Q01 — Opción múltiple\n\n¿Dónde se suele registrar 4769 de TGS?\n\nA. En el servidor del recurso solicitado, como prueba de ejecución del servicio\nB. En el cliente que recibe el ticket, como único registro del TGS\nC. En el controlador de dominio que actúa como KDC, bajo las condiciones de auditoría correspondientes\nD. En cualquier host con 4624, aunque no actúe como KDC\n\n### SP-R06-L03-Q02 — Opción múltiple\n\n¿Qué afirma un 4662 aislado?\n\nA. Una operación registrada sobre un objeto auditado que requiere más contexto\nB. Que el origen es ilegítimo por no ser el host que registra el evento\nC. Que la cuenta obtuvo secretos del directorio con la operación\nD. Que se utilizó un derecho de replicación aunque no se hayan revisado sus propiedades\n\n### SP-R06-L03-P01 — Práctica abierta formativa\n\nDefine matriz de 4625/4624/4769/4662 indicando qué pregunta pueden responder y qué no demuestran.\n\n### Solucionario con razonamiento\n\n- **SP-R06-L03-Q01: C** — 4769 surge en KDC ante solicitudes de ticket de servicio y depende de auditoría.\n\n- **SP-R06-L03-Q02: A** — 4662 por sí solo no clasifica replicación maliciosa.\n\n- **SP-R06-L03-P01:** 4625 intento fallido; 4624 logon exitoso, no atribución; 4769 solicitud TGS en DC, no offline cracking; 4662 operación de objeto auditada, no DCSync confirmado. Cada uno requiere auditoría habilitada y contexto.\n\n**Guía de retroalimentación formativa:** Identifica datos y supuestos de la fuente; Plantea método correcto y distingue hechos de hipótesis; Explica limitaciones, alternativa benigna y telemetría ausente; Aporta evidencia, ventana e identificación reproducibles.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Bibliografía, mapeo y estatus\n\n- **D06:** Windows: 4625 fallo de inicio de sesión — https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4625\n- **D07:** Windows: 4769 solicitud de ticket de servicio — https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4769\n- **D10:** Kerberos y RC4: cambios de auditoría Windows — https://www.microsoft.com/en-us/windows-server/blog/2025/12/03/beyond-rc4-for-windows-authentication/\n\n- **Currículo:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` — ID, título y resultado intactos.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` — los bloques R06/R07 y laboratorios de diseño.\n- **Puente SC-200:** Capítulos 04 y 09: auditoría, eventos y fuentes. Documento en `../../01_FUENTE_ORIGINAL/SC-200.md`; relación conceptual, no traducción ni equivalencia garantizada.\n\n**Clasificación de evidencia:** [DOC] respaldo documental de fuentes; [DISEÑO] procedimientos y rúbricas propuestos; [OFFLINE] sólo cálculos de fixtures reproducibles; [NO PROBADO] ejemplos SPL no ejecutados en la instancia. Validación técnica/manual de contenidos pendiente antes de integrarlo en React.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 8,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D06",
+      "key": "SPLUNK_LECCIONES_R06_R07:D06",
+      "url": "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4625"
+    },
+    {
+      "id": "D07",
+      "key": "SPLUNK_LECCIONES_R06_R07:D07",
+      "url": "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4769"
+    },
+    {
+      "id": "D10",
+      "key": "SPLUNK_LECCIONES_R06_R07:D10",
+      "url": "https://www.microsoft.com/en-us/windows-server/blog/2025/12/03/beyond-rc4-for-windows-authentication/"
+    }
+  ]
+}

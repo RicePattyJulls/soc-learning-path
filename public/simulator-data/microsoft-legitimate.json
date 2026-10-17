@@ -1,0 +1,144 @@
+{
+  "synthetic": true,
+  "scenarioId": "microsoft-legitimate",
+  "sources": [
+    {
+      "file": "scripts/simulator/microsoft-events.json",
+      "sha256": "907ec797b0129386396dd091e56db435963807ac548376460c5ac9ce1ff76324"
+    }
+  ],
+  "events": [
+    {
+      "id": "D201",
+      "time": "2026-10-16T11:02:00Z",
+      "source": "DeviceProcessEvents",
+      "user": "svc-inventory",
+      "ip": "198.51.100.50",
+      "host": "ws-ops-07",
+      "code": "ProcessCreated",
+      "summary": "PowerShell inicia un script de inventario",
+      "fields": {
+        "DeviceName": "ws-ops-07",
+        "AccountName": "svc-inventory",
+        "FileName": "powershell.exe",
+        "ProcessCommandLine": "powershell.exe -File C:\\Ops\\Inventory.ps1",
+        "SHA256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "Timestamp": "2026-10-16T11:02:00Z"
+      },
+      "availableAt": "2026-10-16T11:02:00Z",
+      "provenance": "scripts/simulator/microsoft-events.json#D201"
+    },
+    {
+      "id": "D202",
+      "time": "2026-10-16T11:00:00Z",
+      "source": "TrainingContext",
+      "user": "svc-inventory",
+      "ip": "198.51.100.50",
+      "host": "ws-ops-07",
+      "code": "approved-change",
+      "summary": "Ticket de cambio sintético CHG-TRAIN-52",
+      "fields": {
+        "WindowUTC": "[2026-10-16T11:00:00Z,2026-10-16T11:30:00Z)",
+        "ApprovedCommand": "powershell.exe -File C:\\Ops\\Inventory.ps1",
+        "ApprovedAsset": "ws-ops-07",
+        "VerifiedOwner": "IT Ops, aprobación de entrenamiento verificada",
+        "TrainingOnly": "No es una tabla Microsoft",
+        "fixture_time_utc": "2026-10-16T11:00:00Z"
+      },
+      "availableAt": "2026-10-16T11:00:00Z",
+      "provenance": "scripts/simulator/microsoft-events.json#D202"
+    },
+    {
+      "id": "D203",
+      "time": "2026-10-16T11:03:00Z",
+      "source": "TrainingContext",
+      "user": "svc-inventory",
+      "ip": "198.51.100.50",
+      "host": "ws-ops-07",
+      "code": "hash-validation",
+      "summary": "Comparación de hash y firma con el inventario autorizado",
+      "fields": {
+        "ObservedSHA256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "ApprovedSHA256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "Result": "Coinciden, firma aprobada en el fixture; no prueba general de benignidad",
+        "TrainingOnly": "Hash y verificación simulados del script; no es el SHA256 de powershell.exe",
+        "ScriptPath": "C:\\Ops\\Inventory.ps1",
+        "fixture_time_utc": "2026-10-16T11:03:00Z"
+      },
+      "availableAt": "2026-10-16T11:03:00Z",
+      "provenance": "scripts/simulator/microsoft-events.json#D203"
+    },
+    {
+      "id": "D204",
+      "time": "2026-10-16T11:04:00Z",
+      "source": "DeviceNetworkEvents",
+      "user": "svc-inventory",
+      "ip": "192.0.2.50",
+      "host": "ws-ops-07",
+      "code": "ConnectionSuccess",
+      "summary": "Conexión al recolector de inventario permitido",
+      "fields": {
+        "DeviceName": "ws-ops-07",
+        "RemoteIP": "192.0.2.50",
+        "RemotePort": "443",
+        "TrainingDestinationContext": "Recolector autorizado por CHG-TRAIN-52",
+        "Timestamp": "2026-10-16T11:04:00Z"
+      },
+      "availableAt": "2026-10-16T11:04:00Z",
+      "provenance": "scripts/simulator/microsoft-events.json#D204"
+    },
+    {
+      "id": "D205",
+      "time": "2026-10-16T11:05:00Z",
+      "source": "TrainingContext",
+      "user": "svc-inventory",
+      "ip": "198.51.100.50",
+      "host": "ws-ops-07",
+      "code": "job-ended",
+      "summary": "Tarea de inventario finalizada en su ventana",
+      "fields": {
+        "Job": "inventory-run-52",
+        "Result": "Completada sin acciones fuera del alcance del cambio en este fixture",
+        "fixture_time_utc": "2026-10-16T11:05:00Z"
+      },
+      "availableAt": "2026-10-16T11:05:00Z",
+      "provenance": "scripts/simulator/microsoft-events.json#D205"
+    },
+    {
+      "id": "D206",
+      "time": "2026-10-16T11:20:00Z",
+      "source": "DeviceProcessEvents",
+      "user": "sofia",
+      "ip": "203.0.113.88",
+      "host": "ws-sales-02",
+      "code": "ProcessCreated",
+      "summary": "Otro proceso PowerShell en otro equipo",
+      "fields": {
+        "DeviceName": "ws-sales-02",
+        "FileName": "powershell.exe",
+        "ProcessCommandLine": "powershell.exe -File C:\\Users\\sofia\\report.ps1",
+        "Timestamp": "2026-10-16T11:20:00Z"
+      },
+      "availableAt": "2026-10-16T11:20:00Z",
+      "provenance": "scripts/simulator/microsoft-events.json#D206"
+    },
+    {
+      "id": "D207",
+      "time": "2026-10-16T10:00:00Z",
+      "source": "TrainingContext",
+      "user": "svc-backup",
+      "ip": "192.0.2.90",
+      "host": "backup-02",
+      "code": "approved-change",
+      "summary": "Ticket de otro equipo y ventana",
+      "fields": {
+        "Ticket": "CHG-TRAIN-49",
+        "WindowUTC": "[10:00,10:30)",
+        "TrainingOnly": "No autoriza procesos en ws-ops-07",
+        "fixture_time_utc": "2026-10-16T10:00:00Z"
+      },
+      "availableAt": "2026-10-16T10:00:00Z",
+      "provenance": "scripts/simulator/microsoft-events.json#D207"
+    }
+  ]
+}

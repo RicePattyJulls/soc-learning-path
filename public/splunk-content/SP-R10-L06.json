@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R10-L06",
+  "title": "Búsquedas y rendimiento",
+  "revision": "180540f59238dbb54d2e7770",
+  "sourceVersion": "1e045423ec323964e7307f5591fef047281ab67356ec7b973b9af02888a95647",
+  "sanitizedHash": "1e045423ec323964e7307f5591fef047281ab67356ec7b973b9af02888a95647",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R10_R11/R10_ADMINISTRACION/SP-R10-L06.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Usar Job Inspector y explicar trabajo distribuido",
+  "preamble": "# SP-R10-L06 — Búsquedas y rendimiento\n\n**Región:** SP-R10 · **Producto:** Splunk Enterprise/Cloud (donde se indique) o SOAR Cloud explícito. · **Estado:** borrador documental / requiere revisión humana. · **SPL/CLI/API:** ilustrativo, NO ejecutado.\n\n**Resultado curricular:** Usar Job Inspector y explicar trabajo distribuido\n\n**Prerrequisitos:** R01–R05; revisar R06–R07 para impacto SOC\n\n",
+  "sections": [
+    {
+      "id": "SP-R10-L06-S01",
+      "title": "1. Explicación razonada",
+      "markdown": "## 1. Explicación razonada\n\nOptimizar una búsqueda no es simplemente producir menos filas al final. Es reducir trabajo costoso sin cambiar el objetivo analítico. La cadena de búsqueda ideal delimita tempranamente `index`, `sourcetype`, ventana temporal y filtros aplicables; pospone operaciones costosas como `join`, ordenación global o campos calculados sobre millones de eventos cuando puede. No existe una prohibición universal de `join` o `transaction`, pero debes justificar cardinalidad, límites, semántica y coste frente a alternativas con `stats`, lookups o modelos de datos.\n\nSearch Job Inspector muestra información del trabajo de búsqueda: tiempos de fases, `scanCount`, `resultCount`, comando optimizado, indexers y advertencias. Para comparar dos estrategias necesitas mantener constante dataset, intervalo, permisos, concurrencia y *semántica del resultado*. Si una consulta «optimizada» devuelve menos resultados porque pierde una condición, no es equivalente. El CSV de práctica trae números ficticios para ejercitar la lectura de métricas; **no son benchmarks de Splunk**.\n\nEn un SOC, rendimiento también es SLO operacional: una búsqueda que tarda más que su periodicidad puede acumular ejecuciones y retrasar alertas. Investiga concurrencia y límites reales antes de ajustar `limits.conf`, y no uses comandos con escritura para acelerar ejercicios.\n\n",
+      "line": 9,
+      "endLine": 15
+    },
+    {
+      "id": "SP-R10-L06-S02",
+      "title": "2. Conceptos clave",
+      "markdown": "## 2. Conceptos clave\n\n1. Delimitar la búsqueda antes de transformar\n2. scanCount, resultCount y duración tienen semánticas distintas\n3. Optimizaciones requieren equivalencia de resultados\n4. Job Inspector no existe en un CSV; métricas fixture son simuladas\n5. Revisar concurrencia y permisos antes de tuning\n\n",
+      "line": 17,
+      "endLine": 23
+    },
+    {
+      "id": "SP-R10-L06-S03",
+      "title": "3. Procedimiento de estudio y verificación",
+      "markdown": "## 3. Procedimiento de estudio y verificación\n\n1. Formula pregunta analítica y resultado esperado.\n2. Diseña consulta A amplia y B con filtros tempranos sin cambiar la pregunta.\n3. Contrasta resultados de referencia; marca como inválida comparación desigual.\n4. Consulta Job Inspector en sandbox autorizado, si existe, y anota scanCount/tiempos.\n5. Documenta versión, ventana, rol, índice, carga y limitaciones.\n\n",
+      "line": 25,
+      "endLine": 31
+    },
+    {
+      "id": "SP-R10-L06-S04",
+      "title": "4. SPL read-only orientativo",
+      "markdown": "## 4. SPL read-only orientativo\n\n```text\nindex=IDX_AUTH sourcetype=ST_AUTH earliest=-24h latest=now status=failure\n| stats count AS fallos BY user\n| where fallos>=5\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n",
+      "line": 33,
+      "endLine": 41
+    },
+    {
+      "id": "SP-R10-L06-S05",
+      "title": "5. Situación profesional",
+      "markdown": "## 5. Situación profesional\n\n`search_jobs.csv` da A con 2.500.000 scan/72 s y B con 300.000/12 s, igual output_hash. Son datos simulados para calcular que B recorre menos eventos; no una medición de un cluster.\n\n## 6. Errores comunes\n\n1. Concluir «más rápido» sin validar semántica idéntica\n2. Confundir 10 resultados con solo 10 eventos escaneados\n3. Reportar números del fixture como benchmarks reales\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 43,
+      "endLine": 54
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R10-L06-Q01",
+      "lessonId": "SP-R10-L06",
+      "prompt": "¿Qué comparación es válida entre búsquedas A y B?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D05",
+        "SPLUNK_LECCIONES_R10_R11:D06"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R10-L06-Q01-O-1b61f8bb46e1",
+          "text": "Mismo dataset/ventana/semántica, con métricas del Job Inspector"
+        },
+        {
+          "id": "SP-R10-L06-Q01-O-f1d8fd8b6c2c",
+          "text": "Misma duración aunque cambien los filtros y las entidades devueltas"
+        },
+        {
+          "id": "SP-R10-L06-Q01-O-2bbfae24a9dd",
+          "text": "Menor resultCount aunque se haya perdido una condición requerida"
+        },
+        {
+          "id": "SP-R10-L06-Q01-O-8e9fbfef9b58",
+          "text": "Menor scanCount aunque las ejecuciones usen permisos y rangos distintos"
+        }
+      ],
+      "solution": "SP-R10-L06-Q01-O-1b61f8bb46e1",
+      "explanation": "Una optimización exige conservar el objetivo y entorno comparables.",
+      "anchors": [
+        {
+          "file": "R10_ADMINISTRACION/SP-R10-L06.md",
+          "sourceHash": "1e045423ec323964e7307f5591fef047281ab67356ec7b973b9af02888a95647",
+          "line": 17,
+          "endLine": 23,
+          "quote": "## 2. Conceptos clave\n\n1. Delimitar la búsqueda antes de transformar\n2. scanCount, resultCount y duración tienen semánticas distintas\n3. Optimizaciones requieren equivalencia de resultados\n4. Job Inspector no existe en un CSV; métricas fixture son simuladas\n5. Revisar concurrencia y permisos antes de tuning\n\n"
+        },
+        {
+          "file": "R10_ADMINISTRACION/SP-R10-L06.md",
+          "sourceHash": "1e045423ec323964e7307f5591fef047281ab67356ec7b973b9af02888a95647",
+          "line": 33,
+          "endLine": 41,
+          "quote": "## 4. SPL read-only orientativo\n\n```text\nindex=IDX_AUTH sourcetype=ST_AUTH earliest=-24h latest=now status=failure\n| stats count AS fallos BY user\n| where fallos>=5\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R10-L06-Q02",
+      "lessonId": "SP-R10-L06",
+      "prompt": "¿Qué indica `scanCount` frente a `resultCount`?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D05",
+        "SPLUNK_LECCIONES_R10_R11:D06"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R10-L06-Q02-O-4086821b3987",
+          "text": "Los bytes almacenados frente al tamaño del resumen acelerado"
+        },
+        {
+          "id": "SP-R10-L06-Q02-O-a02e7cf9f8ac",
+          "text": "El número de identidades maliciosas frente a las benignas"
+        },
+        {
+          "id": "SP-R10-L06-Q02-O-62339849ba33",
+          "text": "La misma medida con dos nombres, aunque exista una transformación stats"
+        },
+        {
+          "id": "SP-R10-L06-Q02-O-ad49b0ebf52a",
+          "text": "Eventos examinados frente a resultados devueltos, según fase/job"
+        }
+      ],
+      "solution": "SP-R10-L06-Q02-O-ad49b0ebf52a",
+      "explanation": "Pocos resultados no implican bajo volumen examinado.",
+      "anchors": [
+        {
+          "file": "R10_ADMINISTRACION/SP-R10-L06.md",
+          "sourceHash": "1e045423ec323964e7307f5591fef047281ab67356ec7b973b9af02888a95647",
+          "line": 17,
+          "endLine": 23,
+          "quote": "## 2. Conceptos clave\n\n1. Delimitar la búsqueda antes de transformar\n2. scanCount, resultCount y duración tienen semánticas distintas\n3. Optimizaciones requieren equivalencia de resultados\n4. Job Inspector no existe en un CSV; métricas fixture son simuladas\n5. Revisar concurrencia y permisos antes de tuning\n\n"
+        },
+        {
+          "file": "R10_ADMINISTRACION/SP-R10-L06.md",
+          "sourceHash": "1e045423ec323964e7307f5591fef047281ab67356ec7b973b9af02888a95647",
+          "line": 33,
+          "endLine": 41,
+          "quote": "## 4. SPL read-only orientativo\n\n```text\nindex=IDX_AUTH sourcetype=ST_AUTH earliest=-24h latest=now status=failure\n| stats count AS fallos BY user\n| where fallos>=5\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R10-L06-P01",
+      "lessonId": "SP-R10-L06",
+      "prompt": "Compara tres estrategias en `search_jobs.csv`: calcula reducción de scanned y detecta una optimización falsa.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D05",
+        "SPLUNK_LECCIONES_R10_R11:D06"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Define fuente, producto, versión y límites del contexto",
+        "Resuelve el objetivo con un procedimiento replicable y no destructivo",
+        "Identifica error, caso benigno y riesgo operacional",
+        "Documenta permisos, aprobación y evidencia para revisión humana"
+      ],
+      "referenceAnswer": "A y B tienen mismo output_hash; B reduce scanCount 88% y tiempo simulado 83,33%. C parece rápida pero output_hash distinto, no comparable. Nada de estos valores proviene de Splunk real."
+    }
+  ],
+  "solutionsMarkdown": "## 8. Solucionario con razonamiento\n\n- **SP-R10-L06-Q01: A** — Una optimización exige conservar el objetivo y entorno comparables.\n\n- **SP-R10-L06-Q02: D** — Pocos resultados no implican bajo volumen examinado.\n\n- **SP-R10-L06-P01:** A y B tienen mismo output_hash; B reduce scanCount 88% y tiempo simulado 83,33%. C parece rápida pero output_hash distinto, no comparable. Nada de estos valores proviene de Splunk real.\n\n**Guía de retroalimentación formativa:** Define fuente, producto, versión y límites del contexto; Resuelve el objetivo con un procedimiento replicable y no destructivo; Identifica error, caso benigno y riesgo operacional; Documenta permisos, aprobación y evidencia para revisión humana.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 9. Fuentes, procedencia y limitaciones\n\n- **D05:** Splunk Enterprise 10.2 — Search optimization — https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.2/optimize-searches/write-better-searches\n- **D06:** Splunk Enterprise 10.2 — Search Job Inspector — https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.2/manage-jobs/view-search-job-properties\n\n- **Puente SC-200:** Capítulos 05 y 13: rendimiento y consultas KQL/SPL. Es correspondencia pedagógica, no equivalencia exacta de producto.\n- **Fuente del ID y resultado:** `SPLUNK_MASTER_RESEARCH/03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`.\n- **[DOC]:** fundamentos documentados en fuentes oficiales; no equivale a prueba de todos los supuestos.\n- **[OFFLINE]:** solo verificaciones Python sobre fixtures sintéticos.\n- **[NO EJECUTADO]:** no se ha abierto Splunk, ni SOAR, ni REST, ni se han aplicado configuraciones.\n- **[REVISIÓN]:** verificación humana del texto, respuestas, versiones y supuestos antes de integrar en React.\n",
+  "originalMarkdown": "# SP-R10-L06 — Búsquedas y rendimiento\n\n**Región:** SP-R10 · **Producto:** Splunk Enterprise/Cloud (donde se indique) o SOAR Cloud explícito. · **Estado:** borrador documental / requiere revisión humana. · **SPL/CLI/API:** ilustrativo, NO ejecutado.\n\n**Resultado curricular:** Usar Job Inspector y explicar trabajo distribuido\n\n**Prerrequisitos:** R01–R05; revisar R06–R07 para impacto SOC\n\n## 1. Explicación razonada\n\nOptimizar una búsqueda no es simplemente producir menos filas al final. Es reducir trabajo costoso sin cambiar el objetivo analítico. La cadena de búsqueda ideal delimita tempranamente `index`, `sourcetype`, ventana temporal y filtros aplicables; pospone operaciones costosas como `join`, ordenación global o campos calculados sobre millones de eventos cuando puede. No existe una prohibición universal de `join` o `transaction`, pero debes justificar cardinalidad, límites, semántica y coste frente a alternativas con `stats`, lookups o modelos de datos.\n\nSearch Job Inspector muestra información del trabajo de búsqueda: tiempos de fases, `scanCount`, `resultCount`, comando optimizado, indexers y advertencias. Para comparar dos estrategias necesitas mantener constante dataset, intervalo, permisos, concurrencia y *semántica del resultado*. Si una consulta «optimizada» devuelve menos resultados porque pierde una condición, no es equivalente. El CSV de práctica trae números ficticios para ejercitar la lectura de métricas; **no son benchmarks de Splunk**.\n\nEn un SOC, rendimiento también es SLO operacional: una búsqueda que tarda más que su periodicidad puede acumular ejecuciones y retrasar alertas. Investiga concurrencia y límites reales antes de ajustar `limits.conf`, y no uses comandos con escritura para acelerar ejercicios.\n\n## 2. Conceptos clave\n\n1. Delimitar la búsqueda antes de transformar\n2. scanCount, resultCount y duración tienen semánticas distintas\n3. Optimizaciones requieren equivalencia de resultados\n4. Job Inspector no existe en un CSV; métricas fixture son simuladas\n5. Revisar concurrencia y permisos antes de tuning\n\n## 3. Procedimiento de estudio y verificación\n\n1. Formula pregunta analítica y resultado esperado.\n2. Diseña consulta A amplia y B con filtros tempranos sin cambiar la pregunta.\n3. Contrasta resultados de referencia; marca como inválida comparación desigual.\n4. Consulta Job Inspector en sandbox autorizado, si existe, y anota scanCount/tiempos.\n5. Documenta versión, ventana, rol, índice, carga y limitaciones.\n\n## 4. SPL read-only orientativo\n\n```text\nindex=IDX_AUTH sourcetype=ST_AUTH earliest=-24h latest=now status=failure\n| stats count AS fallos BY user\n| where fallos>=5\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n## 5. Situación profesional\n\n`search_jobs.csv` da A con 2.500.000 scan/72 s y B con 300.000/12 s, igual output_hash. Son datos simulados para calcular que B recorre menos eventos; no una medición de un cluster.\n\n## 6. Errores comunes\n\n1. Concluir «más rápido» sin validar semántica idéntica\n2. Confundir 10 resultados con solo 10 eventos escaneados\n3. Reportar números del fixture como benchmarks reales\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R10-L06-Q01 — Opción múltiple\n\n¿Qué comparación es válida entre búsquedas A y B?\n\nA. Mismo dataset/ventana/semántica, con métricas del Job Inspector\nB. Misma duración aunque cambien los filtros y las entidades devueltas\nC. Menor resultCount aunque se haya perdido una condición requerida\nD. Menor scanCount aunque las ejecuciones usen permisos y rangos distintos\n\n### SP-R10-L06-Q02 — Opción múltiple\n\n¿Qué indica `scanCount` frente a `resultCount`?\n\nA. Los bytes almacenados frente al tamaño del resumen acelerado\nB. El número de identidades maliciosas frente a las benignas\nC. La misma medida con dos nombres, aunque exista una transformación stats\nD. Eventos examinados frente a resultados devueltos, según fase/job\n\n### SP-R10-L06-P01 — Práctica abierta formativa\n\nCompara tres estrategias en `search_jobs.csv`: calcula reducción de scanned y detecta una optimización falsa.\n\n## 8. Solucionario con razonamiento\n\n- **SP-R10-L06-Q01: A** — Una optimización exige conservar el objetivo y entorno comparables.\n\n- **SP-R10-L06-Q02: D** — Pocos resultados no implican bajo volumen examinado.\n\n- **SP-R10-L06-P01:** A y B tienen mismo output_hash; B reduce scanCount 88% y tiempo simulado 83,33%. C parece rápida pero output_hash distinto, no comparable. Nada de estos valores proviene de Splunk real.\n\n**Guía de retroalimentación formativa:** Define fuente, producto, versión y límites del contexto; Resuelve el objetivo con un procedimiento replicable y no destructivo; Identifica error, caso benigno y riesgo operacional; Documenta permisos, aprobación y evidencia para revisión humana.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 9. Fuentes, procedencia y limitaciones\n\n- **D05:** Splunk Enterprise 10.2 — Search optimization — https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.2/optimize-searches/write-better-searches\n- **D06:** Splunk Enterprise 10.2 — Search Job Inspector — https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.2/manage-jobs/view-search-job-properties\n\n- **Puente SC-200:** Capítulos 05 y 13: rendimiento y consultas KQL/SPL. Es correspondencia pedagógica, no equivalencia exacta de producto.\n- **Fuente del ID y resultado:** `SPLUNK_MASTER_RESEARCH/03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`.\n- **[DOC]:** fundamentos documentados en fuentes oficiales; no equivale a prueba de todos los supuestos.\n- **[OFFLINE]:** solo verificaciones Python sobre fixtures sintéticos.\n- **[NO EJECUTADO]:** no se ha abierto Splunk, ni SOAR, ni REST, ni se han aplicado configuraciones.\n- **[REVISIÓN]:** verificación humana del texto, respuestas, versiones y supuestos antes de integrar en React.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D05",
+      "key": "SPLUNK_LECCIONES_R10_R11:D05",
+      "url": "https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.2/optimize-searches/write-better-searches"
+    },
+    {
+      "id": "D06",
+      "key": "SPLUNK_LECCIONES_R10_R11:D06",
+      "url": "https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.2/manage-jobs/view-search-job-properties"
+    }
+  ]
+}

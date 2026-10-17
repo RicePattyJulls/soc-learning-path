@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R06-L05",
+  "title": "Triage de falsos positivos",
+  "revision": "db582afe2d767346729ddf34",
+  "sourceVersion": "6ebf0b14d3d923f52ccf08fa7e5a05044999483c11bd294c98ac3b41186ca758",
+  "sanitizedHash": "6ebf0b14d3d923f52ccf08fa7e5a05044999483c11bd294c98ac3b41186ca758",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R06_R07/R06_CENTRO_SOC/SP-R06-L05.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Evaluar baseline, NAT, servicios, tareas y activos autorizados",
+  "preamble": "# SP-R06-L05 — Triage de falsos positivos\n\n**Región:** SP-R06 · **Prioridad:** P0 (SOC N1/N2) · **Estado:** material editorial para revisión · **SPL:** NO ejecutado en Splunk.\n\n**Objetivo curricular original:** Evaluar baseline, NAT, servicios, tareas y activos autorizados\n\n**Prerrequisitos:** R01–R05 y lectura de la matriz de campos. **Producto:** Splunk Enterprise/Cloud (búsquedas de lectura); funciones ES explícitamente condicionadas a Splunk Enterprise Security compatible.\n\n",
+  "sections": [
+    {
+      "id": "SP-R06-L05-S01",
+      "title": "1. Pregunta esencial y modelo mental",
+      "markdown": "## 1. Pregunta esencial y modelo mental\n\nLa tarea N1 no es apagar alertas molestas, sino evaluar alternativas benignas sin esconder riesgo. Fuentes como VPN, proxy, NAT, migraciones de contraseñas, rotaciones de secretos y tareas programadas pueden producir picos reales de autenticación. Una excepción sin alcance y fecha de caducidad puede introducir un falso negativo permanente.\n\n",
+      "line": 9,
+      "endLine": 11
+    },
+    {
+      "id": "SP-R06-L05-S02",
+      "title": "2. Conceptos que debes dominar",
+      "markdown": "## 2. Conceptos que debes dominar\n\n1. Baseline necesita clase de activo, horas, usuarios y volumen; una frecuencia alta puede ser normal para una cuenta de servicio concreta.\n2. NAT/VPN y cuentas compartidas complican atribución por src o user.\n3. `authorized_context.csv` simula inventario y ventanas autorizadas; la coincidencia con ese inventario no equivale a una prueba de benignidad definitiva.\n4. Las excepciones deben ser específicas por entidad y actividad, revisables y con expiración, no comodines por IP o dominio.\n5. Documenta a la vez posible falso positivo, posible actividad atacante disfrazada y evidencia que resolvería el conflicto.\n\n",
+      "line": 13,
+      "endLine": 19
+    },
+    {
+      "id": "SP-R06-L05-S03",
+      "title": "3. Práctica guiada: del dato a la conclusión",
+      "markdown": "## 3. Práctica guiada: del dato a la conclusión\n\n1. Compara seis fallos distribuidos (A001–A006) frente a cinco fallos de svc-batch (A008–A012).\n2. Lee el contexto autorizado y detecta la tarea legítima de actualización de contraseña del servicio.\n3. Identifica el riesgo de exceptuar toda la IP 203.0.113.15 sin limitar cuenta/ventana.\n4. Revisa los cuatro fallos desde proxy compartido 192.0.2.44 y describe qué dato de proxy falta.\n5. Propón excepción temporal documentada y plan de expiración.\n\n",
+      "line": 21,
+      "endLine": 27
+    },
+    {
+      "id": "SP-R06-L05-S04",
+      "title": "4. SPL ilustrativo de solo lectura — NO probado en Splunk",
+      "markdown": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4625\n| stats count AS fallos dc(user) AS cuentas BY src host\n| sort 0 -fallos\n```\n\n**Interpretación, supuestos y límites:** El agrupamiento por `src host` no prueba identidad de cliente cuando existen intermediarios; completar con CMDB y registros proxy. No crear listas blancas permanentes desde un ejemplo sintético.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n",
+      "line": 29,
+      "endLine": 39
+    },
+    {
+      "id": "SP-R06-L05-S05",
+      "title": "5. Caso del turno SOC",
+      "markdown": "## 5. Caso del turno SOC\n\nUn host de servicios autorizado produce un pico por credencial antigua: seguir investigando hasta verificar ticket de cambio y registros alternativos.\n\n## 6. Errores frecuentes\n\n1. Descartar alertas por reputación aparentemente interna de IP.\n2. Confundir cinco fallos de un usuario con password spraying de cinco usuarios.\n3. Crear excepciones que sobreviven indefinidamente sin propietario.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 41,
+      "endLine": 52
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R06-L05-Q01",
+      "lessonId": "SP-R06-L05",
+      "prompt": "¿Qué caracteriza una buena excepción de regla?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D06",
+        "SPLUNK_LECCIONES_R06_R07:D01"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R06-L05-Q01-O-4de46c20534b",
+          "text": "Exclusión por IP completa sin limitar actividad ni duración"
+        },
+        {
+          "id": "SP-R06-L05-Q01-O-2f57b7f4698b",
+          "text": "Excepción por usuario sin propietario o revisión posterior"
+        },
+        {
+          "id": "SP-R06-L05-Q01-O-6d1cb918786f",
+          "text": "Supresión de todas las fuentes con volumen superior al baseline"
+        },
+        {
+          "id": "SP-R06-L05-Q01-O-e1d407e9defb",
+          "text": "Alcance exacto, propietario, justificación y expiración"
+        }
+      ],
+      "solution": "SP-R06-L05-Q01-O-e1d407e9defb",
+      "explanation": "Limitar excepciones ayuda a evitar puntos ciegos permanentes.",
+      "anchors": [
+        {
+          "file": "R06_CENTRO_SOC/SP-R06-L05.md",
+          "sourceHash": "6ebf0b14d3d923f52ccf08fa7e5a05044999483c11bd294c98ac3b41186ca758",
+          "line": 13,
+          "endLine": 19,
+          "quote": "## 2. Conceptos que debes dominar\n\n1. Baseline necesita clase de activo, horas, usuarios y volumen; una frecuencia alta puede ser normal para una cuenta de servicio concreta.\n2. NAT/VPN y cuentas compartidas complican atribución por src o user.\n3. `authorized_context.csv` simula inventario y ventanas autorizadas; la coincidencia con ese inventario no equivale a una prueba de benignidad definitiva.\n4. Las excepciones deben ser específicas por entidad y actividad, revisables y con expiración, no comodines por IP o dominio.\n5. Documenta a la vez posible falso positivo, posible actividad atacante disfrazada y evidencia que resolvería el conflicto.\n\n"
+        },
+        {
+          "file": "R06_CENTRO_SOC/SP-R06-L05.md",
+          "sourceHash": "6ebf0b14d3d923f52ccf08fa7e5a05044999483c11bd294c98ac3b41186ca758",
+          "line": 29,
+          "endLine": 39,
+          "quote": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4625\n| stats count AS fallos dc(user) AS cuentas BY src host\n| sort 0 -fallos\n```\n\n**Interpretación, supuestos y límites:** El agrupamiento por `src host` no prueba identidad de cliente cuando existen intermediarios; completar con CMDB y registros proxy. No crear listas blancas permanentes desde un ejemplo sintético.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R06-L05-Q02",
+      "lessonId": "SP-R06-L05",
+      "prompt": "Cinco fallos contra una única cuenta demuestran automáticamente spraying?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D06",
+        "SPLUNK_LECCIONES_R06_R07:D01"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R06-L05-Q02-O-61e2f9652cc9",
+          "text": "Sí, porque cinco intentos bastan sin considerar la distribución por identidad"
+        },
+        {
+          "id": "SP-R06-L05-Q02-O-211f39c17806",
+          "text": "Sí, si los cinco fallos tienen la misma dirección de origen"
+        },
+        {
+          "id": "SP-R06-L05-Q02-O-ce61f77a71d7",
+          "text": "No, es otra distribución y puede tener otras causas"
+        },
+        {
+          "id": "SP-R06-L05-Q02-O-7f51c73c7363",
+          "text": "No: una sola identidad demuestra que la actividad era mantenimiento autorizado"
+        }
+      ],
+      "solution": "SP-R06-L05-Q02-O-ce61f77a71d7",
+      "explanation": "Spraying se refiere a intentos sobre numerosas cuentas; se requiere considerar ventana y baseline.",
+      "anchors": [
+        {
+          "file": "R06_CENTRO_SOC/SP-R06-L05.md",
+          "sourceHash": "6ebf0b14d3d923f52ccf08fa7e5a05044999483c11bd294c98ac3b41186ca758",
+          "line": 13,
+          "endLine": 19,
+          "quote": "## 2. Conceptos que debes dominar\n\n1. Baseline necesita clase de activo, horas, usuarios y volumen; una frecuencia alta puede ser normal para una cuenta de servicio concreta.\n2. NAT/VPN y cuentas compartidas complican atribución por src o user.\n3. `authorized_context.csv` simula inventario y ventanas autorizadas; la coincidencia con ese inventario no equivale a una prueba de benignidad definitiva.\n4. Las excepciones deben ser específicas por entidad y actividad, revisables y con expiración, no comodines por IP o dominio.\n5. Documenta a la vez posible falso positivo, posible actividad atacante disfrazada y evidencia que resolvería el conflicto.\n\n"
+        },
+        {
+          "file": "R06_CENTRO_SOC/SP-R06-L05.md",
+          "sourceHash": "6ebf0b14d3d923f52ccf08fa7e5a05044999483c11bd294c98ac3b41186ca758",
+          "line": 29,
+          "endLine": 39,
+          "quote": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4625\n| stats count AS fallos dc(user) AS cuentas BY src host\n| sort 0 -fallos\n```\n\n**Interpretación, supuestos y límites:** El agrupamiento por `src host` no prueba identidad de cliente cuando existen intermediarios; completar con CMDB y registros proxy. No crear listas blancas permanentes desde un ejemplo sintético.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R06-L05-P01",
+      "lessonId": "SP-R06-L05",
+      "prompt": "Redacta un análisis benigno y otro adversario para src 203.0.113.15 y diseña excepción específica de corta duración.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D06",
+        "SPLUNK_LECCIONES_R06_R07:D01"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica datos y supuestos de la fuente",
+        "Plantea método correcto y distingue hechos de hipótesis",
+        "Explica limitaciones, alternativa benigna y telemetría ausente",
+        "Aporta evidencia, ventana e identificación reproducibles"
+      ],
+      "referenceAnswer": "A008–A012: cinco fallos de svc-batch desde 203.0.113.15; inventario confirma mantenimiento programado, que necesita correlación documental. Excepción solo para esa cuenta/host/franja temporal, con dueño, ticket y revisión."
+    }
+  ],
+  "solutionsMarkdown": "### Solucionario con razonamiento\n\n- **SP-R06-L05-Q01: D** — Limitar excepciones ayuda a evitar puntos ciegos permanentes.\n\n- **SP-R06-L05-Q02: C** — Spraying se refiere a intentos sobre numerosas cuentas; se requiere considerar ventana y baseline.\n\n- **SP-R06-L05-P01:** A008–A012: cinco fallos de svc-batch desde 203.0.113.15; inventario confirma mantenimiento programado, que necesita correlación documental. Excepción solo para esa cuenta/host/franja temporal, con dueño, ticket y revisión.\n\n**Guía de retroalimentación formativa:** Identifica datos y supuestos de la fuente; Plantea método correcto y distingue hechos de hipótesis; Explica limitaciones, alternativa benigna y telemetría ausente; Aporta evidencia, ventana e identificación reproducibles.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 8. Bibliografía, mapeo y estatus\n\n- **D06:** Windows: 4625 fallo de inicio de sesión — https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4625\n- **D01:** Condiciones de alertas y resultados — https://help.splunk.com/en/splunk-enterprise/alert-and-respond/alerting-manual/10.0/manage-alert-trigger-conditions-and-throttling/configure-alert-trigger-conditions\n\n- **Currículo:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` — ID, título y resultado intactos.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` — los bloques R06/R07 y laboratorios de diseño.\n- **Puente SC-200:** Capítulos 07 a 09: tuning, correlación e investigación. Documento en `../../01_FUENTE_ORIGINAL/SC-200.md`; relación conceptual, no traducción ni equivalencia garantizada.\n\n**Clasificación de evidencia:** [DOC] respaldo documental de fuentes; [DISEÑO] procedimientos y rúbricas propuestos; [OFFLINE] sólo cálculos de fixtures reproducibles; [NO PROBADO] ejemplos SPL no ejecutados en la instancia. Validación técnica/manual de contenidos pendiente antes de integrarlo en React.\n",
+  "originalMarkdown": "# SP-R06-L05 — Triage de falsos positivos\n\n**Región:** SP-R06 · **Prioridad:** P0 (SOC N1/N2) · **Estado:** material editorial para revisión · **SPL:** NO ejecutado en Splunk.\n\n**Objetivo curricular original:** Evaluar baseline, NAT, servicios, tareas y activos autorizados\n\n**Prerrequisitos:** R01–R05 y lectura de la matriz de campos. **Producto:** Splunk Enterprise/Cloud (búsquedas de lectura); funciones ES explícitamente condicionadas a Splunk Enterprise Security compatible.\n\n## 1. Pregunta esencial y modelo mental\n\nLa tarea N1 no es apagar alertas molestas, sino evaluar alternativas benignas sin esconder riesgo. Fuentes como VPN, proxy, NAT, migraciones de contraseñas, rotaciones de secretos y tareas programadas pueden producir picos reales de autenticación. Una excepción sin alcance y fecha de caducidad puede introducir un falso negativo permanente.\n\n## 2. Conceptos que debes dominar\n\n1. Baseline necesita clase de activo, horas, usuarios y volumen; una frecuencia alta puede ser normal para una cuenta de servicio concreta.\n2. NAT/VPN y cuentas compartidas complican atribución por src o user.\n3. `authorized_context.csv` simula inventario y ventanas autorizadas; la coincidencia con ese inventario no equivale a una prueba de benignidad definitiva.\n4. Las excepciones deben ser específicas por entidad y actividad, revisables y con expiración, no comodines por IP o dominio.\n5. Documenta a la vez posible falso positivo, posible actividad atacante disfrazada y evidencia que resolvería el conflicto.\n\n## 3. Práctica guiada: del dato a la conclusión\n\n1. Compara seis fallos distribuidos (A001–A006) frente a cinco fallos de svc-batch (A008–A012).\n2. Lee el contexto autorizado y detecta la tarea legítima de actualización de contraseña del servicio.\n3. Identifica el riesgo de exceptuar toda la IP 203.0.113.15 sin limitar cuenta/ventana.\n4. Revisa los cuatro fallos desde proxy compartido 192.0.2.44 y describe qué dato de proxy falta.\n5. Propón excepción temporal documentada y plan de expiración.\n\n## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4625\n| stats count AS fallos dc(user) AS cuentas BY src host\n| sort 0 -fallos\n```\n\n**Interpretación, supuestos y límites:** El agrupamiento por `src host` no prueba identidad de cliente cuando existen intermediarios; completar con CMDB y registros proxy. No crear listas blancas permanentes desde un ejemplo sintético.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n## 5. Caso del turno SOC\n\nUn host de servicios autorizado produce un pico por credencial antigua: seguir investigando hasta verificar ticket de cambio y registros alternativos.\n\n## 6. Errores frecuentes\n\n1. Descartar alertas por reputación aparentemente interna de IP.\n2. Confundir cinco fallos de un usuario con password spraying de cinco usuarios.\n3. Crear excepciones que sobreviven indefinidamente sin propietario.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R06-L05-Q01 — Opción múltiple\n\n¿Qué caracteriza una buena excepción de regla?\n\nA. Exclusión por IP completa sin limitar actividad ni duración\nB. Excepción por usuario sin propietario o revisión posterior\nC. Supresión de todas las fuentes con volumen superior al baseline\nD. Alcance exacto, propietario, justificación y expiración\n\n### SP-R06-L05-Q02 — Opción múltiple\n\nCinco fallos contra una única cuenta demuestran automáticamente spraying?\n\nA. Sí, porque cinco intentos bastan sin considerar la distribución por identidad\nB. Sí, si los cinco fallos tienen la misma dirección de origen\nC. No, es otra distribución y puede tener otras causas\nD. No: una sola identidad demuestra que la actividad era mantenimiento autorizado\n\n### SP-R06-L05-P01 — Práctica abierta formativa\n\nRedacta un análisis benigno y otro adversario para src 203.0.113.15 y diseña excepción específica de corta duración.\n\n### Solucionario con razonamiento\n\n- **SP-R06-L05-Q01: D** — Limitar excepciones ayuda a evitar puntos ciegos permanentes.\n\n- **SP-R06-L05-Q02: C** — Spraying se refiere a intentos sobre numerosas cuentas; se requiere considerar ventana y baseline.\n\n- **SP-R06-L05-P01:** A008–A012: cinco fallos de svc-batch desde 203.0.113.15; inventario confirma mantenimiento programado, que necesita correlación documental. Excepción solo para esa cuenta/host/franja temporal, con dueño, ticket y revisión.\n\n**Guía de retroalimentación formativa:** Identifica datos y supuestos de la fuente; Plantea método correcto y distingue hechos de hipótesis; Explica limitaciones, alternativa benigna y telemetría ausente; Aporta evidencia, ventana e identificación reproducibles.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Bibliografía, mapeo y estatus\n\n- **D06:** Windows: 4625 fallo de inicio de sesión — https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4625\n- **D01:** Condiciones de alertas y resultados — https://help.splunk.com/en/splunk-enterprise/alert-and-respond/alerting-manual/10.0/manage-alert-trigger-conditions-and-throttling/configure-alert-trigger-conditions\n\n- **Currículo:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` — ID, título y resultado intactos.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` — los bloques R06/R07 y laboratorios de diseño.\n- **Puente SC-200:** Capítulos 07 a 09: tuning, correlación e investigación. Documento en `../../01_FUENTE_ORIGINAL/SC-200.md`; relación conceptual, no traducción ni equivalencia garantizada.\n\n**Clasificación de evidencia:** [DOC] respaldo documental de fuentes; [DISEÑO] procedimientos y rúbricas propuestos; [OFFLINE] sólo cálculos de fixtures reproducibles; [NO PROBADO] ejemplos SPL no ejecutados en la instancia. Validación técnica/manual de contenidos pendiente antes de integrarlo en React.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 8,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D06",
+      "key": "SPLUNK_LECCIONES_R06_R07:D06",
+      "url": "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4625"
+    },
+    {
+      "id": "D01",
+      "key": "SPLUNK_LECCIONES_R06_R07:D01",
+      "url": "https://help.splunk.com/en/splunk-enterprise/alert-and-respond/alerting-manual/10.0/manage-alert-trigger-conditions-and-throttling/configure-alert-trigger-conditions"
+    }
+  ]
+}

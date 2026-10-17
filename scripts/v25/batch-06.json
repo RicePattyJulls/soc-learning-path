@@ -1,0 +1,1021 @@
+{
+  "batch": "06",
+  "lessons": [
+    {
+      "lessonId": "capitulo-5-almacenamiento-y-retencion/4-microsoft-purview-audit-1",
+      "introduction": "Trabaja los conceptos de «4 · Microsoft Purview Audit» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Separar records originales, jobs de búsqueda y paquetes de exportación.",
+        "Aplicar prioridad de retention policies.",
+        "Distinguir retención Audit y otras superficies Purview."
+      ],
+      "summary": [
+        "Separar records originales, jobs de búsqueda y paquetes de exportación.",
+        "Aplicar prioridad de retention policies.",
+        "Distinguir retención Audit y otras superficies Purview."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "Se elimina un Audit search job completado. ¿Qué se borra según la tabla?",
+          "explanation": "Un resultado de búsqueda y los registros fuente tienen ciclos de conservación distintos.",
+          "objective": "Separar evidencia fuente y artefacto de búsqueda.",
+          "difficulty": "intermedia",
+          "id": "v25-34-job-delete",
+          "evidence": [
+            "| Audit search job completado                        | `30 días`; eliminar el job borra su definición y resultados, no los audit records originales                                                                                                                                                                                                                                                                                                               |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Solo las políticas de retención que se usaron para buscar.",
+              "why": "Eliminar el job no se describe como eliminar policies."
+            },
+            {
+              "id": "o1",
+              "text": "Su definición y resultados, no los audit records originales.",
+              "why": "Un resultado de búsqueda y los registros fuente tienen ciclos de conservación distintos."
+            },
+            {
+              "id": "o2",
+              "text": "También todos los audit records del periodo buscado.",
+              "why": "La fila niega ese borrado de registros originales."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Dos custom audit retention policies alcanzan un record. Una tiene prioridad 1 y otra 10. ¿Cuál gana según las reglas?",
+          "explanation": "Menor número equivale a mayor prioridad entre custom policies. No inferir una regla de duración máxima.",
+          "objective": "Resolver coincidencias de retención por prioridad.",
+          "difficulty": "intermedia",
+          "id": "v25-34-prioridad",
+          "evidence": [
+            "- Entre custom policies, gana el número de prioridad menor: `1` es la máxima, `10000` la mínima."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "La default siempre gana a ambas.",
+              "why": "Toda custom policy tiene precedencia sobre la default según el apartado."
+            },
+            {
+              "id": "o1",
+              "text": "La de prioridad 1.",
+              "why": "Menor número equivale a mayor prioridad entre custom policies. No inferir una regla de duración máxima."
+            },
+            {
+              "id": "o2",
+              "text": "La de duración más larga por definición.",
+              "why": "El texto decide entre custom policies por número de prioridad, no por duración."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Se cambia una licencia o policy después de que un record entre en el auditing pipeline. ¿Qué efecto describe el documento?",
+          "explanation": "La duración se fija al entrar en el pipeline; una modificación posterior no reescribe la retención histórica.",
+          "objective": "Identificar el momento de fijación de retención.",
+          "difficulty": "intermedia",
+          "id": "v25-34-pipeline",
+          "evidence": [
+            "- La duración se fija al entrar en el auditing pipeline: cambiar después la licencia o la policy solo afecta a records nuevos, nunca a los ya comprometidos."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Elimina inmediatamente todos los records existentes.",
+              "why": "El texto no establece ese borrado; conserva la duración comprometida."
+            },
+            {
+              "id": "o1",
+              "text": "El cambio afecta a records nuevos; no modifica la duración ya fijada para ese record.",
+              "why": "La duración se fija al entrar en el pipeline; una modificación posterior no reescribe la retención histórica."
+            },
+            {
+              "id": "o2",
+              "text": "Amplía retroactivamente todos los registros anteriores.",
+              "why": "La lectura niega la retroactividad."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "¿Qué matiz evita extender el año por defecto de Audit Premium a cualquier record de cualquier usuario?",
+          "explanation": "El nombre Premium no suprime las condiciones de actividad y usuario que acompañan a la duración.",
+          "objective": "Aplicar retención sin omitir sus condiciones.",
+          "difficulty": "intermedia",
+          "id": "v25-34-premium-scope",
+          "evidence": [
+            "| Unified Audit Log con Audit (Premium)              | `1 año` por defecto para records de `SharePoint`/`Exchange`/`Entra ID`/`OneDrive` generados por usuarios con licencia elegible; las demás actividades y los usuarios sin licencia elegible o invitados permanecen `180 días`                                                                                                                                                                               |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Depende de actividad y usuario/licencia elegible; otras actividades e invitados permanecen en la ventana indicada de 180 días.",
+              "why": "El nombre Premium no suprime las condiciones de actividad y usuario que acompañan a la duración."
+            },
+            {
+              "id": "o1",
+              "text": "Cualquier usuario invitado obtiene automáticamente diez años.",
+              "why": "El texto limita periodos ampliados y requisitos."
+            },
+            {
+              "id": "o2",
+              "text": "El año pertenece al paquete de exportación de eDiscovery.",
+              "why": "Ese artefacto tiene otro periodo y no es el UAL."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [
+        "Periodos y licencias corresponden al documento local. No se trata la retención DLP dashboard como número universal."
+      ],
+      "audit": {
+        "mainConcepts": [
+          "Separar records originales, jobs de búsqueda y paquetes de exportación.",
+          "Aplicar prioridad de retention policies.",
+          "Distinguir retención Audit y otras superficies Purview."
+        ],
+        "understanding": [
+          "Separar records originales, jobs de búsqueda y paquetes de exportación.",
+          "Aplicar prioridad de retention policies.",
+          "Distinguir retención Audit y otras superficies Purview."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Separar records originales, jobs de búsqueda y paquetes de exportación.",
+          "Aplicar prioridad de retention policies.",
+          "Distinguir retención Audit y otras superficies Purview."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "Eliminar el job no se describe como eliminar policies.",
+          "La fila niega ese borrado de registros originales.",
+          "Toda custom policy tiene precedencia sobre la default según el apartado.",
+          "El texto decide entre custom policies por número de prioridad, no por duración.",
+          "El texto no establece ese borrado; conserva la duración comprometida."
+        ],
+        "evidence": [
+          "| Audit search job completado                        | `30 días`; eliminar el job borra su definición y resultados, no los audit records originales                                                                                                                                                                                                                                                                                                               |",
+          "- Entre custom policies, gana el número de prioridad menor: `1` es la máxima, `10000` la mínima.",
+          "- La duración se fija al entrar en el auditing pipeline: cambiar después la licencia o la policy solo afecta a records nuevos, nunca a los ya comprometidos.",
+          "| Unified Audit Log con Audit (Premium)              | `1 año` por defecto para records de `SharePoint`/`Exchange`/`Entra ID`/`OneDrive` generados por usuarios con licencia elegible; las demás actividades y los usuarios sin licencia elegible o invitados permanecen `180 días`                                                                                                                                                                               |"
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-5-almacenamiento-y-retencion/5-log-analytics-workspace-sentinel-y-data-lake-1",
+      "introduction": "Trabaja los conceptos de «5 · Log Analytics Workspace + Sentinel y Data lake» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Distinguir ventana Analytics y total retention.",
+        "Elegir plan según funciones y patrón de consulta.",
+        "Separar retención de tabla y experiencia del incidente."
+      ],
+      "summary": [
+        "Distinguir ventana Analytics y total retention.",
+        "Elegir plan según funciones y patrón de consulta.",
+        "Separar retención de tabla y experiencia del incidente."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "Se baja Analytics retention de 180 a 90, manteniendo total retention en 180. ¿Qué ocurre con los días 91–180 según el ejemplo?",
+          "explanation": "Reducir la ventana operativa no equivale a reducir la vida máxima del dato.",
+          "objective": "Distinguir retención interactiva y total.",
+          "difficulty": "intermedia",
+          "id": "v25-35-bajar-hot",
+          "evidence": [
+            "| Bajar Analytics retention, ej. `180 → 90` | El cambio es inmediato. Si la Total retention sigue en 180, los datos de `91–180 días` no se borran: salen de Analytics y pasan a long-term retention. No hay 30 días de gracia porque la vida total del dato no cambió. ([Microsoft Learn](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/data-retention-configure?utm_source=chatgpt.com \"Manage Data Retention in a Log Analytics Workspace - Azure Monitor \\| Microsoft Learn\")) |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Aumenta automáticamente la vida total a 365 días.",
+              "why": "La total retention sigue siendo 180 en el escenario."
+            },
+            {
+              "id": "o1",
+              "text": "Pasan a long-term retention, sin borrarse por ese cambio.",
+              "why": "Reducir la ventana operativa no equivale a reducir la vida máxima del dato."
+            },
+            {
+              "id": "o2",
+              "text": "Se eliminan definitivamente al instante.",
+              "why": "El ejemplo mantiene su vida total y niega el borrado."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Se reduce total retention de 365 a 180. ¿Qué diferencia indica la tabla respecto a reducir solo Analytics retention?",
+          "explanation": "Las dos operaciones tienen efectos distintos: sacar datos de Analytics no es lo mismo que dejarlos fuera de la conservación total.",
+          "objective": "Interpretar un cambio de conservación total.",
+          "difficulty": "intermedia",
+          "id": "v25-35-bajar-total",
+          "evidence": [
+            "| Bajar Total retention, ej. `365 → 180`    | Aquí sí reduces la vida máxima del dato. Los datos de `181–365 días` quedan fuera del nuevo límite y entran en un período de gracia de 30 días antes de eliminarse definitivamente. ([Microsoft Learn](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/data-retention-configure?utm_source=chatgpt.com \"Manage Data Retention in a Log Analytics Workspace - Azure Monitor \\| Microsoft Learn\"))                                              |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Todo el histórico queda consultable interactivamente para siempre.",
+              "why": "La tabla describe reducción de vida y borrado posterior."
+            },
+            {
+              "id": "o1",
+              "text": "No cambia nada porque solo importa el nombre del plan.",
+              "why": "La total retention determina la vida máxima del dato."
+            },
+            {
+              "id": "o2",
+              "text": "Se reduce la vida máxima; los datos fuera del nuevo límite entran en el periodo de gracia antes de borrado.",
+              "why": "Las dos operaciones tienen efectos distintos: sacar datos de Analytics no es lo mismo que dejarlos fuera de la conservación total."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Un volumen histórico se almacena Data Lake only. ¿Qué expectativa debe descartarse?",
+          "explanation": "Lake only se plantea para histórico/retención larga sin funciones operativas en tiempo real de Analytics.",
+          "objective": "Elegir tier sin perder funciones necesarias.",
+          "difficulty": "intermedia",
+          "id": "v25-35-lake-only",
+          "evidence": [
+            "- No alimenta analytics rules, alerting ni hunting en tiempo real"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Que alimente analytics rules o alerting en tiempo real.",
+              "why": "Lake only se plantea para histórico/retención larga sin funciones operativas en tiempo real de Analytics."
+            },
+            {
+              "id": "o1",
+              "text": "Que pueda usarse para hunting histórico o forense.",
+              "why": "El apartado da precisamente ese ejemplo."
+            },
+            {
+              "id": "o2",
+              "text": "Que tenga costes propios de ingesta/procesamiento/almacenamiento.",
+              "why": "El texto sí enumera esos costes del lake."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "La vista de investigación de un incidente deja de estar disponible tras inactividad. ¿Qué inferencia niega el apartado?",
+          "explanation": "La vida de la experiencia de investigación no es la retención de los datos crudos ni la de la base de entidades.",
+          "objective": "Distinguir servicio de incidentes y tablas.",
+          "difficulty": "intermedia",
+          "id": "v25-35-incidente-vivo",
+          "evidence": [
+            "- Investigation experience = la vista/interfaz de investigación que abres cuando entras a un incidente (línea de tiempo, gráfico, evidencia). Después de 90 días sin que nadie toque ese incidente, esa vista deja de estar disponible — aunque los datos crudos en las tablas puedan seguir vivos aparte, según su propia retención."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Que los datos crudos de sus tablas hayan desaparecido necesariamente.",
+              "why": "La vida de la experiencia de investigación no es la retención de los datos crudos ni la de la base de entidades."
+            },
+            {
+              "id": "o1",
+              "text": "Que la experiencia de investigación sea distinta de una tabla.",
+              "why": "El texto separa expresamente esos objetos."
+            },
+            {
+              "id": "o2",
+              "text": "Que cada tabla conserve su propio periodo.",
+              "why": "Esa independencia se mantiene en el aviso."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [
+        "No se evalúan la activación automática de ingesta XDR por cambio de retención ni límites numéricos como garantías actuales sin contrastarlos."
+      ],
+      "audit": {
+        "mainConcepts": [
+          "Distinguir ventana Analytics y total retention.",
+          "Elegir plan según funciones y patrón de consulta.",
+          "Separar retención de tabla y experiencia del incidente."
+        ],
+        "understanding": [
+          "Distinguir ventana Analytics y total retention.",
+          "Elegir plan según funciones y patrón de consulta.",
+          "Separar retención de tabla y experiencia del incidente."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Distinguir ventana Analytics y total retention.",
+          "Elegir plan según funciones y patrón de consulta.",
+          "Separar retención de tabla y experiencia del incidente."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "La total retention sigue siendo 180 en el escenario.",
+          "El ejemplo mantiene su vida total y niega el borrado.",
+          "La tabla describe reducción de vida y borrado posterior.",
+          "La total retention determina la vida máxima del dato.",
+          "El apartado da precisamente ese ejemplo."
+        ],
+        "evidence": [
+          "| Bajar Analytics retention, ej. `180 → 90` | El cambio es inmediato. Si la Total retention sigue en 180, los datos de `91–180 días` no se borran: salen de Analytics y pasan a long-term retention. No hay 30 días de gracia porque la vida total del dato no cambió. ([Microsoft Learn](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/data-retention-configure?utm_source=chatgpt.com \"Manage Data Retention in a Log Analytics Workspace - Azure Monitor \\| Microsoft Learn\")) |",
+          "| Bajar Total retention, ej. `365 → 180`    | Aquí sí reduces la vida máxima del dato. Los datos de `181–365 días` quedan fuera del nuevo límite y entran en un período de gracia de 30 días antes de eliminarse definitivamente. ([Microsoft Learn](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/data-retention-configure?utm_source=chatgpt.com \"Manage Data Retention in a Log Analytics Workspace - Azure Monitor \\| Microsoft Learn\"))                                              |",
+          "- No alimenta analytics rules, alerting ni hunting en tiempo real",
+          "- Investigation experience = la vista/interfaz de investigación que abres cuando entras a un incidente (línea de tiempo, gráfico, evidencia). Después de 90 días sin que nadie toque ese incidente, esa vista deja de estar disponible — aunque los datos crudos en las tablas puedan seguir vivos aparte, según su propia retención."
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-5-almacenamiento-y-retencion/6-modelo-de-costes-de-sentinel-1",
+      "introduction": "Trabaja los conceptos de «6 · Modelo de costes de Sentinel» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Separar ingesta, almacenamiento y procesamiento.",
+        "No extender gratuidad de alertas a eventos crudos.",
+        "Distinguir consulta interactiva y ejecución de jobs."
+      ],
+      "summary": [
+        "Separar ingesta, almacenamiento y procesamiento.",
+        "No extender gratuidad de alertas a eventos crudos.",
+        "Distinguir consulta interactiva y ejecución de jobs."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "La ingesta de ciertas alertas/incidentes no tiene cargo. ¿Puede concluirse que sus DeviceEvents/EmailEvents también son gratuitos?",
+          "explanation": "La unidad facturada y el tipo de dato importan: alertas gratuitas no hacen gratuita la telemetría que las generó.",
+          "objective": "Evitar extrapolar exenciones entre tipos de datos.",
+          "difficulty": "intermedia",
+          "id": "v25-36-gratis-eventos",
+          "evidence": [
+            "- Data types gratis (sin cargo de ingesta): `AzureActivity`, `SentinelHealth`, auditoría compatible en `OfficeActivity`, ciertas alertas/incidentes en `SecurityAlert`/`SecurityIncident`. Ojo: esto no hace gratis las tablas de eventos crudos que generaron esa alerta (ej. `DeviceEvents`, `EmailEvents`) — esas se pagan aparte, normal. `SentinelAudit` tampoco es gratis."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Sí, si se consulta con KQL una vez al día.",
+              "why": "La frecuencia de consulta no convierte su ingesta en gratuita."
+            },
+            {
+              "id": "o1",
+              "text": "No; los eventos crudos se facturan aparte según el apartado.",
+              "why": "La unidad facturada y el tipo de dato importan: alertas gratuitas no hacen gratuita la telemetría que las generó."
+            },
+            {
+              "id": "o2",
+              "text": "Sí, cualquier evento que origine una alerta hereda la gratuidad.",
+              "why": "El texto niega expresamente esa extensión."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "match",
+          "prompt": "Relaciona operación y alcance descrito.",
+          "explanation": "Job y consulta interactiva son operaciones distintas, con ámbitos y facturación diferentes.",
+          "objective": "Distinguir ejecución por jobs y consulta operativa.",
+          "difficulty": "intermedia",
+          "id": "v25-36-jobs",
+          "evidence": [
+            "- `KQL job`: solo sobre `Data Lake`.",
+            "- `Search job`: con o sin `Data Lake` — sin onboarding también consulta `Analytics` y su long-term retention, además de `Basic`/`Auxiliary`; con onboarding, también puede buscar en `Data Lake`.",
+            "- Una consulta normal (`Logs`/`Advanced Hunting`) dentro de la ventana interactiva de `Analytics` sigue gratis, no es un job."
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "KQL job"
+            },
+            {
+              "id": "r1",
+              "label": "Search job"
+            },
+            {
+              "id": "r2",
+              "label": "Consulta normal en Analytics interactivo"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "Solo Data Lake"
+            },
+            {
+              "id": "p1",
+              "text": "También Analytics/long-term y Basic/Auxiliary sin onboarding lake"
+            },
+            {
+              "id": "p2",
+              "text": "No es un job; mantiene consulta incluida en esa ventana"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1",
+            "p2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "¿Qué matiz de coste destaca el apartado para UEBA?",
+          "explanation": "Ausencia de una licencia/SKU separado no elimina los costes de los datos que la función genera.",
+          "objective": "Separar licencia y consumo de datos derivados.",
+          "difficulty": "intermedia",
+          "id": "v25-36-ueba-aditivo",
+          "evidence": [
+            "- UEBA: sin SKU adicional, pero factura como tabla normal. Suma `SentinelBehaviorInfo`/`SentinelBehaviorEntities` (aditivo, no sustituye logs)."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Sus tablas sustituyen y eliminan los logs de origen.",
+              "why": "Se describen como aditivas, no sustitutas."
+            },
+            {
+              "id": "o1",
+              "text": "No tiene SKU adicional, pero sus tablas se facturan como datos y son aditivas.",
+              "why": "Ausencia de una licencia/SKU separado no elimina los costes de los datos que la función genera."
+            },
+            {
+              "id": "o2",
+              "text": "No tener SKU adicional significa que ninguna tabla UEBA se factura.",
+              "why": "El texto dice que factura como tabla normal."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [
+        "No se convierte esta práctica en presupuesto: precios, beneficios/cupos y compromisos requieren verificación vigente antes de contratar."
+      ],
+      "audit": {
+        "mainConcepts": [
+          "Separar ingesta, almacenamiento y procesamiento.",
+          "No extender gratuidad de alertas a eventos crudos.",
+          "Distinguir consulta interactiva y ejecución de jobs."
+        ],
+        "understanding": [
+          "Separar ingesta, almacenamiento y procesamiento.",
+          "No extender gratuidad de alertas a eventos crudos.",
+          "Distinguir consulta interactiva y ejecución de jobs."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Separar ingesta, almacenamiento y procesamiento.",
+          "No extender gratuidad de alertas a eventos crudos.",
+          "Distinguir consulta interactiva y ejecución de jobs."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "La frecuencia de consulta no convierte su ingesta en gratuita.",
+          "El texto niega expresamente esa extensión.",
+          "Se describen como aditivas, no sustitutas.",
+          "El texto dice que factura como tabla normal."
+        ],
+        "evidence": [
+          "- Data types gratis (sin cargo de ingesta): `AzureActivity`, `SentinelHealth`, auditoría compatible en `OfficeActivity`, ciertas alertas/incidentes en `SecurityAlert`/`SecurityIncident`. Ojo: esto no hace gratis las tablas de eventos crudos que generaron esa alerta (ej. `DeviceEvents`, `EmailEvents`) — esas se pagan aparte, normal. `SentinelAudit` tampoco es gratis.",
+          "- `KQL job`: solo sobre `Data Lake`.",
+          "- `Search job`: con o sin `Data Lake` — sin onboarding también consulta `Analytics` y su long-term retention, además de `Basic`/`Auxiliary`; con onboarding, también puede buscar en `Data Lake`.",
+          "- Una consulta normal (`Logs`/`Advanced Hunting`) dentro de la ventana interactiva de `Analytics` sigue gratis, no es un job.",
+          "- UEBA: sin SKU adicional, pero factura como tabla normal. Suma `SentinelBehaviorInfo`/`SentinelBehaviorEntities` (aditivo, no sustituye logs)."
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-5-almacenamiento-y-retencion/7-optimizacion-y-coste-del-workspace-1",
+      "introduction": "Trabaja los conceptos de «7 · Optimización y coste del workspace» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Filtrar ruido con control de pérdida irreversible.",
+        "Verificar funciones antes de cambiar tier.",
+        "Usar daily cap como protección excepcional."
+      ],
+      "summary": [
+        "Filtrar ruido con control de pérdida irreversible.",
+        "Verificar funciones antes de cambiar tier.",
+        "Usar daily cap como protección excepcional."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "Se propone filtrar eventos al entrar para ahorrar. ¿Qué advertencia debe revisarse primero?",
+          "explanation": "La optimización debe preservar necesidades de detección, investigación y cumplimiento antes de descartar señales.",
+          "objective": "Valorar pérdida de evidencia al filtrar.",
+          "difficulty": "intermedia",
+          "id": "v25-37-descartar",
+          "evidence": [
+            "1. Paso 1, el más barato: no dejar que el ruido llegue. Dos formas — cortarlo en el origen (no enviarlo) o filtrarlo al entrar, con una `ingestion-time transformation` en la DCR. Advertencia: lo que descartas aquí no se puede recuperar después, así que es el paso a hacer primero y con más cuidado."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Todo filtro puede deshacerse recuperando luego los eventos que nunca se almacenaron.",
+              "why": "El texto niega esa recuperación posterior."
+            },
+            {
+              "id": "o1",
+              "text": "Una summary rule siempre reconstruye el dato crudo descartado.",
+              "why": "Un resumen no sustituye conservar raw data cuando hace falta forense."
+            },
+            {
+              "id": "o2",
+              "text": "Lo descartado en origen/transformación no se puede recuperar después.",
+              "why": "La optimización debe preservar necesidades de detección, investigación y cumplimiento antes de descartar señales."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "¿Por qué el apartado desaconseja daily cap como ahorro normal?",
+          "explanation": "Limitar consumo por corte tiene riesgo de cobertura; no equivale a optimizar selectivamente datos innecesarios.",
+          "objective": "Distinguir control de emergencia y optimización.",
+          "difficulty": "intermedia",
+          "id": "v25-37-daily-cap",
+          "evidence": [
+            "`Daily cap`: protección contra picos, no un método normal de ahorro.",
+            "- Al alcanzarla: se detiene la recopilación facturable de `Analytics` y `Basic` hasta el reset — pueden perderse eventos."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Porque devuelve retroactivamente el coste de todo exceso.",
+              "why": "El texto dice que el corte no es retroactivo y el exceso previo se factura."
+            },
+            {
+              "id": "o1",
+              "text": "Puede detener recopilación facturable y perder eventos; es protección frente a picos.",
+              "why": "Limitar consumo por corte tiene riesgo de cobertura; no equivale a optimizar selectivamente datos innecesarios."
+            },
+            {
+              "id": "o2",
+              "text": "Porque elimina solo datos ya resumidos sin afectar ingesta.",
+              "why": "El corte afecta a la recopilación Analytics/Basic."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "SOC optimization propone cambios sobre el workspace. ¿Qué responsabilidad conserva el operador?",
+          "explanation": "La recomendación ayuda a decidir, pero no prueba ni autoriza por sí sola el impacto de un cambio.",
+          "objective": "Separar recomendación, decisión y ejecución.",
+          "difficulty": "intermedia",
+          "id": "v25-37-recomendacion-auto",
+          "evidence": [
+            "`SOC optimization` analiza el workspace y propone cambios, pero no los ejecuta. Sus familias son `Data value`, `Threat-based coverage`, `Risk-based coverage (preview)`, `Similar organizations` y `AI MITRE tagging (preview)`. Las recomendaciones deben contrastarse con necesidades de cumplimiento, investigación y detección"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Aceptar siempre el menor coste aunque rompa reglas necesarias.",
+              "why": "El orden seguro exige verificar funciones y necesidades."
+            },
+            {
+              "id": "o1",
+              "text": "Contrastarlos con cumplimiento, investigación y detección; la herramienta no los ejecuta.",
+              "why": "La recomendación ayuda a decidir, pero no prueba ni autoriza por sí sola el impacto de un cambio."
+            },
+            {
+              "id": "o2",
+              "text": "Asumir que ya se aplicaron por aparecer como recomendación.",
+              "why": "El texto niega la ejecución automática."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [],
+      "audit": {
+        "mainConcepts": [
+          "Filtrar ruido con control de pérdida irreversible.",
+          "Verificar funciones antes de cambiar tier.",
+          "Usar daily cap como protección excepcional."
+        ],
+        "understanding": [
+          "Filtrar ruido con control de pérdida irreversible.",
+          "Verificar funciones antes de cambiar tier.",
+          "Usar daily cap como protección excepcional."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Filtrar ruido con control de pérdida irreversible.",
+          "Verificar funciones antes de cambiar tier.",
+          "Usar daily cap como protección excepcional."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "El texto niega esa recuperación posterior.",
+          "Un resumen no sustituye conservar raw data cuando hace falta forense.",
+          "El texto dice que el corte no es retroactivo y el exceso previo se factura.",
+          "El corte afecta a la recopilación Analytics/Basic.",
+          "El orden seguro exige verificar funciones y necesidades."
+        ],
+        "evidence": [
+          "1. Paso 1, el más barato: no dejar que el ruido llegue. Dos formas — cortarlo en el origen (no enviarlo) o filtrarlo al entrar, con una `ingestion-time transformation` en la DCR. Advertencia: lo que descartas aquí no se puede recuperar después, así que es el paso a hacer primero y con más cuidado.",
+          "`Daily cap`: protección contra picos, no un método normal de ahorro.",
+          "- Al alcanzarla: se detiene la recopilación facturable de `Analytics` y `Basic` hasta el reset — pueden perderse eventos.",
+          "`SOC optimization` analiza el workspace y propone cambios, pero no los ejecuta. Sus familias son `Data value`, `Threat-based coverage`, `Risk-based coverage (preview)`, `Similar organizations` y `AI MITRE tagging (preview)`. Las recomendaciones deben contrastarse con necesidades de cumplimiento, investigación y detección"
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-7-deteccion-y-alertas/7-deteccion-y-alertas-1",
+      "introduction": "Trabaja los conceptos de «7 · Detección y alertas» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Separar motores nativos, reglas KQL y lógica administrada.",
+        "Distinguir alerta de incidente o dato derivado.",
+        "Respetar requisitos de tier y workspace en reglas."
+      ],
+      "summary": [
+        "Separar motores nativos, reglas KQL y lógica administrada.",
+        "Distinguir alerta de incidente o dato derivado.",
+        "Respetar requisitos de tier y workspace en reglas."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "match",
+          "prompt": "Relaciona mecanismo y salida del esquema.",
+          "explanation": "El objeto generado importa: una regla que produce incidente no debe contarse como si emitiera su alerta propia.",
+          "objective": "Distinguir salidas de mecanismos de detección.",
+          "difficulty": "intermedia",
+          "id": "v25-39-salidas",
+          "evidence": [
+            "│      ├──▶ Scheduled / NRT (Sentinel, analytics rule) → SecurityAlert",
+            "│      └──▶ Custom detection rule (Defender) → AlertInfo + AlertEvidence",
+            "│      └──▶ Fusion (analytics rule) → incidente multietapa, sin alerta propia (SecurityIncident)"
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "Scheduled/NRT Sentinel"
+            },
+            {
+              "id": "r1",
+              "label": "Custom detection Defender"
+            },
+            {
+              "id": "r2",
+              "label": "Fusion"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "SecurityAlert"
+            },
+            {
+              "id": "p1",
+              "text": "AlertInfo y AlertEvidence"
+            },
+            {
+              "id": "p2",
+              "text": "Incidente multietapa sin alerta propia"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1",
+            "p2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Una tabla existe solo en Basic, Auxiliary o Data Lake. ¿Qué restricción comparten las dos familias de reglas KQL del esquema?",
+          "explanation": "Disponibilidad para consulta histórica no equivale a disponibilidad para reglas operativas de detección.",
+          "objective": "Comprobar elegibilidad de datos para reglas.",
+          "difficulty": "intermedia",
+          "id": "v25-39-tiers-reglas",
+          "evidence": [
+            "│        en Basic, Auxiliary o solo en Data Lake, ninguna de las dos funciona)"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Solo necesitan que exista un workbook sobre los datos.",
+              "why": "Visualizar datos no cambia el soporte de las reglas."
+            },
+            {
+              "id": "o1",
+              "text": "No funcionan sobre esas tablas en esos tiers; requieren el ámbito Analytics descrito.",
+              "why": "Disponibilidad para consulta histórica no equivale a disponibilidad para reglas operativas de detección."
+            },
+            {
+              "id": "o2",
+              "text": "Ambas consultan cualquier tier sin restricción por usar KQL.",
+              "why": "El esquema limita expresamente las tablas que leen."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Se quiere crear una custom detection sobre datos Sentinel. ¿Qué requisito indica la introducción?",
+          "explanation": "La regla vive en el portal Defender y esa ruta requiere incorporación del workspace.",
+          "objective": "Identificar el requisito de superficie para detección.",
+          "difficulty": "intermedia",
+          "id": "v25-39-workspace-defender",
+          "evidence": [
+            "Los datos ya existen en las tablas nativas de `Microsoft Defender XDR` o en el `Analytics tier` de Microsoft Sentinel. Este capítulo cubre la lógica que se aplica sobre esos datos hasta producir una alerta. Learn cambió su recomendación por defecto: `Custom detections` es hoy la mejor vía para crear reglas nuevas tanto en Defender XDR como en Sentinel. Da menor coste de ingesta, detecciones en tiempo real sin tope e integración con los datos, las funciones y las acciones de remediación de Defender XDR, con entity mapping automático sobre datos de Defender. Para usarla con datos de Sentinel, el workspace tiene que estar incorporado al portal de Defender, porque la regla vive ahí. Después del 31/03/2027, Sentinel solo estará disponible en el portal de Defender."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Que el workspace esté incorporado al portal de Defender.",
+              "why": "La regla vive en el portal Defender y esa ruta requiere incorporación del workspace."
+            },
+            {
+              "id": "o1",
+              "text": "Que se renombre SecurityAlert como AlertInfo.",
+              "why": "Renombrar no sustituye la incorporación del workspace."
+            },
+            {
+              "id": "o2",
+              "text": "Que cualquier workspace de Azure esté automáticamente incorporado.",
+              "why": "El texto establece una condición explícita, no una equivalencia automática."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [
+        "Las recomendaciones por defecto y fechas de transición se registran como temporales; no se evalúan. El esquema de severidad está truncado y no se usa."
+      ],
+      "audit": {
+        "mainConcepts": [
+          "Separar motores nativos, reglas KQL y lógica administrada.",
+          "Distinguir alerta de incidente o dato derivado.",
+          "Respetar requisitos de tier y workspace en reglas."
+        ],
+        "understanding": [
+          "Separar motores nativos, reglas KQL y lógica administrada.",
+          "Distinguir alerta de incidente o dato derivado.",
+          "Respetar requisitos de tier y workspace en reglas."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Separar motores nativos, reglas KQL y lógica administrada.",
+          "Distinguir alerta de incidente o dato derivado.",
+          "Respetar requisitos de tier y workspace en reglas."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "Visualizar datos no cambia el soporte de las reglas.",
+          "El esquema limita expresamente las tablas que leen.",
+          "Renombrar no sustituye la incorporación del workspace.",
+          "El texto establece una condición explícita, no una equivalencia automática."
+        ],
+        "evidence": [
+          "│      ├──▶ Scheduled / NRT (Sentinel, analytics rule) → SecurityAlert",
+          "│      └──▶ Custom detection rule (Defender) → AlertInfo + AlertEvidence",
+          "│      └──▶ Fusion (analytics rule) → incidente multietapa, sin alerta propia (SecurityIncident)",
+          "│        en Basic, Auxiliary o solo en Data Lake, ninguna de las dos funciona)",
+          "Los datos ya existen en las tablas nativas de `Microsoft Defender XDR` o en el `Analytics tier` de Microsoft Sentinel. Este capítulo cubre la lógica que se aplica sobre esos datos hasta producir una alerta. Learn cambió su recomendación por defecto: `Custom detections` es hoy la mejor vía para crear reglas nuevas tanto en Defender XDR como en Sentinel. Da menor coste de ingesta, detecciones en tiempo real sin tope e integración con los datos, las funciones y las acciones de remediación de Defender XDR, con entity mapping automático sobre datos de Defender. Para usarla con datos de Sentinel, el workspace tiene que estar incorporado al portal de Defender, porque la regla vive ahí. Después del 31/03/2027, Sentinel solo estará disponible en el portal de Defender."
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-7-deteccion-y-alertas/los-motores-nativos-1",
+      "introduction": "Trabaja los conceptos de «Los motores nativos» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Interpretar condiciones de motores nativos.",
+        "No equiparar aprendizaje parcial con ausencia de protección.",
+        "Distinguir política configurada y alerta emitida."
+      ],
+      "summary": [
+        "Interpretar condiciones de motores nativos.",
+        "No equiparar aprendizaje parcial con ausencia de protección.",
+        "Distinguir política configurada y alerta emitida."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "MDCA está en sus primeros días de aprendizaje. ¿Qué interpretación da la tabla?",
+          "explanation": "Un periodo de aprendizaje no permite asumir ni cobertura total ni ausencia total de alertas.",
+          "objective": "Interpretar limitaciones de aprendizaje de detecciones.",
+          "difficulty": "intermedia",
+          "id": "v25-40-mdca-aprendizaje",
+          "evidence": [
+            "| `MDCA`              | `anomaly detection policies` de fábrica, activas desde el primer día; durante los 7 primeros días de aprendizaje no se emiten todas sus alertas (cobertura parcial, no nula): `Impossible travel`, `Activity from infrequent country`, descargas o actividad administrativa inusuales; `Malware detection` viene desactivada. También las `activity policies` que crea el analista, con umbral | `AlertInfo` + `AlertEvidence`                                                                   | `SecurityAlert` + `SecurityIncident` mediante `XDR`                                                                                            |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "El aprendizaje garantiza desde el primer minuto todas las alertas.",
+              "why": "El texto dice que todavía no se emiten todas."
+            },
+            {
+              "id": "o1",
+              "text": "Cobertura parcial: no se emiten todas las alertas, pero no es cobertura nula.",
+              "why": "Un periodo de aprendizaje no permite asumir ni cobertura total ni ausencia total de alertas."
+            },
+            {
+              "id": "o2",
+              "text": "Ninguna política puede alertar durante todo el aprendizaje.",
+              "why": "La fila niega que la cobertura sea nula."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "¿Qué distingue a Honeytoken en la fila de MDI respecto a su línea base habitual?",
+          "explanation": "El tratamiento especial de la entidad señuelo evita aplicar el requisito de aprendizaje de la línea base ordinaria.",
+          "objective": "Distinguir una condición especial del motor MDI.",
+          "difficulty": "intermedia",
+          "id": "v25-40-honeytoken-alert",
+          "evidence": [
+            "| `MDI`               | Desviación de su línea base por usuario (no usa `UEBA`); con el tag `Honeytoken`, ante cualquier actividad y sin aprendizaje: autenticación, consulta `LDAP`, cambio de atributos o de grupo                                                                                                                                                                                                   | `AlertInfo` + `AlertEvidence`                                                                   | `SecurityAlert` + `SecurityIncident` mediante `XDR`                                                                                            |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Solo alerta tras aprender una desviación del usuario durante meses.",
+              "why": "La tabla dice ante cualquier actividad y sin aprendizaje."
+            },
+            {
+              "id": "o1",
+              "text": "Activa UEBA como requisito de toda alerta MDI.",
+              "why": "La fila indica que MDI no usa UEBA para su línea base."
+            },
+            {
+              "id": "o2",
+              "text": "Alerta ante actividad sobre la entidad señuelo sin aprendizaje.",
+              "why": "El tratamiento especial de la entidad señuelo evita aplicar el requisito de aprendizaje de la línea base ordinaria."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "¿Cuándo alerta DLP según su fila?",
+          "explanation": "El motor/policy y la generación de alerta tienen una condición explícita; una coincidencia por sí sola no la elimina.",
+          "objective": "Reconocer la condición nativa de alertado DLP.",
+          "difficulty": "intermedia",
+          "id": "v25-40-dlp-condicion",
+          "evidence": [
+            "| `DLP`               | Solo si la rule está configurada para alertar                                                                                                                                                                                                                                                                                                                                                  | Actividad en `CloudAppEvents`                                                                   | `SecurityAlert` + `SecurityIncident` mediante `XDR`; sin conector propio                                                                       |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Siempre que exista cualquier coincidencia, sin considerar configuración.",
+              "why": "La fila limita el alertado a la configuración de la rule."
+            },
+            {
+              "id": "o1",
+              "text": "Solo cuando un analista escribe además una custom detection en todo caso.",
+              "why": "El motor DLP puede alertar por su propia rule configurada."
+            },
+            {
+              "id": "o2",
+              "text": "Cuando su rule está configurada para alertar.",
+              "why": "El motor/policy y la generación de alerta tienen una condición explícita; una coincidencia por sí sola no la elimina."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [
+        "No se evalúan rutas IRM/XDR porque otros apartados las describen de forma distinta. Tampoco se deduce una tabla no nombrada para MDC o ID Protection."
+      ],
+      "audit": {
+        "mainConcepts": [
+          "Interpretar condiciones de motores nativos.",
+          "No equiparar aprendizaje parcial con ausencia de protección.",
+          "Distinguir política configurada y alerta emitida."
+        ],
+        "understanding": [
+          "Interpretar condiciones de motores nativos.",
+          "No equiparar aprendizaje parcial con ausencia de protección.",
+          "Distinguir política configurada y alerta emitida."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Interpretar condiciones de motores nativos.",
+          "No equiparar aprendizaje parcial con ausencia de protección.",
+          "Distinguir política configurada y alerta emitida."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "El texto dice que todavía no se emiten todas.",
+          "La fila niega que la cobertura sea nula.",
+          "La tabla dice ante cualquier actividad y sin aprendizaje.",
+          "La fila indica que MDI no usa UEBA para su línea base.",
+          "La fila limita el alertado a la configuración de la rule."
+        ],
+        "evidence": [
+          "| `MDCA`              | `anomaly detection policies` de fábrica, activas desde el primer día; durante los 7 primeros días de aprendizaje no se emiten todas sus alertas (cobertura parcial, no nula): `Impossible travel`, `Activity from infrequent country`, descargas o actividad administrativa inusuales; `Malware detection` viene desactivada. También las `activity policies` que crea el analista, con umbral | `AlertInfo` + `AlertEvidence`                                                                   | `SecurityAlert` + `SecurityIncident` mediante `XDR`                                                                                            |",
+          "| `MDI`               | Desviación de su línea base por usuario (no usa `UEBA`); con el tag `Honeytoken`, ante cualquier actividad y sin aprendizaje: autenticación, consulta `LDAP`, cambio de atributos o de grupo                                                                                                                                                                                                   | `AlertInfo` + `AlertEvidence`                                                                   | `SecurityAlert` + `SecurityIncident` mediante `XDR`                                                                                            |",
+          "| `DLP`               | Solo si la rule está configurada para alertar                                                                                                                                                                                                                                                                                                                                                  | Actividad en `CloudAppEvents`                                                                   | `SecurityAlert` + `SecurityIncident` mediante `XDR`; sin conector propio                                                                       |"
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    }
+  ]
+}

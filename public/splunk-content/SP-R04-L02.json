@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R04-L02",
+  "title": "Secuencias con streamstats",
+  "revision": "3ce633843d5f7cb7adf95015",
+  "sourceVersion": "a396882560a6cd3adba464cdd454277f9f99bf0baba87a224f236d9ac5f6a9b3",
+  "sanitizedHash": "a396882560a6cd3adba464cdd454277f9f99bf0baba87a224f236d9ac5f6a9b3",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R04_R05/R04_SPL_AVANZADO/SP-R04-L02.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Calcular acumulados y secuencias controlando orden temporal",
+  "preamble": "# SP-R04-L02 — Secuencias con streamstats\n\n**Región:** SP-R04 · **Prioridad:** P0/P1 SOC · **Estado:** borrador educativo para revisión · **SPL real:** no ejecutado.  \n**ID curricular intacto:** `SP-R04-L02` · **Resultado de aprendizaje:** Calcular acumulados y secuencias controlando orden temporal  \n**Prerrequisitos:** R03 completada · **Producto:** Splunk Enterprise/Cloud con SPL clásico según versión y permisos; CIM exige configuración pertinente.\n\n",
+  "sections": [
+    {
+      "id": "SP-R04-L02-S01",
+      "title": "1. Pregunta esencial",
+      "markdown": "## 1. Pregunta esencial\n\nUn SOC puede necesitar la cantidad de intentos acumulada **hasta ese evento**, no el total final. `streamstats` calcula estadísticas en el orden en que llegan las filas al comando. La búsqueda estándar suele mostrar eventos recientes primero; para un acumulado cronológico debes ordenar explícitamente. Sin ese paso, el resultado puede responder otra pregunta temporal.\n\n**Objetivo verificable:** Calcular acumulados y secuencias controlando orden temporal.\n\n",
+      "line": 7,
+      "endLine": 11
+    },
+    {
+      "id": "SP-R04-L02-S02",
+      "title": "2. Modelo mental y conceptos",
+      "markdown": "## 2. Modelo mental y conceptos\n\n1. `sort 0 _time` ordena por tiempo ascendente sin truncar explícitamente las filas a la cantidad implícita del comando sort; ordenar grandes volúmenes puede ser costoso.\n2. `streamstats count AS secuencia BY src` produce un contador acumulado por IP, reiniciado para cada valor de src.\n3. Una búsqueda con `streamstats` no calcula automáticamente una ventana móvil; `window` y `time_window` tienen semánticas propias que deben justificarse.\n4. Cuando hay timestamps iguales, define un segundo criterio determinista; de otro modo los resultados pueden variar con el orden de llegada.\n\n",
+      "line": 13,
+      "endLine": 18
+    },
+    {
+      "id": "SP-R04-L02-S03",
+      "title": "3. Procedimiento guiado",
+      "markdown": "## 3. Procedimiento guiado\n\n1. Filtra `action=failure` en los eventos sintéticos y ordena por `_time` ascendente.\n2. Calcula el contador global y luego `BY src`; observa por qué el segundo separa las dos IP.\n3. Cambia el orden a descendente y explica por qué las cifras ya no corresponden al acumulado cronológico.\n4. Para ventanas móviles, discute cuándo tiene sentido `time_window=15m` y cuándo conviene `bin` para ventanas discretas no deslizantes.\n\n",
+      "line": 20,
+      "endLine": 25
+    },
+    {
+      "id": "SP-R04-L02-S04",
+      "title": "4. SPL ilustrativo — no ejecutado",
+      "markdown": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH action=failure earliest=\"10/16/2026:09:00:00\" latest=\"10/16/2026:09:15:00\"\n| sort 0 _time event_id\n| streamstats count AS fallos_acumulados BY src\n| table _time src user fallos_acumulados\n```\n\n**Interpretación, condiciones y alcance:** El ejemplo acota el primer bucket en UTC: .9 termina en siete y la otra IP tiene su propio contador. Sobre todo el CSV, .9 termina en nueve. event_id desempata timestamps; exige que esté disponible y sea estable. sort 0 es didáctico y puede ser costoso. No es una ventana móvil ni una búsqueda ejecutada en Splunk.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n",
+      "line": 27,
+      "endLine": 38
+    },
+    {
+      "id": "SP-R04-L02-S05",
+      "title": "5. Caso SOC",
+      "markdown": "## 5. Caso SOC\n\nUna IP lleva siete fallos progresivos entre 09:01 y 09:10. ¿Cuál era la cuenta acumulada al sexto fallo?\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 40,
+      "endLine": 45
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R04-L02-Q01",
+      "lessonId": "SP-R04-L02",
+      "prompt": "¿Qué mide `streamstats count` tras ordenar cronológicamente?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S02",
+        "SPLUNK_LECCIONES_R04_R05:S01"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R04-L02-Q01-O-6a2d31cba8c6",
+          "text": "El total final del grupo, repetido sin cambios en todas sus filas"
+        },
+        {
+          "id": "SP-R04-L02-Q01-O-84938f854b72",
+          "text": "El conteo acumulado hasta cada fila, siguiendo el orden que recibe streamstats en ese pipeline"
+        },
+        {
+          "id": "SP-R04-L02-Q01-O-2ce04a58c3e8",
+          "text": "La posición temporal más reciente de cada usuario"
+        },
+        {
+          "id": "SP-R04-L02-Q01-O-a85a468652c6",
+          "text": "El número de valores distintos de src en todo el intervalo"
+        }
+      ],
+      "solution": "SP-R04-L02-Q01-O-84938f854b72",
+      "explanation": "El cálculo se emite progresivamente en el orden del pipeline.",
+      "anchors": [
+        {
+          "file": "R04_SPL_AVANZADO/SP-R04-L02.md",
+          "sourceHash": "a396882560a6cd3adba464cdd454277f9f99bf0baba87a224f236d9ac5f6a9b3",
+          "line": 13,
+          "endLine": 18,
+          "quote": "## 2. Modelo mental y conceptos\n\n1. `sort 0 _time` ordena por tiempo ascendente sin truncar explícitamente las filas a la cantidad implícita del comando sort; ordenar grandes volúmenes puede ser costoso.\n2. `streamstats count AS secuencia BY src` produce un contador acumulado por IP, reiniciado para cada valor de src.\n3. Una búsqueda con `streamstats` no calcula automáticamente una ventana móvil; `window` y `time_window` tienen semánticas propias que deben justificarse.\n4. Cuando hay timestamps iguales, define un segundo criterio determinista; de otro modo los resultados pueden variar con el orden de llegada.\n\n"
+        },
+        {
+          "file": "R04_SPL_AVANZADO/SP-R04-L02.md",
+          "sourceHash": "a396882560a6cd3adba464cdd454277f9f99bf0baba87a224f236d9ac5f6a9b3",
+          "line": 27,
+          "endLine": 38,
+          "quote": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH action=failure earliest=\"10/16/2026:09:00:00\" latest=\"10/16/2026:09:15:00\"\n| sort 0 _time event_id\n| streamstats count AS fallos_acumulados BY src\n| table _time src user fallos_acumulados\n```\n\n**Interpretación, condiciones y alcance:** El ejemplo acota el primer bucket en UTC: .9 termina en siete y la otra IP tiene su propio contador. Sobre todo el CSV, .9 termina en nueve. event_id desempata timestamps; exige que esté disponible y sea estable. sort 0 es didáctico y puede ser costoso. No es una ventana móvil ni una búsqueda ejecutada en Splunk.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R04-L02-Q02",
+      "lessonId": "SP-R04-L02",
+      "prompt": "¿Cuál es la precaución más importante en una secuencia temporal?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S02",
+        "SPLUNK_LECCIONES_R04_R05:S01"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R04-L02-Q02-O-21267609b0a2",
+          "text": "Eliminar eventos con timestamps iguales antes de comprobar si son distintos"
+        },
+        {
+          "id": "SP-R04-L02-Q02-O-2f5ae5e39cde",
+          "text": "Usar el orden de llegada al comando sin verificar la hora del evento"
+        },
+        {
+          "id": "SP-R04-L02-Q02-O-820fd6465b04",
+          "text": "Ordenar por la cadena user y suponer que representa la secuencia temporal"
+        },
+        {
+          "id": "SP-R04-L02-Q02-O-1af8b3bdc4cf",
+          "text": "Verificar el orden temporal y la semántica de _time, y resolver empates con un criterio estable"
+        }
+      ],
+      "solution": "SP-R04-L02-Q02-O-1af8b3bdc4cf",
+      "explanation": "Sin orden temporal, el acumulado no responde a la hipótesis cronológica.",
+      "anchors": [
+        {
+          "file": "R04_SPL_AVANZADO/SP-R04-L02.md",
+          "sourceHash": "a396882560a6cd3adba464cdd454277f9f99bf0baba87a224f236d9ac5f6a9b3",
+          "line": 13,
+          "endLine": 18,
+          "quote": "## 2. Modelo mental y conceptos\n\n1. `sort 0 _time` ordena por tiempo ascendente sin truncar explícitamente las filas a la cantidad implícita del comando sort; ordenar grandes volúmenes puede ser costoso.\n2. `streamstats count AS secuencia BY src` produce un contador acumulado por IP, reiniciado para cada valor de src.\n3. Una búsqueda con `streamstats` no calcula automáticamente una ventana móvil; `window` y `time_window` tienen semánticas propias que deben justificarse.\n4. Cuando hay timestamps iguales, define un segundo criterio determinista; de otro modo los resultados pueden variar con el orden de llegada.\n\n"
+        },
+        {
+          "file": "R04_SPL_AVANZADO/SP-R04-L02.md",
+          "sourceHash": "a396882560a6cd3adba464cdd454277f9f99bf0baba87a224f236d9ac5f6a9b3",
+          "line": 27,
+          "endLine": 38,
+          "quote": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH action=failure earliest=\"10/16/2026:09:00:00\" latest=\"10/16/2026:09:15:00\"\n| sort 0 _time event_id\n| streamstats count AS fallos_acumulados BY src\n| table _time src user fallos_acumulados\n```\n\n**Interpretación, condiciones y alcance:** El ejemplo acota el primer bucket en UTC: .9 termina en siete y la otra IP tiene su propio contador. Sobre todo el CSV, .9 termina en nueve. event_id desempata timestamps; exige que esté disponible y sea estable. sort 0 es didáctico y puede ser costoso. No es una ventana móvil ni una búsqueda ejecutada en Splunk.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R04-L02-P01",
+      "lessonId": "SP-R04-L02",
+      "prompt": "Dibuja las siete filas y calcula el contador de fallos por IP en orden cronológico. Escribe por qué hay que separar IP y definir empates de hora.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S02",
+        "SPLUNK_LECCIONES_R04_R05:S01"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica fuentes, campos, ventana y supuestos",
+        "Aplica el método al escenario y explica cifras o semántica",
+        "Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante",
+        "Presenta una respuesta reproducible sin ejecutar cambios en sistemas"
+      ],
+      "referenceAnswer": "La secuencia para 203.0.113.9 en el primer bucket es 1,2,3,4,5,6,7. Al sexto evento el acumulado es 6. El orden de entrada controla la respuesta."
+    }
+  ],
+  "solutionsMarkdown": "## 7. Solucionario con razonamiento\n\n- **SP-R04-L02-Q01: B** — El cálculo se emite progresivamente en el orden del pipeline.\n\n- **SP-R04-L02-Q02: D** — Sin orden temporal, el acumulado no responde a la hipótesis cronológica.\n\n- **SP-R04-L02-P01:** La secuencia para 203.0.113.9 en el primer bucket es 1,2,3,4,5,6,7. Al sexto evento el acumulado es 6. El orden de entrada controla la respuesta.\n\n**Guía de retroalimentación formativa:** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Solucionario razonado\n\n**Q01 → B.** Conteo acumulado hasta cada fila. El cálculo se emite progresivamente en el orden del pipeline.\n\n**Q02 → B.** Garantizar orden y semántica de `_time`. Sin orden temporal, el acumulado no responde a la hipótesis cronológica.\n\n**P01 → Solución orientativa:** La secuencia para 203.0.113.9 en el primer bucket es 1,2,3,4,5,6,7. Al sexto evento el acumulado es 6. El orden de entrada controla la respuesta.\n\n**Rúbrica (0–4):** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas. Superar un test escrito no equivale por sí solo a dominar investigación SOC.\n\n",
+  "referencesMarkdown": "## 9. Fuentes y trazabilidad\n\n- **Origen curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`; título y objetivo preservados.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` (no reescrita).\n- **Puente de conceptos SC-200:** Cap. 10 (hunting) y cap. 13 (operadores temporales). Véase `../../01_FUENTE_ORIGINAL/SC-200.md` (sin trasladar esquemas literalmente).\n- **[S02] streamstats (SPL clásico):** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.0/search-commands/streamstats\n- **[S01] Estadísticas: stats, eventstats, streamstats:** https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.0/calculate-statistics/use-the-stats-command-and-functions\n\n**Estatus de evidencia:** documentación del producto + diseño educativo + cálculos offline sobre fixtures (cuando se indica). No se ha verificado ejecución/compatibilidad específica en Splunk del usuario; revisar con la versión real antes de usar en producción.\n",
+  "originalMarkdown": "# SP-R04-L02 — Secuencias con streamstats\n\n**Región:** SP-R04 · **Prioridad:** P0/P1 SOC · **Estado:** borrador educativo para revisión · **SPL real:** no ejecutado.  \n**ID curricular intacto:** `SP-R04-L02` · **Resultado de aprendizaje:** Calcular acumulados y secuencias controlando orden temporal  \n**Prerrequisitos:** R03 completada · **Producto:** Splunk Enterprise/Cloud con SPL clásico según versión y permisos; CIM exige configuración pertinente.\n\n## 1. Pregunta esencial\n\nUn SOC puede necesitar la cantidad de intentos acumulada **hasta ese evento**, no el total final. `streamstats` calcula estadísticas en el orden en que llegan las filas al comando. La búsqueda estándar suele mostrar eventos recientes primero; para un acumulado cronológico debes ordenar explícitamente. Sin ese paso, el resultado puede responder otra pregunta temporal.\n\n**Objetivo verificable:** Calcular acumulados y secuencias controlando orden temporal.\n\n## 2. Modelo mental y conceptos\n\n1. `sort 0 _time` ordena por tiempo ascendente sin truncar explícitamente las filas a la cantidad implícita del comando sort; ordenar grandes volúmenes puede ser costoso.\n2. `streamstats count AS secuencia BY src` produce un contador acumulado por IP, reiniciado para cada valor de src.\n3. Una búsqueda con `streamstats` no calcula automáticamente una ventana móvil; `window` y `time_window` tienen semánticas propias que deben justificarse.\n4. Cuando hay timestamps iguales, define un segundo criterio determinista; de otro modo los resultados pueden variar con el orden de llegada.\n\n## 3. Procedimiento guiado\n\n1. Filtra `action=failure` en los eventos sintéticos y ordena por `_time` ascendente.\n2. Calcula el contador global y luego `BY src`; observa por qué el segundo separa las dos IP.\n3. Cambia el orden a descendente y explica por qué las cifras ya no corresponden al acumulado cronológico.\n4. Para ventanas móviles, discute cuándo tiene sentido `time_window=15m` y cuándo conviene `bin` para ventanas discretas no deslizantes.\n\n## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH action=failure earliest=\"10/16/2026:09:00:00\" latest=\"10/16/2026:09:15:00\"\n| sort 0 _time event_id\n| streamstats count AS fallos_acumulados BY src\n| table _time src user fallos_acumulados\n```\n\n**Interpretación, condiciones y alcance:** El ejemplo acota el primer bucket en UTC: .9 termina en siete y la otra IP tiene su propio contador. Sobre todo el CSV, .9 termina en nueve. event_id desempata timestamps; exige que esté disponible y sea estable. sort 0 es didáctico y puede ser costoso. No es una ventana móvil ni una búsqueda ejecutada en Splunk.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n## 5. Caso SOC\n\nUna IP lleva siete fallos progresivos entre 09:01 y 09:10. ¿Cuál era la cuenta acumulada al sexto fallo?\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 6. Actividades\n\n### SP-R04-L02-Q01 — Opción múltiple\n\n¿Qué mide `streamstats count` tras ordenar cronológicamente?\n\nA. El total final del grupo, repetido sin cambios en todas sus filas\nB. El conteo acumulado hasta cada fila, siguiendo el orden que recibe streamstats en ese pipeline\nC. La posición temporal más reciente de cada usuario\nD. El número de valores distintos de src en todo el intervalo\n\n### SP-R04-L02-Q02 — Opción múltiple\n\n¿Cuál es la precaución más importante en una secuencia temporal?\n\nA. Eliminar eventos con timestamps iguales antes de comprobar si son distintos\nB. Usar el orden de llegada al comando sin verificar la hora del evento\nC. Ordenar por la cadena user y suponer que representa la secuencia temporal\nD. Verificar el orden temporal y la semántica de _time, y resolver empates con un criterio estable\n\n### SP-R04-L02-P01 — Práctica abierta formativa\n\nDibuja las siete filas y calcula el contador de fallos por IP en orden cronológico. Escribe por qué hay que separar IP y definir empates de hora.\n\n## 7. Solucionario con razonamiento\n\n- **SP-R04-L02-Q01: B** — El cálculo se emite progresivamente en el orden del pipeline.\n\n- **SP-R04-L02-Q02: D** — Sin orden temporal, el acumulado no responde a la hipótesis cronológica.\n\n- **SP-R04-L02-P01:** La secuencia para 203.0.113.9 en el primer bucket es 1,2,3,4,5,6,7. Al sexto evento el acumulado es 6. El orden de entrada controla la respuesta.\n\n**Guía de retroalimentación formativa:** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Solucionario razonado\n\n**Q01 → B.** Conteo acumulado hasta cada fila. El cálculo se emite progresivamente en el orden del pipeline.\n\n**Q02 → B.** Garantizar orden y semántica de `_time`. Sin orden temporal, el acumulado no responde a la hipótesis cronológica.\n\n**P01 → Solución orientativa:** La secuencia para 203.0.113.9 en el primer bucket es 1,2,3,4,5,6,7. Al sexto evento el acumulado es 6. El orden de entrada controla la respuesta.\n\n**Rúbrica (0–4):** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas. Superar un test escrito no equivale por sí solo a dominar investigación SOC.\n\n## 9. Fuentes y trazabilidad\n\n- **Origen curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`; título y objetivo preservados.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` (no reescrita).\n- **Puente de conceptos SC-200:** Cap. 10 (hunting) y cap. 13 (operadores temporales). Véase `../../01_FUENTE_ORIGINAL/SC-200.md` (sin trasladar esquemas literalmente).\n- **[S02] streamstats (SPL clásico):** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.0/search-commands/streamstats\n- **[S01] Estadísticas: stats, eventstats, streamstats:** https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.0/calculate-statistics/use-the-stats-command-and-functions\n\n**Estatus de evidencia:** documentación del producto + diseño educativo + cálculos offline sobre fixtures (cuando se indica). No se ha verificado ejecución/compatibilidad específica en Splunk del usuario; revisar con la versión real antes de usar en producción.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "S02",
+      "key": "SPLUNK_LECCIONES_R04_R05:S02",
+      "url": "https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.0/search-commands/streamstats"
+    },
+    {
+      "id": "S01",
+      "key": "SPLUNK_LECCIONES_R04_R05:S01",
+      "url": "https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.0/calculate-statistics/use-the-stats-command-and-functions"
+    }
+  ]
+}

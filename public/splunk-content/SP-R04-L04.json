@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R04-L04",
+  "title": "Identidades únicas, valores y nulos",
+  "revision": "bede81ade49b8172ccbb2fa2",
+  "sourceVersion": "b551d799bba88fee120da8c2f27066236ef8a6183237a156f92ebdc271328bb7",
+  "sanitizedHash": "b551d799bba88fee120da8c2f27066236ef8a6183237a156f92ebdc271328bb7",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R04_R05/R04_SPL_AVANZADO/SP-R04-L04.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Comprender dc, values, list, coalesce y datos incompletos",
+  "preamble": "# SP-R04-L04 — Identidades únicas, valores y nulos\n\n**Región:** SP-R04 · **Prioridad:** P0/P1 SOC · **Estado:** borrador educativo para revisión · **SPL real:** no ejecutado.  \n**ID curricular intacto:** `SP-R04-L04` · **Resultado de aprendizaje:** Comprender dc, values, list, coalesce y datos incompletos  \n**Prerrequisitos:** R03 completada · **Producto:** Splunk Enterprise/Cloud con SPL clásico según versión y permisos; CIM exige configuración pertinente.\n\n",
+  "sections": [
+    {
+      "id": "SP-R04-L04-S01",
+      "title": "1. Pregunta esencial",
+      "markdown": "## 1. Pregunta esencial\n\nUn informe de autenticación puede ofrecer simultáneamente conteo de eventos, número de identidades distintas y lista de valores observados. No son métricas intercambiables. En especial, la ausencia de `user` puede esconder un fallo de parseo o un origen que nunca emitió esa identidad: debe medirse como problema de calidad antes de interpretar estadísticas de spraying.\n\n**Objetivo verificable:** Comprender dc, values, list, coalesce y datos incompletos.\n\n",
+      "line": 7,
+      "endLine": 11
+    },
+    {
+      "id": "SP-R04-L04-S02",
+      "title": "2. Modelo mental y conceptos",
+      "markdown": "## 2. Modelo mental y conceptos\n\n1. `count` sin argumento cuenta eventos; `dc(user)` mide la cardinalidad de valores presentes del campo.\n2. `values(user)` retorna valores distintos, típicamente con orden lexicográfico; `list(user)` conserva repeticiones en orden de llegada y tiene límites de salida.\n3. `coalesce(user, Account_Name, linux_user)` toma el primer valor no nulo; no demuestra que todos los campos signifiquen exactamente la misma identidad.\n4. Una cadena vacía y un campo ausente pueden comportarse de forma diferente en extracciones; inspecciona los datos reales con `isnull`, `isnotnull` y normalización explícita.\n\n",
+      "line": 13,
+      "endLine": 18
+    },
+    {
+      "id": "SP-R04-L04-S03",
+      "title": "3. Procedimiento guiado",
+      "markdown": "## 3. Procedimiento guiado\n\n1. Cuenta siete fallos en el primer bucket de 203.0.113.9.\n2. Cuenta cinco usuarios distintos no vacíos en ese mismo bucket.\n3. Comprueba el evento de 09:10 con `user` vacío y exige reporte separado de calidad.\n4. Compara una lista de identidades con el número de eventos; el usuario alice aparece dos veces.\n\n",
+      "line": 20,
+      "endLine": 25
+    },
+    {
+      "id": "SP-R04-L04-S04",
+      "title": "4. SPL ilustrativo — no ejecutado",
+      "markdown": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH action=failure earliest=-24h\n| eval user_limpio=if(len(trim(user))=0, null(), user)\n| stats count AS eventos dc(user_limpio) AS identidades values(user_limpio) AS usuarios BY src\n```\n\n**Interpretación, condiciones y alcance:** El tratamiento de la cadena vacía es explícito. En una fuente real también se deben inspeccionar representaciones especiales como “-”, “unknown” o identificadores de sistema y su significado, no eliminarlos de forma silenciosa.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n",
+      "line": 27,
+      "endLine": 37
+    },
+    {
+      "id": "SP-R04-L04-S05",
+      "title": "5. Caso SOC",
+      "markdown": "## 5. Caso SOC\n\nLa IP 203.0.113.9 tiene siete fallos en total en el primer bucket: seis con identidad presente y uno con identidad vacía; entre los presentes hay cinco usuarios distintos. ¿Qué cifras comunicarías sin sumar de nuevo la fila vacía?\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 39,
+      "endLine": 44
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R04-L04-Q01",
+      "lessonId": "SP-R04-L04",
+      "prompt": "¿Qué diferencia describe dc(user) frente a count?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S01",
+        "SPLUNK_LECCIONES_R04_R05:S08"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R04-L04-Q01-O-028bdc5adaee",
+          "text": "dc cuenta valores distintos presentes; count sin argumento cuenta los eventos recuperados del grupo"
+        },
+        {
+          "id": "SP-R04-L04-Q01-O-307d9ea9c0ec",
+          "text": "dc cuenta los eventos donde user está presente, incluidas repeticiones"
+        },
+        {
+          "id": "SP-R04-L04-Q01-O-812bb316b546",
+          "text": "count elimina repeticiones de user antes de calcular su total"
+        },
+        {
+          "id": "SP-R04-L04-Q01-O-51f84b6d9f2a",
+          "text": "dc devuelve la primera identidad de cada grupo temporal"
+        }
+      ],
+      "solution": "SP-R04-L04-Q01-O-028bdc5adaee",
+      "explanation": "La cardinalidad no equivale al volumen de eventos.",
+      "anchors": [
+        {
+          "file": "R04_SPL_AVANZADO/SP-R04-L04.md",
+          "sourceHash": "b551d799bba88fee120da8c2f27066236ef8a6183237a156f92ebdc271328bb7",
+          "line": 13,
+          "endLine": 18,
+          "quote": "## 2. Modelo mental y conceptos\n\n1. `count` sin argumento cuenta eventos; `dc(user)` mide la cardinalidad de valores presentes del campo.\n2. `values(user)` retorna valores distintos, típicamente con orden lexicográfico; `list(user)` conserva repeticiones en orden de llegada y tiene límites de salida.\n3. `coalesce(user, Account_Name, linux_user)` toma el primer valor no nulo; no demuestra que todos los campos signifiquen exactamente la misma identidad.\n4. Una cadena vacía y un campo ausente pueden comportarse de forma diferente en extracciones; inspecciona los datos reales con `isnull`, `isnotnull` y normalización explícita.\n\n"
+        },
+        {
+          "file": "R04_SPL_AVANZADO/SP-R04-L04.md",
+          "sourceHash": "b551d799bba88fee120da8c2f27066236ef8a6183237a156f92ebdc271328bb7",
+          "line": 27,
+          "endLine": 37,
+          "quote": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH action=failure earliest=-24h\n| eval user_limpio=if(len(trim(user))=0, null(), user)\n| stats count AS eventos dc(user_limpio) AS identidades values(user_limpio) AS usuarios BY src\n```\n\n**Interpretación, condiciones y alcance:** El tratamiento de la cadena vacía es explícito. En una fuente real también se deben inspeccionar representaciones especiales como “-”, “unknown” o identificadores de sistema y su significado, no eliminarlos de forma silenciosa.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R04-L04-Q02",
+      "lessonId": "SP-R04-L04",
+      "prompt": "¿Qué problema puede ocultar coalesce?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S01",
+        "SPLUNK_LECCIONES_R04_R05:S08"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R04-L04-Q02-O-4a43e2c831e5",
+          "text": "El truncamiento del conjunto secundario de un join"
+        },
+        {
+          "id": "SP-R04-L04-Q02-O-e4cac9f08eaf",
+          "text": "El cambio del orden temporal provocado por una ordenación descendente"
+        },
+        {
+          "id": "SP-R04-L04-Q02-O-65681ff6ef66",
+          "text": "Una discrepancia semántica de campos de fuentes diferentes"
+        },
+        {
+          "id": "SP-R04-L04-Q02-O-385cb9e60171",
+          "text": "La pérdida de campos originales causada por una agregación stats"
+        }
+      ],
+      "solution": "SP-R04-L04-Q02-O-65681ff6ef66",
+      "explanation": "Coalesce ayuda con valores faltantes pero no garantiza equivalencia de significado.",
+      "anchors": [
+        {
+          "file": "R04_SPL_AVANZADO/SP-R04-L04.md",
+          "sourceHash": "b551d799bba88fee120da8c2f27066236ef8a6183237a156f92ebdc271328bb7",
+          "line": 13,
+          "endLine": 18,
+          "quote": "## 2. Modelo mental y conceptos\n\n1. `count` sin argumento cuenta eventos; `dc(user)` mide la cardinalidad de valores presentes del campo.\n2. `values(user)` retorna valores distintos, típicamente con orden lexicográfico; `list(user)` conserva repeticiones en orden de llegada y tiene límites de salida.\n3. `coalesce(user, Account_Name, linux_user)` toma el primer valor no nulo; no demuestra que todos los campos signifiquen exactamente la misma identidad.\n4. Una cadena vacía y un campo ausente pueden comportarse de forma diferente en extracciones; inspecciona los datos reales con `isnull`, `isnotnull` y normalización explícita.\n\n"
+        },
+        {
+          "file": "R04_SPL_AVANZADO/SP-R04-L04.md",
+          "sourceHash": "b551d799bba88fee120da8c2f27066236ef8a6183237a156f92ebdc271328bb7",
+          "line": 27,
+          "endLine": 37,
+          "quote": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH action=failure earliest=-24h\n| eval user_limpio=if(len(trim(user))=0, null(), user)\n| stats count AS eventos dc(user_limpio) AS identidades values(user_limpio) AS usuarios BY src\n```\n\n**Interpretación, condiciones y alcance:** El tratamiento de la cadena vacía es explícito. En una fuente real también se deben inspeccionar representaciones especiales como “-”, “unknown” o identificadores de sistema y su significado, no eliminarlos de forma silenciosa.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R04-L04-P01",
+      "lessonId": "SP-R04-L04",
+      "prompt": "Entrega un cuadro con total, cardinalidad de identidades no vacías y número de eventos sin identidad para la IP sospechosa; explica el impacto de omitir el último indicador.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S01",
+        "SPLUNK_LECCIONES_R04_R05:S08"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica fuentes, campos, ventana y supuestos",
+        "Aplica el método al escenario y explica cifras o semántica",
+        "Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante",
+        "Presenta una respuesta reproducible sin ejecutar cambios en sistemas"
+      ],
+      "referenceAnswer": "En los datos completos: 9 fallos desde 203.0.113.9, 6 identidades distintas no vacías (alice,bob,carol,dave,erin,frank), 1 usuario vacío. En el primer bucket: 7 fallos, 5 identidades, 1 vacío. Evita mezclar ambos ámbitos."
+    }
+  ],
+  "solutionsMarkdown": "## 7. Solucionario con razonamiento\n\n- **SP-R04-L04-Q01: A** — La cardinalidad no equivale al volumen de eventos.\n\n- **SP-R04-L04-Q02: C** — Coalesce ayuda con valores faltantes pero no garantiza equivalencia de significado.\n\n- **SP-R04-L04-P01:** En los datos completos: 9 fallos desde 203.0.113.9, 6 identidades distintas no vacías (alice,bob,carol,dave,erin,frank), 1 usuario vacío. En el primer bucket: 7 fallos, 5 identidades, 1 vacío. Evita mezclar ambos ámbitos.\n\n**Guía de retroalimentación formativa:** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Solucionario razonado\n\n**Q01 → B.** dc cuenta valores distintos presentes. La cardinalidad no equivale al volumen de eventos.\n\n**Q02 → B.** Una discrepancia semántica de campos de fuentes diferentes. Coalesce ayuda con valores faltantes pero no garantiza equivalencia de significado.\n\n**P01 → Solución orientativa:** En los datos completos: 9 fallos desde 203.0.113.9, 6 identidades distintas no vacías (alice,bob,carol,dave,erin,frank), 1 usuario vacío. En el primer bucket: 7 fallos, 5 identidades, 1 vacío. Evita mezclar ambos ámbitos.\n\n**Rúbrica (0–4):** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas. Superar un test escrito no equivale por sí solo a dominar investigación SOC.\n\n",
+  "referencesMarkdown": "## 9. Fuentes y trazabilidad\n\n- **Origen curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`; título y objetivo preservados.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` (no reescrita).\n- **Puente de conceptos SC-200:** Cap. 09 (evidencia/entidades) y cap. 13 (funciones KQL). Véase `../../01_FUENTE_ORIGINAL/SC-200.md` (sin trasladar esquemas literalmente).\n- **[S01] Estadísticas: stats, eventstats, streamstats:** https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.0/calculate-statistics/use-the-stats-command-and-functions\n- **[S08] Authentication CIM: campos y tags:** https://help.splunk.com/en/splunk-enterprise/common-information-model/6.0/data-models/authentication\n\n**Estatus de evidencia:** documentación del producto + diseño educativo + cálculos offline sobre fixtures (cuando se indica). No se ha verificado ejecución/compatibilidad específica en Splunk del usuario; revisar con la versión real antes de usar en producción.\n",
+  "originalMarkdown": "# SP-R04-L04 — Identidades únicas, valores y nulos\n\n**Región:** SP-R04 · **Prioridad:** P0/P1 SOC · **Estado:** borrador educativo para revisión · **SPL real:** no ejecutado.  \n**ID curricular intacto:** `SP-R04-L04` · **Resultado de aprendizaje:** Comprender dc, values, list, coalesce y datos incompletos  \n**Prerrequisitos:** R03 completada · **Producto:** Splunk Enterprise/Cloud con SPL clásico según versión y permisos; CIM exige configuración pertinente.\n\n## 1. Pregunta esencial\n\nUn informe de autenticación puede ofrecer simultáneamente conteo de eventos, número de identidades distintas y lista de valores observados. No son métricas intercambiables. En especial, la ausencia de `user` puede esconder un fallo de parseo o un origen que nunca emitió esa identidad: debe medirse como problema de calidad antes de interpretar estadísticas de spraying.\n\n**Objetivo verificable:** Comprender dc, values, list, coalesce y datos incompletos.\n\n## 2. Modelo mental y conceptos\n\n1. `count` sin argumento cuenta eventos; `dc(user)` mide la cardinalidad de valores presentes del campo.\n2. `values(user)` retorna valores distintos, típicamente con orden lexicográfico; `list(user)` conserva repeticiones en orden de llegada y tiene límites de salida.\n3. `coalesce(user, Account_Name, linux_user)` toma el primer valor no nulo; no demuestra que todos los campos signifiquen exactamente la misma identidad.\n4. Una cadena vacía y un campo ausente pueden comportarse de forma diferente en extracciones; inspecciona los datos reales con `isnull`, `isnotnull` y normalización explícita.\n\n## 3. Procedimiento guiado\n\n1. Cuenta siete fallos en el primer bucket de 203.0.113.9.\n2. Cuenta cinco usuarios distintos no vacíos en ese mismo bucket.\n3. Comprueba el evento de 09:10 con `user` vacío y exige reporte separado de calidad.\n4. Compara una lista de identidades con el número de eventos; el usuario alice aparece dos veces.\n\n## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH action=failure earliest=-24h\n| eval user_limpio=if(len(trim(user))=0, null(), user)\n| stats count AS eventos dc(user_limpio) AS identidades values(user_limpio) AS usuarios BY src\n```\n\n**Interpretación, condiciones y alcance:** El tratamiento de la cadena vacía es explícito. En una fuente real también se deben inspeccionar representaciones especiales como “-”, “unknown” o identificadores de sistema y su significado, no eliminarlos de forma silenciosa.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n## 5. Caso SOC\n\nLa IP 203.0.113.9 tiene siete fallos en total en el primer bucket: seis con identidad presente y uno con identidad vacía; entre los presentes hay cinco usuarios distintos. ¿Qué cifras comunicarías sin sumar de nuevo la fila vacía?\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 6. Actividades\n\n### SP-R04-L04-Q01 — Opción múltiple\n\n¿Qué diferencia describe dc(user) frente a count?\n\nA. dc cuenta valores distintos presentes; count sin argumento cuenta los eventos recuperados del grupo\nB. dc cuenta los eventos donde user está presente, incluidas repeticiones\nC. count elimina repeticiones de user antes de calcular su total\nD. dc devuelve la primera identidad de cada grupo temporal\n\n### SP-R04-L04-Q02 — Opción múltiple\n\n¿Qué problema puede ocultar coalesce?\n\nA. El truncamiento del conjunto secundario de un join\nB. El cambio del orden temporal provocado por una ordenación descendente\nC. Una discrepancia semántica de campos de fuentes diferentes\nD. La pérdida de campos originales causada por una agregación stats\n\n### SP-R04-L04-P01 — Práctica abierta formativa\n\nEntrega un cuadro con total, cardinalidad de identidades no vacías y número de eventos sin identidad para la IP sospechosa; explica el impacto de omitir el último indicador.\n\n## 7. Solucionario con razonamiento\n\n- **SP-R04-L04-Q01: A** — La cardinalidad no equivale al volumen de eventos.\n\n- **SP-R04-L04-Q02: C** — Coalesce ayuda con valores faltantes pero no garantiza equivalencia de significado.\n\n- **SP-R04-L04-P01:** En los datos completos: 9 fallos desde 203.0.113.9, 6 identidades distintas no vacías (alice,bob,carol,dave,erin,frank), 1 usuario vacío. En el primer bucket: 7 fallos, 5 identidades, 1 vacío. Evita mezclar ambos ámbitos.\n\n**Guía de retroalimentación formativa:** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Solucionario razonado\n\n**Q01 → B.** dc cuenta valores distintos presentes. La cardinalidad no equivale al volumen de eventos.\n\n**Q02 → B.** Una discrepancia semántica de campos de fuentes diferentes. Coalesce ayuda con valores faltantes pero no garantiza equivalencia de significado.\n\n**P01 → Solución orientativa:** En los datos completos: 9 fallos desde 203.0.113.9, 6 identidades distintas no vacías (alice,bob,carol,dave,erin,frank), 1 usuario vacío. En el primer bucket: 7 fallos, 5 identidades, 1 vacío. Evita mezclar ambos ámbitos.\n\n**Rúbrica (0–4):** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas. Superar un test escrito no equivale por sí solo a dominar investigación SOC.\n\n## 9. Fuentes y trazabilidad\n\n- **Origen curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`; título y objetivo preservados.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` (no reescrita).\n- **Puente de conceptos SC-200:** Cap. 09 (evidencia/entidades) y cap. 13 (funciones KQL). Véase `../../01_FUENTE_ORIGINAL/SC-200.md` (sin trasladar esquemas literalmente).\n- **[S01] Estadísticas: stats, eventstats, streamstats:** https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.0/calculate-statistics/use-the-stats-command-and-functions\n- **[S08] Authentication CIM: campos y tags:** https://help.splunk.com/en/splunk-enterprise/common-information-model/6.0/data-models/authentication\n\n**Estatus de evidencia:** documentación del producto + diseño educativo + cálculos offline sobre fixtures (cuando se indica). No se ha verificado ejecución/compatibilidad específica en Splunk del usuario; revisar con la versión real antes de usar en producción.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "S01",
+      "key": "SPLUNK_LECCIONES_R04_R05:S01",
+      "url": "https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.0/calculate-statistics/use-the-stats-command-and-functions"
+    },
+    {
+      "id": "S08",
+      "key": "SPLUNK_LECCIONES_R04_R05:S08",
+      "url": "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.0/data-models/authentication"
+    }
+  ]
+}

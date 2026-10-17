@@ -1,0 +1,199 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R02-L05",
+  "title": "Timestamps, parsing y latencia",
+  "revision": "99b358015a214fb79a023b6d",
+  "sourceVersion": "de282f16e13d6386aabb259f7d512ae0f5aa5841de4802beb60e1b619acf67fc",
+  "sanitizedHash": "de282f16e13d6386aabb259f7d512ae0f5aa5841de4802beb60e1b619acf67fc",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R01_R03/R02_INGESTA/SP-R02-L05.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Diagnosticar eventos con hora incorrecta o llegada tardía",
+  "preamble": "# SP-R02-L05 — Timestamps, parsing y latencia\n\n**Región:** Río de Telemetría (SP-R02) · **Prioridad:** P0 SOC N1/N2  \n**Estado:** material didáctico redactado; revisión humana recomendada. **SPL no ejecutado en Splunk real.**  \n**ID estable propuesto:** `SP-R02-L05` (no migrado a React)  \n**Prerrequisitos orientativos:** SP-R02-L01, SP-R01 completo  \n**Objetivo del currículo:** Diagnosticar eventos con hora incorrecta o llegada tardía\n\n",
+  "sections": [
+    {
+      "id": "SP-R02-L05-S01",
+      "title": "1. La pregunta que resuelve esta lección",
+      "markdown": "## 1. La pregunta que resuelve esta lección\n\nDistingue hora del evento, hora de indexación, zonas horarias, colas y latencia.\n\n**Al completar la lección podrás:** Diagnosticar eventos con hora incorrecta o llegada tardía. Debes explicar el porqué y los límites, no memorizar solo comandos.\n\n",
+      "line": 9,
+      "endLine": 13
+    },
+    {
+      "id": "SP-R02-L05-S02",
+      "title": "2. Desarrollo del conocimiento",
+      "markdown": "## 2. Desarrollo del conocimiento\n\nEl momento que Splunk asigna a `_time` puede derivarse de un timestamp del evento, con reglas de parsing y zona horaria. `_indextime` registra indexación. Su resta estima desfase desde el tiempo asignado al evento hasta llegar al índice, pero no distingue por sí misma retraso de transporte, reloj erróneo, backlog y desfase de zona.\nSi `earliest=-24h` no encuentra un evento que sabes recibido, revisa el significado de `_time`: la consulta por defecto se acota por evento. Los filtros de index-time tienen un comportamiento diferente y no sustituirán automáticamente la ventana de evento; conviene una investigación controlada. Evita “corregir” con `where latencia>=0` sin explicar que se descartan filas.\n\n",
+      "line": 15,
+      "endLine": 18
+    },
+    {
+      "id": "SP-R02-L05-S03",
+      "title": "3. Método de trabajo reproducible",
+      "markdown": "## 3. Método de trabajo reproducible\n\n1. Obtén muestra y define ventana de observación real.\n2. Compara `_time`, `_indextime` y timestamp en `_raw`.\n3. Revisa offset de zona horaria, unidades y formato.\n4. Identifica si el retraso es sistemático o puntual.\n5. Separa remedio de parsing para futuros eventos del tratamiento de históricos.\n\n",
+      "line": 20,
+      "endLine": 26
+    },
+    {
+      "id": "SP-R02-L05-S04",
+      "title": "4. Caso guiado — de la pregunta a la evidencia",
+      "markdown": "## 4. Caso guiado — de la pregunta a la evidencia\n\nEl archivo Linux llega a las 12:00 UTC, pero su timestamp se interpreta como 02:00 UTC. La búsqueda de última hora puede no encontrarlo aunque se indexó ahora. Sin contrastar reloj y zona sería engañoso llamarlo una caída de ingesta.\n\n### Esquema o ejemplo técnico\n\n```spl\nindex=INDICE_REAL earliest=-24h\n| eval demora_seg=_indextime-_time\n| stats count avg(demora_seg) AS media_seg perc95(demora_seg) AS p95_seg by sourcetype\n```\n\n**Cómo interpretarlo:** La consulta es propuesta; no calcula la latencia pura de red. `demora_seg` puede ser negativa o enorme por error de timestamp; inspecciona distribución antes de excluir valores.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n",
+      "line": 28,
+      "endLine": 42
+    },
+    {
+      "id": "SP-R02-L05-S05",
+      "title": "5. Diagnóstico y errores frecuentes",
+      "markdown": "## 5. Diagnóstico y errores frecuentes\n\nInterpretar `_indextime` como hora de ataque; ignorar offset de timezone; asumir que el promedio describe retrasos extremos.\n\n**Conexión con SC-200 (no equivalencia automática):** Cap. 04 (latencia e ingesta), líneas 1125–1368; cap. 13 (tiempo), líneas 2517–2810.. En Splunk los esquemas, permisos y familias de producto son diferentes; verifica la correspondencia antes de reutilizar una técnica.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 44,
+      "endLine": 51
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R02-L05-Q01",
+      "lessonId": "SP-R02-L05",
+      "prompt": "¿Qué indica una demora `_indextime-_time` muy alta?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A6",
+        "SPLUNK_LECCIONES_R01_R03:A7",
+        "SPLUNK_LECCIONES_R01_R03:A10"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R02-L05-Q01-O-1525043ef1a9",
+          "text": "Un desfase que requiere comprobar colas y timestamps"
+        },
+        {
+          "id": "SP-R02-L05-Q01-O-2c5e5378d99b",
+          "text": "La duración del trabajo de búsqueda que recuperó los eventos"
+        },
+        {
+          "id": "SP-R02-L05-Q01-O-ccdb1cf1f9b9",
+          "text": "El tiempo transcurrido desde que el analista abrió el dashboard"
+        },
+        {
+          "id": "SP-R02-L05-Q01-O-1e83b0f4e64f",
+          "text": "El tiempo exacto que consumió la red, separado del resto del pipeline"
+        }
+      ],
+      "solution": "SP-R02-L05-Q01-O-1525043ef1a9",
+      "explanation": "Puede reflejar demora real o errores de tiempo; no permite causalidad directa.",
+      "anchors": [
+        {
+          "file": "R02_INGESTA/SP-R02-L05.md",
+          "sourceHash": "de282f16e13d6386aabb259f7d512ae0f5aa5841de4802beb60e1b619acf67fc",
+          "line": 15,
+          "endLine": 18,
+          "quote": "## 2. Desarrollo del conocimiento\n\nEl momento que Splunk asigna a `_time` puede derivarse de un timestamp del evento, con reglas de parsing y zona horaria. `_indextime` registra indexación. Su resta estima desfase desde el tiempo asignado al evento hasta llegar al índice, pero no distingue por sí misma retraso de transporte, reloj erróneo, backlog y desfase de zona.\nSi `earliest=-24h` no encuentra un evento que sabes recibido, revisa el significado de `_time`: la consulta por defecto se acota por evento. Los filtros de index-time tienen un comportamiento diferente y no sustituirán automáticamente la ventana de evento; conviene una investigación controlada. Evita “corregir” con `where latencia>=0` sin explicar que se descartan filas.\n\n"
+        },
+        {
+          "file": "R02_INGESTA/SP-R02-L05.md",
+          "sourceHash": "de282f16e13d6386aabb259f7d512ae0f5aa5841de4802beb60e1b619acf67fc",
+          "line": 28,
+          "endLine": 42,
+          "quote": "## 4. Caso guiado — de la pregunta a la evidencia\n\nEl archivo Linux llega a las 12:00 UTC, pero su timestamp se interpreta como 02:00 UTC. La búsqueda de última hora puede no encontrarlo aunque se indexó ahora. Sin contrastar reloj y zona sería engañoso llamarlo una caída de ingesta.\n\n### Esquema o ejemplo técnico\n\n```spl\nindex=INDICE_REAL earliest=-24h\n| eval demora_seg=_indextime-_time\n| stats count avg(demora_seg) AS media_seg perc95(demora_seg) AS p95_seg by sourcetype\n```\n\n**Cómo interpretarlo:** La consulta es propuesta; no calcula la latencia pura de red. `demora_seg` puede ser negativa o enorme por error de timestamp; inspecciona distribución antes de excluir valores.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R02-L05-Q02",
+      "lessonId": "SP-R02-L05",
+      "prompt": "¿Por qué una búsqueda `earliest=-24h` puede omitir un evento indexado hoy?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A6",
+        "SPLUNK_LECCIONES_R01_R03:A7",
+        "SPLUNK_LECCIONES_R01_R03:A10"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R02-L05-Q02-O-9ae8846c69a7",
+          "text": "Porque la ventana se evalúa por _indextime antes de recuperar _time"
+        },
+        {
+          "id": "SP-R02-L05-Q02-O-d96c72d78344",
+          "text": "Porque usa `_time` de evento normalmente"
+        },
+        {
+          "id": "SP-R02-L05-Q02-O-f5c419415314",
+          "text": "Porque un evento antiguo se elimina al cambiar el día de indexación"
+        },
+        {
+          "id": "SP-R02-L05-Q02-O-ec01ae5b1cac",
+          "text": "Porque earliest usa el último resultado del dashboard como inicio de ventana"
+        }
+      ],
+      "solution": "SP-R02-L05-Q02-O-d96c72d78344",
+      "explanation": "La búsqueda temporal estándar filtra por tiempo de evento.",
+      "anchors": [
+        {
+          "file": "R02_INGESTA/SP-R02-L05.md",
+          "sourceHash": "de282f16e13d6386aabb259f7d512ae0f5aa5841de4802beb60e1b619acf67fc",
+          "line": 15,
+          "endLine": 18,
+          "quote": "## 2. Desarrollo del conocimiento\n\nEl momento que Splunk asigna a `_time` puede derivarse de un timestamp del evento, con reglas de parsing y zona horaria. `_indextime` registra indexación. Su resta estima desfase desde el tiempo asignado al evento hasta llegar al índice, pero no distingue por sí misma retraso de transporte, reloj erróneo, backlog y desfase de zona.\nSi `earliest=-24h` no encuentra un evento que sabes recibido, revisa el significado de `_time`: la consulta por defecto se acota por evento. Los filtros de index-time tienen un comportamiento diferente y no sustituirán automáticamente la ventana de evento; conviene una investigación controlada. Evita “corregir” con `where latencia>=0` sin explicar que se descartan filas.\n\n"
+        },
+        {
+          "file": "R02_INGESTA/SP-R02-L05.md",
+          "sourceHash": "de282f16e13d6386aabb259f7d512ae0f5aa5841de4802beb60e1b619acf67fc",
+          "line": 28,
+          "endLine": 42,
+          "quote": "## 4. Caso guiado — de la pregunta a la evidencia\n\nEl archivo Linux llega a las 12:00 UTC, pero su timestamp se interpreta como 02:00 UTC. La búsqueda de última hora puede no encontrarlo aunque se indexó ahora. Sin contrastar reloj y zona sería engañoso llamarlo una caída de ingesta.\n\n### Esquema o ejemplo técnico\n\n```spl\nindex=INDICE_REAL earliest=-24h\n| eval demora_seg=_indextime-_time\n| stats count avg(demora_seg) AS media_seg perc95(demora_seg) AS p95_seg by sourcetype\n```\n\n**Cómo interpretarlo:** La consulta es propuesta; no calcula la latencia pura de red. `demora_seg` puede ser negativa o enorme por error de timestamp; inspecciona distribución antes de excluir valores.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R02-L05-P01",
+      "lessonId": "SP-R02-L05",
+      "prompt": "Diagnostica evento con `_time` 09:00 y `_indextime` 12:00; enumera tres hipótesis sin elegir una sin evidencia.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A6",
+        "SPLUNK_LECCIONES_R01_R03:A7",
+        "SPLUNK_LECCIONES_R01_R03:A10"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica los datos/condiciones necesarios",
+        "Explica el razonamiento y no solo el resultado",
+        "Reconoce al menos una limitación o comprobación adicional"
+      ],
+      "referenceAnswer": "Puede haber retraso de envío/cola, reloj de origen mal configurado o parsing/timezone incorrecto. Contrastar raw timestamp y logs del pipeline."
+    }
+  ],
+  "solutionsMarkdown": "## 7. Solucionario con razonamiento\n\n- **SP-R02-L05-Q01: A** — Puede reflejar demora real o errores de tiempo; no permite causalidad directa.\n\n- **SP-R02-L05-Q02: B** — La búsqueda temporal estándar filtra por tiempo de evento.\n\n- **SP-R02-L05-P01:** Puede haber retraso de envío/cola, reloj de origen mal configurado o parsing/timezone incorrecto. Contrastar raw timestamp y logs del pipeline.\n\n**Guía de retroalimentación formativa:** Identifica los datos/condiciones necesarios; Explica el razonamiento y no solo el resultado; Reconoce al menos una limitación o comprobación adicional.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 8. Fuentes y trazabilidad\n\n- **Fuente de partida:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE2_BLOQUE1.md`, según la organización del paquete de investigación que conservas.\n- **Fuente Microsoft de contraste:** `../../01_FUENTE_ORIGINAL/SC-200.md`; Cap. 04 (latencia e ingesta), líneas 1125–1368; cap. 13 (tiempo), líneas 2517–2810.\n- **[A6]** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/time-format-variables-and-modifiers/time-modifiers\n- **[A7]** https://help.splunk.com/en/splunk-enterprise/administer/manage-indexers-and-indexer-clusters/10.6/indexing-overview/index-time-versus-search-time\n- **[A10]** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/search-commands/stats\n\n**Estado de confianza:** documentación técnica citada y propuesta pedagógica; no validado contra índices, sourcetypes, roles o versiones de tu laboratorio. Las URLs provienen de la investigación del 16/10/2026, con contraste puntual adicional de documentación oficial para HEC y forwarders. Ver `FUENTES_Y_LIMITES.md`.\n",
+  "originalMarkdown": "# SP-R02-L05 — Timestamps, parsing y latencia\n\n**Región:** Río de Telemetría (SP-R02) · **Prioridad:** P0 SOC N1/N2  \n**Estado:** material didáctico redactado; revisión humana recomendada. **SPL no ejecutado en Splunk real.**  \n**ID estable propuesto:** `SP-R02-L05` (no migrado a React)  \n**Prerrequisitos orientativos:** SP-R02-L01, SP-R01 completo  \n**Objetivo del currículo:** Diagnosticar eventos con hora incorrecta o llegada tardía\n\n## 1. La pregunta que resuelve esta lección\n\nDistingue hora del evento, hora de indexación, zonas horarias, colas y latencia.\n\n**Al completar la lección podrás:** Diagnosticar eventos con hora incorrecta o llegada tardía. Debes explicar el porqué y los límites, no memorizar solo comandos.\n\n## 2. Desarrollo del conocimiento\n\nEl momento que Splunk asigna a `_time` puede derivarse de un timestamp del evento, con reglas de parsing y zona horaria. `_indextime` registra indexación. Su resta estima desfase desde el tiempo asignado al evento hasta llegar al índice, pero no distingue por sí misma retraso de transporte, reloj erróneo, backlog y desfase de zona.\nSi `earliest=-24h` no encuentra un evento que sabes recibido, revisa el significado de `_time`: la consulta por defecto se acota por evento. Los filtros de index-time tienen un comportamiento diferente y no sustituirán automáticamente la ventana de evento; conviene una investigación controlada. Evita “corregir” con `where latencia>=0` sin explicar que se descartan filas.\n\n## 3. Método de trabajo reproducible\n\n1. Obtén muestra y define ventana de observación real.\n2. Compara `_time`, `_indextime` y timestamp en `_raw`.\n3. Revisa offset de zona horaria, unidades y formato.\n4. Identifica si el retraso es sistemático o puntual.\n5. Separa remedio de parsing para futuros eventos del tratamiento de históricos.\n\n## 4. Caso guiado — de la pregunta a la evidencia\n\nEl archivo Linux llega a las 12:00 UTC, pero su timestamp se interpreta como 02:00 UTC. La búsqueda de última hora puede no encontrarlo aunque se indexó ahora. Sin contrastar reloj y zona sería engañoso llamarlo una caída de ingesta.\n\n### Esquema o ejemplo técnico\n\n```spl\nindex=INDICE_REAL earliest=-24h\n| eval demora_seg=_indextime-_time\n| stats count avg(demora_seg) AS media_seg perc95(demora_seg) AS p95_seg by sourcetype\n```\n\n**Cómo interpretarlo:** La consulta es propuesta; no calcula la latencia pura de red. `demora_seg` puede ser negativa o enorme por error de timestamp; inspecciona distribución antes de excluir valores.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n## 5. Diagnóstico y errores frecuentes\n\nInterpretar `_indextime` como hora de ataque; ignorar offset de timezone; asumir que el promedio describe retrasos extremos.\n\n**Conexión con SC-200 (no equivalencia automática):** Cap. 04 (latencia e ingesta), líneas 1125–1368; cap. 13 (tiempo), líneas 2517–2810.. En Splunk los esquemas, permisos y familias de producto son diferentes; verifica la correspondencia antes de reutilizar una técnica.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 6. Actividades\n\n### SP-R02-L05-Q01 — Opción múltiple\n\n¿Qué indica una demora `_indextime-_time` muy alta?\n\nA. Un desfase que requiere comprobar colas y timestamps\nB. La duración del trabajo de búsqueda que recuperó los eventos\nC. El tiempo transcurrido desde que el analista abrió el dashboard\nD. El tiempo exacto que consumió la red, separado del resto del pipeline\n\n### SP-R02-L05-Q02 — Opción múltiple\n\n¿Por qué una búsqueda `earliest=-24h` puede omitir un evento indexado hoy?\n\nA. Porque la ventana se evalúa por _indextime antes de recuperar _time\nB. Porque usa `_time` de evento normalmente\nC. Porque un evento antiguo se elimina al cambiar el día de indexación\nD. Porque earliest usa el último resultado del dashboard como inicio de ventana\n\n### SP-R02-L05-P01 — Práctica abierta formativa\n\nDiagnostica evento con `_time` 09:00 y `_indextime` 12:00; enumera tres hipótesis sin elegir una sin evidencia.\n\n## 7. Solucionario con razonamiento\n\n- **SP-R02-L05-Q01: A** — Puede reflejar demora real o errores de tiempo; no permite causalidad directa.\n\n- **SP-R02-L05-Q02: B** — La búsqueda temporal estándar filtra por tiempo de evento.\n\n- **SP-R02-L05-P01:** Puede haber retraso de envío/cola, reloj de origen mal configurado o parsing/timezone incorrecto. Contrastar raw timestamp y logs del pipeline.\n\n**Guía de retroalimentación formativa:** Identifica los datos/condiciones necesarios; Explica el razonamiento y no solo el resultado; Reconoce al menos una limitación o comprobación adicional.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Fuentes y trazabilidad\n\n- **Fuente de partida:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE2_BLOQUE1.md`, según la organización del paquete de investigación que conservas.\n- **Fuente Microsoft de contraste:** `../../01_FUENTE_ORIGINAL/SC-200.md`; Cap. 04 (latencia e ingesta), líneas 1125–1368; cap. 13 (tiempo), líneas 2517–2810.\n- **[A6]** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/time-format-variables-and-modifiers/time-modifiers\n- **[A7]** https://help.splunk.com/en/splunk-enterprise/administer/manage-indexers-and-indexer-clusters/10.6/indexing-overview/index-time-versus-search-time\n- **[A10]** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/search-commands/stats\n\n**Estado de confianza:** documentación técnica citada y propuesta pedagógica; no validado contra índices, sourcetypes, roles o versiones de tu laboratorio. Las URLs provienen de la investigación del 16/10/2026, con contraste puntual adicional de documentación oficial para HEC y forwarders. Ver `FUENTES_Y_LIMITES.md`.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 8,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "A6",
+      "key": "SPLUNK_LECCIONES_R01_R03:A6",
+      "url": "https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/time-format-variables-and-modifiers/time-modifiers"
+    },
+    {
+      "id": "A7",
+      "key": "SPLUNK_LECCIONES_R01_R03:A7",
+      "url": "https://help.splunk.com/en/splunk-enterprise/administer/manage-indexers-and-indexer-clusters/10.6/indexing-overview/index-time-versus-search-time"
+    },
+    {
+      "id": "A10",
+      "key": "SPLUNK_LECCIONES_R01_R03:A10",
+      "url": "https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/search-commands/stats"
+    }
+  ]
+}

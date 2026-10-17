@@ -1,0 +1,205 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R06-L02",
+  "title": "Primer pivote por identidad",
+  "revision": "9705d5cf9cf9a86e916f1f7b",
+  "sourceVersion": "5388b3684fad9a2660c690184216996eab226a3937c566a62f09404f653c0001",
+  "sanitizedHash": "6a567601edbb6822d1222165d92b52086ed43a25dc55d33930c222326080d6d4",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R06_R07/R06_CENTRO_SOC/SP-R06-L02.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Relacionar user, src, host, dest sin aceptar equivalencias falsas",
+  "preamble": "# SP-R06-L02 — Primer pivote por identidad\n\n**Región:** SP-R06 · **Prioridad:** P0 (SOC N1/N2) · **Estado:** material editorial para revisión · **SPL:** NO ejecutado en Splunk.\n\n**Objetivo curricular original:** Relacionar user, src, host, dest sin aceptar equivalencias falsas\n\n**Prerrequisitos:** R01–R05 y lectura de la matriz de campos. **Producto:** Splunk Enterprise/Cloud (búsquedas de lectura); funciones ES explícitamente condicionadas a Splunk Enterprise Security compatible.\n\n",
+  "sections": [
+    {
+      "id": "SP-R06-L02-S01",
+      "title": "1. Pregunta esencial y modelo mental",
+      "markdown": "## 1. Pregunta esencial y modelo mental\n\nEn una investigación el pivote parte de una entidad estable y un periodo acotado. `user`, `src`, `host` y `dest` no son sinónimos: un usuario puede cambiar de equipo; una IP puede representar un NAT; un host que registra un evento puede no ser el destino remoto. Normalizar nombres de campos sin entender su semántica crea correlaciones falsas.\n\n",
+      "line": 9,
+      "endLine": 11
+    },
+    {
+      "id": "SP-R06-L02-S02",
+      "title": "2. Conceptos que debes dominar",
+      "markdown": "## 2. Conceptos que debes dominar\n\n1. Fija una entidad inicial y fuente primaria, por ejemplo bob y evento de autenticación concreto.\n2. Correlaciona por identidad y tiempo, y añade dispositivo sólo si existe evidencia de vinculación; no hagas join ciego por IP.\n3. La identidad debe considerar formato, dominio y cuentas técnicas; `bob`, `CONTOSO\\bob` y `[DATO OCULTO: email]` requieren reglas justificadas, no fusionarse a ciegas.\n4. Mantén el origen de cada campo; 4769 informa ticket solicitado al KDC y 4624 indica logon en equipo que registra el éxito.\n5. Relacionar eventos no equivale a demostrar que uno causó el otro.\n\n",
+      "line": 13,
+      "endLine": 19
+    },
+    {
+      "id": "SP-R06-L02-S03",
+      "title": "3. Práctica guiada: del dato a la conclusión",
+      "markdown": "## 3. Práctica guiada: del dato a la conclusión\n\n1. Selecciona evento A006 de fallo contra frank desde 198.51.100.23.\n2. Busca los demás eventos de esa IP y cuenta usuarios distintos; guarda IDs.\n3. Pivota a bob: encuentra un éxito A007 posterior desde esa IP y discute escenarios alternativos.\n4. Contrasta si `host` coincide con el sensor y comprueba ausencia de metadatos de dispositivo de origen.\n5. Resume qué se sabe, qué no se sabe y la siguiente fuente independiente necesaria.\n\n",
+      "line": 21,
+      "endLine": 27
+    },
+    {
+      "id": "SP-R06-L02-S04",
+      "title": "4. SPL ilustrativo de solo lectura — NO probado en Splunk",
+      "markdown": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC (EventCode=4624 OR EventCode=4625) earliest=\"10/15/2026:08:45:00\" latest=\"10/15/2026:09:30:00\"\n| search user=\"bob\"\n| table _time event_id EventCode user src host dest\n| sort 0 _time\n```\n\n**Interpretación, supuestos y límites:** Los campos se han estandarizado solo en el CSV didáctico. En WinEventLog:Security real podrían tener otros nombres; primero inspecciona `_raw`, el sourcetype y las extracciones.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n",
+      "line": 29,
+      "endLine": 40
+    },
+    {
+      "id": "SP-R06-L02-S05",
+      "title": "5. Caso del turno SOC",
+      "markdown": "## 5. Caso del turno SOC\n\nUn inicio de sesión posterior con la misma IP puede ser de un usuario legítimo detrás de proxy empresarial; se requiere corroboración.\n\n## 6. Errores frecuentes\n\n1. Unir eventos por IP compartida y afirmar mismo dispositivo.\n2. Tratar el campo host del log como máquina cliente sin leer la fuente.\n3. Unificar identidades diferentes con un `lower()` insuficiente.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 42,
+      "endLine": 53
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R06-L02-Q01",
+      "lessonId": "SP-R06-L02",
+      "prompt": "Una IP aparece en cinco usuarios detrás de NAT. ¿Qué concluyes?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D06",
+        "SPLUNK_LECCIONES_R06_R07:D07",
+        "SPLUNK_LECCIONES_R06_R07:D14"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R06-L02-Q01-O-3e74d70d8141",
+          "text": "Que los eventos pertenecen a una misma sesión de usuario"
+        },
+        {
+          "id": "SP-R06-L02-Q01-O-97745c0cb85c",
+          "text": "Una clave de agrupación compartida que necesita contexto de traducción e identidad para atribuir actividad"
+        },
+        {
+          "id": "SP-R06-L02-Q01-O-79eba5e8cfd7",
+          "text": "Que cada usuario observado corresponde a un equipo distinto"
+        },
+        {
+          "id": "SP-R06-L02-Q01-O-6c80deaf0b61",
+          "text": "Que se puede correlacionar por src sin comprobar traducciones ni tiempo"
+        }
+      ],
+      "solution": "SP-R06-L02-Q01-O-97745c0cb85c",
+      "explanation": "IP compartida agrega tráfico de múltiples orígenes.",
+      "anchors": [
+        {
+          "file": "R06_CENTRO_SOC/SP-R06-L02.md",
+          "sourceHash": "6a567601edbb6822d1222165d92b52086ed43a25dc55d33930c222326080d6d4",
+          "line": 13,
+          "endLine": 19,
+          "quote": "## 2. Conceptos que debes dominar\n\n1. Fija una entidad inicial y fuente primaria, por ejemplo bob y evento de autenticación concreto.\n2. Correlaciona por identidad y tiempo, y añade dispositivo sólo si existe evidencia de vinculación; no hagas join ciego por IP.\n3. La identidad debe considerar formato, dominio y cuentas técnicas; `bob`, `CONTOSO\\bob` y `[DATO OCULTO: email]` requieren reglas justificadas, no fusionarse a ciegas.\n4. Mantén el origen de cada campo; 4769 informa ticket solicitado al KDC y 4624 indica logon en equipo que registra el éxito.\n5. Relacionar eventos no equivale a demostrar que uno causó el otro.\n\n"
+        },
+        {
+          "file": "R06_CENTRO_SOC/SP-R06-L02.md",
+          "sourceHash": "6a567601edbb6822d1222165d92b52086ed43a25dc55d33930c222326080d6d4",
+          "line": 29,
+          "endLine": 40,
+          "quote": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC (EventCode=4624 OR EventCode=4625) earliest=\"10/15/2026:08:45:00\" latest=\"10/15/2026:09:30:00\"\n| search user=\"bob\"\n| table _time event_id EventCode user src host dest\n| sort 0 _time\n```\n\n**Interpretación, supuestos y límites:** Los campos se han estandarizado solo en el CSV didáctico. En WinEventLog:Security real podrían tener otros nombres; primero inspecciona `_raw`, el sourcetype y las extracciones.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R06-L02-Q02",
+      "lessonId": "SP-R06-L02",
+      "prompt": "¿Qué representa siempre el campo Splunk host?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D06",
+        "SPLUNK_LECCIONES_R06_R07:D07",
+        "SPLUNK_LECCIONES_R06_R07:D14"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R06-L02-Q02-O-a6a1f71f6a6e",
+          "text": "Un metadato cuyo significado depende de la fuente y configuración"
+        },
+        {
+          "id": "SP-R06-L02-Q02-O-fb80007fb396",
+          "text": "El destino lógico de la conexión, incluso si la fuente es un relay"
+        },
+        {
+          "id": "SP-R06-L02-Q02-O-a84e49c8c83e",
+          "text": "El cliente remoto que inició la autenticación, independientemente del input"
+        },
+        {
+          "id": "SP-R06-L02-Q02-O-731fb80b9538",
+          "text": "La instancia Splunk que almacena físicamente el bucket"
+        }
+      ],
+      "solution": "SP-R06-L02-Q02-O-a6a1f71f6a6e",
+      "explanation": "host es un metadato de evento, no una atribución forense universal.",
+      "anchors": [
+        {
+          "file": "R06_CENTRO_SOC/SP-R06-L02.md",
+          "sourceHash": "6a567601edbb6822d1222165d92b52086ed43a25dc55d33930c222326080d6d4",
+          "line": 13,
+          "endLine": 19,
+          "quote": "## 2. Conceptos que debes dominar\n\n1. Fija una entidad inicial y fuente primaria, por ejemplo bob y evento de autenticación concreto.\n2. Correlaciona por identidad y tiempo, y añade dispositivo sólo si existe evidencia de vinculación; no hagas join ciego por IP.\n3. La identidad debe considerar formato, dominio y cuentas técnicas; `bob`, `CONTOSO\\bob` y `[DATO OCULTO: email]` requieren reglas justificadas, no fusionarse a ciegas.\n4. Mantén el origen de cada campo; 4769 informa ticket solicitado al KDC y 4624 indica logon en equipo que registra el éxito.\n5. Relacionar eventos no equivale a demostrar que uno causó el otro.\n\n"
+        },
+        {
+          "file": "R06_CENTRO_SOC/SP-R06-L02.md",
+          "sourceHash": "6a567601edbb6822d1222165d92b52086ed43a25dc55d33930c222326080d6d4",
+          "line": 29,
+          "endLine": 40,
+          "quote": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC (EventCode=4624 OR EventCode=4625) earliest=\"10/15/2026:08:45:00\" latest=\"10/15/2026:09:30:00\"\n| search user=\"bob\"\n| table _time event_id EventCode user src host dest\n| sort 0 _time\n```\n\n**Interpretación, supuestos y límites:** Los campos se han estandarizado solo en el CSV didáctico. En WinEventLog:Security real podrían tener otros nombres; primero inspecciona `_raw`, el sourcetype y las extracciones.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R06-L02-P01",
+      "lessonId": "SP-R06-L02",
+      "prompt": "Diseña una tabla de pivotes para bob con claves, riesgos de ambigüedad y consulta secundaria solicitada.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D06",
+        "SPLUNK_LECCIONES_R06_R07:D07",
+        "SPLUNK_LECCIONES_R06_R07:D14"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica datos y supuestos de la fuente",
+        "Plantea método correcto y distingue hechos de hipótesis",
+        "Explica limitaciones, alternativa benigna y telemetría ausente",
+        "Aporta evidencia, ventana e identificación reproducibles"
+      ],
+      "referenceAnswer": "Tabla bob: buscar 4625/4624 por user+src+ventana; comprobar host origen, VPN/proxy, dispositivo administrado y segundo factor. La relación temporal no demuestra control de cuenta."
+    }
+  ],
+  "solutionsMarkdown": "### Solucionario con razonamiento\n\n- **SP-R06-L02-Q01: B** — IP compartida agrega tráfico de múltiples orígenes.\n\n- **SP-R06-L02-Q02: A** — host es un metadato de evento, no una atribución forense universal.\n\n- **SP-R06-L02-P01:** Tabla bob: buscar 4625/4624 por user+src+ventana; comprobar host origen, VPN/proxy, dispositivo administrado y segundo factor. La relación temporal no demuestra control de cuenta.\n\n**Guía de retroalimentación formativa:** Identifica datos y supuestos de la fuente; Plantea método correcto y distingue hechos de hipótesis; Explica limitaciones, alternativa benigna y telemetría ausente; Aporta evidencia, ventana e identificación reproducibles.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 8. Bibliografía, mapeo y estatus\n\n- **D06:** Windows: 4625 fallo de inicio de sesión — https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4625\n- **D07:** Windows: 4769 solicitud de ticket de servicio — https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4769\n- **D14:** Splunk: estadísticas stats, eventstats, streamstats — https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.0/calculate-statistics/use-the-stats-command-and-functions\n\n- **Currículo:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` — ID, título y resultado intactos.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` — los bloques R06/R07 y laboratorios de diseño.\n- **Puente SC-200:** Capítulos 09 y 13 (entidades, pivotes y KQL). Documento en `../../01_FUENTE_ORIGINAL/SC-200.md`; relación conceptual, no traducción ni equivalencia garantizada.\n\n**Clasificación de evidencia:** [DOC] respaldo documental de fuentes; [DISEÑO] procedimientos y rúbricas propuestos; [OFFLINE] sólo cálculos de fixtures reproducibles; [NO PROBADO] ejemplos SPL no ejecutados en la instancia. Validación técnica/manual de contenidos pendiente antes de integrarlo en React.\n",
+  "originalMarkdown": "# SP-R06-L02 — Primer pivote por identidad\n\n**Región:** SP-R06 · **Prioridad:** P0 (SOC N1/N2) · **Estado:** material editorial para revisión · **SPL:** NO ejecutado en Splunk.\n\n**Objetivo curricular original:** Relacionar user, src, host, dest sin aceptar equivalencias falsas\n\n**Prerrequisitos:** R01–R05 y lectura de la matriz de campos. **Producto:** Splunk Enterprise/Cloud (búsquedas de lectura); funciones ES explícitamente condicionadas a Splunk Enterprise Security compatible.\n\n## 1. Pregunta esencial y modelo mental\n\nEn una investigación el pivote parte de una entidad estable y un periodo acotado. `user`, `src`, `host` y `dest` no son sinónimos: un usuario puede cambiar de equipo; una IP puede representar un NAT; un host que registra un evento puede no ser el destino remoto. Normalizar nombres de campos sin entender su semántica crea correlaciones falsas.\n\n## 2. Conceptos que debes dominar\n\n1. Fija una entidad inicial y fuente primaria, por ejemplo bob y evento de autenticación concreto.\n2. Correlaciona por identidad y tiempo, y añade dispositivo sólo si existe evidencia de vinculación; no hagas join ciego por IP.\n3. La identidad debe considerar formato, dominio y cuentas técnicas; `bob`, `CONTOSO\\bob` y `[DATO OCULTO: email]` requieren reglas justificadas, no fusionarse a ciegas.\n4. Mantén el origen de cada campo; 4769 informa ticket solicitado al KDC y 4624 indica logon en equipo que registra el éxito.\n5. Relacionar eventos no equivale a demostrar que uno causó el otro.\n\n## 3. Práctica guiada: del dato a la conclusión\n\n1. Selecciona evento A006 de fallo contra frank desde 198.51.100.23.\n2. Busca los demás eventos de esa IP y cuenta usuarios distintos; guarda IDs.\n3. Pivota a bob: encuentra un éxito A007 posterior desde esa IP y discute escenarios alternativos.\n4. Contrasta si `host` coincide con el sensor y comprueba ausencia de metadatos de dispositivo de origen.\n5. Resume qué se sabe, qué no se sabe y la siguiente fuente independiente necesaria.\n\n## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC (EventCode=4624 OR EventCode=4625) earliest=\"10/15/2026:08:45:00\" latest=\"10/15/2026:09:30:00\"\n| search user=\"bob\"\n| table _time event_id EventCode user src host dest\n| sort 0 _time\n```\n\n**Interpretación, supuestos y límites:** Los campos se han estandarizado solo en el CSV didáctico. En WinEventLog:Security real podrían tener otros nombres; primero inspecciona `_raw`, el sourcetype y las extracciones.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n## 5. Caso del turno SOC\n\nUn inicio de sesión posterior con la misma IP puede ser de un usuario legítimo detrás de proxy empresarial; se requiere corroboración.\n\n## 6. Errores frecuentes\n\n1. Unir eventos por IP compartida y afirmar mismo dispositivo.\n2. Tratar el campo host del log como máquina cliente sin leer la fuente.\n3. Unificar identidades diferentes con un `lower()` insuficiente.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R06-L02-Q01 — Opción múltiple\n\nUna IP aparece en cinco usuarios detrás de NAT. ¿Qué concluyes?\n\nA. Que los eventos pertenecen a una misma sesión de usuario\nB. Una clave de agrupación compartida que necesita contexto de traducción e identidad para atribuir actividad\nC. Que cada usuario observado corresponde a un equipo distinto\nD. Que se puede correlacionar por src sin comprobar traducciones ni tiempo\n\n### SP-R06-L02-Q02 — Opción múltiple\n\n¿Qué representa siempre el campo Splunk host?\n\nA. Un metadato cuyo significado depende de la fuente y configuración\nB. El destino lógico de la conexión, incluso si la fuente es un relay\nC. El cliente remoto que inició la autenticación, independientemente del input\nD. La instancia Splunk que almacena físicamente el bucket\n\n### SP-R06-L02-P01 — Práctica abierta formativa\n\nDiseña una tabla de pivotes para bob con claves, riesgos de ambigüedad y consulta secundaria solicitada.\n\n### Solucionario con razonamiento\n\n- **SP-R06-L02-Q01: B** — IP compartida agrega tráfico de múltiples orígenes.\n\n- **SP-R06-L02-Q02: A** — host es un metadato de evento, no una atribución forense universal.\n\n- **SP-R06-L02-P01:** Tabla bob: buscar 4625/4624 por user+src+ventana; comprobar host origen, VPN/proxy, dispositivo administrado y segundo factor. La relación temporal no demuestra control de cuenta.\n\n**Guía de retroalimentación formativa:** Identifica datos y supuestos de la fuente; Plantea método correcto y distingue hechos de hipótesis; Explica limitaciones, alternativa benigna y telemetría ausente; Aporta evidencia, ventana e identificación reproducibles.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Bibliografía, mapeo y estatus\n\n- **D06:** Windows: 4625 fallo de inicio de sesión — https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4625\n- **D07:** Windows: 4769 solicitud de ticket de servicio — https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4769\n- **D14:** Splunk: estadísticas stats, eventstats, streamstats — https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.0/calculate-statistics/use-the-stats-command-and-functions\n\n- **Currículo:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` — ID, título y resultado intactos.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` — los bloques R06/R07 y laboratorios de diseño.\n- **Puente SC-200:** Capítulos 09 y 13 (entidades, pivotes y KQL). Documento en `../../01_FUENTE_ORIGINAL/SC-200.md`; relación conceptual, no traducción ni equivalencia garantizada.\n\n**Clasificación de evidencia:** [DOC] respaldo documental de fuentes; [DISEÑO] procedimientos y rúbricas propuestos; [OFFLINE] sólo cálculos de fixtures reproducibles; [NO PROBADO] ejemplos SPL no ejecutados en la instancia. Validación técnica/manual de contenidos pendiente antes de integrarlo en React.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 8,
+    "redactions": [
+      {
+        "kind": "email",
+        "line": 17
+      }
+    ]
+  },
+  "references": [
+    {
+      "id": "D06",
+      "key": "SPLUNK_LECCIONES_R06_R07:D06",
+      "url": "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4625"
+    },
+    {
+      "id": "D07",
+      "key": "SPLUNK_LECCIONES_R06_R07:D07",
+      "url": "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4769"
+    },
+    {
+      "id": "D14",
+      "key": "SPLUNK_LECCIONES_R06_R07:D14",
+      "url": "https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.0/calculate-statistics/use-the-stats-command-and-functions"
+    }
+  ]
+}

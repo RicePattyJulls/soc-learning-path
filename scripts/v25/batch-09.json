@@ -1,0 +1,1071 @@
+{
+  "batch": "09",
+  "lessons": [
+    {
+      "lessonId": "capitulo-9-investigacion/5-alertas-de-irm-y-dlp-motores-que-ya-decidieron-no-consultas-1",
+      "introduction": "Trabaja los conceptos de «5. Alertas de IRM y DLP (motores que ya decidieron, no consultas)» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Investigar el contexto de una decisión IRM/DLP.",
+        "Distinguir unidad de caso y alerta.",
+        "Verificar requisitos de enriquecimiento compartido."
+      ],
+      "summary": [
+        "Investigar el contexto de una decisión IRM/DLP.",
+        "Distinguir unidad de caso y alerta.",
+        "Verificar requisitos de enriquecimiento compartido."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "match",
+          "prompt": "Relaciona motor y unidad investigativa del apartado.",
+          "explanation": "La unidad de investigación orienta el contexto: riesgo de la persona en IRM y eventos/condiciones de la alerta en DLP.",
+          "objective": "Elegir la unidad de investigación de políticas.",
+          "difficulty": "intermedia",
+          "id": "v25-53-unidad",
+          "evidence": [
+            "| `Insider Risk Management` | El caso, un usuario por caso           | `purview.microsoft.com > Insider Risk Management > Alerts` (cola) / `Cases` (confirmadas)           | `All risk factors` (contesta por qué ese usuario preocupa y qué señales aportan contexto), `Activity explorer` (eventos), `User activity` (tendencia); usernames pseudonymized por defecto |",
+            "| `Data Loss Prevention`    | La alerta y el incidente que la agrupa | Cola de incidentes del portal de Defender + `purview.microsoft.com > Data Loss Prevention > Alerts` | `Details` (policy/regla), `Events` (qué disparó, marca falso positivo), `User activity summary` (exfiltración, hasta 120 días)                                                             |"
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "Insider Risk Management"
+            },
+            {
+              "id": "r1",
+              "label": "Data Loss Prevention"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "Case centrado en un usuario"
+            },
+            {
+              "id": "p1",
+              "text": "Alerta y el incidente que la agrupa"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Una alerta DLP no muestra User activity summary. ¿Qué dos condiciones deben comprobarse según el texto?",
+          "explanation": "El enriquecimiento depende de compartir riesgo y de que el usuario esté cubierto por IRM; sin ambos, se investiga la alerta DLP sola.",
+          "objective": "Diagnosticar falta de contexto compartido.",
+          "difficulty": "intermedia",
+          "id": "v25-53-summary-condiciones",
+          "evidence": [
+            "Las alertas de IRM no llegan solas al portal de Defender — exige `Share user risk details with other security solutions`, y ni así cubre exfiltración por correo, uso riesgoso de IA, apps cloud de terceros, eventos previos a la alerta ni exclusiones del admin. Y `User activity summary` de DLP solo aparece si ese intercambio está activo Y el usuario está dentro del alcance de una policy de IRM — sin ambas condiciones, la alerta de DLP se lee sola."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Intercambio de riesgo habilitado y usuario dentro del alcance de una policy IRM.",
+              "why": "El enriquecimiento depende de compartir riesgo y de que el usuario esté cubierto por IRM; sin ambos, se investiga la alerta DLP sola."
+            },
+            {
+              "id": "o1",
+              "text": "Solo que exista cualquier alerta DLP en el tenant.",
+              "why": "El resumen requiere ambas condiciones, no solo una alerta."
+            },
+            {
+              "id": "o2",
+              "text": "Solo cambiar el título del incidente.",
+              "why": "Ese metadato no activa el intercambio ni el alcance de una policy."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "¿Qué busca All risk factors en un caso IRM según la tabla?",
+          "explanation": "Una alerta de política ya aporta una decisión del motor; el analista profundiza en su fundamento y contexto, no la trata como señal cruda sin evaluar.",
+          "objective": "Investigar el fundamento de riesgo de usuario.",
+          "difficulty": "intermedia",
+          "id": "v25-53-contexto",
+          "evidence": [
+            "| `Insider Risk Management` | El caso, un usuario por caso           | `purview.microsoft.com > Insider Risk Management > Alerts` (cola) / `Cases` (confirmadas)           | `All risk factors` (contesta por qué ese usuario preocupa y qué señales aportan contexto), `Activity explorer` (eventos), `User activity` (tendencia); usernames pseudonymized por defecto |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Por qué preocupa el usuario y qué señales aportan contexto.",
+              "why": "Una alerta de política ya aporta una decisión del motor; el analista profundiza en su fundamento y contexto, no la trata como señal cruda sin evaluar."
+            },
+            {
+              "id": "o1",
+              "text": "El contenido actual de cualquier buzón como Content search.",
+              "why": "La tabla centra esa vista en factores de riesgo del usuario."
+            },
+            {
+              "id": "o2",
+              "text": "El esquema de una tabla personalizada de ingesta.",
+              "why": "No es una superficie de configuración de tablas."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [
+        "Los límites del intercambio IRM/DLP se leen conforme al párrafo local; no se presume exportación completa de todas las señales."
+      ],
+      "audit": {
+        "mainConcepts": [
+          "Investigar el contexto de una decisión IRM/DLP.",
+          "Distinguir unidad de caso y alerta.",
+          "Verificar requisitos de enriquecimiento compartido."
+        ],
+        "understanding": [
+          "Investigar el contexto de una decisión IRM/DLP.",
+          "Distinguir unidad de caso y alerta.",
+          "Verificar requisitos de enriquecimiento compartido."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Investigar el contexto de una decisión IRM/DLP.",
+          "Distinguir unidad de caso y alerta.",
+          "Verificar requisitos de enriquecimiento compartido."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "El resumen requiere ambas condiciones, no solo una alerta.",
+          "Ese metadato no activa el intercambio ni el alcance de una policy.",
+          "La tabla centra esa vista en factores de riesgo del usuario.",
+          "No es una superficie de configuración de tablas."
+        ],
+        "evidence": [
+          "| `Insider Risk Management` | El caso, un usuario por caso           | `purview.microsoft.com > Insider Risk Management > Alerts` (cola) / `Cases` (confirmadas)           | `All risk factors` (contesta por qué ese usuario preocupa y qué señales aportan contexto), `Activity explorer` (eventos), `User activity` (tendencia); usernames pseudonymized por defecto |",
+          "| `Data Loss Prevention`    | La alerta y el incidente que la agrupa | Cola de incidentes del portal de Defender + `purview.microsoft.com > Data Loss Prevention > Alerts` | `Details` (policy/regla), `Events` (qué disparó, marca falso positivo), `User activity summary` (exfiltración, hasta 120 días)                                                             |",
+          "Las alertas de IRM no llegan solas al portal de Defender — exige `Share user risk details with other security solutions`, y ni así cubre exfiltración por correo, uso riesgoso de IA, apps cloud de terceros, eventos previos a la alerta ni exclusiones del admin. Y `User activity summary` de DLP solo aparece si ese intercambio está activo Y el usuario está dentro del alcance de una policy de IRM — sin ambas condiciones, la alerta de DLP se lee sola.",
+          "| `Insider Risk Management` | El caso, un usuario por caso           | `purview.microsoft.com > Insider Risk Management > Alerts` (cola) / `Cases` (confirmadas)           | `All risk factors` (contesta por qué ese usuario preocupa y qué señales aportan contexto), `Activity explorer` (eventos), `User activity` (tendencia); usernames pseudonymized por defecto |"
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-9-investigacion/6-security-copilot-capa-transversal-no-un-paso-mas-1",
+      "introduction": "Trabaja los conceptos de «6. Security Copilot (capa transversal, no un paso más)» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Separar resumen de ataque e informe de gestión.",
+        "Distinguir asistencia OBO y agentes con identidad propia.",
+        "No equiparar resumen y veredicto."
+      ],
+      "summary": [
+        "Separar resumen de ataque e informe de gestión.",
+        "Distinguir asistencia OBO y agentes con identidad propia.",
+        "No equiparar resumen y veredicto."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "match",
+          "prompt": "Relaciona la necesidad con la salida de Copilot.",
+          "explanation": "Un resumen técnico del ataque y un informe de gestión responden a preguntas diferentes.",
+          "objective": "Elegir una salida según la pregunta investigativa.",
+          "difficulty": "intermedia",
+          "id": "v25-54-summary-report",
+          "evidence": [
+            "- El par que más se confunde: `Incident summary` (cuenta el ataque — cuándo empezó, en qué activo, línea temporal, IOCs, actores; tope de 100 alertas, límite propio, no relacionado con el máximo de Fusion) vs `Incident report` (cuenta la gestión — analistas, clasificación, acciones, playbooks)."
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "Entender cuándo empezó el ataque, activos, cronología e IOCs"
+            },
+            {
+              "id": "r1",
+              "label": "Revisar analistas, clasificación, acciones y playbooks"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "Incident summary"
+            },
+            {
+              "id": "p1",
+              "text": "Incident report"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Copilot respeta permisos mediante OBO. ¿Qué conclusión no se sostiene según el apartado?",
+          "explanation": "OBO no equivale a solo lectura; los agentes pueden ejecutar acciones dentro de sus permisos, sin heredar acceso ilimitado.",
+          "objective": "Distinguir autorización y tipo de acción de asistencia.",
+          "difficulty": "intermedia",
+          "id": "v25-54-obo-acciones",
+          "evidence": [
+            "- Las capacidades interactivas respetan los permisos del usuario mediante `on behalf of (OBO)`; esto no significa que todo Copilot sea de solo lectura. Sus agentes pueden ejecutar acciones con su identidad y permisos, como resolver alertas falsas positivas. Exige capacidad de Security Copilot provisionada y los roles/permisos correspondientes; las restricciones de plugins también se aplican."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Que existen restricciones de permisos y plugins.",
+              "why": "El texto conserva esos límites."
+            },
+            {
+              "id": "o1",
+              "text": "Que los agentes pueden tener identidad y permisos propios.",
+              "why": "El apartado lo recoge expresamente."
+            },
+            {
+              "id": "o2",
+              "text": "Que todo Copilot es necesariamente de solo lectura.",
+              "why": "OBO no equivale a solo lectura; los agentes pueden ejecutar acciones dentro de sus permisos, sin heredar acceso ilimitado."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "En Risky users aparecen un resumen y un resultado del Identity Risk Management Agent. ¿Qué diferencia destaca el texto?",
+          "explanation": "Estar en la misma vista no convierte una recomendación en una decisión de agente.",
+          "objective": "Interpretar asistencia sin atribuir decisiones inexistentes.",
+          "difficulty": "intermedia",
+          "id": "v25-54-riesgo-salidas",
+          "evidence": [
+            "- En `Risky users` de Entra ID Protection conviven dos salidas de Copilot que no son lo mismo: `Risky user summarization` (capacidad embebida — resume y recomienda, pero NO emite veredicto) vs el `Identity Risk Management Agent` de arriba (sí dictamina). Si el agente está activado, Learn avisa que vas a ver las dos por separado en la misma vista."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "El resumen descarta automáticamente el riesgo de cualquier usuario.",
+              "why": "El texto le niega el veredicto, mucho menos una acción global automática."
+            },
+            {
+              "id": "o1",
+              "text": "El resumen recomienda sin veredicto; el agente sí dictamina.",
+              "why": "Estar en la misma vista no convierte una recomendación en una decisión de agente."
+            },
+            {
+              "id": "o2",
+              "text": "Ambos emiten el mismo veredicto por compartir pantalla.",
+              "why": "La lectura dice que son salidas separadas y distintas."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [],
+      "audit": {
+        "mainConcepts": [
+          "Separar resumen de ataque e informe de gestión.",
+          "Distinguir asistencia OBO y agentes con identidad propia.",
+          "No equiparar resumen y veredicto."
+        ],
+        "understanding": [
+          "Separar resumen de ataque e informe de gestión.",
+          "Distinguir asistencia OBO y agentes con identidad propia.",
+          "No equiparar resumen y veredicto."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Separar resumen de ataque e informe de gestión.",
+          "Distinguir asistencia OBO y agentes con identidad propia.",
+          "No equiparar resumen y veredicto."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "El texto conserva esos límites.",
+          "El apartado lo recoge expresamente.",
+          "El texto le niega el veredicto, mucho menos una acción global automática.",
+          "La lectura dice que son salidas separadas y distintas."
+        ],
+        "evidence": [
+          "- El par que más se confunde: `Incident summary` (cuenta el ataque — cuándo empezó, en qué activo, línea temporal, IOCs, actores; tope de 100 alertas, límite propio, no relacionado con el máximo de Fusion) vs `Incident report` (cuenta la gestión — analistas, clasificación, acciones, playbooks).",
+          "- Las capacidades interactivas respetan los permisos del usuario mediante `on behalf of (OBO)`; esto no significa que todo Copilot sea de solo lectura. Sus agentes pueden ejecutar acciones con su identidad y permisos, como resolver alertas falsas positivas. Exige capacidad de Security Copilot provisionada y los roles/permisos correspondientes; las restricciones de plugins también se aplican.",
+          "- En `Risky users` de Entra ID Protection conviven dos salidas de Copilot que no son lo mismo: `Risky user summarization` (capacidad embebida — resume y recomienda, pero NO emite veredicto) vs el `Identity Risk Management Agent` de arriba (sí dictamina). Si el agente está activado, Learn avisa que vas a ver las dos por separado en la misma vista."
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-10-hunting/10-hunting-1",
+      "introduction": "Trabaja los conceptos de «10 · Hunting» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Organizar hipótesis, superficie y conservación.",
+        "Decidir si repetir una búsqueda como detección o job.",
+        "Responder a compromiso activo sin esperar cierre del hunting."
+      ],
+      "summary": [
+        "Organizar hipótesis, superficie y conservación.",
+        "Decidir si repetir una búsqueda como detección o job.",
+        "Responder a compromiso activo sin esperar cierre del hunting."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "La hipótesis se investigó y no debe repetirse. ¿Qué salida incluye el recorrido?",
+          "explanation": "Repetir debe responder a una necesidad operativa; hunting también termina con una conclusión documentada.",
+          "objective": "Cerrar una hipótesis sin crear automatización innecesaria.",
+          "difficulty": "intermedia",
+          "id": "v25-55-no-repetir",
+          "evidence": [
+            "└── si no debe repetirse → documentar y cerrar la hipótesis"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Borrar las decisiones para empezar siempre de cero.",
+              "why": "Documentar conserva el resultado de la hipótesis."
+            },
+            {
+              "id": "o1",
+              "text": "Documentarla y cerrarla.",
+              "why": "Repetir debe responder a una necesidad operativa; hunting también termina con una conclusión documentada."
+            },
+            {
+              "id": "o2",
+              "text": "Convertir toda consulta obligatoriamente en alerta recurrente.",
+              "why": "El recorrido incluye explícitamente la decisión de no repetir."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "match",
+          "prompt": "Relaciona superficie y vía de conservación del esquema.",
+          "explanation": "Conservar hallazgos depende de la superficie; no se aplica el mismo botón o artefacto a todos los datos.",
+          "objective": "Seleccionar una vía de conservación del hallazgo.",
+          "difficulty": "intermedia",
+          "id": "v25-55-conservar",
+          "evidence": [
+            "│      ├── conservar/escalar → Link to incident",
+            "│      ├── conservar/escalar → bookmark → incidente (Azure)",
+            "│      ├── conservar → tabla mediante KQL job o Notebook job"
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "Advanced Hunting"
+            },
+            {
+              "id": "r1",
+              "label": "Logs/hunting Sentinel"
+            },
+            {
+              "id": "r2",
+              "label": "Data lake exploration"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "Link to incident"
+            },
+            {
+              "id": "p1",
+              "text": "Bookmark"
+            },
+            {
+              "id": "p2",
+              "text": "Tabla mediante KQL job o Notebook job"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1",
+            "p2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "El hallazgo muestra compromiso activo mientras decides si automatizar la búsqueda. ¿Qué instrucción prevalece?",
+          "explanation": "La investigación puede continuar, pero la contención de un compromiso activo no depende de terminar la decisión de repetición.",
+          "objective": "Priorizar respuesta ante compromiso confirmado.",
+          "difficulty": "intermedia",
+          "id": "v25-55-compromiso-activo",
+          "evidence": [
+            "recogida en el apartado 2. Si hay compromiso activo, responder de inmediato."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Esperar siempre a programar y ejecutar un job diario.",
+              "why": "El recorrido indica que la respuesta no espera esa decisión."
+            },
+            {
+              "id": "o1",
+              "text": "Asumir que el hunting ya remedió por producir resultados.",
+              "why": "El hunting no ejecuta automáticamente contención por encontrar un hallazgo."
+            },
+            {
+              "id": "o2",
+              "text": "Responder de inmediato sobre la entidad afectada.",
+              "why": "La investigación puede continuar, pero la contención de un compromiso activo no depende de terminar la decisión de repetición."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [],
+      "audit": {
+        "mainConcepts": [
+          "Organizar hipótesis, superficie y conservación.",
+          "Decidir si repetir una búsqueda como detección o job.",
+          "Responder a compromiso activo sin esperar cierre del hunting."
+        ],
+        "understanding": [
+          "Organizar hipótesis, superficie y conservación.",
+          "Decidir si repetir una búsqueda como detección o job.",
+          "Responder a compromiso activo sin esperar cierre del hunting."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Organizar hipótesis, superficie y conservación.",
+          "Decidir si repetir una búsqueda como detección o job.",
+          "Responder a compromiso activo sin esperar cierre del hunting."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "Documentar conserva el resultado de la hipótesis.",
+          "El recorrido incluye explícitamente la decisión de no repetir.",
+          "El recorrido indica que la respuesta no espera esa decisión.",
+          "El hunting no ejecuta automáticamente contención por encontrar un hallazgo."
+        ],
+        "evidence": [
+          "└── si no debe repetirse → documentar y cerrar la hipótesis",
+          "│      ├── conservar/escalar → Link to incident",
+          "│      ├── conservar/escalar → bookmark → incidente (Azure)",
+          "│      ├── conservar → tabla mediante KQL job o Notebook job",
+          "recogida en el apartado 2. Si hay compromiso activo, responder de inmediato."
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-10-hunting/2-elegir-la-superficie-conservar-el-hallazgo-y-decidir-si-debe-repetirse-1",
+      "introduction": "Trabaja los conceptos de «2 · Elegir la superficie, conservar el hallazgo y decidir si debe repetirse» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Conservar hallazgos con el mecanismo de cada superficie.",
+        "Respetar esquema al materializar resultados.",
+        "Distinguir tabla de eventos y tabla de estado."
+      ],
+      "summary": [
+        "Conservar hallazgos con el mecanismo de cada superficie.",
+        "Respetar esquema al materializar resultados.",
+        "Distinguir tabla de eventos y tabla de estado."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "Quieres conservar resultados de Advanced Hunting dentro de un incidente. ¿Qué mecanismo indica su fila?",
+          "explanation": "La elección depende de la superficie, aunque ambas consultas puedan usar KQL.",
+          "objective": "Elegir escalado compatible con la superficie.",
+          "difficulty": "intermedia",
+          "id": "v25-57-ah-bookmark",
+          "evidence": [
+            "| `Advanced Hunting`                     | `security.microsoft.com` > `Investigation & response` > `Hunting` > `Advanced hunting`           | Tablas nativas de Defender XDR y tablas compatibles de los workspaces de Sentinel incorporados al portal de Defender | `Link to incident`: crea alertas a partir de los resultados y las agrupa en un incidente nuevo o existente                              | No utiliza bookmarks                                                                                                                                                                                                                                                                                                                | `Create detection rule` sobre los resultados. Se recomienda proyectar `Timestamp` y `ReportId`, y `DeviceId` para tablas de dispositivo, para enriquecer device group scope, entity scope y timeline; no son requisitos que habiliten o deshabiliten el botón |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Esperar que Favorite cree automáticamente un incidente.",
+              "why": "Guardar como favorito no es la vía de conservación/escalado indicada."
+            },
+            {
+              "id": "o1",
+              "text": "Link to incident; esa superficie no utiliza bookmarks.",
+              "why": "La elección depende de la superficie, aunque ambas consultas puedan usar KQL."
+            },
+            {
+              "id": "o2",
+              "text": "Crear siempre un bookmark desde el editor Advanced Hunting.",
+              "why": "La fila niega el uso de bookmarks en esa superficie."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Un KQL job va a anexar resultados a una tabla existente. Los nombres/tipos de salida difieren. ¿Qué hacer según la condición de su fila?",
+          "explanation": "Materializar resultados exige un contrato de nombres y tipos con la tabla destino.",
+          "objective": "Diagnosticar fallo de escritura de un job.",
+          "difficulty": "intermedia",
+          "id": "v25-57-append-schema",
+          "evidence": [
+            "| `Data lake exploration`                | `security.microsoft.com` > `Microsoft Sentinel` > `Data lake exploration`                        | Datos del Sentinel Data Lake, mediante consultas interactivas, jobs y notebooks                                      | `KQL job` o `Notebook job`: escribe resultados en una tabla para consultarlos o reutilizarlos                                           | Al anexar un KQL job a una tabla existente, el esquema de salida (nombres y tipos de columna) tiene que coincidir exacto con el de la tabla destino; si no coincide, hay que ajustar la consulta antes de enviarlo, porque el job falla.                                                                                            | Programar un `KQL job` o `Notebook job` para recalcular y materializar resultados en una tabla, consultarlos o reutilizarlos después                                                                                                                          |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Confiar en que el job renombre y convierta cualquier columna automáticamente.",
+              "why": "La condición indica que, sin coincidencia, el job falla."
+            },
+            {
+              "id": "o1",
+              "text": "Cambiar solo la periodicidad sin revisar la salida.",
+              "why": "La frecuencia no resuelve la incompatibilidad de esquema."
+            },
+            {
+              "id": "o2",
+              "text": "Ajustar la consulta para que el esquema coincida antes de enviarlo.",
+              "why": "Materializar resultados exige un contrato de nombres y tipos con la tabla destino."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Un bookmark existe pero no aparece en el investigation graph. ¿Qué requisito específico de la fila hay que revisar?",
+          "explanation": "El grafo necesita una entidad con la que relacionar el hallazgo; texto o resultado guardado por sí solo no basta.",
+          "objective": "Relacionar conservación y representación en grafo.",
+          "difficulty": "intermedia",
+          "id": "v25-57-bookmark-graph",
+          "evidence": [
+            "| `Logs` / hunting de Microsoft Sentinel | Workspace de Log Analytics; para hunting, `Microsoft Sentinel` > `Threat management` > `Hunting` | Tablas del workspace, según las capacidades de su table plan                                                         | `bookmark`: conserva la fila, consulta, intervalo temporal, notas, etiquetas, entidades y técnicas MITRE; puede añadirse a un incidente | Se crea desde Logs abierto en el contexto de Sentinel en el portal de Azure. En Defender se ven los existentes, pero no se crean nuevos. Necesita al menos una entidad mapeada para aparecer en el investigation graph (grafo que muestra cómo se relacionan las entidades detectadas (dispositivos, archivos, procesos, usuarios)) | Para alertar desde Hunting: `New alert rule` > `Create Microsoft Sentinel alert` abre el asistente de analytics rules con la consulta cargada. Para recalcular y guardar resúmenes: `Summary rule` programada                                                 |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Que toda fila haya generado antes una alerta nativa MDE.",
+              "why": "El requisito del bookmark no exige esa alerta previa."
+            },
+            {
+              "id": "o1",
+              "text": "Que tenga al menos una entidad mapeada.",
+              "why": "El grafo necesita una entidad con la que relacionar el hallazgo; texto o resultado guardado por sí solo no basta."
+            },
+            {
+              "id": "o2",
+              "text": "Que la consulta use todos los campos de todas las tablas.",
+              "why": "La condición indicada es entidad mapeada, no selección indiscriminada."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "¿Qué diferencia evita suponer que una fila IdentityInfo está tan fresca como un DeviceProcessEvents recién recibido?",
+          "explanation": "Un estado de entidad no es un evento puntual; su cadencia se comprueba por tabla, no por su producto.",
+          "objective": "Interpretar actualidad y granularidad de una tabla.",
+          "difficulty": "intermedia",
+          "id": "v25-57-frescura",
+          "evidence": [
+            "- La frescura depende del tipo de tabla, no del workload: las de evento (`DeviceProcessEvents`) llegan casi en tiempo real; las de entidad (`DeviceInfo`, `IdentityInfo`, `OAuthAppInfo`) describen estado y pueden tener varias filas por entidad, cada una con su propia regla de actualización (`IdentityInfo`: por cambio o cada 24 horas, sin regla universal). MDO no tiene una tabla de entidad consolidada; sus tablas `*Info` contienen metadatos asociados a mensajes, no un resumen persistente de una entidad."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Una tabla de entidad siempre tiene exactamente una fila por identidad.",
+              "why": "El apartado admite varias filas por entidad con su propia actualización."
+            },
+            {
+              "id": "o1",
+              "text": "Las tablas de evento y de entidad tienen reglas de actualización diferentes.",
+              "why": "Un estado de entidad no es un evento puntual; su cadencia se comprueba por tabla, no por su producto."
+            },
+            {
+              "id": "o2",
+              "text": "La frescura es idéntica para todas las tablas del mismo workload.",
+              "why": "El texto dice que depende del tipo de tabla."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [
+        "No se evalúan columnas calificadas como recomendadas/no habilitantes, cuotas CPU ni latencia fija del lake sin comprobación adicional."
+      ],
+      "audit": {
+        "mainConcepts": [
+          "Conservar hallazgos con el mecanismo de cada superficie.",
+          "Respetar esquema al materializar resultados.",
+          "Distinguir tabla de eventos y tabla de estado."
+        ],
+        "understanding": [
+          "Conservar hallazgos con el mecanismo de cada superficie.",
+          "Respetar esquema al materializar resultados.",
+          "Distinguir tabla de eventos y tabla de estado."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Conservar hallazgos con el mecanismo de cada superficie.",
+          "Respetar esquema al materializar resultados.",
+          "Distinguir tabla de eventos y tabla de estado."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "Guardar como favorito no es la vía de conservación/escalado indicada.",
+          "La fila niega el uso de bookmarks en esa superficie.",
+          "La condición indica que, sin coincidencia, el job falla.",
+          "La frecuencia no resuelve la incompatibilidad de esquema.",
+          "El requisito del bookmark no exige esa alerta previa."
+        ],
+        "evidence": [
+          "| `Advanced Hunting`                     | `security.microsoft.com` > `Investigation & response` > `Hunting` > `Advanced hunting`           | Tablas nativas de Defender XDR y tablas compatibles de los workspaces de Sentinel incorporados al portal de Defender | `Link to incident`: crea alertas a partir de los resultados y las agrupa en un incidente nuevo o existente                              | No utiliza bookmarks                                                                                                                                                                                                                                                                                                                | `Create detection rule` sobre los resultados. Se recomienda proyectar `Timestamp` y `ReportId`, y `DeviceId` para tablas de dispositivo, para enriquecer device group scope, entity scope y timeline; no son requisitos que habiliten o deshabiliten el botón |",
+          "| `Data lake exploration`                | `security.microsoft.com` > `Microsoft Sentinel` > `Data lake exploration`                        | Datos del Sentinel Data Lake, mediante consultas interactivas, jobs y notebooks                                      | `KQL job` o `Notebook job`: escribe resultados en una tabla para consultarlos o reutilizarlos                                           | Al anexar un KQL job a una tabla existente, el esquema de salida (nombres y tipos de columna) tiene que coincidir exacto con el de la tabla destino; si no coincide, hay que ajustar la consulta antes de enviarlo, porque el job falla.                                                                                            | Programar un `KQL job` o `Notebook job` para recalcular y materializar resultados en una tabla, consultarlos o reutilizarlos después                                                                                                                          |",
+          "| `Logs` / hunting de Microsoft Sentinel | Workspace de Log Analytics; para hunting, `Microsoft Sentinel` > `Threat management` > `Hunting` | Tablas del workspace, según las capacidades de su table plan                                                         | `bookmark`: conserva la fila, consulta, intervalo temporal, notas, etiquetas, entidades y técnicas MITRE; puede añadirse a un incidente | Se crea desde Logs abierto en el contexto de Sentinel en el portal de Azure. En Defender se ven los existentes, pero no se crean nuevos. Necesita al menos una entidad mapeada para aparecer en el investigation graph (grafo que muestra cómo se relacionan las entidades detectadas (dispositivos, archivos, procesos, usuarios)) | Para alertar desde Hunting: `New alert rule` > `Create Microsoft Sentinel alert` abre el asistente de analytics rules con la consulta cargada. Para recalcular y guardar resúmenes: `Summary rule` programada                                                 |",
+          "- La frescura depende del tipo de tabla, no del workload: las de evento (`DeviceProcessEvents`) llegan casi en tiempo real; las de entidad (`DeviceInfo`, `IdentityInfo`, `OAuthAppInfo`) describen estado y pueden tener varias filas por entidad, cada una con su propia regla de actualización (`IdentityInfo`: por cambio o cada 24 horas, sin regla universal). MDO no tiene una tabla de entidad consolidada; sus tablas `*Info` contienen metadatos asociados a mensajes, no un resumen persistente de una entidad."
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-10-hunting/3-consultar-interpretar-y-ampliar-1",
+      "introduction": "Trabaja los conceptos de «3 · Consultar, interpretar y ampliar» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Elegir mecanismo por ubicación, duración y necesidad de guardar.",
+        "Distinguir resumen, coincidencias y restauración de intervalo.",
+        "Interpretar catálogos, workbooks y grafos."
+      ],
+      "summary": [
+        "Elegir mecanismo por ubicación, duración y necesidad de guardar.",
+        "Distinguir resumen, coincidencias y restauración de intervalo.",
+        "Interpretar catálogos, workbooks y grafos."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "match",
+          "prompt": "Relaciona objetivo y mecanismo de Logs.",
+          "explanation": "Resumen, selección de coincidencias y restauración del intervalo producen artefactos diferentes.",
+          "objective": "Elegir mecanismo según el resultado necesario.",
+          "difficulty": "intermedia",
+          "id": "v25-58-logs-mecanismos",
+          "evidence": [
+            "| `Summary rule` | Analytics, Basic, Auxiliary o Data Lake; excluye `System tables`             | `Configuration` > `Summary rules`                           | Agregar periódicamente grandes volúmenes en una tabla custom de Analytics. Salud de ejecución en `LASummaryLogs`                                                 | Lookback máximo de 1 día; frecuencia de 20 min a 24 h; timeout de 10 min                                   | Hasta 500.000 resultados; no consulta tablas federadas                                                                                                                                                            |",
+            "| `Search job`   | Analytics, Basic, Auxiliary o Data Lake; excluye `System tables`             | `Search`                                                    | Buscar eventos concretos y copiar las coincidencias a una tabla Analytics `_SRCH`, consultable con KQL completo                                                  | Intervalo máximo de 1 año por búsqueda en Sentinel, dentro de la retención disponible; timeout de 24 horas | Hasta 100 millones de resultados y 10 jobs simultáneos por workspace. Consulta inicial limitada a `where`, `extend`, `project*` y `parse*`; sin `join` ni `contains` — se usa `has`. No consulta tablas federadas |",
+            "| `Restore`      | Retención a largo plazo de Analytics o Basic; no Auxiliary ni Data Lake tier | `Search` > `Restore`, directamente o desde `Saved searches` | Investigar todo un intervalo con KQL completo mediante una vista `_RST` en caché activa (del 01/02 - 0/08). Borrarla libera la restauración sin borrar el origen | Intervalo mínimo de 2 días; la vista depende de que siga disponible el dato de origen                      | Cada restore admite hasta 60 TB; puedes tener dos activos a la vez por workspace, solo uno por tabla, y ejecutar hasta cuatro por tabla cada semana.                                                              |"
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "Agregar periódicamente grandes volúmenes"
+            },
+            {
+              "id": "r1",
+              "label": "Copiar coincidencias históricas a Analytics _SRCH"
+            },
+            {
+              "id": "r2",
+              "label": "Investigar un intervalo completo en vista _RST"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "Summary rule"
+            },
+            {
+              "id": "p1",
+              "text": "Search job"
+            },
+            {
+              "id": "p2",
+              "text": "Restore"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1",
+            "p2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Un IOC obliga a revisar datos de hace tres años. ¿Qué criterio propone el ejemplo antes de elegir herramienta?",
+          "explanation": "Ubicación, duración prevista y necesidad de persistir resultados determinan el mecanismo apropiado.",
+          "objective": "Razonar sobre herramienta sin atajos por edad del dato.",
+          "difficulty": "intermedia",
+          "id": "v25-58-antiguedad",
+          "evidence": [
+            "Ejemplo del texto: ante un IOC recién publicado y la duda de si tocó el entorno hace tres años, primero se ve dónde vive el dato — si está en el Data Lake, se elige interactivo/async según duración prevista, o KQL job si hay que programar o materializar; si está en la retención a largo plazo del workspace, corresponde un Search job. La antigüedad sola no determina la herramienta."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Toda búsqueda de más de un año debe ser notebook aunque sea sencilla.",
+              "why": "El texto no deduce el mecanismo solo del rango temporal."
+            },
+            {
+              "id": "o1",
+              "text": "Dónde vive el dato y si hay que consultar, programar o materializar; la antigüedad sola no decide.",
+              "why": "Ubicación, duración prevista y necesidad de persistir resultados determinan el mecanismo apropiado."
+            },
+            {
+              "id": "o2",
+              "text": "Toda búsqueda antigua exige siempre Restore sin mirar el tier.",
+              "why": "El ejemplo distingue lake y retención del workspace."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Una consulta excederá el timeout interactivo, pero no necesita programación ni tabla persistida. ¿Qué opción lake encaja?",
+          "explanation": "Una consulta larga no se convierte necesariamente en un job: ese se elige cuando hay programación o materialización.",
+          "objective": "Distinguir ejecución asíncrona y materialización.",
+          "difficulty": "intermedia",
+          "id": "v25-58-async-job",
+          "evidence": [
+            "| Interactivo: `async query`                      | Cuando se prevé que la consulta exceda el timeout interactivo                                                                                          | Corre en segundo plano hasta 1 hora; resultado en caché 24 horas; no crea ningún job                                                                                                                                                               |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "KQL job obligatorio aunque no se necesite materialización.",
+              "why": "El texto separa async interactivo y job persistente/programable."
+            },
+            {
+              "id": "o1",
+              "text": "Workbooks para eliminar cualquier límite de ejecución.",
+              "why": "Un workbook guarda layout y lee datos, no elimina el timeout del motor."
+            },
+            {
+              "id": "o2",
+              "text": "Async query, que corre en segundo plano sin crear un job.",
+              "why": "Una consulta larga no se convierte necesariamente en un job: ese se elige cuando hay programación o materialización."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Results delta muestra N/A. ¿Qué interpretación señala el texto?",
+          "explanation": "Ausencia de una métrica calculable y un cero medido son estados distintos; comprobar fuente y activación antes de concluir.",
+          "objective": "Distinguir dato ausente y resultado cero.",
+          "difficulty": "intermedia",
+          "id": "v25-58-delta-na",
+          "evidence": [
+            "- En la pestaña `Queries`: marcarla `Favorite` hace que corra sola al abrir la página. `Results delta` compara las últimas 24 horas contra las 24-48 anteriores; si muestra `N/A` no significa cero coincidencias, significa que falta una fuente de datos o que la consulta no está activa."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Falta una fuente de datos o la consulta no está activa; no significa cero coincidencias.",
+              "why": "Ausencia de una métrica calculable y un cero medido son estados distintos; comprobar fuente y activación antes de concluir."
+            },
+            {
+              "id": "o1",
+              "text": "Se confirmó que no hubo ninguna coincidencia.",
+              "why": "El apartado niega esa equivalencia."
+            },
+            {
+              "id": "o2",
+              "text": "La hipótesis quedó validada automáticamente como falsa.",
+              "why": "La falta de resultados evaluables no demuestra la hipótesis falsa."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "¿Qué conserva un workbook según el apartado?",
+          "explanation": "Un panel sirve para seguimiento visual y tendencias, pero no es un mecanismo de conservación de evidencia cruda.",
+          "objective": "Separar visualización y almacenamiento.",
+          "difficulty": "intermedia",
+          "id": "v25-58-workbook",
+          "evidence": [
+            "`Workbooks`: paneles visuales interactivos (gráficos, tablas, mapas) armados sobre consultas `KQL`, para monitorear tendencias y patrones de forma continua — no para una investigación puntual. Sirven para reportar postura de seguridad, seguir el volumen de una fuente de datos, o dar seguimiento visual a una amenaza específica a lo largo del tiempo. Como guarda el `JSON` del layout (no los datos), siempre lee la telemetría en vivo cada vez que se abre."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Un job de remediación ejecutable por cada gráfico.",
+              "why": "Se describe como panel visual sobre consultas, no como ejecutor de remediación."
+            },
+            {
+              "id": "o1",
+              "text": "El JSON del layout; consulta la telemetría al abrirse, no almacena una copia de los datos.",
+              "why": "Un panel sirve para seguimiento visual y tendencias, pero no es un mecanismo de conservación de evidencia cruda."
+            },
+            {
+              "id": "o2",
+              "text": "Una copia histórica inmutable de todos los registros consultados.",
+              "why": "El texto dice que guarda layout, no datos."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [
+        "No se evalúan cuotas/tiempos exactos ni estados preview de grafos. El ejemplo de fechas Restore está incompleto en el Markdown y se excluye."
+      ],
+      "audit": {
+        "mainConcepts": [
+          "Elegir mecanismo por ubicación, duración y necesidad de guardar.",
+          "Distinguir resumen, coincidencias y restauración de intervalo.",
+          "Interpretar catálogos, workbooks y grafos."
+        ],
+        "understanding": [
+          "Elegir mecanismo por ubicación, duración y necesidad de guardar.",
+          "Distinguir resumen, coincidencias y restauración de intervalo.",
+          "Interpretar catálogos, workbooks y grafos."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Elegir mecanismo por ubicación, duración y necesidad de guardar.",
+          "Distinguir resumen, coincidencias y restauración de intervalo.",
+          "Interpretar catálogos, workbooks y grafos."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "El texto no deduce el mecanismo solo del rango temporal.",
+          "El ejemplo distingue lake y retención del workspace.",
+          "El texto separa async interactivo y job persistente/programable.",
+          "Un workbook guarda layout y lee datos, no elimina el timeout del motor.",
+          "El apartado niega esa equivalencia."
+        ],
+        "evidence": [
+          "| `Summary rule` | Analytics, Basic, Auxiliary o Data Lake; excluye `System tables`             | `Configuration` > `Summary rules`                           | Agregar periódicamente grandes volúmenes en una tabla custom de Analytics. Salud de ejecución en `LASummaryLogs`                                                 | Lookback máximo de 1 día; frecuencia de 20 min a 24 h; timeout de 10 min                                   | Hasta 500.000 resultados; no consulta tablas federadas                                                                                                                                                            |",
+          "| `Search job`   | Analytics, Basic, Auxiliary o Data Lake; excluye `System tables`             | `Search`                                                    | Buscar eventos concretos y copiar las coincidencias a una tabla Analytics `_SRCH`, consultable con KQL completo                                                  | Intervalo máximo de 1 año por búsqueda en Sentinel, dentro de la retención disponible; timeout de 24 horas | Hasta 100 millones de resultados y 10 jobs simultáneos por workspace. Consulta inicial limitada a `where`, `extend`, `project*` y `parse*`; sin `join` ni `contains` — se usa `has`. No consulta tablas federadas |",
+          "| `Restore`      | Retención a largo plazo de Analytics o Basic; no Auxiliary ni Data Lake tier | `Search` > `Restore`, directamente o desde `Saved searches` | Investigar todo un intervalo con KQL completo mediante una vista `_RST` en caché activa (del 01/02 - 0/08). Borrarla libera la restauración sin borrar el origen | Intervalo mínimo de 2 días; la vista depende de que siga disponible el dato de origen                      | Cada restore admite hasta 60 TB; puedes tener dos activos a la vez por workspace, solo uno por tabla, y ejecutar hasta cuatro por tabla cada semana.                                                              |",
+          "Ejemplo del texto: ante un IOC recién publicado y la duda de si tocó el entorno hace tres años, primero se ve dónde vive el dato — si está en el Data Lake, se elige interactivo/async según duración prevista, o KQL job si hay que programar o materializar; si está en la retención a largo plazo del workspace, corresponde un Search job. La antigüedad sola no determina la herramienta.",
+          "| Interactivo: `async query`                      | Cuando se prevé que la consulta exceda el timeout interactivo                                                                                          | Corre en segundo plano hasta 1 hora; resultado en caché 24 horas; no crea ningún job                                                                                                                                                               |",
+          "- En la pestaña `Queries`: marcarla `Favorite` hace que corra sola al abrir la página. `Results delta` compara las últimas 24 horas contra las 24-48 anteriores; si muestra `N/A` no significa cero coincidencias, significa que falta una fuente de datos o que la consulta no está activa.",
+          "`Workbooks`: paneles visuales interactivos (gráficos, tablas, mapas) armados sobre consultas `KQL`, para monitorear tendencias y patrones de forma continua — no para una investigación puntual. Sirven para reportar postura de seguridad, seguir el volumen de una fuente de datos, o dar seguimiento visual a una amenaza específica a lo largo del tiempo. Como guarda el `JSON` del layout (no los datos), siempre lee la telemetría en vivo cada vez que se abre."
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-11-respuesta-y-remediacion/11-respuesta-y-remediacion-1",
+      "introduction": "Trabaja los conceptos de «11 · Respuesta y remediación» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Distinguir contención, remediación y recuperación.",
+        "Actuar con evidencia mientras sigue la investigación.",
+        "Verificar antes de devolver el activo al servicio."
+      ],
+      "summary": [
+        "Distinguir contención, remediación y recuperación.",
+        "Actuar con evidencia mientras sigue la investigación.",
+        "Verificar antes de devolver el activo al servicio."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "match",
+          "prompt": "Relaciona cada objetivo con su fase.",
+          "explanation": "Son objetivos consecutivos pero distintos: aislar no prueba limpieza y devolver servicio exige verificación.",
+          "objective": "Distinguir objetivos de respuesta.",
+          "difficulty": "intermedia",
+          "id": "v25-59-fases",
+          "evidence": [
+            "Con evidencia suficiente, se actúa sobre el activo afectado aunque la investigación siga abierta. Contener limita el ataque; remediar elimina la amenaza y su persistencia; recuperar devuelve el activo al servicio. Aislar un equipo no demuestra que esté limpio."
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "Limitar el ataque"
+            },
+            {
+              "id": "r1",
+              "label": "Eliminar amenaza y persistencia"
+            },
+            {
+              "id": "r2",
+              "label": "Devolver el activo al servicio"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "Contener"
+            },
+            {
+              "id": "p1",
+              "text": "Remediar"
+            },
+            {
+              "id": "p2",
+              "text": "Recuperar"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1",
+            "p2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Hay evidencia suficiente y la investigación sigue abierta. ¿Qué permite el apartado?",
+          "explanation": "La respuesta se guía por evidencia suficiente y urgencia; no por que haya terminado toda la reconstrucción del caso.",
+          "objective": "Coordinar investigación y respuesta.",
+          "difficulty": "intermedia",
+          "id": "v25-59-investigacion-abierta",
+          "evidence": [
+            "Con evidencia suficiente, se actúa sobre el activo afectado aunque la investigación siga abierta. Contener limita el ataque; remediar elimina la amenaza y su persistencia; recuperar devuelve el activo al servicio. Aislar un equipo no demuestra que esté limpio."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Declarar dominio o limpieza por abrir live response.",
+              "why": "Abrir una sesión no verifica remediación."
+            },
+            {
+              "id": "o1",
+              "text": "Actuar sobre el activo afectado sin esperar a cerrar la investigación.",
+              "why": "La respuesta se guía por evidencia suficiente y urgencia; no por que haya terminado toda la reconstrucción del caso."
+            },
+            {
+              "id": "o2",
+              "text": "Esperar siempre al cierre del case para cualquier contención.",
+              "why": "El texto admite actuar mientras la investigación continúa."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Se aisló un equipo. ¿Qué falta para recuperar el servicio de forma segura según el recorrido?",
+          "explanation": "La contención reduce impacto, pero la recuperación requiere evidencia de que la amenaza y persistencia se eliminaron.",
+          "objective": "Evitar recuperar un activo solo porque fue contenido.",
+          "difficulty": "intermedia",
+          "id": "v25-59-aislar-limpio",
+          "evidence": [
+            "Con evidencia suficiente, se actúa sobre el activo afectado aunque la investigación siga abierta. Contener limita el ataque; remediar elimina la amenaza y su persistencia; recuperar devuelve el activo al servicio. Aislar un equipo no demuestra que esté limpio.",
+            "4 · Verificar que el activo es seguro → revertir contención y recuperar"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Cambiar solo el título del incidente.",
+              "why": "Un cambio de metadatos no comprueba el estado del activo."
+            },
+            {
+              "id": "o1",
+              "text": "Comprobar remediación y que el activo es seguro antes de revertir contención.",
+              "why": "La contención reduce impacto, pero la recuperación requiere evidencia de que la amenaza y persistencia se eliminaron."
+            },
+            {
+              "id": "o2",
+              "text": "Nada: aislar ya demuestra eliminación de persistencia.",
+              "why": "El apartado niega que aislar pruebe limpieza."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [],
+      "audit": {
+        "mainConcepts": [
+          "Distinguir contención, remediación y recuperación.",
+          "Actuar con evidencia mientras sigue la investigación.",
+          "Verificar antes de devolver el activo al servicio."
+        ],
+        "understanding": [
+          "Distinguir contención, remediación y recuperación.",
+          "Actuar con evidencia mientras sigue la investigación.",
+          "Verificar antes de devolver el activo al servicio."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Distinguir contención, remediación y recuperación.",
+          "Actuar con evidencia mientras sigue la investigación.",
+          "Verificar antes de devolver el activo al servicio."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "Abrir una sesión no verifica remediación.",
+          "El texto admite actuar mientras la investigación continúa.",
+          "Un cambio de metadatos no comprueba el estado del activo.",
+          "El apartado niega que aislar pruebe limpieza."
+        ],
+        "evidence": [
+          "Con evidencia suficiente, se actúa sobre el activo afectado aunque la investigación siga abierta. Contener limita el ataque; remediar elimina la amenaza y su persistencia; recuperar devuelve el activo al servicio. Aislar un equipo no demuestra que esté limpio.",
+          "Con evidencia suficiente, se actúa sobre el activo afectado aunque la investigación siga abierta. Contener limita el ataque; remediar elimina la amenaza y su persistencia; recuperar devuelve el activo al servicio. Aislar un equipo no demuestra que esté limpio.",
+          "Con evidencia suficiente, se actúa sobre el activo afectado aunque la investigación siga abierta. Contener limita el ataque; remediar elimina la amenaza y su persistencia; recuperar devuelve el activo al servicio. Aislar un equipo no demuestra que esté limpio.",
+          "4 · Verificar que el activo es seguro → revertir contención y recuperar"
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    }
+  ]
+}

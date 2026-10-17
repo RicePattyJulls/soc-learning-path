@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R01-L05",
+  "title": "Primer razonamiento de búsqueda",
+  "revision": "c25f6cf6be1d5e03ae30cf38",
+  "sourceVersion": "ce9d142b28843c9f3db0d1fccda3a12faa98c9c53be95bbf44508bfc84ebd77c",
+  "sanitizedHash": "ce9d142b28843c9f3db0d1fccda3a12faa98c9c53be95bbf44508bfc84ebd77c",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R01_R03/R01_FUNDAMENTOS/SP-R01-L05.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Traducir una pregunta del analista a índice, fuente, campos y ventana",
+  "preamble": "# SP-R01-L05 — Primer razonamiento de búsqueda\n\n**Región:** Puerto de Splunk (SP-R01) · **Prioridad:** P0 SOC N1/N2  \n**Estado:** material didáctico redactado; revisión humana recomendada. **SPL no ejecutado en Splunk real.**  \n**ID estable propuesto:** `SP-R01-L05` (no migrado a React)  \n**Prerrequisitos orientativos:** SP-R01-L01  \n**Objetivo del currículo:** Traducir una pregunta del analista a índice, fuente, campos y ventana\n\n",
+  "sections": [
+    {
+      "id": "SP-R01-L05-S01",
+      "title": "1. La pregunta que resuelve esta lección",
+      "markdown": "## 1. La pregunta que resuelve esta lección\n\nAntes de SPL define pregunta, fuente, evidencia, ventana, permisos y campos realmente presentes.\n\n**Al completar la lección podrás:** Traducir una pregunta del analista a índice, fuente, campos y ventana. Debes explicar el porqué y los límites, no memorizar solo comandos.\n\n",
+      "line": 9,
+      "endLine": 13
+    },
+    {
+      "id": "SP-R01-L05-S02",
+      "title": "2. Desarrollo del conocimiento",
+      "markdown": "## 2. Desarrollo del conocimiento\n\nUna investigación no empieza copiando un SPL de internet. Empieza definiendo “¿qué quiero demostrar?” y el conjunto de eventos que podría contestarlo. Por ejemplo, “fallos de autenticación para una identidad en un intervalo” requiere saber de qué sistema procede el login, qué dato representa resultado, cómo se identifica al usuario y cómo se interpreta la hora.\nSi no tienes índice conocido, primero trabaja con un administrador o un inventario autorizado. Buscar `index=SigninLogs` porque conoces esa tabla Microsoft supone una correspondencia que puede no existir. Tras localizar datos pertinentes, examina sourcetypes y campos, reduce la ventana y solo después formula agregaciones.\n\n",
+      "line": 15,
+      "endLine": 18
+    },
+    {
+      "id": "SP-R01-L05-S03",
+      "title": "3. Método de trabajo reproducible",
+      "markdown": "## 3. Método de trabajo reproducible\n\n1. Escribe una hipótesis falsable y una pregunta observable.\n2. Selecciona fuente y ventana con justificación.\n3. Anota índice/sourcetype y permisos confirmados.\n4. Comprueba el campo que codifica éxito o fallo.\n5. Conserva una conclusión provisional y los vacíos de telemetría.\n\n",
+      "line": 20,
+      "endLine": 26
+    },
+    {
+      "id": "SP-R01-L05-S04",
+      "title": "4. Caso guiado — de la pregunta a la evidencia",
+      "markdown": "## 4. Caso guiado — de la pregunta a la evidencia\n\nPregunta: “¿desde qué direcciones hubo más fallos de login del servicio X en los últimos 30 minutos?”. Primero verificar si la fuente del servicio X ingresa eventos, cómo se expresa el resultado y qué campo es IP. Sin esas comprobaciones, un conteo es estadísticamente preciso sobre los datos equivocados.\n\n### Esquema o ejemplo técnico\n\n```spl\nindex=INDICE_CONFIRMADO earliest=-30m\n| stats count by sourcetype\n```\n\n**Cómo interpretarlo:** La consulta devuelve conteos por sourcetype en el índice/ventana seleccionados, no demuestra si hay o no ataques. Cambiar placeholders y respetar capacidades.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n",
+      "line": 28,
+      "endLine": 41
+    },
+    {
+      "id": "SP-R01-L05-S05",
+      "title": "5. Diagnóstico y errores frecuentes",
+      "markdown": "## 5. Diagnóstico y errores frecuentes\n\nSaltar al umbral sin saber si el campo indica fallo; hacer búsquedas globales costosas; equiparar ventanas del evento con hora de recepción.\n\n**Conexión con SC-200 (no equivalencia automática):** Cap. 09 (investigación), líneas 1987–2104; cap. 13 (KQL), líneas 2517–2810.. En Splunk los esquemas, permisos y familias de producto son diferentes; verifica la correspondencia antes de reutilizar una técnica.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 43,
+      "endLine": 50
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R01-L05-Q01",
+      "lessonId": "SP-R01-L05",
+      "prompt": "¿Qué se debe conocer antes de buscar intentos fallidos?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A6",
+        "SPLUNK_LECCIONES_R01_R03:A14"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R01-L05-Q01-O-5f418582f479",
+          "text": "Índice, fuente, tiempo y semántica de resultado"
+        },
+        {
+          "id": "SP-R01-L05-Q01-O-0c1c9869bf61",
+          "text": "El índice y la identidad, dejando el significado de fallo para después del conteo"
+        },
+        {
+          "id": "SP-R01-L05-Q01-O-145097638d92",
+          "text": "El nombre del dashboard y el total de usuarios del entorno"
+        },
+        {
+          "id": "SP-R01-L05-Q01-O-f339262504c4",
+          "text": "La IP origen y el umbral, sin identificar la fuente de autenticación"
+        }
+      ],
+      "solution": "SP-R01-L05-Q01-O-5f418582f479",
+      "explanation": "Sin cobertura y definición del campo de resultado los conteos no son interpretables.",
+      "anchors": [
+        {
+          "file": "R01_FUNDAMENTOS/SP-R01-L05.md",
+          "sourceHash": "ce9d142b28843c9f3db0d1fccda3a12faa98c9c53be95bbf44508bfc84ebd77c",
+          "line": 15,
+          "endLine": 18,
+          "quote": "## 2. Desarrollo del conocimiento\n\nUna investigación no empieza copiando un SPL de internet. Empieza definiendo “¿qué quiero demostrar?” y el conjunto de eventos que podría contestarlo. Por ejemplo, “fallos de autenticación para una identidad en un intervalo” requiere saber de qué sistema procede el login, qué dato representa resultado, cómo se identifica al usuario y cómo se interpreta la hora.\nSi no tienes índice conocido, primero trabaja con un administrador o un inventario autorizado. Buscar `index=SigninLogs` porque conoces esa tabla Microsoft supone una correspondencia que puede no existir. Tras localizar datos pertinentes, examina sourcetypes y campos, reduce la ventana y solo después formula agregaciones.\n\n"
+        },
+        {
+          "file": "R01_FUNDAMENTOS/SP-R01-L05.md",
+          "sourceHash": "ce9d142b28843c9f3db0d1fccda3a12faa98c9c53be95bbf44508bfc84ebd77c",
+          "line": 28,
+          "endLine": 41,
+          "quote": "## 4. Caso guiado — de la pregunta a la evidencia\n\nPregunta: “¿desde qué direcciones hubo más fallos de login del servicio X en los últimos 30 minutos?”. Primero verificar si la fuente del servicio X ingresa eventos, cómo se expresa el resultado y qué campo es IP. Sin esas comprobaciones, un conteo es estadísticamente preciso sobre los datos equivocados.\n\n### Esquema o ejemplo técnico\n\n```spl\nindex=INDICE_CONFIRMADO earliest=-30m\n| stats count by sourcetype\n```\n\n**Cómo interpretarlo:** La consulta devuelve conteos por sourcetype en el índice/ventana seleccionados, no demuestra si hay o no ataques. Cambiar placeholders y respetar capacidades.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R01-L05-Q02",
+      "lessonId": "SP-R01-L05",
+      "prompt": "¿Qué demuestra `stats count by sourcetype`?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A6",
+        "SPLUNK_LECCIONES_R01_R03:A14"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R01-L05-Q02-O-e277e41c40f5",
+          "text": "Número de dispositivos únicos de cada sourcetype"
+        },
+        {
+          "id": "SP-R01-L05-Q02-O-6c469b5944e4",
+          "text": "Cobertura de todas las fuentes esperadas aunque no hayan enviado eventos"
+        },
+        {
+          "id": "SP-R01-L05-Q02-O-041afe5c9f16",
+          "text": "Conteo de eventos recuperados agrupados por sourcetype"
+        },
+        {
+          "id": "SP-R01-L05-Q02-O-7283484a2a02",
+          "text": "Número de valores distintos de usuario por sourcetype"
+        }
+      ],
+      "solution": "SP-R01-L05-Q02-O-041afe5c9f16",
+      "explanation": "La estadística resume eventos devueltos, no su naturaleza maliciosa.",
+      "anchors": [
+        {
+          "file": "R01_FUNDAMENTOS/SP-R01-L05.md",
+          "sourceHash": "ce9d142b28843c9f3db0d1fccda3a12faa98c9c53be95bbf44508bfc84ebd77c",
+          "line": 15,
+          "endLine": 18,
+          "quote": "## 2. Desarrollo del conocimiento\n\nUna investigación no empieza copiando un SPL de internet. Empieza definiendo “¿qué quiero demostrar?” y el conjunto de eventos que podría contestarlo. Por ejemplo, “fallos de autenticación para una identidad en un intervalo” requiere saber de qué sistema procede el login, qué dato representa resultado, cómo se identifica al usuario y cómo se interpreta la hora.\nSi no tienes índice conocido, primero trabaja con un administrador o un inventario autorizado. Buscar `index=SigninLogs` porque conoces esa tabla Microsoft supone una correspondencia que puede no existir. Tras localizar datos pertinentes, examina sourcetypes y campos, reduce la ventana y solo después formula agregaciones.\n\n"
+        },
+        {
+          "file": "R01_FUNDAMENTOS/SP-R01-L05.md",
+          "sourceHash": "ce9d142b28843c9f3db0d1fccda3a12faa98c9c53be95bbf44508bfc84ebd77c",
+          "line": 28,
+          "endLine": 41,
+          "quote": "## 4. Caso guiado — de la pregunta a la evidencia\n\nPregunta: “¿desde qué direcciones hubo más fallos de login del servicio X en los últimos 30 minutos?”. Primero verificar si la fuente del servicio X ingresa eventos, cómo se expresa el resultado y qué campo es IP. Sin esas comprobaciones, un conteo es estadísticamente preciso sobre los datos equivocados.\n\n### Esquema o ejemplo técnico\n\n```spl\nindex=INDICE_CONFIRMADO earliest=-30m\n| stats count by sourcetype\n```\n\n**Cómo interpretarlo:** La consulta devuelve conteos por sourcetype en el índice/ventana seleccionados, no demuestra si hay o no ataques. Cambiar placeholders y respetar capacidades.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R01-L05-P01",
+      "lessonId": "SP-R01-L05",
+      "prompt": "Diseña la pregunta investigable para “muchos accesos raros” sin asumir campos ni fuentes.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A6",
+        "SPLUNK_LECCIONES_R01_R03:A14"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica los datos/condiciones necesarios",
+        "Explica el razonamiento y no solo el resultado",
+        "Reconoce al menos una limitación o comprobación adicional"
+      ],
+      "referenceAnswer": "Pregunta operativa: para servicios e identidades identificados, ¿cuántos intentos fallidos hubo por IP/usuario en la ventana verificada, comparado con su baseline? Primero localizar cobertura y esquema."
+    }
+  ],
+  "solutionsMarkdown": "## 7. Solucionario con razonamiento\n\n- **SP-R01-L05-Q01: A** — Sin cobertura y definición del campo de resultado los conteos no son interpretables.\n\n- **SP-R01-L05-Q02: C** — La estadística resume eventos devueltos, no su naturaleza maliciosa.\n\n- **SP-R01-L05-P01:** Pregunta operativa: para servicios e identidades identificados, ¿cuántos intentos fallidos hubo por IP/usuario en la ventana verificada, comparado con su baseline? Primero localizar cobertura y esquema.\n\n**Guía de retroalimentación formativa:** Identifica los datos/condiciones necesarios; Explica el razonamiento y no solo el resultado; Reconoce al menos una limitación o comprobación adicional.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 8. Fuentes y trazabilidad\n\n- **Fuente de partida:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE2_BLOQUE1.md`, según la organización del paquete de investigación que conservas.\n- **Fuente Microsoft de contraste:** `../../01_FUENTE_ORIGINAL/SC-200.md`; Cap. 09 (investigación), líneas 1987–2104; cap. 13 (KQL), líneas 2517–2810.\n- **[A6]** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/time-format-variables-and-modifiers/time-modifiers\n- **[A14]** https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.6/optimize-searches/quick-tips-for-optimization\n\n**Estado de confianza:** documentación técnica citada y propuesta pedagógica; no validado contra índices, sourcetypes, roles o versiones de tu laboratorio. Las URLs provienen de la investigación del 16/10/2026, con contraste puntual adicional de documentación oficial para HEC y forwarders. Ver `FUENTES_Y_LIMITES.md`.\n",
+  "originalMarkdown": "# SP-R01-L05 — Primer razonamiento de búsqueda\n\n**Región:** Puerto de Splunk (SP-R01) · **Prioridad:** P0 SOC N1/N2  \n**Estado:** material didáctico redactado; revisión humana recomendada. **SPL no ejecutado en Splunk real.**  \n**ID estable propuesto:** `SP-R01-L05` (no migrado a React)  \n**Prerrequisitos orientativos:** SP-R01-L01  \n**Objetivo del currículo:** Traducir una pregunta del analista a índice, fuente, campos y ventana\n\n## 1. La pregunta que resuelve esta lección\n\nAntes de SPL define pregunta, fuente, evidencia, ventana, permisos y campos realmente presentes.\n\n**Al completar la lección podrás:** Traducir una pregunta del analista a índice, fuente, campos y ventana. Debes explicar el porqué y los límites, no memorizar solo comandos.\n\n## 2. Desarrollo del conocimiento\n\nUna investigación no empieza copiando un SPL de internet. Empieza definiendo “¿qué quiero demostrar?” y el conjunto de eventos que podría contestarlo. Por ejemplo, “fallos de autenticación para una identidad en un intervalo” requiere saber de qué sistema procede el login, qué dato representa resultado, cómo se identifica al usuario y cómo se interpreta la hora.\nSi no tienes índice conocido, primero trabaja con un administrador o un inventario autorizado. Buscar `index=SigninLogs` porque conoces esa tabla Microsoft supone una correspondencia que puede no existir. Tras localizar datos pertinentes, examina sourcetypes y campos, reduce la ventana y solo después formula agregaciones.\n\n## 3. Método de trabajo reproducible\n\n1. Escribe una hipótesis falsable y una pregunta observable.\n2. Selecciona fuente y ventana con justificación.\n3. Anota índice/sourcetype y permisos confirmados.\n4. Comprueba el campo que codifica éxito o fallo.\n5. Conserva una conclusión provisional y los vacíos de telemetría.\n\n## 4. Caso guiado — de la pregunta a la evidencia\n\nPregunta: “¿desde qué direcciones hubo más fallos de login del servicio X en los últimos 30 minutos?”. Primero verificar si la fuente del servicio X ingresa eventos, cómo se expresa el resultado y qué campo es IP. Sin esas comprobaciones, un conteo es estadísticamente preciso sobre los datos equivocados.\n\n### Esquema o ejemplo técnico\n\n```spl\nindex=INDICE_CONFIRMADO earliest=-30m\n| stats count by sourcetype\n```\n\n**Cómo interpretarlo:** La consulta devuelve conteos por sourcetype en el índice/ventana seleccionados, no demuestra si hay o no ataques. Cambiar placeholders y respetar capacidades.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n## 5. Diagnóstico y errores frecuentes\n\nSaltar al umbral sin saber si el campo indica fallo; hacer búsquedas globales costosas; equiparar ventanas del evento con hora de recepción.\n\n**Conexión con SC-200 (no equivalencia automática):** Cap. 09 (investigación), líneas 1987–2104; cap. 13 (KQL), líneas 2517–2810.. En Splunk los esquemas, permisos y familias de producto son diferentes; verifica la correspondencia antes de reutilizar una técnica.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 6. Actividades\n\n### SP-R01-L05-Q01 — Opción múltiple\n\n¿Qué se debe conocer antes de buscar intentos fallidos?\n\nA. Índice, fuente, tiempo y semántica de resultado\nB. El índice y la identidad, dejando el significado de fallo para después del conteo\nC. El nombre del dashboard y el total de usuarios del entorno\nD. La IP origen y el umbral, sin identificar la fuente de autenticación\n\n### SP-R01-L05-Q02 — Opción múltiple\n\n¿Qué demuestra `stats count by sourcetype`?\n\nA. Número de dispositivos únicos de cada sourcetype\nB. Cobertura de todas las fuentes esperadas aunque no hayan enviado eventos\nC. Conteo de eventos recuperados agrupados por sourcetype\nD. Número de valores distintos de usuario por sourcetype\n\n### SP-R01-L05-P01 — Práctica abierta formativa\n\nDiseña la pregunta investigable para “muchos accesos raros” sin asumir campos ni fuentes.\n\n## 7. Solucionario con razonamiento\n\n- **SP-R01-L05-Q01: A** — Sin cobertura y definición del campo de resultado los conteos no son interpretables.\n\n- **SP-R01-L05-Q02: C** — La estadística resume eventos devueltos, no su naturaleza maliciosa.\n\n- **SP-R01-L05-P01:** Pregunta operativa: para servicios e identidades identificados, ¿cuántos intentos fallidos hubo por IP/usuario en la ventana verificada, comparado con su baseline? Primero localizar cobertura y esquema.\n\n**Guía de retroalimentación formativa:** Identifica los datos/condiciones necesarios; Explica el razonamiento y no solo el resultado; Reconoce al menos una limitación o comprobación adicional.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Fuentes y trazabilidad\n\n- **Fuente de partida:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE2_BLOQUE1.md`, según la organización del paquete de investigación que conservas.\n- **Fuente Microsoft de contraste:** `../../01_FUENTE_ORIGINAL/SC-200.md`; Cap. 09 (investigación), líneas 1987–2104; cap. 13 (KQL), líneas 2517–2810.\n- **[A6]** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/time-format-variables-and-modifiers/time-modifiers\n- **[A14]** https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.6/optimize-searches/quick-tips-for-optimization\n\n**Estado de confianza:** documentación técnica citada y propuesta pedagógica; no validado contra índices, sourcetypes, roles o versiones de tu laboratorio. Las URLs provienen de la investigación del 16/10/2026, con contraste puntual adicional de documentación oficial para HEC y forwarders. Ver `FUENTES_Y_LIMITES.md`.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 8,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "A6",
+      "key": "SPLUNK_LECCIONES_R01_R03:A6",
+      "url": "https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/time-format-variables-and-modifiers/time-modifiers"
+    },
+    {
+      "id": "A14",
+      "key": "SPLUNK_LECCIONES_R01_R03:A14",
+      "url": "https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.6/optimize-searches/quick-tips-for-optimization"
+    }
+  ]
+}

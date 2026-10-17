@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R08-L04",
+  "title": "Acceso inicial y password spraying",
+  "revision": "0671683d3efc6f66abafbc9c",
+  "sourceVersion": "4933e7f1b577953ee56527e3087682f2d83f3d9d2c6c61d6c3b1647c89bb33c9",
+  "sanitizedHash": "4933e7f1b577953ee56527e3087682f2d83f3d9d2c6c61d6c3b1647c89bb33c9",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R08_R09/R08_THREAT_HUNTING/SP-R08-L04.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Distinguir cuenta única vs múltiples identidades y éxito posterior",
+  "preamble": "# SP-R08-L04 — Acceso inicial y password spraying\n\n**Región:** SP-R08 · **Estado:** borrador editorial para revisión · **SPL:** ilustrativo NO ejecutado.\n\n**Resultado de aprendizaje curricular:** Distinguir cuenta única vs múltiples identidades y éxito posterior.\n\n**Prerrequisitos:** R01–R07 según tema; R08 para agrupación/escalado R09. **Producto:** plataforma Splunk para SPL genérico; funciones ES 8.7/SOAR solo cuando se indiquen.\n\n",
+  "sections": [
+    {
+      "id": "SP-R08-L04-S01",
+      "title": "1. Explicación técnica",
+      "markdown": "## 1. Explicación técnica\n\nPassword spraying prueba una o pocas contraseñas contra muchas cuentas; no es lo mismo que múltiples intentos contra una identidad. En un SIEM la observación útil puede ser «un mismo origen produce fallos en varios usuarios en una ventana definida», seguida de posibles éxitos. Esta correlación por IP no identifica necesariamente una máquina: NAT, proxy, VPN y gateways pueden agregar usuarios legítimos.\n\nDefine primero si la señal procede de un proveedor de identidad, de un DC, de un servicio VPN o de hosts Windows. Las propiedades de 4625/4624 y los identificadores en la extracción cambian por fuente. Correlaciona `user`, `src`, resultado, tipo de inicio de sesión y entorno de la identidad. Un éxito posterior no demuestra que haya tenido lugar compromiso.\n\nUn detector puede fallar por ataques de bajo volumen, rotación de orígenes o cobertura parcial. Registra esa limitación y compara con horario, MFA, geolocalización fiable, dispositivo gestionado y alertas de identidad, sin tratar cada campo como prueba de malicia.\n\n",
+      "line": 9,
+      "endLine": 15
+    },
+    {
+      "id": "SP-R08-L04-S02",
+      "title": "2. Conceptos que debes distinguir",
+      "markdown": "## 2. Conceptos que debes distinguir\n\n1. Distinción spraying frente a brute force sobre un solo usuario\n2. Cardinalidad de cuentas y tasa de fallos como señales analíticas\n3. NAT/proxy y control de fuentes como sesgos de atribución\n4. Éxito posterior como señal a investigar, no compromiso automático\n\n",
+      "line": 17,
+      "endLine": 22
+    },
+    {
+      "id": "SP-R08-L04-S03",
+      "title": "3. Procedimiento reproducible y seguro",
+      "markdown": "## 3. Procedimiento reproducible y seguro\n\n1. Comprueba extracción homogénea de éxito/fallo entre fuentes.\n2. Agrupa por origen y ventana de 15 minutos.\n3. Compara cantidad total de fallos y usuarios distintos.\n4. Busca éxitos cercanos y factores de autenticación posteriores.\n5. Excluye pruebas autorizadas y eleva si hay varias pruebas independientes.\n\n",
+      "line": 24,
+      "endLine": 30
+    },
+    {
+      "id": "SP-R08-L04-S04",
+      "title": "4. SPL ilustrativo (solo lectura; no probado)",
+      "markdown": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_AUTH sourcetype=ST_AUTH status=\"failure\"\n| bin _time span=15m\n| stats count AS fallos dc(user) AS cuentas BY src _time\n| where fallos>=5 AND cuentas>=5\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n",
+      "line": 32,
+      "endLine": 41
+    },
+    {
+      "id": "SP-R08-L04-S05",
+      "title": "5. Escenario SOC",
+      "markdown": "## 5. Escenario SOC\n\nUna IP de documentación `198.51.100.33` falla en seis identidades; otra falla cinco veces con el mismo usuario. La primera coincide con definición didáctica de spraying; ninguna atribución está demostrada.\n\nLos cinco fallos globales de 198.51.100.44 no están en un mismo bucket: B01–B04 pertenecen a 11:00 UTC y B05 a 11:15 UTC. La consulta de esta lección devuelve 4/1 y 1/1 antes del umbral y no selecciona esa IP. LAB08-C utiliza un agregado global sin bin: allí sí obtiene 5/1. No confundir no coincidencia con benignidad.\n\n## 6. Errores frecuentes\n\n1. Usar solo `count` sin `dc(user)`\n2. Ignorar NAT y accesos SSO\n3. Asumir que no hubo spraying si no aparece un 4625\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 43,
+      "endLine": 56
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R08-L04-Q01",
+      "lessonId": "SP-R08-L04",
+      "prompt": "¿Qué separa spraying de fuerza bruta tradicional?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D03"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R08-L04-Q01-O-22d68224fe7d",
+          "text": "El tipo de sistema operativo que envía los registros"
+        },
+        {
+          "id": "SP-R08-L04-Q01-O-a47c2954bd8a",
+          "text": "La presencia de un único éxito, sin distribución de fallos por cuenta"
+        },
+        {
+          "id": "SP-R08-L04-Q01-O-43f9ef2f4c6f",
+          "text": "La distribución entre identidades frente a intentos concentrados en una cuenta, dentro de una ventana"
+        },
+        {
+          "id": "SP-R08-L04-Q01-O-d184a18acb0f",
+          "text": "La dirección pública o privada de la IP que registra los intentos"
+        }
+      ],
+      "solution": "SP-R08-L04-Q01-O-43f9ef2f4c6f",
+      "explanation": "Spraying distribuye intentos entre varias cuentas.",
+      "anchors": [
+        {
+          "file": "R08_THREAT_HUNTING/SP-R08-L04.md",
+          "sourceHash": "4933e7f1b577953ee56527e3087682f2d83f3d9d2c6c61d6c3b1647c89bb33c9",
+          "line": 17,
+          "endLine": 22,
+          "quote": "## 2. Conceptos que debes distinguir\n\n1. Distinción spraying frente a brute force sobre un solo usuario\n2. Cardinalidad de cuentas y tasa de fallos como señales analíticas\n3. NAT/proxy y control de fuentes como sesgos de atribución\n4. Éxito posterior como señal a investigar, no compromiso automático\n\n"
+        },
+        {
+          "file": "R08_THREAT_HUNTING/SP-R08-L04.md",
+          "sourceHash": "4933e7f1b577953ee56527e3087682f2d83f3d9d2c6c61d6c3b1647c89bb33c9",
+          "line": 32,
+          "endLine": 41,
+          "quote": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_AUTH sourcetype=ST_AUTH status=\"failure\"\n| bin _time span=15m\n| stats count AS fallos dc(user) AS cuentas BY src _time\n| where fallos>=5 AND cuentas>=5\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R08-L04-Q02",
+      "lessonId": "SP-R08-L04",
+      "prompt": "¿Qué implica un éxito tras varios fallos?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D03"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R08-L04-Q02-O-20e686721190",
+          "text": "Que basta con la proximidad temporal para cerrar como compromiso"
+        },
+        {
+          "id": "SP-R08-L04-Q02-O-be46b2ff5105",
+          "text": "Hipótesis que requiere MFA, origen y contexto"
+        },
+        {
+          "id": "SP-R08-L04-Q02-O-e736c913c500",
+          "text": "Que el éxito utiliza la misma contraseña probada en los fallos"
+        },
+        {
+          "id": "SP-R08-L04-Q02-O-953b03b72af3",
+          "text": "Que una autenticación exitosa invalida los fallos anteriores como señal"
+        }
+      ],
+      "solution": "SP-R08-L04-Q02-O-be46b2ff5105",
+      "explanation": "La sucesión temporal no prueba relación causal ni abuso.",
+      "anchors": [
+        {
+          "file": "R08_THREAT_HUNTING/SP-R08-L04.md",
+          "sourceHash": "4933e7f1b577953ee56527e3087682f2d83f3d9d2c6c61d6c3b1647c89bb33c9",
+          "line": 17,
+          "endLine": 22,
+          "quote": "## 2. Conceptos que debes distinguir\n\n1. Distinción spraying frente a brute force sobre un solo usuario\n2. Cardinalidad de cuentas y tasa de fallos como señales analíticas\n3. NAT/proxy y control de fuentes como sesgos de atribución\n4. Éxito posterior como señal a investigar, no compromiso automático\n\n"
+        },
+        {
+          "file": "R08_THREAT_HUNTING/SP-R08-L04.md",
+          "sourceHash": "4933e7f1b577953ee56527e3087682f2d83f3d9d2c6c61d6c3b1647c89bb33c9",
+          "line": 32,
+          "endLine": 41,
+          "quote": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_AUTH sourcetype=ST_AUTH status=\"failure\"\n| bin _time span=15m\n| stats count AS fallos dc(user) AS cuentas BY src _time\n| where fallos>=5 AND cuentas>=5\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R08-L04-P01",
+      "lessonId": "SP-R08-L04",
+      "prompt": "Clasifica S01–S06 y B01–B05 del fixture y redacta un siguiente paso seguro.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D03"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Distingue fuente, campos y alcance de la pregunta",
+        "Diseña un método reproducible sin inferencia abusiva",
+        "Separa señales, hipótesis, contraejemplos y ausencia de datos",
+        "Comunica siguiente paso seguro y evidencia para otro analista"
+      ],
+      "referenceAnswer": "S01–S06: seis fallos y seis cuentas desde 198.51.100.33 en el bucket 11:00 UTC; candidato no confirmado. B01–B05: cinco fallos globales de una cuenta; por buckets son cuatro/una a 11:00 y uno/una a 11:15. Ninguna regla >=5 fallos por bucket selecciona esa segunda cohorte. No inferir benignidad de no coincidencia; corroborar IdP, MFA y contexto."
+    }
+  ],
+  "solutionsMarkdown": "## 8. Solucionario con razonamiento\n\n- **SP-R08-L04-Q01: C** — Spraying distribuye intentos entre varias cuentas.\n\n- **SP-R08-L04-Q02: B** — La sucesión temporal no prueba relación causal ni abuso.\n\n- **SP-R08-L04-P01:** S01–S06: seis fallos y seis cuentas desde 198.51.100.33 en el bucket 11:00 UTC; candidato no confirmado. B01–B05: cinco fallos globales de una cuenta; por buckets son cuatro/una a 11:00 y uno/una a 11:15. Ninguna regla >=5 fallos por bucket selecciona esa segunda cohorte. No inferir benignidad de no coincidencia; corroborar IdP, MFA y contexto.\n\n**Guía de retroalimentación formativa:** Distingue fuente, campos y alcance de la pregunta; Diseña un método reproducible sin inferencia abusiva; Separa señales, hipótesis, contraejemplos y ausencia de datos; Comunica siguiente paso seguro y evidencia para otro analista.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 9. Fuentes verificables y conexiones\n\n- **D03:** MITRE ATT&CK — Password Spraying (T1110.003) — https://attack.mitre.org/techniques/T1110/003/\n\n- **Puente SC-200:** Capítulos 07–10, 13 (detección y agregación por entidad/tiempo). La comparación es conceptual, no una equivalencia producto a producto.\n- **Fuente curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` en la carpeta padre `SPLUNK_MASTER_RESEARCH`.\n- **Calidad:** [DOC] referencias externas consultables; [DISEÑO] escenario y actividad originales; [OFFLINE] solo cálculos de fixture; [NO PROBADO] SPL no ejecutado en Splunk. La revisión técnica independiente queda pendiente.\n",
+  "originalMarkdown": "# SP-R08-L04 — Acceso inicial y password spraying\n\n**Región:** SP-R08 · **Estado:** borrador editorial para revisión · **SPL:** ilustrativo NO ejecutado.\n\n**Resultado de aprendizaje curricular:** Distinguir cuenta única vs múltiples identidades y éxito posterior.\n\n**Prerrequisitos:** R01–R07 según tema; R08 para agrupación/escalado R09. **Producto:** plataforma Splunk para SPL genérico; funciones ES 8.7/SOAR solo cuando se indiquen.\n\n## 1. Explicación técnica\n\nPassword spraying prueba una o pocas contraseñas contra muchas cuentas; no es lo mismo que múltiples intentos contra una identidad. En un SIEM la observación útil puede ser «un mismo origen produce fallos en varios usuarios en una ventana definida», seguida de posibles éxitos. Esta correlación por IP no identifica necesariamente una máquina: NAT, proxy, VPN y gateways pueden agregar usuarios legítimos.\n\nDefine primero si la señal procede de un proveedor de identidad, de un DC, de un servicio VPN o de hosts Windows. Las propiedades de 4625/4624 y los identificadores en la extracción cambian por fuente. Correlaciona `user`, `src`, resultado, tipo de inicio de sesión y entorno de la identidad. Un éxito posterior no demuestra que haya tenido lugar compromiso.\n\nUn detector puede fallar por ataques de bajo volumen, rotación de orígenes o cobertura parcial. Registra esa limitación y compara con horario, MFA, geolocalización fiable, dispositivo gestionado y alertas de identidad, sin tratar cada campo como prueba de malicia.\n\n## 2. Conceptos que debes distinguir\n\n1. Distinción spraying frente a brute force sobre un solo usuario\n2. Cardinalidad de cuentas y tasa de fallos como señales analíticas\n3. NAT/proxy y control de fuentes como sesgos de atribución\n4. Éxito posterior como señal a investigar, no compromiso automático\n\n## 3. Procedimiento reproducible y seguro\n\n1. Comprueba extracción homogénea de éxito/fallo entre fuentes.\n2. Agrupa por origen y ventana de 15 minutos.\n3. Compara cantidad total de fallos y usuarios distintos.\n4. Busca éxitos cercanos y factores de autenticación posteriores.\n5. Excluye pruebas autorizadas y eleva si hay varias pruebas independientes.\n\n## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_AUTH sourcetype=ST_AUTH status=\"failure\"\n| bin _time span=15m\n| stats count AS fallos dc(user) AS cuentas BY src _time\n| where fallos>=5 AND cuentas>=5\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n## 5. Escenario SOC\n\nUna IP de documentación `198.51.100.33` falla en seis identidades; otra falla cinco veces con el mismo usuario. La primera coincide con definición didáctica de spraying; ninguna atribución está demostrada.\n\nLos cinco fallos globales de 198.51.100.44 no están en un mismo bucket: B01–B04 pertenecen a 11:00 UTC y B05 a 11:15 UTC. La consulta de esta lección devuelve 4/1 y 1/1 antes del umbral y no selecciona esa IP. LAB08-C utiliza un agregado global sin bin: allí sí obtiene 5/1. No confundir no coincidencia con benignidad.\n\n## 6. Errores frecuentes\n\n1. Usar solo `count` sin `dc(user)`\n2. Ignorar NAT y accesos SSO\n3. Asumir que no hubo spraying si no aparece un 4625\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R08-L04-Q01 — Opción múltiple\n\n¿Qué separa spraying de fuerza bruta tradicional?\n\nA. El tipo de sistema operativo que envía los registros\nB. La presencia de un único éxito, sin distribución de fallos por cuenta\nC. La distribución entre identidades frente a intentos concentrados en una cuenta, dentro de una ventana\nD. La dirección pública o privada de la IP que registra los intentos\n\n### SP-R08-L04-Q02 — Opción múltiple\n\n¿Qué implica un éxito tras varios fallos?\n\nA. Que basta con la proximidad temporal para cerrar como compromiso\nB. Hipótesis que requiere MFA, origen y contexto\nC. Que el éxito utiliza la misma contraseña probada en los fallos\nD. Que una autenticación exitosa invalida los fallos anteriores como señal\n\n### SP-R08-L04-P01 — Práctica abierta formativa\n\nClasifica S01–S06 y B01–B05 del fixture y redacta un siguiente paso seguro.\n\n## 8. Solucionario con razonamiento\n\n- **SP-R08-L04-Q01: C** — Spraying distribuye intentos entre varias cuentas.\n\n- **SP-R08-L04-Q02: B** — La sucesión temporal no prueba relación causal ni abuso.\n\n- **SP-R08-L04-P01:** S01–S06: seis fallos y seis cuentas desde 198.51.100.33 en el bucket 11:00 UTC; candidato no confirmado. B01–B05: cinco fallos globales de una cuenta; por buckets son cuatro/una a 11:00 y uno/una a 11:15. Ninguna regla >=5 fallos por bucket selecciona esa segunda cohorte. No inferir benignidad de no coincidencia; corroborar IdP, MFA y contexto.\n\n**Guía de retroalimentación formativa:** Distingue fuente, campos y alcance de la pregunta; Diseña un método reproducible sin inferencia abusiva; Separa señales, hipótesis, contraejemplos y ausencia de datos; Comunica siguiente paso seguro y evidencia para otro analista.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 9. Fuentes verificables y conexiones\n\n- **D03:** MITRE ATT&CK — Password Spraying (T1110.003) — https://attack.mitre.org/techniques/T1110/003/\n\n- **Puente SC-200:** Capítulos 07–10, 13 (detección y agregación por entidad/tiempo). La comparación es conceptual, no una equivalencia producto a producto.\n- **Fuente curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` en la carpeta padre `SPLUNK_MASTER_RESEARCH`.\n- **Calidad:** [DOC] referencias externas consultables; [DISEÑO] escenario y actividad originales; [OFFLINE] solo cálculos de fixture; [NO PROBADO] SPL no ejecutado en Splunk. La revisión técnica independiente queda pendiente.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D03",
+      "key": "SPLUNK_LECCIONES_R08_R09:D03",
+      "url": "https://attack.mitre.org/techniques/T1110/003/"
+    }
+  ]
+}

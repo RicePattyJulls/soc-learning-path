@@ -1,0 +1,200 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R11-L05",
+  "title": "Controles de respuesta",
+  "revision": "34a784a5040a2859c5d73c4d",
+  "sourceVersion": "1c424838bb7e4a19c8cf05132dda226e9bc4ea102ec241abffd95390842fd091",
+  "sanitizedHash": "1c424838bb7e4a19c8cf05132dda226e9bc4ea102ec241abffd95390842fd091",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R10_R11/R11_AUTOMATIZACION_SOAR/SP-R11-L05.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Mínimos privilegios, aprobación humana, logs y rollback",
+  "preamble": "# SP-R11-L05 — Controles de respuesta\n\n**Región:** SP-R11 · **Producto:** Splunk Enterprise/Cloud (donde se indique) o SOAR Cloud explícito. · **Estado:** borrador documental / requiere revisión humana. · **SPL/CLI/API:** ilustrativo, NO ejecutado.\n\n**Resultado curricular:** Mínimos privilegios, aprobación humana, logs y rollback\n\n**Prerrequisitos:** R07, R09 (conceptual), R10\n\n",
+  "sections": [
+    {
+      "id": "SP-R11-L05-S01",
+      "title": "1. Explicación razonada",
+      "markdown": "## 1. Explicación razonada\n\nLa defensa no consiste solo en pedir aprobación; consiste en que una acción mutante no pueda escapar de los controles por errores de diseño. Una compuerta debe comprobar quién autoriza, qué activo será modificado, alcance temporal, evidencia, ventana de mantenimiento, riesgo operativo, caducidad de la aprobación y si el target ha cambiado desde el triage. Por ejemplo, bloquear una IP de salida de un proxy compartido puede interrumpir cientos de usuarios. La identidad y el impacto requieren una revisión humana informada.\n\nHay que combinar mínimos privilegios, separación de funciones, política por asset, logs de decisión, duración de bloqueo y reversión autorizada. Algunos enriquecimientos de «lectura» usan API externas y pueden exponer IOC o datos internos aunque no muten el destino: deben ser evaluados por privacidad y consentimiento. El usuario aprueba una acción **concreta**, no una clase indefinida de acciones futuras. Si un target o hash cambia, se debe pedir aprobación de nuevo.\n\nEn este paquete, la matriz `soar_actions.csv` identifica tareas de enriquecimiento y bloqueo como *intenciones didácticas*, nunca comandos ejecutados. La rúbrica rechaza toda solución que bloquee automáticamente un activo sin justificación y un gate configurado.\n\n",
+      "line": 9,
+      "endLine": 15
+    },
+    {
+      "id": "SP-R11-L05-S02",
+      "title": "2. Conceptos clave",
+      "markdown": "## 2. Conceptos clave\n\n1. Aprobación se vincula a acción, objetivo y vigencia\n2. Riesgo de NAT/proxy y falsos positivos\n3. Acción autorizada es de privilegio mínimo\n4. Rollback, expiración y auditoría son obligatorios\n5. Lectura externa aún puede divulgar información\n\n",
+      "line": 17,
+      "endLine": 23
+    },
+    {
+      "id": "SP-R11-L05-S03",
+      "title": "3. Procedimiento de estudio y verificación",
+      "markdown": "## 3. Procedimiento de estudio y verificación\n\n1. Clasifica intenciones como lectura, notificación y cambio de estado.\n2. Para cada cambio define impacto y evidencia requerida.\n3. Adjunta approver designado, tiempo, target exacto y expiración.\n4. Bloquea ejecución ante target cambiado o decisión caducada.\n5. Define verificación y reversión autorizadas.\n\n",
+      "line": 25,
+      "endLine": 31
+    },
+    {
+      "id": "SP-R11-L05-S04",
+      "title": "4. Política de aprobación conceptual",
+      "markdown": "## 4. Política de aprobación conceptual\n\n```text\nIF action_is_mutating:\n  REQUIRE explicit_asset AND explicit_target AND ticket_id\n  REQUIRE human_approval(target, action, expires_at)\n  IF changed_target OR expired OR insufficient_evidence: STOP\n  LOG decision without secrets; verify outcome and rollback path\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n",
+      "line": 33,
+      "endLine": 43
+    },
+    {
+      "id": "SP-R11-L05-S05",
+      "title": "5. Situación profesional",
+      "markdown": "## 5. Situación profesional\n\nEn el caso reutilizado de R06, 203.0.113.15 corresponde a mantenimiento de svc-batch en app02 (CHG-TEST-104), no al proxy. El proxy inventariado es 192.0.2.44. No bloquear ninguna de las dos IP por una etiqueta: revisar evidencia, autorización y contexto por escenario. Los targets de soar_actions.csv son intenciones independientes y no prueban que ocurriera una acción.\n\n## 6. Errores comunes\n\n1. «Aprobado una vez» para cualquier target futuro\n2. No incluir rollback/time-to-live\n3. Enviar secretos a un tercero para enriquecer indicadores\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 45,
+      "endLine": 56
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R11-L05-Q01",
+      "lessonId": "SP-R11-L05",
+      "prompt": "¿Qué debe incluir la aprobación de bloqueo?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D12",
+        "SPLUNK_LECCIONES_R10_R11:D13",
+        "SPLUNK_LECCIONES_R10_R11:D15"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R11-L05-Q01-O-992bda093846",
+          "text": "La gravedad del finding y una aprobación sin target específico"
+        },
+        {
+          "id": "SP-R11-L05-Q01-O-d56cdbffdee5",
+          "text": "Una autorización genérica para cualquier entidad del mismo índice"
+        },
+        {
+          "id": "SP-R11-L05-Q01-O-550508c5d787",
+          "text": "Acción, asset, target, expiración y responsable"
+        },
+        {
+          "id": "SP-R11-L05-Q01-O-888d9b941c32",
+          "text": "El nombre del playbook sin asset, responsable ni vencimiento"
+        }
+      ],
+      "solution": "SP-R11-L05-Q01-O-550508c5d787",
+      "explanation": "La autorización debe ligarse al efecto concreto y su vigencia.",
+      "anchors": [
+        {
+          "file": "R11_AUTOMATIZACION_SOAR/SP-R11-L05.md",
+          "sourceHash": "1c424838bb7e4a19c8cf05132dda226e9bc4ea102ec241abffd95390842fd091",
+          "line": 17,
+          "endLine": 23,
+          "quote": "## 2. Conceptos clave\n\n1. Aprobación se vincula a acción, objetivo y vigencia\n2. Riesgo de NAT/proxy y falsos positivos\n3. Acción autorizada es de privilegio mínimo\n4. Rollback, expiración y auditoría son obligatorios\n5. Lectura externa aún puede divulgar información\n\n"
+        },
+        {
+          "file": "R11_AUTOMATIZACION_SOAR/SP-R11-L05.md",
+          "sourceHash": "1c424838bb7e4a19c8cf05132dda226e9bc4ea102ec241abffd95390842fd091",
+          "line": 33,
+          "endLine": 43,
+          "quote": "## 4. Política de aprobación conceptual\n\n```text\nIF action_is_mutating:\n  REQUIRE explicit_asset AND explicit_target AND ticket_id\n  REQUIRE human_approval(target, action, expires_at)\n  IF changed_target OR expired OR insufficient_evidence: STOP\n  LOG decision without secrets; verify outcome and rollback path\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R11-L05-Q02",
+      "lessonId": "SP-R11-L05",
+      "prompt": "¿Qué respuesta corresponde si cambia el target después de aprobar?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D12",
+        "SPLUNK_LECCIONES_R10_R11:D13",
+        "SPLUNK_LECCIONES_R10_R11:D15"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R11-L05-Q02-O-8b621fd8e009",
+          "text": "Autorizar el nuevo target solo porque comparte propietario con el anterior"
+        },
+        {
+          "id": "SP-R11-L05-Q02-O-c2971e8be467",
+          "text": "Detener y requerir nueva revisión/validación"
+        },
+        {
+          "id": "SP-R11-L05-Q02-O-b4452a293e38",
+          "text": "Reutilizar el ticket si la nueva entidad conserva la misma severidad"
+        },
+        {
+          "id": "SP-R11-L05-Q02-O-80ac1c81c064",
+          "text": "Aplicar la operación y corregir después el registro de aprobación"
+        }
+      ],
+      "solution": "SP-R11-L05-Q02-O-c2971e8be467",
+      "explanation": "El permiso previo ya no describe la operación propuesta.",
+      "anchors": [
+        {
+          "file": "R11_AUTOMATIZACION_SOAR/SP-R11-L05.md",
+          "sourceHash": "1c424838bb7e4a19c8cf05132dda226e9bc4ea102ec241abffd95390842fd091",
+          "line": 17,
+          "endLine": 23,
+          "quote": "## 2. Conceptos clave\n\n1. Aprobación se vincula a acción, objetivo y vigencia\n2. Riesgo de NAT/proxy y falsos positivos\n3. Acción autorizada es de privilegio mínimo\n4. Rollback, expiración y auditoría son obligatorios\n5. Lectura externa aún puede divulgar información\n\n"
+        },
+        {
+          "file": "R11_AUTOMATIZACION_SOAR/SP-R11-L05.md",
+          "sourceHash": "1c424838bb7e4a19c8cf05132dda226e9bc4ea102ec241abffd95390842fd091",
+          "line": 33,
+          "endLine": 43,
+          "quote": "## 4. Política de aprobación conceptual\n\n```text\nIF action_is_mutating:\n  REQUIRE explicit_asset AND explicit_target AND ticket_id\n  REQUIRE human_approval(target, action, expires_at)\n  IF changed_target OR expired OR insufficient_evidence: STOP\n  LOG decision without secrets; verify outcome and rollback path\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R11-L05-P01",
+      "lessonId": "SP-R11-L05",
+      "prompt": "Analiza `soar_actions.csv`: clasifica acciones y decide qué requisitos faltan para autorizar cada una.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D12",
+        "SPLUNK_LECCIONES_R10_R11:D13",
+        "SPLUNK_LECCIONES_R10_R11:D15"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Define fuente, producto, versión y límites del contexto",
+        "Resuelve el objetivo con un procedimiento replicable y no destructivo",
+        "Identifica error, caso benigno y riesgo operacional",
+        "Documenta permisos, aprobación y evidencia para revisión humana"
+      ],
+      "referenceAnswer": "Todo cambio en firewall/directorio necesita permiso explícito con target/asset/scope, dueño, evidencia, expiración y reversión. Las tareas de lectura pueden requerir protección de datos; el fixture no autoriza ningún efecto."
+    }
+  ],
+  "solutionsMarkdown": "## 8. Solucionario con razonamiento\n\n- **SP-R11-L05-Q01: C** — La autorización debe ligarse al efecto concreto y su vigencia.\n\n- **SP-R11-L05-Q02: B** — El permiso previo ya no describe la operación propuesta.\n\n- **SP-R11-L05-P01:** Todo cambio en firewall/directorio necesita permiso explícito con target/asset/scope, dueño, evidencia, expiración y reversión. Las tareas de lectura pueden requerir protección de datos; el fixture no autoriza ningún efecto.\n\n**Guía de retroalimentación formativa:** Define fuente, producto, versión y límites del contexto; Resuelve el objetivo con un procedimiento replicable y no destructivo; Identifica error, caso benigno y riesgo operacional; Documenta permisos, aprobación y evidencia para revisión humana.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 9. Fuentes, procedencia y limitaciones\n\n- **D12:** Splunk SOAR Cloud — Playbook automation API approvals — https://help.splunk.com/en/splunk-soar/soar-cloud/develop-apps/python-playbook-api-reference/automation-api/playbook-automation-api\n- **D13:** Splunk SOAR Cloud — Approve actions — https://help.splunk.com/en/splunk-soar/soar-cloud/use-soar-cloud/get-started-using-splunk-soar-cloud/approve-actions-before-they-run-in-splunk-soar-cloud\n- **D15:** Splunk SOAR Cloud — Create playbook with approval — https://help.splunk.com/en/splunk-soar/soar-cloud/build-playbooks/use-the-playbook-editor-to-create-and-view-playbooks-to-automate-analyst-workflows/create-a-new-playbook-in-splunk-soar-cloud\n\n- **Puente SC-200:** Capítulos 02, 11 y 12: mínimos privilegios, respuesta y aprobación. Es correspondencia pedagógica, no equivalencia exacta de producto.\n- **Fuente del ID y resultado:** `SPLUNK_MASTER_RESEARCH/03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`.\n- **[DOC]:** fundamentos documentados en fuentes oficiales; no equivale a prueba de todos los supuestos.\n- **[OFFLINE]:** solo verificaciones Python sobre fixtures sintéticos.\n- **[NO EJECUTADO]:** no se ha abierto Splunk, ni SOAR, ni REST, ni se han aplicado configuraciones.\n- **[REVISIÓN]:** verificación humana del texto, respuestas, versiones y supuestos antes de integrar en React.\n",
+  "originalMarkdown": "# SP-R11-L05 — Controles de respuesta\n\n**Región:** SP-R11 · **Producto:** Splunk Enterprise/Cloud (donde se indique) o SOAR Cloud explícito. · **Estado:** borrador documental / requiere revisión humana. · **SPL/CLI/API:** ilustrativo, NO ejecutado.\n\n**Resultado curricular:** Mínimos privilegios, aprobación humana, logs y rollback\n\n**Prerrequisitos:** R07, R09 (conceptual), R10\n\n## 1. Explicación razonada\n\nLa defensa no consiste solo en pedir aprobación; consiste en que una acción mutante no pueda escapar de los controles por errores de diseño. Una compuerta debe comprobar quién autoriza, qué activo será modificado, alcance temporal, evidencia, ventana de mantenimiento, riesgo operativo, caducidad de la aprobación y si el target ha cambiado desde el triage. Por ejemplo, bloquear una IP de salida de un proxy compartido puede interrumpir cientos de usuarios. La identidad y el impacto requieren una revisión humana informada.\n\nHay que combinar mínimos privilegios, separación de funciones, política por asset, logs de decisión, duración de bloqueo y reversión autorizada. Algunos enriquecimientos de «lectura» usan API externas y pueden exponer IOC o datos internos aunque no muten el destino: deben ser evaluados por privacidad y consentimiento. El usuario aprueba una acción **concreta**, no una clase indefinida de acciones futuras. Si un target o hash cambia, se debe pedir aprobación de nuevo.\n\nEn este paquete, la matriz `soar_actions.csv` identifica tareas de enriquecimiento y bloqueo como *intenciones didácticas*, nunca comandos ejecutados. La rúbrica rechaza toda solución que bloquee automáticamente un activo sin justificación y un gate configurado.\n\n## 2. Conceptos clave\n\n1. Aprobación se vincula a acción, objetivo y vigencia\n2. Riesgo de NAT/proxy y falsos positivos\n3. Acción autorizada es de privilegio mínimo\n4. Rollback, expiración y auditoría son obligatorios\n5. Lectura externa aún puede divulgar información\n\n## 3. Procedimiento de estudio y verificación\n\n1. Clasifica intenciones como lectura, notificación y cambio de estado.\n2. Para cada cambio define impacto y evidencia requerida.\n3. Adjunta approver designado, tiempo, target exacto y expiración.\n4. Bloquea ejecución ante target cambiado o decisión caducada.\n5. Define verificación y reversión autorizadas.\n\n## 4. Política de aprobación conceptual\n\n```text\nIF action_is_mutating:\n  REQUIRE explicit_asset AND explicit_target AND ticket_id\n  REQUIRE human_approval(target, action, expires_at)\n  IF changed_target OR expired OR insufficient_evidence: STOP\n  LOG decision without secrets; verify outcome and rollback path\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n## 5. Situación profesional\n\nEn el caso reutilizado de R06, 203.0.113.15 corresponde a mantenimiento de svc-batch en app02 (CHG-TEST-104), no al proxy. El proxy inventariado es 192.0.2.44. No bloquear ninguna de las dos IP por una etiqueta: revisar evidencia, autorización y contexto por escenario. Los targets de soar_actions.csv son intenciones independientes y no prueban que ocurriera una acción.\n\n## 6. Errores comunes\n\n1. «Aprobado una vez» para cualquier target futuro\n2. No incluir rollback/time-to-live\n3. Enviar secretos a un tercero para enriquecer indicadores\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R11-L05-Q01 — Opción múltiple\n\n¿Qué debe incluir la aprobación de bloqueo?\n\nA. La gravedad del finding y una aprobación sin target específico\nB. Una autorización genérica para cualquier entidad del mismo índice\nC. Acción, asset, target, expiración y responsable\nD. El nombre del playbook sin asset, responsable ni vencimiento\n\n### SP-R11-L05-Q02 — Opción múltiple\n\n¿Qué respuesta corresponde si cambia el target después de aprobar?\n\nA. Autorizar el nuevo target solo porque comparte propietario con el anterior\nB. Detener y requerir nueva revisión/validación\nC. Reutilizar el ticket si la nueva entidad conserva la misma severidad\nD. Aplicar la operación y corregir después el registro de aprobación\n\n### SP-R11-L05-P01 — Práctica abierta formativa\n\nAnaliza `soar_actions.csv`: clasifica acciones y decide qué requisitos faltan para autorizar cada una.\n\n## 8. Solucionario con razonamiento\n\n- **SP-R11-L05-Q01: C** — La autorización debe ligarse al efecto concreto y su vigencia.\n\n- **SP-R11-L05-Q02: B** — El permiso previo ya no describe la operación propuesta.\n\n- **SP-R11-L05-P01:** Todo cambio en firewall/directorio necesita permiso explícito con target/asset/scope, dueño, evidencia, expiración y reversión. Las tareas de lectura pueden requerir protección de datos; el fixture no autoriza ningún efecto.\n\n**Guía de retroalimentación formativa:** Define fuente, producto, versión y límites del contexto; Resuelve el objetivo con un procedimiento replicable y no destructivo; Identifica error, caso benigno y riesgo operacional; Documenta permisos, aprobación y evidencia para revisión humana.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 9. Fuentes, procedencia y limitaciones\n\n- **D12:** Splunk SOAR Cloud — Playbook automation API approvals — https://help.splunk.com/en/splunk-soar/soar-cloud/develop-apps/python-playbook-api-reference/automation-api/playbook-automation-api\n- **D13:** Splunk SOAR Cloud — Approve actions — https://help.splunk.com/en/splunk-soar/soar-cloud/use-soar-cloud/get-started-using-splunk-soar-cloud/approve-actions-before-they-run-in-splunk-soar-cloud\n- **D15:** Splunk SOAR Cloud — Create playbook with approval — https://help.splunk.com/en/splunk-soar/soar-cloud/build-playbooks/use-the-playbook-editor-to-create-and-view-playbooks-to-automate-analyst-workflows/create-a-new-playbook-in-splunk-soar-cloud\n\n- **Puente SC-200:** Capítulos 02, 11 y 12: mínimos privilegios, respuesta y aprobación. Es correspondencia pedagógica, no equivalencia exacta de producto.\n- **Fuente del ID y resultado:** `SPLUNK_MASTER_RESEARCH/03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`.\n- **[DOC]:** fundamentos documentados en fuentes oficiales; no equivale a prueba de todos los supuestos.\n- **[OFFLINE]:** solo verificaciones Python sobre fixtures sintéticos.\n- **[NO EJECUTADO]:** no se ha abierto Splunk, ni SOAR, ni REST, ni se han aplicado configuraciones.\n- **[REVISIÓN]:** verificación humana del texto, respuestas, versiones y supuestos antes de integrar en React.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D12",
+      "key": "SPLUNK_LECCIONES_R10_R11:D12",
+      "url": "https://help.splunk.com/en/splunk-soar/soar-cloud/develop-apps/python-playbook-api-reference/automation-api/playbook-automation-api"
+    },
+    {
+      "id": "D13",
+      "key": "SPLUNK_LECCIONES_R10_R11:D13",
+      "url": "https://help.splunk.com/en/splunk-soar/soar-cloud/use-soar-cloud/get-started-using-splunk-soar-cloud/approve-actions-before-they-run-in-splunk-soar-cloud"
+    },
+    {
+      "id": "D15",
+      "key": "SPLUNK_LECCIONES_R10_R11:D15",
+      "url": "https://help.splunk.com/en/splunk-soar/soar-cloud/build-playbooks/use-the-playbook-editor-to-create-and-view-playbooks-to-automate-analyst-workflows/create-a-new-playbook-in-splunk-soar-cloud"
+    }
+  ]
+}

@@ -1,0 +1,200 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R07-L01",
+  "title": "De hipótesis a detección",
+  "revision": "a5fdf8e8dcd04f1b4d43a07f",
+  "sourceVersion": "bb8834dd2e16d6b906581fcab56bbf4354efd112a218a39cbc6dc1f8db9f399f",
+  "sanitizedHash": "bb8834dd2e16d6b906581fcab56bbf4354efd112a218a39cbc6dc1f8db9f399f",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R06_R07/R07_DETECTION_ENGINEERING/SP-R07-L01.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Traducir comportamiento a fuentes, filtros, exclusiones y umbral",
+  "preamble": "# SP-R07-L01 — De hipótesis a detección\n\n**Región:** SP-R07 · **Prioridad:** P0/P1 (SOC/Detection Engineering) · **Estado:** material editorial para revisión · **SPL:** NO ejecutado en Splunk.\n\n**Objetivo curricular original:** Traducir comportamiento a fuentes, filtros, exclusiones y umbral\n\n**Prerrequisitos:** R01–R06; distinguir Enterprise/Cloud y Enterprise Security. **Producto:** Splunk Enterprise/Cloud (búsquedas de lectura); funciones ES explícitamente condicionadas a Splunk Enterprise Security compatible.\n\n",
+  "sections": [
+    {
+      "id": "SP-R07-L01-S01",
+      "title": "1. Pregunta esencial y modelo mental",
+      "markdown": "## 1. Pregunta esencial y modelo mental\n\nUna detección empieza con una hipótesis falsable, no con escribir SPL al azar. La especificación explica qué comportamiento se busca, qué eventos deberían existir, cómo se normalizan, qué ventana y umbral producen un candidato, qué escenarios benignos compiten con él y cómo se medirá cobertura. Una consulta válida sintácticamente puede ser una mala detección.\n\n",
+      "line": 9,
+      "endLine": 11
+    },
+    {
+      "id": "SP-R07-L01-S02",
+      "title": "2. Conceptos que debes dominar",
+      "markdown": "## 2. Conceptos que debes dominar\n\n1. Hipótesis: una misma IP inicia múltiples fallos contra cuentas distintas en un intervalo corto; la distribución por cuentas importa tanto como el número de eventos.\n2. Fuente mínima: 4625 en hosts de destino (o equivalente con semántica verificada); requiere user y src normalizados sin atribución falsa.\n3. La condición `dc(user)>=5` no debe convertirse en umbral universal de producción; primero medir baseline por segmento y activo.\n4. Condiciones de rechazo: eventos duplicados, proxy NAT, credenciales técnicas, pruebas autorizadas, lag de ingestión, falta de parseo.\n5. Cada alerta debe adjuntar valores, ventana y eventos de origen para que el N1 pueda repetir el cálculo.\n\n",
+      "line": 13,
+      "endLine": 19
+    },
+    {
+      "id": "SP-R07-L01-S03",
+      "title": "3. Práctica guiada: del dato a la conclusión",
+      "markdown": "## 3. Práctica guiada: del dato a la conclusión\n\n1. Escribe objetivo SMART: identificar ráfagas de fallos sobre múltiples cuentas desde misma IP dentro de 15 minutos.\n2. Declara qué campos son obligatorios y qué ocurrirá si src o user faltan.\n3. Esboza consulta de lectura con `bin`, `stats count dc(user)` y umbral pedagógico.\n4. Relaciona cada posible falso positivo con datos para comprobarlo, evitando listas blancas genéricas.\n5. Define positivos, negativos y caso sin campos en una matriz de aceptación.\n\n",
+      "line": 21,
+      "endLine": 27
+    },
+    {
+      "id": "SP-R07-L01-S04",
+      "title": "4. SPL ilustrativo de solo lectura — NO probado en Splunk",
+      "markdown": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4625\n| bin _time span=15m\n| stats count AS fallos dc(user) AS cuentas values(event_id) AS ids BY src _time\n| where fallos>=5 AND cuentas>=5\n```\n\n**Interpretación, supuestos y límites:** La agregación usa ventanas discretas, no móviles. Cambiar el alineamiento del bucket puede dividir una ráfaga; ensaya borde de ventana. Origen/índice/campos son marcadores no descubiertos; no crees alertas productivas.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n",
+      "line": 29,
+      "endLine": 40
+    },
+    {
+      "id": "SP-R07-L01-S05",
+      "title": "5. Caso del turno SOC",
+      "markdown": "## 5. Caso del turno SOC\n\nUna regla separa fallos del mismo atacante a ambos lados de las 09:15. Su lógica funciona por bucket, pero subdetecta ataques distribuidos temporalmente.\n\n## 6. Errores frecuentes\n\n1. Escribir la regla antes de conocer fuentes disponibles.\n2. Seleccionar cinco como umbral “óptimo” sin baseline.\n3. Confundir una detección de spraying con compromiso de cuenta.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 42,
+      "endLine": 53
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R07-L01-Q01",
+      "lessonId": "SP-R07-L01",
+      "prompt": "¿Qué debes definir antes de escribir SPL?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D01",
+        "SPLUNK_LECCIONES_R06_R07:D14",
+        "SPLUNK_LECCIONES_R06_R07:D06"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R07-L01-Q01-O-6c99e8aa0763",
+          "text": "Hipótesis, telemetría, ventana y criterio con resultado esperado, antes de escoger operadores o umbrales"
+        },
+        {
+          "id": "SP-R07-L01-Q01-O-a11518e3996c",
+          "text": "El umbral y el horario, dejando la fuente para la primera ejecución"
+        },
+        {
+          "id": "SP-R07-L01-Q01-O-6879e9184dbc",
+          "text": "El nombre de la regla y una consulta tomada de otro entorno sin revisar campos"
+        },
+        {
+          "id": "SP-R07-L01-Q01-O-c0e86b65dc7a",
+          "text": "La severidad del caso antes de identificar qué comportamiento es observable"
+        }
+      ],
+      "solution": "SP-R07-L01-Q01-O-6c99e8aa0763",
+      "explanation": "El contrato de detección comienza por el comportamiento y sus fuentes.",
+      "anchors": [
+        {
+          "file": "R07_DETECTION_ENGINEERING/SP-R07-L01.md",
+          "sourceHash": "bb8834dd2e16d6b906581fcab56bbf4354efd112a218a39cbc6dc1f8db9f399f",
+          "line": 13,
+          "endLine": 19,
+          "quote": "## 2. Conceptos que debes dominar\n\n1. Hipótesis: una misma IP inicia múltiples fallos contra cuentas distintas en un intervalo corto; la distribución por cuentas importa tanto como el número de eventos.\n2. Fuente mínima: 4625 en hosts de destino (o equivalente con semántica verificada); requiere user y src normalizados sin atribución falsa.\n3. La condición `dc(user)>=5` no debe convertirse en umbral universal de producción; primero medir baseline por segmento y activo.\n4. Condiciones de rechazo: eventos duplicados, proxy NAT, credenciales técnicas, pruebas autorizadas, lag de ingestión, falta de parseo.\n5. Cada alerta debe adjuntar valores, ventana y eventos de origen para que el N1 pueda repetir el cálculo.\n\n"
+        },
+        {
+          "file": "R07_DETECTION_ENGINEERING/SP-R07-L01.md",
+          "sourceHash": "bb8834dd2e16d6b906581fcab56bbf4354efd112a218a39cbc6dc1f8db9f399f",
+          "line": 29,
+          "endLine": 40,
+          "quote": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4625\n| bin _time span=15m\n| stats count AS fallos dc(user) AS cuentas values(event_id) AS ids BY src _time\n| where fallos>=5 AND cuentas>=5\n```\n\n**Interpretación, supuestos y límites:** La agregación usa ventanas discretas, no móviles. Cambiar el alineamiento del bucket puede dividir una ráfaga; ensaya borde de ventana. Origen/índice/campos son marcadores no descubiertos; no crees alertas productivas.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R07-L01-Q02",
+      "lessonId": "SP-R07-L01",
+      "prompt": "¿Qué limitación presentan los buckets `bin span=15m`?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D01",
+        "SPLUNK_LECCIONES_R06_R07:D14",
+        "SPLUNK_LECCIONES_R06_R07:D06"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R07-L01-Q02-O-8be51588d9c3",
+          "text": "Se alinean a la llegada del primer evento de cada usuario"
+        },
+        {
+          "id": "SP-R07-L01-Q02-O-0d7e42ab28fe",
+          "text": "Pueden separar ráfagas próximas al borde"
+        },
+        {
+          "id": "SP-R07-L01-Q02-O-ecc3332b6872",
+          "text": "Mantienen juntas todas las ráfagas de duración menor que quince minutos"
+        },
+        {
+          "id": "SP-R07-L01-Q02-O-d76722653cff",
+          "text": "Eliminan el efecto de eventos tardíos sin adaptar el rango de búsqueda"
+        }
+      ],
+      "solution": "SP-R07-L01-Q02-O-0d7e42ab28fe",
+      "explanation": "Las ventanas discretas no equivalen a un sliding window.",
+      "anchors": [
+        {
+          "file": "R07_DETECTION_ENGINEERING/SP-R07-L01.md",
+          "sourceHash": "bb8834dd2e16d6b906581fcab56bbf4354efd112a218a39cbc6dc1f8db9f399f",
+          "line": 13,
+          "endLine": 19,
+          "quote": "## 2. Conceptos que debes dominar\n\n1. Hipótesis: una misma IP inicia múltiples fallos contra cuentas distintas en un intervalo corto; la distribución por cuentas importa tanto como el número de eventos.\n2. Fuente mínima: 4625 en hosts de destino (o equivalente con semántica verificada); requiere user y src normalizados sin atribución falsa.\n3. La condición `dc(user)>=5` no debe convertirse en umbral universal de producción; primero medir baseline por segmento y activo.\n4. Condiciones de rechazo: eventos duplicados, proxy NAT, credenciales técnicas, pruebas autorizadas, lag de ingestión, falta de parseo.\n5. Cada alerta debe adjuntar valores, ventana y eventos de origen para que el N1 pueda repetir el cálculo.\n\n"
+        },
+        {
+          "file": "R07_DETECTION_ENGINEERING/SP-R07-L01.md",
+          "sourceHash": "bb8834dd2e16d6b906581fcab56bbf4354efd112a218a39cbc6dc1f8db9f399f",
+          "line": 29,
+          "endLine": 40,
+          "quote": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4625\n| bin _time span=15m\n| stats count AS fallos dc(user) AS cuentas values(event_id) AS ids BY src _time\n| where fallos>=5 AND cuentas>=5\n```\n\n**Interpretación, supuestos y límites:** La agregación usa ventanas discretas, no móviles. Cambiar el alineamiento del bucket puede dividir una ráfaga; ensaya borde de ventana. Origen/índice/campos son marcadores no descubiertos; no crees alertas productivas.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R07-L01-P01",
+      "lessonId": "SP-R07-L01",
+      "prompt": "Redacta ficha de detección con hipótesis, cobertura, SPL de lectura, ventana, umbral, limitaciones y control de falsos positivos.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D01",
+        "SPLUNK_LECCIONES_R06_R07:D14",
+        "SPLUNK_LECCIONES_R06_R07:D06"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica datos y supuestos de la fuente",
+        "Plantea método correcto y distingue hechos de hipótesis",
+        "Explica limitaciones, alternativa benigna y telemetría ausente",
+        "Aporta evidencia, ventana e identificación reproducibles"
+      ],
+      "referenceAnswer": "Fuente 4625, user/src verificables, ventana 15m, mínimo 5 fallos/5 cuentas por IP, salida con IDs, baseline y excluidos documentados; positivos A001–A006, negativo svc-batch; inconcluso si no hay user o cobertura del sensor."
+    }
+  ],
+  "solutionsMarkdown": "### Solucionario con razonamiento\n\n- **SP-R07-L01-Q01: A** — El contrato de detección comienza por el comportamiento y sus fuentes.\n\n- **SP-R07-L01-Q02: B** — Las ventanas discretas no equivalen a un sliding window.\n\n- **SP-R07-L01-P01:** Fuente 4625, user/src verificables, ventana 15m, mínimo 5 fallos/5 cuentas por IP, salida con IDs, baseline y excluidos documentados; positivos A001–A006, negativo svc-batch; inconcluso si no hay user o cobertura del sensor.\n\n**Guía de retroalimentación formativa:** Identifica datos y supuestos de la fuente; Plantea método correcto y distingue hechos de hipótesis; Explica limitaciones, alternativa benigna y telemetría ausente; Aporta evidencia, ventana e identificación reproducibles.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 8. Bibliografía, mapeo y estatus\n\n- **D01:** Condiciones de alertas y resultados — https://help.splunk.com/en/splunk-enterprise/alert-and-respond/alerting-manual/10.0/manage-alert-trigger-conditions-and-throttling/configure-alert-trigger-conditions\n- **D14:** Splunk: estadísticas stats, eventstats, streamstats — https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.0/calculate-statistics/use-the-stats-command-and-functions\n- **D06:** Windows: 4625 fallo de inicio de sesión — https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4625\n\n- **Currículo:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` — ID, título y resultado intactos.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` — los bloques R06/R07 y laboratorios de diseño.\n- **Puente SC-200:** Capítulos 07 y 10 (detecciones e hipótesis de hunting). Documento en `../../01_FUENTE_ORIGINAL/SC-200.md`; relación conceptual, no traducción ni equivalencia garantizada.\n\n**Clasificación de evidencia:** [DOC] respaldo documental de fuentes; [DISEÑO] procedimientos y rúbricas propuestos; [OFFLINE] sólo cálculos de fixtures reproducibles; [NO PROBADO] ejemplos SPL no ejecutados en la instancia. Validación técnica/manual de contenidos pendiente antes de integrarlo en React.\n",
+  "originalMarkdown": "# SP-R07-L01 — De hipótesis a detección\n\n**Región:** SP-R07 · **Prioridad:** P0/P1 (SOC/Detection Engineering) · **Estado:** material editorial para revisión · **SPL:** NO ejecutado en Splunk.\n\n**Objetivo curricular original:** Traducir comportamiento a fuentes, filtros, exclusiones y umbral\n\n**Prerrequisitos:** R01–R06; distinguir Enterprise/Cloud y Enterprise Security. **Producto:** Splunk Enterprise/Cloud (búsquedas de lectura); funciones ES explícitamente condicionadas a Splunk Enterprise Security compatible.\n\n## 1. Pregunta esencial y modelo mental\n\nUna detección empieza con una hipótesis falsable, no con escribir SPL al azar. La especificación explica qué comportamiento se busca, qué eventos deberían existir, cómo se normalizan, qué ventana y umbral producen un candidato, qué escenarios benignos compiten con él y cómo se medirá cobertura. Una consulta válida sintácticamente puede ser una mala detección.\n\n## 2. Conceptos que debes dominar\n\n1. Hipótesis: una misma IP inicia múltiples fallos contra cuentas distintas en un intervalo corto; la distribución por cuentas importa tanto como el número de eventos.\n2. Fuente mínima: 4625 en hosts de destino (o equivalente con semántica verificada); requiere user y src normalizados sin atribución falsa.\n3. La condición `dc(user)>=5` no debe convertirse en umbral universal de producción; primero medir baseline por segmento y activo.\n4. Condiciones de rechazo: eventos duplicados, proxy NAT, credenciales técnicas, pruebas autorizadas, lag de ingestión, falta de parseo.\n5. Cada alerta debe adjuntar valores, ventana y eventos de origen para que el N1 pueda repetir el cálculo.\n\n## 3. Práctica guiada: del dato a la conclusión\n\n1. Escribe objetivo SMART: identificar ráfagas de fallos sobre múltiples cuentas desde misma IP dentro de 15 minutos.\n2. Declara qué campos son obligatorios y qué ocurrirá si src o user faltan.\n3. Esboza consulta de lectura con `bin`, `stats count dc(user)` y umbral pedagógico.\n4. Relaciona cada posible falso positivo con datos para comprobarlo, evitando listas blancas genéricas.\n5. Define positivos, negativos y caso sin campos en una matriz de aceptación.\n\n## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4625\n| bin _time span=15m\n| stats count AS fallos dc(user) AS cuentas values(event_id) AS ids BY src _time\n| where fallos>=5 AND cuentas>=5\n```\n\n**Interpretación, supuestos y límites:** La agregación usa ventanas discretas, no móviles. Cambiar el alineamiento del bucket puede dividir una ráfaga; ensaya borde de ventana. Origen/índice/campos son marcadores no descubiertos; no crees alertas productivas.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n## 5. Caso del turno SOC\n\nUna regla separa fallos del mismo atacante a ambos lados de las 09:15. Su lógica funciona por bucket, pero subdetecta ataques distribuidos temporalmente.\n\n## 6. Errores frecuentes\n\n1. Escribir la regla antes de conocer fuentes disponibles.\n2. Seleccionar cinco como umbral “óptimo” sin baseline.\n3. Confundir una detección de spraying con compromiso de cuenta.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R07-L01-Q01 — Opción múltiple\n\n¿Qué debes definir antes de escribir SPL?\n\nA. Hipótesis, telemetría, ventana y criterio con resultado esperado, antes de escoger operadores o umbrales\nB. El umbral y el horario, dejando la fuente para la primera ejecución\nC. El nombre de la regla y una consulta tomada de otro entorno sin revisar campos\nD. La severidad del caso antes de identificar qué comportamiento es observable\n\n### SP-R07-L01-Q02 — Opción múltiple\n\n¿Qué limitación presentan los buckets `bin span=15m`?\n\nA. Se alinean a la llegada del primer evento de cada usuario\nB. Pueden separar ráfagas próximas al borde\nC. Mantienen juntas todas las ráfagas de duración menor que quince minutos\nD. Eliminan el efecto de eventos tardíos sin adaptar el rango de búsqueda\n\n### SP-R07-L01-P01 — Práctica abierta formativa\n\nRedacta ficha de detección con hipótesis, cobertura, SPL de lectura, ventana, umbral, limitaciones y control de falsos positivos.\n\n### Solucionario con razonamiento\n\n- **SP-R07-L01-Q01: A** — El contrato de detección comienza por el comportamiento y sus fuentes.\n\n- **SP-R07-L01-Q02: B** — Las ventanas discretas no equivalen a un sliding window.\n\n- **SP-R07-L01-P01:** Fuente 4625, user/src verificables, ventana 15m, mínimo 5 fallos/5 cuentas por IP, salida con IDs, baseline y excluidos documentados; positivos A001–A006, negativo svc-batch; inconcluso si no hay user o cobertura del sensor.\n\n**Guía de retroalimentación formativa:** Identifica datos y supuestos de la fuente; Plantea método correcto y distingue hechos de hipótesis; Explica limitaciones, alternativa benigna y telemetría ausente; Aporta evidencia, ventana e identificación reproducibles.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Bibliografía, mapeo y estatus\n\n- **D01:** Condiciones de alertas y resultados — https://help.splunk.com/en/splunk-enterprise/alert-and-respond/alerting-manual/10.0/manage-alert-trigger-conditions-and-throttling/configure-alert-trigger-conditions\n- **D14:** Splunk: estadísticas stats, eventstats, streamstats — https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.0/calculate-statistics/use-the-stats-command-and-functions\n- **D06:** Windows: 4625 fallo de inicio de sesión — https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4625\n\n- **Currículo:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` — ID, título y resultado intactos.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` — los bloques R06/R07 y laboratorios de diseño.\n- **Puente SC-200:** Capítulos 07 y 10 (detecciones e hipótesis de hunting). Documento en `../../01_FUENTE_ORIGINAL/SC-200.md`; relación conceptual, no traducción ni equivalencia garantizada.\n\n**Clasificación de evidencia:** [DOC] respaldo documental de fuentes; [DISEÑO] procedimientos y rúbricas propuestos; [OFFLINE] sólo cálculos de fixtures reproducibles; [NO PROBADO] ejemplos SPL no ejecutados en la instancia. Validación técnica/manual de contenidos pendiente antes de integrarlo en React.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 8,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D01",
+      "key": "SPLUNK_LECCIONES_R06_R07:D01",
+      "url": "https://help.splunk.com/en/splunk-enterprise/alert-and-respond/alerting-manual/10.0/manage-alert-trigger-conditions-and-throttling/configure-alert-trigger-conditions"
+    },
+    {
+      "id": "D14",
+      "key": "SPLUNK_LECCIONES_R06_R07:D14",
+      "url": "https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.0/calculate-statistics/use-the-stats-command-and-functions"
+    },
+    {
+      "id": "D06",
+      "key": "SPLUNK_LECCIONES_R06_R07:D06",
+      "url": "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4625"
+    }
+  ]
+}

@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R09-L08",
+  "title": "Integración con SOAR",
+  "revision": "4b1e8c7b3835ef52cf80bc02",
+  "sourceVersion": "83b6d9f29eab6f1ad0a4ed0d1883b9ed8c49f0744a93992ebd177c6ef77dfef2",
+  "sanitizedHash": "83b6d9f29eab6f1ad0a4ed0d1883b9ed8c49f0744a93992ebd177c6ef77dfef2",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R08_R09/R09_ENTERPRISE_SECURITY/SP-R09-L08.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Distinguir disparadores y pasos con aprobación",
+  "preamble": "# SP-R09-L08 — Integración con SOAR\n\n**Región:** SP-R09 · **Estado:** borrador editorial para revisión · **SPL:** ilustrativo NO ejecutado.\n\n**Resultado de aprendizaje curricular:** Distinguir disparadores y pasos con aprobación.\n\n**Prerrequisitos:** R01–R07 según tema; R08 para agrupación/escalado R09. **Producto:** plataforma Splunk para SPL genérico; funciones ES 8.7/SOAR solo cuando se indiquen.\n\n",
+  "sections": [
+    {
+      "id": "SP-R09-L08-S01",
+      "title": "1. Explicación técnica",
+      "markdown": "## 1. Explicación técnica\n\nSplunk SOAR automatiza tareas por medio de apps/assets y playbooks; ES puede emparejarse con SOAR bajo versiones y permisos compatibles. Automatizar *enriquecimiento* de un indicador suele tener perfil de riesgo distinto que *aislar un endpoint, bloquear una cuenta o cambiar permisos*. Una integración correcta debe separar disparador, enriquecimientos, validación humana, acción autorizada, logging y reversión.\n\nLa documentación de ES 8.7 exige pairing y roles compatibles para ejecutar/revisar acciones y playbooks. Algunas apps requieren configuración específica de activos y servicios; no puede asumirse que un conector ejecutará una acción solo porque se visualice un botón. Un flujo sin permisos debe fallar cerrado, y una acción disruptiva puede necesitar confirmación expresa de un analista/propietario.\n\nEl proyecto enseña un runbook de papel: finding de identidad → consulta de contexto TI → verificación de dispositivo → propuesta de acción → aprobación si procedente → ejecución por operador autorizado → registro de resultado y rollback. No contiene secretos, llamadas API ni playbooks desplegables.\n\n",
+      "line": 9,
+      "endLine": 15
+    },
+    {
+      "id": "SP-R09-L08-S02",
+      "title": "2. Conceptos que debes distinguir",
+      "markdown": "## 2. Conceptos que debes distinguir\n\n1. SOAR no equivale a una saved search ni viene por defecto con Enterprise\n2. App/asset/permissions, pairing y versión como requisitos\n3. Acciones read-only versus acciones disruptivas y human-in-loop\n4. Idempotencia, logs, rollback y fail-closed\n\n",
+      "line": 17,
+      "endLine": 22
+    },
+    {
+      "id": "SP-R09-L08-S03",
+      "title": "3. Procedimiento reproducible y seguro",
+      "markdown": "## 3. Procedimiento reproducible y seguro\n\n1. Clasifica acciones por riesgo y prerequisitos.\n2. Define disparador ES y datos mínimos del finding.\n3. Automatiza solo enriquecimientos de lectura en diseño.\n4. Coloca punto de aprobación antes de acciones disruptivas.\n5. Documenta autorización, auditoría, manejo de errores y rollback.\n\n",
+      "line": 24,
+      "endLine": 30
+    },
+    {
+      "id": "SP-R09-L08-S04",
+      "title": "4. SPL ilustrativo (solo lectura; no probado)",
+      "markdown": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_FINDINGS_PRACTICA sourcetype=ST_SYNTH_FINDING\n| stats count AS hallazgos values(category) AS motivos BY entity\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n",
+      "line": 32,
+      "endLine": 39
+    },
+    {
+      "id": "SP-R09-L08-S05",
+      "title": "5. Escenario SOC",
+      "markdown": "## 5. Escenario SOC\n\nUn finding sobre `alice` permite pedir contexto en el diseño; jamás aislar equipo ni resetear credenciales solo por un score de 75 generado en CSV.\n\n## 6. Errores frecuentes\n\n1. Suponer SOAR instalado sin comprobarlo\n2. Diseñar playbook que actúa sobre IP de NAT sin revisar el activo\n3. Omitir puerta humana ante cambios de cuenta o aislamiento\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 41,
+      "endLine": 52
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R09-L08-Q01",
+      "lessonId": "SP-R09-L08",
+      "prompt": "¿Qué papel debe preceder una acción disruptiva en este diseño?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D13",
+        "SPLUNK_LECCIONES_R08_R09:D14"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R09-L08-Q01-O-0c2bc271ce0d",
+          "text": "La coincidencia TI sin verificar entidad o caducidad"
+        },
+        {
+          "id": "SP-R09-L08-Q01-O-b3ff01e853ad",
+          "text": "El umbral del score como sustituto de autorización operativa"
+        },
+        {
+          "id": "SP-R09-L08-Q01-O-e57dcd42ec46",
+          "text": "La aprobación de otro target distinto que comparta la misma IP pública"
+        },
+        {
+          "id": "SP-R09-L08-Q01-O-35e679fc91a5",
+          "text": "Aprobación humana de operador autorizado y evidencias"
+        }
+      ],
+      "solution": "SP-R09-L08-Q01-O-35e679fc91a5",
+      "explanation": "El riesgo operativo exige autorización y protección contra falsos positivos.",
+      "anchors": [
+        {
+          "file": "R09_ENTERPRISE_SECURITY/SP-R09-L08.md",
+          "sourceHash": "83b6d9f29eab6f1ad0a4ed0d1883b9ed8c49f0744a93992ebd177c6ef77dfef2",
+          "line": 17,
+          "endLine": 22,
+          "quote": "## 2. Conceptos que debes distinguir\n\n1. SOAR no equivale a una saved search ni viene por defecto con Enterprise\n2. App/asset/permissions, pairing y versión como requisitos\n3. Acciones read-only versus acciones disruptivas y human-in-loop\n4. Idempotencia, logs, rollback y fail-closed\n\n"
+        },
+        {
+          "file": "R09_ENTERPRISE_SECURITY/SP-R09-L08.md",
+          "sourceHash": "83b6d9f29eab6f1ad0a4ed0d1883b9ed8c49f0744a93992ebd177c6ef77dfef2",
+          "line": 32,
+          "endLine": 39,
+          "quote": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_FINDINGS_PRACTICA sourcetype=ST_SYNTH_FINDING\n| stats count AS hallazgos values(category) AS motivos BY entity\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R09-L08-Q02",
+      "lessonId": "SP-R09-L08",
+      "prompt": "¿Qué debe verificarse antes de describir pairing ES–SOAR como activo?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D13",
+        "SPLUNK_LECCIONES_R08_R09:D14"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R09-L08-Q02-O-24b25e7dd511",
+          "text": "Que el índice contiene findings sintéticos, sin comprobar la conexión"
+        },
+        {
+          "id": "SP-R09-L08-Q02-O-1b89843c6d94",
+          "text": "Que el nombre de la app aparece en una lista sin validar assets o roles"
+        },
+        {
+          "id": "SP-R09-L08-Q02-O-2f4c5aa7be80",
+          "text": "Compatibilidad de versión, roles, apps y configuración real"
+        },
+        {
+          "id": "SP-R09-L08-Q02-O-378077efb709",
+          "text": "Que el curso contiene un diagrama del playbook"
+        }
+      ],
+      "solution": "SP-R09-L08-Q02-O-2f4c5aa7be80",
+      "explanation": "No es una integración implícita ni universal.",
+      "anchors": [
+        {
+          "file": "R09_ENTERPRISE_SECURITY/SP-R09-L08.md",
+          "sourceHash": "83b6d9f29eab6f1ad0a4ed0d1883b9ed8c49f0744a93992ebd177c6ef77dfef2",
+          "line": 17,
+          "endLine": 22,
+          "quote": "## 2. Conceptos que debes distinguir\n\n1. SOAR no equivale a una saved search ni viene por defecto con Enterprise\n2. App/asset/permissions, pairing y versión como requisitos\n3. Acciones read-only versus acciones disruptivas y human-in-loop\n4. Idempotencia, logs, rollback y fail-closed\n\n"
+        },
+        {
+          "file": "R09_ENTERPRISE_SECURITY/SP-R09-L08.md",
+          "sourceHash": "83b6d9f29eab6f1ad0a4ed0d1883b9ed8c49f0744a93992ebd177c6ef77dfef2",
+          "line": 32,
+          "endLine": 39,
+          "quote": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_FINDINGS_PRACTICA sourcetype=ST_SYNTH_FINDING\n| stats count AS hallazgos values(category) AS motivos BY entity\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R09-L08-P01",
+      "lessonId": "SP-R09-L08",
+      "prompt": "Diseña un playbook en papel para investigar F01–F03 con puerta de aprobación, registro y rollback.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D13",
+        "SPLUNK_LECCIONES_R08_R09:D14"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Distingue fuente, campos y alcance de la pregunta",
+        "Diseña un método reproducible sin inferencia abusiva",
+        "Separa señales, hipótesis, contraejemplos y ausencia de datos",
+        "Comunica siguiente paso seguro y evidencia para otro analista"
+      ],
+      "referenceAnswer": "Trigger finding; step 1 recopilar eventos read-only; step 2 TI y validación de identidad; decision caso y aprobación expresa para cambios; step 3 acción opcional por operador; step 4 auditoría/rollback; si falla contexto o autorizaciones no cambiar nada."
+    }
+  ],
+  "solutionsMarkdown": "## 8. Solucionario con razonamiento\n\n- **SP-R09-L08-Q01: D** — El riesgo operativo exige autorización y protección contra falsos positivos.\n\n- **SP-R09-L08-Q02: C** — No es una integración implícita ni universal.\n\n- **SP-R09-L08-P01:** Trigger finding; step 1 recopilar eventos read-only; step 2 TI y validación de identidad; decision caso y aprobación expresa para cambios; step 3 acción opcional por operador; step 4 auditoría/rollback; si falla contexto o autorizaciones no cambiar nada.\n\n**Guía de retroalimentación formativa:** Distingue fuente, campos y alcance de la pregunta; Diseña un método reproducible sin inferencia abusiva; Separa señales, hipótesis, contraejemplos y ausencia de datos; Comunica siguiente paso seguro y evidencia para otro analista.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 9. Fuentes verificables y conexiones\n\n- **D13:** Splunk ES 8.7 — Pair Splunk with SOAR — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/configuration-and-settings/pair-splunk-enterprise-security-with-splunk-soar\n- **D14:** Splunk ES 8.7 — Configure SOAR apps — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/automation-with-playbooks/configure-splunk-soar-apps-in-splunk-enterprise-security\n\n- **Puente SC-200:** Capítulos 11 y 12 (respuesta, automatización y aprobaciones). La comparación es conceptual, no una equivalencia producto a producto.\n- **Fuente curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` en la carpeta padre `SPLUNK_MASTER_RESEARCH`.\n- **Calidad:** [DOC] referencias externas consultables; [DISEÑO] escenario y actividad originales; [OFFLINE] solo cálculos de fixture; [NO PROBADO] SPL no ejecutado en Splunk. La revisión técnica independiente queda pendiente.\n",
+  "originalMarkdown": "# SP-R09-L08 — Integración con SOAR\n\n**Región:** SP-R09 · **Estado:** borrador editorial para revisión · **SPL:** ilustrativo NO ejecutado.\n\n**Resultado de aprendizaje curricular:** Distinguir disparadores y pasos con aprobación.\n\n**Prerrequisitos:** R01–R07 según tema; R08 para agrupación/escalado R09. **Producto:** plataforma Splunk para SPL genérico; funciones ES 8.7/SOAR solo cuando se indiquen.\n\n## 1. Explicación técnica\n\nSplunk SOAR automatiza tareas por medio de apps/assets y playbooks; ES puede emparejarse con SOAR bajo versiones y permisos compatibles. Automatizar *enriquecimiento* de un indicador suele tener perfil de riesgo distinto que *aislar un endpoint, bloquear una cuenta o cambiar permisos*. Una integración correcta debe separar disparador, enriquecimientos, validación humana, acción autorizada, logging y reversión.\n\nLa documentación de ES 8.7 exige pairing y roles compatibles para ejecutar/revisar acciones y playbooks. Algunas apps requieren configuración específica de activos y servicios; no puede asumirse que un conector ejecutará una acción solo porque se visualice un botón. Un flujo sin permisos debe fallar cerrado, y una acción disruptiva puede necesitar confirmación expresa de un analista/propietario.\n\nEl proyecto enseña un runbook de papel: finding de identidad → consulta de contexto TI → verificación de dispositivo → propuesta de acción → aprobación si procedente → ejecución por operador autorizado → registro de resultado y rollback. No contiene secretos, llamadas API ni playbooks desplegables.\n\n## 2. Conceptos que debes distinguir\n\n1. SOAR no equivale a una saved search ni viene por defecto con Enterprise\n2. App/asset/permissions, pairing y versión como requisitos\n3. Acciones read-only versus acciones disruptivas y human-in-loop\n4. Idempotencia, logs, rollback y fail-closed\n\n## 3. Procedimiento reproducible y seguro\n\n1. Clasifica acciones por riesgo y prerequisitos.\n2. Define disparador ES y datos mínimos del finding.\n3. Automatiza solo enriquecimientos de lectura en diseño.\n4. Coloca punto de aprobación antes de acciones disruptivas.\n5. Documenta autorización, auditoría, manejo de errores y rollback.\n\n## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_FINDINGS_PRACTICA sourcetype=ST_SYNTH_FINDING\n| stats count AS hallazgos values(category) AS motivos BY entity\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n## 5. Escenario SOC\n\nUn finding sobre `alice` permite pedir contexto en el diseño; jamás aislar equipo ni resetear credenciales solo por un score de 75 generado en CSV.\n\n## 6. Errores frecuentes\n\n1. Suponer SOAR instalado sin comprobarlo\n2. Diseñar playbook que actúa sobre IP de NAT sin revisar el activo\n3. Omitir puerta humana ante cambios de cuenta o aislamiento\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R09-L08-Q01 — Opción múltiple\n\n¿Qué papel debe preceder una acción disruptiva en este diseño?\n\nA. La coincidencia TI sin verificar entidad o caducidad\nB. El umbral del score como sustituto de autorización operativa\nC. La aprobación de otro target distinto que comparta la misma IP pública\nD. Aprobación humana de operador autorizado y evidencias\n\n### SP-R09-L08-Q02 — Opción múltiple\n\n¿Qué debe verificarse antes de describir pairing ES–SOAR como activo?\n\nA. Que el índice contiene findings sintéticos, sin comprobar la conexión\nB. Que el nombre de la app aparece en una lista sin validar assets o roles\nC. Compatibilidad de versión, roles, apps y configuración real\nD. Que el curso contiene un diagrama del playbook\n\n### SP-R09-L08-P01 — Práctica abierta formativa\n\nDiseña un playbook en papel para investigar F01–F03 con puerta de aprobación, registro y rollback.\n\n## 8. Solucionario con razonamiento\n\n- **SP-R09-L08-Q01: D** — El riesgo operativo exige autorización y protección contra falsos positivos.\n\n- **SP-R09-L08-Q02: C** — No es una integración implícita ni universal.\n\n- **SP-R09-L08-P01:** Trigger finding; step 1 recopilar eventos read-only; step 2 TI y validación de identidad; decision caso y aprobación expresa para cambios; step 3 acción opcional por operador; step 4 auditoría/rollback; si falla contexto o autorizaciones no cambiar nada.\n\n**Guía de retroalimentación formativa:** Distingue fuente, campos y alcance de la pregunta; Diseña un método reproducible sin inferencia abusiva; Separa señales, hipótesis, contraejemplos y ausencia de datos; Comunica siguiente paso seguro y evidencia para otro analista.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 9. Fuentes verificables y conexiones\n\n- **D13:** Splunk ES 8.7 — Pair Splunk with SOAR — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/configuration-and-settings/pair-splunk-enterprise-security-with-splunk-soar\n- **D14:** Splunk ES 8.7 — Configure SOAR apps — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/automation-with-playbooks/configure-splunk-soar-apps-in-splunk-enterprise-security\n\n- **Puente SC-200:** Capítulos 11 y 12 (respuesta, automatización y aprobaciones). La comparación es conceptual, no una equivalencia producto a producto.\n- **Fuente curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` en la carpeta padre `SPLUNK_MASTER_RESEARCH`.\n- **Calidad:** [DOC] referencias externas consultables; [DISEÑO] escenario y actividad originales; [OFFLINE] solo cálculos de fixture; [NO PROBADO] SPL no ejecutado en Splunk. La revisión técnica independiente queda pendiente.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D13",
+      "key": "SPLUNK_LECCIONES_R08_R09:D13",
+      "url": "https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/configuration-and-settings/pair-splunk-enterprise-security-with-splunk-soar"
+    },
+    {
+      "id": "D14",
+      "key": "SPLUNK_LECCIONES_R08_R09:D14",
+      "url": "https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/automation-with-playbooks/configure-splunk-soar-apps-in-splunk-enterprise-security"
+    }
+  ]
+}

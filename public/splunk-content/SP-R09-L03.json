@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R09-L03",
+  "title": "Finding-based detections",
+  "revision": "4e98abd77ba18d039fa3048a",
+  "sourceVersion": "e2b477df93787ed3d7bdd9b2c1c071a60702e3ac28734375d5a0732faa5baf1f",
+  "sanitizedHash": "e2b477df93787ed3d7bdd9b2c1c071a60702e3ac28734375d5a0732faa5baf1f",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R08_R09/R09_ENTERPRISE_SECURITY/SP-R09-L03.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Entender agregación sobre findings y grupos",
+  "preamble": "# SP-R09-L03 — Finding-based detections\n\n**Región:** SP-R09 · **Estado:** borrador editorial para revisión · **SPL:** ilustrativo NO ejecutado.\n\n**Resultado de aprendizaje curricular:** Entender agregación sobre findings y grupos.\n\n**Prerrequisitos:** R01–R07 según tema; R08 para agrupación/escalado R09. **Producto:** plataforma Splunk para SPL genérico; funciones ES 8.7/SOAR solo cuando se indiquen.\n\n",
+  "sections": [
+    {
+      "id": "SP-R09-L03-S01",
+      "title": "1. Explicación técnica",
+      "markdown": "## 1. Explicación técnica\n\nEn ES 8.7, una *finding-based detection* trabaja sobre findings o intermediate findings y puede agregarlos alrededor de entidades o conductas. Su finalidad difiere de una event-based detection: no vuelve a afirmar que cada raw event sea sospechoso, sino que identifica relaciones entre resultados de analíticas previas. La documentación de ES describe consultas de su modelo de riesgo y macros/estructuras para construir finding groups; **no basta con `stats` sobre cualquier CSV para desplegar esta funcionalidad**.\n\nAgrupar requiere claves estables: entidad normalizada, período, fuente/identificador y versiones de detecciones. Si dos hallazgos comparten IP detrás de NAT, agruparlos por `src` podría mezclar usuarios. Si comparten `user` pero provienen de identidades homónimas en distintos dominios, hay otro sesgo.\n\nEn los ejercicios, la agregación mediante `stats` es una **aproximación pedagógica offline**, no una implementación de una finding-based detection real ni reproducción de la sintaxis/tstats necesaria en la instancia ES.\n\n",
+      "line": 9,
+      "endLine": 15
+    },
+    {
+      "id": "SP-R09-L03-S02",
+      "title": "2. Conceptos que debes distinguir",
+      "markdown": "## 2. Conceptos que debes distinguir\n\n1. Finding-based versus event-based: resultados previos frente a eventos crudos\n2. Grouping por entidad implica normalización y ventana\n3. Riesgo de agrupación incorrecta: NAT y colisiones de identidad\n4. ES usa su Risk data model y requisitos específicos de versión\n\n",
+      "line": 17,
+      "endLine": 22
+    },
+    {
+      "id": "SP-R09-L03-S03",
+      "title": "3. Procedimiento reproducible y seguro",
+      "markdown": "## 3. Procedimiento reproducible y seguro\n\n1. Recoge findings previamente generados y su procedencia.\n2. Asegura identidad canónica y mismo tenant/dominio.\n3. Define reglas de agrupación y ventanas explícitas.\n4. Valida casos donde no debe agregarse.\n5. Contrasta con documentación de la versión ES antes de desplegar.\n\n",
+      "line": 24,
+      "endLine": 30
+    },
+    {
+      "id": "SP-R09-L03-S04",
+      "title": "4. SPL ilustrativo (solo lectura; no probado)",
+      "markdown": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_FINDINGS_PRACTICA sourcetype=ST_SYNTH_FINDING\n| stats count AS numero values(finding_id) AS findings BY entity\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n",
+      "line": 32,
+      "endLine": 39
+    },
+    {
+      "id": "SP-R09-L03-S05",
+      "title": "5. Escenario SOC",
+      "markdown": "## 5. Escenario SOC\n\nDos hallazgos de `alice` se pueden relacionar por identidad; un IOC de IP compartida no prueba que las entidades sean la misma.\n\n## 6. Errores frecuentes\n\n1. Confundir `stats` pedagógico con configuración real ES\n2. Agrupar solo por dirección IP sin control de origen\n3. Ignorar diferencia entre findings, intermediate findings y grupos\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 41,
+      "endLine": 52
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R09-L03-Q01",
+      "lessonId": "SP-R09-L03",
+      "prompt": "¿Qué toma como entrada una finding-based detection?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D09",
+        "SPLUNK_LECCIONES_R08_R09:D16"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R09-L03-Q01-O-c03ff841506b",
+          "text": "La configuración de assets de SOAR sin analíticas anteriores"
+        },
+        {
+          "id": "SP-R09-L03-Q01-O-3f00355a76e3",
+          "text": "Findings o intermediate findings previos y su contexto, para relacionarlos mediante criterios explícitos"
+        },
+        {
+          "id": "SP-R09-L03-Q01-O-7d2346e8ca5e",
+          "text": "Solo eventos crudos, sin hallazgos previos como entrada"
+        },
+        {
+          "id": "SP-R09-L03-Q01-O-8607521f70d3",
+          "text": "Las excepciones del rol de búsqueda como única entrada"
+        }
+      ],
+      "solution": "SP-R09-L03-Q01-O-3f00355a76e3",
+      "explanation": "Se construye sobre hallazgos analíticos previos.",
+      "anchors": [
+        {
+          "file": "R09_ENTERPRISE_SECURITY/SP-R09-L03.md",
+          "sourceHash": "e2b477df93787ed3d7bdd9b2c1c071a60702e3ac28734375d5a0732faa5baf1f",
+          "line": 17,
+          "endLine": 22,
+          "quote": "## 2. Conceptos que debes distinguir\n\n1. Finding-based versus event-based: resultados previos frente a eventos crudos\n2. Grouping por entidad implica normalización y ventana\n3. Riesgo de agrupación incorrecta: NAT y colisiones de identidad\n4. ES usa su Risk data model y requisitos específicos de versión\n\n"
+        },
+        {
+          "file": "R09_ENTERPRISE_SECURITY/SP-R09-L03.md",
+          "sourceHash": "e2b477df93787ed3d7bdd9b2c1c071a60702e3ac28734375d5a0732faa5baf1f",
+          "line": 32,
+          "endLine": 39,
+          "quote": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_FINDINGS_PRACTICA sourcetype=ST_SYNTH_FINDING\n| stats count AS numero values(finding_id) AS findings BY entity\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R09-L03-Q02",
+      "lessonId": "SP-R09-L03",
+      "prompt": "¿Por qué agrupar por IP puede ser peligroso?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D09",
+        "SPLUNK_LECCIONES_R08_R09:D16"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R09-L03-Q02-O-bfe48615a45b",
+          "text": "NAT y proxy pueden fusionar sujetos diferentes bajo la misma IP; la clave no identifica por sí sola al actor"
+        },
+        {
+          "id": "SP-R09-L03-Q02-O-7ed7f3f924ae",
+          "text": "Porque una IP de documentación no puede utilizarse como texto en un campo"
+        },
+        {
+          "id": "SP-R09-L03-Q02-O-64f731aeb131",
+          "text": "Porque agrupar por IP conserva automáticamente la identidad canónica del usuario"
+        },
+        {
+          "id": "SP-R09-L03-Q02-O-5544c2e7fd40",
+          "text": "Porque cada IP compartida corresponde a una sola sesión autenticada"
+        }
+      ],
+      "solution": "SP-R09-L03-Q02-O-bfe48615a45b",
+      "explanation": "Una clave de agrupación no siempre identifica persona o activo.",
+      "anchors": [
+        {
+          "file": "R09_ENTERPRISE_SECURITY/SP-R09-L03.md",
+          "sourceHash": "e2b477df93787ed3d7bdd9b2c1c071a60702e3ac28734375d5a0732faa5baf1f",
+          "line": 17,
+          "endLine": 22,
+          "quote": "## 2. Conceptos que debes distinguir\n\n1. Finding-based versus event-based: resultados previos frente a eventos crudos\n2. Grouping por entidad implica normalización y ventana\n3. Riesgo de agrupación incorrecta: NAT y colisiones de identidad\n4. ES usa su Risk data model y requisitos específicos de versión\n\n"
+        },
+        {
+          "file": "R09_ENTERPRISE_SECURITY/SP-R09-L03.md",
+          "sourceHash": "e2b477df93787ed3d7bdd9b2c1c071a60702e3ac28734375d5a0732faa5baf1f",
+          "line": 32,
+          "endLine": 39,
+          "quote": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_FINDINGS_PRACTICA sourcetype=ST_SYNTH_FINDING\n| stats count AS numero values(finding_id) AS findings BY entity\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R09-L03-P01",
+      "lessonId": "SP-R09-L03",
+      "prompt": "Diseña dos claves alternativas para agrupar F01–F08, documentando ventajas y errores.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D09",
+        "SPLUNK_LECCIONES_R08_R09:D16"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Distingue fuente, campos y alcance de la pregunta",
+        "Diseña un método reproducible sin inferencia abusiva",
+        "Separa señales, hipótesis, contraejemplos y ausencia de datos",
+        "Comunica siguiente paso seguro y evidencia para otro analista"
+      ],
+      "referenceAnswer": "entity canónica + tenant/domain es más robusta que src aislado; añadir ventana e identificación de fuente. Separar casos de distintos activos y evitar umbrales de riesgo como prueba de culpabilidad."
+    }
+  ],
+  "solutionsMarkdown": "## 8. Solucionario con razonamiento\n\n- **SP-R09-L03-Q01: B** — Se construye sobre hallazgos analíticos previos.\n\n- **SP-R09-L03-Q02: A** — Una clave de agrupación no siempre identifica persona o activo.\n\n- **SP-R09-L03-P01:** entity canónica + tenant/domain es más robusta que src aislado; añadir ventana e identificación de fuente. Separar casos de distintos activos y evitar umbrales de riesgo como prueba de culpabilidad.\n\n**Guía de retroalimentación formativa:** Distingue fuente, campos y alcance de la pregunta; Diseña un método reproducible sin inferencia abusiva; Separa señales, hipótesis, contraejemplos y ausencia de datos; Comunica siguiente paso seguro y evidencia para otro analista.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 9. Fuentes verificables y conexiones\n\n- **D09:** Splunk ES 8.7 — Guidelines for finding-based detections — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/guidelines-to-create-a-custom-finding-based-detection\n- **D16:** Splunk ES 8.7 — Customize finding-group display — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/specify-the-display-of-finding-groups-in-the-analyst-queue-of-splunk-enterprise-security\n\n- **Puente SC-200:** Capítulos 08–09 (correlación, agrupación e investigación). La comparación es conceptual, no una equivalencia producto a producto.\n- **Fuente curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` en la carpeta padre `SPLUNK_MASTER_RESEARCH`.\n- **Calidad:** [DOC] referencias externas consultables; [DISEÑO] escenario y actividad originales; [OFFLINE] solo cálculos de fixture; [NO PROBADO] SPL no ejecutado en Splunk. La revisión técnica independiente queda pendiente.\n",
+  "originalMarkdown": "# SP-R09-L03 — Finding-based detections\n\n**Región:** SP-R09 · **Estado:** borrador editorial para revisión · **SPL:** ilustrativo NO ejecutado.\n\n**Resultado de aprendizaje curricular:** Entender agregación sobre findings y grupos.\n\n**Prerrequisitos:** R01–R07 según tema; R08 para agrupación/escalado R09. **Producto:** plataforma Splunk para SPL genérico; funciones ES 8.7/SOAR solo cuando se indiquen.\n\n## 1. Explicación técnica\n\nEn ES 8.7, una *finding-based detection* trabaja sobre findings o intermediate findings y puede agregarlos alrededor de entidades o conductas. Su finalidad difiere de una event-based detection: no vuelve a afirmar que cada raw event sea sospechoso, sino que identifica relaciones entre resultados de analíticas previas. La documentación de ES describe consultas de su modelo de riesgo y macros/estructuras para construir finding groups; **no basta con `stats` sobre cualquier CSV para desplegar esta funcionalidad**.\n\nAgrupar requiere claves estables: entidad normalizada, período, fuente/identificador y versiones de detecciones. Si dos hallazgos comparten IP detrás de NAT, agruparlos por `src` podría mezclar usuarios. Si comparten `user` pero provienen de identidades homónimas en distintos dominios, hay otro sesgo.\n\nEn los ejercicios, la agregación mediante `stats` es una **aproximación pedagógica offline**, no una implementación de una finding-based detection real ni reproducción de la sintaxis/tstats necesaria en la instancia ES.\n\n## 2. Conceptos que debes distinguir\n\n1. Finding-based versus event-based: resultados previos frente a eventos crudos\n2. Grouping por entidad implica normalización y ventana\n3. Riesgo de agrupación incorrecta: NAT y colisiones de identidad\n4. ES usa su Risk data model y requisitos específicos de versión\n\n## 3. Procedimiento reproducible y seguro\n\n1. Recoge findings previamente generados y su procedencia.\n2. Asegura identidad canónica y mismo tenant/dominio.\n3. Define reglas de agrupación y ventanas explícitas.\n4. Valida casos donde no debe agregarse.\n5. Contrasta con documentación de la versión ES antes de desplegar.\n\n## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_FINDINGS_PRACTICA sourcetype=ST_SYNTH_FINDING\n| stats count AS numero values(finding_id) AS findings BY entity\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n## 5. Escenario SOC\n\nDos hallazgos de `alice` se pueden relacionar por identidad; un IOC de IP compartida no prueba que las entidades sean la misma.\n\n## 6. Errores frecuentes\n\n1. Confundir `stats` pedagógico con configuración real ES\n2. Agrupar solo por dirección IP sin control de origen\n3. Ignorar diferencia entre findings, intermediate findings y grupos\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R09-L03-Q01 — Opción múltiple\n\n¿Qué toma como entrada una finding-based detection?\n\nA. La configuración de assets de SOAR sin analíticas anteriores\nB. Findings o intermediate findings previos y su contexto, para relacionarlos mediante criterios explícitos\nC. Solo eventos crudos, sin hallazgos previos como entrada\nD. Las excepciones del rol de búsqueda como única entrada\n\n### SP-R09-L03-Q02 — Opción múltiple\n\n¿Por qué agrupar por IP puede ser peligroso?\n\nA. NAT y proxy pueden fusionar sujetos diferentes bajo la misma IP; la clave no identifica por sí sola al actor\nB. Porque una IP de documentación no puede utilizarse como texto en un campo\nC. Porque agrupar por IP conserva automáticamente la identidad canónica del usuario\nD. Porque cada IP compartida corresponde a una sola sesión autenticada\n\n### SP-R09-L03-P01 — Práctica abierta formativa\n\nDiseña dos claves alternativas para agrupar F01–F08, documentando ventajas y errores.\n\n## 8. Solucionario con razonamiento\n\n- **SP-R09-L03-Q01: B** — Se construye sobre hallazgos analíticos previos.\n\n- **SP-R09-L03-Q02: A** — Una clave de agrupación no siempre identifica persona o activo.\n\n- **SP-R09-L03-P01:** entity canónica + tenant/domain es más robusta que src aislado; añadir ventana e identificación de fuente. Separar casos de distintos activos y evitar umbrales de riesgo como prueba de culpabilidad.\n\n**Guía de retroalimentación formativa:** Distingue fuente, campos y alcance de la pregunta; Diseña un método reproducible sin inferencia abusiva; Separa señales, hipótesis, contraejemplos y ausencia de datos; Comunica siguiente paso seguro y evidencia para otro analista.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 9. Fuentes verificables y conexiones\n\n- **D09:** Splunk ES 8.7 — Guidelines for finding-based detections — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/guidelines-to-create-a-custom-finding-based-detection\n- **D16:** Splunk ES 8.7 — Customize finding-group display — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/specify-the-display-of-finding-groups-in-the-analyst-queue-of-splunk-enterprise-security\n\n- **Puente SC-200:** Capítulos 08–09 (correlación, agrupación e investigación). La comparación es conceptual, no una equivalencia producto a producto.\n- **Fuente curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` en la carpeta padre `SPLUNK_MASTER_RESEARCH`.\n- **Calidad:** [DOC] referencias externas consultables; [DISEÑO] escenario y actividad originales; [OFFLINE] solo cálculos de fixture; [NO PROBADO] SPL no ejecutado en Splunk. La revisión técnica independiente queda pendiente.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D09",
+      "key": "SPLUNK_LECCIONES_R08_R09:D09",
+      "url": "https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/guidelines-to-create-a-custom-finding-based-detection"
+    },
+    {
+      "id": "D16",
+      "key": "SPLUNK_LECCIONES_R08_R09:D16",
+      "url": "https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/specify-the-display-of-finding-groups-in-the-analyst-queue-of-splunk-enterprise-security"
+    }
+  ]
+}

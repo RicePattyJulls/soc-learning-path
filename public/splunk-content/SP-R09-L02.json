@@ -1,0 +1,200 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R09-L02",
+  "title": "Detecciones basadas en eventos",
+  "revision": "28fca718c5459d3201b2c8ad",
+  "sourceVersion": "5bafd724737af734d0336b7af6201938b533fb6df7a774e805743380d2f25647",
+  "sanitizedHash": "5bafd724737af734d0336b7af6201938b533fb6df7a774e805743380d2f25647",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R08_R09/R09_ENTERPRISE_SECURITY/SP-R09-L02.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Comprender eventos→findings/intermediate findings",
+  "preamble": "# SP-R09-L02 — Detecciones basadas en eventos\n\n**Región:** SP-R09 · **Estado:** borrador editorial para revisión · **SPL:** ilustrativo NO ejecutado.\n\n**Resultado de aprendizaje curricular:** Comprender eventos→findings/intermediate findings.\n\n**Prerrequisitos:** R01–R07 según tema; R08 para agrupación/escalado R09. **Producto:** plataforma Splunk para SPL genérico; funciones ES 8.7/SOAR solo cuando se indiquen.\n\n",
+  "sections": [
+    {
+      "id": "SP-R09-L02-S01",
+      "title": "1. Explicación técnica",
+      "markdown": "## 1. Explicación técnica\n\nEn ES 8.7, una *event-based detection* evalúa datos que llegan a la plataforma y puede configurarse para producir un **finding** o un **intermediate finding** en función del caso de uso. La documentación distingue esta lógica de buscar eventos con SPL en la plataforma base. Un finding es un objeto que reúne metadatos de la condición observada y sirve para investigación; no es un «incidente confirmado».\n\nLa secuencia se comprende mejor separando cuatro capas: 1) evento de origen con su calidad y contexto; 2) búsqueda/condición analítica; 3) salida configurada (finding o intermediate finding); 4) revisión del analista y posible agrupación. Una detección mal escrita transmite ruido a la cola por muchas alertas. Un umbral mal fijado o un `status` incompleto puede ocultar actividad.\n\nEl ejemplo del laboratorio usa registros `synthetic_es_findings.csv` ya fabricados para practicar la lógica; **no son exports nativos de ES**, y el CSV no prueba que Splunk haya ejecutado una detección.\n\n",
+      "line": 9,
+      "endLine": 15
+    },
+    {
+      "id": "SP-R09-L02-S02",
+      "title": "2. Conceptos que debes distinguir",
+      "markdown": "## 2. Conceptos que debes distinguir\n\n1. Event-based detection: datos de entrada frente a resultado materializado\n2. Finding e intermediate finding son salidas diferentes\n3. Detección programada requiere ventanas y control de retrasos\n4. Detección coincidente no implica caso confirmado\n\n",
+      "line": 17,
+      "endLine": 22
+    },
+    {
+      "id": "SP-R09-L02-S03",
+      "title": "3. Procedimiento reproducible y seguro",
+      "markdown": "## 3. Procedimiento reproducible y seguro\n\n1. Determina fuente real e identifica extracción/tiempo.\n2. Describe condición SPL en términos de evento.\n3. Decide hipotéticamente salida finding o intermediate finding.\n4. Documenta campos enriquecidos e impacto del ruido.\n5. Exige revisión antes de activación de detección productiva.\n\n",
+      "line": 24,
+      "endLine": 30
+    },
+    {
+      "id": "SP-R09-L02-S04",
+      "title": "4. SPL ilustrativo (solo lectura; no probado)",
+      "markdown": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_AUTH sourcetype=ST_AUTH status=\"failure\"\n| bin _time span=15m\n| stats count AS fallos dc(user) AS cuentas BY src _time\n| where cuentas>=5 AND fallos>=5\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n",
+      "line": 32,
+      "endLine": 41
+    },
+    {
+      "id": "SP-R09-L02-S05",
+      "title": "5. Escenario SOC",
+      "markdown": "## 5. Escenario SOC\n\nLa misma búsqueda puede explicar spraying, pero convertir el resultado en finding depende de la configuración de ES y de la aprobación del equipo.\n\n## 6. Errores frecuentes\n\n1. Asumir que cada evento crudo es finding\n2. Llamar incidente confirmado a un intermediate finding\n3. Configurar adaptive responses sin autorización\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 43,
+      "endLine": 54
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R09-L02-Q01",
+      "lessonId": "SP-R09-L02",
+      "prompt": "¿Qué evalúa principalmente una event-based detection?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D07",
+        "SPLUNK_LECCIONES_R08_R09:D08",
+        "SPLUNK_LECCIONES_R08_R09:D15"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R09-L02-Q01-O-82e073b7247c",
+          "text": "Únicamente hallazgos previamente agrupados por una finding-based detection"
+        },
+        {
+          "id": "SP-R09-L02-Q01-O-438a71301877",
+          "text": "La aprobación humana de una acción de playbook como dato de entrada obligatorio"
+        },
+        {
+          "id": "SP-R09-L02-Q01-O-07bb3b1bc887",
+          "text": "Eventos o datos de entrada que satisfacen una condición analítica y pueden producir la salida configurada"
+        },
+        {
+          "id": "SP-R09-L02-Q01-O-143ef7574266",
+          "text": "Solo el inventario de entidades sin eventos ni condición analítica"
+        }
+      ],
+      "solution": "SP-R09-L02-Q01-O-07bb3b1bc887",
+      "explanation": "La entrada es evidencia de evento según el caso.",
+      "anchors": [
+        {
+          "file": "R09_ENTERPRISE_SECURITY/SP-R09-L02.md",
+          "sourceHash": "5bafd724737af734d0336b7af6201938b533fb6df7a774e805743380d2f25647",
+          "line": 17,
+          "endLine": 22,
+          "quote": "## 2. Conceptos que debes distinguir\n\n1. Event-based detection: datos de entrada frente a resultado materializado\n2. Finding e intermediate finding son salidas diferentes\n3. Detección programada requiere ventanas y control de retrasos\n4. Detección coincidente no implica caso confirmado\n\n"
+        },
+        {
+          "file": "R09_ENTERPRISE_SECURITY/SP-R09-L02.md",
+          "sourceHash": "5bafd724737af734d0336b7af6201938b533fb6df7a774e805743380d2f25647",
+          "line": 32,
+          "endLine": 41,
+          "quote": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_AUTH sourcetype=ST_AUTH status=\"failure\"\n| bin _time span=15m\n| stats count AS fallos dc(user) AS cuentas BY src _time\n| where cuentas>=5 AND fallos>=5\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R09-L02-Q02",
+      "lessonId": "SP-R09-L02",
+      "prompt": "¿Qué demuestra un finding generado por una detección?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D07",
+        "SPLUNK_LECCIONES_R08_R09:D08",
+        "SPLUNK_LECCIONES_R08_R09:D15"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R09-L02-Q02-O-9e3c821dbe5c",
+          "text": "Se cumplió condición analítica y se creó un objeto investigable"
+        },
+        {
+          "id": "SP-R09-L02-Q02-O-2f838fd7082c",
+          "text": "Que la condición fue corroborada como actividad maliciosa por un analista"
+        },
+        {
+          "id": "SP-R09-L02-Q02-O-78babd937ca7",
+          "text": "Que el hallazgo incluye todos los eventos futuros del mismo comportamiento"
+        },
+        {
+          "id": "SP-R09-L02-Q02-O-25716bc704f4",
+          "text": "Que el activo asociado ya fue contenido por una integración"
+        }
+      ],
+      "solution": "SP-R09-L02-Q02-O-9e3c821dbe5c",
+      "explanation": "El finding requiere triage y contexto adicional.",
+      "anchors": [
+        {
+          "file": "R09_ENTERPRISE_SECURITY/SP-R09-L02.md",
+          "sourceHash": "5bafd724737af734d0336b7af6201938b533fb6df7a774e805743380d2f25647",
+          "line": 17,
+          "endLine": 22,
+          "quote": "## 2. Conceptos que debes distinguir\n\n1. Event-based detection: datos de entrada frente a resultado materializado\n2. Finding e intermediate finding son salidas diferentes\n3. Detección programada requiere ventanas y control de retrasos\n4. Detección coincidente no implica caso confirmado\n\n"
+        },
+        {
+          "file": "R09_ENTERPRISE_SECURITY/SP-R09-L02.md",
+          "sourceHash": "5bafd724737af734d0336b7af6201938b533fb6df7a774e805743380d2f25647",
+          "line": 32,
+          "endLine": 41,
+          "quote": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_AUTH sourcetype=ST_AUTH status=\"failure\"\n| bin _time span=15m\n| stats count AS fallos dc(user) AS cuentas BY src _time\n| where cuentas>=5 AND fallos>=5\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R09-L02-P01",
+      "lessonId": "SP-R09-L02",
+      "prompt": "Especifica salida de una detección de spraying: entrada, SPL, metadatos, incertidumbres y próxima acción.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D07",
+        "SPLUNK_LECCIONES_R08_R09:D08",
+        "SPLUNK_LECCIONES_R08_R09:D15"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Distingue fuente, campos y alcance de la pregunta",
+        "Diseña un método reproducible sin inferencia abusiva",
+        "Separa señales, hipótesis, contraejemplos y ausencia de datos",
+        "Comunica siguiente paso seguro y evidencia para otro analista"
+      ],
+      "referenceAnswer": "Origen IdP/auth, 5 cuentas/15m ejemplo; resultado finding/intermediate según diseño, keys src/usuarios/tiempo, evidencia y excepciones NAT. Revisión N1 antes de cualquier respuesta automática."
+    }
+  ],
+  "solutionsMarkdown": "## 8. Solucionario con razonamiento\n\n- **SP-R09-L02-Q01: C** — La entrada es evidencia de evento según el caso.\n\n- **SP-R09-L02-Q02: A** — El finding requiere triage y contexto adicional.\n\n- **SP-R09-L02-P01:** Origen IdP/auth, 5 cuentas/15m ejemplo; resultado finding/intermediate según diseño, keys src/usuarios/tiempo, evidencia y excepciones NAT. Revisión N1 antes de cualquier respuesta automática.\n\n**Guía de retroalimentación formativa:** Distingue fuente, campos y alcance de la pregunta; Diseña un método reproducible sin inferencia abusiva; Separa señales, hipótesis, contraejemplos y ausencia de datos; Comunica siguiente paso seguro y evidencia para otro analista.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 9. Fuentes verificables y conexiones\n\n- **D07:** Splunk ES 8.7 — Use detections to search for threats — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/use-detections-to-search-for-threats-in-splunk-enterprise-security\n- **D08:** Splunk ES 8.7 — Create event-based detections — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/create-event-based-detections-in-splunk-enterprise-security\n- **D15:** Splunk ES 8.7 — Tune detections — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/tune-detections-in-splunk-enterprise-security\n\n- **Puente SC-200:** Capítulos 07–08 (reglas, alertas e incidentes). La comparación es conceptual, no una equivalencia producto a producto.\n- **Fuente curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` en la carpeta padre `SPLUNK_MASTER_RESEARCH`.\n- **Calidad:** [DOC] referencias externas consultables; [DISEÑO] escenario y actividad originales; [OFFLINE] solo cálculos de fixture; [NO PROBADO] SPL no ejecutado en Splunk. La revisión técnica independiente queda pendiente.\n",
+  "originalMarkdown": "# SP-R09-L02 — Detecciones basadas en eventos\n\n**Región:** SP-R09 · **Estado:** borrador editorial para revisión · **SPL:** ilustrativo NO ejecutado.\n\n**Resultado de aprendizaje curricular:** Comprender eventos→findings/intermediate findings.\n\n**Prerrequisitos:** R01–R07 según tema; R08 para agrupación/escalado R09. **Producto:** plataforma Splunk para SPL genérico; funciones ES 8.7/SOAR solo cuando se indiquen.\n\n## 1. Explicación técnica\n\nEn ES 8.7, una *event-based detection* evalúa datos que llegan a la plataforma y puede configurarse para producir un **finding** o un **intermediate finding** en función del caso de uso. La documentación distingue esta lógica de buscar eventos con SPL en la plataforma base. Un finding es un objeto que reúne metadatos de la condición observada y sirve para investigación; no es un «incidente confirmado».\n\nLa secuencia se comprende mejor separando cuatro capas: 1) evento de origen con su calidad y contexto; 2) búsqueda/condición analítica; 3) salida configurada (finding o intermediate finding); 4) revisión del analista y posible agrupación. Una detección mal escrita transmite ruido a la cola por muchas alertas. Un umbral mal fijado o un `status` incompleto puede ocultar actividad.\n\nEl ejemplo del laboratorio usa registros `synthetic_es_findings.csv` ya fabricados para practicar la lógica; **no son exports nativos de ES**, y el CSV no prueba que Splunk haya ejecutado una detección.\n\n## 2. Conceptos que debes distinguir\n\n1. Event-based detection: datos de entrada frente a resultado materializado\n2. Finding e intermediate finding son salidas diferentes\n3. Detección programada requiere ventanas y control de retrasos\n4. Detección coincidente no implica caso confirmado\n\n## 3. Procedimiento reproducible y seguro\n\n1. Determina fuente real e identifica extracción/tiempo.\n2. Describe condición SPL en términos de evento.\n3. Decide hipotéticamente salida finding o intermediate finding.\n4. Documenta campos enriquecidos e impacto del ruido.\n5. Exige revisión antes de activación de detección productiva.\n\n## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_AUTH sourcetype=ST_AUTH status=\"failure\"\n| bin _time span=15m\n| stats count AS fallos dc(user) AS cuentas BY src _time\n| where cuentas>=5 AND fallos>=5\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n## 5. Escenario SOC\n\nLa misma búsqueda puede explicar spraying, pero convertir el resultado en finding depende de la configuración de ES y de la aprobación del equipo.\n\n## 6. Errores frecuentes\n\n1. Asumir que cada evento crudo es finding\n2. Llamar incidente confirmado a un intermediate finding\n3. Configurar adaptive responses sin autorización\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R09-L02-Q01 — Opción múltiple\n\n¿Qué evalúa principalmente una event-based detection?\n\nA. Únicamente hallazgos previamente agrupados por una finding-based detection\nB. La aprobación humana de una acción de playbook como dato de entrada obligatorio\nC. Eventos o datos de entrada que satisfacen una condición analítica y pueden producir la salida configurada\nD. Solo el inventario de entidades sin eventos ni condición analítica\n\n### SP-R09-L02-Q02 — Opción múltiple\n\n¿Qué demuestra un finding generado por una detección?\n\nA. Se cumplió condición analítica y se creó un objeto investigable\nB. Que la condición fue corroborada como actividad maliciosa por un analista\nC. Que el hallazgo incluye todos los eventos futuros del mismo comportamiento\nD. Que el activo asociado ya fue contenido por una integración\n\n### SP-R09-L02-P01 — Práctica abierta formativa\n\nEspecifica salida de una detección de spraying: entrada, SPL, metadatos, incertidumbres y próxima acción.\n\n## 8. Solucionario con razonamiento\n\n- **SP-R09-L02-Q01: C** — La entrada es evidencia de evento según el caso.\n\n- **SP-R09-L02-Q02: A** — El finding requiere triage y contexto adicional.\n\n- **SP-R09-L02-P01:** Origen IdP/auth, 5 cuentas/15m ejemplo; resultado finding/intermediate según diseño, keys src/usuarios/tiempo, evidencia y excepciones NAT. Revisión N1 antes de cualquier respuesta automática.\n\n**Guía de retroalimentación formativa:** Distingue fuente, campos y alcance de la pregunta; Diseña un método reproducible sin inferencia abusiva; Separa señales, hipótesis, contraejemplos y ausencia de datos; Comunica siguiente paso seguro y evidencia para otro analista.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 9. Fuentes verificables y conexiones\n\n- **D07:** Splunk ES 8.7 — Use detections to search for threats — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/use-detections-to-search-for-threats-in-splunk-enterprise-security\n- **D08:** Splunk ES 8.7 — Create event-based detections — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/create-event-based-detections-in-splunk-enterprise-security\n- **D15:** Splunk ES 8.7 — Tune detections — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/tune-detections-in-splunk-enterprise-security\n\n- **Puente SC-200:** Capítulos 07–08 (reglas, alertas e incidentes). La comparación es conceptual, no una equivalencia producto a producto.\n- **Fuente curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` en la carpeta padre `SPLUNK_MASTER_RESEARCH`.\n- **Calidad:** [DOC] referencias externas consultables; [DISEÑO] escenario y actividad originales; [OFFLINE] solo cálculos de fixture; [NO PROBADO] SPL no ejecutado en Splunk. La revisión técnica independiente queda pendiente.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D07",
+      "key": "SPLUNK_LECCIONES_R08_R09:D07",
+      "url": "https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/use-detections-to-search-for-threats-in-splunk-enterprise-security"
+    },
+    {
+      "id": "D08",
+      "key": "SPLUNK_LECCIONES_R08_R09:D08",
+      "url": "https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/create-event-based-detections-in-splunk-enterprise-security"
+    },
+    {
+      "id": "D15",
+      "key": "SPLUNK_LECCIONES_R08_R09:D15",
+      "url": "https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/tune-detections-in-splunk-enterprise-security"
+    }
+  ]
+}

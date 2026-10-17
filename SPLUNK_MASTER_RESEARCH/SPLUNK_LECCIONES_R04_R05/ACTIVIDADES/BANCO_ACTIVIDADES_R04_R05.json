@@ -1,0 +1,1566 @@
+{
+  "schema_version": "1.1",
+  "purpose": "Banco editorial no importado en aplicación",
+  "source_curriculum": "SPLUNK_CURRICULO_R01_R11.json",
+  "graded_policy": "theory >=80%; open formative, no auto grading; no practical mastery",
+  "activities": [
+    {
+      "id": "SP-R04-L01-Q01",
+      "lesson_id": "SP-R04-L01",
+      "region_id": "SP-R04",
+      "type": "multiple_choice",
+      "question": "Necesitas ver cada evento y el total de fallos de su IP. ¿Qué comando eliges?",
+      "options": [
+        "eventstats",
+        "dedup",
+        "timechart",
+        "stats"
+      ],
+      "correct_index": 0,
+      "correct_answer": "eventstats",
+      "explanation": "eventstats adjunta una métrica a filas originales. stats las transforma en filas agregadas.",
+      "source_refs": [
+        "S01"
+      ],
+      "source_sc": "Cap. 13 (KQL summarize) y cap. 09 (investigación).",
+      "difficulty": "intermedio",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": true,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "option_ids": [
+        "SP-R04-L01-Q01-O-ed2662932160",
+        "SP-R04-L01-Q01-O-8297e58c62f0",
+        "SP-R04-L01-Q01-O-5a7fe27cc1c2",
+        "SP-R04-L01-Q01-O-4b5af442229c"
+      ],
+      "solution_option_id": "SP-R04-L01-Q01-O-ed2662932160",
+      "assessment_role": "theory_candidate_not_yet_assigned_to_app_phase"
+    },
+    {
+      "id": "SP-R04-L01-Q02",
+      "lesson_id": "SP-R04-L01",
+      "region_id": "SP-R04",
+      "type": "multiple_choice",
+      "question": "Si `user` está vacío, ¿qué inferencia es válida sobre `dc(user)`?",
+      "options": [
+        "La cantidad de eventos coincide con dc(user) aunque haya repeticiones y ausencias",
+        "La cardinalidad permite deducir cuántos eventos carecen de identidad sin otro indicador",
+        "Cada evento vacío añade una identidad distinta a dc(user)",
+        "No equivale a contar todos los eventos; hay que inspeccionar nulos"
+      ],
+      "correct_index": 3,
+      "correct_answer": "No equivale a contar todos los eventos; hay que inspeccionar nulos",
+      "explanation": "El número de eventos y la cardinalidad de un campo pueden divergir por valores ausentes.",
+      "source_refs": [
+        "S01"
+      ],
+      "source_sc": "Cap. 13 (KQL summarize) y cap. 09 (investigación).",
+      "difficulty": "intermedio",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": true,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "option_ids": [
+        "SP-R04-L01-Q02-O-5122c43f3a2b",
+        "SP-R04-L01-Q02-O-9be4b6f88571",
+        "SP-R04-L01-Q02-O-1ca0f7ab71c9",
+        "SP-R04-L01-Q02-O-7e295ed78ec4"
+      ],
+      "solution_option_id": "SP-R04-L01-Q02-O-7e295ed78ec4",
+      "assessment_role": "theory_candidate_not_yet_assigned_to_app_phase"
+    },
+    {
+      "id": "SP-R04-L01-P01",
+      "lesson_id": "SP-R04-L01",
+      "region_id": "SP-R04",
+      "type": "open_practice",
+      "question": "Escribe dos búsquedas, una para el conteo por IP y otra para enriquecer cada fila con el conteo de su IP. Explica qué cambia al quitar `action=failure` antes de ambas.",
+      "reference_answer": "`stats count dc(user) BY src` resume; `eventstats count BY src` preserva filas. Con el filtro de fallos y la fixture: 203.0.113.9 tiene 9 fallos totales en todo el dataset (7 de 09:00 a 09:14 y 2 de 09:15 a 09:29); para 09:00 específicamente 7 fallos / 5 usuarios. Sin filtro, se incluyen éxitos en los totales.",
+      "rubric": [
+        "Identifica fuentes, campos, ventana y supuestos",
+        "Aplica el método al escenario y explica cifras o semántica",
+        "Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante",
+        "Presenta una respuesta reproducible sin ejecutar cambios en sistemas"
+      ],
+      "source_refs": [
+        "S01"
+      ],
+      "source_sc": "Cap. 13 (KQL summarize) y cap. 09 (investigación).",
+      "difficulty": "aplicacion",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": false,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "assessment_role": "formative_only"
+    },
+    {
+      "id": "SP-R04-L02-Q01",
+      "lesson_id": "SP-R04-L02",
+      "region_id": "SP-R04",
+      "type": "multiple_choice",
+      "question": "¿Qué mide `streamstats count` tras ordenar cronológicamente?",
+      "options": [
+        "El total final del grupo, repetido sin cambios en todas sus filas",
+        "El conteo acumulado hasta cada fila, siguiendo el orden que recibe streamstats en ese pipeline",
+        "La posición temporal más reciente de cada usuario",
+        "El número de valores distintos de src en todo el intervalo"
+      ],
+      "correct_index": 1,
+      "correct_answer": "El conteo acumulado hasta cada fila, siguiendo el orden que recibe streamstats en ese pipeline",
+      "explanation": "El cálculo se emite progresivamente en el orden del pipeline.",
+      "source_refs": [
+        "S02",
+        "S01"
+      ],
+      "source_sc": "Cap. 10 (hunting) y cap. 13 (operadores temporales).",
+      "difficulty": "intermedio",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": true,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "option_ids": [
+        "SP-R04-L02-Q01-O-6a2d31cba8c6",
+        "SP-R04-L02-Q01-O-84938f854b72",
+        "SP-R04-L02-Q01-O-2ce04a58c3e8",
+        "SP-R04-L02-Q01-O-a85a468652c6"
+      ],
+      "solution_option_id": "SP-R04-L02-Q01-O-84938f854b72",
+      "assessment_role": "theory_candidate_not_yet_assigned_to_app_phase"
+    },
+    {
+      "id": "SP-R04-L02-Q02",
+      "lesson_id": "SP-R04-L02",
+      "region_id": "SP-R04",
+      "type": "multiple_choice",
+      "question": "¿Cuál es la precaución más importante en una secuencia temporal?",
+      "options": [
+        "Eliminar eventos con timestamps iguales antes de comprobar si son distintos",
+        "Usar el orden de llegada al comando sin verificar la hora del evento",
+        "Ordenar por la cadena user y suponer que representa la secuencia temporal",
+        "Verificar el orden temporal y la semántica de _time, y resolver empates con un criterio estable"
+      ],
+      "correct_index": 3,
+      "correct_answer": "Verificar el orden temporal y la semántica de _time, y resolver empates con un criterio estable",
+      "explanation": "Sin orden temporal, el acumulado no responde a la hipótesis cronológica.",
+      "source_refs": [
+        "S02",
+        "S01"
+      ],
+      "source_sc": "Cap. 10 (hunting) y cap. 13 (operadores temporales).",
+      "difficulty": "intermedio",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": true,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "option_ids": [
+        "SP-R04-L02-Q02-O-21267609b0a2",
+        "SP-R04-L02-Q02-O-2f5ae5e39cde",
+        "SP-R04-L02-Q02-O-820fd6465b04",
+        "SP-R04-L02-Q02-O-1af8b3bdc4cf"
+      ],
+      "solution_option_id": "SP-R04-L02-Q02-O-1af8b3bdc4cf",
+      "assessment_role": "theory_candidate_not_yet_assigned_to_app_phase"
+    },
+    {
+      "id": "SP-R04-L02-P01",
+      "lesson_id": "SP-R04-L02",
+      "region_id": "SP-R04",
+      "type": "open_practice",
+      "question": "Dibuja las siete filas y calcula el contador de fallos por IP en orden cronológico. Escribe por qué hay que separar IP y definir empates de hora.",
+      "reference_answer": "La secuencia para 203.0.113.9 en el primer bucket es 1,2,3,4,5,6,7. Al sexto evento el acumulado es 6. El orden de entrada controla la respuesta.",
+      "rubric": [
+        "Identifica fuentes, campos, ventana y supuestos",
+        "Aplica el método al escenario y explica cifras o semántica",
+        "Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante",
+        "Presenta una respuesta reproducible sin ejecutar cambios en sistemas"
+      ],
+      "source_refs": [
+        "S02",
+        "S01"
+      ],
+      "source_sc": "Cap. 10 (hunting) y cap. 13 (operadores temporales).",
+      "difficulty": "aplicacion",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": false,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "assessment_role": "formative_only"
+    },
+    {
+      "id": "SP-R04-L03-Q01",
+      "lesson_id": "SP-R04-L03",
+      "region_id": "SP-R04",
+      "type": "multiple_choice",
+      "question": "¿Qué significa bin _time span=15m?",
+      "options": [
+        "Agrupación en bloques temporales discretos",
+        "Ventana deslizante que comienza en cada evento",
+        "Filtro que retiene únicamente los eventos de los últimos quince minutos",
+        "Agregación que ya incorpora la clave src"
+      ],
+      "correct_index": 0,
+      "correct_answer": "Agrupación en bloques temporales discretos",
+      "explanation": "bin asigna cada timestamp a un bloque; no realiza agregación por sí solo.",
+      "source_refs": [
+        "S03",
+        "S01"
+      ],
+      "source_sc": "Cap. 07 (detecciones) y cap. 13 (operadores temporales).",
+      "difficulty": "intermedio",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": true,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "option_ids": [
+        "SP-R04-L03-Q01-O-02cf50aa47f7",
+        "SP-R04-L03-Q01-O-a48feafc7dd8",
+        "SP-R04-L03-Q01-O-e61099f410b9",
+        "SP-R04-L03-Q01-O-fa13af1c8e97"
+      ],
+      "solution_option_id": "SP-R04-L03-Q01-O-02cf50aa47f7",
+      "assessment_role": "theory_candidate_not_yet_assigned_to_app_phase"
+    },
+    {
+      "id": "SP-R04-L03-Q02",
+      "lesson_id": "SP-R04-L03",
+      "region_id": "SP-R04",
+      "type": "multiple_choice",
+      "question": "Dos eventos a 09:14:59 y 09:15:01 caen en...",
+      "options": [
+        "Bins definidos por la hora de indexación aunque se discretice _time",
+        "Bins distintos con alineación estándar de 15m",
+        "El mismo bin si comparten src, aunque crucen el borde",
+        "El mismo bin porque su separación es menor de quince minutos"
+      ],
+      "correct_index": 1,
+      "correct_answer": "Bins distintos con alineación estándar de 15m",
+      "explanation": "Cruzan la frontera de 09:15 pese a estar separados por dos segundos.",
+      "source_refs": [
+        "S03",
+        "S01"
+      ],
+      "source_sc": "Cap. 07 (detecciones) y cap. 13 (operadores temporales).",
+      "difficulty": "intermedio",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": true,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "option_ids": [
+        "SP-R04-L03-Q02-O-a24df51829dd",
+        "SP-R04-L03-Q02-O-a667afc07361",
+        "SP-R04-L03-Q02-O-3cca48a3afc1",
+        "SP-R04-L03-Q02-O-240c84edbd58"
+      ],
+      "solution_option_id": "SP-R04-L03-Q02-O-a667afc07361",
+      "assessment_role": "theory_candidate_not_yet_assigned_to_app_phase"
+    },
+    {
+      "id": "SP-R04-L03-P01",
+      "lesson_id": "SP-R04-L03",
+      "region_id": "SP-R04",
+      "type": "open_practice",
+      "question": "Calcula por src/bucket las cardinalidades y razona una variante de detección que no dependa exclusivamente de fronteras de 15m.",
+      "reference_answer": "Para la IP 203.0.113.9: bucket 09:00, 7 fallos y 5 usuarios; bucket 09:15, 2 fallos y 2 usuarios. Sólo 09:00 cumple `cuentas>=5`. Variación válida: ventanas solapadas/rolling con coste y semántica documentados.",
+      "rubric": [
+        "Identifica fuentes, campos, ventana y supuestos",
+        "Aplica el método al escenario y explica cifras o semántica",
+        "Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante",
+        "Presenta una respuesta reproducible sin ejecutar cambios en sistemas"
+      ],
+      "source_refs": [
+        "S03",
+        "S01"
+      ],
+      "source_sc": "Cap. 07 (detecciones) y cap. 13 (operadores temporales).",
+      "difficulty": "aplicacion",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": false,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "assessment_role": "formative_only"
+    },
+    {
+      "id": "SP-R04-L04-Q01",
+      "lesson_id": "SP-R04-L04",
+      "region_id": "SP-R04",
+      "type": "multiple_choice",
+      "question": "¿Qué diferencia describe dc(user) frente a count?",
+      "options": [
+        "dc cuenta valores distintos presentes; count sin argumento cuenta los eventos recuperados del grupo",
+        "dc cuenta los eventos donde user está presente, incluidas repeticiones",
+        "count elimina repeticiones de user antes de calcular su total",
+        "dc devuelve la primera identidad de cada grupo temporal"
+      ],
+      "correct_index": 0,
+      "correct_answer": "dc cuenta valores distintos presentes; count sin argumento cuenta los eventos recuperados del grupo",
+      "explanation": "La cardinalidad no equivale al volumen de eventos.",
+      "source_refs": [
+        "S01",
+        "S08"
+      ],
+      "source_sc": "Cap. 09 (evidencia/entidades) y cap. 13 (funciones KQL).",
+      "difficulty": "intermedio",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": true,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "option_ids": [
+        "SP-R04-L04-Q01-O-028bdc5adaee",
+        "SP-R04-L04-Q01-O-307d9ea9c0ec",
+        "SP-R04-L04-Q01-O-812bb316b546",
+        "SP-R04-L04-Q01-O-51f84b6d9f2a"
+      ],
+      "solution_option_id": "SP-R04-L04-Q01-O-028bdc5adaee",
+      "assessment_role": "theory_candidate_not_yet_assigned_to_app_phase"
+    },
+    {
+      "id": "SP-R04-L04-Q02",
+      "lesson_id": "SP-R04-L04",
+      "region_id": "SP-R04",
+      "type": "multiple_choice",
+      "question": "¿Qué problema puede ocultar coalesce?",
+      "options": [
+        "El truncamiento del conjunto secundario de un join",
+        "El cambio del orden temporal provocado por una ordenación descendente",
+        "Una discrepancia semántica de campos de fuentes diferentes",
+        "La pérdida de campos originales causada por una agregación stats"
+      ],
+      "correct_index": 2,
+      "correct_answer": "Una discrepancia semántica de campos de fuentes diferentes",
+      "explanation": "Coalesce ayuda con valores faltantes pero no garantiza equivalencia de significado.",
+      "source_refs": [
+        "S01",
+        "S08"
+      ],
+      "source_sc": "Cap. 09 (evidencia/entidades) y cap. 13 (funciones KQL).",
+      "difficulty": "intermedio",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": true,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "option_ids": [
+        "SP-R04-L04-Q02-O-4a43e2c831e5",
+        "SP-R04-L04-Q02-O-e4cac9f08eaf",
+        "SP-R04-L04-Q02-O-65681ff6ef66",
+        "SP-R04-L04-Q02-O-385cb9e60171"
+      ],
+      "solution_option_id": "SP-R04-L04-Q02-O-65681ff6ef66",
+      "assessment_role": "theory_candidate_not_yet_assigned_to_app_phase"
+    },
+    {
+      "id": "SP-R04-L04-P01",
+      "lesson_id": "SP-R04-L04",
+      "region_id": "SP-R04",
+      "type": "open_practice",
+      "question": "Entrega un cuadro con total, cardinalidad de identidades no vacías y número de eventos sin identidad para la IP sospechosa; explica el impacto de omitir el último indicador.",
+      "reference_answer": "En los datos completos: 9 fallos desde 203.0.113.9, 6 identidades distintas no vacías (alice,bob,carol,dave,erin,frank), 1 usuario vacío. En el primer bucket: 7 fallos, 5 identidades, 1 vacío. Evita mezclar ambos ámbitos.",
+      "rubric": [
+        "Identifica fuentes, campos, ventana y supuestos",
+        "Aplica el método al escenario y explica cifras o semántica",
+        "Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante",
+        "Presenta una respuesta reproducible sin ejecutar cambios en sistemas"
+      ],
+      "source_refs": [
+        "S01",
+        "S08"
+      ],
+      "source_sc": "Cap. 09 (evidencia/entidades) y cap. 13 (funciones KQL).",
+      "difficulty": "aplicacion",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": false,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "assessment_role": "formative_only"
+    },
+    {
+      "id": "SP-R04-L05-Q01",
+      "lesson_id": "SP-R04-L05",
+      "region_id": "SP-R04",
+      "type": "multiple_choice",
+      "question": "¿Cuál alternativa suele evitar un join para agregar eventos ya normalizados?",
+      "options": [
+        "transaction por cada IP para resumir cualquier tipo de evento",
+        "join entre dos copias del mismo flujo ya normalizado",
+        "Una subbúsqueda por cada valor de user aunque ambos tipos de evento ya estén presentes",
+        "Agrupar con stats por la entidad común, si ambos tipos de eventos ya están en el flujo normalizado"
+      ],
+      "correct_index": 3,
+      "correct_answer": "Agrupar con stats por la entidad común, si ambos tipos de eventos ya están en el flujo normalizado",
+      "explanation": "stats agrupa sin abrir una subbúsqueda.",
+      "source_refs": [
+        "S04",
+        "S13",
+        "S01"
+      ],
+      "source_sc": "Cap. 08 (correlación), 09 (investigación) y 13 (join en KQL).",
+      "difficulty": "intermedio",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": true,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "option_ids": [
+        "SP-R04-L05-Q01-O-15919f730ed1",
+        "SP-R04-L05-Q01-O-e3797dd4a91a",
+        "SP-R04-L05-Q01-O-cbc14b597b4b",
+        "SP-R04-L05-Q01-O-0e1234ad026f"
+      ],
+      "solution_option_id": "SP-R04-L05-Q01-O-0e1234ad026f",
+      "assessment_role": "theory_candidate_not_yet_assigned_to_app_phase"
+    },
+    {
+      "id": "SP-R04-L05-Q02",
+      "lesson_id": "SP-R04-L05",
+      "region_id": "SP-R04",
+      "type": "multiple_choice",
+      "question": "¿Qué demuestra compartir usuario/IP en dos eventos?",
+      "options": [
+        "Que se puede omitir el dominio de la identidad al correlacionar",
+        "Que los fallos causaron el éxito posterior",
+        "Correlación potencial que requiere análisis",
+        "Que ambos registros pertenecen a la misma sesión autenticada"
+      ],
+      "correct_index": 2,
+      "correct_answer": "Correlación potencial que requiere análisis",
+      "explanation": "La asociación estadística no prueba causalidad ni atribución.",
+      "source_refs": [
+        "S04",
+        "S13",
+        "S01"
+      ],
+      "source_sc": "Cap. 08 (correlación), 09 (investigación) y 13 (join en KQL).",
+      "difficulty": "intermedio",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": true,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "option_ids": [
+        "SP-R04-L05-Q02-O-50fe3964c5b0",
+        "SP-R04-L05-Q02-O-d73c3a8ec67f",
+        "SP-R04-L05-Q02-O-d204dea34544",
+        "SP-R04-L05-Q02-O-6f9c31a2a37e"
+      ],
+      "solution_option_id": "SP-R04-L05-Q02-O-d204dea34544",
+      "assessment_role": "theory_candidate_not_yet_assigned_to_app_phase"
+    },
+    {
+      "id": "SP-R04-L05-P01",
+      "lesson_id": "SP-R04-L05",
+      "region_id": "SP-R04",
+      "type": "open_practice",
+      "question": "Diseña una búsqueda con `stats` que detecte parejas usuario/IP con fallos y éxitos, y explica tres falsos positivos o fuentes de ambigüedad.",
+      "reference_answer": "La búsqueda de ejemplo usa `count(eval(...))` por user/src. Ambigüedades: IP NAT/VPN, identidad compartida, errores de reloj y eventos duplicados. Requiere comprobar orden de eventos y ventana de investigación.",
+      "rubric": [
+        "Identifica fuentes, campos, ventana y supuestos",
+        "Aplica el método al escenario y explica cifras o semántica",
+        "Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante",
+        "Presenta una respuesta reproducible sin ejecutar cambios en sistemas"
+      ],
+      "source_refs": [
+        "S04",
+        "S13",
+        "S01"
+      ],
+      "source_sc": "Cap. 08 (correlación), 09 (investigación) y 13 (join en KQL).",
+      "difficulty": "aplicacion",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": false,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "assessment_role": "formative_only"
+    },
+    {
+      "id": "SP-R04-L06-Q01",
+      "lesson_id": "SP-R04-L06",
+      "region_id": "SP-R04",
+      "type": "multiple_choice",
+      "question": "¿Qué es un síntoma posible de una subbúsqueda limitada?",
+      "options": [
+        "Una consulta rápida cuya duración prueba por sí sola equivalencia con la original",
+        "Un conjunto secundario incompleto puede reducir las coincidencias aunque la lógica aparente sea correcta",
+        "Un resultado menor que demuestra que la optimización eliminó falsos positivos",
+        "Un límite que conserva todas las entidades al seleccionar solo las filas más recientes"
+      ],
+      "correct_index": 1,
+      "correct_answer": "Un conjunto secundario incompleto puede reducir las coincidencias aunque la lógica aparente sea correcta",
+      "explanation": "Los límites pueden afectar al conjunto consultado y, por tanto, a la cobertura.",
+      "source_refs": [
+        "S04",
+        "S05",
+        "S16"
+      ],
+      "source_sc": "Cap. 05 (recursos/retención) y cap. 13 (consultas KQL eficientes).",
+      "difficulty": "intermedio",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": true,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "option_ids": [
+        "SP-R04-L06-Q01-O-2ead0664dae9",
+        "SP-R04-L06-Q01-O-c9b44dac67ba",
+        "SP-R04-L06-Q01-O-b1e9c952648b",
+        "SP-R04-L06-Q01-O-90a200cec4d3"
+      ],
+      "solution_option_id": "SP-R04-L06-Q01-O-c9b44dac67ba",
+      "assessment_role": "theory_candidate_not_yet_assigned_to_app_phase"
+    },
+    {
+      "id": "SP-R04-L06-Q02",
+      "lesson_id": "SP-R04-L06",
+      "region_id": "SP-R04",
+      "type": "multiple_choice",
+      "question": "¿Dónde se inspeccionan fases/costes de una búsqueda real?",
+      "options": [
+        "Job Inspector",
+        "El inventario de sourcetypes sin métricas del trabajo",
+        "La vista de inventario de hosts de Monitoring Console sin el detalle del job",
+        "Una tabla count por usuario sin información del job"
+      ],
+      "correct_index": 0,
+      "correct_answer": "Job Inspector",
+      "explanation": "Job Inspector permite analizar comportamiento y recursos de search jobs.",
+      "source_refs": [
+        "S04",
+        "S05",
+        "S16"
+      ],
+      "source_sc": "Cap. 05 (recursos/retención) y cap. 13 (consultas KQL eficientes).",
+      "difficulty": "intermedio",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": true,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "option_ids": [
+        "SP-R04-L06-Q02-O-9e545b853de7",
+        "SP-R04-L06-Q02-O-0de4f4b47b3d",
+        "SP-R04-L06-Q02-O-2e5d6dd7fb34",
+        "SP-R04-L06-Q02-O-d4317da7b0b7"
+      ],
+      "solution_option_id": "SP-R04-L06-Q02-O-9e545b853de7",
+      "assessment_role": "theory_candidate_not_yet_assigned_to_app_phase"
+    },
+    {
+      "id": "SP-R04-L06-P01",
+      "lesson_id": "SP-R04-L06",
+      "region_id": "SP-R04",
+      "type": "open_practice",
+      "question": "Explica cómo comparar dos búsquedas equivalentes sobre la misma muestra/tiempo, qué métricas mirarías en Job Inspector y qué evidencia conservarías antes de optimizar.",
+      "reference_answer": "Comprobar ventana/índices/roles, expansión/truncamiento de subsearch, número de filas, semántica de claves y Job Inspector (etapas/coste). Ensayar agregación con stats sobre los mismos datos; no reclamar mejora cuantitativa sin medir.",
+      "rubric": [
+        "Identifica fuentes, campos, ventana y supuestos",
+        "Aplica el método al escenario y explica cifras o semántica",
+        "Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante",
+        "Presenta una respuesta reproducible sin ejecutar cambios en sistemas"
+      ],
+      "source_refs": [
+        "S04",
+        "S05",
+        "S16"
+      ],
+      "source_sc": "Cap. 05 (recursos/retención) y cap. 13 (consultas KQL eficientes).",
+      "difficulty": "aplicacion",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": false,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "assessment_role": "formative_only"
+    },
+    {
+      "id": "SP-R04-L07-Q01",
+      "lesson_id": "SP-R04-L07",
+      "region_id": "SP-R04",
+      "type": "multiple_choice",
+      "question": "Un evento tiene tres roles multivalor. ¿Cuántas filas produce mvexpand roles?",
+      "options": [
+        "Una, porque mvexpand solo cambia la presentación del campo",
+        "Cuatro, al sumar una fila original a las tres expandidas",
+        "Tres",
+        "Dos, porque el primer valor permanece en el evento fuente"
+      ],
+      "correct_index": 2,
+      "correct_answer": "Tres",
+      "explanation": "mvexpand crea una fila por valor del campo multivalor.",
+      "source_refs": [
+        "S06",
+        "S07"
+      ],
+      "source_sc": "Cap. 13 (parse/extract/mv-expand) y cap. 04 (ingesta).",
+      "difficulty": "intermedio",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": true,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "option_ids": [
+        "SP-R04-L07-Q01-O-1d9ce9312a41",
+        "SP-R04-L07-Q01-O-65fcf730a231",
+        "SP-R04-L07-Q01-O-8c1fa99b2b1d",
+        "SP-R04-L07-Q01-O-d9aa190db50a"
+      ],
+      "solution_option_id": "SP-R04-L07-Q01-O-8c1fa99b2b1d",
+      "assessment_role": "theory_candidate_not_yet_assigned_to_app_phase"
+    },
+    {
+      "id": "SP-R04-L07-Q02",
+      "lesson_id": "SP-R04-L07",
+      "region_id": "SP-R04",
+      "type": "multiple_choice",
+      "question": "¿Qué hace rex por defecto?",
+      "options": [
+        "Configura una extracción persistente para futuras búsquedas",
+        "Extrae campos al buscar",
+        "Filtra eventos completos que no coinciden sin crear campos",
+        "Reescribe el formato del evento en el índice al capturar grupos"
+      ],
+      "correct_index": 1,
+      "correct_answer": "Extrae campos al buscar",
+      "explanation": "rex realiza extracción en el pipeline, no reindexación.",
+      "source_refs": [
+        "S06",
+        "S07"
+      ],
+      "source_sc": "Cap. 13 (parse/extract/mv-expand) y cap. 04 (ingesta).",
+      "difficulty": "intermedio",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": true,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "option_ids": [
+        "SP-R04-L07-Q02-O-5bcc77ede535",
+        "SP-R04-L07-Q02-O-c63d6e0b1de2",
+        "SP-R04-L07-Q02-O-6d33ce97a0ad",
+        "SP-R04-L07-Q02-O-aead181e0ee7"
+      ],
+      "solution_option_id": "SP-R04-L07-Q02-O-c63d6e0b1de2",
+      "assessment_role": "theory_candidate_not_yet_assigned_to_app_phase"
+    },
+    {
+      "id": "SP-R04-L07-P01",
+      "lesson_id": "SP-R04-L07",
+      "region_id": "SP-R04",
+      "type": "open_practice",
+      "question": "Propón extracción de user para `src=203.0.113.9 user=alice action=failure`; explica qué pasa si falta user y cómo preservarías event_id antes de mvexpand.",
+      "reference_answer": "Un evento fuente genera dos filas tras expandir roles. Regex `user=(?<usuario_extraido>[^ ]+)` captura alice; si falta user no debe inventar identidad. Mantener un identificador original para comparar cardinalidad antes/después.",
+      "rubric": [
+        "Identifica fuentes, campos, ventana y supuestos",
+        "Aplica el método al escenario y explica cifras o semántica",
+        "Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante",
+        "Presenta una respuesta reproducible sin ejecutar cambios en sistemas"
+      ],
+      "source_refs": [
+        "S06",
+        "S07"
+      ],
+      "source_sc": "Cap. 13 (parse/extract/mv-expand) y cap. 04 (ingesta).",
+      "difficulty": "aplicacion",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": false,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "assessment_role": "formative_only"
+    },
+    {
+      "id": "SP-R04-L08-Q01",
+      "lesson_id": "SP-R04-L08",
+      "region_id": "SP-R04",
+      "type": "multiple_choice",
+      "question": "¿Cuál conclusión respeta la evidencia del proyecto?",
+      "options": [
+        "El éxito de alice demuestra que se obtuvieron sus credenciales",
+        "La etiqueta de proxy permite cerrar como benignos todos sus eventos",
+        "El umbral permite atribuir el patrón a una única máquina atacante",
+        "Patrón sospechoso pendiente de contexto"
+      ],
+      "correct_index": 3,
+      "correct_answer": "Patrón sospechoso pendiente de contexto",
+      "explanation": "Los hechos permiten sospecha y solicitud de contexto, no atribución.",
+      "source_refs": [
+        "S01",
+        "S03",
+        "S02"
+      ],
+      "source_sc": "Cap. 07/08/09/10/13 (detección, correlación, investigación, hunting, KQL).",
+      "difficulty": "intermedio",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": true,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "option_ids": [
+        "SP-R04-L08-Q01-O-093188f40190",
+        "SP-R04-L08-Q01-O-34a9de756ce2",
+        "SP-R04-L08-Q01-O-d47fb10886f2",
+        "SP-R04-L08-Q01-O-6200091bef1f"
+      ],
+      "solution_option_id": "SP-R04-L08-Q01-O-6200091bef1f",
+      "assessment_role": "theory_candidate_not_yet_assigned_to_app_phase"
+    },
+    {
+      "id": "SP-R04-L08-Q02",
+      "lesson_id": "SP-R04-L08",
+      "region_id": "SP-R04",
+      "type": "multiple_choice",
+      "question": "¿Qué dato mínimo hace reproducible el análisis?",
+      "options": [
+        "Un conteo final sin identificar la población de eventos",
+        "El nombre de la regla sin la revisión ni las condiciones que se evaluaron",
+        "SPL, fuente, ventana y condiciones",
+        "Una captura con la hora del analista, pero sin rango de búsqueda"
+      ],
+      "correct_index": 2,
+      "correct_answer": "SPL, fuente, ventana y condiciones",
+      "explanation": "Sin trazabilidad de consulta y fuentes no se puede revisar el resultado.",
+      "source_refs": [
+        "S01",
+        "S03",
+        "S02"
+      ],
+      "source_sc": "Cap. 07/08/09/10/13 (detección, correlación, investigación, hunting, KQL).",
+      "difficulty": "intermedio",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": true,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "option_ids": [
+        "SP-R04-L08-Q02-O-011b607ac618",
+        "SP-R04-L08-Q02-O-784f9ef01462",
+        "SP-R04-L08-Q02-O-32b60b2e6417",
+        "SP-R04-L08-Q02-O-a198e2d2d049"
+      ],
+      "solution_option_id": "SP-R04-L08-Q02-O-32b60b2e6417",
+      "assessment_role": "theory_candidate_not_yet_assigned_to_app_phase"
+    },
+    {
+      "id": "SP-R04-L08-P01",
+      "lesson_id": "SP-R04-L08",
+      "region_id": "SP-R04",
+      "type": "open_practice",
+      "question": "Entrega consulta, salida esperada, cronología, hipótesis adversaria y benigna, datos ausentes y propuesta de siguiente consulta segura. Justifica por qué no se ejecuta respuesta automática.",
+      "reference_answer": "Evidencia: 09:01–09:10 7 fallos, 5 usuarios distintos desde 203.0.113.9; éxito de alice 09:11. Interpretación: patrón compatible con spraying pero también NAT/prueba legítima. Pendientes: origen real, reputación/propiedad, baseline, resultado de autenticación en fuentes independientes, cobertura. No hay prueba de compromiso.",
+      "rubric": [
+        "Identifica fuentes, campos, ventana y supuestos",
+        "Aplica el método al escenario y explica cifras o semántica",
+        "Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante",
+        "Presenta una respuesta reproducible sin ejecutar cambios en sistemas"
+      ],
+      "source_refs": [
+        "S01",
+        "S03",
+        "S02"
+      ],
+      "source_sc": "Cap. 07/08/09/10/13 (detección, correlación, investigación, hunting, KQL).",
+      "difficulty": "aplicacion",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": false,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "assessment_role": "formative_only"
+    },
+    {
+      "id": "SP-R05-L01-Q01",
+      "lesson_id": "SP-R05-L01",
+      "region_id": "SP-R05",
+      "type": "multiple_choice",
+      "question": "¿Qué crea un field alias?",
+      "options": [
+        "Un nuevo campo indexado que siempre mejora la velocidad de búsqueda",
+        "Un nombre alternativo del campo en búsqueda; el alias no inventa su valor ni demuestra su significado",
+        "Una modificación persistente del nombre del campo dentro de _raw",
+        "Un valor derivado que corrige semánticamente la identidad original"
+      ],
+      "correct_index": 1,
+      "correct_answer": "Un nombre alternativo del campo en búsqueda; el alias no inventa su valor ni demuestra su significado",
+      "explanation": "Un alias no transforma los eventos almacenados ni demuestra semántica.",
+      "source_refs": [
+        "S08",
+        "S09",
+        "S13"
+      ],
+      "source_sc": "Cap. 04 (ingesta y normalización), cap. 13 (mapeo de campos).",
+      "difficulty": "normalizacion",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": true,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "option_ids": [
+        "SP-R05-L01-Q01-O-b388419e35b8",
+        "SP-R05-L01-Q01-O-91ed93414f81",
+        "SP-R05-L01-Q01-O-fc6d947c5ab6",
+        "SP-R05-L01-Q01-O-3849a658364f"
+      ],
+      "solution_option_id": "SP-R05-L01-Q01-O-91ed93414f81",
+      "assessment_role": "theory_candidate_not_yet_assigned_to_app_phase"
+    },
+    {
+      "id": "SP-R05-L01-Q02",
+      "lesson_id": "SP-R05-L01",
+      "region_id": "SP-R05",
+      "type": "multiple_choice",
+      "question": "¿Qué hacer con un 4688 del fixture?",
+      "options": [
+        "Mantenerlo fuera de Authentication: el 4688 del ejercicio es creación de proceso, no inicio de sesión",
+        "Clasificarlo como autenticación si comparte host con un 4625",
+        "Incluirlo como fallo de login porque contiene Account_Name",
+        "Inferir action=failure porque no contiene evidencia de inicio correcto"
+      ],
+      "correct_index": 0,
+      "correct_answer": "Mantenerlo fuera de Authentication: el 4688 del ejercicio es creación de proceso, no inicio de sesión",
+      "explanation": "4688 es creación de proceso; no cumple por sí mismo el propósito de Authentication.",
+      "source_refs": [
+        "S08",
+        "S09",
+        "S13"
+      ],
+      "source_sc": "Cap. 04 (ingesta y normalización), cap. 13 (mapeo de campos).",
+      "difficulty": "normalizacion",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": true,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "option_ids": [
+        "SP-R05-L01-Q02-O-ec77d480a2a0",
+        "SP-R05-L01-Q02-O-c0efae2db370",
+        "SP-R05-L01-Q02-O-ee5534259a76",
+        "SP-R05-L01-Q02-O-6eed4346fe23"
+      ],
+      "solution_option_id": "SP-R05-L01-Q02-O-ec77d480a2a0",
+      "assessment_role": "theory_candidate_not_yet_assigned_to_app_phase"
+    },
+    {
+      "id": "SP-R05-L01-P01",
+      "lesson_id": "SP-R05-L01",
+      "region_id": "SP-R05",
+      "type": "open_practice",
+      "question": "Diseña una tabla fuente→campo CIM con valores ejemplo para Windows 4624/4625, Linux accepted/failed y 4688. Señala los casos excluidos.",
+      "reference_answer": "Windows 4624→success y 4625→failure cuando representan logon; Linux accepted→success y failed→failure si el mensaje realmente es de autenticación; 4688 no entra en Authentication. Los eventos sin IP quedan con src ausente y bandera de calidad.",
+      "rubric": [
+        "Identifica fuentes, campos, ventana y supuestos",
+        "Aplica el método al escenario y explica cifras o semántica",
+        "Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante",
+        "Presenta una respuesta reproducible sin ejecutar cambios en sistemas"
+      ],
+      "source_refs": [
+        "S08",
+        "S09",
+        "S13"
+      ],
+      "source_sc": "Cap. 04 (ingesta y normalización), cap. 13 (mapeo de campos).",
+      "difficulty": "aplicacion",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": false,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "assessment_role": "formative_only"
+    },
+    {
+      "id": "SP-R05-L02-Q01",
+      "lesson_id": "SP-R05-L02",
+      "region_id": "SP-R05",
+      "type": "multiple_choice",
+      "question": "¿Qué aporta un lookup de inventario?",
+      "options": [
+        "Contexto del activo que debe contrastarse con la vigencia y calidad del inventario, sin cierre automático",
+        "Prueba suficiente de que el acceso del activo estaba autorizado",
+        "Una fuente que reemplaza el tiempo y el origen del evento observado",
+        "Una identidad de usuario inferida de cualquier coincidencia por IP"
+      ],
+      "correct_index": 0,
+      "correct_answer": "Contexto del activo que debe contrastarse con la vigencia y calidad del inventario, sin cierre automático",
+      "explanation": "Es una fuente auxiliar que necesita verificación.",
+      "source_refs": [
+        "S13",
+        "S14"
+      ],
+      "source_sc": "Cap. 06 (TI/enriquecimiento), 09 (investigación).",
+      "difficulty": "normalizacion",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": true,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "option_ids": [
+        "SP-R05-L02-Q01-O-cd262214a984",
+        "SP-R05-L02-Q01-O-4888f88fb1b4",
+        "SP-R05-L02-Q01-O-9467a5f72fc4",
+        "SP-R05-L02-Q01-O-3f0620389585"
+      ],
+      "solution_option_id": "SP-R05-L02-Q01-O-cd262214a984",
+      "assessment_role": "theory_candidate_not_yet_assigned_to_app_phase"
+    },
+    {
+      "id": "SP-R05-L02-Q02",
+      "lesson_id": "SP-R05-L02",
+      "region_id": "SP-R05",
+      "type": "multiple_choice",
+      "question": "¿Qué significa OUTPUTNEW?",
+      "options": [
+        "Reemplazar el campo existente con el valor más reciente del CSV",
+        "Crear una fila nueva para cada valor sin coincidencia",
+        "Conservar solo eventos que tengan match en el inventario",
+        "Evitar reemplazar campos de salida ya presentes en los eventos que se enriquecen mediante lookup"
+      ],
+      "correct_index": 3,
+      "correct_answer": "Evitar reemplazar campos de salida ya presentes en los eventos que se enriquecen mediante lookup",
+      "explanation": "OUTPUTNEW se usa para no reemplazar valores ya existentes en los campos de salida.",
+      "source_refs": [
+        "S13",
+        "S14"
+      ],
+      "source_sc": "Cap. 06 (TI/enriquecimiento), 09 (investigación).",
+      "difficulty": "normalizacion",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": true,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "option_ids": [
+        "SP-R05-L02-Q02-O-caed0f17a809",
+        "SP-R05-L02-Q02-O-1c88698fadd1",
+        "SP-R05-L02-Q02-O-f9e38295b73f",
+        "SP-R05-L02-Q02-O-af1a957ea6f6"
+      ],
+      "solution_option_id": "SP-R05-L02-Q02-O-af1a957ea6f6",
+      "assessment_role": "theory_candidate_not_yet_assigned_to_app_phase"
+    },
+    {
+      "id": "SP-R05-L02-P01",
+      "lesson_id": "SP-R05-L02",
+      "region_id": "SP-R05",
+      "type": "open_practice",
+      "question": "Diseña el proceso de enriquecimiento con el CSV de fixture y explica qué validación adicional exige un proxy compartido.",
+      "reference_answer": "No se cierra automáticamente: puede haber múltiples usuarios detrás. Registrar identidad del proxy, propietarios, zona horaria y logs del proxy si existen; cotejar con ventanas y conexiones individuales.",
+      "rubric": [
+        "Identifica fuentes, campos, ventana y supuestos",
+        "Aplica el método al escenario y explica cifras o semántica",
+        "Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante",
+        "Presenta una respuesta reproducible sin ejecutar cambios en sistemas"
+      ],
+      "source_refs": [
+        "S13",
+        "S14"
+      ],
+      "source_sc": "Cap. 06 (TI/enriquecimiento), 09 (investigación).",
+      "difficulty": "aplicacion",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": false,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "assessment_role": "formative_only"
+    },
+    {
+      "id": "SP-R05-L03-Q01",
+      "lesson_id": "SP-R05-L03",
+      "region_id": "SP-R05",
+      "type": "multiple_choice",
+      "question": "¿Cuál es el propósito del CIM?",
+      "options": [
+        "Garantizar que cada TA extraiga todos los campos sin validación",
+        "Convertir automáticamente toda la telemetría en Authentication",
+        "Unificar significado de campos y datasets para búsquedas comparables, sin fabricar datos de la fuente",
+        "Definir un índice físico por cada fabricante de origen"
+      ],
+      "correct_index": 2,
+      "correct_answer": "Unificar significado de campos y datasets para búsquedas comparables, sin fabricar datos de la fuente",
+      "explanation": "El CIM define un esquema semántico consumible por búsquedas y modelos.",
+      "source_refs": [
+        "S08",
+        "S09"
+      ],
+      "source_sc": "Cap. 04 (ingesta), 13 (tablas y relaciones), sin equivalencia 1:1 con ASIM.",
+      "difficulty": "normalizacion",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": true,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "option_ids": [
+        "SP-R05-L03-Q01-O-14011f8902d2",
+        "SP-R05-L03-Q01-O-968d4c5223f8",
+        "SP-R05-L03-Q01-O-1d1f2efca593",
+        "SP-R05-L03-Q01-O-5a017bd5ee4a"
+      ],
+      "solution_option_id": "SP-R05-L03-Q01-O-1d1f2efca593",
+      "assessment_role": "theory_candidate_not_yet_assigned_to_app_phase"
+    },
+    {
+      "id": "SP-R05-L03-Q02",
+      "lesson_id": "SP-R05-L03",
+      "region_id": "SP-R05",
+      "type": "multiple_choice",
+      "question": "¿Qué diferencia hay entre source y src?",
+      "options": [
+        "src es el valor atribuido al emisor Splunk y sustituye a host",
+        "source y src pueden intercambiarse si los dos tienen valores de texto",
+        "source identifica la IP remota y src el canal o archivo ingerido",
+        "source es metadato de origen del dato; src puede ser IP/host origen del evento"
+      ],
+      "correct_index": 3,
+      "correct_answer": "source es metadato de origen del dato; src puede ser IP/host origen del evento",
+      "explanation": "Los nombres tienen significados distintos.",
+      "source_refs": [
+        "S08",
+        "S09"
+      ],
+      "source_sc": "Cap. 04 (ingesta), 13 (tablas y relaciones), sin equivalencia 1:1 con ASIM.",
+      "difficulty": "normalizacion",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": true,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "option_ids": [
+        "SP-R05-L03-Q02-O-f4e247d2bd53",
+        "SP-R05-L03-Q02-O-b2305047121e",
+        "SP-R05-L03-Q02-O-d734e75e5220",
+        "SP-R05-L03-Q02-O-262da89d85d0"
+      ],
+      "solution_option_id": "SP-R05-L03-Q02-O-262da89d85d0",
+      "assessment_role": "theory_candidate_not_yet_assigned_to_app_phase"
+    },
+    {
+      "id": "SP-R05-L03-P01",
+      "lesson_id": "SP-R05-L03",
+      "region_id": "SP-R05",
+      "type": "open_practice",
+      "question": "Construye una ficha de cumplimiento CIM Authentication para tres eventos válidos y uno inválido del fixture; etiqueta campos ausentes y semántica incorrecta.",
+      "reference_answer": "Los eventos Windows 4624/4625 y Linux accepted/failed pueden entrar si hay mapeo y tags correctos; 4688 no es autenticación. El src vacío no se fabrica: queda como brecha observable de calidad.",
+      "rubric": [
+        "Identifica fuentes, campos, ventana y supuestos",
+        "Aplica el método al escenario y explica cifras o semántica",
+        "Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante",
+        "Presenta una respuesta reproducible sin ejecutar cambios en sistemas"
+      ],
+      "source_refs": [
+        "S08",
+        "S09"
+      ],
+      "source_sc": "Cap. 04 (ingesta), 13 (tablas y relaciones), sin equivalencia 1:1 con ASIM.",
+      "difficulty": "aplicacion",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": false,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "assessment_role": "formative_only"
+    },
+    {
+      "id": "SP-R05-L04-Q01",
+      "lesson_id": "SP-R05-L04",
+      "region_id": "SP-R05",
+      "type": "multiple_choice",
+      "question": "¿Qué organiza un data model?",
+      "options": [
+        "La distribución de roles entre search heads e indexers",
+        "La política física de rotación de buckets de un índice",
+        "Una jerarquía de datasets y restricciones de búsqueda que determina qué eventos forman parte del modelo",
+        "Un catálogo de dispositivos cuya presencia valida los eventos"
+      ],
+      "correct_index": 2,
+      "correct_answer": "Una jerarquía de datasets y restricciones de búsqueda que determina qué eventos forman parte del modelo",
+      "explanation": "Los datasets y sus restricciones componen el modelo.",
+      "source_refs": [
+        "S15",
+        "S09"
+      ],
+      "source_sc": "Cap. 04 (normalización) y 13 (modelo de datos).",
+      "difficulty": "normalizacion",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": true,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "option_ids": [
+        "SP-R05-L04-Q01-O-a7474abc371d",
+        "SP-R05-L04-Q01-O-efbf5b521597",
+        "SP-R05-L04-Q01-O-9b37af744951",
+        "SP-R05-L04-Q01-O-b6a735758061"
+      ],
+      "solution_option_id": "SP-R05-L04-Q01-O-9b37af744951",
+      "assessment_role": "theory_candidate_not_yet_assigned_to_app_phase"
+    },
+    {
+      "id": "SP-R05-L04-Q02",
+      "lesson_id": "SP-R05-L04",
+      "region_id": "SP-R05",
+      "type": "multiple_choice",
+      "question": "Una búsqueda cruda encuentra eventos que CIM no devuelve. ¿Qué revisar?",
+      "options": [
+        "Tags, constraints, campos y permisos",
+        "Solo el volumen del índice, porque el modelo incluye todos sus eventos",
+        "Únicamente la aceleración, aunque falten tags o campos requeridos",
+        "Solo el nombre del modelo, suponiendo correctas sus restricciones"
+      ],
+      "correct_index": 0,
+      "correct_answer": "Tags, constraints, campos y permisos",
+      "explanation": "La presencia en un índice no implica pertenencia automática al dataset.",
+      "source_refs": [
+        "S15",
+        "S09"
+      ],
+      "source_sc": "Cap. 04 (normalización) y 13 (modelo de datos).",
+      "difficulty": "normalizacion",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": true,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "option_ids": [
+        "SP-R05-L04-Q02-O-b5606fa1af9b",
+        "SP-R05-L04-Q02-O-1570421d24b9",
+        "SP-R05-L04-Q02-O-1bc324501938",
+        "SP-R05-L04-Q02-O-bf6d5218cffe"
+      ],
+      "solution_option_id": "SP-R05-L04-Q02-O-b5606fa1af9b",
+      "assessment_role": "theory_candidate_not_yet_assigned_to_app_phase"
+    },
+    {
+      "id": "SP-R05-L04-P01",
+      "lesson_id": "SP-R05-L04",
+      "region_id": "SP-R05",
+      "type": "open_practice",
+      "question": "Diseña un diagrama raíz→dataset hijo con fuente/tag/campos/constraints y un plan de auditoría de eventos incluidos/excluidos.",
+      "reference_answer": "Causas posibles: tags ausentes, campo action incorrecto, permissions/app context, constraints adicionales, parsing de timestamps, índices/roles o fuentes fuera de periodo. Verificar antes de atribuir fallo al producto.",
+      "rubric": [
+        "Identifica fuentes, campos, ventana y supuestos",
+        "Aplica el método al escenario y explica cifras o semántica",
+        "Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante",
+        "Presenta una respuesta reproducible sin ejecutar cambios en sistemas"
+      ],
+      "source_refs": [
+        "S15",
+        "S09"
+      ],
+      "source_sc": "Cap. 04 (normalización) y 13 (modelo de datos).",
+      "difficulty": "aplicacion",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": false,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "assessment_role": "formative_only"
+    },
+    {
+      "id": "SP-R05-L05-Q01",
+      "lesson_id": "SP-R05-L05",
+      "region_id": "SP-R05",
+      "type": "multiple_choice",
+      "question": "¿Qué mide una auditoría correcta CIM?",
+      "options": [
+        "Cobertura de datos y corrección semántica por fuente",
+        "La presencia del nombre user sin contrastar a qué cuenta se refiere",
+        "El porcentaje de eventos con cualquier campo, sin revisar su significado",
+        "El volumen combinado de procesos y autenticaciones como denominador único"
+      ],
+      "correct_index": 0,
+      "correct_answer": "Cobertura de datos y corrección semántica por fuente",
+      "explanation": "Los datos deben estar presentes y representar conceptos correctos.",
+      "source_refs": [
+        "S10",
+        "S08",
+        "S09"
+      ],
+      "source_sc": "Cap. 04 (normalización), 07 (calidad de detección).",
+      "difficulty": "normalizacion",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": true,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "option_ids": [
+        "SP-R05-L05-Q01-O-c6fa9e3ad72d",
+        "SP-R05-L05-Q01-O-19718bdd75ae",
+        "SP-R05-L05-Q01-O-972b1ea020e1",
+        "SP-R05-L05-Q01-O-dfa35e28adc4"
+      ],
+      "solution_option_id": "SP-R05-L05-Q01-O-c6fa9e3ad72d",
+      "assessment_role": "theory_candidate_not_yet_assigned_to_app_phase"
+    },
+    {
+      "id": "SP-R05-L05-Q02",
+      "lesson_id": "SP-R05-L05",
+      "region_id": "SP-R05",
+      "type": "multiple_choice",
+      "question": "¿Debe un evento 4688 contarse como login fallido?",
+      "options": [
+        "Sí, si el proceso se ejecuta con un usuario que también falló un login",
+        "No: representa otro tipo de evento",
+        "Sí, si ocurre dentro del mismo bucket que un 4625",
+        "Sí, si el TA extrae campos con los mismos nombres que Authentication"
+      ],
+      "correct_index": 1,
+      "correct_answer": "No: representa otro tipo de evento",
+      "explanation": "El tipo de evento define su inclusión; un nombre de campo no basta.",
+      "source_refs": [
+        "S10",
+        "S08",
+        "S09"
+      ],
+      "source_sc": "Cap. 04 (normalización), 07 (calidad de detección).",
+      "difficulty": "normalizacion",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": true,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "option_ids": [
+        "SP-R05-L05-Q02-O-19a8823ca0ff",
+        "SP-R05-L05-Q02-O-6aca65dca2cd",
+        "SP-R05-L05-Q02-O-24ed69746883",
+        "SP-R05-L05-Q02-O-7ae60c570457"
+      ],
+      "solution_option_id": "SP-R05-L05-Q02-O-6aca65dca2cd",
+      "assessment_role": "theory_candidate_not_yet_assigned_to_app_phase"
+    },
+    {
+      "id": "SP-R05-L05-P01",
+      "lesson_id": "SP-R05-L05",
+      "region_id": "SP-R05",
+      "type": "open_practice",
+      "question": "Audita el fixture crudo con el script offline y redacta un reporte por fuente: cobertura, causa probable, prueba de diagnóstico y quién debe corregirlo.",
+      "reference_answer": "El conjunto tiene 6 filas: cinco eventos etiquetados login (Windows dos éxitos/fallos + Linux accepted/failed + Windows sin IP), uno proceso 4688 excluido. De los cinco login, 4 tienen IP no vacía, 5 identidad, 5 acción reconocible. Estos valores se comprueban con Python; no garantizan compatibilidad real con CIM.",
+      "rubric": [
+        "Identifica fuentes, campos, ventana y supuestos",
+        "Aplica el método al escenario y explica cifras o semántica",
+        "Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante",
+        "Presenta una respuesta reproducible sin ejecutar cambios en sistemas"
+      ],
+      "source_refs": [
+        "S10",
+        "S08",
+        "S09"
+      ],
+      "source_sc": "Cap. 04 (normalización), 07 (calidad de detección).",
+      "difficulty": "aplicacion",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": false,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "assessment_role": "formative_only"
+    },
+    {
+      "id": "SP-R05-L06-Q01",
+      "lesson_id": "SP-R05-L06",
+      "region_id": "SP-R05",
+      "type": "multiple_choice",
+      "question": "¿Cuál es el riesgo de summariesonly=true?",
+      "options": [
+        "Completa automáticamente los huecos del resumen buscando siempre eventos crudos",
+        "Puede omitir datos no incluidos en summaries",
+        "Convierte cualquier campo search-time en campo indexado para cubrir los huecos",
+        "Excluye únicamente los eventos que no pertenecen al índice seleccionado"
+      ],
+      "correct_index": 1,
+      "correct_answer": "Puede omitir datos no incluidos en summaries",
+      "explanation": "Ese modo limita el ámbito a resúmenes existentes.",
+      "source_refs": [
+        "S11",
+        "S12",
+        "S15"
+      ],
+      "source_sc": "Cap. 05 (retención/almacenamiento) y 13 (búsqueda y KQL).",
+      "difficulty": "normalizacion",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": true,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "option_ids": [
+        "SP-R05-L06-Q01-O-1eef6cb417c2",
+        "SP-R05-L06-Q01-O-57e9b1b24252",
+        "SP-R05-L06-Q01-O-ce09b33bc23e",
+        "SP-R05-L06-Q01-O-e1e9eade53c4"
+      ],
+      "solution_option_id": "SP-R05-L06-Q01-O-57e9b1b24252",
+      "assessment_role": "theory_candidate_not_yet_assigned_to_app_phase"
+    },
+    {
+      "id": "SP-R05-L06-Q02",
+      "lesson_id": "SP-R05-L06",
+      "region_id": "SP-R05",
+      "type": "multiple_choice",
+      "question": "¿Qué tipos de campos utiliza tstats?",
+      "options": [
+        "Los campos de una lookup table sin referencia a índice o modelo",
+        "Solo los valores de texto de _raw recuperados por el último search",
+        "Cualquier alias creado antes con eval, aunque no esté en el índice ni en el modelo",
+        "Campos indexados o datos de modelos acelerados según sintaxis"
+      ],
+      "correct_index": 3,
+      "correct_answer": "Campos indexados o datos de modelos acelerados según sintaxis",
+      "explanation": "tstats se apoya en estructuras de indexación y resúmenes del modelo.",
+      "source_refs": [
+        "S11",
+        "S12",
+        "S15"
+      ],
+      "source_sc": "Cap. 05 (retención/almacenamiento) y 13 (búsqueda y KQL).",
+      "difficulty": "normalizacion",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": true,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "option_ids": [
+        "SP-R05-L06-Q02-O-93ad28a99cdb",
+        "SP-R05-L06-Q02-O-91747e9b0fbd",
+        "SP-R05-L06-Q02-O-688fd1b6639b",
+        "SP-R05-L06-Q02-O-8b27427f7c02"
+      ],
+      "solution_option_id": "SP-R05-L06-Q02-O-8b27427f7c02",
+      "assessment_role": "theory_candidate_not_yet_assigned_to_app_phase"
+    },
+    {
+      "id": "SP-R05-L06-P01",
+      "lesson_id": "SP-R05-L06",
+      "region_id": "SP-R05",
+      "type": "open_practice",
+      "question": "Calcula los datos cubiertos/no cubiertos en la fixture de aceleración y diseña una consulta de control con ventana y datos fuente, distinguiendo simulación de ejecución real.",
+      "reference_answer": "raw_count=19; summarized_count=12; faltan 7 del resumen. La simulación no permite inferir causa real de backfill ni rendimiento; sería incorrecto concluir que no existieron los 7 eventos.",
+      "rubric": [
+        "Identifica fuentes, campos, ventana y supuestos",
+        "Aplica el método al escenario y explica cifras o semántica",
+        "Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante",
+        "Presenta una respuesta reproducible sin ejecutar cambios en sistemas"
+      ],
+      "source_refs": [
+        "S11",
+        "S12",
+        "S15"
+      ],
+      "source_sc": "Cap. 05 (retención/almacenamiento) y 13 (búsqueda y KQL).",
+      "difficulty": "aplicacion",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": false,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "assessment_role": "formative_only"
+    },
+    {
+      "id": "SP-R05-L07-Q01",
+      "lesson_id": "SP-R05-L07",
+      "region_id": "SP-R05",
+      "type": "multiple_choice",
+      "question": "¿Qué condición precede a acelerar un modelo para SOC?",
+      "options": [
+        "Un gráfico rápido aunque el modelo omita fuentes requeridas",
+        "Compatibilidad real de fuentes/campos y caso de uso",
+        "La coincidencia de nombres de campos sin comprobar su significado",
+        "Un horizonte de resumen amplio antes de conocer el volumen y la calidad"
+      ],
+      "correct_index": 1,
+      "correct_answer": "Compatibilidad real de fuentes/campos y caso de uso",
+      "explanation": "Sin un esquema fiable se acelera una representación potencialmente incorrecta.",
+      "source_refs": [
+        "S12",
+        "S16",
+        "S09"
+      ],
+      "source_sc": "Cap. 04 (calidad de ingesta), 05 (almacenamiento/coste).",
+      "difficulty": "normalizacion",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": true,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "option_ids": [
+        "SP-R05-L07-Q01-O-feda5861be45",
+        "SP-R05-L07-Q01-O-12a3b196a311",
+        "SP-R05-L07-Q01-O-0c920df10fbe",
+        "SP-R05-L07-Q01-O-c2da957b24e9"
+      ],
+      "solution_option_id": "SP-R05-L07-Q01-O-12a3b196a311",
+      "assessment_role": "theory_candidate_not_yet_assigned_to_app_phase"
+    },
+    {
+      "id": "SP-R05-L07-Q02",
+      "lesson_id": "SP-R05-L07",
+      "region_id": "SP-R05",
+      "type": "multiple_choice",
+      "question": "¿Qué demuestra una fixture CSV sobre aceleración?",
+      "options": [
+        "El tiempo de backfill de los indexers a partir del número de filas CSV",
+        "El ahorro de CPU esperado al activar aceleración en el laboratorio",
+        "Semántica de pérdida de cobertura simulada",
+        "La cobertura real de un modelo de datos compartido con el rol del alumno"
+      ],
+      "correct_index": 2,
+      "correct_answer": "Semántica de pérdida de cobertura simulada",
+      "explanation": "La simulación valida cálculos conceptuales, no tiempos de Splunk.",
+      "source_refs": [
+        "S12",
+        "S16",
+        "S09"
+      ],
+      "source_sc": "Cap. 04 (calidad de ingesta), 05 (almacenamiento/coste).",
+      "difficulty": "normalizacion",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": true,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "option_ids": [
+        "SP-R05-L07-Q02-O-3749534405f2",
+        "SP-R05-L07-Q02-O-45314aed0c41",
+        "SP-R05-L07-Q02-O-97ba79544651",
+        "SP-R05-L07-Q02-O-6ebef3648813"
+      ],
+      "solution_option_id": "SP-R05-L07-Q02-O-97ba79544651",
+      "assessment_role": "theory_candidate_not_yet_assigned_to_app_phase"
+    },
+    {
+      "id": "SP-R05-L07-P01",
+      "lesson_id": "SP-R05-L07",
+      "region_id": "SP-R05",
+      "type": "open_practice",
+      "question": "Entrega un documento de diseño de una página con índices/sourcetypes candidatos, medidas de calidad, costes, horizonte, criterio de aceptación y rollback.",
+      "reference_answer": "Primero auditar normalización y datos; luego establecer consultas de referencia y medir coste; sólo después valorar aceleración y su capacidad/ventanas; revisar impacto y regresiones bajo autorización. No afirmar ahorro de CPU sin métrica real.",
+      "rubric": [
+        "Identifica fuentes, campos, ventana y supuestos",
+        "Aplica el método al escenario y explica cifras o semántica",
+        "Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante",
+        "Presenta una respuesta reproducible sin ejecutar cambios en sistemas"
+      ],
+      "source_refs": [
+        "S12",
+        "S16",
+        "S09"
+      ],
+      "source_sc": "Cap. 04 (calidad de ingesta), 05 (almacenamiento/coste).",
+      "difficulty": "aplicacion",
+      "status": "documentary_draft_requires_content_review",
+      "splunk_executed": false,
+      "auto_gradable": false,
+      "editorial_revision": "2026-10-16-r1",
+      "human_review_status": "pending_independent_review",
+      "practical_mastery_eligible": false,
+      "source_namespace": "SPLUNK_LECCIONES_R04_R05",
+      "assessment_role": "formative_only"
+    }
+  ],
+  "assessment_policy": {
+    "theory_pass_percent": 80,
+    "open_practice": "formative_not_auto_graded",
+    "theory_pass_implies_practical_mastery": false,
+    "practical_mastery": "not_certified",
+    "human_content_review": "pending_independent_review",
+    "react_integration": "not_implemented"
+  },
+  "editorial_revision": "2026-10-16-r1",
+  "source_namespace": "SPLUNK_LECCIONES_R04_R05"
+}

@@ -1,0 +1,208 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R07-L06",
+  "title": "Detecciones multi-etapa y riesgo",
+  "revision": "de798f8943634acab719aedc",
+  "sourceVersion": "fae5ebf4fbae848feeed2111d12191a4de435f6b3a6e76f0fa4a5069ecffa172",
+  "sanitizedHash": "fae5ebf4fbae848feeed2111d12191a4de435f6b3a6e76f0fa4a5069ecffa172",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R06_R07/R07_DETECTION_ENGINEERING/SP-R07-L06.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Correlacionar señales y distinguir RBA de ES vs heurística propia",
+  "preamble": "# SP-R07-L06 — Detecciones multi-etapa y riesgo\n\n**Región:** SP-R07 · **Prioridad:** P0/P1 (SOC/Detection Engineering) · **Estado:** material editorial para revisión · **SPL:** NO ejecutado en Splunk.\n\n**Objetivo curricular original:** Correlacionar señales y distinguir RBA de ES vs heurística propia\n\n**Prerrequisitos:** R01–R06; distinguir Enterprise/Cloud y Enterprise Security. **Producto:** Splunk Enterprise/Cloud (búsquedas de lectura); funciones ES explícitamente condicionadas a Splunk Enterprise Security compatible.\n\n",
+  "sections": [
+    {
+      "id": "SP-R07-L06-S01",
+      "title": "1. Pregunta esencial y modelo mental",
+      "markdown": "## 1. Pregunta esencial y modelo mental\n\nMuchas señales débiles sobre una misma entidad pueden merecer revisión conjunta. En un ejercicio puedes asignar un score heurístico propio a fallos distribuidos, éxito posterior y contexto del activo. Eso NO equivale al Risk-Based Alerting de Splunk Enterprise Security: RBA depende de detecciones, anotaciones, riesgo, entidades y agregación del producto ES concreto.\n\n",
+      "line": 9,
+      "endLine": 11
+    },
+    {
+      "id": "SP-R07-L06-S02",
+      "title": "2. Conceptos que debes dominar",
+      "markdown": "## 2. Conceptos que debes dominar\n\n1. Primero valida que señales comparten una entidad legítima; correlación por IP NAT puede combinar usuarios distintos.\n2. Score pedagógico 30 (múltiples fallos) + 20 (éxito correlacionado) = 50, no “riesgo ES oficial”.\n3. En Splunk Enterprise base puedes calcular campos y agregaciones, pero no prometer findings, analyst queue ni RBA nativo sin ES.\n4. En ES 8.7 se diferencian event-based detections, intermediate findings, finding-based detections y finding groups; deben explicarse con versión.\n5. No sumar probabilidades o scores heterogéneos sin criterios documentados de calibración; riesgo operativo no equivale a certeza de compromiso.\n\n",
+      "line": 13,
+      "endLine": 19
+    },
+    {
+      "id": "SP-R07-L06-S03",
+      "title": "3. Práctica guiada: del dato a la conclusión",
+      "markdown": "## 3. Práctica guiada: del dato a la conclusión\n\n1. Diseña un score ad hoc para evidencia A001–A007, con pesos explícitos y sin automatizar respuesta.\n2. Propón la entidad de correlación, compara user y src y revisa falsos agrupamientos NAT.\n3. Explica cómo Splunk Enterprise puede listar señales y cómo ES 8.7 añade RBA/finding groups.\n4. Separa riesgo del activo (criticidad) de confianza de hipótesis y confirma qué datos faltan.\n5. Entrega una tabla de señales, evidencia y peso con limitaciones.\n\n",
+      "line": 21,
+      "endLine": 27
+    },
+    {
+      "id": "SP-R07-L06-S04",
+      "title": "4. SPL ilustrativo de solo lectura — NO probado en Splunk",
+      "markdown": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC (EventCode=4624 OR EventCode=4625)\n| stats count(eval(EventCode=4625)) AS fallos count(eval(EventCode=4624)) AS exitos dc(user) AS identidades BY src\n| eval score_didactico=if(fallos>=5 AND identidades>=5,30,0)+if(exitos>0,20,0)\n| table src fallos exitos identidades score_didactico\n```\n\n**Interpretación, supuestos y límites:** Esta búsqueda SPL calcula un score arbitrario exclusivamente didáctico. No crea intermediate findings, no escribe en risk index y no usa las APIs o Risk Framework de Enterprise Security.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n",
+      "line": 29,
+      "endLine": 40
+    },
+    {
+      "id": "SP-R07-L06-S05",
+      "title": "5. Caso del turno SOC",
+      "markdown": "## 5. Caso del turno SOC\n\nTres eventos compatibles con conducta sospechosa pueden justificar revisión, pero sus identidades y fuentes deben reconciliarse antes de agregarlos.\n\n## 6. Errores frecuentes\n\n1. Llamar RBA de ES al campo eval score_didactico.\n2. Correlacionar eventos de distintos usuarios por NAT y declarar mismo atacante.\n3. Interpretar score 50 como probabilidad 50%.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 42,
+      "endLine": 53
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R07-L06-Q01",
+      "lessonId": "SP-R07-L06",
+      "prompt": "¿El score calculado con eval equivale al Risk Framework ES?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D04",
+        "SPLUNK_LECCIONES_R06_R07:D05",
+        "SPLUNK_LECCIONES_R06_R07:D11",
+        "SPLUNK_LECCIONES_R06_R07:D12"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R07-L06-Q01-O-f59f33727c7c",
+          "text": "Sí, si se agrupa por usuario y el resultado se denomina risk_score"
+        },
+        {
+          "id": "SP-R07-L06-Q01-O-dd0c031c69ae",
+          "text": "Sí, si el score usa los mismos números que una regla publicada de ES"
+        },
+        {
+          "id": "SP-R07-L06-Q01-O-633696b5aa12",
+          "text": "Sí, si supera el umbral elegido aunque no haya modelo de riesgo ES"
+        },
+        {
+          "id": "SP-R07-L06-Q01-O-68c7125f810f",
+          "text": "No, es un indicador didáctico del search pipeline"
+        }
+      ],
+      "solution": "SP-R07-L06-Q01-O-68c7125f810f",
+      "explanation": "RBA es un conjunto de capacidades y entidades específico de Enterprise Security.",
+      "anchors": [
+        {
+          "file": "R07_DETECTION_ENGINEERING/SP-R07-L06.md",
+          "sourceHash": "fae5ebf4fbae848feeed2111d12191a4de435f6b3a6e76f0fa4a5069ecffa172",
+          "line": 13,
+          "endLine": 19,
+          "quote": "## 2. Conceptos que debes dominar\n\n1. Primero valida que señales comparten una entidad legítima; correlación por IP NAT puede combinar usuarios distintos.\n2. Score pedagógico 30 (múltiples fallos) + 20 (éxito correlacionado) = 50, no “riesgo ES oficial”.\n3. En Splunk Enterprise base puedes calcular campos y agregaciones, pero no prometer findings, analyst queue ni RBA nativo sin ES.\n4. En ES 8.7 se diferencian event-based detections, intermediate findings, finding-based detections y finding groups; deben explicarse con versión.\n5. No sumar probabilidades o scores heterogéneos sin criterios documentados de calibración; riesgo operativo no equivale a certeza de compromiso.\n\n"
+        },
+        {
+          "file": "R07_DETECTION_ENGINEERING/SP-R07-L06.md",
+          "sourceHash": "fae5ebf4fbae848feeed2111d12191a4de435f6b3a6e76f0fa4a5069ecffa172",
+          "line": 29,
+          "endLine": 40,
+          "quote": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC (EventCode=4624 OR EventCode=4625)\n| stats count(eval(EventCode=4625)) AS fallos count(eval(EventCode=4624)) AS exitos dc(user) AS identidades BY src\n| eval score_didactico=if(fallos>=5 AND identidades>=5,30,0)+if(exitos>0,20,0)\n| table src fallos exitos identidades score_didactico\n```\n\n**Interpretación, supuestos y límites:** Esta búsqueda SPL calcula un score arbitrario exclusivamente didáctico. No crea intermediate findings, no escribe en risk index y no usa las APIs o Risk Framework de Enterprise Security.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R07-L06-Q02",
+      "lessonId": "SP-R07-L06",
+      "prompt": "¿Qué riesgo hay al correlacionar por IP de NAT?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D04",
+        "SPLUNK_LECCIONES_R06_R07:D05",
+        "SPLUNK_LECCIONES_R06_R07:D11",
+        "SPLUNK_LECCIONES_R06_R07:D12"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R07-L06-Q02-O-a159efd32854",
+          "text": "Conservar automáticamente la identidad de todos los clientes internos"
+        },
+        {
+          "id": "SP-R07-L06-Q02-O-a2df058fac15",
+          "text": "Fusionar señales de sujetos diferentes"
+        },
+        {
+          "id": "SP-R07-L06-Q02-O-827d67ede3e7",
+          "text": "Resolver las traducciones de direcciones sin registros del proxy"
+        },
+        {
+          "id": "SP-R07-L06-Q02-O-99e53a999daf",
+          "text": "Separar señales por dispositivo aunque no haya otro identificador"
+        }
+      ],
+      "solution": "SP-R07-L06-Q02-O-a2df058fac15",
+      "explanation": "Entidad compartida no identifica necesariamente a una sola persona o dispositivo.",
+      "anchors": [
+        {
+          "file": "R07_DETECTION_ENGINEERING/SP-R07-L06.md",
+          "sourceHash": "fae5ebf4fbae848feeed2111d12191a4de435f6b3a6e76f0fa4a5069ecffa172",
+          "line": 13,
+          "endLine": 19,
+          "quote": "## 2. Conceptos que debes dominar\n\n1. Primero valida que señales comparten una entidad legítima; correlación por IP NAT puede combinar usuarios distintos.\n2. Score pedagógico 30 (múltiples fallos) + 20 (éxito correlacionado) = 50, no “riesgo ES oficial”.\n3. En Splunk Enterprise base puedes calcular campos y agregaciones, pero no prometer findings, analyst queue ni RBA nativo sin ES.\n4. En ES 8.7 se diferencian event-based detections, intermediate findings, finding-based detections y finding groups; deben explicarse con versión.\n5. No sumar probabilidades o scores heterogéneos sin criterios documentados de calibración; riesgo operativo no equivale a certeza de compromiso.\n\n"
+        },
+        {
+          "file": "R07_DETECTION_ENGINEERING/SP-R07-L06.md",
+          "sourceHash": "fae5ebf4fbae848feeed2111d12191a4de435f6b3a6e76f0fa4a5069ecffa172",
+          "line": 29,
+          "endLine": 40,
+          "quote": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC (EventCode=4624 OR EventCode=4625)\n| stats count(eval(EventCode=4625)) AS fallos count(eval(EventCode=4624)) AS exitos dc(user) AS identidades BY src\n| eval score_didactico=if(fallos>=5 AND identidades>=5,30,0)+if(exitos>0,20,0)\n| table src fallos exitos identidades score_didactico\n```\n\n**Interpretación, supuestos y límites:** Esta búsqueda SPL calcula un score arbitrario exclusivamente didáctico. No crea intermediate findings, no escribe en risk index y no usa las APIs o Risk Framework de Enterprise Security.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R07-L06-P01",
+      "lessonId": "SP-R07-L06",
+      "prompt": "Propón 3 señales, claves de entidad, pesos hipotéticos y limitaciones; explica qué necesitaría ES para RBA real.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D04",
+        "SPLUNK_LECCIONES_R06_R07:D05",
+        "SPLUNK_LECCIONES_R06_R07:D11",
+        "SPLUNK_LECCIONES_R06_R07:D12"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica datos y supuestos de la fuente",
+        "Plantea método correcto y distingue hechos de hipótesis",
+        "Explica limitaciones, alternativa benigna y telemetría ausente",
+        "Aporta evidencia, ventana e identificación reproducibles"
+      ],
+      "referenceAnswer": "Ejemplo: cohorte spraying=30; éxito posterior por misma IP=20; score 50, no probabilidad; la entidad IP tiene riesgo de agregación NAT. RBA auténtico exige ES instalado/configurado, normalización de entidades y detecciones/finding-based correspondientes."
+    }
+  ],
+  "solutionsMarkdown": "### Solucionario con razonamiento\n\n- **SP-R07-L06-Q01: D** — RBA es un conjunto de capacidades y entidades específico de Enterprise Security.\n\n- **SP-R07-L06-Q02: B** — Entidad compartida no identifica necesariamente a una sola persona o dispositivo.\n\n- **SP-R07-L06-P01:** Ejemplo: cohorte spraying=30; éxito posterior por misma IP=20; score 50, no probabilidad; la entidad IP tiene riesgo de agregación NAT. RBA auténtico exige ES instalado/configurado, normalización de entidades y detecciones/finding-based correspondientes.\n\n**Guía de retroalimentación formativa:** Identifica datos y supuestos de la fuente; Plantea método correcto y distingue hechos de hipótesis; Explica limitaciones, alternativa benigna y telemetría ausente; Aporta evidencia, ventana e identificación reproducibles.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 8. Bibliografía, mapeo y estatus\n\n- **D04:** Splunk Enterprise Security 8.7: detecciones — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/use-detections-to-search-for-threats-in-splunk-enterprise-security\n- **D05:** Splunk ES 8.7: análisis de riesgo RBA — https://help.splunk.com/en/splunk-enterprise-security-8/user-guide/8.7/mission-control/analyze-risk-with-risk-based-alerting-in-splunk-enterprise-security\n- **D11:** Splunk ES 8.7: finding-based detections — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/create-finding-based-detections-in-splunk-enterprise-security\n- **D12:** Splunk ES 8.7: findings/analyst queue — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/findings/monitor-your-security-operations-center-with-findings-in-splunk-enterprise-security\n\n- **Currículo:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` — ID, título y resultado intactos.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` — los bloques R06/R07 y laboratorios de diseño.\n- **Puente SC-200:** Capítulos 07,08 y 09: correlación, incidentes y riesgo. Documento en `../../01_FUENTE_ORIGINAL/SC-200.md`; relación conceptual, no traducción ni equivalencia garantizada.\n\n**Clasificación de evidencia:** [DOC] respaldo documental de fuentes; [DISEÑO] procedimientos y rúbricas propuestos; [OFFLINE] sólo cálculos de fixtures reproducibles; [NO PROBADO] ejemplos SPL no ejecutados en la instancia. Validación técnica/manual de contenidos pendiente antes de integrarlo en React.\n",
+  "originalMarkdown": "# SP-R07-L06 — Detecciones multi-etapa y riesgo\n\n**Región:** SP-R07 · **Prioridad:** P0/P1 (SOC/Detection Engineering) · **Estado:** material editorial para revisión · **SPL:** NO ejecutado en Splunk.\n\n**Objetivo curricular original:** Correlacionar señales y distinguir RBA de ES vs heurística propia\n\n**Prerrequisitos:** R01–R06; distinguir Enterprise/Cloud y Enterprise Security. **Producto:** Splunk Enterprise/Cloud (búsquedas de lectura); funciones ES explícitamente condicionadas a Splunk Enterprise Security compatible.\n\n## 1. Pregunta esencial y modelo mental\n\nMuchas señales débiles sobre una misma entidad pueden merecer revisión conjunta. En un ejercicio puedes asignar un score heurístico propio a fallos distribuidos, éxito posterior y contexto del activo. Eso NO equivale al Risk-Based Alerting de Splunk Enterprise Security: RBA depende de detecciones, anotaciones, riesgo, entidades y agregación del producto ES concreto.\n\n## 2. Conceptos que debes dominar\n\n1. Primero valida que señales comparten una entidad legítima; correlación por IP NAT puede combinar usuarios distintos.\n2. Score pedagógico 30 (múltiples fallos) + 20 (éxito correlacionado) = 50, no “riesgo ES oficial”.\n3. En Splunk Enterprise base puedes calcular campos y agregaciones, pero no prometer findings, analyst queue ni RBA nativo sin ES.\n4. En ES 8.7 se diferencian event-based detections, intermediate findings, finding-based detections y finding groups; deben explicarse con versión.\n5. No sumar probabilidades o scores heterogéneos sin criterios documentados de calibración; riesgo operativo no equivale a certeza de compromiso.\n\n## 3. Práctica guiada: del dato a la conclusión\n\n1. Diseña un score ad hoc para evidencia A001–A007, con pesos explícitos y sin automatizar respuesta.\n2. Propón la entidad de correlación, compara user y src y revisa falsos agrupamientos NAT.\n3. Explica cómo Splunk Enterprise puede listar señales y cómo ES 8.7 añade RBA/finding groups.\n4. Separa riesgo del activo (criticidad) de confianza de hipótesis y confirma qué datos faltan.\n5. Entrega una tabla de señales, evidencia y peso con limitaciones.\n\n## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC (EventCode=4624 OR EventCode=4625)\n| stats count(eval(EventCode=4625)) AS fallos count(eval(EventCode=4624)) AS exitos dc(user) AS identidades BY src\n| eval score_didactico=if(fallos>=5 AND identidades>=5,30,0)+if(exitos>0,20,0)\n| table src fallos exitos identidades score_didactico\n```\n\n**Interpretación, supuestos y límites:** Esta búsqueda SPL calcula un score arbitrario exclusivamente didáctico. No crea intermediate findings, no escribe en risk index y no usa las APIs o Risk Framework de Enterprise Security.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n## 5. Caso del turno SOC\n\nTres eventos compatibles con conducta sospechosa pueden justificar revisión, pero sus identidades y fuentes deben reconciliarse antes de agregarlos.\n\n## 6. Errores frecuentes\n\n1. Llamar RBA de ES al campo eval score_didactico.\n2. Correlacionar eventos de distintos usuarios por NAT y declarar mismo atacante.\n3. Interpretar score 50 como probabilidad 50%.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R07-L06-Q01 — Opción múltiple\n\n¿El score calculado con eval equivale al Risk Framework ES?\n\nA. Sí, si se agrupa por usuario y el resultado se denomina risk_score\nB. Sí, si el score usa los mismos números que una regla publicada de ES\nC. Sí, si supera el umbral elegido aunque no haya modelo de riesgo ES\nD. No, es un indicador didáctico del search pipeline\n\n### SP-R07-L06-Q02 — Opción múltiple\n\n¿Qué riesgo hay al correlacionar por IP de NAT?\n\nA. Conservar automáticamente la identidad de todos los clientes internos\nB. Fusionar señales de sujetos diferentes\nC. Resolver las traducciones de direcciones sin registros del proxy\nD. Separar señales por dispositivo aunque no haya otro identificador\n\n### SP-R07-L06-P01 — Práctica abierta formativa\n\nPropón 3 señales, claves de entidad, pesos hipotéticos y limitaciones; explica qué necesitaría ES para RBA real.\n\n### Solucionario con razonamiento\n\n- **SP-R07-L06-Q01: D** — RBA es un conjunto de capacidades y entidades específico de Enterprise Security.\n\n- **SP-R07-L06-Q02: B** — Entidad compartida no identifica necesariamente a una sola persona o dispositivo.\n\n- **SP-R07-L06-P01:** Ejemplo: cohorte spraying=30; éxito posterior por misma IP=20; score 50, no probabilidad; la entidad IP tiene riesgo de agregación NAT. RBA auténtico exige ES instalado/configurado, normalización de entidades y detecciones/finding-based correspondientes.\n\n**Guía de retroalimentación formativa:** Identifica datos y supuestos de la fuente; Plantea método correcto y distingue hechos de hipótesis; Explica limitaciones, alternativa benigna y telemetría ausente; Aporta evidencia, ventana e identificación reproducibles.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Bibliografía, mapeo y estatus\n\n- **D04:** Splunk Enterprise Security 8.7: detecciones — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/use-detections-to-search-for-threats-in-splunk-enterprise-security\n- **D05:** Splunk ES 8.7: análisis de riesgo RBA — https://help.splunk.com/en/splunk-enterprise-security-8/user-guide/8.7/mission-control/analyze-risk-with-risk-based-alerting-in-splunk-enterprise-security\n- **D11:** Splunk ES 8.7: finding-based detections — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/create-finding-based-detections-in-splunk-enterprise-security\n- **D12:** Splunk ES 8.7: findings/analyst queue — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/findings/monitor-your-security-operations-center-with-findings-in-splunk-enterprise-security\n\n- **Currículo:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` — ID, título y resultado intactos.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` — los bloques R06/R07 y laboratorios de diseño.\n- **Puente SC-200:** Capítulos 07,08 y 09: correlación, incidentes y riesgo. Documento en `../../01_FUENTE_ORIGINAL/SC-200.md`; relación conceptual, no traducción ni equivalencia garantizada.\n\n**Clasificación de evidencia:** [DOC] respaldo documental de fuentes; [DISEÑO] procedimientos y rúbricas propuestos; [OFFLINE] sólo cálculos de fixtures reproducibles; [NO PROBADO] ejemplos SPL no ejecutados en la instancia. Validación técnica/manual de contenidos pendiente antes de integrarlo en React.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 8,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D04",
+      "key": "SPLUNK_LECCIONES_R06_R07:D04",
+      "url": "https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/use-detections-to-search-for-threats-in-splunk-enterprise-security"
+    },
+    {
+      "id": "D05",
+      "key": "SPLUNK_LECCIONES_R06_R07:D05",
+      "url": "https://help.splunk.com/en/splunk-enterprise-security-8/user-guide/8.7/mission-control/analyze-risk-with-risk-based-alerting-in-splunk-enterprise-security"
+    },
+    {
+      "id": "D11",
+      "key": "SPLUNK_LECCIONES_R06_R07:D11",
+      "url": "https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/create-finding-based-detections-in-splunk-enterprise-security"
+    },
+    {
+      "id": "D12",
+      "key": "SPLUNK_LECCIONES_R06_R07:D12",
+      "url": "https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/findings/monitor-your-security-operations-center-with-findings-in-splunk-enterprise-security"
+    }
+  ]
+}

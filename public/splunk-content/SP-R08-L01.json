@@ -1,0 +1,200 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R08-L01",
+  "title": "Hipótesis, alcance y ética",
+  "revision": "5e08c22e163bb4daffe0c67b",
+  "sourceVersion": "2761d7f5bce62ae868db5955b5fe9b1870c8b84132413ca8e2e554bec61fea85",
+  "sanitizedHash": "2761d7f5bce62ae868db5955b5fe9b1870c8b84132413ca8e2e554bec61fea85",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R08_R09/R08_THREAT_HUNTING/SP-R08-L01.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Plantear hunting sin depender de alerta y acotar datos",
+  "preamble": "# SP-R08-L01 — Hipótesis, alcance y ética\n\n**Región:** SP-R08 · **Estado:** borrador editorial para revisión · **SPL:** ilustrativo NO ejecutado.\n\n**Resultado de aprendizaje curricular:** Plantear hunting sin depender de alerta y acotar datos.\n\n**Prerrequisitos:** R01–R07 según tema; R08 para agrupación/escalado R09. **Producto:** plataforma Splunk para SPL genérico; funciones ES 8.7/SOAR solo cuando se indiquen.\n\n",
+  "sections": [
+    {
+      "id": "SP-R08-L01-S01",
+      "title": "1. Explicación técnica",
+      "markdown": "## 1. Explicación técnica\n\nUna búsqueda de amenazas no comienza necesariamente con una alerta. Comienza con una hipótesis comprobable sobre un comportamiento y una pregunta: ¿qué observaciones me harían apoyarla, refutarla o declararla indeterminada? Por ejemplo, «una cuenta no administradora solicita en diez minutos servicios Kerberos inusuales» no equivale a «la cuenta es atacante». La primera frase se puede medir; la segunda exige pruebas adicionales.\n\nAntes de abrir Search, delimita identidades, período, fuentes, zonas horarias, acciones permitidas y datos sensibles. Define qué telemetría sería necesaria (KDC, autenticación, endpoint, inventario), una explicación benigna plausible y un criterio de parada. El hunting exploratorio puede revelar un fallo de instrumentación: una ausencia de 4662 puede indicar auditoría no configurada y no ausencia de replicación.\n\nUna hipótesis operacional debe ser versionable: título, motivación, ATT&CK como etiqueta orientativa, observables, consultas de lectura, expectativas, resultados y razón para escalar. La calidad se demuestra porque otro analista puede replicar el análisis sin acceso a tu memoria.\n\n",
+      "line": 9,
+      "endLine": 15
+    },
+    {
+      "id": "SP-R08-L01-S02",
+      "title": "2. Conceptos que debes distinguir",
+      "markdown": "## 2. Conceptos que debes distinguir\n\n1. Hipótesis y falsabilidad: observable, unidad de análisis, señal contraria\n2. Autorización y minimización: búsqueda de solo lectura; no enumerar datos ajenos\n3. Sesgo de cobertura: sin auditoría no existe prueba negativa\n4. Trazabilidad: time range, search job, índices, extracción y zona horaria\n\n",
+      "line": 17,
+      "endLine": 22
+    },
+    {
+      "id": "SP-R08-L01-S03",
+      "title": "3. Procedimiento reproducible y seguro",
+      "markdown": "## 3. Procedimiento reproducible y seguro\n\n1. Redacta hipótesis H1 y una alternativa inocua.\n2. Define alcance de usuarios/equipos/ventana y aprobación.\n3. Prepara diccionario de campos e índices descubiertos, no supuestos.\n4. Ejecuta búsqueda de cobertura antes de búsquedas de comportamiento.\n5. Registra conclusiones como confirmado, refutado o indeterminado.\n\n",
+      "line": 24,
+      "endLine": 30
+    },
+    {
+      "id": "SP-R08-L01-S04",
+      "title": "4. SPL ilustrativo (solo lectura; no probado)",
+      "markdown": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC (EventCode=4769 OR EventCode=4662)\n| stats count AS eventos dc(host) AS emisores values(EventCode) AS tipos BY user\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n",
+      "line": 32,
+      "endLine": 39
+    },
+    {
+      "id": "SP-R08-L01-S05",
+      "title": "5. Escenario SOC",
+      "markdown": "## 5. Escenario SOC\n\nSe ven 4769 de tres DC, pero no hay 4662. ¿La hipótesis DCSync queda descartada? No: primero comprueba subcategoría de auditoría, SACL y cobertura de DC.\n\n## 6. Errores frecuentes\n\n1. Convertir MITRE ATT&CK en una prueba de compromiso\n2. Elegir una ventana después de ver el resultado sin indicarlo\n3. Acceder a contenido sensible más allá de lo autorizado\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 41,
+      "endLine": 52
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R08-L01-Q01",
+      "lessonId": "SP-R08-L01",
+      "prompt": "¿Qué convierte una idea en hipótesis verificable?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D01",
+        "SPLUNK_LECCIONES_R08_R09:D05",
+        "SPLUNK_LECCIONES_R08_R09:D06"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R08-L01-Q01-O-cfb4b3a51ff5",
+          "text": "Definir qué se observará y qué condiciones refutarían la hipótesis, incluyendo una alternativa benigna"
+        },
+        {
+          "id": "SP-R08-L01-Q01-O-3debf6e5d651",
+          "text": "Elegir un umbral antes de definir qué población se observará"
+        },
+        {
+          "id": "SP-R08-L01-Q01-O-46690ea83333",
+          "text": "Enumerar fuentes sin especificar qué resultado refutaría la idea"
+        },
+        {
+          "id": "SP-R08-L01-Q01-O-ec372588c010",
+          "text": "Partir de una conclusión y buscar solo eventos que la confirmen"
+        }
+      ],
+      "solution": "SP-R08-L01-Q01-O-cfb4b3a51ff5",
+      "explanation": "La hipótesis especifica qué evidencia podría apoyarla o contradecirla.",
+      "anchors": [
+        {
+          "file": "R08_THREAT_HUNTING/SP-R08-L01.md",
+          "sourceHash": "2761d7f5bce62ae868db5955b5fe9b1870c8b84132413ca8e2e554bec61fea85",
+          "line": 17,
+          "endLine": 22,
+          "quote": "## 2. Conceptos que debes distinguir\n\n1. Hipótesis y falsabilidad: observable, unidad de análisis, señal contraria\n2. Autorización y minimización: búsqueda de solo lectura; no enumerar datos ajenos\n3. Sesgo de cobertura: sin auditoría no existe prueba negativa\n4. Trazabilidad: time range, search job, índices, extracción y zona horaria\n\n"
+        },
+        {
+          "file": "R08_THREAT_HUNTING/SP-R08-L01.md",
+          "sourceHash": "2761d7f5bce62ae868db5955b5fe9b1870c8b84132413ca8e2e554bec61fea85",
+          "line": 32,
+          "endLine": 39,
+          "quote": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC (EventCode=4769 OR EventCode=4662)\n| stats count AS eventos dc(host) AS emisores values(EventCode) AS tipos BY user\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R08-L01-Q02",
+      "lessonId": "SP-R08-L01",
+      "prompt": "Si falta auditoría 4662, ¿qué conclusión es defendible?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D01",
+        "SPLUNK_LECCIONES_R08_R09:D05",
+        "SPLUNK_LECCIONES_R08_R09:D06"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R08-L01-Q02-O-9f10000cc903",
+          "text": "Que se puede estimar recall de replicación solo con los eventos 4769"
+        },
+        {
+          "id": "SP-R08-L01-Q02-O-1499dc997808",
+          "text": "Que la ausencia de 4662 constituye un control negativo de DCSync"
+        },
+        {
+          "id": "SP-R08-L01-Q02-O-27af1725c893",
+          "text": "No es posible descartar la actividad con esa fuente ausente"
+        },
+        {
+          "id": "SP-R08-L01-Q02-O-3cffc3bc6f25",
+          "text": "Que revisar el inventario de DC sustituye la auditoría del acceso al directorio"
+        }
+      ],
+      "solution": "SP-R08-L01-Q02-O-27af1725c893",
+      "explanation": "Ausencia de datos no equivale a ausencia de actividad.",
+      "anchors": [
+        {
+          "file": "R08_THREAT_HUNTING/SP-R08-L01.md",
+          "sourceHash": "2761d7f5bce62ae868db5955b5fe9b1870c8b84132413ca8e2e554bec61fea85",
+          "line": 17,
+          "endLine": 22,
+          "quote": "## 2. Conceptos que debes distinguir\n\n1. Hipótesis y falsabilidad: observable, unidad de análisis, señal contraria\n2. Autorización y minimización: búsqueda de solo lectura; no enumerar datos ajenos\n3. Sesgo de cobertura: sin auditoría no existe prueba negativa\n4. Trazabilidad: time range, search job, índices, extracción y zona horaria\n\n"
+        },
+        {
+          "file": "R08_THREAT_HUNTING/SP-R08-L01.md",
+          "sourceHash": "2761d7f5bce62ae868db5955b5fe9b1870c8b84132413ca8e2e554bec61fea85",
+          "line": 32,
+          "endLine": 39,
+          "quote": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC (EventCode=4769 OR EventCode=4662)\n| stats count AS eventos dc(host) AS emisores values(EventCode) AS tipos BY user\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R08-L01-P01",
+      "lessonId": "SP-R08-L01",
+      "prompt": "Diseña una hunting hypothesis de TGS anómalos con alcance, cobertura mínima, alternativa benigna y criterio de escalado.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D01",
+        "SPLUNK_LECCIONES_R08_R09:D05",
+        "SPLUNK_LECCIONES_R08_R09:D06"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Distingue fuente, campos y alcance de la pregunta",
+        "Diseña un método reproducible sin inferencia abusiva",
+        "Separa señales, hipótesis, contraejemplos y ausencia de datos",
+        "Comunica siguiente paso seguro y evidencia para otro analista"
+      ],
+      "referenceAnswer": "Hipótesis: aumento atípico de servicios por solicitante en DC con datos 4769; definir período UTC, campo equivalente al solicitante, normalidad por cuenta y mantenimiento. Si no hay datos de DC o se ignora el esquema, clasificar indeterminado; escalar solo con corroboración."
+    }
+  ],
+  "solutionsMarkdown": "## 8. Solucionario con razonamiento\n\n- **SP-R08-L01-Q01: A** — La hipótesis especifica qué evidencia podría apoyarla o contradecirla.\n\n- **SP-R08-L01-Q02: C** — Ausencia de datos no equivale a ausencia de actividad.\n\n- **SP-R08-L01-P01:** Hipótesis: aumento atípico de servicios por solicitante en DC con datos 4769; definir período UTC, campo equivalente al solicitante, normalidad por cuenta y mantenimiento. Si no hay datos de DC o se ignora el esquema, clasificar indeterminado; escalar solo con corroboración.\n\n**Guía de retroalimentación formativa:** Distingue fuente, campos y alcance de la pregunta; Diseña un método reproducible sin inferencia abusiva; Separa señales, hipótesis, contraejemplos y ausencia de datos; Comunica siguiente paso seguro y evidencia para otro analista.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 9. Fuentes verificables y conexiones\n\n- **D01:** MITRE ATT&CK — Kerberoasting (T1558.003) — https://attack.mitre.org/techniques/T1558/003/\n- **D05:** Windows — Audit Directory Service Access (4662 y SACL) — https://learn.microsoft.com/windows/security/threat-protection/auditing/audit-directory-service-access\n- **D06:** Windows Security Event 4769 — https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4769\n\n- **Puente SC-200:** Capítulos 09–10 y 13 (investigación, hunting y semántica analítica). La comparación es conceptual, no una equivalencia producto a producto.\n- **Fuente curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` en la carpeta padre `SPLUNK_MASTER_RESEARCH`.\n- **Calidad:** [DOC] referencias externas consultables; [DISEÑO] escenario y actividad originales; [OFFLINE] solo cálculos de fixture; [NO PROBADO] SPL no ejecutado en Splunk. La revisión técnica independiente queda pendiente.\n",
+  "originalMarkdown": "# SP-R08-L01 — Hipótesis, alcance y ética\n\n**Región:** SP-R08 · **Estado:** borrador editorial para revisión · **SPL:** ilustrativo NO ejecutado.\n\n**Resultado de aprendizaje curricular:** Plantear hunting sin depender de alerta y acotar datos.\n\n**Prerrequisitos:** R01–R07 según tema; R08 para agrupación/escalado R09. **Producto:** plataforma Splunk para SPL genérico; funciones ES 8.7/SOAR solo cuando se indiquen.\n\n## 1. Explicación técnica\n\nUna búsqueda de amenazas no comienza necesariamente con una alerta. Comienza con una hipótesis comprobable sobre un comportamiento y una pregunta: ¿qué observaciones me harían apoyarla, refutarla o declararla indeterminada? Por ejemplo, «una cuenta no administradora solicita en diez minutos servicios Kerberos inusuales» no equivale a «la cuenta es atacante». La primera frase se puede medir; la segunda exige pruebas adicionales.\n\nAntes de abrir Search, delimita identidades, período, fuentes, zonas horarias, acciones permitidas y datos sensibles. Define qué telemetría sería necesaria (KDC, autenticación, endpoint, inventario), una explicación benigna plausible y un criterio de parada. El hunting exploratorio puede revelar un fallo de instrumentación: una ausencia de 4662 puede indicar auditoría no configurada y no ausencia de replicación.\n\nUna hipótesis operacional debe ser versionable: título, motivación, ATT&CK como etiqueta orientativa, observables, consultas de lectura, expectativas, resultados y razón para escalar. La calidad se demuestra porque otro analista puede replicar el análisis sin acceso a tu memoria.\n\n## 2. Conceptos que debes distinguir\n\n1. Hipótesis y falsabilidad: observable, unidad de análisis, señal contraria\n2. Autorización y minimización: búsqueda de solo lectura; no enumerar datos ajenos\n3. Sesgo de cobertura: sin auditoría no existe prueba negativa\n4. Trazabilidad: time range, search job, índices, extracción y zona horaria\n\n## 3. Procedimiento reproducible y seguro\n\n1. Redacta hipótesis H1 y una alternativa inocua.\n2. Define alcance de usuarios/equipos/ventana y aprobación.\n3. Prepara diccionario de campos e índices descubiertos, no supuestos.\n4. Ejecuta búsqueda de cobertura antes de búsquedas de comportamiento.\n5. Registra conclusiones como confirmado, refutado o indeterminado.\n\n## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC (EventCode=4769 OR EventCode=4662)\n| stats count AS eventos dc(host) AS emisores values(EventCode) AS tipos BY user\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n## 5. Escenario SOC\n\nSe ven 4769 de tres DC, pero no hay 4662. ¿La hipótesis DCSync queda descartada? No: primero comprueba subcategoría de auditoría, SACL y cobertura de DC.\n\n## 6. Errores frecuentes\n\n1. Convertir MITRE ATT&CK en una prueba de compromiso\n2. Elegir una ventana después de ver el resultado sin indicarlo\n3. Acceder a contenido sensible más allá de lo autorizado\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R08-L01-Q01 — Opción múltiple\n\n¿Qué convierte una idea en hipótesis verificable?\n\nA. Definir qué se observará y qué condiciones refutarían la hipótesis, incluyendo una alternativa benigna\nB. Elegir un umbral antes de definir qué población se observará\nC. Enumerar fuentes sin especificar qué resultado refutaría la idea\nD. Partir de una conclusión y buscar solo eventos que la confirmen\n\n### SP-R08-L01-Q02 — Opción múltiple\n\nSi falta auditoría 4662, ¿qué conclusión es defendible?\n\nA. Que se puede estimar recall de replicación solo con los eventos 4769\nB. Que la ausencia de 4662 constituye un control negativo de DCSync\nC. No es posible descartar la actividad con esa fuente ausente\nD. Que revisar el inventario de DC sustituye la auditoría del acceso al directorio\n\n### SP-R08-L01-P01 — Práctica abierta formativa\n\nDiseña una hunting hypothesis de TGS anómalos con alcance, cobertura mínima, alternativa benigna y criterio de escalado.\n\n## 8. Solucionario con razonamiento\n\n- **SP-R08-L01-Q01: A** — La hipótesis especifica qué evidencia podría apoyarla o contradecirla.\n\n- **SP-R08-L01-Q02: C** — Ausencia de datos no equivale a ausencia de actividad.\n\n- **SP-R08-L01-P01:** Hipótesis: aumento atípico de servicios por solicitante en DC con datos 4769; definir período UTC, campo equivalente al solicitante, normalidad por cuenta y mantenimiento. Si no hay datos de DC o se ignora el esquema, clasificar indeterminado; escalar solo con corroboración.\n\n**Guía de retroalimentación formativa:** Distingue fuente, campos y alcance de la pregunta; Diseña un método reproducible sin inferencia abusiva; Separa señales, hipótesis, contraejemplos y ausencia de datos; Comunica siguiente paso seguro y evidencia para otro analista.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 9. Fuentes verificables y conexiones\n\n- **D01:** MITRE ATT&CK — Kerberoasting (T1558.003) — https://attack.mitre.org/techniques/T1558/003/\n- **D05:** Windows — Audit Directory Service Access (4662 y SACL) — https://learn.microsoft.com/windows/security/threat-protection/auditing/audit-directory-service-access\n- **D06:** Windows Security Event 4769 — https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4769\n\n- **Puente SC-200:** Capítulos 09–10 y 13 (investigación, hunting y semántica analítica). La comparación es conceptual, no una equivalencia producto a producto.\n- **Fuente curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` en la carpeta padre `SPLUNK_MASTER_RESEARCH`.\n- **Calidad:** [DOC] referencias externas consultables; [DISEÑO] escenario y actividad originales; [OFFLINE] solo cálculos de fixture; [NO PROBADO] SPL no ejecutado en Splunk. La revisión técnica independiente queda pendiente.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D01",
+      "key": "SPLUNK_LECCIONES_R08_R09:D01",
+      "url": "https://attack.mitre.org/techniques/T1558/003/"
+    },
+    {
+      "id": "D05",
+      "key": "SPLUNK_LECCIONES_R08_R09:D05",
+      "url": "https://learn.microsoft.com/windows/security/threat-protection/auditing/audit-directory-service-access"
+    },
+    {
+      "id": "D06",
+      "key": "SPLUNK_LECCIONES_R08_R09:D06",
+      "url": "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4769"
+    }
+  ]
+}

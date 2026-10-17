@@ -1,0 +1,1071 @@
+{
+  "batch": "02",
+  "lessons": [
+    {
+      "lessonId": "capitulo-2-permisos-y-rbac/3-unified-rbac-en-el-portal-de-defender-1",
+      "introduction": "Trabaja los conceptos de «3 · Unified RBAC en el portal de Defender» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Unified RBAC no elimina Azure RBAC de Sentinel.",
+        "Distinguir data sources, collections y scopes.",
+        "Separar permisos generales de acciones especializadas."
+      ],
+      "summary": [
+        "Unified RBAC no elimina Azure RBAC de Sentinel.",
+        "Distinguir data sources, collections y scopes.",
+        "Separar permisos generales de acciones especializadas."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "match",
+          "prompt": "Relaciona cada parte del assignment con lo que delimita.",
+          "explanation": "Una colección delimita el contenedor de datos y un scope puede restringir filas dentro de él; no son intercambiables.",
+          "objective": "Interpretar las dimensiones de una asignación.",
+          "difficulty": "intermedia",
+          "id": "v25-09-assignment",
+          "evidence": [
+            "- Data sources = qué productos/workloads de Defender puede ver.",
+            "- Data collections = qué workspaces o Data Lake puede consultar.",
+            "- Sentinel scoping = limitar qué filas puede ver un usuario dentro del mismo workspace."
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "Data sources"
+            },
+            {
+              "id": "r1",
+              "label": "Data collections"
+            },
+            {
+              "id": "r2",
+              "label": "Scope"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "Workloads de Defender"
+            },
+            {
+              "id": "p1",
+              "text": "Workspaces de Sentinel o Data Lake"
+            },
+            {
+              "id": "p2",
+              "text": "Subconjunto de filas cuando se usa Sentinel scoping"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1",
+            "p2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Se activa Unified RBAC para Sentinel en Defender. ¿Qué modelo sigue activo en paralelo según el aviso?",
+          "explanation": "Unified pasa a ser principal dentro del portal, pero no elimina Azure RBAC ni sus permisos adicionales.",
+          "objective": "Reconocer coexistencia de modelos.",
+          "difficulty": "intermedia",
+          "id": "v25-09-paralelo",
+          "evidence": [
+            "> Al activar Unified RBAC, los permisos de los productos Defender pasan a gestionarse desde un modelo único y sustituyen sus RBAC individuales antiguos; en Microsoft Sentinel, Unified RBAC pasa a ser el modelo principal dentro del portal de Defender, pero Azure RBAC sigue activo en paralelo, puede conceder permisos adicionales y sigue siendo necesario para funciones como `Microsoft Sentinel Playbook Operator`, `Microsoft Sentinel Automation Contributor` y `Workbook Contributor`."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Ninguno: Unified absorbe todo permiso de recursos Azure.",
+              "why": "El texto conserva Azure RBAC y funciones que lo requieren."
+            },
+            {
+              "id": "o1",
+              "text": "Azure RBAC.",
+              "why": "Unified pasa a ser principal dentro del portal, pero no elimina Azure RBAC ni sus permisos adicionales."
+            },
+            {
+              "id": "o2",
+              "text": "Solo el RBAC antiguo de cada producto Defender.",
+              "why": "El aviso dice que Unified sustituye los RBAC antiguos de Defender."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Un operador tiene Response (Manage). ¿Debe asumir que ya puede ejecutar cualquier acción de correo o live response?",
+          "explanation": "Un permiso general de respuesta no implica acceso completo a todas las superficies operativas.",
+          "objective": "Detectar requisitos adicionales de una acción.",
+          "difficulty": "intermedia",
+          "id": "v25-09-respuesta-especial",
+          "evidence": [
+            "| Security data              | `Response (Manage)`                                       | Ejecutar acciones y aprobar o descartar remediaciones pendientes — por sí solo no cubre correo, live response ni recolección de archivos, que exigen además su propio permiso específico |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Sí, Response sustituye todos los permisos específicos.",
+              "why": "La tabla excluye expresamente correo, live response y recopilación de archivos."
+            },
+            {
+              "id": "o1",
+              "text": "No puede aprobar ninguna remediación con Response.",
+              "why": "Sí permite aprobar o descartar remediaciones pendientes; el límite afecta a tareas especializadas."
+            },
+            {
+              "id": "o2",
+              "text": "No; esas acciones requieren además sus permisos específicos.",
+              "why": "Un permiso general de respuesta no implica acceso completo a todas las superficies operativas."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "true-false",
+          "prompt": "Configurar Sentinel scoping etiqueta retroactivamente todas las filas antiguas del workspace.",
+          "solution": [
+            "false"
+          ],
+          "explanation": "El texto aplica el scoping al ingerir datos nuevos y niega el etiquetado retroactivo. No confundir configurar alcance con reescribir el histórico.",
+          "objective": "Distinguir aplicación futura e histórica del scope.",
+          "difficulty": "basica",
+          "id": "v25-09-retroactivo",
+          "evidence": [
+            "- Ese scoping se aplica al ingerir datos nuevos; lo viejo no se etiqueta retroactivamente."
+          ],
+          "options": [
+            {
+              "id": "true",
+              "text": "Verdadero",
+              "why": "El texto aplica el scoping al ingerir datos nuevos y niega el etiquetado retroactivo. No confundir configurar alcance con reescribir el histórico."
+            },
+            {
+              "id": "false",
+              "text": "Falso",
+              "why": "El texto aplica el scoping al ingerir datos nuevos y niega el etiquetado retroactivo. No confundir configurar alcance con reescribir el histórico."
+            }
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [
+        "No se evalúa la afirmación final sobre tokens cross-tenant ni se generaliza device groups sin asignación fuera del contexto descrito."
+      ],
+      "audit": {
+        "mainConcepts": [
+          "Unified RBAC no elimina Azure RBAC de Sentinel.",
+          "Distinguir data sources, collections y scopes.",
+          "Separar permisos generales de acciones especializadas."
+        ],
+        "understanding": [
+          "Unified RBAC no elimina Azure RBAC de Sentinel.",
+          "Distinguir data sources, collections y scopes.",
+          "Separar permisos generales de acciones especializadas."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Unified RBAC no elimina Azure RBAC de Sentinel.",
+          "Distinguir data sources, collections y scopes.",
+          "Separar permisos generales de acciones especializadas."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "El texto conserva Azure RBAC y funciones que lo requieren.",
+          "El aviso dice que Unified sustituye los RBAC antiguos de Defender.",
+          "La tabla excluye expresamente correo, live response y recopilación de archivos.",
+          "Sí permite aprobar o descartar remediaciones pendientes; el límite afecta a tareas especializadas.",
+          "El texto aplica el scoping al ingerir datos nuevos y niega el etiquetado retroactivo. No confundir configurar alcance con reescribir el histórico."
+        ],
+        "evidence": [
+          "- Data sources = qué productos/workloads de Defender puede ver.",
+          "- Data collections = qué workspaces o Data Lake puede consultar.",
+          "- Sentinel scoping = limitar qué filas puede ver un usuario dentro del mismo workspace.",
+          "> Al activar Unified RBAC, los permisos de los productos Defender pasan a gestionarse desde un modelo único y sustituyen sus RBAC individuales antiguos; en Microsoft Sentinel, Unified RBAC pasa a ser el modelo principal dentro del portal de Defender, pero Azure RBAC sigue activo en paralelo, puede conceder permisos adicionales y sigue siendo necesario para funciones como `Microsoft Sentinel Playbook Operator`, `Microsoft Sentinel Automation Contributor` y `Workbook Contributor`.",
+          "| Security data              | `Response (Manage)`                                       | Ejecutar acciones y aprobar o descartar remediaciones pendientes — por sí solo no cubre correo, live response ni recolección de archivos, que exigen además su propio permiso específico |",
+          "- Ese scoping se aplica al ingerir datos nuevos; lo viejo no se etiqueta retroactivamente."
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-2-permisos-y-rbac/4-roles-de-entra-y-del-data-lake-1",
+      "introduction": "Trabaja los conceptos de «4 · Roles de Entra y del Data Lake» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Distinguir acceso amplio de tenant y acceso a workspace.",
+        "Separar lectura, escritura e incorporación inicial.",
+        "Retirar privilegios elevados tras la incorporación."
+      ],
+      "summary": [
+        "Distinguir acceso amplio de tenant y acceso a workspace.",
+        "Separar lectura, escritura e incorporación inicial.",
+        "Retirar privilegios elevados tras la incorporación."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "La tarea requiere leer un workspace concreto y evitar acceso amplio al Tenant Data Lake. ¿Qué enfoque indica el texto?",
+          "explanation": "El plano tenant y el plano workspace no tienen el mismo alcance; el acceso amplio no se reduce por intención.",
+          "objective": "Elegir el plano de autorización por alcance.",
+          "difficulty": "intermedia",
+          "id": "v25-10-limitar",
+          "evidence": [
+            "Los roles de Entra conceden acceso amplio al Tenant Data Lake; para limitarlo a un workspace se usa Azure RBAC o Unified RBAC:"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Asignar un rol Entra amplio y suponer que queda limitado al workspace.",
+              "why": "Los roles Entra descritos conceden acceso amplio al lake."
+            },
+            {
+              "id": "o1",
+              "text": "Elegir cualquier rol Copilot para acotar filas automáticamente.",
+              "why": "Ese rol no es el mecanismo de alcance de esta tabla."
+            },
+            {
+              "id": "o2",
+              "text": "Usar Azure RBAC o Unified RBAC con el alcance correspondiente.",
+              "why": "El plano tenant y el plano workspace no tienen el mismo alcance; el acceso amplio no se reduce por intención."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "¿Qué combinación incluye el procedimiento inicial de incorporación del Tenant Data Lake?",
+          "explanation": "El conjunto combina autoridad de tenant, suscripción y lectura de los orígenes; no basta con operar jobs.",
+          "objective": "Reconocer requisitos de una operación de incorporación.",
+          "difficulty": "intermedia",
+          "id": "v25-10-incorporar",
+          "evidence": [
+            "| Incorporar el Tenant Data Lake          | `Security Administrator` o `Global Administrator` en `Microsoft Entra ID`, `Owner` asignado directamente sobre la suscripción de facturación y lectura de los `workspaces` que se incorporan |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Solo un rol de lectura de un workspace.",
+              "why": "La incorporación afecta al tenant y a la facturación, con requisitos adicionales."
+            },
+            {
+              "id": "o1",
+              "text": "Solo Analytics Jobs Schedule (Manage).",
+              "why": "Gestionar jobs programados no equivale a incorporar el lake."
+            },
+            {
+              "id": "o2",
+              "text": "Security Administrator o Global Administrator, Owner directo de la suscripción de facturación y lectura de los workspaces.",
+              "why": "El conjunto combina autoridad de tenant, suscripción y lectura de los orígenes; no basta con operar jobs."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Terminó la incorporación inicial. ¿Qué hacer con los roles elevados según los apuntes?",
+          "explanation": "La elevación del proceso inicial no justifica mantener acceso privilegiado permanente.",
+          "objective": "Aplicar mínimo privilegio después del onboarding.",
+          "difficulty": "intermedia",
+          "id": "v25-10-pim",
+          "evidence": [
+            "Los roles elevados de incorporación se necesitan para el proceso inicial; después deben retirarse o activarse solo cuando hagan falta mediante PIM."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Retirarlos o activarlos mediante PIM solo cuando hagan falta.",
+              "why": "La elevación del proceso inicial no justifica mantener acceso privilegiado permanente."
+            },
+            {
+              "id": "o1",
+              "text": "Dejarlos permanentes porque la lectura siempre exige Owner.",
+              "why": "El texto distingue roles de incorporación y operación posterior."
+            },
+            {
+              "id": "o2",
+              "text": "Retirar también todo acceso de lectura a cualquier analista.",
+              "why": "Retirar privilegios elevados no implica anular todos los permisos operativos."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [],
+      "audit": {
+        "mainConcepts": [
+          "Distinguir acceso amplio de tenant y acceso a workspace.",
+          "Separar lectura, escritura e incorporación inicial.",
+          "Retirar privilegios elevados tras la incorporación."
+        ],
+        "understanding": [
+          "Distinguir acceso amplio de tenant y acceso a workspace.",
+          "Separar lectura, escritura e incorporación inicial.",
+          "Retirar privilegios elevados tras la incorporación."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Distinguir acceso amplio de tenant y acceso a workspace.",
+          "Separar lectura, escritura e incorporación inicial.",
+          "Retirar privilegios elevados tras la incorporación."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "Los roles Entra descritos conceden acceso amplio al lake.",
+          "Ese rol no es el mecanismo de alcance de esta tabla.",
+          "La incorporación afecta al tenant y a la facturación, con requisitos adicionales.",
+          "Gestionar jobs programados no equivale a incorporar el lake.",
+          "El texto distingue roles de incorporación y operación posterior."
+        ],
+        "evidence": [
+          "Los roles de Entra conceden acceso amplio al Tenant Data Lake; para limitarlo a un workspace se usa Azure RBAC o Unified RBAC:",
+          "| Incorporar el Tenant Data Lake          | `Security Administrator` o `Global Administrator` en `Microsoft Entra ID`, `Owner` asignado directamente sobre la suscripción de facturación y lectura de los `workspaces` que se incorporan |",
+          "Los roles elevados de incorporación se necesitan para el proceso inicial; después deben retirarse o activarse solo cuando hagan falta mediante PIM."
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-2-permisos-y-rbac/5-permisos-especiales-por-tarea-1",
+      "introduction": "Trabaja los conceptos de «5 · Permisos especiales por tarea» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Separar permisos de plataforma, datos y acciones.",
+        "Reconocer acceso al dato on behalf of en Copilot.",
+        "Distinguir búsqueda, preview/export y alcance de case."
+      ],
+      "summary": [
+        "Separar permisos de plataforma, datos y acciones.",
+        "Reconocer acceso al dato on behalf of en Copilot.",
+        "Distinguir búsqueda, preview/export y alcance de case."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "Una aplicación publicará registros mediante Logs Ingestion API. ¿Sobre qué recurso sitúa la tabla Monitoring Metrics Publisher?",
+          "explanation": "El emisor necesita autorización sobre la DCR; crear la tabla y publicar registros son tareas distintas.",
+          "objective": "Elegir el recurso del permiso de publicación.",
+          "difficulty": "intermedia",
+          "id": "v25-11-api-dcr",
+          "evidence": [
+            "| Publicar mediante Logs Ingestion API                                                                   | `Monitoring Metrics Publisher` sobre la `DCR`                                                                                                                                                                                                                                                      |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Solo el case de eDiscovery.",
+              "why": "El permiso de ingesta no pertenece a los cases."
+            },
+            {
+              "id": "o1",
+              "text": "El usuario final que recibe correo.",
+              "why": "La tabla asigna el rol sobre la DCR, no sobre destinatarios."
+            },
+            {
+              "id": "o2",
+              "text": "La DCR.",
+              "why": "El emisor necesita autorización sobre la DCR; crear la tabla y publicar registros son tareas distintas."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        },
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "Un analista puede crear sesiones de Copilot pero el plugin Sentinel no devuelve incidentes. ¿Qué debe comprobar según el ejemplo?",
+          "explanation": "El acceso a la plataforma y el acceso a los datos son independientes; el plugin actúa on behalf of con permisos del usuario.",
+          "objective": "Diagnosticar acceso a datos desde Copilot.",
+          "difficulty": "intermedia",
+          "id": "v25-11-copilot-obo",
+          "evidence": [
+            "El acceso al dato es aparte y sigue el modelo `on behalf of (OBO)`: el plugin actúa con tus permisos en el producto de destino. Un analista con `Copilot contributor` entra al portal y crea sesiones, pero para que el plugin de Microsoft Sentinel devuelva incidentes necesita además `Microsoft Sentinel Reader` sobre ese workspace. El `plugin` de `Microsoft Defender XDR` utiliza los permisos que el analista ya tiene en `Microsoft Defender XDR`; `Copilot contributor` por sí solo no concede acceso a esos datos. El `plugin` de `Microsoft Sentinel` requiere permisos sobre el `workspace`; el `workspace` consultado puede indicarse en el `prompt` o configurarse como predeterminado."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Que tenga también Microsoft Sentinel Reader sobre el workspace consultado.",
+              "why": "El acceso a la plataforma y el acceso a los datos son independientes; el plugin actúa on behalf of con permisos del usuario."
+            },
+            {
+              "id": "o1",
+              "text": "Solo cambiar Copilot contributor por owner para obtener todos los datos.",
+              "why": "Ninguno de esos roles da por sí solo acceso al dato de seguridad."
+            },
+            {
+              "id": "o2",
+              "text": "Que el workspace carezca de permisos Sentinel para usar OBO.",
+              "why": "OBO usa precisamente los permisos del analista en el destino."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Resource Policy Contributor permite administrar Azure Policy. ¿Qué no debe inferirse de ese rol por sí solo?",
+          "explanation": "Administrar políticas no concede automáticamente autoridad para asignar roles a su identidad de remediación.",
+          "objective": "Distinguir configurar automatización y autorizar su identidad.",
+          "difficulty": "intermedia",
+          "id": "v25-11-policy-remediacion",
+          "evidence": [
+            "| Conectar un data source que se aplica mediante una asignación de `Azure Policy`, como `Azure Activity` | Lectura y escritura sobre el workspace, más `Owner` en el scope de la asignación; `Resource Policy Contributor` permite administrar definiciones, iniciativas y asignaciones de `Azure Policy`, pero no concede por sí solo permisos para asignar roles a la identidad administrada de remediación |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Que puede asignar roles a la identidad administrada de remediación.",
+              "why": "Administrar políticas no concede automáticamente autoridad para asignar roles a su identidad de remediación."
+            },
+            {
+              "id": "o1",
+              "text": "Que puede administrar definiciones de Policy.",
+              "why": "Esa capacidad sí está recogida expresamente."
+            },
+            {
+              "id": "o2",
+              "text": "Que puede administrar iniciativas de Policy.",
+              "why": "El texto incluye iniciativas entre sus capacidades."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Un operador tiene Compliance Search y acceso a su case. ¿Qué debe verificar antes de exportar contenido?",
+          "explanation": "Búsqueda y estimaciones no conceden preview/export. También debe respetarse el acceso al case.",
+          "objective": "Separar permisos de acciones eDiscovery.",
+          "difficulty": "intermedia",
+          "id": "v25-11-case-export",
+          "evidence": [
+            "eDiscovery separa el permiso de la acción del acceso al case: `Compliance Search` permite buscar contenido y obtener estimaciones, mientras que `Preview` y `Export` habilitan esas acciones por separado. Quien no sea `eDiscovery Administrator` solo ve los cases de los que es miembro. Los roles de Entra `Compliance Administrator` y `Global Administrator` se mapean a role groups de Purview con `Case Management`, `Compliance Search` y `Hold`, pero sin `Preview` ni `Export` por defecto."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Solo que sea propietario de una capacidad de Copilot.",
+              "why": "Ese rol no sustituye permisos eDiscovery."
+            },
+            {
+              "id": "o1",
+              "text": "El permiso Export, separado de la búsqueda.",
+              "why": "Búsqueda y estimaciones no conceden preview/export. También debe respetarse el acceso al case."
+            },
+            {
+              "id": "o2",
+              "text": "Nada: buscar implica por definición exportar.",
+              "why": "El texto separa Search, Preview y Export."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Un operador tiene Security Admin de Azure y quiere aplicar una recomendación con Fix. ¿Qué requisito indica la tabla?",
+          "explanation": "Ver o administrar aspectos de seguridad no implica modificar el recurso mediante Fix.",
+          "objective": "Aplicar permisos por tarea concreta.",
+          "difficulty": "intermedia",
+          "id": "v25-11-fix",
+          "evidence": [
+            "| Aplicar una recomendación con `Fix`                       | `Contributor` u `Owner`, incluso a nivel de resource group; `Security Admin` no puede                                                                                                                                                                                                                                 |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Security Admin siempre incluye cualquier acción sobre el recurso.",
+              "why": "La fila de Fix excluye expresamente esa conclusión."
+            },
+            {
+              "id": "o1",
+              "text": "Contributor u Owner; Security Admin no puede aplicar Fix.",
+              "why": "Ver o administrar aspectos de seguridad no implica modificar el recurso mediante Fix."
+            },
+            {
+              "id": "o2",
+              "text": "Security Reader basta para cambiar el recurso.",
+              "why": "Lectura no autoriza la corrección."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [
+        "Las dos listas de herencia de Copilot owner difieren en el propio documento; no se evalúan como lista única. Roles y licencias sujetos a vigencia requieren revisión externa si cambian."
+      ],
+      "audit": {
+        "mainConcepts": [
+          "Separar permisos de plataforma, datos y acciones.",
+          "Reconocer acceso al dato on behalf of en Copilot.",
+          "Distinguir búsqueda, preview/export y alcance de case."
+        ],
+        "understanding": [
+          "Separar permisos de plataforma, datos y acciones.",
+          "Reconocer acceso al dato on behalf of en Copilot.",
+          "Distinguir búsqueda, preview/export y alcance de case."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Separar permisos de plataforma, datos y acciones.",
+          "Reconocer acceso al dato on behalf of en Copilot.",
+          "Distinguir búsqueda, preview/export y alcance de case."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "El permiso de ingesta no pertenece a los cases.",
+          "La tabla asigna el rol sobre la DCR, no sobre destinatarios.",
+          "Ninguno de esos roles da por sí solo acceso al dato de seguridad.",
+          "OBO usa precisamente los permisos del analista en el destino.",
+          "Esa capacidad sí está recogida expresamente."
+        ],
+        "evidence": [
+          "| Publicar mediante Logs Ingestion API                                                                   | `Monitoring Metrics Publisher` sobre la `DCR`                                                                                                                                                                                                                                                      |",
+          "El acceso al dato es aparte y sigue el modelo `on behalf of (OBO)`: el plugin actúa con tus permisos en el producto de destino. Un analista con `Copilot contributor` entra al portal y crea sesiones, pero para que el plugin de Microsoft Sentinel devuelva incidentes necesita además `Microsoft Sentinel Reader` sobre ese workspace. El `plugin` de `Microsoft Defender XDR` utiliza los permisos que el analista ya tiene en `Microsoft Defender XDR`; `Copilot contributor` por sí solo no concede acceso a esos datos. El `plugin` de `Microsoft Sentinel` requiere permisos sobre el `workspace`; el `workspace` consultado puede indicarse en el `prompt` o configurarse como predeterminado.",
+          "| Conectar un data source que se aplica mediante una asignación de `Azure Policy`, como `Azure Activity` | Lectura y escritura sobre el workspace, más `Owner` en el scope de la asignación; `Resource Policy Contributor` permite administrar definiciones, iniciativas y asignaciones de `Azure Policy`, pero no concede por sí solo permisos para asignar roles a la identidad administrada de remediación |",
+          "eDiscovery separa el permiso de la acción del acceso al case: `Compliance Search` permite buscar contenido y obtener estimaciones, mientras que `Preview` y `Export` habilitan esas acciones por separado. Quien no sea `eDiscovery Administrator` solo ve los cases de los que es miembro. Los roles de Entra `Compliance Administrator` y `Global Administrator` se mapean a role groups de Purview con `Case Management`, `Compliance Search` y `Hold`, pero sin `Preview` ni `Export` por defecto.",
+          "| Aplicar una recomendación con `Fix`                       | `Contributor` u `Owner`, incluso a nivel de resource group; `Security Admin` no puede                                                                                                                                                                                                                                 |"
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-3-proteccion-y-configuracion-de-workloads/3-proteccion-y-configuracion-de-workloads-1",
+      "introduction": "Trabaja los conceptos de «3 · Protección y configuración de workloads» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "El capítulo anuncia controles preventivos y superficies de configuración, pero no los desarrolla en esta lectura."
+      ],
+      "summary": [
+        "El capítulo anuncia controles preventivos y superficies de configuración, pero no los desarrolla en esta lectura."
+      ],
+      "questions": [],
+      "blocked": true,
+      "limitations": [
+        "Solo contiene un párrafo enumerativo: no define Audit/Block, procedimientos ni correspondencias producto/control suficientes para una práctica y dos evaluaciones distintas. Los detalles están en las lecturas siguientes; no se inventan ni se duplican preguntas del título."
+      ],
+      "audit": {
+        "mainConcepts": [
+          "El capítulo anuncia controles preventivos y superficies de configuración, pero no los desarrolla en esta lectura."
+        ],
+        "understanding": [
+          "El capítulo anuncia controles preventivos y superficies de configuración, pero no los desarrolla en esta lectura."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "El capítulo anuncia controles preventivos y superficies de configuración, pero no los desarrolla en esta lectura."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [],
+        "evidence": []
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-3-proteccion-y-configuracion-de-workloads/microsoft-defender-for-endpoint-mde-1",
+      "introduction": "Trabaja los conceptos de «Microsoft Defender for Endpoint (MDE)» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Distinguir Audit, Block y remediación post-brecha.",
+        "Separar device groups RBAC y grupos de asignación de policies.",
+        "Revisar prerrequisitos y exclusiones antes de confiar en un control."
+      ],
+      "summary": [
+        "Distinguir Audit, Block y remediación post-brecha.",
+        "Separar device groups RBAC y grupos de asignación de policies.",
+        "Revisar prerrequisitos y exclusiones antes de confiar en un control.",
+        "No confundir solicitudes de remediación con cambios ejecutados."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "Una regla ASR está en Audit y observas eventos. ¿Qué demuestra eso según la definición?",
+          "explanation": "Telemetría de evaluación no equivale a enforcement. Revisar el modo evita interpretar un evento como prevención efectiva.",
+          "objective": "Interpretar el resultado de Audit.",
+          "difficulty": "intermedia",
+          "id": "v25-13-audit",
+          "evidence": [
+            "| `Audit`            | `2`    | Evalúa y registra lo que habría bloqueado, sin impedirlo                                                                                                                                                                                                                                                                                                                                                                                                                |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Que registra lo que habría bloqueado, sin impedir la actividad.",
+              "why": "Telemetría de evaluación no equivale a enforcement. Revisar el modo evita interpretar un evento como prevención efectiva."
+            },
+            {
+              "id": "o1",
+              "text": "Que la actividad quedó impedida por esa regla.",
+              "why": "Audit evalúa/registra; Block es el que bloquea."
+            },
+            {
+              "id": "o2",
+              "text": "Que la regla no puede dejar ninguna telemetría.",
+              "why": "El texto explica precisamente el registro en Audit."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "Defender AV está pasivo porque otro antivirus es principal. Se habilita EDR in block mode. ¿Qué conclusión evita el error señalado?",
+          "explanation": "EDR in block mode remedia lo que ya se coló; no sustituye la protección preventiva que requiere modo Active.",
+          "objective": "Distinguir contención post-brecha y prevención.",
+          "difficulty": "intermedia",
+          "id": "v25-13-edr-passive",
+          "evidence": [
+            "| `EDR in block mode`                                                              | EDR in block mode = red de seguridad, no protección. Solo sirve cuando tu AV principal es de terceros y Defender AV está en Passive. Limpia lo que ya se coló (post-brecha), pero no reactiva nada de lo que exige modo Active (ASR, Network protection, indicadores, real-time). Disponible en MDE Plan 2 y Defender for Business. |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Convierte automáticamente Defender AV en el antivirus principal.",
+              "why": "El apartado lo describe como red de seguridad con AV pasivo."
+            },
+            {
+              "id": "o1",
+              "text": "Habilita automáticamente todos los indicadores y Network protection.",
+              "why": "Esos controles conservan sus propios prerrequisitos."
+            },
+            {
+              "id": "o2",
+              "text": "Actúa post-brecha y no reactiva ASR ni otros controles que exigen AV activo.",
+              "why": "EDR in block mode remedia lo que ya se coló; no sustituye la protección preventiva que requiere modo Active."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Quieres asignar una endpoint security policy a equipos onboarded solo en MDE. ¿Qué grupo indica la tabla?",
+          "explanation": "No confundir agrupación para RBAC/automation level con el grupo Entra que recibe la policy.",
+          "objective": "Elegir la agrupación correcta de asignación.",
+          "difficulty": "intermedia",
+          "id": "v25-13-policies-grupos",
+          "evidence": [
+            "| Tipo de grupo       | Para los onboardeados solo en `MDE` el grupo tiene que ser de dispositivos, nunca de usuarios; para los inscritos en Intune vale de dispositivos o de usuarios |",
+            "| No confundir        | Los `device groups` de `Settings > Endpoints > Device groups` son de `MDE` y sirven para RBAC y automation level, no para asignar policies                                                                                                                                       |",
+            "| A qué equipos llega | A los inscritos en Intune (`Endpoint security > Microsoft Defender for Endpoint`) y a los onboardeados solo en `MDE`; para estos segundos hace falta `security settings management` (`Settings > Endpoints > Configuration management > Enforcement scope`), hacen falta las dos |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Un grupo de dispositivos de Entra, con security settings management configurado.",
+              "why": "No confundir agrupación para RBAC/automation level con el grupo Entra que recibe la policy."
+            },
+            {
+              "id": "o1",
+              "text": "Un device group de MDE usado para RBAC basta como asignación.",
+              "why": "Los apuntes separan esos device groups de las asignaciones de policies."
+            },
+            {
+              "id": "o2",
+              "text": "Un grupo de usuarios es válido en todos los casos.",
+              "why": "La tabla reserva ese caso a inscritos en Intune, no a los onboarded solo en MDE."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Se añade una carpeta a Automation folder exclusions. ¿Qué efecto NO debe suponerse?",
+          "explanation": "Las exclusiones de AIR no son exclusiones antivirus; mezclar ambas superficies crea una falsa expectativa de cobertura.",
+          "objective": "Distinguir ámbitos de exclusiones.",
+          "difficulty": "intermedia",
+          "id": "v25-13-exclusion-air",
+          "evidence": [
+            "| `Automation folder exclusions` | Define carpetas que AIR no examina ni remedia; no las excluye de los análisis antivirus                                                                                                                                                                |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Que puede limitarse mediante Extensions o File names.",
+              "why": "El apartado sí recoge esos campos opcionales."
+            },
+            {
+              "id": "o1",
+              "text": "Que queda excluida también de análisis antivirus.",
+              "why": "Las exclusiones de AIR no son exclusiones antivirus; mezclar ambas superficies crea una falsa expectativa de cobertura."
+            },
+            {
+              "id": "o2",
+              "text": "Que AIR deja de examinar/remediar esa carpeta.",
+              "why": "Ese es precisamente el propósito descrito."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Se excluye una IP del sondeo activo de Standard discovery. ¿Qué sigue siendo posible?",
+          "explanation": "Excluir del sondeo activo no garantiza invisibilidad en todas las formas de descubrimiento.",
+          "objective": "Interpretar alcance de una exclusión de descubrimiento.",
+          "difficulty": "intermedia",
+          "id": "v25-13-discovery",
+          "evidence": [
+            "`Device discovery` se enciende desde `Optional features`, pero su modo se elige en `security.microsoft.com` > `System` > `Settings` > `Device discovery`. `Standard discovery`, que es el predeterminado y el recomendado, combina observación pasiva con sondeos activos, puede lanzarse desde todos los dispositivos onboarded o solo desde los que lleven ciertos tags, y admite excluir IP o subredes del sondeo activo. Excluir una IP detiene el escaneo activo, pero el dispositivo aún puede descubrirse de forma pasiva o por multicast. `Basic discovery` solo observa el tráfico pasivamente y ve menos."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Que pase automáticamente a remediación Block.",
+              "why": "El descubrimiento y el modo de protección son funciones distintas."
+            },
+            {
+              "id": "o1",
+              "text": "Descubrirla pasivamente o por multicast.",
+              "why": "Excluir del sondeo activo no garantiza invisibilidad en todas las formas de descubrimiento."
+            },
+            {
+              "id": "o2",
+              "text": "Que la exclusión borre cualquier dato histórico del dispositivo.",
+              "why": "La configuración descrita detiene el sondeo, no borra historial."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Se crea una solicitud desde Recommendations/Remediation. ¿Puede darse por corregido el endpoint?",
+          "explanation": "El ticket puede coordinar a IT, pero se necesita ejecutar y verificar la corrección real.",
+          "objective": "Separar seguimiento y ejecución de remediación.",
+          "difficulty": "intermedia",
+          "id": "v25-13-recomendacion",
+          "evidence": [
+            "Con `Microsoft Intune connection` habilitada, la solicitud puede crear además un security task en Intune para que IT lo apruebe y despliegue. Ese ticket es opcional y la solicitud nunca ejecuta la corrección."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Sí, crear el ticket prueba que ya se desplegó el cambio.",
+              "why": "El texto niega que la solicitud ejecute la corrección."
+            },
+            {
+              "id": "o1",
+              "text": "Sí, si el dispositivo aparece en Inventories.",
+              "why": "Inventario y ejecución de remediación no son equivalentes."
+            },
+            {
+              "id": "o2",
+              "text": "No; la solicitud crea seguimiento y no cambia por sí sola el dispositivo.",
+              "why": "El ticket puede coordinar a IT, pero se necesita ejecutar y verificar la corrección real."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [
+        "No se evalúan target de indicadores sin verificar, cifras/versiones de ASR ni precedencias que el origen presenta con matices aparentemente contradictorios sobre exclusiones. Requieren revisión adicional."
+      ],
+      "audit": {
+        "mainConcepts": [
+          "Distinguir Audit, Block y remediación post-brecha.",
+          "Separar device groups RBAC y grupos de asignación de policies.",
+          "Revisar prerrequisitos y exclusiones antes de confiar en un control.",
+          "No confundir solicitudes de remediación con cambios ejecutados."
+        ],
+        "understanding": [
+          "Distinguir Audit, Block y remediación post-brecha.",
+          "Separar device groups RBAC y grupos de asignación de policies.",
+          "Revisar prerrequisitos y exclusiones antes de confiar en un control."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Distinguir Audit, Block y remediación post-brecha.",
+          "Separar device groups RBAC y grupos de asignación de policies.",
+          "Revisar prerrequisitos y exclusiones antes de confiar en un control.",
+          "No confundir solicitudes de remediación con cambios ejecutados."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "Audit evalúa/registra; Block es el que bloquea.",
+          "El texto explica precisamente el registro en Audit.",
+          "El apartado lo describe como red de seguridad con AV pasivo.",
+          "Esos controles conservan sus propios prerrequisitos.",
+          "Los apuntes separan esos device groups de las asignaciones de policies."
+        ],
+        "evidence": [
+          "| `Audit`            | `2`    | Evalúa y registra lo que habría bloqueado, sin impedirlo                                                                                                                                                                                                                                                                                                                                                                                                                |",
+          "| `EDR in block mode`                                                              | EDR in block mode = red de seguridad, no protección. Solo sirve cuando tu AV principal es de terceros y Defender AV está en Passive. Limpia lo que ya se coló (post-brecha), pero no reactiva nada de lo que exige modo Active (ASR, Network protection, indicadores, real-time). Disponible en MDE Plan 2 y Defender for Business. |",
+          "| Tipo de grupo       | Para los onboardeados solo en `MDE` el grupo tiene que ser de dispositivos, nunca de usuarios; para los inscritos en Intune vale de dispositivos o de usuarios |",
+          "| No confundir        | Los `device groups` de `Settings > Endpoints > Device groups` son de `MDE` y sirven para RBAC y automation level, no para asignar policies                                                                                                                                       |",
+          "| A qué equipos llega | A los inscritos en Intune (`Endpoint security > Microsoft Defender for Endpoint`) y a los onboardeados solo en `MDE`; para estos segundos hace falta `security settings management` (`Settings > Endpoints > Configuration management > Enforcement scope`), hacen falta las dos |",
+          "| `Automation folder exclusions` | Define carpetas que AIR no examina ni remedia; no las excluye de los análisis antivirus                                                                                                                                                                |",
+          "`Device discovery` se enciende desde `Optional features`, pero su modo se elige en `security.microsoft.com` > `System` > `Settings` > `Device discovery`. `Standard discovery`, que es el predeterminado y el recomendado, combina observación pasiva con sondeos activos, puede lanzarse desde todos los dispositivos onboarded o solo desde los que lleven ciertos tags, y admite excluir IP o subredes del sondeo activo. Excluir una IP detiene el escaneo activo, pero el dispositivo aún puede descubrirse de forma pasiva o por multicast. `Basic discovery` solo observa el tráfico pasivamente y ve menos.",
+          "Con `Microsoft Intune connection` habilitada, la solicitud puede crear además un security task en Intune para que IT lo apruebe y despliegue. Ese ticket es opcional y la solicitud nunca ejecuta la corrección."
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-3-proteccion-y-configuracion-de-workloads/microsoft-defender-for-office-365-1",
+      "introduction": "Trabaja los conceptos de «Microsoft Defender for Office 365» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Interpretar precedencia por destinatario y función.",
+        "Separar Safe Links, Safe Attachments y ZAP.",
+        "Distinguir veredicto, cuarentena y excepciones."
+      ],
+      "summary": [
+        "Interpretar precedencia por destinatario y función.",
+        "Separar Safe Links, Safe Attachments y ZAP.",
+        "Distinguir veredicto, cuarentena y excepciones."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "Un destinatario coincide con Strict, Standard y una custom policy de la misma función. ¿Cuál se evalúa primero según los apuntes?",
+          "explanation": "La primera policy aplicable por precedencia gobierna esa función; no se mezclan todas las policies coincidentes.",
+          "objective": "Aplicar precedencia sin mezclar configuraciones.",
+          "difficulty": "intermedia",
+          "id": "v25-14-precedencia",
+          "evidence": [
+            "La precedencia es `Strict` → `Standard` → policies personalizadas por prioridad → policy predeterminada o `Built-in protection`. Las policies internas creadas por los perfiles predefinidos no se modifican directamente: se administran habilitando el perfil y cambiando sus asignaciones o excepciones."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "La custom policy siempre prevalece sobre los presets.",
+              "why": "La precedencia sitúa Strict y Standard antes de las personalizadas."
+            },
+            {
+              "id": "o1",
+              "text": "Strict.",
+              "why": "La primera policy aplicable por precedencia gobierna esa función; no se mezclan todas las policies coincidentes."
+            },
+            {
+              "id": "o2",
+              "text": "Se combinan siempre todos sus ajustes.",
+              "why": "El apartado dice que aplica una sola policy por función."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "match",
+          "prompt": "Relaciona el mecanismo con su momento o función.",
+          "explanation": "Los tres actúan en momentos distintos; no inferir que un análisis previo elimina la necesidad de proteger el clic o reevaluar.",
+          "objective": "Situar protecciones en el ciclo de correo.",
+          "difficulty": "intermedia",
+          "id": "v25-14-protecciones",
+          "evidence": [
+            "- `Safe Attachments` amplía esa protección mediante detonación de archivos antes de entregarlos. Una policy nueva tarda hasta 30 minutos en aplicarse.",
+            "- `Safe Links` comprueba las direcciones URL cuando el usuario hace clic. Una policy nueva tarda hasta 6 horas en aplicarse. La página `URL & click protection settings` reparte los ajustes de `Safe Links` en cuatro bloques:",
+            "- `ZAP` vuelve a evaluar mensajes ya entregados con veredictos de malware, spam o phishing."
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "Safe Attachments"
+            },
+            {
+              "id": "r1",
+              "label": "Safe Links"
+            },
+            {
+              "id": "r2",
+              "label": "ZAP"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "Detonación de adjuntos antes de entrega"
+            },
+            {
+              "id": "p1",
+              "text": "Comprobación de URL al hacer clic"
+            },
+            {
+              "id": "p2",
+              "text": "Reevaluación de mensajes ya entregados"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1",
+            "p2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "¿Qué decide una Quarantine policy en relación con el mensaje?",
+          "explanation": "La política de cuarentena gobierna experiencia/permisos sobre el mensaje, no sustituye su detección.",
+          "objective": "Distinguir detección y gestión de cuarentena.",
+          "difficulty": "intermedia",
+          "id": "v25-14-cuarentena",
+          "evidence": [
+            "- Las `Quarantine policies` determinan qué puede hacer el usuario con el mensaje en cuarentena y si recibe notificaciones; no cambian el veredicto que lo llevó allí."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Qué certificado DKIM firma el remitente.",
+              "why": "La autenticación pertenece a otra capa."
+            },
+            {
+              "id": "o1",
+              "text": "Qué puede hacer el usuario y si recibe notificaciones.",
+              "why": "La política de cuarentena gobierna experiencia/permisos sobre el mensaje, no sustituye su detección."
+            },
+            {
+              "id": "o2",
+              "text": "Qué veredicto técnico clasificó originalmente el mensaje.",
+              "why": "El apartado niega que estas policies cambien el veredicto."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Una URL está en Do not rewrite de Safe Links. ¿Qué conclusión está respaldada?",
+          "explanation": "No reescribir una URL no equivale a crear una excepción completa de seguridad.",
+          "objective": "Interpretar una excepción sin ampliar su alcance.",
+          "difficulty": "intermedia",
+          "id": "v25-14-no-rewrite",
+          "evidence": [
+            "- `Do not rewrite the following URLs in email`: excepciones que no se reescriben ni se escanean durante el flujo de correo, aunque todavía pueden bloquearse en el momento del clic. Para exceptuar una URL de verdad se reporta como `I've confirmed it's clean` y se añade a la Tenant Allow/Block List."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Nunca podrá bloquearse al clic.",
+              "why": "El texto conserva expresamente esa posibilidad."
+            },
+            {
+              "id": "o1",
+              "text": "No se reescribe ni escanea en flujo de correo, pero aún puede bloquearse al hacer clic.",
+              "why": "No reescribir una URL no equivale a crear una excepción completa de seguridad."
+            },
+            {
+              "id": "o2",
+              "text": "Queda permitida globalmente para todos los controles MDE.",
+              "why": "La configuración es de correo y no una excepción global de endpoint."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [
+        "El texto difiere entre capítulos sobre ZAP en Teams; las actividades no evalúan ese punto ni sus licencias."
+      ],
+      "audit": {
+        "mainConcepts": [
+          "Interpretar precedencia por destinatario y función.",
+          "Separar Safe Links, Safe Attachments y ZAP.",
+          "Distinguir veredicto, cuarentena y excepciones."
+        ],
+        "understanding": [
+          "Interpretar precedencia por destinatario y función.",
+          "Separar Safe Links, Safe Attachments y ZAP.",
+          "Distinguir veredicto, cuarentena y excepciones."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Interpretar precedencia por destinatario y función.",
+          "Separar Safe Links, Safe Attachments y ZAP.",
+          "Distinguir veredicto, cuarentena y excepciones."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "La precedencia sitúa Strict y Standard antes de las personalizadas.",
+          "El apartado dice que aplica una sola policy por función.",
+          "La autenticación pertenece a otra capa.",
+          "El apartado niega que estas policies cambien el veredicto.",
+          "El texto conserva expresamente esa posibilidad."
+        ],
+        "evidence": [
+          "La precedencia es `Strict` → `Standard` → policies personalizadas por prioridad → policy predeterminada o `Built-in protection`. Las policies internas creadas por los perfiles predefinidos no se modifican directamente: se administran habilitando el perfil y cambiando sus asignaciones o excepciones.",
+          "- `Safe Attachments` amplía esa protección mediante detonación de archivos antes de entregarlos. Una policy nueva tarda hasta 30 minutos en aplicarse.",
+          "- `Safe Links` comprueba las direcciones URL cuando el usuario hace clic. Una policy nueva tarda hasta 6 horas en aplicarse. La página `URL & click protection settings` reparte los ajustes de `Safe Links` en cuatro bloques:",
+          "- `ZAP` vuelve a evaluar mensajes ya entregados con veredictos de malware, spam o phishing.",
+          "- Las `Quarantine policies` determinan qué puede hacer el usuario con el mensaje en cuarentena y si recibe notificaciones; no cambian el veredicto que lo llevó allí.",
+          "- `Do not rewrite the following URLs in email`: excepciones que no se reescriben ni se escanean durante el flujo de correo, aunque todavía pueden bloquearse en el momento del clic. Para exceptuar una URL de verdad se reporta como `I've confirmed it's clean` y se añade a la Tenant Allow/Block List."
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    }
+  ]
+}

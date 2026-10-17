@@ -1,0 +1,47 @@
+{
+  "courseId": "splunk",
+  "regionId": "SP-R02",
+  "lab": "# LAB-R02 — Auditoría de ingesta con datos inventados\n\n**Tipo:** análisis teórico y diagnóstico; no modifica Splunk.\n\n## Escenario\n\nUn Windows envía un 4625 con timestamp del día anterior. Otro evento llega con sourcetype equivocado. Un analista dice que el panel de fallos está vacío.\n\n## Encargo\n\n1. Separa fuente, input, parsing, indexado, extracción search-time y permisos.\n2. Explica qué síntomas se producen si `_time` está fuera de la ventana.\n3. Indica dónde se modificaría la fase de parsing de eventos **futuros** en topologías UF→indexer y UF→HF→indexer.\n4. Distingue corrección de sourcetype de la extracción de un campo.\n5. Diseña verificación de solo lectura para cada hipótesis.\n\n## Solución de referencia\n\nPrimero comprobar si el evento se genera; después receptor, índice/sourcetype reales, `_time` y `_indextime`, permisos y extracción. Con UF→indexer, el indexer habitualmente es primer parser; con UF→HF→indexer el HF puede serlo. Una modificación index-time no reescribe datos históricos. No ejecutar cambios ni reinicios.\n\n## Criterio de éxito\n\nAl menos tres causas alternativas plausibles y una comprobación por causa, sin afirmar que un panel vacío equivale a seguridad.\n",
+  "datasets": {
+    "schema_version": "1.0",
+    "revision": "2026-10-16-r1",
+    "package": "SPLUNK_LECCIONES_R01_R03",
+    "scope": "synthetic_csv_contract_offline_only",
+    "splunk_execution": false,
+    "datasets": [
+      {
+        "file": "PRACTICAS/fixtures/auth_sintetico.csv",
+        "sha256": "f9674d6c79e8d027034e75e398801ccddda369fd4fe817e4c54520fc8b9a79ab",
+        "row_count": 10,
+        "columns": [
+          "timestamp_utc",
+          "src",
+          "user",
+          "action",
+          "source"
+        ],
+        "row_id": null,
+        "field_mapping_for_design": {
+          "timestamp_utc": "_time",
+          "src": "src",
+          "user": "user",
+          "action": "action",
+          "source": "source"
+        },
+        "timezone": "UTC where a time/date column exists",
+        "time_bounds": "[start,end)",
+        "snapshot_cutoff": "synthetic_index_time < cutoff",
+        "mapping_executed_in_splunk": false
+      }
+    ],
+    "notes": [
+      "Cada dataset conserva su escenario; una IP coincidente no une escenarios.",
+      "Las asignaciones son diseño; no instalan extracciones, inputs ni lookups.",
+      "_time en el modelo offline es epoch sintético; no es metadata creada en una instancia.",
+      "fixture_index_epoch nunca sustituye al metadato _indextime real.",
+      "TI: inicio inclusivo y expiración exclusiva a medianoche UTC; referencia 2026-10-16T12:00:00Z.",
+      "ServiceName sintético no certifica un SPN nativo; operation_kind no es campo nativo 4662."
+    ]
+  },
+  "note": "Material sintético y documental, sin ingesta, envío HTTP ni ejecución SPL. La ventana relativa es ilustrativa; los conteos pertenecen al CSV fechado en UTC."
+}

@@ -1,0 +1,199 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R02-L02",
+  "title": "Logs Windows y Linux",
+  "revision": "610c6c3a995665530613dc46",
+  "sourceVersion": "da23ae0a9d932427bb5e9537083320779b450e66c6fb8bba92f9f227407d6094",
+  "sanitizedHash": "da23ae0a9d932427bb5e9537083320779b450e66c6fb8bba92f9f227407d6094",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R01_R03/R02_INGESTA/SP-R02-L02.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Diseñar un recorrido de evento sin asumir nombres de campos",
+  "preamble": "# SP-R02-L02 — Logs Windows y Linux\n\n**Región:** Río de Telemetría (SP-R02) · **Prioridad:** P0 SOC N1/N2  \n**Estado:** material didáctico redactado; revisión humana recomendada. **SPL no ejecutado en Splunk real.**  \n**ID estable propuesto:** `SP-R02-L02` (no migrado a React)  \n**Prerrequisitos orientativos:** SP-R02-L01, SP-R01 completo  \n**Objetivo del currículo:** Diseñar un recorrido de evento sin asumir nombres de campos\n\n",
+  "sections": [
+    {
+      "id": "SP-R02-L02-S01",
+      "title": "1. La pregunta que resuelve esta lección",
+      "markdown": "## 1. La pregunta que resuelve esta lección\n\nNo existe un esquema universal de campos Windows/Linux en Splunk: lo determina el input, formato y extractions instaladas.\n\n**Al completar la lección podrás:** Diseñar un recorrido de evento sin asumir nombres de campos. Debes explicar el porqué y los límites, no memorizar solo comandos.\n\n",
+      "line": 9,
+      "endLine": 13
+    },
+    {
+      "id": "SP-R02-L02-S02",
+      "title": "2. Desarrollo del conocimiento",
+      "markdown": "## 2. Desarrollo del conocimiento\n\nLos Windows Event Logs contienen identificadores y atributos asociados a canales y proveedores. En muchos entornos el evento 4625 refleja un inicio de sesión fallido, pero la forma en que Splunk presenta EventCode, EventID, Account_Name o TargetUserName depende de cómo se ingirió y del add-on correspondiente. En Linux, syslog, journald y archivos de autenticación tampoco tienen garantizado un campo `user` o un sourcetype fijo.\nPrimero pregunta qué fuente y canal fue habilitado; después busca una muestra acotada y observa `source`, `sourcetype`, host y campos disponibles. Para análisis de seguridad no basta el código: interpreta LogonType, workstation, src y otra evidencia cuando corresponda.\n\n",
+      "line": 15,
+      "endLine": 18
+    },
+    {
+      "id": "SP-R02-L02-S03",
+      "title": "3. Método de trabajo reproducible",
+      "markdown": "## 3. Método de trabajo reproducible\n\n1. Enumera canales/logs objetivos y cobertura esperada.\n2. Confirma input, host origen, índice y sourcetype.\n3. Examina muestras autorizadas sin volcar secretos.\n4. Mapea los campos de éxito/fallo y usuario a su definición real.\n5. Documenta los casos donde falta auditoría o extracción.\n\n",
+      "line": 20,
+      "endLine": 26
+    },
+    {
+      "id": "SP-R02-L02-S04",
+      "title": "4. Caso guiado — de la pregunta a la evidencia",
+      "markdown": "## 4. Caso guiado — de la pregunta a la evidencia\n\nSi quieres medir 4625 Windows y el log Linux de SSH, evita unirlos directamente por un supuesto campo `Account_Name`. Primero confirma campos nativos de cada fuente; normaliza después si existe una especificación.\n\n### Esquema o ejemplo técnico\n\n```spl\nindex=INDICE_WINDOWS earliest=-2h\n| stats count by sourcetype source\n```\n\n**Cómo interpretarlo:** Es una exploración de cobertura, no un detector. Para 4625 añade el campo correcto solo tras confirmarlo: `EventCode=4625` no siempre existe.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n",
+      "line": 28,
+      "endLine": 41
+    },
+    {
+      "id": "SP-R02-L02-S05",
+      "title": "5. Diagnóstico y errores frecuentes",
+      "markdown": "## 5. Diagnóstico y errores frecuentes\n\nTomar un EventID como patrón malicioso universal; buscar logs Linux con formato Windows; desconocer falta de política de auditoría.\n\n**Conexión con SC-200 (no equivalencia automática):** Cap. 03 (protección workloads), líneas 542–1124; cap. 04, líneas 1125–1368.. En Splunk los esquemas, permisos y familias de producto son diferentes; verifica la correspondencia antes de reutilizar una técnica.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 43,
+      "endLine": 50
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R02-L02-Q01",
+      "lessonId": "SP-R02-L02",
+      "prompt": "¿El campo `EventCode` aparece siempre en Windows ingerido por Splunk?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A3",
+        "SPLUNK_LECCIONES_R01_R03:A7",
+        "SPLUNK_LECCIONES_R01_R03:A13"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R02-L02-Q01-O-aeda5a8f511b",
+          "text": "Sí, si el destino es Enterprise, aunque cambie el formato ingerido"
+        },
+        {
+          "id": "SP-R02-L02-Q01-O-b299375955aa",
+          "text": "No: EventCode se sustituye por user cuando se instala CIM"
+        },
+        {
+          "id": "SP-R02-L02-Q01-O-b302bd10f8bc",
+          "text": "No, depende del input/TA/formato"
+        },
+        {
+          "id": "SP-R02-L02-Q01-O-17ab718b8128",
+          "text": "Sí, porque el código Windows determina el nombre de extracción en Splunk"
+        }
+      ],
+      "solution": "SP-R02-L02-Q01-O-b302bd10f8bc",
+      "explanation": "El campo observado depende del origen y las extracciones.",
+      "anchors": [
+        {
+          "file": "R02_INGESTA/SP-R02-L02.md",
+          "sourceHash": "da23ae0a9d932427bb5e9537083320779b450e66c6fb8bba92f9f227407d6094",
+          "line": 15,
+          "endLine": 18,
+          "quote": "## 2. Desarrollo del conocimiento\n\nLos Windows Event Logs contienen identificadores y atributos asociados a canales y proveedores. En muchos entornos el evento 4625 refleja un inicio de sesión fallido, pero la forma en que Splunk presenta EventCode, EventID, Account_Name o TargetUserName depende de cómo se ingirió y del add-on correspondiente. En Linux, syslog, journald y archivos de autenticación tampoco tienen garantizado un campo `user` o un sourcetype fijo.\nPrimero pregunta qué fuente y canal fue habilitado; después busca una muestra acotada y observa `source`, `sourcetype`, host y campos disponibles. Para análisis de seguridad no basta el código: interpreta LogonType, workstation, src y otra evidencia cuando corresponda.\n\n"
+        },
+        {
+          "file": "R02_INGESTA/SP-R02-L02.md",
+          "sourceHash": "da23ae0a9d932427bb5e9537083320779b450e66c6fb8bba92f9f227407d6094",
+          "line": 28,
+          "endLine": 41,
+          "quote": "## 4. Caso guiado — de la pregunta a la evidencia\n\nSi quieres medir 4625 Windows y el log Linux de SSH, evita unirlos directamente por un supuesto campo `Account_Name`. Primero confirma campos nativos de cada fuente; normaliza después si existe una especificación.\n\n### Esquema o ejemplo técnico\n\n```spl\nindex=INDICE_WINDOWS earliest=-2h\n| stats count by sourcetype source\n```\n\n**Cómo interpretarlo:** Es una exploración de cobertura, no un detector. Para 4625 añade el campo correcto solo tras confirmarlo: `EventCode=4625` no siempre existe.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R02-L02-Q02",
+      "lessonId": "SP-R02-L02",
+      "prompt": "¿Qué significa observar cero eventos 4625?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A3",
+        "SPLUNK_LECCIONES_R01_R03:A7",
+        "SPLUNK_LECCIONES_R01_R03:A13"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R02-L02-Q02-O-cf895256ee31",
+          "text": "El código 4625 dejó de existir en la versión de Windows observada"
+        },
+        {
+          "id": "SP-R02-L02-Q02-O-a31a620053ca",
+          "text": "La ausencia confirma un problema de transporte, antes de revisar el rango"
+        },
+        {
+          "id": "SP-R02-L02-Q02-O-61c1c7c6759a",
+          "text": "La consulta descarta fallos de autenticación en todos los hosts del inventario"
+        },
+        {
+          "id": "SP-R02-L02-Q02-O-5573efd4865b",
+          "text": "No hay cobertura suficiente para concluir sin más comprobaciones"
+        }
+      ],
+      "solution": "SP-R02-L02-Q02-O-5573efd4865b",
+      "explanation": "Puede faltar auditoría, ruta, campo o ventana de tiempo.",
+      "anchors": [
+        {
+          "file": "R02_INGESTA/SP-R02-L02.md",
+          "sourceHash": "da23ae0a9d932427bb5e9537083320779b450e66c6fb8bba92f9f227407d6094",
+          "line": 15,
+          "endLine": 18,
+          "quote": "## 2. Desarrollo del conocimiento\n\nLos Windows Event Logs contienen identificadores y atributos asociados a canales y proveedores. En muchos entornos el evento 4625 refleja un inicio de sesión fallido, pero la forma en que Splunk presenta EventCode, EventID, Account_Name o TargetUserName depende de cómo se ingirió y del add-on correspondiente. En Linux, syslog, journald y archivos de autenticación tampoco tienen garantizado un campo `user` o un sourcetype fijo.\nPrimero pregunta qué fuente y canal fue habilitado; después busca una muestra acotada y observa `source`, `sourcetype`, host y campos disponibles. Para análisis de seguridad no basta el código: interpreta LogonType, workstation, src y otra evidencia cuando corresponda.\n\n"
+        },
+        {
+          "file": "R02_INGESTA/SP-R02-L02.md",
+          "sourceHash": "da23ae0a9d932427bb5e9537083320779b450e66c6fb8bba92f9f227407d6094",
+          "line": 28,
+          "endLine": 41,
+          "quote": "## 4. Caso guiado — de la pregunta a la evidencia\n\nSi quieres medir 4625 Windows y el log Linux de SSH, evita unirlos directamente por un supuesto campo `Account_Name`. Primero confirma campos nativos de cada fuente; normaliza después si existe una especificación.\n\n### Esquema o ejemplo técnico\n\n```spl\nindex=INDICE_WINDOWS earliest=-2h\n| stats count by sourcetype source\n```\n\n**Cómo interpretarlo:** Es una exploración de cobertura, no un detector. Para 4625 añade el campo correcto solo tras confirmarlo: `EventCode=4625` no siempre existe.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R02-L02-P01",
+      "lessonId": "SP-R02-L02",
+      "prompt": "Explica cómo comprobar cobertura de autenticación Windows/Linux sin asumir los campos de identidad.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A3",
+        "SPLUNK_LECCIONES_R01_R03:A7",
+        "SPLUNK_LECCIONES_R01_R03:A13"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica los datos/condiciones necesarios",
+        "Explica el razonamiento y no solo el resultado",
+        "Reconoce al menos una limitación o comprobación adicional"
+      ],
+      "referenceAnswer": "Partir de inventario de canales y orígenes, índice/sourcetype reales, ventana y muestra; mapear esquema y distinguir ausencia de eventos de ausencia de extracción."
+    }
+  ],
+  "solutionsMarkdown": "## 7. Solucionario con razonamiento\n\n- **SP-R02-L02-Q01: C** — El campo observado depende del origen y las extracciones.\n\n- **SP-R02-L02-Q02: D** — Puede faltar auditoría, ruta, campo o ventana de tiempo.\n\n- **SP-R02-L02-P01:** Partir de inventario de canales y orígenes, índice/sourcetype reales, ventana y muestra; mapear esquema y distinguir ausencia de eventos de ausencia de extracción.\n\n**Guía de retroalimentación formativa:** Identifica los datos/condiciones necesarios; Explica el razonamiento y no solo el resultado; Reconoce al menos una limitación o comprobación adicional.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 8. Fuentes y trazabilidad\n\n- **Fuente de partida:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE2_BLOQUE1.md`, según la organización del paquete de investigación que conservas.\n- **Fuente Microsoft de contraste:** `../../01_FUENTE_ORIGINAL/SC-200.md`; Cap. 03 (protección workloads), líneas 542–1124; cap. 04, líneas 1125–1368.\n- **[A3]** https://help.splunk.com/en/splunk-enterprise/administer/manage-indexers-and-indexer-clusters/10.6/indexing-overview/how-indexing-works\n- **[A7]** https://help.splunk.com/en/splunk-enterprise/administer/manage-indexers-and-indexer-clusters/10.6/indexing-overview/index-time-versus-search-time\n- **[A13]** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/search-commands/fieldsummary\n\n**Estado de confianza:** documentación técnica citada y propuesta pedagógica; no validado contra índices, sourcetypes, roles o versiones de tu laboratorio. Las URLs provienen de la investigación del 16/10/2026, con contraste puntual adicional de documentación oficial para HEC y forwarders. Ver `FUENTES_Y_LIMITES.md`.\n",
+  "originalMarkdown": "# SP-R02-L02 — Logs Windows y Linux\n\n**Región:** Río de Telemetría (SP-R02) · **Prioridad:** P0 SOC N1/N2  \n**Estado:** material didáctico redactado; revisión humana recomendada. **SPL no ejecutado en Splunk real.**  \n**ID estable propuesto:** `SP-R02-L02` (no migrado a React)  \n**Prerrequisitos orientativos:** SP-R02-L01, SP-R01 completo  \n**Objetivo del currículo:** Diseñar un recorrido de evento sin asumir nombres de campos\n\n## 1. La pregunta que resuelve esta lección\n\nNo existe un esquema universal de campos Windows/Linux en Splunk: lo determina el input, formato y extractions instaladas.\n\n**Al completar la lección podrás:** Diseñar un recorrido de evento sin asumir nombres de campos. Debes explicar el porqué y los límites, no memorizar solo comandos.\n\n## 2. Desarrollo del conocimiento\n\nLos Windows Event Logs contienen identificadores y atributos asociados a canales y proveedores. En muchos entornos el evento 4625 refleja un inicio de sesión fallido, pero la forma en que Splunk presenta EventCode, EventID, Account_Name o TargetUserName depende de cómo se ingirió y del add-on correspondiente. En Linux, syslog, journald y archivos de autenticación tampoco tienen garantizado un campo `user` o un sourcetype fijo.\nPrimero pregunta qué fuente y canal fue habilitado; después busca una muestra acotada y observa `source`, `sourcetype`, host y campos disponibles. Para análisis de seguridad no basta el código: interpreta LogonType, workstation, src y otra evidencia cuando corresponda.\n\n## 3. Método de trabajo reproducible\n\n1. Enumera canales/logs objetivos y cobertura esperada.\n2. Confirma input, host origen, índice y sourcetype.\n3. Examina muestras autorizadas sin volcar secretos.\n4. Mapea los campos de éxito/fallo y usuario a su definición real.\n5. Documenta los casos donde falta auditoría o extracción.\n\n## 4. Caso guiado — de la pregunta a la evidencia\n\nSi quieres medir 4625 Windows y el log Linux de SSH, evita unirlos directamente por un supuesto campo `Account_Name`. Primero confirma campos nativos de cada fuente; normaliza después si existe una especificación.\n\n### Esquema o ejemplo técnico\n\n```spl\nindex=INDICE_WINDOWS earliest=-2h\n| stats count by sourcetype source\n```\n\n**Cómo interpretarlo:** Es una exploración de cobertura, no un detector. Para 4625 añade el campo correcto solo tras confirmarlo: `EventCode=4625` no siempre existe.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n## 5. Diagnóstico y errores frecuentes\n\nTomar un EventID como patrón malicioso universal; buscar logs Linux con formato Windows; desconocer falta de política de auditoría.\n\n**Conexión con SC-200 (no equivalencia automática):** Cap. 03 (protección workloads), líneas 542–1124; cap. 04, líneas 1125–1368.. En Splunk los esquemas, permisos y familias de producto son diferentes; verifica la correspondencia antes de reutilizar una técnica.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 6. Actividades\n\n### SP-R02-L02-Q01 — Opción múltiple\n\n¿El campo `EventCode` aparece siempre en Windows ingerido por Splunk?\n\nA. Sí, si el destino es Enterprise, aunque cambie el formato ingerido\nB. No: EventCode se sustituye por user cuando se instala CIM\nC. No, depende del input/TA/formato\nD. Sí, porque el código Windows determina el nombre de extracción en Splunk\n\n### SP-R02-L02-Q02 — Opción múltiple\n\n¿Qué significa observar cero eventos 4625?\n\nA. El código 4625 dejó de existir en la versión de Windows observada\nB. La ausencia confirma un problema de transporte, antes de revisar el rango\nC. La consulta descarta fallos de autenticación en todos los hosts del inventario\nD. No hay cobertura suficiente para concluir sin más comprobaciones\n\n### SP-R02-L02-P01 — Práctica abierta formativa\n\nExplica cómo comprobar cobertura de autenticación Windows/Linux sin asumir los campos de identidad.\n\n## 7. Solucionario con razonamiento\n\n- **SP-R02-L02-Q01: C** — El campo observado depende del origen y las extracciones.\n\n- **SP-R02-L02-Q02: D** — Puede faltar auditoría, ruta, campo o ventana de tiempo.\n\n- **SP-R02-L02-P01:** Partir de inventario de canales y orígenes, índice/sourcetype reales, ventana y muestra; mapear esquema y distinguir ausencia de eventos de ausencia de extracción.\n\n**Guía de retroalimentación formativa:** Identifica los datos/condiciones necesarios; Explica el razonamiento y no solo el resultado; Reconoce al menos una limitación o comprobación adicional.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Fuentes y trazabilidad\n\n- **Fuente de partida:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE2_BLOQUE1.md`, según la organización del paquete de investigación que conservas.\n- **Fuente Microsoft de contraste:** `../../01_FUENTE_ORIGINAL/SC-200.md`; Cap. 03 (protección workloads), líneas 542–1124; cap. 04, líneas 1125–1368.\n- **[A3]** https://help.splunk.com/en/splunk-enterprise/administer/manage-indexers-and-indexer-clusters/10.6/indexing-overview/how-indexing-works\n- **[A7]** https://help.splunk.com/en/splunk-enterprise/administer/manage-indexers-and-indexer-clusters/10.6/indexing-overview/index-time-versus-search-time\n- **[A13]** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/search-commands/fieldsummary\n\n**Estado de confianza:** documentación técnica citada y propuesta pedagógica; no validado contra índices, sourcetypes, roles o versiones de tu laboratorio. Las URLs provienen de la investigación del 16/10/2026, con contraste puntual adicional de documentación oficial para HEC y forwarders. Ver `FUENTES_Y_LIMITES.md`.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 8,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "A3",
+      "key": "SPLUNK_LECCIONES_R01_R03:A3",
+      "url": "https://help.splunk.com/en/splunk-enterprise/administer/manage-indexers-and-indexer-clusters/10.6/indexing-overview/how-indexing-works"
+    },
+    {
+      "id": "A7",
+      "key": "SPLUNK_LECCIONES_R01_R03:A7",
+      "url": "https://help.splunk.com/en/splunk-enterprise/administer/manage-indexers-and-indexer-clusters/10.6/indexing-overview/index-time-versus-search-time"
+    },
+    {
+      "id": "A13",
+      "key": "SPLUNK_LECCIONES_R01_R03:A13",
+      "url": "https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/search-commands/fieldsummary"
+    }
+  ]
+}

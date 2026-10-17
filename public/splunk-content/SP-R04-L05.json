@@ -1,0 +1,200 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R04-L05",
+  "title": "Correlación sin join innecesario",
+  "revision": "3fdd9a23bcf016b2a4a32dda",
+  "sourceVersion": "177a4e95198be5d53d2eb50ac498c379a04f3192f5abdd5409f978648d79574b",
+  "sanitizedHash": "177a4e95198be5d53d2eb50ac498c379a04f3192f5abdd5409f978648d79574b",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R04_R05/R04_SPL_AVANZADO/SP-R04-L05.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Contrastar stats, eventstats, lookup, join y transaction",
+  "preamble": "# SP-R04-L05 — Correlación sin join innecesario\n\n**Región:** SP-R04 · **Prioridad:** P0/P1 SOC · **Estado:** borrador educativo para revisión · **SPL real:** no ejecutado.  \n**ID curricular intacto:** `SP-R04-L05` · **Resultado de aprendizaje:** Contrastar stats, eventstats, lookup, join y transaction  \n**Prerrequisitos:** R03 completada · **Producto:** Splunk Enterprise/Cloud con SPL clásico según versión y permisos; CIM exige configuración pertinente.\n\n",
+  "sections": [
+    {
+      "id": "SP-R04-L05-S01",
+      "title": "1. Pregunta esencial",
+      "markdown": "## 1. Pregunta esencial\n\nCorrelacionar eventos de dos fuentes por usuario no obliga a ejecutar `join`. Para construir hipótesis SOC es frecuente normalizar campos, etiquetar categorías y resumir por entidad con `stats`; los eventos comparten una clave pero eso no establece que una acción causara la otra. `join` puede ser útil si realmente se requiere combinar atributos de dos datasets, aunque tiene costes y límites en el lado de la subbúsqueda.\n\n**Objetivo verificable:** Contrastar stats, eventstats, lookup, join y transaction.\n\n",
+      "line": 7,
+      "endLine": 11
+    },
+    {
+      "id": "SP-R04-L05-S02",
+      "title": "2. Modelo mental y conceptos",
+      "markdown": "## 2. Modelo mental y conceptos\n\n1. Prefiere `stats` cuando la pregunta puede resolverse con agregaciones condicionadas sobre eventos presentes en el mismo flujo.\n2. Un `lookup` enriquece con un catálogo de activos relativamente pequeño: suele ser mejor para metadatos de inventario que una subbúsqueda costosa.\n3. `join` en SPL clásico tiene límites documentados del conjunto secundario; los valores exactos pueden variar por versión/configuración.\n4. `transaction` agrupa eventos con semántica de sesión, pero puede consumir mucha memoria; no lo uses solo porque KQL tenía un operador join.\n\n",
+      "line": 13,
+      "endLine": 18
+    },
+    {
+      "id": "SP-R04-L05-S03",
+      "title": "3. Procedimiento guiado",
+      "markdown": "## 3. Procedimiento guiado\n\n1. Define la entidad (usuario, IP, sesión) y qué campo representa la misma identidad en ambos orígenes.\n2. Agrupa los eventos que tengan campos realmente normalizados mediante estadísticas condicionadas.\n3. Comprueba claves repetidas, NAT, cuentas compartidas y timestamps; etiqueta la relación como correlación y no causalidad.\n4. Sólo si faltan campos de una fuente decide si lookup, join u otra estrategia es indispensable.\n\n",
+      "line": 20,
+      "endLine": 25
+    },
+    {
+      "id": "SP-R04-L05-S04",
+      "title": "4. SPL ilustrativo — no ejecutado",
+      "markdown": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH earliest=-24h\n| stats count(eval(action=\"failure\")) AS fallos count(eval(action=\"success\")) AS exitos BY src user\n| where fallos>0 AND exitos>0\n```\n\n**Interpretación, condiciones y alcance:** Ilustra una asociación de fallos y éxitos en la misma clave IP/usuario. No afirma que el éxito posterior esté causado por los fallos ni garantiza orden: necesitas validar timestamps y contexto. La fuente y campos han de existir.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n",
+      "line": 27,
+      "endLine": 37
+    },
+    {
+      "id": "SP-R04-L05-S05",
+      "title": "5. Caso SOC",
+      "markdown": "## 5. Caso SOC\n\nTienes fallos y éxitos de una cuenta y quieres saber si comparten IP. ¿Es necesaria una subbúsqueda?\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 39,
+      "endLine": 44
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R04-L05-Q01",
+      "lessonId": "SP-R04-L05",
+      "prompt": "¿Cuál alternativa suele evitar un join para agregar eventos ya normalizados?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S04",
+        "SPLUNK_LECCIONES_R04_R05:S13",
+        "SPLUNK_LECCIONES_R04_R05:S01"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R04-L05-Q01-O-15919f730ed1",
+          "text": "transaction por cada IP para resumir cualquier tipo de evento"
+        },
+        {
+          "id": "SP-R04-L05-Q01-O-e3797dd4a91a",
+          "text": "join entre dos copias del mismo flujo ya normalizado"
+        },
+        {
+          "id": "SP-R04-L05-Q01-O-cbc14b597b4b",
+          "text": "Una subbúsqueda por cada valor de user aunque ambos tipos de evento ya estén presentes"
+        },
+        {
+          "id": "SP-R04-L05-Q01-O-0e1234ad026f",
+          "text": "Agrupar con stats por la entidad común, si ambos tipos de eventos ya están en el flujo normalizado"
+        }
+      ],
+      "solution": "SP-R04-L05-Q01-O-0e1234ad026f",
+      "explanation": "stats agrupa sin abrir una subbúsqueda.",
+      "anchors": [
+        {
+          "file": "R04_SPL_AVANZADO/SP-R04-L05.md",
+          "sourceHash": "177a4e95198be5d53d2eb50ac498c379a04f3192f5abdd5409f978648d79574b",
+          "line": 13,
+          "endLine": 18,
+          "quote": "## 2. Modelo mental y conceptos\n\n1. Prefiere `stats` cuando la pregunta puede resolverse con agregaciones condicionadas sobre eventos presentes en el mismo flujo.\n2. Un `lookup` enriquece con un catálogo de activos relativamente pequeño: suele ser mejor para metadatos de inventario que una subbúsqueda costosa.\n3. `join` en SPL clásico tiene límites documentados del conjunto secundario; los valores exactos pueden variar por versión/configuración.\n4. `transaction` agrupa eventos con semántica de sesión, pero puede consumir mucha memoria; no lo uses solo porque KQL tenía un operador join.\n\n"
+        },
+        {
+          "file": "R04_SPL_AVANZADO/SP-R04-L05.md",
+          "sourceHash": "177a4e95198be5d53d2eb50ac498c379a04f3192f5abdd5409f978648d79574b",
+          "line": 27,
+          "endLine": 37,
+          "quote": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH earliest=-24h\n| stats count(eval(action=\"failure\")) AS fallos count(eval(action=\"success\")) AS exitos BY src user\n| where fallos>0 AND exitos>0\n```\n\n**Interpretación, condiciones y alcance:** Ilustra una asociación de fallos y éxitos en la misma clave IP/usuario. No afirma que el éxito posterior esté causado por los fallos ni garantiza orden: necesitas validar timestamps y contexto. La fuente y campos han de existir.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R04-L05-Q02",
+      "lessonId": "SP-R04-L05",
+      "prompt": "¿Qué demuestra compartir usuario/IP en dos eventos?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S04",
+        "SPLUNK_LECCIONES_R04_R05:S13",
+        "SPLUNK_LECCIONES_R04_R05:S01"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R04-L05-Q02-O-50fe3964c5b0",
+          "text": "Que se puede omitir el dominio de la identidad al correlacionar"
+        },
+        {
+          "id": "SP-R04-L05-Q02-O-d73c3a8ec67f",
+          "text": "Que los fallos causaron el éxito posterior"
+        },
+        {
+          "id": "SP-R04-L05-Q02-O-d204dea34544",
+          "text": "Correlación potencial que requiere análisis"
+        },
+        {
+          "id": "SP-R04-L05-Q02-O-6f9c31a2a37e",
+          "text": "Que ambos registros pertenecen a la misma sesión autenticada"
+        }
+      ],
+      "solution": "SP-R04-L05-Q02-O-d204dea34544",
+      "explanation": "La asociación estadística no prueba causalidad ni atribución.",
+      "anchors": [
+        {
+          "file": "R04_SPL_AVANZADO/SP-R04-L05.md",
+          "sourceHash": "177a4e95198be5d53d2eb50ac498c379a04f3192f5abdd5409f978648d79574b",
+          "line": 13,
+          "endLine": 18,
+          "quote": "## 2. Modelo mental y conceptos\n\n1. Prefiere `stats` cuando la pregunta puede resolverse con agregaciones condicionadas sobre eventos presentes en el mismo flujo.\n2. Un `lookup` enriquece con un catálogo de activos relativamente pequeño: suele ser mejor para metadatos de inventario que una subbúsqueda costosa.\n3. `join` en SPL clásico tiene límites documentados del conjunto secundario; los valores exactos pueden variar por versión/configuración.\n4. `transaction` agrupa eventos con semántica de sesión, pero puede consumir mucha memoria; no lo uses solo porque KQL tenía un operador join.\n\n"
+        },
+        {
+          "file": "R04_SPL_AVANZADO/SP-R04-L05.md",
+          "sourceHash": "177a4e95198be5d53d2eb50ac498c379a04f3192f5abdd5409f978648d79574b",
+          "line": 27,
+          "endLine": 37,
+          "quote": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH earliest=-24h\n| stats count(eval(action=\"failure\")) AS fallos count(eval(action=\"success\")) AS exitos BY src user\n| where fallos>0 AND exitos>0\n```\n\n**Interpretación, condiciones y alcance:** Ilustra una asociación de fallos y éxitos en la misma clave IP/usuario. No afirma que el éxito posterior esté causado por los fallos ni garantiza orden: necesitas validar timestamps y contexto. La fuente y campos han de existir.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R04-L05-P01",
+      "lessonId": "SP-R04-L05",
+      "prompt": "Diseña una búsqueda con `stats` que detecte parejas usuario/IP con fallos y éxitos, y explica tres falsos positivos o fuentes de ambigüedad.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S04",
+        "SPLUNK_LECCIONES_R04_R05:S13",
+        "SPLUNK_LECCIONES_R04_R05:S01"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica fuentes, campos, ventana y supuestos",
+        "Aplica el método al escenario y explica cifras o semántica",
+        "Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante",
+        "Presenta una respuesta reproducible sin ejecutar cambios en sistemas"
+      ],
+      "referenceAnswer": "La búsqueda de ejemplo usa `count(eval(...))` por user/src. Ambigüedades: IP NAT/VPN, identidad compartida, errores de reloj y eventos duplicados. Requiere comprobar orden de eventos y ventana de investigación."
+    }
+  ],
+  "solutionsMarkdown": "## 7. Solucionario con razonamiento\n\n- **SP-R04-L05-Q01: D** — stats agrupa sin abrir una subbúsqueda.\n\n- **SP-R04-L05-Q02: C** — La asociación estadística no prueba causalidad ni atribución.\n\n- **SP-R04-L05-P01:** La búsqueda de ejemplo usa `count(eval(...))` por user/src. Ambigüedades: IP NAT/VPN, identidad compartida, errores de reloj y eventos duplicados. Requiere comprobar orden de eventos y ventana de investigación.\n\n**Guía de retroalimentación formativa:** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Solucionario razonado\n\n**Q01 → A.** stats BY entidad. stats agrupa sin abrir una subbúsqueda.\n\n**Q02 → B.** Correlación potencial que requiere análisis. La asociación estadística no prueba causalidad ni atribución.\n\n**P01 → Solución orientativa:** La búsqueda de ejemplo usa `count(eval(...))` por user/src. Ambigüedades: IP NAT/VPN, identidad compartida, errores de reloj y eventos duplicados. Requiere comprobar orden de eventos y ventana de investigación.\n\n**Rúbrica (0–4):** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas. Superar un test escrito no equivale por sí solo a dominar investigación SOC.\n\n",
+  "referencesMarkdown": "## 9. Fuentes y trazabilidad\n\n- **Origen curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`; título y objetivo preservados.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` (no reescrita).\n- **Puente de conceptos SC-200:** Cap. 08 (correlación), 09 (investigación) y 13 (join en KQL). Véase `../../01_FUENTE_ORIGINAL/SC-200.md` (sin trasladar esquemas literalmente).\n- **[S04] join y límites documentados:** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/search-commands/join\n- **[S13] Lookups: definiciones y operaciones:** https://help.splunk.com/en/splunk-enterprise/manage-knowledge-objects/knowledge-management-manual/10.4/use-lookups-in-splunk-web/about-lookups\n- **[S01] Estadísticas: stats, eventstats, streamstats:** https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.0/calculate-statistics/use-the-stats-command-and-functions\n\n**Estatus de evidencia:** documentación del producto + diseño educativo + cálculos offline sobre fixtures (cuando se indica). No se ha verificado ejecución/compatibilidad específica en Splunk del usuario; revisar con la versión real antes de usar en producción.\n",
+  "originalMarkdown": "# SP-R04-L05 — Correlación sin join innecesario\n\n**Región:** SP-R04 · **Prioridad:** P0/P1 SOC · **Estado:** borrador educativo para revisión · **SPL real:** no ejecutado.  \n**ID curricular intacto:** `SP-R04-L05` · **Resultado de aprendizaje:** Contrastar stats, eventstats, lookup, join y transaction  \n**Prerrequisitos:** R03 completada · **Producto:** Splunk Enterprise/Cloud con SPL clásico según versión y permisos; CIM exige configuración pertinente.\n\n## 1. Pregunta esencial\n\nCorrelacionar eventos de dos fuentes por usuario no obliga a ejecutar `join`. Para construir hipótesis SOC es frecuente normalizar campos, etiquetar categorías y resumir por entidad con `stats`; los eventos comparten una clave pero eso no establece que una acción causara la otra. `join` puede ser útil si realmente se requiere combinar atributos de dos datasets, aunque tiene costes y límites en el lado de la subbúsqueda.\n\n**Objetivo verificable:** Contrastar stats, eventstats, lookup, join y transaction.\n\n## 2. Modelo mental y conceptos\n\n1. Prefiere `stats` cuando la pregunta puede resolverse con agregaciones condicionadas sobre eventos presentes en el mismo flujo.\n2. Un `lookup` enriquece con un catálogo de activos relativamente pequeño: suele ser mejor para metadatos de inventario que una subbúsqueda costosa.\n3. `join` en SPL clásico tiene límites documentados del conjunto secundario; los valores exactos pueden variar por versión/configuración.\n4. `transaction` agrupa eventos con semántica de sesión, pero puede consumir mucha memoria; no lo uses solo porque KQL tenía un operador join.\n\n## 3. Procedimiento guiado\n\n1. Define la entidad (usuario, IP, sesión) y qué campo representa la misma identidad en ambos orígenes.\n2. Agrupa los eventos que tengan campos realmente normalizados mediante estadísticas condicionadas.\n3. Comprueba claves repetidas, NAT, cuentas compartidas y timestamps; etiqueta la relación como correlación y no causalidad.\n4. Sólo si faltan campos de una fuente decide si lookup, join u otra estrategia es indispensable.\n\n## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH earliest=-24h\n| stats count(eval(action=\"failure\")) AS fallos count(eval(action=\"success\")) AS exitos BY src user\n| where fallos>0 AND exitos>0\n```\n\n**Interpretación, condiciones y alcance:** Ilustra una asociación de fallos y éxitos en la misma clave IP/usuario. No afirma que el éxito posterior esté causado por los fallos ni garantiza orden: necesitas validar timestamps y contexto. La fuente y campos han de existir.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n## 5. Caso SOC\n\nTienes fallos y éxitos de una cuenta y quieres saber si comparten IP. ¿Es necesaria una subbúsqueda?\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 6. Actividades\n\n### SP-R04-L05-Q01 — Opción múltiple\n\n¿Cuál alternativa suele evitar un join para agregar eventos ya normalizados?\n\nA. transaction por cada IP para resumir cualquier tipo de evento\nB. join entre dos copias del mismo flujo ya normalizado\nC. Una subbúsqueda por cada valor de user aunque ambos tipos de evento ya estén presentes\nD. Agrupar con stats por la entidad común, si ambos tipos de eventos ya están en el flujo normalizado\n\n### SP-R04-L05-Q02 — Opción múltiple\n\n¿Qué demuestra compartir usuario/IP en dos eventos?\n\nA. Que se puede omitir el dominio de la identidad al correlacionar\nB. Que los fallos causaron el éxito posterior\nC. Correlación potencial que requiere análisis\nD. Que ambos registros pertenecen a la misma sesión autenticada\n\n### SP-R04-L05-P01 — Práctica abierta formativa\n\nDiseña una búsqueda con `stats` que detecte parejas usuario/IP con fallos y éxitos, y explica tres falsos positivos o fuentes de ambigüedad.\n\n## 7. Solucionario con razonamiento\n\n- **SP-R04-L05-Q01: D** — stats agrupa sin abrir una subbúsqueda.\n\n- **SP-R04-L05-Q02: C** — La asociación estadística no prueba causalidad ni atribución.\n\n- **SP-R04-L05-P01:** La búsqueda de ejemplo usa `count(eval(...))` por user/src. Ambigüedades: IP NAT/VPN, identidad compartida, errores de reloj y eventos duplicados. Requiere comprobar orden de eventos y ventana de investigación.\n\n**Guía de retroalimentación formativa:** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Solucionario razonado\n\n**Q01 → A.** stats BY entidad. stats agrupa sin abrir una subbúsqueda.\n\n**Q02 → B.** Correlación potencial que requiere análisis. La asociación estadística no prueba causalidad ni atribución.\n\n**P01 → Solución orientativa:** La búsqueda de ejemplo usa `count(eval(...))` por user/src. Ambigüedades: IP NAT/VPN, identidad compartida, errores de reloj y eventos duplicados. Requiere comprobar orden de eventos y ventana de investigación.\n\n**Rúbrica (0–4):** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas. Superar un test escrito no equivale por sí solo a dominar investigación SOC.\n\n## 9. Fuentes y trazabilidad\n\n- **Origen curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`; título y objetivo preservados.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` (no reescrita).\n- **Puente de conceptos SC-200:** Cap. 08 (correlación), 09 (investigación) y 13 (join en KQL). Véase `../../01_FUENTE_ORIGINAL/SC-200.md` (sin trasladar esquemas literalmente).\n- **[S04] join y límites documentados:** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/search-commands/join\n- **[S13] Lookups: definiciones y operaciones:** https://help.splunk.com/en/splunk-enterprise/manage-knowledge-objects/knowledge-management-manual/10.4/use-lookups-in-splunk-web/about-lookups\n- **[S01] Estadísticas: stats, eventstats, streamstats:** https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.0/calculate-statistics/use-the-stats-command-and-functions\n\n**Estatus de evidencia:** documentación del producto + diseño educativo + cálculos offline sobre fixtures (cuando se indica). No se ha verificado ejecución/compatibilidad específica en Splunk del usuario; revisar con la versión real antes de usar en producción.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "S04",
+      "key": "SPLUNK_LECCIONES_R04_R05:S04",
+      "url": "https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/search-commands/join"
+    },
+    {
+      "id": "S13",
+      "key": "SPLUNK_LECCIONES_R04_R05:S13",
+      "url": "https://help.splunk.com/en/splunk-enterprise/manage-knowledge-objects/knowledge-management-manual/10.4/use-lookups-in-splunk-web/about-lookups"
+    },
+    {
+      "id": "S01",
+      "key": "SPLUNK_LECCIONES_R04_R05:S01",
+      "url": "https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.0/calculate-statistics/use-the-stats-command-and-functions"
+    }
+  ]
+}

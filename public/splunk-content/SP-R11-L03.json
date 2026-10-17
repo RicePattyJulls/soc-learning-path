@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R11-L03",
+  "title": "Webhooks y alert actions",
+  "revision": "40f5c71009228cfe632790fb",
+  "sourceVersion": "c3202a926fb9c737f48fffcf3ec2997c012ef743addfc6b38637f6812f0bff2b",
+  "sanitizedHash": "c3202a926fb9c737f48fffcf3ec2997c012ef743addfc6b38637f6812f0bff2b",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R10_R11/R11_AUTOMATIZACION_SOAR/SP-R11-L03.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Reconocer integraciones y riesgos de datos",
+  "preamble": "# SP-R11-L03 — Webhooks y alert actions\n\n**Región:** SP-R11 · **Producto:** Splunk Enterprise/Cloud (donde se indique) o SOAR Cloud explícito. · **Estado:** borrador documental / requiere revisión humana. · **SPL/CLI/API:** ilustrativo, NO ejecutado.\n\n**Resultado curricular:** Reconocer integraciones y riesgos de datos\n\n**Prerrequisitos:** R07, R09 (conceptual), R10\n\n",
+  "sections": [
+    {
+      "id": "SP-R11-L03-S01",
+      "title": "1. Explicación razonada",
+      "markdown": "## 1. Explicación razonada\n\nUna alerta puede comunicar resultados mediante webhook o una alert action específica. La salida contiene potencialmente IPs, identificadores, nombres de host, reglas y fragmentos del evento: todos pueden ser información sensible. Una integración de notificación debería transmitir **el mínimo contexto necesario** (ID de alerta, severidad orientativa, timestamp, enlace interno autenticado) y no eventos completos por defecto. El receptor debe ser un destino autorizado y estable, con validación TLS y controles contra solicitudes a endpoints arbitrarios.\n\nPara resistir reintentos y alertas duplicadas, diseña `alert_id`, `event_window`, `delivery_id`, política de reenvío, máximo de intentos y registro sin secretos. La capacidad real de personalizar body/headers, firmar solicitudes o usar autenticación depende de la alert action/plugin/gateway concretos: no presupongas que el webhook genérico de Splunk genera HMAC nativa. Puedes proponer un gateway de confianza que autentique y minimice el payload antes de enviarlo a herramientas externas.\n\nUna notificación que falla debe generar observabilidad, no activar una respuesta «más agresiva». El envío de datos fuera del perímetro demanda revisión de privacidad, acceso y retención antes del despliegue.\n\n",
+      "line": 9,
+      "endLine": 15
+    },
+    {
+      "id": "SP-R11-L03-S02",
+      "title": "2. Conceptos clave",
+      "markdown": "## 2. Conceptos clave\n\n1. Datos de alerta pueden ser PII y secretos operativos\n2. Webhook necesita destino aprobado y TLS válido\n3. Dedupe delivery_id + retries acotados\n4. Capacidad de HMAC depende de gateway/app concreta\n5. Fallo de notificación no autoriza contención\n\n",
+      "line": 17,
+      "endLine": 23
+    },
+    {
+      "id": "SP-R11-L03-S03",
+      "title": "3. Procedimiento de estudio y verificación",
+      "markdown": "## 3. Procedimiento de estudio y verificación\n\n1. Enumera campos realmente necesarios para triage.\n2. Clasifica receptores internos/externos y base de autorización.\n3. Diseña envelope con IDs no sensibles y enlace autenticado.\n4. Establece reintentos acotados, observabilidad y dedupe.\n5. Define respuesta al error sin escalar privilegios.\n\n",
+      "line": 25,
+      "endLine": 31
+    },
+    {
+      "id": "SP-R11-L03-S04",
+      "title": "4. Payload esquemático de demostración",
+      "markdown": "## 4. Payload esquemático de demostración\n\n```text\n{\n  \"alert_id\": \"AL-EXAMPLE-01\",\n  \"severity\": \"medium\",\n  \"source\": \"auth_synthetic\",\n  \"event_window_utc\": \"2026-10-16T14:00:00Z/2026-10-16T14:15:00Z\",\n  \"link\": \"https://soc.example.test/incidents/AL-EXAMPLE-01\"\n}\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n",
+      "line": 33,
+      "endLine": 45
+    },
+    {
+      "id": "SP-R11-L03-S05",
+      "title": "5. Situación profesional",
+      "markdown": "## 5. Situación profesional\n\nUn webhook está enviando `_raw` de Windows con usuario, IP y payload al servicio externo de tickets. Rediseña para enviar un identificador e investigación mediante enlace interno.\n\n## 6. Errores comunes\n\n1. Enviar `_raw` completo sin clasificación\n2. Asumir firma HMAC en la acción básica sin documentación\n3. Reintentos infinitos sin idempotencia\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 47,
+      "endLine": 58
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R11-L03-Q01",
+      "lessonId": "SP-R11-L03",
+      "prompt": "¿Cuál es un payload preferible para notificación externa?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D21",
+        "SPLUNK_LECCIONES_R10_R11:D17"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R11-L03-Q01-O-39dbcd295770",
+          "text": "La primera fila completa del resultado sin clasificación de datos"
+        },
+        {
+          "id": "SP-R11-L03-Q01-O-a6a1a2135a41",
+          "text": "_raw de todos los resultados para que el receptor decida qué conservar"
+        },
+        {
+          "id": "SP-R11-L03-Q01-O-b7656ac53126",
+          "text": "Un extracto de eventos con tokens operativos para facilitar el diagnóstico"
+        },
+        {
+          "id": "SP-R11-L03-Q01-O-6f0a566fc030",
+          "text": "Un identificador y contexto mínimo con enlace autenticado, evitando trasladar eventos crudos o secretos"
+        }
+      ],
+      "solution": "SP-R11-L03-Q01-O-6f0a566fc030",
+      "explanation": "Minimizar datos reduce superficie de exposición.",
+      "anchors": [
+        {
+          "file": "R11_AUTOMATIZACION_SOAR/SP-R11-L03.md",
+          "sourceHash": "c3202a926fb9c737f48fffcf3ec2997c012ef743addfc6b38637f6812f0bff2b",
+          "line": 17,
+          "endLine": 23,
+          "quote": "## 2. Conceptos clave\n\n1. Datos de alerta pueden ser PII y secretos operativos\n2. Webhook necesita destino aprobado y TLS válido\n3. Dedupe delivery_id + retries acotados\n4. Capacidad de HMAC depende de gateway/app concreta\n5. Fallo de notificación no autoriza contención\n\n"
+        },
+        {
+          "file": "R11_AUTOMATIZACION_SOAR/SP-R11-L03.md",
+          "sourceHash": "c3202a926fb9c737f48fffcf3ec2997c012ef743addfc6b38637f6812f0bff2b",
+          "line": 33,
+          "endLine": 45,
+          "quote": "## 4. Payload esquemático de demostración\n\n```text\n{\n  \"alert_id\": \"AL-EXAMPLE-01\",\n  \"severity\": \"medium\",\n  \"source\": \"auth_synthetic\",\n  \"event_window_utc\": \"2026-10-16T14:00:00Z/2026-10-16T14:15:00Z\",\n  \"link\": \"https://soc.example.test/incidents/AL-EXAMPLE-01\"\n}\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R11-L03-Q02",
+      "lessonId": "SP-R11-L03",
+      "prompt": "¿Cuál es un error de diseño habitual de webhook?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D21",
+        "SPLUNK_LECCIONES_R10_R11:D17"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R11-L03-Q02-O-a950b6cb39e9",
+          "text": "Registrar los IDs de entrega y limitar el número de reintentos"
+        },
+        {
+          "id": "SP-R11-L03-Q02-O-1d4596df8088",
+          "text": "Dar por hecho que todo webhook nativo firma con HMAC"
+        },
+        {
+          "id": "SP-R11-L03-Q02-O-98256a4d1242",
+          "text": "Tratar el body nativo como un esquema que requiere comprobarse por versión"
+        },
+        {
+          "id": "SP-R11-L03-Q02-O-5eaa77940a6a",
+          "text": "Diseñar un gateway explícito para minimizar los datos enviados"
+        }
+      ],
+      "solution": "SP-R11-L03-Q02-O-1d4596df8088",
+      "explanation": "La firma depende del mecanismo implementado y debe verificarse.",
+      "anchors": [
+        {
+          "file": "R11_AUTOMATIZACION_SOAR/SP-R11-L03.md",
+          "sourceHash": "c3202a926fb9c737f48fffcf3ec2997c012ef743addfc6b38637f6812f0bff2b",
+          "line": 17,
+          "endLine": 23,
+          "quote": "## 2. Conceptos clave\n\n1. Datos de alerta pueden ser PII y secretos operativos\n2. Webhook necesita destino aprobado y TLS válido\n3. Dedupe delivery_id + retries acotados\n4. Capacidad de HMAC depende de gateway/app concreta\n5. Fallo de notificación no autoriza contención\n\n"
+        },
+        {
+          "file": "R11_AUTOMATIZACION_SOAR/SP-R11-L03.md",
+          "sourceHash": "c3202a926fb9c737f48fffcf3ec2997c012ef743addfc6b38637f6812f0bff2b",
+          "line": 33,
+          "endLine": 45,
+          "quote": "## 4. Payload esquemático de demostración\n\n```text\n{\n  \"alert_id\": \"AL-EXAMPLE-01\",\n  \"severity\": \"medium\",\n  \"source\": \"auth_synthetic\",\n  \"event_window_utc\": \"2026-10-16T14:00:00Z/2026-10-16T14:15:00Z\",\n  \"link\": \"https://soc.example.test/incidents/AL-EXAMPLE-01\"\n}\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R11-L03-P01",
+      "lessonId": "SP-R11-L03",
+      "prompt": "Define payload y política de envío para una notificación SOC. Incluye PII, TLS y manejo de duplicados.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D21",
+        "SPLUNK_LECCIONES_R10_R11:D17"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Define fuente, producto, versión y límites del contexto",
+        "Resuelve el objetivo con un procedimiento replicable y no destructivo",
+        "Identifica error, caso benigno y riesgo operacional",
+        "Documenta permisos, aprobación y evidencia para revisión humana"
+      ],
+      "referenceAnswer": "Enviar IDs/severidad/ventana y enlace interno, no raw logs; destino allowlisted, credenciales en secret manager, dedupe id, retries/backoff y auditoría sin secretos."
+    }
+  ],
+  "solutionsMarkdown": "## 8. Solucionario con razonamiento\n\n- **SP-R11-L03-Q01: D** — Minimizar datos reduce superficie de exposición.\n\n- **SP-R11-L03-Q02: B** — La firma depende del mecanismo implementado y debe verificarse.\n\n- **SP-R11-L03-P01:** Enviar IDs/severidad/ventana y enlace interno, no raw logs; destino allowlisted, credenciales en secret manager, dedupe id, retries/backoff y auditoría sin secretos.\n\n**Guía de retroalimentación formativa:** Define fuente, producto, versión y límites del contexto; Resuelve el objetivo con un procedimiento replicable y no destructivo; Identifica error, caso benigno y riesgo operacional; Documenta permisos, aprobación y evidencia para revisión humana.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 9. Fuentes, procedencia y limitaciones\n\n- **D21:** Splunk Enterprise 10.2 — Webhook alert action — https://help.splunk.com/en/splunk-enterprise/alert-and-respond/alerting-manual/10.2/configure-alert-actions/use-a-webhook-alert-action\n- **D17:** Splunk SOAR Cloud — Better playbook guidelines — https://help.splunk.com/en/splunk-soar/soar-cloud/develop-apps/build-playbooks/introduction-to-splunk-soar-playbooks/write-better-playbooks-by-following-these-guidelines\n\n- **Puente SC-200:** Capítulos 11–12: acciones, lógica de notificaciones y privacidad. Es correspondencia pedagógica, no equivalencia exacta de producto.\n- **Fuente del ID y resultado:** `SPLUNK_MASTER_RESEARCH/03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`.\n- **[DOC]:** fundamentos documentados en fuentes oficiales; no equivale a prueba de todos los supuestos.\n- **[OFFLINE]:** solo verificaciones Python sobre fixtures sintéticos.\n- **[NO EJECUTADO]:** no se ha abierto Splunk, ni SOAR, ni REST, ni se han aplicado configuraciones.\n- **[REVISIÓN]:** verificación humana del texto, respuestas, versiones y supuestos antes de integrar en React.\n",
+  "originalMarkdown": "# SP-R11-L03 — Webhooks y alert actions\n\n**Región:** SP-R11 · **Producto:** Splunk Enterprise/Cloud (donde se indique) o SOAR Cloud explícito. · **Estado:** borrador documental / requiere revisión humana. · **SPL/CLI/API:** ilustrativo, NO ejecutado.\n\n**Resultado curricular:** Reconocer integraciones y riesgos de datos\n\n**Prerrequisitos:** R07, R09 (conceptual), R10\n\n## 1. Explicación razonada\n\nUna alerta puede comunicar resultados mediante webhook o una alert action específica. La salida contiene potencialmente IPs, identificadores, nombres de host, reglas y fragmentos del evento: todos pueden ser información sensible. Una integración de notificación debería transmitir **el mínimo contexto necesario** (ID de alerta, severidad orientativa, timestamp, enlace interno autenticado) y no eventos completos por defecto. El receptor debe ser un destino autorizado y estable, con validación TLS y controles contra solicitudes a endpoints arbitrarios.\n\nPara resistir reintentos y alertas duplicadas, diseña `alert_id`, `event_window`, `delivery_id`, política de reenvío, máximo de intentos y registro sin secretos. La capacidad real de personalizar body/headers, firmar solicitudes o usar autenticación depende de la alert action/plugin/gateway concretos: no presupongas que el webhook genérico de Splunk genera HMAC nativa. Puedes proponer un gateway de confianza que autentique y minimice el payload antes de enviarlo a herramientas externas.\n\nUna notificación que falla debe generar observabilidad, no activar una respuesta «más agresiva». El envío de datos fuera del perímetro demanda revisión de privacidad, acceso y retención antes del despliegue.\n\n## 2. Conceptos clave\n\n1. Datos de alerta pueden ser PII y secretos operativos\n2. Webhook necesita destino aprobado y TLS válido\n3. Dedupe delivery_id + retries acotados\n4. Capacidad de HMAC depende de gateway/app concreta\n5. Fallo de notificación no autoriza contención\n\n## 3. Procedimiento de estudio y verificación\n\n1. Enumera campos realmente necesarios para triage.\n2. Clasifica receptores internos/externos y base de autorización.\n3. Diseña envelope con IDs no sensibles y enlace autenticado.\n4. Establece reintentos acotados, observabilidad y dedupe.\n5. Define respuesta al error sin escalar privilegios.\n\n## 4. Payload esquemático de demostración\n\n```text\n{\n  \"alert_id\": \"AL-EXAMPLE-01\",\n  \"severity\": \"medium\",\n  \"source\": \"auth_synthetic\",\n  \"event_window_utc\": \"2026-10-16T14:00:00Z/2026-10-16T14:15:00Z\",\n  \"link\": \"https://soc.example.test/incidents/AL-EXAMPLE-01\"\n}\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n## 5. Situación profesional\n\nUn webhook está enviando `_raw` de Windows con usuario, IP y payload al servicio externo de tickets. Rediseña para enviar un identificador e investigación mediante enlace interno.\n\n## 6. Errores comunes\n\n1. Enviar `_raw` completo sin clasificación\n2. Asumir firma HMAC en la acción básica sin documentación\n3. Reintentos infinitos sin idempotencia\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R11-L03-Q01 — Opción múltiple\n\n¿Cuál es un payload preferible para notificación externa?\n\nA. La primera fila completa del resultado sin clasificación de datos\nB. _raw de todos los resultados para que el receptor decida qué conservar\nC. Un extracto de eventos con tokens operativos para facilitar el diagnóstico\nD. Un identificador y contexto mínimo con enlace autenticado, evitando trasladar eventos crudos o secretos\n\n### SP-R11-L03-Q02 — Opción múltiple\n\n¿Cuál es un error de diseño habitual de webhook?\n\nA. Registrar los IDs de entrega y limitar el número de reintentos\nB. Dar por hecho que todo webhook nativo firma con HMAC\nC. Tratar el body nativo como un esquema que requiere comprobarse por versión\nD. Diseñar un gateway explícito para minimizar los datos enviados\n\n### SP-R11-L03-P01 — Práctica abierta formativa\n\nDefine payload y política de envío para una notificación SOC. Incluye PII, TLS y manejo de duplicados.\n\n## 8. Solucionario con razonamiento\n\n- **SP-R11-L03-Q01: D** — Minimizar datos reduce superficie de exposición.\n\n- **SP-R11-L03-Q02: B** — La firma depende del mecanismo implementado y debe verificarse.\n\n- **SP-R11-L03-P01:** Enviar IDs/severidad/ventana y enlace interno, no raw logs; destino allowlisted, credenciales en secret manager, dedupe id, retries/backoff y auditoría sin secretos.\n\n**Guía de retroalimentación formativa:** Define fuente, producto, versión y límites del contexto; Resuelve el objetivo con un procedimiento replicable y no destructivo; Identifica error, caso benigno y riesgo operacional; Documenta permisos, aprobación y evidencia para revisión humana.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 9. Fuentes, procedencia y limitaciones\n\n- **D21:** Splunk Enterprise 10.2 — Webhook alert action — https://help.splunk.com/en/splunk-enterprise/alert-and-respond/alerting-manual/10.2/configure-alert-actions/use-a-webhook-alert-action\n- **D17:** Splunk SOAR Cloud — Better playbook guidelines — https://help.splunk.com/en/splunk-soar/soar-cloud/develop-apps/build-playbooks/introduction-to-splunk-soar-playbooks/write-better-playbooks-by-following-these-guidelines\n\n- **Puente SC-200:** Capítulos 11–12: acciones, lógica de notificaciones y privacidad. Es correspondencia pedagógica, no equivalencia exacta de producto.\n- **Fuente del ID y resultado:** `SPLUNK_MASTER_RESEARCH/03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`.\n- **[DOC]:** fundamentos documentados en fuentes oficiales; no equivale a prueba de todos los supuestos.\n- **[OFFLINE]:** solo verificaciones Python sobre fixtures sintéticos.\n- **[NO EJECUTADO]:** no se ha abierto Splunk, ni SOAR, ni REST, ni se han aplicado configuraciones.\n- **[REVISIÓN]:** verificación humana del texto, respuestas, versiones y supuestos antes de integrar en React.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D21",
+      "key": "SPLUNK_LECCIONES_R10_R11:D21",
+      "url": "https://help.splunk.com/en/splunk-enterprise/alert-and-respond/alerting-manual/10.2/configure-alert-actions/use-a-webhook-alert-action"
+    },
+    {
+      "id": "D17",
+      "key": "SPLUNK_LECCIONES_R10_R11:D17",
+      "url": "https://help.splunk.com/en/splunk-soar/soar-cloud/develop-apps/build-playbooks/introduction-to-splunk-soar-playbooks/write-better-playbooks-by-following-these-guidelines"
+    }
+  ]
+}

@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R07-L04",
+  "title": "Evaluación positiva, negativa e inconclusa",
+  "revision": "5f6b4313cf2391caa6e013ee",
+  "sourceVersion": "2031d9e45e3d440080216c7e31fecca42d9ed96c9fbe5e6820768dae1cebd54a",
+  "sanitizedHash": "2031d9e45e3d440080216c7e31fecca42d9ed96c9fbe5e6820768dae1cebd54a",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R06_R07/R07_DETECTION_ENGINEERING/SP-R07-L04.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Definir fixtures y tasas de ruido con casos controlados",
+  "preamble": "# SP-R07-L04 — Evaluación positiva, negativa e inconclusa\n\n**Región:** SP-R07 · **Prioridad:** P0/P1 (SOC/Detection Engineering) · **Estado:** material editorial para revisión · **SPL:** NO ejecutado en Splunk.\n\n**Objetivo curricular original:** Definir fixtures y tasas de ruido con casos controlados\n\n**Prerrequisitos:** R01–R06; distinguir Enterprise/Cloud y Enterprise Security. **Producto:** Splunk Enterprise/Cloud (búsquedas de lectura); funciones ES explícitamente condicionadas a Splunk Enterprise Security compatible.\n\n",
+  "sections": [
+    {
+      "id": "SP-R07-L04-S01",
+      "title": "1. Pregunta esencial y modelo mental",
+      "markdown": "## 1. Pregunta esencial y modelo mental\n\nLa calidad de una detección se comprueba frente a casos etiquetados, incluidos negativos y casos de visibilidad insuficiente. Un test donde la regla dispara no demuestra que sea buena. La matriz de confusión TP/FP/FN/TN depende de conocer la verdad del fixture; con datos reales, “no sabemos” es a veces la categoría más honesta y no debe contarse como TN.\n\n",
+      "line": 9,
+      "endLine": 11
+    },
+    {
+      "id": "SP-R07-L04-S02",
+      "title": "2. Conceptos que debes dominar",
+      "markdown": "## 2. Conceptos que debes dominar\n\n1. TP: detecta escenario diseñado positivo; FP: dispara frente a caso benigno conocido; FN: omite caso malicioso de fixture; TN: descarta caso benigno verificable.\n2. Un caso sin campo `user` o sin logs del DC es INCONCLUSO para evaluación, no automáticamente negativo.\n3. Prueba ventanas frontera, campos vacíos, duplicados, índices sin datos y cambios de esquema.\n4. Precisión = TP/(TP+FP) y recall = TP/(TP+FN), cuando haya verdad de referencia; ninguno equivale a tasa productiva con fixture pequeña.\n5. No ajustar umbral sólo con el caso positivo: hacerlo sobreajusta y esconde futuros FN.\n\n",
+      "line": 13,
+      "endLine": 19
+    },
+    {
+      "id": "SP-R07-L04-S03",
+      "title": "3. Práctica guiada: del dato a la conclusión",
+      "markdown": "## 3. Práctica guiada: del dato a la conclusión\n\n1. Reproduce casos de auth_activity.csv con detector de fallos por varios usuarios.\n2. Registra coincidencia analítica para 198.51.100.23, no coincidencia para svc-batch y no coincidencia para NAT 192.0.2.44. Solo svc-batch tiene contexto benigno documentado. NAT sigue inconcluso; la primera cohorte es suspicious_unconfirmed, no un ataque demostrado.\n3. Agrega evento sin user y clasifícalo como calidad de datos insuficiente.\n4. Construye TP/FP/FN/TN solo con verdad de referencia explícita de ataque o benignidad. Con este CSV, el candidato no acredita TP ni FN: deja esas celdas y sus métricas pendientes. La no coincidencia NAT tampoco acredita TN. Puedes explicar las fórmulas con un ejemplo teórico separado.\n5. Describe qué experimentos adicionales harías antes de recomendar despliegue.\n\n",
+      "line": 21,
+      "endLine": 27
+    },
+    {
+      "id": "SP-R07-L04-S04",
+      "title": "4. SPL ilustrativo de solo lectura — NO probado en Splunk",
+      "markdown": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4625\n| bin _time span=15m\n| stats count AS fallos dc(user) AS usuarios BY src _time\n| where fallos>=5 AND usuarios>=5\n```\n\n**Interpretación, supuestos y límites:** Las etiquetas describen sospecha, mantenimiento o incertidumbre. No constituyen verdad de ataque para toda cohorte. No calcular precisión/recall empíricos de este detector a partir de suspicious_unconfirmed o inconclusive. Un ejemplo teórico con verdad explícita sirve para estudiar fórmulas, sin atribuir esa verdad al CSV.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n",
+      "line": 29,
+      "endLine": 40
+    },
+    {
+      "id": "SP-R07-L04-S05",
+      "title": "5. Caso del turno SOC",
+      "markdown": "## 5. Caso del turno SOC\n\nCinco fallos de svc-batch son benignos conocidos en el fixture: un detector con count>=5 y sin dc(user) generaría FP.\n\n## 6. Errores frecuentes\n\n1. Contar telemetría ausente como true negative.\n2. Medir precisión sobre un único ataque sintético y generalizar.\n3. Eliminar casos difíciles porque el test falla.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 42,
+      "endLine": 53
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R07-L04-Q01",
+      "lessonId": "SP-R07-L04",
+      "prompt": "¿Qué es un caso sin source necesario?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D01",
+        "SPLUNK_LECCIONES_R06_R07:D14"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R07-L04-Q01-O-30fcd3cf6ab8",
+          "text": "FP porque la fuente incompleta invalida cualquier coincidencia"
+        },
+        {
+          "id": "SP-R07-L04-Q01-O-ce07d672a490",
+          "text": "FN demostrado aunque se desconozca si existió actividad maliciosa"
+        },
+        {
+          "id": "SP-R07-L04-Q01-O-df0cc8bcf661",
+          "text": "Inconcluso / no evaluable para esa regla"
+        },
+        {
+          "id": "SP-R07-L04-Q01-O-df8831098ec2",
+          "text": "TN porque no hubo coincidencia en los datos disponibles"
+        }
+      ],
+      "solution": "SP-R07-L04-Q01-O-df0cc8bcf661",
+      "explanation": "No se puede determinar ausencia de conducta con visibilidad insuficiente.",
+      "anchors": [
+        {
+          "file": "R07_DETECTION_ENGINEERING/SP-R07-L04.md",
+          "sourceHash": "2031d9e45e3d440080216c7e31fecca42d9ed96c9fbe5e6820768dae1cebd54a",
+          "line": 13,
+          "endLine": 19,
+          "quote": "## 2. Conceptos que debes dominar\n\n1. TP: detecta escenario diseñado positivo; FP: dispara frente a caso benigno conocido; FN: omite caso malicioso de fixture; TN: descarta caso benigno verificable.\n2. Un caso sin campo `user` o sin logs del DC es INCONCLUSO para evaluación, no automáticamente negativo.\n3. Prueba ventanas frontera, campos vacíos, duplicados, índices sin datos y cambios de esquema.\n4. Precisión = TP/(TP+FP) y recall = TP/(TP+FN), cuando haya verdad de referencia; ninguno equivale a tasa productiva con fixture pequeña.\n5. No ajustar umbral sólo con el caso positivo: hacerlo sobreajusta y esconde futuros FN.\n\n"
+        },
+        {
+          "file": "R07_DETECTION_ENGINEERING/SP-R07-L04.md",
+          "sourceHash": "2031d9e45e3d440080216c7e31fecca42d9ed96c9fbe5e6820768dae1cebd54a",
+          "line": 29,
+          "endLine": 40,
+          "quote": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4625\n| bin _time span=15m\n| stats count AS fallos dc(user) AS usuarios BY src _time\n| where fallos>=5 AND usuarios>=5\n```\n\n**Interpretación, supuestos y límites:** Las etiquetas describen sospecha, mantenimiento o incertidumbre. No constituyen verdad de ataque para toda cohorte. No calcular precisión/recall empíricos de este detector a partir de suspicious_unconfirmed o inconclusive. Un ejemplo teórico con verdad explícita sirve para estudiar fórmulas, sin atribuir esa verdad al CSV.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R07-L04-Q02",
+      "lessonId": "SP-R07-L04",
+      "prompt": "¿Qué mide recall con verdad conocida?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D01",
+        "SPLUNK_LECCIONES_R06_R07:D14"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R07-L04-Q02-O-6f26197cfc60",
+          "text": "TP/(TP+FN)"
+        },
+        {
+          "id": "SP-R07-L04-Q02-O-c090339d4ce2",
+          "text": "TN/(TN+FP)"
+        },
+        {
+          "id": "SP-R07-L04-Q02-O-21ee362e8b08",
+          "text": "(TP+TN)/(TP+TN+FP+FN)"
+        },
+        {
+          "id": "SP-R07-L04-Q02-O-ab52b51762bb",
+          "text": "TP/(TP+FP)"
+        }
+      ],
+      "solution": "SP-R07-L04-Q02-O-6f26197cfc60",
+      "explanation": "Recall caracteriza proporción de positivos verdaderos detectados.",
+      "anchors": [
+        {
+          "file": "R07_DETECTION_ENGINEERING/SP-R07-L04.md",
+          "sourceHash": "2031d9e45e3d440080216c7e31fecca42d9ed96c9fbe5e6820768dae1cebd54a",
+          "line": 13,
+          "endLine": 19,
+          "quote": "## 2. Conceptos que debes dominar\n\n1. TP: detecta escenario diseñado positivo; FP: dispara frente a caso benigno conocido; FN: omite caso malicioso de fixture; TN: descarta caso benigno verificable.\n2. Un caso sin campo `user` o sin logs del DC es INCONCLUSO para evaluación, no automáticamente negativo.\n3. Prueba ventanas frontera, campos vacíos, duplicados, índices sin datos y cambios de esquema.\n4. Precisión = TP/(TP+FP) y recall = TP/(TP+FN), cuando haya verdad de referencia; ninguno equivale a tasa productiva con fixture pequeña.\n5. No ajustar umbral sólo con el caso positivo: hacerlo sobreajusta y esconde futuros FN.\n\n"
+        },
+        {
+          "file": "R07_DETECTION_ENGINEERING/SP-R07-L04.md",
+          "sourceHash": "2031d9e45e3d440080216c7e31fecca42d9ed96c9fbe5e6820768dae1cebd54a",
+          "line": 29,
+          "endLine": 40,
+          "quote": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4625\n| bin _time span=15m\n| stats count AS fallos dc(user) AS usuarios BY src _time\n| where fallos>=5 AND usuarios>=5\n```\n\n**Interpretación, supuestos y límites:** Las etiquetas describen sospecha, mantenimiento o incertidumbre. No constituyen verdad de ataque para toda cohorte. No calcular precisión/recall empíricos de este detector a partir de suspicious_unconfirmed o inconclusive. Un ejemplo teórico con verdad explícita sirve para estudiar fórmulas, sin atribuir esa verdad al CSV.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R07-L04-P01",
+      "lessonId": "SP-R07-L04",
+      "prompt": "Construye matriz TP/FP/FN/TN para detector con y sin condición dc(user)>=5 y señala casos no evaluables.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D01",
+        "SPLUNK_LECCIONES_R06_R07:D14"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica datos y supuestos de la fuente",
+        "Plantea método correcto y distingue hechos de hipótesis",
+        "Explica limitaciones, alternativa benigna y telemetría ausente",
+        "Aporta evidencia, ventana e identificación reproducibles"
+      ],
+      "referenceAnswer": "Separar salida analítica de verdad del caso. 198.51.100.23 coincide con ambas reglas, pero suspicious_unconfirmed no acredita TP ni permite calcular recall. svc-batch tiene contexto benigno: count>=5 produce FP didáctico; al exigir cinco cuentas no coincide y sirve de TN respecto a ese contexto simulado. NAT 192.0.2.44 no coincide, pero su etiqueta inconclusive impide contarlo como TN. Casos sin datos quedan no evaluables. TP/FN y métricas con denominador desconocido permanecen pendientes; las fórmulas pueden estudiarse con verdad teórica explícita separada."
+    }
+  ],
+  "solutionsMarkdown": "### Solucionario con razonamiento\n\n- **SP-R07-L04-Q01: C** — No se puede determinar ausencia de conducta con visibilidad insuficiente.\n\n- **SP-R07-L04-Q02: A** — Recall caracteriza proporción de positivos verdaderos detectados.\n\n- **SP-R07-L04-P01:** Separar salida analítica de verdad del caso. 198.51.100.23 coincide con ambas reglas, pero suspicious_unconfirmed no acredita TP ni permite calcular recall. svc-batch tiene contexto benigno: count>=5 produce FP didáctico; al exigir cinco cuentas no coincide y sirve de TN respecto a ese contexto simulado. NAT 192.0.2.44 no coincide, pero su etiqueta inconclusive impide contarlo como TN. Casos sin datos quedan no evaluables. TP/FN y métricas con denominador desconocido permanecen pendientes; las fórmulas pueden estudiarse con verdad teórica explícita separada.\n\n**Guía de retroalimentación formativa:** Identifica datos y supuestos de la fuente; Plantea método correcto y distingue hechos de hipótesis; Explica limitaciones, alternativa benigna y telemetría ausente; Aporta evidencia, ventana e identificación reproducibles.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 8. Bibliografía, mapeo y estatus\n\n- **D01:** Condiciones de alertas y resultados — https://help.splunk.com/en/splunk-enterprise/alert-and-respond/alerting-manual/10.0/manage-alert-trigger-conditions-and-throttling/configure-alert-trigger-conditions\n- **D14:** Splunk: estadísticas stats, eventstats, streamstats — https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.0/calculate-statistics/use-the-stats-command-and-functions\n\n- **Currículo:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` — ID, título y resultado intactos.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` — los bloques R06/R07 y laboratorios de diseño.\n- **Puente SC-200:** Capítulos 07 y 08: calidad de reglas y correlación. Documento en `../../01_FUENTE_ORIGINAL/SC-200.md`; relación conceptual, no traducción ni equivalencia garantizada.\n\n**Clasificación de evidencia:** [DOC] respaldo documental de fuentes; [DISEÑO] procedimientos y rúbricas propuestos; [OFFLINE] sólo cálculos de fixtures reproducibles; [NO PROBADO] ejemplos SPL no ejecutados en la instancia. Validación técnica/manual de contenidos pendiente antes de integrarlo en React.\n",
+  "originalMarkdown": "# SP-R07-L04 — Evaluación positiva, negativa e inconclusa\n\n**Región:** SP-R07 · **Prioridad:** P0/P1 (SOC/Detection Engineering) · **Estado:** material editorial para revisión · **SPL:** NO ejecutado en Splunk.\n\n**Objetivo curricular original:** Definir fixtures y tasas de ruido con casos controlados\n\n**Prerrequisitos:** R01–R06; distinguir Enterprise/Cloud y Enterprise Security. **Producto:** Splunk Enterprise/Cloud (búsquedas de lectura); funciones ES explícitamente condicionadas a Splunk Enterprise Security compatible.\n\n## 1. Pregunta esencial y modelo mental\n\nLa calidad de una detección se comprueba frente a casos etiquetados, incluidos negativos y casos de visibilidad insuficiente. Un test donde la regla dispara no demuestra que sea buena. La matriz de confusión TP/FP/FN/TN depende de conocer la verdad del fixture; con datos reales, “no sabemos” es a veces la categoría más honesta y no debe contarse como TN.\n\n## 2. Conceptos que debes dominar\n\n1. TP: detecta escenario diseñado positivo; FP: dispara frente a caso benigno conocido; FN: omite caso malicioso de fixture; TN: descarta caso benigno verificable.\n2. Un caso sin campo `user` o sin logs del DC es INCONCLUSO para evaluación, no automáticamente negativo.\n3. Prueba ventanas frontera, campos vacíos, duplicados, índices sin datos y cambios de esquema.\n4. Precisión = TP/(TP+FP) y recall = TP/(TP+FN), cuando haya verdad de referencia; ninguno equivale a tasa productiva con fixture pequeña.\n5. No ajustar umbral sólo con el caso positivo: hacerlo sobreajusta y esconde futuros FN.\n\n## 3. Práctica guiada: del dato a la conclusión\n\n1. Reproduce casos de auth_activity.csv con detector de fallos por varios usuarios.\n2. Registra coincidencia analítica para 198.51.100.23, no coincidencia para svc-batch y no coincidencia para NAT 192.0.2.44. Solo svc-batch tiene contexto benigno documentado. NAT sigue inconcluso; la primera cohorte es suspicious_unconfirmed, no un ataque demostrado.\n3. Agrega evento sin user y clasifícalo como calidad de datos insuficiente.\n4. Construye TP/FP/FN/TN solo con verdad de referencia explícita de ataque o benignidad. Con este CSV, el candidato no acredita TP ni FN: deja esas celdas y sus métricas pendientes. La no coincidencia NAT tampoco acredita TN. Puedes explicar las fórmulas con un ejemplo teórico separado.\n5. Describe qué experimentos adicionales harías antes de recomendar despliegue.\n\n## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4625\n| bin _time span=15m\n| stats count AS fallos dc(user) AS usuarios BY src _time\n| where fallos>=5 AND usuarios>=5\n```\n\n**Interpretación, supuestos y límites:** Las etiquetas describen sospecha, mantenimiento o incertidumbre. No constituyen verdad de ataque para toda cohorte. No calcular precisión/recall empíricos de este detector a partir de suspicious_unconfirmed o inconclusive. Un ejemplo teórico con verdad explícita sirve para estudiar fórmulas, sin atribuir esa verdad al CSV.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n## 5. Caso del turno SOC\n\nCinco fallos de svc-batch son benignos conocidos en el fixture: un detector con count>=5 y sin dc(user) generaría FP.\n\n## 6. Errores frecuentes\n\n1. Contar telemetría ausente como true negative.\n2. Medir precisión sobre un único ataque sintético y generalizar.\n3. Eliminar casos difíciles porque el test falla.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R07-L04-Q01 — Opción múltiple\n\n¿Qué es un caso sin source necesario?\n\nA. FP porque la fuente incompleta invalida cualquier coincidencia\nB. FN demostrado aunque se desconozca si existió actividad maliciosa\nC. Inconcluso / no evaluable para esa regla\nD. TN porque no hubo coincidencia en los datos disponibles\n\n### SP-R07-L04-Q02 — Opción múltiple\n\n¿Qué mide recall con verdad conocida?\n\nA. TP/(TP+FN)\nB. TN/(TN+FP)\nC. (TP+TN)/(TP+TN+FP+FN)\nD. TP/(TP+FP)\n\n### SP-R07-L04-P01 — Práctica abierta formativa\n\nConstruye matriz TP/FP/FN/TN para detector con y sin condición dc(user)>=5 y señala casos no evaluables.\n\n### Solucionario con razonamiento\n\n- **SP-R07-L04-Q01: C** — No se puede determinar ausencia de conducta con visibilidad insuficiente.\n\n- **SP-R07-L04-Q02: A** — Recall caracteriza proporción de positivos verdaderos detectados.\n\n- **SP-R07-L04-P01:** Separar salida analítica de verdad del caso. 198.51.100.23 coincide con ambas reglas, pero suspicious_unconfirmed no acredita TP ni permite calcular recall. svc-batch tiene contexto benigno: count>=5 produce FP didáctico; al exigir cinco cuentas no coincide y sirve de TN respecto a ese contexto simulado. NAT 192.0.2.44 no coincide, pero su etiqueta inconclusive impide contarlo como TN. Casos sin datos quedan no evaluables. TP/FN y métricas con denominador desconocido permanecen pendientes; las fórmulas pueden estudiarse con verdad teórica explícita separada.\n\n**Guía de retroalimentación formativa:** Identifica datos y supuestos de la fuente; Plantea método correcto y distingue hechos de hipótesis; Explica limitaciones, alternativa benigna y telemetría ausente; Aporta evidencia, ventana e identificación reproducibles.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Bibliografía, mapeo y estatus\n\n- **D01:** Condiciones de alertas y resultados — https://help.splunk.com/en/splunk-enterprise/alert-and-respond/alerting-manual/10.0/manage-alert-trigger-conditions-and-throttling/configure-alert-trigger-conditions\n- **D14:** Splunk: estadísticas stats, eventstats, streamstats — https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.0/calculate-statistics/use-the-stats-command-and-functions\n\n- **Currículo:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` — ID, título y resultado intactos.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` — los bloques R06/R07 y laboratorios de diseño.\n- **Puente SC-200:** Capítulos 07 y 08: calidad de reglas y correlación. Documento en `../../01_FUENTE_ORIGINAL/SC-200.md`; relación conceptual, no traducción ni equivalencia garantizada.\n\n**Clasificación de evidencia:** [DOC] respaldo documental de fuentes; [DISEÑO] procedimientos y rúbricas propuestos; [OFFLINE] sólo cálculos de fixtures reproducibles; [NO PROBADO] ejemplos SPL no ejecutados en la instancia. Validación técnica/manual de contenidos pendiente antes de integrarlo en React.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 8,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D01",
+      "key": "SPLUNK_LECCIONES_R06_R07:D01",
+      "url": "https://help.splunk.com/en/splunk-enterprise/alert-and-respond/alerting-manual/10.0/manage-alert-trigger-conditions-and-throttling/configure-alert-trigger-conditions"
+    },
+    {
+      "id": "D14",
+      "key": "SPLUNK_LECCIONES_R06_R07:D14",
+      "url": "https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.0/calculate-statistics/use-the-stats-command-and-functions"
+    }
+  ]
+}

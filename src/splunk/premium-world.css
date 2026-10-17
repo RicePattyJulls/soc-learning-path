@@ -1,0 +1,57 @@
+/* SC-200 is the presentation master. Layout, nodes, panels and motion come
+   directly from adventure/premium/full-width/world/experience.css.
+   Only course adapters and legacy Splunk selector collisions belong here. */
+.splunk-academy { background:var(--page); }
+.splunk-academy .sp-panorama { max-width:none; padding:0; }
+.splunk-academy .sp-profile b { font-size:12px; color:inherit; }
+.splunk-academy .sp-profile small { font-size:12px; color:#cad8ef; }
+.splunk-academy .sp-profile .profile-summary { min-width:108px; }
+.sp-map-page .sp-region-tabs { margin:0; flex-wrap:nowrap; gap:16px; }
+.sp-map-page .sp-region-tabs .current-position { display:inline-flex; width:auto; padding:9px 12px; border:1px solid #d6c5ef; border-bottom:3px solid #c5b4df; border-radius:10px; background:var(--violet-light); color:var(--violet-dark); font-size:13px; line-height:1.5; }
+.sp-world-map .sp-region-card { overflow:visible; background:none; border:0; border-radius:0; box-shadow:none; }
+.sp-world-map .sp-node>.sp-world-station-body { display:block; height:auto; padding:0; border:0; border-radius:0; background:none; box-shadow:none; }
+.sp-world-map .sp-node:first-child { width:210px; }
+.sp-world-map .sp-world-control { color:var(--ink); cursor:pointer; }
+/* Splunk keeps its real state vocabulary; no mapping to practical mastery. */
+.sp-world-map [data-state="passed"] .station-platform { --station-color:#15a77a!important; }
+.sp-world-map [data-state="passed"] .station-badge { color:white; background:#10a975; }
+.sp-world-map [data-state="passed"] .station-state { color:#087055; }
+.sp-world-map [data-state="progress"] .station-badge { color:white; background:#2e85ce; }
+.sp-world-map [data-state="progress"] .station-state { color:#185f9c; }
+.sp-require-hint { display:flex; align-items:center; gap:4px; margin-top:8px; font-size:12px; color:var(--ink-soft); }
+.sp-requirements:not([hidden]) { display:block; margin-top:8px; font-size:12px; line-height:1.7; color:var(--ink); overflow-wrap:anywhere; }
+/* Shared geometry observes these plates and the actual overlay, including
+   expanded requirements. No independent scene dimensions or node drawing. */
+@media(min-width:681px) and (max-width:1100px) {
+  .sp-world-map .sp-node:first-child { width:clamp(148px,17vw,184px); }
+}
+@media(max-width:680px) {
+  .sp-map-page .sp-region-tabs { gap:10px; width:100%; }
+  .sp-map-page .sp-region-tabs .current-position { padding:9px; font-size:12px; }
+  .sp-world-map .sp-node:first-child { width:158px; }
+  .splunk-academy .sp-profile .profile-summary { min-width:44px; }
+  .splunk-academy .sp-profile small { font-size:11px; }
+}
+/* Same 120ms var(--motion-press) inherited from the master, hover:hover gated.
+   Keyboard cancels pointer animation immediately; no idle loops. */
+:root[data-presentation-input="keyboard"] .sp-world-platform { transition:none; transform:none; }
+@media(prefers-reduced-motion:reduce) {
+  .sp-world-control:hover .sp-world-platform,.sp-world-control:active .sp-world-platform { transform:none; }
+}
+/* Legacy card indentation must never move a station off its shared path. */
+.sp-world-map .sp-node:nth-child(n) { margin:0; }
+@media(max-width:680px) {
+}
+@media(max-width:680px) {
+  .sp-map-page .sp-region-tabs { display:grid; grid-template-columns:auto minmax(0,1fr); }
+}
+.sp-map-page .atlas-tools select { width:400px; max-width:100%; }
+.sp-map-page .region-navigation select { width:360px; max-width:100%; }
+@media(max-width:680px) {
+  .sp-map-page .atlas-tools select,.sp-map-page .region-navigation select { width:100%; }
+}
+@media(max-width:680px) {
+  .splunk-academy .sp-profile .profile-summary b { display:none; }
+}
+
+.sp-map-page .region-navigation .sp-region-tabs { display:contents; }

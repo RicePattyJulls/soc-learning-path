@@ -1,0 +1,199 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R01-L02",
+  "title": "Anatomía de una instancia",
+  "revision": "cff642050a1104e1a277d54b",
+  "sourceVersion": "63aec8dcaa66a3baab0d1754d93545336af6a4650a534432bab1f7b6ce4e4403",
+  "sanitizedHash": "63aec8dcaa66a3baab0d1754d93545336af6a4650a534432bab1f7b6ce4e4403",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R01_R03/R01_FUNDAMENTOS/SP-R01-L02.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Explicar dónde entra, se almacena y se busca un evento",
+  "preamble": "# SP-R01-L02 — Anatomía de una instancia\n\n**Región:** Puerto de Splunk (SP-R01) · **Prioridad:** P0 SOC N1/N2  \n**Estado:** material didáctico redactado; revisión humana recomendada. **SPL no ejecutado en Splunk real.**  \n**ID estable propuesto:** `SP-R01-L02` (no migrado a React)  \n**Prerrequisitos orientativos:** SP-R01-L01  \n**Objetivo del currículo:** Explicar dónde entra, se almacena y se busca un evento\n\n",
+  "sections": [
+    {
+      "id": "SP-R01-L02-S01",
+      "title": "1. La pregunta que resuelve esta lección",
+      "markdown": "## 1. La pregunta que resuelve esta lección\n\nUna instancia única puede asumir varias funciones; en una arquitectura distribuida se separan recepción, indexación y coordinación de búsqueda.\n\n**Al completar la lección podrás:** Explicar dónde entra, se almacena y se busca un evento. Debes explicar el porqué y los límites, no memorizar solo comandos.\n\n",
+      "line": 9,
+      "endLine": 13
+    },
+    {
+      "id": "SP-R01-L02-S02",
+      "title": "2. Desarrollo del conocimiento",
+      "markdown": "## 2. Desarrollo del conocimiento\n\nEn un despliegue de laboratorio, una instancia Splunk Enterprise puede recibir eventos, realizar parsing, indexarlos, buscar y mostrar resultados. Para escalar, un indexer mantiene buckets e índices y busca en sus datos; el search head coordina búsquedas distribuidas y presenta resultados. No conviene imaginar que todos los eventos viven en el search head: el almacenamiento indexado se distribuye por los indexers.\nLa topología explica el recorrido de un evento y de una consulta, que son rutas distintas. Un flujo de eventos va desde la fuente al receptor, pasa por parsing y termina indexado. Una consulta se inicia en el buscador, alcanza a los indexers pertinentes y regresa con resultados. Los firewalls, permisos, volumen y retención también condicionan el diseño.\n\n",
+      "line": 15,
+      "endLine": 18
+    },
+    {
+      "id": "SP-R01-L02-S03",
+      "title": "3. Método de trabajo reproducible",
+      "markdown": "## 3. Método de trabajo reproducible\n\n1. Dibuja dos flechas: datos entrantes y búsquedas del analista.\n2. En la primera, marca receptor, parsing e indexer.\n3. En la segunda, marca search head, distribuidores y resultados.\n4. Decide si un laboratorio único basta o si se justifican roles separados.\n5. Verifica puntos de fallo, capacidad y límites de permisos antes de desplegar.\n\n",
+      "line": 20,
+      "endLine": 26
+    },
+    {
+      "id": "SP-R01-L02-S04",
+      "title": "4. Caso guiado — de la pregunta a la evidencia",
+      "markdown": "## 4. Caso guiado — de la pregunta a la evidencia\n\nUn Windows envía eventos a una instancia local de Splunk. La misma máquina puede buscar lo indexado. Cuando hay miles de fuentes, separar funciones facilita capacidad y administración, pero añade complejidad: no es automáticamente “mejor” para un laboratorio pequeño.\n\n### Esquema o ejemplo técnico\n\n```text\nDatos: Windows → input → parsing → indexer/buckets\nConsulta: analista → search head → indexer(s) → resultados.\n```\n\n**Cómo interpretarlo:** Si un evento no aparece, primero determina si falta en recepción/indexación o si existe pero la búsqueda y sus permisos no lo alcanzan. Un resultado vacío no prueba por sí mismo que el evento nunca existió.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n",
+      "line": 28,
+      "endLine": 41
+    },
+    {
+      "id": "SP-R01-L02-S05",
+      "title": "5. Diagnóstico y errores frecuentes",
+      "markdown": "## 5. Diagnóstico y errores frecuentes\n\nSituar todos los buckets en el search head; asumir que indexer y search head son siempre servidores físicos diferentes; diagnosticar fallos de ingesta solo con la interfaz.\n\n**Conexión con SC-200 (no equivalencia automática):** Cap. 04 (ingesta), líneas 1125–1368; cap. 05 (retención), líneas 1369–1546.. En Splunk los esquemas, permisos y familias de producto son diferentes; verifica la correspondencia antes de reutilizar una técnica.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 43,
+      "endLine": 50
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R01-L02-Q01",
+      "lessonId": "SP-R01-L02",
+      "prompt": "En un despliegue distribuido habitual, ¿quién guarda los datos indexados?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A1",
+        "SPLUNK_LECCIONES_R01_R03:A2",
+        "SPLUNK_LECCIONES_R01_R03:A3"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R01-L02-Q01-O-86f6545af568",
+          "text": "Universal Forwarder, como almacenamiento de largo plazo"
+        },
+        {
+          "id": "SP-R01-L02-Q01-O-fe2bbdb39e40",
+          "text": "Los indexers almacenan los datos indexados y buscan en ellos; el search head coordina resultados"
+        },
+        {
+          "id": "SP-R01-L02-Q01-O-74a0286c87e5",
+          "text": "Search head, al consolidar los resultados de los peers"
+        },
+        {
+          "id": "SP-R01-L02-Q01-O-617edfeb985d",
+          "text": "Deployment Server, junto con las apps que distribuye"
+        }
+      ],
+      "solution": "SP-R01-L02-Q01-O-fe2bbdb39e40",
+      "explanation": "Los indexers almacenan y buscan sus datos; el search head coordina.",
+      "anchors": [
+        {
+          "file": "R01_FUNDAMENTOS/SP-R01-L02.md",
+          "sourceHash": "63aec8dcaa66a3baab0d1754d93545336af6a4650a534432bab1f7b6ce4e4403",
+          "line": 15,
+          "endLine": 18,
+          "quote": "## 2. Desarrollo del conocimiento\n\nEn un despliegue de laboratorio, una instancia Splunk Enterprise puede recibir eventos, realizar parsing, indexarlos, buscar y mostrar resultados. Para escalar, un indexer mantiene buckets e índices y busca en sus datos; el search head coordina búsquedas distribuidas y presenta resultados. No conviene imaginar que todos los eventos viven en el search head: el almacenamiento indexado se distribuye por los indexers.\nLa topología explica el recorrido de un evento y de una consulta, que son rutas distintas. Un flujo de eventos va desde la fuente al receptor, pasa por parsing y termina indexado. Una consulta se inicia en el buscador, alcanza a los indexers pertinentes y regresa con resultados. Los firewalls, permisos, volumen y retención también condicionan el diseño.\n\n"
+        },
+        {
+          "file": "R01_FUNDAMENTOS/SP-R01-L02.md",
+          "sourceHash": "63aec8dcaa66a3baab0d1754d93545336af6a4650a534432bab1f7b6ce4e4403",
+          "line": 28,
+          "endLine": 41,
+          "quote": "## 4. Caso guiado — de la pregunta a la evidencia\n\nUn Windows envía eventos a una instancia local de Splunk. La misma máquina puede buscar lo indexado. Cuando hay miles de fuentes, separar funciones facilita capacidad y administración, pero añade complejidad: no es automáticamente “mejor” para un laboratorio pequeño.\n\n### Esquema o ejemplo técnico\n\n```text\nDatos: Windows → input → parsing → indexer/buckets\nConsulta: analista → search head → indexer(s) → resultados.\n```\n\n**Cómo interpretarlo:** Si un evento no aparece, primero determina si falta en recepción/indexación o si existe pero la búsqueda y sus permisos no lo alcanzan. Un resultado vacío no prueba por sí mismo que el evento nunca existió.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R01-L02-Q02",
+      "lessonId": "SP-R01-L02",
+      "prompt": "¿Puede una instancia pequeña cubrir indexación y búsqueda a la vez?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A1",
+        "SPLUNK_LECCIONES_R01_R03:A2",
+        "SPLUNK_LECCIONES_R01_R03:A3"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R01-L02-Q02-O-7011a97c21dc",
+          "text": "No: la búsqueda necesita un host distinto incluso con poco volumen"
+        },
+        {
+          "id": "SP-R01-L02-Q02-O-f3b9ec2f22ba",
+          "text": "Sí, si se delega la indexación local en el Universal Forwarder"
+        },
+        {
+          "id": "SP-R01-L02-Q02-O-c06d9d86fb16",
+          "text": "Sí, en despliegues apropiados"
+        },
+        {
+          "id": "SP-R01-L02-Q02-O-db35c8f80748",
+          "text": "Sí, pero requiere un Heavy Forwarder separado para guardar los eventos"
+        }
+      ],
+      "solution": "SP-R01-L02-Q02-O-c06d9d86fb16",
+      "explanation": "Los roles son lógicos y pueden coexistir en una sola instancia.",
+      "anchors": [
+        {
+          "file": "R01_FUNDAMENTOS/SP-R01-L02.md",
+          "sourceHash": "63aec8dcaa66a3baab0d1754d93545336af6a4650a534432bab1f7b6ce4e4403",
+          "line": 15,
+          "endLine": 18,
+          "quote": "## 2. Desarrollo del conocimiento\n\nEn un despliegue de laboratorio, una instancia Splunk Enterprise puede recibir eventos, realizar parsing, indexarlos, buscar y mostrar resultados. Para escalar, un indexer mantiene buckets e índices y busca en sus datos; el search head coordina búsquedas distribuidas y presenta resultados. No conviene imaginar que todos los eventos viven en el search head: el almacenamiento indexado se distribuye por los indexers.\nLa topología explica el recorrido de un evento y de una consulta, que son rutas distintas. Un flujo de eventos va desde la fuente al receptor, pasa por parsing y termina indexado. Una consulta se inicia en el buscador, alcanza a los indexers pertinentes y regresa con resultados. Los firewalls, permisos, volumen y retención también condicionan el diseño.\n\n"
+        },
+        {
+          "file": "R01_FUNDAMENTOS/SP-R01-L02.md",
+          "sourceHash": "63aec8dcaa66a3baab0d1754d93545336af6a4650a534432bab1f7b6ce4e4403",
+          "line": 28,
+          "endLine": 41,
+          "quote": "## 4. Caso guiado — de la pregunta a la evidencia\n\nUn Windows envía eventos a una instancia local de Splunk. La misma máquina puede buscar lo indexado. Cuando hay miles de fuentes, separar funciones facilita capacidad y administración, pero añade complejidad: no es automáticamente “mejor” para un laboratorio pequeño.\n\n### Esquema o ejemplo técnico\n\n```text\nDatos: Windows → input → parsing → indexer/buckets\nConsulta: analista → search head → indexer(s) → resultados.\n```\n\n**Cómo interpretarlo:** Si un evento no aparece, primero determina si falta en recepción/indexación o si existe pero la búsqueda y sus permisos no lo alcanzan. Un resultado vacío no prueba por sí mismo que el evento nunca existió.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R01-L02-P01",
+      "lessonId": "SP-R01-L02",
+      "prompt": "Dibuja dos recorridos distintos para un inicio de sesión Windows: camino del evento y camino de la consulta del analista.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A1",
+        "SPLUNK_LECCIONES_R01_R03:A2",
+        "SPLUNK_LECCIONES_R01_R03:A3"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica los datos/condiciones necesarios",
+        "Explica el razonamiento y no solo el resultado",
+        "Reconoce al menos una limitación o comprobación adicional"
+      ],
+      "referenceAnswer": "Evento: Windows → entrada/forwarder → parser → indexer; consulta: analista → interfaz/search head → indexer → resultados. En una instancia única varias etapas comparten host."
+    }
+  ],
+  "solutionsMarkdown": "## 7. Solucionario con razonamiento\n\n- **SP-R01-L02-Q01: B** — Los indexers almacenan y buscan sus datos; el search head coordina.\n\n- **SP-R01-L02-Q02: C** — Los roles son lógicos y pueden coexistir en una sola instancia.\n\n- **SP-R01-L02-P01:** Evento: Windows → entrada/forwarder → parser → indexer; consulta: analista → interfaz/search head → indexer → resultados. En una instancia única varias etapas comparten host.\n\n**Guía de retroalimentación formativa:** Identifica los datos/condiciones necesarios; Explica el razonamiento y no solo el resultado; Reconoce al menos una limitación o comprobación adicional.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 8. Fuentes y trazabilidad\n\n- **Fuente de partida:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE2_BLOQUE1.md`, según la organización del paquete de investigación que conservas.\n- **Fuente Microsoft de contraste:** `../../01_FUENTE_ORIGINAL/SC-200.md`; Cap. 04 (ingesta), líneas 1125–1368; cap. 05 (retención), líneas 1369–1546.\n- **[A1]** https://help.splunk.com/en/data-management/manage-splunk-enterprise-indexers/10.6/indexing-overview/indexers-in-a-distributed-deployment\n- **[A2]** https://help.splunk.com/en/splunk-enterprise/administer/distributed-deployment-manual/10.6/overview-of-splunk-enterprise-distributed-deployments/scale-your-deployment-with-splunk-enterprise-components\n- **[A3]** https://help.splunk.com/en/splunk-enterprise/administer/manage-indexers-and-indexer-clusters/10.6/indexing-overview/how-indexing-works\n\n**Estado de confianza:** documentación técnica citada y propuesta pedagógica; no validado contra índices, sourcetypes, roles o versiones de tu laboratorio. Las URLs provienen de la investigación del 16/10/2026, con contraste puntual adicional de documentación oficial para HEC y forwarders. Ver `FUENTES_Y_LIMITES.md`.\n",
+  "originalMarkdown": "# SP-R01-L02 — Anatomía de una instancia\n\n**Región:** Puerto de Splunk (SP-R01) · **Prioridad:** P0 SOC N1/N2  \n**Estado:** material didáctico redactado; revisión humana recomendada. **SPL no ejecutado en Splunk real.**  \n**ID estable propuesto:** `SP-R01-L02` (no migrado a React)  \n**Prerrequisitos orientativos:** SP-R01-L01  \n**Objetivo del currículo:** Explicar dónde entra, se almacena y se busca un evento\n\n## 1. La pregunta que resuelve esta lección\n\nUna instancia única puede asumir varias funciones; en una arquitectura distribuida se separan recepción, indexación y coordinación de búsqueda.\n\n**Al completar la lección podrás:** Explicar dónde entra, se almacena y se busca un evento. Debes explicar el porqué y los límites, no memorizar solo comandos.\n\n## 2. Desarrollo del conocimiento\n\nEn un despliegue de laboratorio, una instancia Splunk Enterprise puede recibir eventos, realizar parsing, indexarlos, buscar y mostrar resultados. Para escalar, un indexer mantiene buckets e índices y busca en sus datos; el search head coordina búsquedas distribuidas y presenta resultados. No conviene imaginar que todos los eventos viven en el search head: el almacenamiento indexado se distribuye por los indexers.\nLa topología explica el recorrido de un evento y de una consulta, que son rutas distintas. Un flujo de eventos va desde la fuente al receptor, pasa por parsing y termina indexado. Una consulta se inicia en el buscador, alcanza a los indexers pertinentes y regresa con resultados. Los firewalls, permisos, volumen y retención también condicionan el diseño.\n\n## 3. Método de trabajo reproducible\n\n1. Dibuja dos flechas: datos entrantes y búsquedas del analista.\n2. En la primera, marca receptor, parsing e indexer.\n3. En la segunda, marca search head, distribuidores y resultados.\n4. Decide si un laboratorio único basta o si se justifican roles separados.\n5. Verifica puntos de fallo, capacidad y límites de permisos antes de desplegar.\n\n## 4. Caso guiado — de la pregunta a la evidencia\n\nUn Windows envía eventos a una instancia local de Splunk. La misma máquina puede buscar lo indexado. Cuando hay miles de fuentes, separar funciones facilita capacidad y administración, pero añade complejidad: no es automáticamente “mejor” para un laboratorio pequeño.\n\n### Esquema o ejemplo técnico\n\n```text\nDatos: Windows → input → parsing → indexer/buckets\nConsulta: analista → search head → indexer(s) → resultados.\n```\n\n**Cómo interpretarlo:** Si un evento no aparece, primero determina si falta en recepción/indexación o si existe pero la búsqueda y sus permisos no lo alcanzan. Un resultado vacío no prueba por sí mismo que el evento nunca existió.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n## 5. Diagnóstico y errores frecuentes\n\nSituar todos los buckets en el search head; asumir que indexer y search head son siempre servidores físicos diferentes; diagnosticar fallos de ingesta solo con la interfaz.\n\n**Conexión con SC-200 (no equivalencia automática):** Cap. 04 (ingesta), líneas 1125–1368; cap. 05 (retención), líneas 1369–1546.. En Splunk los esquemas, permisos y familias de producto son diferentes; verifica la correspondencia antes de reutilizar una técnica.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 6. Actividades\n\n### SP-R01-L02-Q01 — Opción múltiple\n\nEn un despliegue distribuido habitual, ¿quién guarda los datos indexados?\n\nA. Universal Forwarder, como almacenamiento de largo plazo\nB. Los indexers almacenan los datos indexados y buscan en ellos; el search head coordina resultados\nC. Search head, al consolidar los resultados de los peers\nD. Deployment Server, junto con las apps que distribuye\n\n### SP-R01-L02-Q02 — Opción múltiple\n\n¿Puede una instancia pequeña cubrir indexación y búsqueda a la vez?\n\nA. No: la búsqueda necesita un host distinto incluso con poco volumen\nB. Sí, si se delega la indexación local en el Universal Forwarder\nC. Sí, en despliegues apropiados\nD. Sí, pero requiere un Heavy Forwarder separado para guardar los eventos\n\n### SP-R01-L02-P01 — Práctica abierta formativa\n\nDibuja dos recorridos distintos para un inicio de sesión Windows: camino del evento y camino de la consulta del analista.\n\n## 7. Solucionario con razonamiento\n\n- **SP-R01-L02-Q01: B** — Los indexers almacenan y buscan sus datos; el search head coordina.\n\n- **SP-R01-L02-Q02: C** — Los roles son lógicos y pueden coexistir en una sola instancia.\n\n- **SP-R01-L02-P01:** Evento: Windows → entrada/forwarder → parser → indexer; consulta: analista → interfaz/search head → indexer → resultados. En una instancia única varias etapas comparten host.\n\n**Guía de retroalimentación formativa:** Identifica los datos/condiciones necesarios; Explica el razonamiento y no solo el resultado; Reconoce al menos una limitación o comprobación adicional.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Fuentes y trazabilidad\n\n- **Fuente de partida:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE2_BLOQUE1.md`, según la organización del paquete de investigación que conservas.\n- **Fuente Microsoft de contraste:** `../../01_FUENTE_ORIGINAL/SC-200.md`; Cap. 04 (ingesta), líneas 1125–1368; cap. 05 (retención), líneas 1369–1546.\n- **[A1]** https://help.splunk.com/en/data-management/manage-splunk-enterprise-indexers/10.6/indexing-overview/indexers-in-a-distributed-deployment\n- **[A2]** https://help.splunk.com/en/splunk-enterprise/administer/distributed-deployment-manual/10.6/overview-of-splunk-enterprise-distributed-deployments/scale-your-deployment-with-splunk-enterprise-components\n- **[A3]** https://help.splunk.com/en/splunk-enterprise/administer/manage-indexers-and-indexer-clusters/10.6/indexing-overview/how-indexing-works\n\n**Estado de confianza:** documentación técnica citada y propuesta pedagógica; no validado contra índices, sourcetypes, roles o versiones de tu laboratorio. Las URLs provienen de la investigación del 16/10/2026, con contraste puntual adicional de documentación oficial para HEC y forwarders. Ver `FUENTES_Y_LIMITES.md`.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 8,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "A1",
+      "key": "SPLUNK_LECCIONES_R01_R03:A1",
+      "url": "https://help.splunk.com/en/data-management/manage-splunk-enterprise-indexers/10.6/indexing-overview/indexers-in-a-distributed-deployment"
+    },
+    {
+      "id": "A2",
+      "key": "SPLUNK_LECCIONES_R01_R03:A2",
+      "url": "https://help.splunk.com/en/splunk-enterprise/administer/distributed-deployment-manual/10.6/overview-of-splunk-enterprise-distributed-deployments/scale-your-deployment-with-splunk-enterprise-components"
+    },
+    {
+      "id": "A3",
+      "key": "SPLUNK_LECCIONES_R01_R03:A3",
+      "url": "https://help.splunk.com/en/splunk-enterprise/administer/manage-indexers-and-indexer-clusters/10.6/indexing-overview/how-indexing-works"
+    }
+  ]
+}

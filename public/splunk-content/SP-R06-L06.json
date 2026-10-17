@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R06-L06",
+  "title": "Informe SOC N1",
+  "revision": "47a8783e96ab2b78d0371321",
+  "sourceVersion": "ce20b3b81ff778a5abed6461ee746e8b7230e64505f6e6d2f8a963a85dc2fcc4",
+  "sanitizedHash": "ce20b3b81ff778a5abed6461ee746e8b7230e64505f6e6d2f8a963a85dc2fcc4",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R06_R07/R06_CENTRO_SOC/SP-R06-L06.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Escribir hechos, hipótesis, severidad, MITRE y escalado",
+  "preamble": "# SP-R06-L06 — Informe SOC N1\n\n**Región:** SP-R06 · **Prioridad:** P0 (SOC N1/N2) · **Estado:** material editorial para revisión · **SPL:** NO ejecutado en Splunk.\n\n**Objetivo curricular original:** Escribir hechos, hipótesis, severidad, MITRE y escalado\n\n**Prerrequisitos:** R01–R05 y lectura de la matriz de campos. **Producto:** Splunk Enterprise/Cloud (búsquedas de lectura); funciones ES explícitamente condicionadas a Splunk Enterprise Security compatible.\n\n",
+  "sections": [
+    {
+      "id": "SP-R06-L06-S01",
+      "title": "1. Pregunta esencial y modelo mental",
+      "markdown": "## 1. Pregunta esencial y modelo mental\n\nEl informe N1 sirve para que otro analista tome una decisión sin pedirte recordar el turno. Un informe útil no es una captura del dashboard; separa hechos comprobables, interpretaciones, evidencias negativas limitadas y siguientes pasos. La severidad debe ser defendible por impacto y confianza, no por adjetivos.\n\n",
+      "line": 9,
+      "endLine": 11
+    },
+    {
+      "id": "SP-R06-L06-S02",
+      "title": "2. Conceptos que debes dominar",
+      "markdown": "## 2. Conceptos que debes dominar\n\n1. Identificador de caso, analista/revisor, hora UTC, regla, ventana, fuentes y versiones forman el encabezado verificable.\n2. Hechos: IDs, 6 fallos/6 identidades, un éxito posterior; hipótesis: intento de password spraying; no escribir “credenciales robadas”.\n3. La ausencia de otro evento solo se reporta acompañada por cobertura de fuente, retención, permisos, delay y rango revisado.\n4. Técnica MITRE expresa parecido de comportamiento, no atribución del actor ni prueba definitiva.\n5. Severidad y decisión deben identificar confianza, impacto del activo, exposición, ventanas y acción recomendada.\n\n",
+      "line": 13,
+      "endLine": 19
+    },
+    {
+      "id": "SP-R06-L06-S03",
+      "title": "3. Práctica guiada: del dato a la conclusión",
+      "markdown": "## 3. Práctica guiada: del dato a la conclusión\n\n1. Abre la plantilla en PRACTICAS/LAB06_A_TRIAGE_MULTIFUENTE.md.\n2. Copia IDs y cifras verificadas en el fixture, con horas UTC.\n3. Separa “observado”, “interpretado”, “no observado pero cobertura limitada”.\n4. Explica por qué un éxito posterior eleva urgencia de revisar equipo y MFA, sin afirmar compromiso.\n5. Propón propietario de seguimiento y revisor humano.\n\n",
+      "line": 21,
+      "endLine": 27
+    },
+    {
+      "id": "SP-R06-L06-S04",
+      "title": "4. SPL ilustrativo de solo lectura — NO probado en Splunk",
+      "markdown": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC src=\"198.51.100.23\"\n| table _time event_id EventCode user src host dest\n| sort 0 _time event_id\n```\n\n**Interpretación, supuestos y límites:** Buscar una IP exacta podría omitir datos detrás de NAT o logs que la representan con otros campos. La consulta es parte de un informe, no todo el informe.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n",
+      "line": 29,
+      "endLine": 39
+    },
+    {
+      "id": "SP-R06-L06-S05",
+      "title": "5. Caso del turno SOC",
+      "markdown": "## 5. Caso del turno SOC\n\nUn manager pregunta si se ha comprometido bob. En los datos solo hay un éxito tras fallos previos y contexto insuficiente.\n\n## 6. Errores frecuentes\n\n1. Informar “malware confirmado” sin telemetría de endpoint.\n2. No listar ID/hora/origen o adjuntar solo imagen.\n3. Omitir incertidumbre y propiedad de seguimiento.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 41,
+      "endLine": 52
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R06-L06-Q01",
+      "lessonId": "SP-R06-L06",
+      "prompt": "¿Cuál frase es técnicamente responsable?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D12",
+        "SPLUNK_LECCIONES_R06_R07:D06"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R06-L06-Q01-O-21807031e4f2",
+          "text": "Un inicio exitoso posterior necesita corroboración"
+        },
+        {
+          "id": "SP-R06-L06-Q01-O-760c6dd6989d",
+          "text": "El proxy inventariado permite descartar todas las hipótesis adversarias"
+        },
+        {
+          "id": "SP-R06-L06-Q01-O-b3cb54a1ef54",
+          "text": "El éxito posterior confirma que la contraseña fue obtenida por el origen"
+        },
+        {
+          "id": "SP-R06-L06-Q01-O-0e7a55a7ca5f",
+          "text": "Los fallos previos demuestran que el éxito posterior pertenece a la misma sesión"
+        }
+      ],
+      "solution": "SP-R06-L06-Q01-O-21807031e4f2",
+      "explanation": "Hecho y atribución requieren niveles distintos de evidencia.",
+      "anchors": [
+        {
+          "file": "R06_CENTRO_SOC/SP-R06-L06.md",
+          "sourceHash": "ce20b3b81ff778a5abed6461ee746e8b7230e64505f6e6d2f8a963a85dc2fcc4",
+          "line": 13,
+          "endLine": 19,
+          "quote": "## 2. Conceptos que debes dominar\n\n1. Identificador de caso, analista/revisor, hora UTC, regla, ventana, fuentes y versiones forman el encabezado verificable.\n2. Hechos: IDs, 6 fallos/6 identidades, un éxito posterior; hipótesis: intento de password spraying; no escribir “credenciales robadas”.\n3. La ausencia de otro evento solo se reporta acompañada por cobertura de fuente, retención, permisos, delay y rango revisado.\n4. Técnica MITRE expresa parecido de comportamiento, no atribución del actor ni prueba definitiva.\n5. Severidad y decisión deben identificar confianza, impacto del activo, exposición, ventanas y acción recomendada.\n\n"
+        },
+        {
+          "file": "R06_CENTRO_SOC/SP-R06-L06.md",
+          "sourceHash": "ce20b3b81ff778a5abed6461ee746e8b7230e64505f6e6d2f8a963a85dc2fcc4",
+          "line": 29,
+          "endLine": 39,
+          "quote": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC src=\"198.51.100.23\"\n| table _time event_id EventCode user src host dest\n| sort 0 _time event_id\n```\n\n**Interpretación, supuestos y límites:** Buscar una IP exacta podría omitir datos detrás de NAT o logs que la representan con otros campos. La consulta es parte de un informe, no todo el informe.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R06-L06-Q02",
+      "lessonId": "SP-R06-L06",
+      "prompt": "¿Qué falta en un informe con solo screenshot?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D12",
+        "SPLUNK_LECCIONES_R06_R07:D06"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R06-L06-Q02-O-4f813bb2b9dc",
+          "text": "Un nivel de severidad más alto para compensar la falta de detalle"
+        },
+        {
+          "id": "SP-R06-L06-Q02-O-db1815ff921a",
+          "text": "El nombre del dashboard para deducir automáticamente sus filtros"
+        },
+        {
+          "id": "SP-R06-L06-Q02-O-46291b48adf6",
+          "text": "Una lista de usuarios sin tiempos ni relación con los eventos de origen"
+        },
+        {
+          "id": "SP-R06-L06-Q02-O-ec62ffc93b6b",
+          "text": "Referencias de eventos, ventana, consulta y limitaciones"
+        }
+      ],
+      "solution": "SP-R06-L06-Q02-O-ec62ffc93b6b",
+      "explanation": "Sin trazabilidad otro analista no puede reproducir.",
+      "anchors": [
+        {
+          "file": "R06_CENTRO_SOC/SP-R06-L06.md",
+          "sourceHash": "ce20b3b81ff778a5abed6461ee746e8b7230e64505f6e6d2f8a963a85dc2fcc4",
+          "line": 13,
+          "endLine": 19,
+          "quote": "## 2. Conceptos que debes dominar\n\n1. Identificador de caso, analista/revisor, hora UTC, regla, ventana, fuentes y versiones forman el encabezado verificable.\n2. Hechos: IDs, 6 fallos/6 identidades, un éxito posterior; hipótesis: intento de password spraying; no escribir “credenciales robadas”.\n3. La ausencia de otro evento solo se reporta acompañada por cobertura de fuente, retención, permisos, delay y rango revisado.\n4. Técnica MITRE expresa parecido de comportamiento, no atribución del actor ni prueba definitiva.\n5. Severidad y decisión deben identificar confianza, impacto del activo, exposición, ventanas y acción recomendada.\n\n"
+        },
+        {
+          "file": "R06_CENTRO_SOC/SP-R06-L06.md",
+          "sourceHash": "ce20b3b81ff778a5abed6461ee746e8b7230e64505f6e6d2f8a963a85dc2fcc4",
+          "line": 29,
+          "endLine": 39,
+          "quote": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC src=\"198.51.100.23\"\n| table _time event_id EventCode user src host dest\n| sort 0 _time event_id\n```\n\n**Interpretación, supuestos y límites:** Buscar una IP exacta podría omitir datos detrás de NAT o logs que la representan con otros campos. La consulta es parte de un informe, no todo el informe.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R06-L06-P01",
+      "lessonId": "SP-R06-L06",
+      "prompt": "Escribe un informe SOC de ocho apartados para 198.51.100.23 e incluye decisión provisional y dos siguientes evidencias.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D12",
+        "SPLUNK_LECCIONES_R06_R07:D06"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica datos y supuestos de la fuente",
+        "Plantea método correcto y distingue hechos de hipótesis",
+        "Explica limitaciones, alternativa benigna y telemetría ausente",
+        "Aporta evidencia, ventana e identificación reproducibles"
+      ],
+      "referenceAnswer": "Informe: alerta/búsqueda; 09:01–09:08Z; A001–A007; 6 fallos de 6 usuarios y éxito de bob; hipótesis spraying; alternativas compartición IP y pruebas legítimas; no hay prueba de control de bob; solicitar segundo factor, host cliente y actividad posterior; decisión investigar/escalar según criticidad."
+    }
+  ],
+  "solutionsMarkdown": "### Solucionario con razonamiento\n\n- **SP-R06-L06-Q01: A** — Hecho y atribución requieren niveles distintos de evidencia.\n\n- **SP-R06-L06-Q02: D** — Sin trazabilidad otro analista no puede reproducir.\n\n- **SP-R06-L06-P01:** Informe: alerta/búsqueda; 09:01–09:08Z; A001–A007; 6 fallos de 6 usuarios y éxito de bob; hipótesis spraying; alternativas compartición IP y pruebas legítimas; no hay prueba de control de bob; solicitar segundo factor, host cliente y actividad posterior; decisión investigar/escalar según criticidad.\n\n**Guía de retroalimentación formativa:** Identifica datos y supuestos de la fuente; Plantea método correcto y distingue hechos de hipótesis; Explica limitaciones, alternativa benigna y telemetría ausente; Aporta evidencia, ventana e identificación reproducibles.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 8. Bibliografía, mapeo y estatus\n\n- **D12:** Splunk ES 8.7: findings/analyst queue — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/findings/monitor-your-security-operations-center-with-findings-in-splunk-enterprise-security\n- **D06:** Windows: 4625 fallo de inicio de sesión — https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4625\n\n- **Currículo:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` — ID, título y resultado intactos.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` — los bloques R06/R07 y laboratorios de diseño.\n- **Puente SC-200:** Capítulos 09 y 11: investigación y comunicación. Documento en `../../01_FUENTE_ORIGINAL/SC-200.md`; relación conceptual, no traducción ni equivalencia garantizada.\n\n**Clasificación de evidencia:** [DOC] respaldo documental de fuentes; [DISEÑO] procedimientos y rúbricas propuestos; [OFFLINE] sólo cálculos de fixtures reproducibles; [NO PROBADO] ejemplos SPL no ejecutados en la instancia. Validación técnica/manual de contenidos pendiente antes de integrarlo en React.\n",
+  "originalMarkdown": "# SP-R06-L06 — Informe SOC N1\n\n**Región:** SP-R06 · **Prioridad:** P0 (SOC N1/N2) · **Estado:** material editorial para revisión · **SPL:** NO ejecutado en Splunk.\n\n**Objetivo curricular original:** Escribir hechos, hipótesis, severidad, MITRE y escalado\n\n**Prerrequisitos:** R01–R05 y lectura de la matriz de campos. **Producto:** Splunk Enterprise/Cloud (búsquedas de lectura); funciones ES explícitamente condicionadas a Splunk Enterprise Security compatible.\n\n## 1. Pregunta esencial y modelo mental\n\nEl informe N1 sirve para que otro analista tome una decisión sin pedirte recordar el turno. Un informe útil no es una captura del dashboard; separa hechos comprobables, interpretaciones, evidencias negativas limitadas y siguientes pasos. La severidad debe ser defendible por impacto y confianza, no por adjetivos.\n\n## 2. Conceptos que debes dominar\n\n1. Identificador de caso, analista/revisor, hora UTC, regla, ventana, fuentes y versiones forman el encabezado verificable.\n2. Hechos: IDs, 6 fallos/6 identidades, un éxito posterior; hipótesis: intento de password spraying; no escribir “credenciales robadas”.\n3. La ausencia de otro evento solo se reporta acompañada por cobertura de fuente, retención, permisos, delay y rango revisado.\n4. Técnica MITRE expresa parecido de comportamiento, no atribución del actor ni prueba definitiva.\n5. Severidad y decisión deben identificar confianza, impacto del activo, exposición, ventanas y acción recomendada.\n\n## 3. Práctica guiada: del dato a la conclusión\n\n1. Abre la plantilla en PRACTICAS/LAB06_A_TRIAGE_MULTIFUENTE.md.\n2. Copia IDs y cifras verificadas en el fixture, con horas UTC.\n3. Separa “observado”, “interpretado”, “no observado pero cobertura limitada”.\n4. Explica por qué un éxito posterior eleva urgencia de revisar equipo y MFA, sin afirmar compromiso.\n5. Propón propietario de seguimiento y revisor humano.\n\n## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC src=\"198.51.100.23\"\n| table _time event_id EventCode user src host dest\n| sort 0 _time event_id\n```\n\n**Interpretación, supuestos y límites:** Buscar una IP exacta podría omitir datos detrás de NAT o logs que la representan con otros campos. La consulta es parte de un informe, no todo el informe.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n## 5. Caso del turno SOC\n\nUn manager pregunta si se ha comprometido bob. En los datos solo hay un éxito tras fallos previos y contexto insuficiente.\n\n## 6. Errores frecuentes\n\n1. Informar “malware confirmado” sin telemetría de endpoint.\n2. No listar ID/hora/origen o adjuntar solo imagen.\n3. Omitir incertidumbre y propiedad de seguimiento.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R06-L06-Q01 — Opción múltiple\n\n¿Cuál frase es técnicamente responsable?\n\nA. Un inicio exitoso posterior necesita corroboración\nB. El proxy inventariado permite descartar todas las hipótesis adversarias\nC. El éxito posterior confirma que la contraseña fue obtenida por el origen\nD. Los fallos previos demuestran que el éxito posterior pertenece a la misma sesión\n\n### SP-R06-L06-Q02 — Opción múltiple\n\n¿Qué falta en un informe con solo screenshot?\n\nA. Un nivel de severidad más alto para compensar la falta de detalle\nB. El nombre del dashboard para deducir automáticamente sus filtros\nC. Una lista de usuarios sin tiempos ni relación con los eventos de origen\nD. Referencias de eventos, ventana, consulta y limitaciones\n\n### SP-R06-L06-P01 — Práctica abierta formativa\n\nEscribe un informe SOC de ocho apartados para 198.51.100.23 e incluye decisión provisional y dos siguientes evidencias.\n\n### Solucionario con razonamiento\n\n- **SP-R06-L06-Q01: A** — Hecho y atribución requieren niveles distintos de evidencia.\n\n- **SP-R06-L06-Q02: D** — Sin trazabilidad otro analista no puede reproducir.\n\n- **SP-R06-L06-P01:** Informe: alerta/búsqueda; 09:01–09:08Z; A001–A007; 6 fallos de 6 usuarios y éxito de bob; hipótesis spraying; alternativas compartición IP y pruebas legítimas; no hay prueba de control de bob; solicitar segundo factor, host cliente y actividad posterior; decisión investigar/escalar según criticidad.\n\n**Guía de retroalimentación formativa:** Identifica datos y supuestos de la fuente; Plantea método correcto y distingue hechos de hipótesis; Explica limitaciones, alternativa benigna y telemetría ausente; Aporta evidencia, ventana e identificación reproducibles.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Bibliografía, mapeo y estatus\n\n- **D12:** Splunk ES 8.7: findings/analyst queue — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/findings/monitor-your-security-operations-center-with-findings-in-splunk-enterprise-security\n- **D06:** Windows: 4625 fallo de inicio de sesión — https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4625\n\n- **Currículo:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` — ID, título y resultado intactos.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` — los bloques R06/R07 y laboratorios de diseño.\n- **Puente SC-200:** Capítulos 09 y 11: investigación y comunicación. Documento en `../../01_FUENTE_ORIGINAL/SC-200.md`; relación conceptual, no traducción ni equivalencia garantizada.\n\n**Clasificación de evidencia:** [DOC] respaldo documental de fuentes; [DISEÑO] procedimientos y rúbricas propuestos; [OFFLINE] sólo cálculos de fixtures reproducibles; [NO PROBADO] ejemplos SPL no ejecutados en la instancia. Validación técnica/manual de contenidos pendiente antes de integrarlo en React.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 8,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D12",
+      "key": "SPLUNK_LECCIONES_R06_R07:D12",
+      "url": "https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/findings/monitor-your-security-operations-center-with-findings-in-splunk-enterprise-security"
+    },
+    {
+      "id": "D06",
+      "key": "SPLUNK_LECCIONES_R06_R07:D06",
+      "url": "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4625"
+    }
+  ]
+}

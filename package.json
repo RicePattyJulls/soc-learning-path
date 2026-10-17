@@ -1,0 +1,60 @@
+{
+  "name": "soc-learning-path",
+  "version": "0.2.5",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "prepare:splunk": "node scripts/prepare-splunk.mjs",
+    "check:protected": "node scripts/splunk-integrity.mjs",
+    "dev:pilot": "vite --host 127.0.0.1",
+    "build:pilot": "node scripts/splunk-integrity.mjs && tsc --noEmit --incremental false && vite build && node scripts/splunk-integrity.mjs",
+    "test:pilot": "node --import tsx --experimental-test-isolation=none --test tests/*.test.ts",
+    "test:splunk:browser": "node scripts/validate-splunk-v11.mjs --browser",
+    "test:splunk:v11:browser": "node scripts/validate-splunk-v11.mjs --browser",
+    "validate:splunk:v11": "node scripts/validate-splunk-v11.mjs",
+    "check:splunk:v11": "node scripts/splunk-v11-integrity.mjs",
+    "prepare:content": "node scripts/prepare-content.mjs",
+    "predev": "npm run prepare:content",
+    "dev": "vite --host 127.0.0.1",
+    "prebuild": "npm run prepare:content",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "test": "node --import tsx --experimental-test-isolation=none --test tests/*.test.ts",
+    "test:browser": "node tests/e2e.mjs",
+    "verify": "npm run test && npm run build",
+    "pretest": "npm run prepare:content",
+    "test:visual": "node tests/e2e.mjs --visual",
+    "test:premium": "node tests/e2e.mjs --premium",
+    "test:full-width": "node tests/e2e.mjs --full-width",
+    "test:world": "node tests/e2e.mjs --world",
+    "test:experience": "node tests/e2e.mjs --experience"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "dependencies": {
+    "lucide-react": "1.54.0",
+    "mdast-util-to-string": "4.0.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-markdown": "9.1.0",
+    "remark-gfm": "4.0.1",
+    "remark-parse": "11.0.0",
+    "unified": "11.0.5",
+    "unist-util-visit": "5.1.0"
+  },
+  "overrides": {
+    "rollup": "4.60.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "4.3.3",
+    "@types/node": "22.20.5",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.5",
+    "playwright-core": "1.62.0",
+    "tailwindcss": "4.3.3",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "vite": "7.3.2"
+  }
+}

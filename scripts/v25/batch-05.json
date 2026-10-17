@@ -1,0 +1,948 @@
+{
+  "batch": "05",
+  "lessons": [
+    {
+      "lessonId": "capitulo-4-ingesta/configuracion-clave-1",
+      "introduction": "Trabaja los conceptos de «Configuración clave» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Separar conectores de alertas y telemetría cruda.",
+        "Distinguir AMA, Arc, DCR y DCRA.",
+        "Validar configuración de reenvío y evitar duplicación Syslog/CEF."
+      ],
+      "summary": [
+        "Separar conectores de alertas y telemetría cruda.",
+        "Distinguir AMA, Arc, DCR y DCRA.",
+        "Validar configuración de reenvío y evitar duplicación Syslog/CEF.",
+        "Separar sincronización de alerta e incidente."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "match",
+          "prompt": "Relaciona componente y responsabilidad de recopilación.",
+          "explanation": "Arc hace seleccionable el recurso; AMA recopila; DCR especifica el flujo y DCRA lo vincula. No son sustitutos.",
+          "objective": "Diagnosticar qué componente falta en una ruta.",
+          "difficulty": "intermedia",
+          "id": "v25-27-componentes",
+          "evidence": [
+            "`AMA` recopila los datos; la `DCR` define qué se recoge, su transformación y el destino; la `Data Collection Rule Association (DCRA)` asocia la regla con la máquina o recurso.",
+            "El conector recoge de máquinas virtuales de Azure con versiones compatibles de Windows, tanto Server como cliente, y sin importar la región donde estén desplegadas. Las máquinas fuera de Azure necesitan antes el `Azure Connected Machine agent` para incorporarse como recurso de `Azure Arc`: hasta que no aparecen como recurso, no son seleccionables en la `DCR`. Son dos agentes distintos — `Arc` las vuelve un recurso de Azure, `AMA` recopila."
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "AMA"
+            },
+            {
+              "id": "r1",
+              "label": "DCR"
+            },
+            {
+              "id": "r2",
+              "label": "DCRA"
+            },
+            {
+              "id": "r3",
+              "label": "Azure Connected Machine agent"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "Recopila los datos"
+            },
+            {
+              "id": "p1",
+              "text": "Define selección, transformación y destino"
+            },
+            {
+              "id": "p2",
+              "text": "Asocia regla y máquina/recurso"
+            },
+            {
+              "id": "p3",
+              "text": "Incorpora la máquina externa como recurso Azure Arc"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1",
+            "p2",
+            "p3"
+          ]
+        },
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "Un conector heredado sigue mostrando conectado tras habilitar XDR, pero necesitas hunting sobre eventos crudos. ¿Qué debe revisarse?",
+          "explanation": "El estado visual heredado no prueba ingesta cruda. La ruta de eventos XDR selecciona tablas compatibles.",
+          "objective": "Distinguir estado del conector y evidencia de ingesta.",
+          "difficulty": "intermedia",
+          "id": "v25-27-raw",
+          "evidence": [
+            "`Connect incidents & alerts` solo sincroniza con el workspace primario. Al habilitarlo, los conectores de alertas independientes de los componentes integrados se desconectan en segundo plano, aunque puedan seguir apareciendo conectados. Esos conectores heredados solo traían la alerta, nunca el dato crudo: el dato en bruto para hunting llega por `Connect events` del conector `XDR`. Si Sentinel está incorporado al portal de Defender, el conector `XDR` se habilita automáticamente para ese workspace; en caso contrario, se configura desde su página."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Esperar que Connect incidents & alerts copie cualquier tabla Device*.",
+              "why": "Sincroniza incidentes/alertas; los eventos tienen su opción y soporte."
+            },
+            {
+              "id": "o1",
+              "text": "Las tablas seleccionadas en Connect events; los heredados solo traían alertas.",
+              "why": "El estado visual heredado no prueba ingesta cruda. La ruta de eventos XDR selecciona tablas compatibles."
+            },
+            {
+              "id": "o2",
+              "text": "Confiar solo en el estado conectado de aquel conector.",
+              "why": "Puede seguir apareciendo conectado aunque se desconecte en segundo plano."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "No llegan eventos WEF aunque el colector esté configurado. ¿Qué premisa previa debe verificarse según el texto?",
+          "explanation": "Reenviar no crea el evento. También hay que comprobar el destino real de la ruta antes de reutilizar una detección.",
+          "objective": "Diagnosticar ausencia de eventos reenviados.",
+          "difficulty": "intermedia",
+          "id": "v25-27-wef-canales",
+          "evidence": [
+            "`WEF` no habilita la auditoría ni los canales: el evento debe generarse antes de poder reenviarse. Muchas reglas integradas consultan `SecurityEvent`; si el dato llega a `WindowsEvent`, debe elegirse la ruta adecuada o adaptarse la consulta."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Que toda consulta a SecurityEvent encontrará datos enviados a WindowsEvent.",
+              "why": "Esas tablas difieren; puede necesitarse otra ruta o consulta."
+            },
+            {
+              "id": "o1",
+              "text": "Que el origen genere los eventos y tenga la auditoría/canales habilitados.",
+              "why": "Reenviar no crea el evento. También hay que comprobar el destino real de la ruta antes de reutilizar una detección."
+            },
+            {
+              "id": "o2",
+              "text": "Que WEF habilita automáticamente cualquier auditoría necesaria.",
+              "why": "El apartado niega ese efecto."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "La misma facility se recoge por Syslog y CEF y aparecen dos copias. ¿Qué corrección propone el apartado?",
+          "explanation": "Evitar que el mismo mensaje alimente ambos streams resuelve el origen de la duplicación; no basta con cambiar el nombre de la tabla.",
+          "objective": "Corregir duplicación por rutas de ingesta superpuestas.",
+          "difficulty": "intermedia",
+          "id": "v25-27-duplicado",
+          "evidence": [
+            "Si una misma `facility` se recoge por las rutas `Syslog` y `CEF`, el evento puede duplicarse en `Syslog` y en `CommonSecurityLog`. Se evita separando las facilities de cada stream; si el appliance no permite cambiarlas, una transformación de ingesta en la `DCR` filtra los mensajes `CEF` del stream `Syslog`."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Añadir otro forwarder con la misma configuración para deduplicar.",
+              "why": "Repetir la ruta no aplica la separación/filtro descritos."
+            },
+            {
+              "id": "o1",
+              "text": "Eliminar todas las transformaciones porque impiden filtrar mensajes.",
+              "why": "La transformación es precisamente una de las soluciones indicadas."
+            },
+            {
+              "id": "o2",
+              "text": "Separar facilities por stream o filtrar CEF del stream Syslog con transformación DCR si no pueden cambiarse.",
+              "why": "Evitar que el mismo mensaje alimente ambos streams resuelve el origen de la duplicación; no basta con cambiar el nombre de la tabla."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Se cambia el estado de una alerta MDC sincronizada. ¿Qué NO debe inferirse sin la función adicional descrita?",
+          "explanation": "Alert synchronization no es bi-directional sync: esta última propaga el estado del incidente Sentinel a la alerta original, no sincroniza dos incidentes paralelos.",
+          "objective": "Distinguir objetos y direcciones de sincronización.",
+          "difficulty": "intermedia",
+          "id": "v25-27-sync",
+          "evidence": [
+            "`Alert synchronization` y `bi-directional sync` no son lo mismo. Al conectar `Defender for Cloud`, el estado de la alerta se sincroniza entre ese producto y Sentinel, pero cambiar el estado de la alerta no cambia el del incidente de Sentinel que la contiene. Con `bi-directional sync`, el estado del incidente de Sentinel también se propaga hacia la alerta original: cerrar el incidente cierra esa alerta en `Defender for Cloud`. No es la sincronización de dos incidentes paralelos."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Que puede sincronizarse el estado de la alerta entre productos.",
+              "why": "El apartado sí contempla alert synchronization."
+            },
+            {
+              "id": "o1",
+              "text": "Que alerta e incidente son objetos distintos.",
+              "why": "El texto insiste en esa distinción."
+            },
+            {
+              "id": "o2",
+              "text": "Que cambia automáticamente el estado del incidente Sentinel que la contiene.",
+              "why": "Alert synchronization no es bi-directional sync: esta última propaga el estado del incidente Sentinel a la alerta original, no sincroniza dos incidentes paralelos."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Una DCR tiene endpoint de ingesta disponible y no se usa Private Link. ¿Qué regla de selección recoge el texto?",
+          "explanation": "No confundir el punto de conexión con la regla que define el stream y la transformación.",
+          "objective": "Elegir el endpoint según condiciones de conectividad.",
+          "difficulty": "intermedia",
+          "id": "v25-27-dce",
+          "evidence": [
+            "Se usa el endpoint de ingesta de la `DCR` cuando está disponible. Se necesita un `DCE` con `Private Link` o cuando la `DCR` no tiene endpoint propio."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Crear siempre DCE porque ninguna DCR tiene endpoint.",
+              "why": "El texto contempla explícitamente endpoint propio de DCR."
+            },
+            {
+              "id": "o1",
+              "text": "Omitir la DCR si el cliente publica JSON por HTTPS.",
+              "why": "Logs Ingestion API mantiene DCR, stream y destino."
+            },
+            {
+              "id": "o2",
+              "text": "Usar el endpoint de la DCR; DCE se necesita con Private Link o si no hay endpoint propio.",
+              "why": "No confundir el punto de conexión con la regla que define el stream y la transformación."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [
+        "Preview de Custom Data Collection no se evalúa como capacidad general estable."
+      ],
+      "audit": {
+        "mainConcepts": [
+          "Separar conectores de alertas y telemetría cruda.",
+          "Distinguir AMA, Arc, DCR y DCRA.",
+          "Validar configuración de reenvío y evitar duplicación Syslog/CEF.",
+          "Separar sincronización de alerta e incidente."
+        ],
+        "understanding": [
+          "Separar conectores de alertas y telemetría cruda.",
+          "Distinguir AMA, Arc, DCR y DCRA.",
+          "Validar configuración de reenvío y evitar duplicación Syslog/CEF."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Separar conectores de alertas y telemetría cruda.",
+          "Distinguir AMA, Arc, DCR y DCRA.",
+          "Validar configuración de reenvío y evitar duplicación Syslog/CEF.",
+          "Separar sincronización de alerta e incidente."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "Sincroniza incidentes/alertas; los eventos tienen su opción y soporte.",
+          "Puede seguir apareciendo conectado aunque se desconecte en segundo plano.",
+          "Esas tablas difieren; puede necesitarse otra ruta o consulta.",
+          "El apartado niega ese efecto.",
+          "Repetir la ruta no aplica la separación/filtro descritos."
+        ],
+        "evidence": [
+          "`AMA` recopila los datos; la `DCR` define qué se recoge, su transformación y el destino; la `Data Collection Rule Association (DCRA)` asocia la regla con la máquina o recurso.",
+          "El conector recoge de máquinas virtuales de Azure con versiones compatibles de Windows, tanto Server como cliente, y sin importar la región donde estén desplegadas. Las máquinas fuera de Azure necesitan antes el `Azure Connected Machine agent` para incorporarse como recurso de `Azure Arc`: hasta que no aparecen como recurso, no son seleccionables en la `DCR`. Son dos agentes distintos — `Arc` las vuelve un recurso de Azure, `AMA` recopila.",
+          "`Connect incidents & alerts` solo sincroniza con el workspace primario. Al habilitarlo, los conectores de alertas independientes de los componentes integrados se desconectan en segundo plano, aunque puedan seguir apareciendo conectados. Esos conectores heredados solo traían la alerta, nunca el dato crudo: el dato en bruto para hunting llega por `Connect events` del conector `XDR`. Si Sentinel está incorporado al portal de Defender, el conector `XDR` se habilita automáticamente para ese workspace; en caso contrario, se configura desde su página.",
+          "`WEF` no habilita la auditoría ni los canales: el evento debe generarse antes de poder reenviarse. Muchas reglas integradas consultan `SecurityEvent`; si el dato llega a `WindowsEvent`, debe elegirse la ruta adecuada o adaptarse la consulta.",
+          "Si una misma `facility` se recoge por las rutas `Syslog` y `CEF`, el evento puede duplicarse en `Syslog` y en `CommonSecurityLog`. Se evita separando las facilities de cada stream; si el appliance no permite cambiarlas, una transformación de ingesta en la `DCR` filtra los mensajes `CEF` del stream `Syslog`.",
+          "`Alert synchronization` y `bi-directional sync` no son lo mismo. Al conectar `Defender for Cloud`, el estado de la alerta se sincroniza entre ese producto y Sentinel, pero cambiar el estado de la alerta no cambia el del incidente de Sentinel que la contiene. Con `bi-directional sync`, el estado del incidente de Sentinel también se propaga hacia la alerta original: cerrar el incidente cierra esa alerta en `Defender for Cloud`. No es la sincronización de dos incidentes paralelos.",
+          "Se usa el endpoint de ingesta de la `DCR` cuando está disponible. Se necesita un `DCE` con `Private Link` o cuando la `DCR` no tiene endpoint propio."
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-4-ingesta/transformacion-1",
+      "introduction": "Trabaja los conceptos de «Transformación» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Transformar antes de almacenar según soporte de ruta/tabla.",
+        "Interpretar source como stream virtual.",
+        "Exigir esquema de salida compatible."
+      ],
+      "summary": [
+        "Transformar antes de almacenar según soporte de ruta/tabla.",
+        "Interpretar source como stream virtual.",
+        "Exigir esquema de salida compatible."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "En una transformación de ingesta, ¿qué representa source?",
+          "explanation": "La consulta trabaja sobre la entrada y puede filtrar/calcular/proyectar antes de escribir en el destino.",
+          "objective": "Interpretar el contexto de ejecución de una transformación.",
+          "difficulty": "intermedia",
+          "id": "v25-28-source",
+          "evidence": [
+            "Su consulta se escribe contra `source`, que no es una tabla almacenada sino la tabla virtual que representa el stream de entrada: se aplica a cada registro entrante y debe devolver columnas que encajen con la tabla de destino, filtrando con `where`, calculando con `extend` y dando forma con `project`."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "La tabla virtual del stream de entrada, no una tabla ya almacenada.",
+              "why": "La consulta trabaja sobre la entrada y puede filtrar/calcular/proyectar antes de escribir en el destino."
+            },
+            {
+              "id": "o1",
+              "text": "El nombre fijo de una tabla de todos los workspaces.",
+              "why": "El apartado niega que source sea una tabla almacenada."
+            },
+            {
+              "id": "o2",
+              "text": "Un registro histórico que ya no puede filtrarse.",
+              "why": "La transformación se aplica a cada registro entrante antes de almacenarlo."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Un conector es API-based. ¿Basta esa etiqueta para afirmar que admite Workspace transformation DCR?",
+          "explanation": "Ni el tipo de conexión ni el nombre de la tabla garantizan por sí solos compatibilidad.",
+          "objective": "Comprobar soporte sin inferirlo del nombre.",
+          "difficulty": "intermedia",
+          "id": "v25-28-soporte",
+          "evidence": [
+            "El soporte debe comprobarse en la referencia del conector; no se deduce únicamente de que sea `API-based` ni del nombre de la tabla. [Flujo y soporte de transformaciones](https://learn.microsoft.com/en-us/azure/sentinel/data-transformation#data-ingestion-flow-in-microsoft-sentinel)."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "No puede haber ninguna transformación en rutas API.",
+              "why": "El apartado incluye Logs Ingestion API y CCF compatibles."
+            },
+            {
+              "id": "o1",
+              "text": "No; hay que comprobar soporte del conector y de la tabla.",
+              "why": "Ni el tipo de conexión ni el nombre de la tabla garantizan por sí solos compatibilidad."
+            },
+            {
+              "id": "o2",
+              "text": "Sí, toda API admite la misma transformación sin condiciones.",
+              "why": "El texto exige comprobar la referencia de soporte."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "El stream de entrada de Logs Ingestion API difiere del esquema final. ¿Cuándo lo admite el apartado?",
+          "explanation": "Cambiar la forma del dato es válido si la transformación satisface el esquema final; no elimina el contrato de destino.",
+          "objective": "Razonar sobre esquemas de entrada y salida.",
+          "difficulty": "intermedia",
+          "id": "v25-28-mapeo",
+          "evidence": [
+            "En `Logs Ingestion API`, el esquema del stream de entrada puede diferir del esquema final cuando la transformación realiza el mapeo.",
+            "Su consulta se escribe contra `source`, que no es una tabla almacenada sino la tabla virtual que representa el stream de entrada: se aplica a cada registro entrante y debe devolver columnas que encajen con la tabla de destino, filtrando con `where`, calculando con `extend` y dando forma con `project`."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Nunca: entrada y salida tienen que ser idénticas en todas las rutas.",
+              "why": "La lectura permite expresamente la diferencia mediante mapeo."
+            },
+            {
+              "id": "o1",
+              "text": "Cuando la transformación realiza el mapeo y devuelve columnas compatibles con la tabla destino.",
+              "why": "Cambiar la forma del dato es válido si la transformación satisface el esquema final; no elimina el contrato de destino."
+            },
+            {
+              "id": "o2",
+              "text": "Siempre, aunque la salida conserve columnas incompatibles.",
+              "why": "El contrato de salida con la tabla sigue siendo obligatorio."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [],
+      "audit": {
+        "mainConcepts": [
+          "Transformar antes de almacenar según soporte de ruta/tabla.",
+          "Interpretar source como stream virtual.",
+          "Exigir esquema de salida compatible."
+        ],
+        "understanding": [
+          "Transformar antes de almacenar según soporte de ruta/tabla.",
+          "Interpretar source como stream virtual.",
+          "Exigir esquema de salida compatible."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Transformar antes de almacenar según soporte de ruta/tabla.",
+          "Interpretar source como stream virtual.",
+          "Exigir esquema de salida compatible."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "El apartado niega que source sea una tabla almacenada.",
+          "La transformación se aplica a cada registro entrante antes de almacenarlo.",
+          "El apartado incluye Logs Ingestion API y CCF compatibles.",
+          "El texto exige comprobar la referencia de soporte.",
+          "La lectura permite expresamente la diferencia mediante mapeo."
+        ],
+        "evidence": [
+          "Su consulta se escribe contra `source`, que no es una tabla almacenada sino la tabla virtual que representa el stream de entrada: se aplica a cada registro entrante y debe devolver columnas que encajen con la tabla de destino, filtrando con `where`, calculando con `extend` y dando forma con `project`.",
+          "El soporte debe comprobarse en la referencia del conector; no se deduce únicamente de que sea `API-based` ni del nombre de la tabla. [Flujo y soporte de transformaciones](https://learn.microsoft.com/en-us/azure/sentinel/data-transformation#data-ingestion-flow-in-microsoft-sentinel).",
+          "En `Logs Ingestion API`, el esquema del stream de entrada puede diferir del esquema final cuando la transformación realiza el mapeo.",
+          "Su consulta se escribe contra `source`, que no es una tabla almacenada sino la tabla virtual que representa el stream de entrada: se aplica a cada registro entrante y debe devolver columnas que encajen con la tabla de destino, filtrando con `where`, calculando con `extend` y dando forma con `project`."
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-5-almacenamiento-y-retencion/5-almacenamiento-y-retencion-1",
+      "introduction": "Trabaja los conceptos de «5 · Almacenamiento y Retención» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Distinguir ubicación de datos y periodo de conservación."
+      ],
+      "summary": [
+        "Distinguir ubicación de datos y periodo de conservación."
+      ],
+      "questions": [],
+      "blocked": true,
+      "limitations": [
+        "Una sola frase define dos términos y termina mezclando retención con lugar de ingesta. No ofrece tres objetivos evaluables distintos ni procedimientos. Se conserva como estudio y se evita fabricar práctica/evaluación repetitivas."
+      ],
+      "audit": {
+        "mainConcepts": [
+          "Distinguir ubicación de datos y periodo de conservación."
+        ],
+        "understanding": [
+          "Distinguir ubicación de datos y periodo de conservación."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Distinguir ubicación de datos y periodo de conservación."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [],
+        "evidence": []
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-5-almacenamiento-y-retencion/1-mapa-de-almacenes-1",
+      "introduction": "Trabaja los conceptos de «1 · Mapa de almacenes» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Separar almacenes nativos y workspace.",
+        "Distinguir Analytics reflejado, Auxiliary integrado y Lake only.",
+        "No ubicar automáticamente todas las alertas MDC en XDR."
+      ],
+      "summary": [
+        "Separar almacenes nativos y workspace.",
+        "Distinguir Analytics reflejado, Auxiliary integrado y Lake only.",
+        "No ubicar automáticamente todas las alertas MDC en XDR."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "match",
+          "prompt": "Relaciona el dato con su almacén nativo descrito.",
+          "explanation": "La familia del dato determina dónde vive; consultar desde una experiencia unificada no vuelve idénticos los almacenes.",
+          "objective": "Ubicar datos nativos por su función.",
+          "difficulty": "intermedia",
+          "id": "v25-31-almacenes",
+          "evidence": [
+            "├── XDR default tier         → telemetría de Advanced Hunting",
+            "└── Unified Audit Log        → auditoría de Microsoft 365 gobernada por Purview",
+            "├── Entra ID nativo          → activity reports y security signals"
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "Telemetría de Advanced Hunting"
+            },
+            {
+              "id": "r1",
+              "label": "Auditoría de Microsoft 365 gobernada por Purview"
+            },
+            {
+              "id": "r2",
+              "label": "Activity reports y security signals Entra"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "XDR default tier"
+            },
+            {
+              "id": "p1",
+              "text": "Unified Audit Log"
+            },
+            {
+              "id": "p2",
+              "text": "Entra ID nativo"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1",
+            "p2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "¿Cómo describe el diagrama la relación Analytics → Data Lake?",
+          "explanation": "El lake es un tier con onboarding aparte; reflejar Analytics no equivale a que todos los datos existan solo en el lake.",
+          "objective": "Interpretar relaciones entre tiers de almacenamiento.",
+          "difficulty": "intermedia",
+          "id": "v25-31-espejo",
+          "evidence": [
+            "├─ Analytics → se refleja (espejo automático)"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Como una sustitución obligatoria de toda tabla por Lake only.",
+              "why": "El diagrama conserva Analytics reflejado y admite Lake only como otra opción."
+            },
+            {
+              "id": "o1",
+              "text": "Como la creación automática de un case por fila.",
+              "why": "El mapa habla de almacenamiento, no de cases."
+            },
+            {
+              "id": "o2",
+              "text": "Como un espejo automático del dato Analytics.",
+              "why": "El lake es un tier con onboarding aparte; reflejar Analytics no equivale a que todos los datos existan solo en el lake."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "¿Qué advertencia hace el apartado sobre las alertas propias de MDC?",
+          "explanation": "El almacén propio del producto y sus posibles integraciones no son la misma copia del dato.",
+          "objective": "Distinguir almacén de origen y superficies integradas.",
+          "difficulty": "intermedia",
+          "id": "v25-31-mdc-almacen",
+          "evidence": [
+            "`MDC` (Defender for Cloud) sí tiene almacenamiento propio, pero aparte: sus alertas viven en su propia superficie (`portal.azure.com`), con retención propia de 90 días — no cae dentro del XDR default tier ni de Servicio Defender XDR."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "MDC carece de almacenamiento y solo muestra el UAL.",
+              "why": "El párrafo afirma que sí tiene almacenamiento propio."
+            },
+            {
+              "id": "o1",
+              "text": "Tienen su propia superficie y retención; no deben ubicarse automáticamente en XDR default tier o Service Defender XDR.",
+              "why": "El almacén propio del producto y sus posibles integraciones no son la misma copia del dato."
+            },
+            {
+              "id": "o2",
+              "text": "Toda alerta MDC vive necesariamente como evento nativo Device*.",
+              "why": "La advertencia separa su almacenamiento propio."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [],
+      "audit": {
+        "mainConcepts": [
+          "Separar almacenes nativos y workspace.",
+          "Distinguir Analytics reflejado, Auxiliary integrado y Lake only.",
+          "No ubicar automáticamente todas las alertas MDC en XDR."
+        ],
+        "understanding": [
+          "Separar almacenes nativos y workspace.",
+          "Distinguir Analytics reflejado, Auxiliary integrado y Lake only.",
+          "No ubicar automáticamente todas las alertas MDC en XDR."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Separar almacenes nativos y workspace.",
+          "Distinguir Analytics reflejado, Auxiliary integrado y Lake only.",
+          "No ubicar automáticamente todas las alertas MDC en XDR."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "El diagrama conserva Analytics reflejado y admite Lake only como otra opción.",
+          "El mapa habla de almacenamiento, no de cases.",
+          "El párrafo afirma que sí tiene almacenamiento propio.",
+          "La advertencia separa su almacenamiento propio."
+        ],
+        "evidence": [
+          "├── XDR default tier         → telemetría de Advanced Hunting",
+          "└── Unified Audit Log        → auditoría de Microsoft 365 gobernada por Purview",
+          "├── Entra ID nativo          → activity reports y security signals",
+          "├─ Analytics → se refleja (espejo automático)",
+          "`MDC` (Defender for Cloud) sí tiene almacenamiento propio, pero aparte: sus alertas viven en su propia superficie (`portal.azure.com`), con retención propia de 90 días — no cae dentro del XDR default tier ni de Servicio Defender XDR."
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-5-almacenamiento-y-retencion/2-microsoft-defender-xdr-1",
+      "introduction": "Trabaja los conceptos de «2 · Microsoft Defender XDR» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Distinguir retención de telemetría cruda y datos procesados.",
+        "No aplicar un periodo general a todas las superficies.",
+        "Planificar conservación nativa prolongada mediante Sentinel."
+      ],
+      "summary": [
+        "Distinguir retención de telemetría cruda y datos procesados.",
+        "No aplicar un periodo general a todas las superficies.",
+        "Planificar conservación nativa prolongada mediante Sentinel."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "Según la tabla, ¿debe aplicarse sin más la referencia de 180 días a las tablas nativas de Advanced Hunting?",
+          "explanation": "La referencia general de datos procesados no amplía automáticamente la ventana de la telemetría de hunting.",
+          "objective": "Aplicar retención por superficie, no por portal.",
+          "difficulty": "intermedia",
+          "id": "v25-32-periodos",
+          "evidence": [
+            "| `XDR default tier`     | Tablas nativas de Advanced Hunting, como `Device*`, `Email*`, `Identity*`, `CloudAppEvents`, todo junto = `AlertInfo` y `AlertEvidence` | `30 días`                                                                                                                                                 |",
+            "| `Service Defender XDR` | Alertas, incidentes y demás datos procesados visibles en el portal                                                                      | `180 días` como referencia general; las superficies con retención específica siguen su propio periodo. La disponibilidad vía `API` depende del `endpoint` |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "No; toda telemetría nativa se conserva sin límite por tener un Case ID.",
+              "why": "La regla de cases no se extiende a eventos nativos."
+            },
+            {
+              "id": "o1",
+              "text": "No; XDR default tier tiene su periodo propio de 30 días.",
+              "why": "La referencia general de datos procesados no amplía automáticamente la ventana de la telemetría de hunting."
+            },
+            {
+              "id": "o2",
+              "text": "Sí, todos los datos visibles en Defender comparten 180 días.",
+              "why": "El apartado distingue almacenes y periodos específicos."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Quieres conservar una tabla nativa XDR más allá de 30 días según estos apuntes. ¿Qué vía indican?",
+          "explanation": "Los apuntes separan el ciclo nativo de la incorporación a Sentinel para conservación prolongada.",
+          "objective": "Elegir una vía de conservación adicional.",
+          "difficulty": "intermedia",
+          "id": "v25-32-prolongar",
+          "evidence": [
+            "> Para conservar más de 30 días una tabla del `XDR default tier` hay que incorporarla a `Sentinel`"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Incorporarla a Sentinel.",
+              "why": "Los apuntes separan el ciclo nativo de la incorporación a Sentinel para conservación prolongada."
+            },
+            {
+              "id": "o1",
+              "text": "Abrir un case y suponer que copia toda la telemetría nativa.",
+              "why": "La conservación del case no se extiende a todas las tablas consultadas."
+            },
+            {
+              "id": "o2",
+              "text": "Reconsultarla cada día para reiniciar su retención.",
+              "why": "El apartado no describe que consultar renueve el periodo."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Una API no devuelve el mismo histórico que esperabas del portal. ¿Qué condición recuerda la fila de Service Defender XDR?",
+          "explanation": "Un periodo general de almacenamiento no garantiza una ventana idéntica de acceso en cada endpoint API.",
+          "objective": "Distinguir conservación y disponibilidad por interfaz.",
+          "difficulty": "intermedia",
+          "id": "v25-32-api",
+          "evidence": [
+            "| `Service Defender XDR` | Alertas, incidentes y demás datos procesados visibles en el portal                                                                      | `180 días` como referencia general; las superficies con retención específica siguen su propio periodo. La disponibilidad vía `API` depende del `endpoint` |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "La disponibilidad vía API depende del endpoint.",
+              "why": "Un periodo general de almacenamiento no garantiza una ventana idéntica de acceso en cada endpoint API."
+            },
+            {
+              "id": "o1",
+              "text": "Todo endpoint debe exponer cualquier superficie durante exactamente 180 días.",
+              "why": "La tabla conserva periodos específicos y dependencia del endpoint."
+            },
+            {
+              "id": "o2",
+              "text": "Que las APIs siempre usan la retención de Automation uploads.",
+              "why": "Esa es una superficie diferente, no la regla de todos los endpoints."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [
+        "Retenciones numéricas se evalúan como lectura de esta tabla, no garantía de vigencia futura. La expresión todo junto de la fila XDR es imprecisa; no se usa como equivalencia entre todas las tablas y AlertInfo/AlertEvidence."
+      ],
+      "audit": {
+        "mainConcepts": [
+          "Distinguir retención de telemetría cruda y datos procesados.",
+          "No aplicar un periodo general a todas las superficies.",
+          "Planificar conservación nativa prolongada mediante Sentinel."
+        ],
+        "understanding": [
+          "Distinguir retención de telemetría cruda y datos procesados.",
+          "No aplicar un periodo general a todas las superficies.",
+          "Planificar conservación nativa prolongada mediante Sentinel."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Distinguir retención de telemetría cruda y datos procesados.",
+          "No aplicar un periodo general a todas las superficies.",
+          "Planificar conservación nativa prolongada mediante Sentinel."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "La regla de cases no se extiende a eventos nativos.",
+          "El apartado distingue almacenes y periodos específicos.",
+          "La conservación del case no se extiende a todas las tablas consultadas.",
+          "El apartado no describe que consultar renueve el periodo.",
+          "La tabla conserva periodos específicos y dependencia del endpoint."
+        ],
+        "evidence": [
+          "| `XDR default tier`     | Tablas nativas de Advanced Hunting, como `Device*`, `Email*`, `Identity*`, `CloudAppEvents`, todo junto = `AlertInfo` y `AlertEvidence` | `30 días`                                                                                                                                                 |",
+          "| `Service Defender XDR` | Alertas, incidentes y demás datos procesados visibles en el portal                                                                      | `180 días` como referencia general; las superficies con retención específica siguen su propio periodo. La disponibilidad vía `API` depende del `endpoint` |",
+          "> Para conservar más de 30 días una tabla del `XDR default tier` hay que incorporarla a `Sentinel`",
+          "| `Service Defender XDR` | Alertas, incidentes y demás datos procesados visibles en el portal                                                                      | `180 días` como referencia general; las superficies con retención específica siguen su propio periodo. La disponibilidad vía `API` depende del `endpoint` |"
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-5-almacenamiento-y-retencion/3-microsoft-entra-id-1",
+      "introduction": "Trabaja los conceptos de «3 · Microsoft Entra ID» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Separar directorio, inicios de sesión, riesgos y Graph activity.",
+        "Evitar interpretar cambio de licencia como recuperación histórica.",
+        "Respetar retención específica de riesgos."
+      ],
+      "summary": [
+        "Separar directorio, inicios de sesión, riesgos y Graph activity.",
+        "Evitar interpretar cambio de licencia como recuperación histórica.",
+        "Respetar retención específica de riesgos."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "Se sube de Free a P2 después de que ciertos logs hayan expirado. ¿Qué resultado indica el aviso?",
+          "explanation": "Ampliar capacidades o exportar después no reconstruye eventos que ya salieron de la retención anterior.",
+          "objective": "Planificar retención sin retroactividad.",
+          "difficulty": "intermedia",
+          "id": "v25-33-upgrade",
+          "evidence": [
+            "> Subir de Free a P1/P2 no recupera lo ya expirado: solo permanece el dato todavía comprendido en los siete días de Free. La exportación y los cambios de licencia no son retroactivos."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "No se recupera lo expirado; el cambio no es retroactivo.",
+              "why": "Ampliar capacidades o exportar después no reconstruye eventos que ya salieron de la retención anterior."
+            },
+            {
+              "id": "o1",
+              "text": "Se restauran automáticamente todos los eventos desde el inicio del tenant.",
+              "why": "El aviso niega la recuperación de datos expirados."
+            },
+            {
+              "id": "o2",
+              "text": "Todos los registros aún presentes se borran por cambiar de licencia.",
+              "why": "La nota conserva el dato comprendido en la ventana previa."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Según la tabla, en P1/P2 ¿qué debe hacerse para conservar Microsoft Graph activity logs?",
+          "explanation": "La licencia compatible no implica que exista un almacén nativo para esa categoría de actividad.",
+          "objective": "Distinguir disponibilidad de categoría y almacenamiento.",
+          "difficulty": "intermedia",
+          "id": "v25-33-graph-retencion",
+          "evidence": [
+            "| `Microsoft Graph activity logs`           | Solicitudes que Microsoft Graph procesa para el tenant                                                                                 | No disponible en Free; P1/P2 no ofrecen retención nativa y exigen enviarlo a storage o analytics |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Enviarlos a storage o analytics: no tienen retención nativa en esa fila.",
+              "why": "La licencia compatible no implica que exista un almacén nativo para esa categoría de actividad."
+            },
+            {
+              "id": "o1",
+              "text": "Aplicarles automáticamente los 30 días de Sign-ins.",
+              "why": "La fila Graph exige exportación, no heredar la de Sign-ins."
+            },
+            {
+              "id": "o2",
+              "text": "Usar el estado Risky users como sustituto del histórico HTTP.",
+              "why": "Estado de riesgo y actividad Graph son datos diferentes."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "¿Qué condición diferencia la conservación de Risky users/risky workload identities en esta tabla?",
+          "explanation": "El estado de riesgo tiene su ciclo de remediación; no debe confundirse con una retención temporal de logs.",
+          "objective": "Distinguir estado de riesgo y registro temporal.",
+          "difficulty": "intermedia",
+          "id": "v25-33-riesgo-vs-log",
+          "evidence": [
+            "| `Risky users` y risky workload identities | Cuentas e identidades workload marcadas como riesgo                                                                                    | Sin límite fijo: no se eliminan hasta remediar el riesgo                                         |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Se borran siempre al terminar cualquier sesión MFA.",
+              "why": "El apartado no identifica finalizar MFA con remediar el riesgo de la cuenta."
+            },
+            {
+              "id": "o1",
+              "text": "No se eliminan hasta remediar el riesgo, sin límite fijo indicado.",
+              "why": "El estado de riesgo tiene su ciclo de remediación; no debe confundirse con una retención temporal de logs."
+            },
+            {
+              "id": "o2",
+              "text": "Siguen necesariamente los siete días de Audit logs Free.",
+              "why": "La fila de riesgos usa una regla distinta."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [
+        "Los periodos y licencias se limitan a la tabla local; no se certifica su vigencia externa."
+      ],
+      "audit": {
+        "mainConcepts": [
+          "Separar directorio, inicios de sesión, riesgos y Graph activity.",
+          "Evitar interpretar cambio de licencia como recuperación histórica.",
+          "Respetar retención específica de riesgos."
+        ],
+        "understanding": [
+          "Separar directorio, inicios de sesión, riesgos y Graph activity.",
+          "Evitar interpretar cambio de licencia como recuperación histórica.",
+          "Respetar retención específica de riesgos."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Separar directorio, inicios de sesión, riesgos y Graph activity.",
+          "Evitar interpretar cambio de licencia como recuperación histórica.",
+          "Respetar retención específica de riesgos."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "El aviso niega la recuperación de datos expirados.",
+          "La nota conserva el dato comprendido en la ventana previa.",
+          "La fila Graph exige exportación, no heredar la de Sign-ins.",
+          "Estado de riesgo y actividad Graph son datos diferentes.",
+          "El apartado no identifica finalizar MFA con remediar el riesgo de la cuenta."
+        ],
+        "evidence": [
+          "> Subir de Free a P1/P2 no recupera lo ya expirado: solo permanece el dato todavía comprendido en los siete días de Free. La exportación y los cambios de licencia no son retroactivos.",
+          "| `Microsoft Graph activity logs`           | Solicitudes que Microsoft Graph procesa para el tenant                                                                                 | No disponible en Free; P1/P2 no ofrecen retención nativa y exigen enviarlo a storage o analytics |",
+          "| `Risky users` y risky workload identities | Cuentas e identidades workload marcadas como riesgo                                                                                    | Sin límite fijo: no se eliminan hasta remediar el riesgo                                         |"
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    }
+  ]
+}

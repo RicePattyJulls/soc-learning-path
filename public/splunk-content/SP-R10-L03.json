@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R10-L03",
+  "title": "Seguridad TLS y secretos",
+  "revision": "8ace28f42fc0f1e4d4965348",
+  "sourceVersion": "3c43f0cd50e6c5f3a1b966aaffd2114a55a5ca64a078adbcc7ddadf741fb14a5",
+  "sanitizedHash": "3c43f0cd50e6c5f3a1b966aaffd2114a55a5ca64a078adbcc7ddadf741fb14a5",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R10_R11/R10_ADMINISTRACION/SP-R10-L03.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Separar certificados demo de certs de producción",
+  "preamble": "# SP-R10-L03 — Seguridad TLS y secretos\n\n**Región:** SP-R10 · **Producto:** Splunk Enterprise/Cloud (donde se indique) o SOAR Cloud explícito. · **Estado:** borrador documental / requiere revisión humana. · **SPL/CLI/API:** ilustrativo, NO ejecutado.\n\n**Resultado curricular:** Separar certificados demo de certs de producción\n\n**Prerrequisitos:** R01–R05; revisar R06–R07 para impacto SOC\n\n",
+  "sections": [
+    {
+      "id": "SP-R10-L03-S01",
+      "title": "1. Explicación razonada",
+      "markdown": "## 1. Explicación razonada\n\nTLS permite proteger comunicaciones entre navegador, Splunk Web, forwarders, indexers, management port y otros extremos, pero el hecho de activar HTTPS no garantiza por sí solo identidad correcta del servidor. La defensa exige verificar **cadena de confianza**, **nombre del host**, vencimiento, algoritmos/perfiles soportados y protección de la clave privada. Cuando Splunk se instala con certificados de demostración o autoemitidos, no se deben convertir en patrón de producción sin revisar la documentación específica de versión y componente.\n\nUna integración API es vulnerable si se desactiva la validación de certificados (`verify=False`, `curl -k`) solo porque «funcionó en el laboratorio». Esa maniobra puede ocultar un ataque de intermediario. La decisión segura es obtener certificados válidos de una CA o distribuir el trust store correcto, con rotación, inventario, alertas de caducidad y actualización de secretos fuera del repositorio. TLS y autorización son controles diferentes: un cliente con canal cifrado y token sobreprivilegiado sigue siendo un riesgo.\n\nEl laboratorio será exclusivamente de diseño: construir una tabla por flujo (cliente↔Web, forwarder↔indexer, automatización↔management REST), indicar qué identidad se comprueba y dónde se guardan credenciales. No crear certificados falsos ni copiar claves del entorno del usuario.\n\n",
+      "line": 9,
+      "endLine": 15
+    },
+    {
+      "id": "SP-R10-L03-S02",
+      "title": "2. Conceptos clave",
+      "markdown": "## 2. Conceptos clave\n\n1. Cifrado de transporte no equivale a autenticación ni RBAC\n2. Verificación de cadena de confianza y hostname\n3. Certificados demo no sustituyen PKI empresarial\n4. Rotación de claves, vencimiento y secreto fuera de código\n5. Canal y credenciales deben protegerse por separado\n\n",
+      "line": 17,
+      "endLine": 23
+    },
+    {
+      "id": "SP-R10-L03-S03",
+      "title": "3. Procedimiento de estudio y verificación",
+      "markdown": "## 3. Procedimiento de estudio y verificación\n\n1. Lista flujos y puertos lógicos, sin asumir exposición de red real.\n2. Identifica CA, hostname esperado y política de certificación por flujo.\n3. Diseña inventario de fecha de expiración y responsable de renovación.\n4. Define almacenamiento de claves y token con mínimos privilegios.\n5. Añade prueba negativa: cert no confiable o CN/SAN incorrecto debe fallar.\n\n",
+      "line": 25,
+      "endLine": 31
+    },
+    {
+      "id": "SP-R10-L03-S04",
+      "title": "4. Diseño de validación TLS",
+      "markdown": "## 4. Diseño de validación TLS\n\n```text\nFlujo              Hostname esperado  CA/trust    Token       Comprobación negativa\nAnalista->Web      splunk.example.test corporativa ninguno     nombre erróneo -> rechazar\nCliente->REST      api.example.test    corporativa scope RO    token vencido -> rechazar\nUF->Indexer        idx01.example.test  corporativa secreto     CA ajena -> rechazar\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n",
+      "line": 33,
+      "endLine": 42
+    },
+    {
+      "id": "SP-R10-L03-S05",
+      "title": "5. Situación profesional",
+      "markdown": "## 5. Situación profesional\n\nUn script de recopilación REST falla por CA no confiable. La corrección no es `-k`: debe instalarse el certificado de confianza adecuado y verificar el nombre del servidor.\n\n## 6. Errores comunes\n\n1. Desactivar TLS verification para facilitar un tutorial\n2. Poner claves privadas en un ZIP educativo\n3. Asumir que un certificado válido limita permisos REST\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 44,
+      "endLine": 55
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R10-L03-Q01",
+      "lessonId": "SP-R10-L03",
+      "prompt": "¿Qué condición adicional a HTTPS evita aceptar a un servidor impostor?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D20"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R10-L03-Q01-O-c867b081e702",
+          "text": "Validar hostname y cadena de confianza"
+        },
+        {
+          "id": "SP-R10-L03-Q01-O-ba742af749fb",
+          "text": "Cifrar el tráfico aceptando cualquier certificado presentado"
+        },
+        {
+          "id": "SP-R10-L03-Q01-O-731db38dd904",
+          "text": "Limitar el número de resultados sin verificar la identidad TLS"
+        },
+        {
+          "id": "SP-R10-L03-Q01-O-2ae06eb37713",
+          "text": "Utilizar un puerto de gestión distinto del predeterminado"
+        }
+      ],
+      "solution": "SP-R10-L03-Q01-O-c867b081e702",
+      "explanation": "La validación de confianza e identidad del servidor previene aceptar extremos no autorizados.",
+      "anchors": [
+        {
+          "file": "R10_ADMINISTRACION/SP-R10-L03.md",
+          "sourceHash": "3c43f0cd50e6c5f3a1b966aaffd2114a55a5ca64a078adbcc7ddadf741fb14a5",
+          "line": 17,
+          "endLine": 23,
+          "quote": "## 2. Conceptos clave\n\n1. Cifrado de transporte no equivale a autenticación ni RBAC\n2. Verificación de cadena de confianza y hostname\n3. Certificados demo no sustituyen PKI empresarial\n4. Rotación de claves, vencimiento y secreto fuera de código\n5. Canal y credenciales deben protegerse por separado\n\n"
+        },
+        {
+          "file": "R10_ADMINISTRACION/SP-R10-L03.md",
+          "sourceHash": "3c43f0cd50e6c5f3a1b966aaffd2114a55a5ca64a078adbcc7ddadf741fb14a5",
+          "line": 33,
+          "endLine": 42,
+          "quote": "## 4. Diseño de validación TLS\n\n```text\nFlujo              Hostname esperado  CA/trust    Token       Comprobación negativa\nAnalista->Web      splunk.example.test corporativa ninguno     nombre erróneo -> rechazar\nCliente->REST      api.example.test    corporativa scope RO    token vencido -> rechazar\nUF->Indexer        idx01.example.test  corporativa secreto     CA ajena -> rechazar\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R10-L03-Q02",
+      "lessonId": "SP-R10-L03",
+      "prompt": "¿Qué práctica es insegura en un cliente REST empresarial?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D20"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R10-L03-Q02-O-17eba85996ef",
+          "text": "Limitar el token a los índices que necesita la integración"
+        },
+        {
+          "id": "SP-R10-L03-Q02-O-503588a0b426",
+          "text": "Validar el SAN frente al hostname de conexión"
+        },
+        {
+          "id": "SP-R10-L03-Q02-O-72b28ada2d18",
+          "text": "Usar -k como solución permanente a problemas de certificados"
+        },
+        {
+          "id": "SP-R10-L03-Q02-O-88b9a8fda95f",
+          "text": "Usar una CA de confianza y comprobar la caducidad"
+        }
+      ],
+      "solution": "SP-R10-L03-Q02-O-72b28ada2d18",
+      "explanation": "-k omite comprobaciones de identidad y facilita ataques de intermediario.",
+      "anchors": [
+        {
+          "file": "R10_ADMINISTRACION/SP-R10-L03.md",
+          "sourceHash": "3c43f0cd50e6c5f3a1b966aaffd2114a55a5ca64a078adbcc7ddadf741fb14a5",
+          "line": 17,
+          "endLine": 23,
+          "quote": "## 2. Conceptos clave\n\n1. Cifrado de transporte no equivale a autenticación ni RBAC\n2. Verificación de cadena de confianza y hostname\n3. Certificados demo no sustituyen PKI empresarial\n4. Rotación de claves, vencimiento y secreto fuera de código\n5. Canal y credenciales deben protegerse por separado\n\n"
+        },
+        {
+          "file": "R10_ADMINISTRACION/SP-R10-L03.md",
+          "sourceHash": "3c43f0cd50e6c5f3a1b966aaffd2114a55a5ca64a078adbcc7ddadf741fb14a5",
+          "line": 33,
+          "endLine": 42,
+          "quote": "## 4. Diseño de validación TLS\n\n```text\nFlujo              Hostname esperado  CA/trust    Token       Comprobación negativa\nAnalista->Web      splunk.example.test corporativa ninguno     nombre erróneo -> rechazar\nCliente->REST      api.example.test    corporativa scope RO    token vencido -> rechazar\nUF->Indexer        idx01.example.test  corporativa secreto     CA ajena -> rechazar\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R10-L03-P01",
+      "lessonId": "SP-R10-L03",
+      "prompt": "Define una política de TLS para Web, forwarder e integración API. Incluye una prueba negativa por flujo.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D20"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Define fuente, producto, versión y límites del contexto",
+        "Resuelve el objetivo con un procedimiento replicable y no destructivo",
+        "Identifica error, caso benigno y riesgo operacional",
+        "Documenta permisos, aprobación y evidencia para revisión humana"
+      ],
+      "referenceAnswer": "Certificados y CA apropiados, SAN/hostname, ciclo de rotación, auditoría, gestión de claves y tokens acotados. Ninguna prueba debe requerir exponer secretos ni desactivar la validación."
+    }
+  ],
+  "solutionsMarkdown": "## 8. Solucionario con razonamiento\n\n- **SP-R10-L03-Q01: A** — La validación de confianza e identidad del servidor previene aceptar extremos no autorizados.\n\n- **SP-R10-L03-Q02: C** — -k omite comprobaciones de identidad y facilita ataques de intermediario.\n\n- **SP-R10-L03-P01:** Certificados y CA apropiados, SAN/hostname, ciclo de rotación, auditoría, gestión de claves y tokens acotados. Ninguna prueba debe requerir exponer secretos ni desactivar la validación.\n\n**Guía de retroalimentación formativa:** Define fuente, producto, versión y límites del contexto; Resuelve el objetivo con un procedimiento replicable y no destructivo; Identifica error, caso benigno y riesgo operacional; Documenta permisos, aprobación y evidencia para revisión humana.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 9. Fuentes, procedencia y limitaciones\n\n- **D20:** Splunk Enterprise 10.6 — Introducción a TLS — https://help.splunk.com/en/splunk-enterprise/administer/manage-users-and-security/10.6/secure-splunk-platform-communications-with-transport-layer-security-certificates/introduction-to-securing-the-splunk-platform-with-tls\n\n- **Puente SC-200:** Capítulos 01–02 y 12: límites operativos, RBAC y secretos. Es correspondencia pedagógica, no equivalencia exacta de producto.\n- **Fuente del ID y resultado:** `SPLUNK_MASTER_RESEARCH/03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`.\n- **[DOC]:** fundamentos documentados en fuentes oficiales; no equivale a prueba de todos los supuestos.\n- **[OFFLINE]:** solo verificaciones Python sobre fixtures sintéticos.\n- **[NO EJECUTADO]:** no se ha abierto Splunk, ni SOAR, ni REST, ni se han aplicado configuraciones.\n- **[REVISIÓN]:** verificación humana del texto, respuestas, versiones y supuestos antes de integrar en React.\n",
+  "originalMarkdown": "# SP-R10-L03 — Seguridad TLS y secretos\n\n**Región:** SP-R10 · **Producto:** Splunk Enterprise/Cloud (donde se indique) o SOAR Cloud explícito. · **Estado:** borrador documental / requiere revisión humana. · **SPL/CLI/API:** ilustrativo, NO ejecutado.\n\n**Resultado curricular:** Separar certificados demo de certs de producción\n\n**Prerrequisitos:** R01–R05; revisar R06–R07 para impacto SOC\n\n## 1. Explicación razonada\n\nTLS permite proteger comunicaciones entre navegador, Splunk Web, forwarders, indexers, management port y otros extremos, pero el hecho de activar HTTPS no garantiza por sí solo identidad correcta del servidor. La defensa exige verificar **cadena de confianza**, **nombre del host**, vencimiento, algoritmos/perfiles soportados y protección de la clave privada. Cuando Splunk se instala con certificados de demostración o autoemitidos, no se deben convertir en patrón de producción sin revisar la documentación específica de versión y componente.\n\nUna integración API es vulnerable si se desactiva la validación de certificados (`verify=False`, `curl -k`) solo porque «funcionó en el laboratorio». Esa maniobra puede ocultar un ataque de intermediario. La decisión segura es obtener certificados válidos de una CA o distribuir el trust store correcto, con rotación, inventario, alertas de caducidad y actualización de secretos fuera del repositorio. TLS y autorización son controles diferentes: un cliente con canal cifrado y token sobreprivilegiado sigue siendo un riesgo.\n\nEl laboratorio será exclusivamente de diseño: construir una tabla por flujo (cliente↔Web, forwarder↔indexer, automatización↔management REST), indicar qué identidad se comprueba y dónde se guardan credenciales. No crear certificados falsos ni copiar claves del entorno del usuario.\n\n## 2. Conceptos clave\n\n1. Cifrado de transporte no equivale a autenticación ni RBAC\n2. Verificación de cadena de confianza y hostname\n3. Certificados demo no sustituyen PKI empresarial\n4. Rotación de claves, vencimiento y secreto fuera de código\n5. Canal y credenciales deben protegerse por separado\n\n## 3. Procedimiento de estudio y verificación\n\n1. Lista flujos y puertos lógicos, sin asumir exposición de red real.\n2. Identifica CA, hostname esperado y política de certificación por flujo.\n3. Diseña inventario de fecha de expiración y responsable de renovación.\n4. Define almacenamiento de claves y token con mínimos privilegios.\n5. Añade prueba negativa: cert no confiable o CN/SAN incorrecto debe fallar.\n\n## 4. Diseño de validación TLS\n\n```text\nFlujo              Hostname esperado  CA/trust    Token       Comprobación negativa\nAnalista->Web      splunk.example.test corporativa ninguno     nombre erróneo -> rechazar\nCliente->REST      api.example.test    corporativa scope RO    token vencido -> rechazar\nUF->Indexer        idx01.example.test  corporativa secreto     CA ajena -> rechazar\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n## 5. Situación profesional\n\nUn script de recopilación REST falla por CA no confiable. La corrección no es `-k`: debe instalarse el certificado de confianza adecuado y verificar el nombre del servidor.\n\n## 6. Errores comunes\n\n1. Desactivar TLS verification para facilitar un tutorial\n2. Poner claves privadas en un ZIP educativo\n3. Asumir que un certificado válido limita permisos REST\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R10-L03-Q01 — Opción múltiple\n\n¿Qué condición adicional a HTTPS evita aceptar a un servidor impostor?\n\nA. Validar hostname y cadena de confianza\nB. Cifrar el tráfico aceptando cualquier certificado presentado\nC. Limitar el número de resultados sin verificar la identidad TLS\nD. Utilizar un puerto de gestión distinto del predeterminado\n\n### SP-R10-L03-Q02 — Opción múltiple\n\n¿Qué práctica es insegura en un cliente REST empresarial?\n\nA. Limitar el token a los índices que necesita la integración\nB. Validar el SAN frente al hostname de conexión\nC. Usar -k como solución permanente a problemas de certificados\nD. Usar una CA de confianza y comprobar la caducidad\n\n### SP-R10-L03-P01 — Práctica abierta formativa\n\nDefine una política de TLS para Web, forwarder e integración API. Incluye una prueba negativa por flujo.\n\n## 8. Solucionario con razonamiento\n\n- **SP-R10-L03-Q01: A** — La validación de confianza e identidad del servidor previene aceptar extremos no autorizados.\n\n- **SP-R10-L03-Q02: C** — -k omite comprobaciones de identidad y facilita ataques de intermediario.\n\n- **SP-R10-L03-P01:** Certificados y CA apropiados, SAN/hostname, ciclo de rotación, auditoría, gestión de claves y tokens acotados. Ninguna prueba debe requerir exponer secretos ni desactivar la validación.\n\n**Guía de retroalimentación formativa:** Define fuente, producto, versión y límites del contexto; Resuelve el objetivo con un procedimiento replicable y no destructivo; Identifica error, caso benigno y riesgo operacional; Documenta permisos, aprobación y evidencia para revisión humana.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 9. Fuentes, procedencia y limitaciones\n\n- **D20:** Splunk Enterprise 10.6 — Introducción a TLS — https://help.splunk.com/en/splunk-enterprise/administer/manage-users-and-security/10.6/secure-splunk-platform-communications-with-transport-layer-security-certificates/introduction-to-securing-the-splunk-platform-with-tls\n\n- **Puente SC-200:** Capítulos 01–02 y 12: límites operativos, RBAC y secretos. Es correspondencia pedagógica, no equivalencia exacta de producto.\n- **Fuente del ID y resultado:** `SPLUNK_MASTER_RESEARCH/03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`.\n- **[DOC]:** fundamentos documentados en fuentes oficiales; no equivale a prueba de todos los supuestos.\n- **[OFFLINE]:** solo verificaciones Python sobre fixtures sintéticos.\n- **[NO EJECUTADO]:** no se ha abierto Splunk, ni SOAR, ni REST, ni se han aplicado configuraciones.\n- **[REVISIÓN]:** verificación humana del texto, respuestas, versiones y supuestos antes de integrar en React.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D20",
+      "key": "SPLUNK_LECCIONES_R10_R11:D20",
+      "url": "https://help.splunk.com/en/splunk-enterprise/administer/manage-users-and-security/10.6/secure-splunk-platform-communications-with-transport-layer-security-certificates/introduction-to-securing-the-splunk-platform-with-tls"
+    }
+  ]
+}

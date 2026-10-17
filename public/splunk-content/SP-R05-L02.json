@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R05-L02",
+  "title": "Lookups y enriquecimiento",
+  "revision": "cabfde56a0fda28cde807e66",
+  "sourceVersion": "b843379b9dd3a122b73b169a4d22e83ddd15bb7220a7bc3f7f04cc899a6e1712",
+  "sanitizedHash": "b843379b9dd3a122b73b169a4d22e83ddd15bb7220a7bc3f7f04cc899a6e1712",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R04_R05/R05_CIM_NORMALIZACION/SP-R05-L02.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Diseñar lookups para inventario o amenazas sin confundir enriquecimiento con evidencia",
+  "preamble": "# SP-R05-L02 — Lookups y enriquecimiento\n\n**Región:** SP-R05 · **Prioridad:** P0/P1 SOC · **Estado:** borrador educativo para revisión · **SPL real:** no ejecutado.  \n**ID curricular intacto:** `SP-R05-L02` · **Resultado de aprendizaje:** Diseñar lookups para inventario o amenazas sin confundir enriquecimiento con evidencia  \n**Prerrequisitos:** R02 y R04; campos de fuentes conocidas · **Producto:** Splunk Enterprise/Cloud con SPL clásico según versión y permisos; CIM exige configuración pertinente.\n\n",
+  "sections": [
+    {
+      "id": "SP-R05-L02-S01",
+      "title": "1. Pregunta esencial",
+      "markdown": "## 1. Pregunta esencial\n\nEl analista puede tener una IP de origen y querer saber si pertenece a VPN corporativa, un servidor conocido o un equipo de laboratorio. Un lookup enlaza los resultados con un catálogo de activos; añade contexto que puede orientar el triage, pero el catálogo también puede contener errores y quedar obsoleto. Un match de IP no convierte un evento benigno en malicioso ni viceversa.\n\n**Objetivo verificable:** Diseñar lookups para inventario o amenazas sin confundir enriquecimiento con evidencia.\n\n",
+      "line": 7,
+      "endLine": 11
+    },
+    {
+      "id": "SP-R05-L02-S02",
+      "title": "2. Modelo mental y conceptos",
+      "markdown": "## 2. Modelo mental y conceptos\n\n1. Un CSV lookup tiene tabla y definición que deben existir en la app/contexto apropiados antes de usar el nombre en `lookup`.\n2. `lookup ... OUTPUTNEW ...` no sobrescribe un campo destino ya presente; `OUTPUT` puede sobrescribirlo: entiende la diferencia.\n3. Evita enriquecer todos los eventos si puedes agregar primero por IP y hacer lookup sobre pocas filas.\n4. Un inventario necesita fuente, vigencia, propietario y criterio para IP dinámicas/NAT; un enriquecimiento sin fecha es una hipótesis adicional.\n\n",
+      "line": 13,
+      "endLine": 18
+    },
+    {
+      "id": "SP-R05-L02-S03",
+      "title": "3. Procedimiento guiado",
+      "markdown": "## 3. Procedimiento guiado\n\n1. Abre `asset_inventory.csv` y localiza `198.51.100.5` y `203.0.113.9`.\n2. Enriquece una tabla de fallos por src con el nombre del activo y confianza editorial de inventario; no confundas src con host destino.\n3. Deja constancia de cuándo se actualizó el catálogo y qué casos no tienen match.\n4. Prioriza una revisión del inventario antes de descartar alertas por pertenecer a una lista interna.\n\n",
+      "line": 20,
+      "endLine": 25
+    },
+    {
+      "id": "SP-R05-L02-S04",
+      "title": "4. SPL ilustrativo — no ejecutado",
+      "markdown": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH action=failure earliest=-24h\n| stats count AS fallos BY src\n| lookup asset_inventory src OUTPUTNEW asset_name owner category\n| table src fallos asset_name owner category\n```\n\n**Interpretación, condiciones y alcance:** Sólo funcionará tras subir el CSV y crear una definición de lookup llamada `asset_inventory` con campo src, con permisos adecuados. Importar o modificar lookups NO está autorizado por esta entrega. La versión offline usa CSV y Python sin tocar Splunk.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n",
+      "line": 27,
+      "endLine": 38
+    },
+    {
+      "id": "SP-R05-L02-S05",
+      "title": "5. Caso SOC",
+      "markdown": "## 5. Caso SOC\n\nLa IP de la detección está en un inventario etiquetado como “proxy compartido”. ¿Se cierra automáticamente el caso?\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 40,
+      "endLine": 45
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R05-L02-Q01",
+      "lessonId": "SP-R05-L02",
+      "prompt": "¿Qué aporta un lookup de inventario?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S13",
+        "SPLUNK_LECCIONES_R04_R05:S14"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R05-L02-Q01-O-cd262214a984",
+          "text": "Contexto del activo que debe contrastarse con la vigencia y calidad del inventario, sin cierre automático"
+        },
+        {
+          "id": "SP-R05-L02-Q01-O-4888f88fb1b4",
+          "text": "Prueba suficiente de que el acceso del activo estaba autorizado"
+        },
+        {
+          "id": "SP-R05-L02-Q01-O-9467a5f72fc4",
+          "text": "Una fuente que reemplaza el tiempo y el origen del evento observado"
+        },
+        {
+          "id": "SP-R05-L02-Q01-O-3f0620389585",
+          "text": "Una identidad de usuario inferida de cualquier coincidencia por IP"
+        }
+      ],
+      "solution": "SP-R05-L02-Q01-O-cd262214a984",
+      "explanation": "Es una fuente auxiliar que necesita verificación.",
+      "anchors": [
+        {
+          "file": "R05_CIM_NORMALIZACION/SP-R05-L02.md",
+          "sourceHash": "b843379b9dd3a122b73b169a4d22e83ddd15bb7220a7bc3f7f04cc899a6e1712",
+          "line": 13,
+          "endLine": 18,
+          "quote": "## 2. Modelo mental y conceptos\n\n1. Un CSV lookup tiene tabla y definición que deben existir en la app/contexto apropiados antes de usar el nombre en `lookup`.\n2. `lookup ... OUTPUTNEW ...` no sobrescribe un campo destino ya presente; `OUTPUT` puede sobrescribirlo: entiende la diferencia.\n3. Evita enriquecer todos los eventos si puedes agregar primero por IP y hacer lookup sobre pocas filas.\n4. Un inventario necesita fuente, vigencia, propietario y criterio para IP dinámicas/NAT; un enriquecimiento sin fecha es una hipótesis adicional.\n\n"
+        },
+        {
+          "file": "R05_CIM_NORMALIZACION/SP-R05-L02.md",
+          "sourceHash": "b843379b9dd3a122b73b169a4d22e83ddd15bb7220a7bc3f7f04cc899a6e1712",
+          "line": 27,
+          "endLine": 38,
+          "quote": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH action=failure earliest=-24h\n| stats count AS fallos BY src\n| lookup asset_inventory src OUTPUTNEW asset_name owner category\n| table src fallos asset_name owner category\n```\n\n**Interpretación, condiciones y alcance:** Sólo funcionará tras subir el CSV y crear una definición de lookup llamada `asset_inventory` con campo src, con permisos adecuados. Importar o modificar lookups NO está autorizado por esta entrega. La versión offline usa CSV y Python sin tocar Splunk.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R05-L02-Q02",
+      "lessonId": "SP-R05-L02",
+      "prompt": "¿Qué significa OUTPUTNEW?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S13",
+        "SPLUNK_LECCIONES_R04_R05:S14"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R05-L02-Q02-O-caed0f17a809",
+          "text": "Reemplazar el campo existente con el valor más reciente del CSV"
+        },
+        {
+          "id": "SP-R05-L02-Q02-O-1c88698fadd1",
+          "text": "Crear una fila nueva para cada valor sin coincidencia"
+        },
+        {
+          "id": "SP-R05-L02-Q02-O-f9e38295b73f",
+          "text": "Conservar solo eventos que tengan match en el inventario"
+        },
+        {
+          "id": "SP-R05-L02-Q02-O-af1a957ea6f6",
+          "text": "Evitar reemplazar campos de salida ya presentes en los eventos que se enriquecen mediante lookup"
+        }
+      ],
+      "solution": "SP-R05-L02-Q02-O-af1a957ea6f6",
+      "explanation": "OUTPUTNEW se usa para no reemplazar valores ya existentes en los campos de salida.",
+      "anchors": [
+        {
+          "file": "R05_CIM_NORMALIZACION/SP-R05-L02.md",
+          "sourceHash": "b843379b9dd3a122b73b169a4d22e83ddd15bb7220a7bc3f7f04cc899a6e1712",
+          "line": 13,
+          "endLine": 18,
+          "quote": "## 2. Modelo mental y conceptos\n\n1. Un CSV lookup tiene tabla y definición que deben existir en la app/contexto apropiados antes de usar el nombre en `lookup`.\n2. `lookup ... OUTPUTNEW ...` no sobrescribe un campo destino ya presente; `OUTPUT` puede sobrescribirlo: entiende la diferencia.\n3. Evita enriquecer todos los eventos si puedes agregar primero por IP y hacer lookup sobre pocas filas.\n4. Un inventario necesita fuente, vigencia, propietario y criterio para IP dinámicas/NAT; un enriquecimiento sin fecha es una hipótesis adicional.\n\n"
+        },
+        {
+          "file": "R05_CIM_NORMALIZACION/SP-R05-L02.md",
+          "sourceHash": "b843379b9dd3a122b73b169a4d22e83ddd15bb7220a7bc3f7f04cc899a6e1712",
+          "line": 27,
+          "endLine": 38,
+          "quote": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH action=failure earliest=-24h\n| stats count AS fallos BY src\n| lookup asset_inventory src OUTPUTNEW asset_name owner category\n| table src fallos asset_name owner category\n```\n\n**Interpretación, condiciones y alcance:** Sólo funcionará tras subir el CSV y crear una definición de lookup llamada `asset_inventory` con campo src, con permisos adecuados. Importar o modificar lookups NO está autorizado por esta entrega. La versión offline usa CSV y Python sin tocar Splunk.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R05-L02-P01",
+      "lessonId": "SP-R05-L02",
+      "prompt": "Diseña el proceso de enriquecimiento con el CSV de fixture y explica qué validación adicional exige un proxy compartido.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S13",
+        "SPLUNK_LECCIONES_R04_R05:S14"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica fuentes, campos, ventana y supuestos",
+        "Aplica el método al escenario y explica cifras o semántica",
+        "Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante",
+        "Presenta una respuesta reproducible sin ejecutar cambios en sistemas"
+      ],
+      "referenceAnswer": "No se cierra automáticamente: puede haber múltiples usuarios detrás. Registrar identidad del proxy, propietarios, zona horaria y logs del proxy si existen; cotejar con ventanas y conexiones individuales."
+    }
+  ],
+  "solutionsMarkdown": "## 7. Solucionario con razonamiento\n\n- **SP-R05-L02-Q01: A** — Es una fuente auxiliar que necesita verificación.\n\n- **SP-R05-L02-Q02: D** — OUTPUTNEW se usa para no reemplazar valores ya existentes en los campos de salida.\n\n- **SP-R05-L02-P01:** No se cierra automáticamente: puede haber múltiples usuarios detrás. Registrar identidad del proxy, propietarios, zona horaria y logs del proxy si existen; cotejar con ventanas y conexiones individuales.\n\n**Guía de retroalimentación formativa:** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Solucionario razonado\n\n**Q01 → B.** Contexto de activo sujeto a vigencia/calidad. Es una fuente auxiliar que necesita verificación.\n\n**Q02 → B.** Evitar sobrescribir campos destino existentes. OUTPUTNEW se usa para no reemplazar valores ya existentes en los campos de salida.\n\n**P01 → Solución orientativa:** No se cierra automáticamente: puede haber múltiples usuarios detrás. Registrar identidad del proxy, propietarios, zona horaria y logs del proxy si existen; cotejar con ventanas y conexiones individuales.\n\n**Rúbrica (0–4):** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas. Superar un test escrito no equivale por sí solo a dominar investigación SOC.\n\n",
+  "referencesMarkdown": "## 9. Fuentes y trazabilidad\n\n- **Origen curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`; título y objetivo preservados.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` (no reescrita).\n- **Puente de conceptos SC-200:** Cap. 06 (TI/enriquecimiento), 09 (investigación). Véase `../../01_FUENTE_ORIGINAL/SC-200.md` (sin trasladar esquemas literalmente).\n- **[S13] Lookups: definiciones y operaciones:** https://help.splunk.com/en/splunk-enterprise/manage-knowledge-objects/knowledge-management-manual/10.4/use-lookups-in-splunk-web/about-lookups\n- **[S14] lookup clásico, OUTPUT y OUTPUTNEW:** https://help.splunk.com/en/splunk-cloud-platform/search/search-reference/10.6/search-commands/lookup\n\n**Estatus de evidencia:** documentación del producto + diseño educativo + cálculos offline sobre fixtures (cuando se indica). No se ha verificado ejecución/compatibilidad específica en Splunk del usuario; revisar con la versión real antes de usar en producción.\n",
+  "originalMarkdown": "# SP-R05-L02 — Lookups y enriquecimiento\n\n**Región:** SP-R05 · **Prioridad:** P0/P1 SOC · **Estado:** borrador educativo para revisión · **SPL real:** no ejecutado.  \n**ID curricular intacto:** `SP-R05-L02` · **Resultado de aprendizaje:** Diseñar lookups para inventario o amenazas sin confundir enriquecimiento con evidencia  \n**Prerrequisitos:** R02 y R04; campos de fuentes conocidas · **Producto:** Splunk Enterprise/Cloud con SPL clásico según versión y permisos; CIM exige configuración pertinente.\n\n## 1. Pregunta esencial\n\nEl analista puede tener una IP de origen y querer saber si pertenece a VPN corporativa, un servidor conocido o un equipo de laboratorio. Un lookup enlaza los resultados con un catálogo de activos; añade contexto que puede orientar el triage, pero el catálogo también puede contener errores y quedar obsoleto. Un match de IP no convierte un evento benigno en malicioso ni viceversa.\n\n**Objetivo verificable:** Diseñar lookups para inventario o amenazas sin confundir enriquecimiento con evidencia.\n\n## 2. Modelo mental y conceptos\n\n1. Un CSV lookup tiene tabla y definición que deben existir en la app/contexto apropiados antes de usar el nombre en `lookup`.\n2. `lookup ... OUTPUTNEW ...` no sobrescribe un campo destino ya presente; `OUTPUT` puede sobrescribirlo: entiende la diferencia.\n3. Evita enriquecer todos los eventos si puedes agregar primero por IP y hacer lookup sobre pocas filas.\n4. Un inventario necesita fuente, vigencia, propietario y criterio para IP dinámicas/NAT; un enriquecimiento sin fecha es una hipótesis adicional.\n\n## 3. Procedimiento guiado\n\n1. Abre `asset_inventory.csv` y localiza `198.51.100.5` y `203.0.113.9`.\n2. Enriquece una tabla de fallos por src con el nombre del activo y confianza editorial de inventario; no confundas src con host destino.\n3. Deja constancia de cuándo se actualizó el catálogo y qué casos no tienen match.\n4. Prioriza una revisión del inventario antes de descartar alertas por pertenecer a una lista interna.\n\n## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH action=failure earliest=-24h\n| stats count AS fallos BY src\n| lookup asset_inventory src OUTPUTNEW asset_name owner category\n| table src fallos asset_name owner category\n```\n\n**Interpretación, condiciones y alcance:** Sólo funcionará tras subir el CSV y crear una definición de lookup llamada `asset_inventory` con campo src, con permisos adecuados. Importar o modificar lookups NO está autorizado por esta entrega. La versión offline usa CSV y Python sin tocar Splunk.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n## 5. Caso SOC\n\nLa IP de la detección está en un inventario etiquetado como “proxy compartido”. ¿Se cierra automáticamente el caso?\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 6. Actividades\n\n### SP-R05-L02-Q01 — Opción múltiple\n\n¿Qué aporta un lookup de inventario?\n\nA. Contexto del activo que debe contrastarse con la vigencia y calidad del inventario, sin cierre automático\nB. Prueba suficiente de que el acceso del activo estaba autorizado\nC. Una fuente que reemplaza el tiempo y el origen del evento observado\nD. Una identidad de usuario inferida de cualquier coincidencia por IP\n\n### SP-R05-L02-Q02 — Opción múltiple\n\n¿Qué significa OUTPUTNEW?\n\nA. Reemplazar el campo existente con el valor más reciente del CSV\nB. Crear una fila nueva para cada valor sin coincidencia\nC. Conservar solo eventos que tengan match en el inventario\nD. Evitar reemplazar campos de salida ya presentes en los eventos que se enriquecen mediante lookup\n\n### SP-R05-L02-P01 — Práctica abierta formativa\n\nDiseña el proceso de enriquecimiento con el CSV de fixture y explica qué validación adicional exige un proxy compartido.\n\n## 7. Solucionario con razonamiento\n\n- **SP-R05-L02-Q01: A** — Es una fuente auxiliar que necesita verificación.\n\n- **SP-R05-L02-Q02: D** — OUTPUTNEW se usa para no reemplazar valores ya existentes en los campos de salida.\n\n- **SP-R05-L02-P01:** No se cierra automáticamente: puede haber múltiples usuarios detrás. Registrar identidad del proxy, propietarios, zona horaria y logs del proxy si existen; cotejar con ventanas y conexiones individuales.\n\n**Guía de retroalimentación formativa:** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Solucionario razonado\n\n**Q01 → B.** Contexto de activo sujeto a vigencia/calidad. Es una fuente auxiliar que necesita verificación.\n\n**Q02 → B.** Evitar sobrescribir campos destino existentes. OUTPUTNEW se usa para no reemplazar valores ya existentes en los campos de salida.\n\n**P01 → Solución orientativa:** No se cierra automáticamente: puede haber múltiples usuarios detrás. Registrar identidad del proxy, propietarios, zona horaria y logs del proxy si existen; cotejar con ventanas y conexiones individuales.\n\n**Rúbrica (0–4):** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas. Superar un test escrito no equivale por sí solo a dominar investigación SOC.\n\n## 9. Fuentes y trazabilidad\n\n- **Origen curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`; título y objetivo preservados.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` (no reescrita).\n- **Puente de conceptos SC-200:** Cap. 06 (TI/enriquecimiento), 09 (investigación). Véase `../../01_FUENTE_ORIGINAL/SC-200.md` (sin trasladar esquemas literalmente).\n- **[S13] Lookups: definiciones y operaciones:** https://help.splunk.com/en/splunk-enterprise/manage-knowledge-objects/knowledge-management-manual/10.4/use-lookups-in-splunk-web/about-lookups\n- **[S14] lookup clásico, OUTPUT y OUTPUTNEW:** https://help.splunk.com/en/splunk-cloud-platform/search/search-reference/10.6/search-commands/lookup\n\n**Estatus de evidencia:** documentación del producto + diseño educativo + cálculos offline sobre fixtures (cuando se indica). No se ha verificado ejecución/compatibilidad específica en Splunk del usuario; revisar con la versión real antes de usar en producción.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "S13",
+      "key": "SPLUNK_LECCIONES_R04_R05:S13",
+      "url": "https://help.splunk.com/en/splunk-enterprise/manage-knowledge-objects/knowledge-management-manual/10.4/use-lookups-in-splunk-web/about-lookups"
+    },
+    {
+      "id": "S14",
+      "key": "SPLUNK_LECCIONES_R04_R05:S14",
+      "url": "https://help.splunk.com/en/splunk-cloud-platform/search/search-reference/10.6/search-commands/lookup"
+    }
+  ]
+}

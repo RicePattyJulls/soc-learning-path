@@ -1,0 +1,200 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R04-L08",
+  "title": "Proyecto: investigación cruzada SPL",
+  "revision": "c0cc6decccd7de6695c5d9cd",
+  "sourceVersion": "3f2b4121495f6ca97f4705fd9e306a4f28a31cbc8dbaa01f442b2c77f1ff428f",
+  "sanitizedHash": "3f2b4121495f6ca97f4705fd9e306a4f28a31cbc8dbaa01f442b2c77f1ff428f",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R04_R05/R04_SPL_AVANZADO/SP-R04-L08.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Crear una línea de tiempo y separar hipótesis de evidencia",
+  "preamble": "# SP-R04-L08 — Proyecto: investigación cruzada SPL\n\n**Región:** SP-R04 · **Prioridad:** P0/P1 SOC · **Estado:** borrador educativo para revisión · **SPL real:** no ejecutado.  \n**ID curricular intacto:** `SP-R04-L08` · **Resultado de aprendizaje:** Crear una línea de tiempo y separar hipótesis de evidencia  \n**Prerrequisitos:** R03 completada · **Producto:** Splunk Enterprise/Cloud con SPL clásico según versión y permisos; CIM exige configuración pertinente.\n\n",
+  "sections": [
+    {
+      "id": "SP-R04-L08-S01",
+      "title": "1. Pregunta esencial",
+      "markdown": "## 1. Pregunta esencial\n\nEl proyecto integrador combina todo el bloque: define una hipótesis de spraying, construye una agregación temporal, pivota a eventos relevantes y documenta qué evidencia queda fuera. Un buen entregable distingue lo observado en la fixture, lo que sugiere y lo que no demuestra. Si no existen eventos posteriores de éxito, esa ausencia puede deberse a falta de cobertura.\n\n**Objetivo verificable:** Crear una línea de tiempo y separar hipótesis de evidencia.\n\n",
+      "line": 7,
+      "endLine": 11
+    },
+    {
+      "id": "SP-R04-L08-S02",
+      "title": "2. Modelo mental y conceptos",
+      "markdown": "## 2. Modelo mental y conceptos\n\n1. Hipótesis: desde una IP se intentan varias cuentas en poco tiempo. Evidencia: fallos, identidades distintas y serie temporal.\n2. Controles: filtrar correctamente origen y ventana, comprobar nulos, distinguir IP compartida y cuentas de servicio.\n3. Una búsqueda orientada a detección requiere umbral defendible y datos comparables. Aquí se usa un fixture generado para enseñar, no un baseline real.\n4. Informe SOC: consulta, período, fuente, números verificables, contexto, hipótesis alternativa, limitaciones y siguiente paso autorizado.\n\n",
+      "line": 13,
+      "endLine": 18
+    },
+    {
+      "id": "SP-R04-L08-S03",
+      "title": "3. Procedimiento guiado",
+      "markdown": "## 3. Procedimiento guiado\n\n1. Ejecuta el verificador offline para conocer los números canónicos sin Splunk.\n2. Propón búsqueda que agrupe fallos por src y bloque de 15m; documenta que el resultado de 09:00 cumple >=5 cuentas.\n3. Correlaciona éxito de alice a las 09:11 sin afirmar que resulte del patrón previo.\n4. Entrega cronología, informe y una decisión INCONCLUSO o INVESTIGAR, con justificación.\n\n",
+      "line": 20,
+      "endLine": 25
+    },
+    {
+      "id": "SP-R04-L08-S04",
+      "title": "4. SPL ilustrativo — no ejecutado",
+      "markdown": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH action=failure earliest=-24h\n| bin _time span=15m\n| stats count AS fallos dc(user) AS cuentas BY src _time\n| where cuentas>=5\n```\n\n**Interpretación, condiciones y alcance:** En esta fixture el bucket 09:00 de 203.0.113.9 tiene 7 fallos y cinco identidades; el posterior éxito alice requiere análisis adicional. Las búsquedas no se han ejecutado en Splunk: son propuestas contra un esquema declarado.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n",
+      "line": 27,
+      "endLine": 38
+    },
+    {
+      "id": "SP-R04-L08-S05",
+      "title": "5. Caso SOC",
+      "markdown": "## 5. Caso SOC\n\nEl equipo solicita un informe de triage de 6 líneas. Sólo dispones de la fixture y el inventario de activos parcial.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 40,
+      "endLine": 45
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R04-L08-Q01",
+      "lessonId": "SP-R04-L08",
+      "prompt": "¿Cuál conclusión respeta la evidencia del proyecto?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S01",
+        "SPLUNK_LECCIONES_R04_R05:S03",
+        "SPLUNK_LECCIONES_R04_R05:S02"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R04-L08-Q01-O-093188f40190",
+          "text": "El éxito de alice demuestra que se obtuvieron sus credenciales"
+        },
+        {
+          "id": "SP-R04-L08-Q01-O-34a9de756ce2",
+          "text": "La etiqueta de proxy permite cerrar como benignos todos sus eventos"
+        },
+        {
+          "id": "SP-R04-L08-Q01-O-d47fb10886f2",
+          "text": "El umbral permite atribuir el patrón a una única máquina atacante"
+        },
+        {
+          "id": "SP-R04-L08-Q01-O-6200091bef1f",
+          "text": "Patrón sospechoso pendiente de contexto"
+        }
+      ],
+      "solution": "SP-R04-L08-Q01-O-6200091bef1f",
+      "explanation": "Los hechos permiten sospecha y solicitud de contexto, no atribución.",
+      "anchors": [
+        {
+          "file": "R04_SPL_AVANZADO/SP-R04-L08.md",
+          "sourceHash": "3f2b4121495f6ca97f4705fd9e306a4f28a31cbc8dbaa01f442b2c77f1ff428f",
+          "line": 13,
+          "endLine": 18,
+          "quote": "## 2. Modelo mental y conceptos\n\n1. Hipótesis: desde una IP se intentan varias cuentas en poco tiempo. Evidencia: fallos, identidades distintas y serie temporal.\n2. Controles: filtrar correctamente origen y ventana, comprobar nulos, distinguir IP compartida y cuentas de servicio.\n3. Una búsqueda orientada a detección requiere umbral defendible y datos comparables. Aquí se usa un fixture generado para enseñar, no un baseline real.\n4. Informe SOC: consulta, período, fuente, números verificables, contexto, hipótesis alternativa, limitaciones y siguiente paso autorizado.\n\n"
+        },
+        {
+          "file": "R04_SPL_AVANZADO/SP-R04-L08.md",
+          "sourceHash": "3f2b4121495f6ca97f4705fd9e306a4f28a31cbc8dbaa01f442b2c77f1ff428f",
+          "line": 27,
+          "endLine": 38,
+          "quote": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH action=failure earliest=-24h\n| bin _time span=15m\n| stats count AS fallos dc(user) AS cuentas BY src _time\n| where cuentas>=5\n```\n\n**Interpretación, condiciones y alcance:** En esta fixture el bucket 09:00 de 203.0.113.9 tiene 7 fallos y cinco identidades; el posterior éxito alice requiere análisis adicional. Las búsquedas no se han ejecutado en Splunk: son propuestas contra un esquema declarado.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R04-L08-Q02",
+      "lessonId": "SP-R04-L08",
+      "prompt": "¿Qué dato mínimo hace reproducible el análisis?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S01",
+        "SPLUNK_LECCIONES_R04_R05:S03",
+        "SPLUNK_LECCIONES_R04_R05:S02"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R04-L08-Q02-O-011b607ac618",
+          "text": "Un conteo final sin identificar la población de eventos"
+        },
+        {
+          "id": "SP-R04-L08-Q02-O-784f9ef01462",
+          "text": "El nombre de la regla sin la revisión ni las condiciones que se evaluaron"
+        },
+        {
+          "id": "SP-R04-L08-Q02-O-32b60b2e6417",
+          "text": "SPL, fuente, ventana y condiciones"
+        },
+        {
+          "id": "SP-R04-L08-Q02-O-a198e2d2d049",
+          "text": "Una captura con la hora del analista, pero sin rango de búsqueda"
+        }
+      ],
+      "solution": "SP-R04-L08-Q02-O-32b60b2e6417",
+      "explanation": "Sin trazabilidad de consulta y fuentes no se puede revisar el resultado.",
+      "anchors": [
+        {
+          "file": "R04_SPL_AVANZADO/SP-R04-L08.md",
+          "sourceHash": "3f2b4121495f6ca97f4705fd9e306a4f28a31cbc8dbaa01f442b2c77f1ff428f",
+          "line": 13,
+          "endLine": 18,
+          "quote": "## 2. Modelo mental y conceptos\n\n1. Hipótesis: desde una IP se intentan varias cuentas en poco tiempo. Evidencia: fallos, identidades distintas y serie temporal.\n2. Controles: filtrar correctamente origen y ventana, comprobar nulos, distinguir IP compartida y cuentas de servicio.\n3. Una búsqueda orientada a detección requiere umbral defendible y datos comparables. Aquí se usa un fixture generado para enseñar, no un baseline real.\n4. Informe SOC: consulta, período, fuente, números verificables, contexto, hipótesis alternativa, limitaciones y siguiente paso autorizado.\n\n"
+        },
+        {
+          "file": "R04_SPL_AVANZADO/SP-R04-L08.md",
+          "sourceHash": "3f2b4121495f6ca97f4705fd9e306a4f28a31cbc8dbaa01f442b2c77f1ff428f",
+          "line": 27,
+          "endLine": 38,
+          "quote": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH action=failure earliest=-24h\n| bin _time span=15m\n| stats count AS fallos dc(user) AS cuentas BY src _time\n| where cuentas>=5\n```\n\n**Interpretación, condiciones y alcance:** En esta fixture el bucket 09:00 de 203.0.113.9 tiene 7 fallos y cinco identidades; el posterior éxito alice requiere análisis adicional. Las búsquedas no se han ejecutado en Splunk: son propuestas contra un esquema declarado.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R04-L08-P01",
+      "lessonId": "SP-R04-L08",
+      "prompt": "Entrega consulta, salida esperada, cronología, hipótesis adversaria y benigna, datos ausentes y propuesta de siguiente consulta segura. Justifica por qué no se ejecuta respuesta automática.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S01",
+        "SPLUNK_LECCIONES_R04_R05:S03",
+        "SPLUNK_LECCIONES_R04_R05:S02"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica fuentes, campos, ventana y supuestos",
+        "Aplica el método al escenario y explica cifras o semántica",
+        "Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante",
+        "Presenta una respuesta reproducible sin ejecutar cambios en sistemas"
+      ],
+      "referenceAnswer": "Evidencia: 09:01–09:10 7 fallos, 5 usuarios distintos desde 203.0.113.9; éxito de alice 09:11. Interpretación: patrón compatible con spraying pero también NAT/prueba legítima. Pendientes: origen real, reputación/propiedad, baseline, resultado de autenticación en fuentes independientes, cobertura. No hay prueba de compromiso."
+    }
+  ],
+  "solutionsMarkdown": "## 7. Solucionario con razonamiento\n\n- **SP-R04-L08-Q01: D** — Los hechos permiten sospecha y solicitud de contexto, no atribución.\n\n- **SP-R04-L08-Q02: C** — Sin trazabilidad de consulta y fuentes no se puede revisar el resultado.\n\n- **SP-R04-L08-P01:** Evidencia: 09:01–09:10 7 fallos, 5 usuarios distintos desde 203.0.113.9; éxito de alice 09:11. Interpretación: patrón compatible con spraying pero también NAT/prueba legítima. Pendientes: origen real, reputación/propiedad, baseline, resultado de autenticación en fuentes independientes, cobertura. No hay prueba de compromiso.\n\n**Guía de retroalimentación formativa:** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Solucionario razonado\n\n**Q01 → B.** Patrón sospechoso pendiente de contexto. Los hechos permiten sospecha y solicitud de contexto, no atribución.\n\n**Q02 → A.** SPL, fuente, ventana y condiciones. Sin trazabilidad de consulta y fuentes no se puede revisar el resultado.\n\n**P01 → Solución orientativa:** Evidencia: 09:01–09:10 7 fallos, 5 usuarios distintos desde 203.0.113.9; éxito de alice 09:11. Interpretación: patrón compatible con spraying pero también NAT/prueba legítima. Pendientes: origen real, reputación/propiedad, baseline, resultado de autenticación en fuentes independientes, cobertura. No hay prueba de compromiso.\n\n**Rúbrica (0–4):** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas. Superar un test escrito no equivale por sí solo a dominar investigación SOC.\n\n",
+  "referencesMarkdown": "## 9. Fuentes y trazabilidad\n\n- **Origen curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`; título y objetivo preservados.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` (no reescrita).\n- **Puente de conceptos SC-200:** Cap. 07/08/09/10/13 (detección, correlación, investigación, hunting, KQL). Véase `../../01_FUENTE_ORIGINAL/SC-200.md` (sin trasladar esquemas literalmente).\n- **[S01] Estadísticas: stats, eventstats, streamstats:** https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.0/calculate-statistics/use-the-stats-command-and-functions\n- **[S03] bin y ventanas discretas:** https://help.splunk.com/en/splunk-enterprise/search/spl-search-reference/10.0/search-commands/bin\n- **[S02] streamstats (SPL clásico):** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.0/search-commands/streamstats\n\n**Estatus de evidencia:** documentación del producto + diseño educativo + cálculos offline sobre fixtures (cuando se indica). No se ha verificado ejecución/compatibilidad específica en Splunk del usuario; revisar con la versión real antes de usar en producción.\n",
+  "originalMarkdown": "# SP-R04-L08 — Proyecto: investigación cruzada SPL\n\n**Región:** SP-R04 · **Prioridad:** P0/P1 SOC · **Estado:** borrador educativo para revisión · **SPL real:** no ejecutado.  \n**ID curricular intacto:** `SP-R04-L08` · **Resultado de aprendizaje:** Crear una línea de tiempo y separar hipótesis de evidencia  \n**Prerrequisitos:** R03 completada · **Producto:** Splunk Enterprise/Cloud con SPL clásico según versión y permisos; CIM exige configuración pertinente.\n\n## 1. Pregunta esencial\n\nEl proyecto integrador combina todo el bloque: define una hipótesis de spraying, construye una agregación temporal, pivota a eventos relevantes y documenta qué evidencia queda fuera. Un buen entregable distingue lo observado en la fixture, lo que sugiere y lo que no demuestra. Si no existen eventos posteriores de éxito, esa ausencia puede deberse a falta de cobertura.\n\n**Objetivo verificable:** Crear una línea de tiempo y separar hipótesis de evidencia.\n\n## 2. Modelo mental y conceptos\n\n1. Hipótesis: desde una IP se intentan varias cuentas en poco tiempo. Evidencia: fallos, identidades distintas y serie temporal.\n2. Controles: filtrar correctamente origen y ventana, comprobar nulos, distinguir IP compartida y cuentas de servicio.\n3. Una búsqueda orientada a detección requiere umbral defendible y datos comparables. Aquí se usa un fixture generado para enseñar, no un baseline real.\n4. Informe SOC: consulta, período, fuente, números verificables, contexto, hipótesis alternativa, limitaciones y siguiente paso autorizado.\n\n## 3. Procedimiento guiado\n\n1. Ejecuta el verificador offline para conocer los números canónicos sin Splunk.\n2. Propón búsqueda que agrupe fallos por src y bloque de 15m; documenta que el resultado de 09:00 cumple >=5 cuentas.\n3. Correlaciona éxito de alice a las 09:11 sin afirmar que resulte del patrón previo.\n4. Entrega cronología, informe y una decisión INCONCLUSO o INVESTIGAR, con justificación.\n\n## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH action=failure earliest=-24h\n| bin _time span=15m\n| stats count AS fallos dc(user) AS cuentas BY src _time\n| where cuentas>=5\n```\n\n**Interpretación, condiciones y alcance:** En esta fixture el bucket 09:00 de 203.0.113.9 tiene 7 fallos y cinco identidades; el posterior éxito alice requiere análisis adicional. Las búsquedas no se han ejecutado en Splunk: son propuestas contra un esquema declarado.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n## 5. Caso SOC\n\nEl equipo solicita un informe de triage de 6 líneas. Sólo dispones de la fixture y el inventario de activos parcial.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 6. Actividades\n\n### SP-R04-L08-Q01 — Opción múltiple\n\n¿Cuál conclusión respeta la evidencia del proyecto?\n\nA. El éxito de alice demuestra que se obtuvieron sus credenciales\nB. La etiqueta de proxy permite cerrar como benignos todos sus eventos\nC. El umbral permite atribuir el patrón a una única máquina atacante\nD. Patrón sospechoso pendiente de contexto\n\n### SP-R04-L08-Q02 — Opción múltiple\n\n¿Qué dato mínimo hace reproducible el análisis?\n\nA. Un conteo final sin identificar la población de eventos\nB. El nombre de la regla sin la revisión ni las condiciones que se evaluaron\nC. SPL, fuente, ventana y condiciones\nD. Una captura con la hora del analista, pero sin rango de búsqueda\n\n### SP-R04-L08-P01 — Práctica abierta formativa\n\nEntrega consulta, salida esperada, cronología, hipótesis adversaria y benigna, datos ausentes y propuesta de siguiente consulta segura. Justifica por qué no se ejecuta respuesta automática.\n\n## 7. Solucionario con razonamiento\n\n- **SP-R04-L08-Q01: D** — Los hechos permiten sospecha y solicitud de contexto, no atribución.\n\n- **SP-R04-L08-Q02: C** — Sin trazabilidad de consulta y fuentes no se puede revisar el resultado.\n\n- **SP-R04-L08-P01:** Evidencia: 09:01–09:10 7 fallos, 5 usuarios distintos desde 203.0.113.9; éxito de alice 09:11. Interpretación: patrón compatible con spraying pero también NAT/prueba legítima. Pendientes: origen real, reputación/propiedad, baseline, resultado de autenticación en fuentes independientes, cobertura. No hay prueba de compromiso.\n\n**Guía de retroalimentación formativa:** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Solucionario razonado\n\n**Q01 → B.** Patrón sospechoso pendiente de contexto. Los hechos permiten sospecha y solicitud de contexto, no atribución.\n\n**Q02 → A.** SPL, fuente, ventana y condiciones. Sin trazabilidad de consulta y fuentes no se puede revisar el resultado.\n\n**P01 → Solución orientativa:** Evidencia: 09:01–09:10 7 fallos, 5 usuarios distintos desde 203.0.113.9; éxito de alice 09:11. Interpretación: patrón compatible con spraying pero también NAT/prueba legítima. Pendientes: origen real, reputación/propiedad, baseline, resultado de autenticación en fuentes independientes, cobertura. No hay prueba de compromiso.\n\n**Rúbrica (0–4):** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas. Superar un test escrito no equivale por sí solo a dominar investigación SOC.\n\n## 9. Fuentes y trazabilidad\n\n- **Origen curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`; título y objetivo preservados.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` (no reescrita).\n- **Puente de conceptos SC-200:** Cap. 07/08/09/10/13 (detección, correlación, investigación, hunting, KQL). Véase `../../01_FUENTE_ORIGINAL/SC-200.md` (sin trasladar esquemas literalmente).\n- **[S01] Estadísticas: stats, eventstats, streamstats:** https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.0/calculate-statistics/use-the-stats-command-and-functions\n- **[S03] bin y ventanas discretas:** https://help.splunk.com/en/splunk-enterprise/search/spl-search-reference/10.0/search-commands/bin\n- **[S02] streamstats (SPL clásico):** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.0/search-commands/streamstats\n\n**Estatus de evidencia:** documentación del producto + diseño educativo + cálculos offline sobre fixtures (cuando se indica). No se ha verificado ejecución/compatibilidad específica en Splunk del usuario; revisar con la versión real antes de usar en producción.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "S01",
+      "key": "SPLUNK_LECCIONES_R04_R05:S01",
+      "url": "https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.0/calculate-statistics/use-the-stats-command-and-functions"
+    },
+    {
+      "id": "S03",
+      "key": "SPLUNK_LECCIONES_R04_R05:S03",
+      "url": "https://help.splunk.com/en/splunk-enterprise/search/spl-search-reference/10.0/search-commands/bin"
+    },
+    {
+      "id": "S02",
+      "key": "SPLUNK_LECCIONES_R04_R05:S02",
+      "url": "https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.0/search-commands/streamstats"
+    }
+  ]
+}

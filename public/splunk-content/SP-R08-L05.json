@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R08-L05",
+  "title": "Movimiento lateral y persistencia",
+  "revision": "09937d28e4348db13c8fe89f",
+  "sourceVersion": "70cef18fb8c3a87c331fbf1e7e6bd63ac4fbe60792344dc7c7749cb2b904af03",
+  "sanitizedHash": "70cef18fb8c3a87c331fbf1e7e6bd63ac4fbe60792344dc7c7749cb2b904af03",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R08_R09/R08_THREAT_HUNTING/SP-R08-L05.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Relacionar host/identidad/tiempo y cambios de privilegios",
+  "preamble": "# SP-R08-L05 — Movimiento lateral y persistencia\n\n**Región:** SP-R08 · **Estado:** borrador editorial para revisión · **SPL:** ilustrativo NO ejecutado.\n\n**Resultado de aprendizaje curricular:** Relacionar host/identidad/tiempo y cambios de privilegios.\n\n**Prerrequisitos:** R01–R07 según tema; R08 para agrupación/escalado R09. **Producto:** plataforma Splunk para SPL genérico; funciones ES 8.7/SOAR solo cuando se indiquen.\n\n",
+  "sections": [
+    {
+      "id": "SP-R08-L05-S01",
+      "title": "1. Explicación técnica",
+      "markdown": "## 1. Explicación técnica\n\nMovimiento lateral es el desplazamiento de actividad hacia otros sistemas tras conseguir algún medio de acceso; no es simplemente «muchos eventos en una IP». Servicios de acceso remoto, credenciales válidas, autenticaciones de red, creación de servicios y ejecuciones remotas pueden participar. La técnica ATT&CK T1021 describe servicios remotos, pero un acceso RDP, WinRM o SMB puede ser completamente legítimo.\n\nPara construir una cronología defensiva correlaciona quién inició, en qué host, desde qué origen, cuándo y qué ocurrió después. Evita unir registros porque comparten un nombre sin normalizar dominio o porque ocurren en la misma hora. Un salto en `host` no significa que `src` corresponda al atacante; ambos campos reflejan la instrumentación real.\n\nLos cambios de privilegios y la persistencia pueden aportar contexto, pero requieren fuentes separadas y atribución cuidadosa. La relación «fallos → logon → nuevo host → modificación de grupo» es hipótesis de campaña hasta investigar aplicaciones, cuentas técnicas y autorizaciones.\n\n",
+      "line": 9,
+      "endLine": 15
+    },
+    {
+      "id": "SP-R08-L05-S02",
+      "title": "2. Conceptos que debes distinguir",
+      "markdown": "## 2. Conceptos que debes distinguir\n\n1. T1021 agrupa servicios remotos, no determina intencionalidad\n2. Join con identidad normalizada, tiempo, host y origen\n3. Evidencia de acceso diferente de ejecución de comandos\n4. Baseline de administración y cambios autorizados\n\n",
+      "line": 17,
+      "endLine": 22
+    },
+    {
+      "id": "SP-R08-L05-S03",
+      "title": "3. Procedimiento reproducible y seguro",
+      "markdown": "## 3. Procedimiento reproducible y seguro\n\n1. Identifica fuente y tipo de logon remoto.\n2. Construye pivotes por usuario y host con control temporal.\n3. Correlaciona endpoints y cambios de cuenta si hay telemetría.\n4. Contrasta tareas programadas, saltos de soporte y cuentas de servicio.\n5. Entrega cronología y lagunas antes de declarar movimiento lateral.\n\n",
+      "line": 24,
+      "endLine": 30
+    },
+    {
+      "id": "SP-R08-L05-S04",
+      "title": "4. SPL ilustrativo (solo lectura; no probado)",
+      "markdown": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_AUTH sourcetype=ST_AUTH status=\"success\"\n| sort 0 user _time\n| streamstats current=f last(host) AS host_anterior BY user\n| where isnotnull(host_anterior) AND host!=host_anterior\n| table _time user src host_anterior host\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n",
+      "line": 32,
+      "endLine": 42
+    },
+    {
+      "id": "SP-R08-L05-S05",
+      "title": "5. Escenario SOC",
+      "markdown": "## 5. Escenario SOC\n\nUn administrador inicia sesión desde bastión a dos servidores durante una ventana aprobada: la transición entre hosts es real, el origen malicioso no está demostrado.\n\n## 6. Errores frecuentes\n\n1. Confundir normalización de `host` con endpoint atacante\n2. Asumir que cada cambio de host es lateral movement\n3. Omitir registros de endpoint y protocolos\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 44,
+      "endLine": 55
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R08-L05-Q01",
+      "lessonId": "SP-R08-L05",
+      "prompt": "¿Qué añade fuerza a una hipótesis de movimiento lateral?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D04"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R08-L05-Q01-O-eed8122b8755",
+          "text": "Un cambio de src sin eventos que acrediten acceso remoto al destino"
+        },
+        {
+          "id": "SP-R08-L05-Q01-O-3bc2a47db5e6",
+          "text": "La aparición de dos hosts sin tiempos ni tipo de autenticación"
+        },
+        {
+          "id": "SP-R08-L05-Q01-O-c84fe7ca4c42",
+          "text": "La misma cadena de usuario sin comprobar dominio o destino"
+        },
+        {
+          "id": "SP-R08-L05-Q01-O-6f00d3bec307",
+          "text": "Relación temporal entre acceso remoto y acciones verificadas en nuevo host"
+        }
+      ],
+      "solution": "SP-R08-L05-Q01-O-6f00d3bec307",
+      "explanation": "El análisis multifuente reduce falsas asociaciones.",
+      "anchors": [
+        {
+          "file": "R08_THREAT_HUNTING/SP-R08-L05.md",
+          "sourceHash": "70cef18fb8c3a87c331fbf1e7e6bd63ac4fbe60792344dc7c7749cb2b904af03",
+          "line": 17,
+          "endLine": 22,
+          "quote": "## 2. Conceptos que debes distinguir\n\n1. T1021 agrupa servicios remotos, no determina intencionalidad\n2. Join con identidad normalizada, tiempo, host y origen\n3. Evidencia de acceso diferente de ejecución de comandos\n4. Baseline de administración y cambios autorizados\n\n"
+        },
+        {
+          "file": "R08_THREAT_HUNTING/SP-R08-L05.md",
+          "sourceHash": "70cef18fb8c3a87c331fbf1e7e6bd63ac4fbe60792344dc7c7749cb2b904af03",
+          "line": 32,
+          "endLine": 42,
+          "quote": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_AUTH sourcetype=ST_AUTH status=\"success\"\n| sort 0 user _time\n| streamstats current=f last(host) AS host_anterior BY user\n| where isnotnull(host_anterior) AND host!=host_anterior\n| table _time user src host_anterior host\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R08-L05-Q02",
+      "lessonId": "SP-R08-L05",
+      "prompt": "¿Qué no demuestra una transición de host por usuario?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D04"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R08-L05-Q02-O-e46287a65e60",
+          "text": "Que se puede ordenar la actividad si las marcas temporales son comparables"
+        },
+        {
+          "id": "SP-R08-L05-Q02-O-55bff3a976f7",
+          "text": "Que el movimiento sea malicioso"
+        },
+        {
+          "id": "SP-R08-L05-Q02-O-2338652212e2",
+          "text": "Que hubo dos valores distintos del campo host en la secuencia observada"
+        },
+        {
+          "id": "SP-R08-L05-Q02-O-67b0d9de78ae",
+          "text": "Que se dispone de una clave de usuario para investigar la relación"
+        }
+      ],
+      "solution": "SP-R08-L05-Q02-O-55bff3a976f7",
+      "explanation": "El acceso legítimo también cambia entre equipos.",
+      "anchors": [
+        {
+          "file": "R08_THREAT_HUNTING/SP-R08-L05.md",
+          "sourceHash": "70cef18fb8c3a87c331fbf1e7e6bd63ac4fbe60792344dc7c7749cb2b904af03",
+          "line": 17,
+          "endLine": 22,
+          "quote": "## 2. Conceptos que debes distinguir\n\n1. T1021 agrupa servicios remotos, no determina intencionalidad\n2. Join con identidad normalizada, tiempo, host y origen\n3. Evidencia de acceso diferente de ejecución de comandos\n4. Baseline de administración y cambios autorizados\n\n"
+        },
+        {
+          "file": "R08_THREAT_HUNTING/SP-R08-L05.md",
+          "sourceHash": "70cef18fb8c3a87c331fbf1e7e6bd63ac4fbe60792344dc7c7749cb2b904af03",
+          "line": 32,
+          "endLine": 42,
+          "quote": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_AUTH sourcetype=ST_AUTH status=\"success\"\n| sort 0 user _time\n| streamstats current=f last(host) AS host_anterior BY user\n| where isnotnull(host_anterior) AND host!=host_anterior\n| table _time user src host_anterior host\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R08-L05-P01",
+      "lessonId": "SP-R08-L05",
+      "prompt": "Define pivotes mínimos para investigar una cuenta que aparece en tres hosts.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D04"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Distingue fuente, campos y alcance de la pregunta",
+        "Diseña un método reproducible sin inferencia abusiva",
+        "Separa señales, hipótesis, contraejemplos y ausencia de datos",
+        "Comunica siguiente paso seguro y evidencia para otro analista"
+      ],
+      "referenceAnswer": "Usar identidad canónica dominio\\usuario, tiempos normalizados, tipo de logon, origen, host destino, inventario, agentes EDR y aprobaciones; evitar un join incondicional por username."
+    }
+  ],
+  "solutionsMarkdown": "## 8. Solucionario con razonamiento\n\n- **SP-R08-L05-Q01: D** — El análisis multifuente reduce falsas asociaciones.\n\n- **SP-R08-L05-Q02: B** — El acceso legítimo también cambia entre equipos.\n\n- **SP-R08-L05-P01:** Usar identidad canónica dominio\\usuario, tiempos normalizados, tipo de logon, origen, host destino, inventario, agentes EDR y aprobaciones; evitar un join incondicional por username.\n\n**Guía de retroalimentación formativa:** Distingue fuente, campos y alcance de la pregunta; Diseña un método reproducible sin inferencia abusiva; Separa señales, hipótesis, contraejemplos y ausencia de datos; Comunica siguiente paso seguro y evidencia para otro analista.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 9. Fuentes verificables y conexiones\n\n- **D04:** MITRE ATT&CK — Remote Services (T1021) — https://attack.mitre.org/techniques/T1021/\n\n- **Puente SC-200:** Capítulos 09, 10 y 13 (relaciones entre entidades y cronologías). La comparación es conceptual, no una equivalencia producto a producto.\n- **Fuente curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` en la carpeta padre `SPLUNK_MASTER_RESEARCH`.\n- **Calidad:** [DOC] referencias externas consultables; [DISEÑO] escenario y actividad originales; [OFFLINE] solo cálculos de fixture; [NO PROBADO] SPL no ejecutado en Splunk. La revisión técnica independiente queda pendiente.\n",
+  "originalMarkdown": "# SP-R08-L05 — Movimiento lateral y persistencia\n\n**Región:** SP-R08 · **Estado:** borrador editorial para revisión · **SPL:** ilustrativo NO ejecutado.\n\n**Resultado de aprendizaje curricular:** Relacionar host/identidad/tiempo y cambios de privilegios.\n\n**Prerrequisitos:** R01–R07 según tema; R08 para agrupación/escalado R09. **Producto:** plataforma Splunk para SPL genérico; funciones ES 8.7/SOAR solo cuando se indiquen.\n\n## 1. Explicación técnica\n\nMovimiento lateral es el desplazamiento de actividad hacia otros sistemas tras conseguir algún medio de acceso; no es simplemente «muchos eventos en una IP». Servicios de acceso remoto, credenciales válidas, autenticaciones de red, creación de servicios y ejecuciones remotas pueden participar. La técnica ATT&CK T1021 describe servicios remotos, pero un acceso RDP, WinRM o SMB puede ser completamente legítimo.\n\nPara construir una cronología defensiva correlaciona quién inició, en qué host, desde qué origen, cuándo y qué ocurrió después. Evita unir registros porque comparten un nombre sin normalizar dominio o porque ocurren en la misma hora. Un salto en `host` no significa que `src` corresponda al atacante; ambos campos reflejan la instrumentación real.\n\nLos cambios de privilegios y la persistencia pueden aportar contexto, pero requieren fuentes separadas y atribución cuidadosa. La relación «fallos → logon → nuevo host → modificación de grupo» es hipótesis de campaña hasta investigar aplicaciones, cuentas técnicas y autorizaciones.\n\n## 2. Conceptos que debes distinguir\n\n1. T1021 agrupa servicios remotos, no determina intencionalidad\n2. Join con identidad normalizada, tiempo, host y origen\n3. Evidencia de acceso diferente de ejecución de comandos\n4. Baseline de administración y cambios autorizados\n\n## 3. Procedimiento reproducible y seguro\n\n1. Identifica fuente y tipo de logon remoto.\n2. Construye pivotes por usuario y host con control temporal.\n3. Correlaciona endpoints y cambios de cuenta si hay telemetría.\n4. Contrasta tareas programadas, saltos de soporte y cuentas de servicio.\n5. Entrega cronología y lagunas antes de declarar movimiento lateral.\n\n## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_AUTH sourcetype=ST_AUTH status=\"success\"\n| sort 0 user _time\n| streamstats current=f last(host) AS host_anterior BY user\n| where isnotnull(host_anterior) AND host!=host_anterior\n| table _time user src host_anterior host\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n## 5. Escenario SOC\n\nUn administrador inicia sesión desde bastión a dos servidores durante una ventana aprobada: la transición entre hosts es real, el origen malicioso no está demostrado.\n\n## 6. Errores frecuentes\n\n1. Confundir normalización de `host` con endpoint atacante\n2. Asumir que cada cambio de host es lateral movement\n3. Omitir registros de endpoint y protocolos\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R08-L05-Q01 — Opción múltiple\n\n¿Qué añade fuerza a una hipótesis de movimiento lateral?\n\nA. Un cambio de src sin eventos que acrediten acceso remoto al destino\nB. La aparición de dos hosts sin tiempos ni tipo de autenticación\nC. La misma cadena de usuario sin comprobar dominio o destino\nD. Relación temporal entre acceso remoto y acciones verificadas en nuevo host\n\n### SP-R08-L05-Q02 — Opción múltiple\n\n¿Qué no demuestra una transición de host por usuario?\n\nA. Que se puede ordenar la actividad si las marcas temporales son comparables\nB. Que el movimiento sea malicioso\nC. Que hubo dos valores distintos del campo host en la secuencia observada\nD. Que se dispone de una clave de usuario para investigar la relación\n\n### SP-R08-L05-P01 — Práctica abierta formativa\n\nDefine pivotes mínimos para investigar una cuenta que aparece en tres hosts.\n\n## 8. Solucionario con razonamiento\n\n- **SP-R08-L05-Q01: D** — El análisis multifuente reduce falsas asociaciones.\n\n- **SP-R08-L05-Q02: B** — El acceso legítimo también cambia entre equipos.\n\n- **SP-R08-L05-P01:** Usar identidad canónica dominio\\usuario, tiempos normalizados, tipo de logon, origen, host destino, inventario, agentes EDR y aprobaciones; evitar un join incondicional por username.\n\n**Guía de retroalimentación formativa:** Distingue fuente, campos y alcance de la pregunta; Diseña un método reproducible sin inferencia abusiva; Separa señales, hipótesis, contraejemplos y ausencia de datos; Comunica siguiente paso seguro y evidencia para otro analista.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 9. Fuentes verificables y conexiones\n\n- **D04:** MITRE ATT&CK — Remote Services (T1021) — https://attack.mitre.org/techniques/T1021/\n\n- **Puente SC-200:** Capítulos 09, 10 y 13 (relaciones entre entidades y cronologías). La comparación es conceptual, no una equivalencia producto a producto.\n- **Fuente curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` en la carpeta padre `SPLUNK_MASTER_RESEARCH`.\n- **Calidad:** [DOC] referencias externas consultables; [DISEÑO] escenario y actividad originales; [OFFLINE] solo cálculos de fixture; [NO PROBADO] SPL no ejecutado en Splunk. La revisión técnica independiente queda pendiente.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D04",
+      "key": "SPLUNK_LECCIONES_R08_R09:D04",
+      "url": "https://attack.mitre.org/techniques/T1021/"
+    }
+  ]
+}

@@ -1,0 +1,237 @@
+{
+  "courseId": "splunk",
+  "regionId": "SP-R10",
+  "lab": "# LAB10-A — Retención y cobertura\n\n**Asociación curricular:** R10-L04. **Datos:** `retention_plan.csv`. **Estado:** práctica offline sobre simulación sintética; no ejecutada en producto.\n\n**Objetivo:** evaluar riesgo de capacidad con aritmética reproducible sin tocar `indexes.conf`.\n\n1. Para cada fila calcula `capacity_gib / daily_gib` como días equivalentes del modelo simple.\n2. Compara contra `target_days` y clasifica capacidad insuficiente o nominalmente suficiente.\n3. Explica por qué límites de buckets, compresión, replicación y almacenamiento remoto impiden afirmar una retención exacta.\n4. Añade un comentario sobre `archive_policy` y pérdida irreversible potencial.\n\n**Resultado esperado:** `auth_training` 13,33 días (<30), `endpoint_training` 90 (>=60), `netflow_training` 20 (<45), `audit_training` 120 (>=90). Dos casos son insuficientes por este modelo. No es medición de Splunk.\n\n**Seguridad:** ningún paso aplica cambios en Splunk/REST/SOAR/firewall/AD. Los valores son materiales pedagógicos, no evidencia de producción.\n\n\n# LAB10-B — Ingesta y cobertura\n\n**Asociación curricular:** R10-L05. **Datos:** `ingestion_diagnosis.csv`. **Estado:** práctica offline sobre simulación sintética; no ejecutada en producto.\n\n**Objetivo:** distinguir causa probable, ambigüedad y permisos sin modificar fuentes.\n\n1. Separa señal de retraso, posible duplicación y ausencia por RBAC.\n2. Determina qué verificación no destructiva pedirías para cada host.\n3. Define cuándo quedaría prohibido declarar «no hay datos».\n\n**Resultado esperado:** ING01 muestra telemetría reciente; ING02 tiene lag sintético de 1800 s; ING03 es indeterminado por `search_access=denied`; ING04 sugiere inputs duplicados (`duplicate_factor=2`), no diagnóstico confirmado.\n\n**Seguridad:** ningún paso aplica cambios en Splunk/REST/SOAR/firewall/AD. Los valores son materiales pedagógicos, no evidencia de producción.\n\n\n# LAB10-C — Comparación de búsquedas\n\n**Asociación curricular:** R10-L06. **Datos:** `search_jobs.csv`. **Estado:** práctica offline sobre simulación sintética; no ejecutada en producto.\n\n**Objetivo:** comparar solo variantes con salida comparable.\n\n1. Calcula reducción de `scan_count` y `elapsed_sec` de B contra A.\n2. Verifica que `output_hash` y `result_count` coinciden antes de declarar equivalencia en el fixture.\n3. Explica por qué C no es un éxito aunque sea la más rápida.\n4. Diseña qué propiedades adicionales revisarías en Search Job Inspector real.\n\n**Resultado esperado:** reducción de eventos escaneados del 88 %, tiempo ficticio 83,33 %. C tiene resultado distinto: **optimización no comparable**. Ninguna cifra proviene del Job Inspector real.\n\n**Seguridad:** ningún paso aplica cambios en Splunk/REST/SOAR/firewall/AD. Los valores son materiales pedagógicos, no evidencia de producción.\n",
+  "datasets": {
+    "schema_version": "1.0",
+    "revision": "2026-10-16-r1",
+    "package": "SPLUNK_LECCIONES_R10_R11",
+    "scope": "synthetic_csv_contract_offline_only",
+    "splunk_execution": false,
+    "datasets": [
+      {
+        "file": "PRACTICAS/fixtures/api_job_lifecycle.csv",
+        "sha256": "bd5c1b6d23cbe631ebbfed0468aae5983a9aff80b8cf573295412a107184ffec",
+        "row_count": 4,
+        "columns": [
+          "case_id",
+          "sid",
+          "job_status",
+          "requester_role",
+          "result_request_count",
+          "expected_decision"
+        ],
+        "row_id": "case_id",
+        "field_mapping_for_design": {
+          "case_id": "case_id",
+          "sid": "sid",
+          "job_status": "job_status",
+          "requester_role": "requester_role",
+          "result_request_count": "result_request_count",
+          "expected_decision": "expected_decision"
+        },
+        "timezone": "UTC where a time/date column exists",
+        "time_bounds": "[start,end)",
+        "snapshot_cutoff": "synthetic_index_time < cutoff",
+        "mapping_executed_in_splunk": false
+      },
+      {
+        "file": "PRACTICAS/fixtures/automation_runs.csv",
+        "sha256": "5c1c6d31127a9e11d412eee3ca56de5259f47dc80edc43d15c22c1e3e4d4df79",
+        "row_count": 8,
+        "columns": [
+          "attempt_id",
+          "idempotency_key",
+          "mode",
+          "status",
+          "meaning"
+        ],
+        "row_id": "attempt_id",
+        "field_mapping_for_design": {
+          "attempt_id": "attempt_id",
+          "idempotency_key": "idempotency_key",
+          "mode": "mode",
+          "status": "status",
+          "meaning": "meaning"
+        },
+        "timezone": "UTC where a time/date column exists",
+        "time_bounds": "[start,end)",
+        "snapshot_cutoff": "synthetic_index_time < cutoff",
+        "mapping_executed_in_splunk": false
+      },
+      {
+        "file": "PRACTICAS/fixtures/ingestion_diagnosis.csv",
+        "sha256": "75bf1494eb9bd22d4aab1f758034b38233678b148774bc118f86e628781f4435",
+        "row_count": 4,
+        "columns": [
+          "case_id",
+          "host",
+          "last_event_age_min",
+          "max_indextime_lag_s",
+          "duplicate_factor",
+          "search_access",
+          "source_status"
+        ],
+        "row_id": "case_id",
+        "field_mapping_for_design": {
+          "case_id": "case_id",
+          "host": "host",
+          "last_event_age_min": "last_event_age_min",
+          "max_indextime_lag_s": "max_indextime_lag_s",
+          "duplicate_factor": "duplicate_factor",
+          "search_access": "search_access",
+          "source_status": "source_status"
+        },
+        "timezone": "UTC where a time/date column exists",
+        "time_bounds": "[start,end)",
+        "snapshot_cutoff": "synthetic_index_time < cutoff",
+        "mapping_executed_in_splunk": false
+      },
+      {
+        "file": "PRACTICAS/fixtures/retention_plan.csv",
+        "sha256": "13327c268500a7897330ea27400f9e854ae07e858a15a66cea0291f6965123ac",
+        "row_count": 4,
+        "columns": [
+          "index",
+          "daily_gib",
+          "capacity_gib",
+          "target_days",
+          "archive_policy"
+        ],
+        "row_id": "index",
+        "field_mapping_for_design": {
+          "index": "index",
+          "daily_gib": "daily_gib",
+          "capacity_gib": "capacity_gib",
+          "target_days": "target_days",
+          "archive_policy": "archive_policy"
+        },
+        "timezone": "UTC where a time/date column exists",
+        "time_bounds": "[start,end)",
+        "snapshot_cutoff": "synthetic_index_time < cutoff",
+        "mapping_executed_in_splunk": false
+      },
+      {
+        "file": "PRACTICAS/fixtures/search_jobs.csv",
+        "sha256": "9797059a47798fb6ff178d1ecf478edb246cae16eb812c3359873b62d0da3960",
+        "row_count": 3,
+        "columns": [
+          "variant",
+          "scan_count",
+          "result_count",
+          "elapsed_sec",
+          "output_hash",
+          "notes"
+        ],
+        "row_id": "variant",
+        "field_mapping_for_design": {
+          "variant": "variant",
+          "scan_count": "scan_count",
+          "result_count": "result_count",
+          "elapsed_sec": "elapsed_sec",
+          "output_hash": "output_hash",
+          "notes": "notes"
+        },
+        "timezone": "UTC where a time/date column exists",
+        "time_bounds": "[start,end)",
+        "snapshot_cutoff": "synthetic_index_time < cutoff",
+        "mapping_executed_in_splunk": false
+      },
+      {
+        "file": "PRACTICAS/fixtures/soar_actions.csv",
+        "sha256": "cb55bfb2eddfd1aed764e90bc19454e56ad892d50a0fd46ed7be7f41a451aa69",
+        "row_count": 5,
+        "columns": [
+          "action_id",
+          "kind",
+          "asset",
+          "target",
+          "approved",
+          "effect",
+          "decision"
+        ],
+        "row_id": "action_id",
+        "field_mapping_for_design": {
+          "action_id": "action_id",
+          "kind": "kind",
+          "asset": "asset",
+          "target": "target",
+          "approved": "approved",
+          "effect": "effect",
+          "decision": "decision"
+        },
+        "timezone": "UTC where a time/date column exists",
+        "time_bounds": "[start,end)",
+        "snapshot_cutoff": "synthetic_index_time < cutoff",
+        "mapping_executed_in_splunk": false
+      }
+    ],
+    "notes": [
+      "Cada dataset conserva su escenario; una IP coincidente no une escenarios.",
+      "Las asignaciones son diseño; no instalan extracciones, inputs ni lookups.",
+      "_time en el modelo offline es epoch sintético; no es metadata creada en una instancia.",
+      "fixture_index_epoch nunca sustituye al metadato _indextime real.",
+      "TI: inicio inclusivo y expiración exclusiva a medianoche UTC; referencia 2026-10-16T12:00:00Z.",
+      "ServiceName sintético no certifica un SPN nativo; operation_kind no es campo nativo 4662."
+    ]
+  },
+  "fixtures": [
+    {
+      "file": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R10_R11/PRACTICAS/fixtures/api_job_lifecycle.csv",
+      "sha256": "bd5c1b6d23cbe631ebbfed0468aae5983a9aff80b8cf573295412a107184ffec",
+      "text": "case_id,sid,job_status,requester_role,result_request_count,expected_decision\r\nAPI01,SID-DEMO-01,done,soc_reader,100,read_within_role\r\nAPI02,SID-DEMO-02,expired,soc_reader,100,report_expired\r\nAPI03,SID-DEMO-03,done,unauthorized,100,deny_access\r\nAPI04,SID-DEMO-04,done,soc_reader,0,reject_unlimited\r\n",
+      "synthetic": true,
+      "rowCount": 4
+    },
+    {
+      "file": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R10_R11/PRACTICAS/fixtures/automation_runs.csv",
+      "sha256": "5c1c6d31127a9e11d412eee3ca56de5259f47dc80edc43d15c22c1e3e4d4df79",
+      "text": "attempt_id,idempotency_key,mode,status,meaning\r\nRUN01,BLOCK|203.0.113.15|APR-1,mutating,applied,simulated confirmed effect\r\nRUN02,BLOCK|203.0.113.15|APR-1,mutating,replay,\"same request repeated, must not apply again\"\r\nRUN03,BLOCK|198.51.100.77|APR-2,mutating,unknown,\"timeout after submission, outcome unknown\"\r\nRUN04,DISABLE|alice.demo|APR-3,mutating,forbidden,\"not authorized, no retry\"\r\nRUN05,LOOKUP|198.51.100.20|REQ-7,read,transient,\"503, bounded retry possible\"\r\nRUN06,LOOKUP|198.51.100.20|REQ-7,read,complete,read success after retry\r\nRUN07,BLOCK|192.0.2.5|APR-4,mutating,pending,\"approval missing, not executed\"\r\nRUN08,BLOCK|192.0.2.6|APR-5,mutating,invalid,\"target invalid, no retry\"\r\n",
+      "synthetic": true,
+      "rowCount": 8
+    },
+    {
+      "file": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R10_R11/PRACTICAS/fixtures/ingestion_diagnosis.csv",
+      "sha256": "75bf1494eb9bd22d4aab1f758034b38233678b148774bc118f86e628781f4435",
+      "text": "case_id,host,last_event_age_min,max_indextime_lag_s,duplicate_factor,search_access,source_status\r\nING01,DC01,4,30,1,allowed,active\r\nING02,DC02,32,1800,1,allowed,slow_queue_possible\r\nING03,DC03,,,0,denied,unknown\r\nING04,APP01,3,15,2,allowed,possible_duplicate_inputs\r\n",
+      "synthetic": true,
+      "rowCount": 4
+    },
+    {
+      "file": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R10_R11/PRACTICAS/fixtures/retention_plan.csv",
+      "sha256": "13327c268500a7897330ea27400f9e854ae07e858a15a66cea0291f6965123ac",
+      "text": "index,daily_gib,capacity_gib,target_days,archive_policy\r\nauth_training,12,160,30,delete\r\nendpoint_training,2,180,60,archive\r\nnetflow_training,4,80,45,delete\r\naudit_training,0.5,60,90,archive\r\n",
+      "synthetic": true,
+      "rowCount": 4
+    },
+    {
+      "file": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R10_R11/PRACTICAS/fixtures/search_jobs.csv",
+      "sha256": "9797059a47798fb6ff178d1ecf478edb246cae16eb812c3359873b62d0da3960",
+      "text": "variant,scan_count,result_count,elapsed_sec,output_hash,notes\r\nA,2500000,500,72,SAME-A-B,baseline\r\nB,300000,500,12,SAME-A-B,narrowed early\r\nC,75000,450,5,DIFFERENT-C,loses condition\r\n",
+      "synthetic": true,
+      "rowCount": 3
+    },
+    {
+      "file": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R10_R11/PRACTICAS/fixtures/soar_actions.csv",
+      "sha256": "cb55bfb2eddfd1aed764e90bc19454e56ad892d50a0fd46ed7be7f41a451aa69",
+      "text": "action_id,kind,asset,target,approved,effect,decision\r\nACT01,read,ti_lookup_demo,198.51.100.20,not_needed,read,review_data_handling\r\nACT02,mutating,firewall_demo,203.0.113.15,no,block_ip,deny\r\nACT03,mutating,firewall_demo,203.0.113.15,yes,block_ip,needs_impact_and_expiry_checks\r\nACT04,mutating,directory_demo,alice.demo,no,disable_user,deny\r\nACT05,read,internal_context_demo,case-03,not_needed,read,read_only\r\n",
+      "synthetic": true,
+      "rowCount": 5
+    }
+  ],
+  "documents": [
+    {
+      "file": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R10_R11/ACTIVIDADES/RUBRICA.md",
+      "markdown": "# Evaluación teórica y retroalimentación formativa\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## Teoría\n\nLas MCQ son candidatas a evaluación teórica: necesitan revisión humana independiente y asignación de fases antes del piloto. Para N preguntas, se requieren ceil(0,8 × N) aciertos. Dos preguntas exigen dos aciertos; esto no acredita práctica.\n\n## Prácticas abiertas\n\nCada P01 conserva sus criterios específicos en el banco y la lección. Se usan para autoexplicación y feedback humano, sin coincidencia literal, nota automática, desbloqueo o XP por una supuesta calificación práctica.\n\nSeparar observaciones, hipótesis, cobertura y siguiente paso autorizado. Una atribución sin evidencia necesita corrección, no un porcentaje automático de dominio.\n\n## Incertidumbre y estado\n\nNo coincidencia de regla no implica benignidad. TP/FP/FN/TN requieren verdad de referencia; suspicious_unconfirmed e inconclusive no acreditan ataque. Una prueba CSV solo comprueba cálculos offline, nunca sintaxis SPL o producto real.\n"
+    },
+    {
+      "file": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R10_R11/ACTIVIDADES/SOLUCIONARIO.md",
+      "markdown": "# Solucionario editorial sincronizado — SPLUNK_LECCIONES_R10_R11\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\nRespuestas orientativas; sin ejecución de Splunk/ES/SOAR.\n\n## SP-R10-L01-Q01\n\n**D — La configuración fusionada de la instancia consultada y el archivo de procedencia de sus parámetros**. Permite inspeccionar el valor efectivo de ficheros .conf y su procedencia; no sustituye pruebas del pipeline.\n\n## SP-R10-L01-Q02\n\n**B — Pueden sobrescribirse al actualizar una app o el producto**. La personalización en `local/` evita perder cambios al actualizar distribuciones.\n\n## SP-R10-L01-P01\n\nRegistrar instancia, responsabilidad de parsing, fichero, contexto, ruta ganadora btool, versión de app y prueba de campo después de aprobación. No se puede concluir por inspeccionar un nodo distinto.\n\n## SP-R10-L02-Q01\n\n**C — Se mantienen privilegios agregados, por lo que hay que revisar todos los roles**. La herencia/roles múltiples pueden ampliar permisos; verificar acceso efectivo.\n\n## SP-R10-L02-Q02\n\n**B — Que no pueda modificar los objetos administrativos no autorizados**. Una prueba negativa verifica explícitamente una operación que el rol debe denegar.\n\n## SP-R10-L02-P01\n\nPermitir índices del ejercicio y búsquedas acotadas; negar delete/collect/outputlookup no autorizado, administración, cambios alert actions y acceso a índices sensibles; comprobar herencia/PII y audit logs.\n\n## SP-R10-L03-Q01\n\n**A — Validar hostname y cadena de confianza**. La validación de confianza e identidad del servidor previene aceptar extremos no autorizados.\n\n## SP-R10-L03-Q02\n\n**C — Usar -k como solución permanente a problemas de certificados**. -k omite comprobaciones de identidad y facilita ataques de intermediario.\n\n## SP-R10-L03-P01\n\nCertificados y CA apropiados, SAN/hostname, ciclo de rotación, auditoría, gestión de claves y tokens acotados. Ninguna prueba debe requerir exponer secretos ni desactivar la validación.\n\n## SP-R10-L04-Q01\n\n**C — El límite de tamaño del índice puede provocar congelación antes del plazo temporal previsto**. El límite de tamaño puede actuar antes del plazo cronológico.\n\n## SP-R10-L04-Q02\n\n**B — Estimación de capacidad bajo un modelo simplificado**. El cálculo aproxima la capacidad, pero no modela rotación completa, compresión ni replicación.\n\n## SP-R10-L04-P01\n\nCalcular `estimated_days=capacity_gib/daily_gib`; comparar con target_days; verificar archivado. Distinguir estimación y retención comprobada, mencionar dependencia de buckets, arquitectura y costes.\n\n## SP-R10-L05-Q01\n\n**A — Para estimar diferencia entre indexación y tiempo de evento**. Una diferencia temporal puede indicar retraso; debe contextualizarse con reloj, parsing y buffering.\n\n## SP-R10-L05-Q02\n\n**D — Permisos, índice, intervalo, fuente y estado de ingesta**. No ver datos también puede deberse a permisos o filtros.\n\n## SP-R10-L05-P01\n\nSeparar origen, forwarder, red, parsing, índice, RBAC y búsqueda. Para DC02 priorizar latencia; para DC03 comprobar permiso sin solicitar ampliación irrestricta; para duplicados revisar inputs. Diagnóstico provisional.\n\n## SP-R10-L06-Q01\n\n**A — Mismo dataset/ventana/semántica, con métricas del Job Inspector**. Una optimización exige conservar el objetivo y entorno comparables.\n\n## SP-R10-L06-Q02\n\n**D — Eventos examinados frente a resultados devueltos, según fase/job**. Pocos resultados no implican bajo volumen examinado.\n\n## SP-R10-L06-P01\n\nA y B tienen mismo output_hash; B reduce scanCount 88% y tiempo simulado 83,33%. C parece rápida pero output_hash distinto, no comparable. Nada de estos valores proviene de Splunk real.\n\n## SP-R10-L07-Q01\n\n**D — Distribuir determinadas configuraciones/apps del search head cluster**. El SHC utiliza un deployer para coordinar el despliegue de determinados contenidos.\n\n## SP-R10-L07-Q02\n\n**C — Tres miembros, con otros requisitos**. La documentación cita tres miembros como mínimo para disponibilidad de búsqueda.\n\n## SP-R10-L07-P01\n\nPyme: standalone y backup explícito; SOC HA: indexers/search heads escalados con RF/SF, SHC miembros adecuados, cluster manager y deployer diferenciados, costes y RTO/RPO con pruebas futuras.\n\n## SP-R10-L08-Q01\n\n**B — Una restauración de ensayo con validación y evidencias**. La recuperación debe comprobarse con restore, integridad y criterios de aceptación.\n\n## SP-R10-L08-Q02\n\n**A — Intentar sobrescribir con una versión antigua como downgrade directo**. El producto no admite un downgrade in-place de ese modo.\n\n## SP-R10-L08-P01\n\nIncluye backups por componente, test restore, compatibilidad, pausa/reanudación según change control, validación E2E de telemetría, ventanas, contingencia y responsables.\n\n## SP-R11-L01-Q01\n\n**D — Una alerta genera señal; respuesta requiere control y acciones con permisos**. Crear resultados/alertas no implica gestionar una acción de respuesta segura.\n\n## SP-R11-L01-Q02\n\n**C — Evaluar evidencia y autorización específicas para la acción, el asset y el objetivo antes de bloquear**. Los efectos mutantes requieren política y aprobación aplicable.\n\n## SP-R11-L01-P01\n\nDetección acotada; dedupe; notificación mínima; triage; evidencia, owner y SLA; aprobación para acción mutante y registro de auditoría. No integración real.\n\n## SP-R11-L02-Q01\n\n**C — El identificador de un trabajo de búsqueda, que no otorga por sí mismo permiso para leer sus resultados**. SID refiere al trabajo creado, no concede permisos por sí solo.\n\n## SP-R11-L02-Q02\n\n**D — Acotar resultados, tiempo e índices mediante un rol mínimo y un límite de extracción definido**. Los límites y RBAC restringen volumen y alcance.\n\n## SP-R11-L02-P01\n\nContrato documental Enterprise 10.2: POST /services/search/jobs crea SID; GET /services/search/jobs/{sid} consulta estado; GET /services/search/v2/jobs/{sid}/results recupera resultados. Exigir consultas y parámetros permitidos, earliest/latest, count entre 1 y 100, rol mínimo, HTTPS verificado, ownership y límites de jobs. Job expirado y 401/403 no disparan efectos externos. Sin llamadas REST; soporte de versión/Cloud pendiente.\n\n## SP-R11-L03-Q01\n\n**D — Un identificador y contexto mínimo con enlace autenticado, evitando trasladar eventos crudos o secretos**. Minimizar datos reduce superficie de exposición.\n\n## SP-R11-L03-Q02\n\n**B — Dar por hecho que todo webhook nativo firma con HMAC**. La firma depende del mecanismo implementado y debe verificarse.\n\n## SP-R11-L03-P01\n\nEnviar IDs/severidad/ventana y enlace interno, no raw logs; destino allowlisted, credenciales en secret manager, dedupe id, retries/backoff y auditoría sin secretos.\n\n## SP-R11-L04-Q01\n\n**B — Las apps y conectores con assets compatibles, instalados y autorizados para la acción concreta**. El conjunto de acciones depende de las apps y assets configurados.\n\n## SP-R11-L04-Q02\n\n**A — Puede aplicarse a todos los assets compatibles**. La documentación advierte expansión de targets al no concretar asset.\n\n## SP-R11-L04-P01\n\nUsar asset lookup explícito RO, decisión basada en evidencia y confidence, ticket interno, aprobación humana del bloqueo, asset de firewall elegido, audit logs, verificación y compensación.\n\n## SP-R11-L05-Q01\n\n**C — Acción, asset, target, expiración y responsable**. La autorización debe ligarse al efecto concreto y su vigencia.\n\n## SP-R11-L05-Q02\n\n**B — Detener y requerir nueva revisión/validación**. El permiso previo ya no describe la operación propuesta.\n\n## SP-R11-L05-P01\n\nTodo cambio en firewall/directorio necesita permiso explícito con target/asset/scope, dueño, evidencia, expiración y reversión. Las tareas de lectura pueden requerir protección de datos; el fixture no autoriza ningún efecto.\n\n## SP-R11-L06-Q01\n\n**A — Conservar estado unknown y reconciliar el resultado antes de repetir una operación con posible efecto**. Timeout no informa con certeza si el servidor aplicó la mutación.\n\n## SP-R11-L06-Q02\n\n**C — Ante 401/403 o confirmación de target incorrecto**. Fallos permanentes/no autorizados no son transitorios.\n\n## SP-R11-L06-P01\n\nClave BLOCK|203.0.113.15|APR-1 con replay: una sola aplicación confirmada; unknown de otra clave exige reconciliación. 403 detiene; consulta RO con 503 permite reintento limitado. No realizar acciones.\n\n## SP-R11-L07-Q01\n\n**A — Fuente, campos, ventana, consulta, resultados, control benigno y decisión trazable**. Las decisiones deben poder auditarse con datos y procedimientos reproducibles.\n\n## SP-R11-L07-Q02\n\n**D — Diseño + pruebas offline, pendiente de validación real**. Ningún CSV offline sustituye pruebas reales en producto y versiones específicas.\n\n## SP-R11-L07-P01\n\nReutilizar auth_activity.csv y authorized_context.csv de R06–R07, no el archivo homónimo de R08. Eventos [09:00,09:15) UTC del 15/10/2026: snapshot retrospectivo .23=7/6, mantenimiento .15=5/1, proxy .44=4/3. Con >=5 fallos y >=5 cuentas solo .23 es candidata; a corte anterior a 09:16 era 6/6. No asignar verdad de ataque al candidato ni benignidad al proxy. Diseñar roles, aviso mínimo, triage, aprobación específica, ledger y rollback sin conectar Enterprise, ES o SOAR. Las abiertas son formativas; aprobar teoría no demuestra dominio práctico.\n\n"
+    },
+    {
+      "file": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R10_R11/VALIDACION/FUENTES_Y_LIMITES.md",
+      "markdown": "# Fuentes y límites — Splunk R10–R11\n\nFecha de revisión documental: 2026-10-16. Las URLs apuntan a documentación del fabricante, con versiones concretas **distintas entre sí**. Verificar compatibilidad con el laboratorio y suscripción real antes de operar.\n\n- **D01:** [Splunk Enterprise 10.4 — Configuration file precedence](https://help.splunk.com/en/splunk-enterprise/administer/admin-manual/10.4/administer-splunk-enterprise-with-configuration-files/configuration-file-precedence)\n- **D02:** [Splunk Enterprise 10.2 — btool CLI help](https://help.splunk.com/en/splunk-enterprise/administer/troubleshoot/10.2/contact-splunk-support/command-line-tools-for-use-with-support)\n- **D03:** [Splunk Enterprise 10.2 — Manage roles in authorize.conf](https://help.splunk.com/en/splunk-enterprise/administer/manage-users-and-security/10.2/perform-advanced-user-and-role-management-in-splunk-enterprise/create-and-manage-roles-in-splunk-enterprise-using-the-authorize.conf-configuration-file)\n- **D04:** [Splunk Enterprise 10.2 — indexes.conf](https://help.splunk.com/en/splunk-enterprise/administer/admin-manual/10.2/configuration-file-reference/10.2.4-configuration-file-reference/indexes.conf)\n- **D05:** [Splunk Enterprise 10.2 — Search optimization](https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.2/optimize-searches/write-better-searches)\n- **D06:** [Splunk Enterprise 10.2 — Search Job Inspector](https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.2/manage-jobs/view-search-job-properties)\n- **D07:** [Splunk Enterprise 10.2 — Search head cluster prerequisites](https://help.splunk.com/en/splunk-enterprise/administer/distributed-search/10.2/deploy-search-head-clustering/system-requirements-and-other-deployment-considerations-for-search-head-clusters)\n- **D08:** [Splunk Enterprise 10.2 — Deploy distributed search](https://help.splunk.com/en/splunk-enterprise/administer/distributed-search/10.2/deploy-distributed-search/deploy-a-distributed-search-environment)\n- **D09:** [Splunk Enterprise 10.2 — Backup before UNIX upgrade](https://help.splunk.com/en/splunk-enterprise/get-started/install-and-upgrade/10.2/upgrade-or-migrate-splunk-enterprise/upgrade-to-version-10.2-on-unix)\n- **D10:** [Splunk Enterprise 10.2 — Search REST endpoint descriptions](https://help.splunk.com/en/splunk-enterprise/rest-api-reference/10.2/search-endpoints/search-endpoint-descriptions)\n- **D11:** [Splunk SOAR Cloud — Playbooks overview](https://help.splunk.com/en/splunk-soar/soar-cloud/build-playbooks/introduction-to-splunk-soar-playbooks/use-playbooks-to-automate-analyst-workflows-in-splunk-soar-cloud)\n- **D12:** [Splunk SOAR Cloud — Playbook automation API approvals](https://help.splunk.com/en/splunk-soar/soar-cloud/develop-apps/python-playbook-api-reference/automation-api/playbook-automation-api)\n- **D13:** [Splunk SOAR Cloud — Approve actions](https://help.splunk.com/en/splunk-soar/soar-cloud/use-soar-cloud/get-started-using-splunk-soar-cloud/approve-actions-before-they-run-in-splunk-soar-cloud)\n- **D14:** [Splunk SOAR Cloud — Add action block](https://help.splunk.com/en/splunk-soar/soar-cloud/develop-apps/build-playbooks/use-the-playbook-editor-to-create-and-view-playbooks-to-automate-analyst-workflows/add-an-action-block-to-your-splunk-soar-cloud-playbook)\n- **D15:** [Splunk SOAR Cloud — Create playbook with approval](https://help.splunk.com/en/splunk-soar/soar-cloud/build-playbooks/use-the-playbook-editor-to-create-and-view-playbooks-to-automate-analyst-workflows/create-a-new-playbook-in-splunk-soar-cloud)\n- **D16:** [Splunk Enterprise 10.2 — authorize.conf](https://help.splunk.com/en/splunk-enterprise/administer/admin-manual/10.2/configuration-file-reference/10.2.3-configuration-file-reference/authorize.conf)\n- **D17:** [Splunk SOAR Cloud — Better playbook guidelines](https://help.splunk.com/en/splunk-soar/soar-cloud/develop-apps/build-playbooks/introduction-to-splunk-soar-playbooks/write-better-playbooks-by-following-these-guidelines)\n- **D18:** [Splunk Enterprise 10.2 — app.conf](https://help.splunk.com/en/splunk-enterprise/administer/admin-manual/10.2/configuration-file-reference/10.2.0-configuration-file-reference/app.conf)\n- **D19:** [Splunk Enterprise 10.6 — Role inheritance basics](https://help.splunk.com/en/splunk-enterprise/administer/manage-users-and-security/10.6/manage-splunk-platform-users-and-roles/about-configuring-role-based-user-access)\n- **D20:** [Splunk Enterprise 10.6 — Introducción a TLS](https://help.splunk.com/en/splunk-enterprise/administer/manage-users-and-security/10.6/secure-splunk-platform-communications-with-transport-layer-security-certificates/introduction-to-securing-the-splunk-platform-with-tls)\n- **D21:** [Splunk Enterprise 10.2 — Webhook alert action](https://help.splunk.com/en/splunk-enterprise/alert-and-respond/alerting-manual/10.2/configure-alert-actions/use-a-webhook-alert-action)\n- **D22:** [Splunk Enterprise 10.2 — Indexing performance Monitoring Console](https://help.splunk.com/en/splunk-enterprise/administer/monitor/10.2/monitoring-console-dashboard-reference/indexing-performance)\n\n## Distinciones obligatorias\n\n- **Splunk Enterprise:** ejemplos de configuración, btool, roles, Search Job Inspector, índices y alertas de plataforma. Splunk Cloud puede distribuir administración diferente y gestionar aspectos restringidos al proveedor.\n- **Splunk SOAR Cloud:** app/asset/action/playbook y autorizaciones específicas. No está incluido automáticamente en Splunk Enterprise ni en Splunk Cloud Platform. ES tampoco equivale a SOAR.\n- **[DOC]:** descripciones razonadas de documentación oficial. Una referencia puede documentar una capacidad sin verificar su disponibilidad en tu versión/edición.\n- **[DISEÑO]:** actividades, casos, esquemas, umbrales y soluciones propuestos por este paquete.\n- **[OFFLINE]:** operaciones aritméticas o de lógica verificadas contra CSV sintéticos por Python. NO evidencia de funcionalidades reales de Splunk.\n- **[NO PROBADO]:** ningún SPL fue ejecutado; no se abrió REST, no se probó SOAR, no hay benchmarks reales.\n- **[PENDIENTE]:** revisión humana independiente de rigor técnico y compatibilidad, en especial control de acceso, efectos de API, rutas según versión y guardrails de productos.\n\n### Precauciones prácticas\n\n1. `btool` permite investigar configuración fusionada de esa instancia; no valida el pipeline y la precedence difiere por contexto.\n2. Heredar roles amplía privilegios; un índice restringido en consulta visible no garantiza RBAC.\n3. La caducidad y la identidad del certificado TLS se validan; jamás usar `-k` como solución permanente.\n4. `capacity/daily_gib` es estimación; buckets, overhead, replicación y política pueden adelantar frozen; jamás afirmar plazos de retención medidos con este cálculo.\n5. Search Job Inspector es la herramienta real. `search_jobs.csv` es enteramente ficticio y su hash solo una marca pedagógica, no una comparación criptográfica de resultados Splunk.\n6. REST v2: creación de job mediante POST puede dejar un job en Splunk; aunque la SPL sea de lectura, no describir «HTTP POST sin efectos». Ningún código del ZIP se conecta a un host.\n7. El webhook integrado 10.2 envía POST con JSON de alerta; documentación detalla first result row, SID, enlace, owner y app; una extracción posterior debe minimizar PII y usar URL en allowlist. El esquema en R11-L03 es un **payload recomendado transformado por un gateway**, no necesariamente body que envía la acción nativa.\n8. SOAR assets/reviewers pueden bloquear acciones hasta revisión, pero un workflow incompleto o detenido puede tener efectos parciales; el alumno jamás debe accionar sistemas reales.\n9. Los dominios `*.example.test` y direcciones IP de documentación RFC 5737 no describen tu infraestructura.\n\n### Para integrar en SOC Learning Path\n\nRevisar el esquema de progreso/XP de React 0.2.5 con Codex y migrar desde el banco editorial en una fase posterior. Las rutas `SP-R10-Lxx` y `SP-R11-Lxx` conservan los IDs originales del currículo. Evitar mezclar el progreso de Microsoft con Splunk. Antes de habilitar laboratorio real, inventario de licencia/versiones, índices y datos autorizados, security review de API/acciones y pruebas de respuesta del motor educativo.\n"
+    }
+  ],
+  "note": "Material editorial existente, sintético y documental. Revisión humana independiente pendiente. Sin ejecución SPL, ingesta, envíos HTTP ni acciones SOAR. Los CSV conservan su namespace y escenario; sus campos son contratos de diseño, no extracciones instaladas."
+}

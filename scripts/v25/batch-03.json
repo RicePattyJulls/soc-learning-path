@@ -1,0 +1,1016 @@
+{
+  "batch": "03",
+  "lessons": [
+    {
+      "lessonId": "capitulo-3-proteccion-y-configuracion-de-workloads/microsoft-defender-for-identity-1",
+      "introduction": "Trabaja los conceptos de «Microsoft Defender for Identity» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Distinguir detección MDI, recomendaciones ISPA y rutas LMP.",
+        "Separar MDI de Sentinel Graph.",
+        "Reconocer el alcance de Honeytoken."
+      ],
+      "summary": [
+        "Distinguir detección MDI, recomendaciones ISPA y rutas LMP.",
+        "Separar MDI de Sentinel Graph.",
+        "Reconocer el alcance de Honeytoken."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "Aparece una configuración AD insegura en una evaluación ISPA. ¿Qué salida describe el apartado?",
+          "explanation": "ISPA evalúa postura del directorio; no debe interpretarse su recomendación como detección de actividad atacante.",
+          "objective": "Distinguir hallazgos de postura y detección.",
+          "difficulty": "intermedia",
+          "id": "v25-15-ispa",
+          "evidence": [
+            "- `Identity security posture assessments (ISPA)`: producen recomendaciones de corrección en `Microsoft Secure Score > Recommended actions`, filtrando por categoría `Identity`, no alertas. Cada evaluación tiene su propio nombre.",
+            "- Qué mira: buscan configuraciones inseguras en el directorio, no ataques en curso. Permisos `DCSync` en cuentas no administrativas, delegación insegura, privilegios excesivos, `SID History` inseguro y debilidades de `AD CS`."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Una autenticación automáticamente bloqueada por MDI.",
+              "why": "El texto dice que MDI detecta pero no corta autenticaciones."
+            },
+            {
+              "id": "o1",
+              "text": "Una consulta GQL ejecutada por el sensor.",
+              "why": "GQL corresponde al grafo Sentinel, no a esta evaluación MDI."
+            },
+            {
+              "id": "o2",
+              "text": "Una recomendación de corrección en Secure Score, no una alerta de ataque en curso.",
+              "why": "ISPA evalúa postura del directorio; no debe interpretarse su recomendación como detección de actividad atacante."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "match",
+          "prompt": "Relaciona la necesidad con la superficie descrita.",
+          "explanation": "La similitud visual no convierte LMP y el grafo Sentinel en el mismo producto o tipo de consulta.",
+          "objective": "Elegir una superficie de análisis de relaciones.",
+          "difficulty": "intermedia",
+          "id": "v25-15-grafos",
+          "evidence": [
+            "| Cómo se usa | Vista precalculada, se mira | Se consulta con GQL           |",
+            "| Cómo se usa | Vista precalculada, se mira | Se consulta con GQL           |",
+            "| Alcance     | AD on-premises              | Más amplio, incluido lo cloud |",
+            "| Alcance     | AD on-premises              | Más amplio, incluido lo cloud |"
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "Vista precalculada de rutas laterales AD on-premises"
+            },
+            {
+              "id": "r1",
+              "label": "Consultas GQL sobre relaciones más amplias, incluidas cloud"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "LMP de MDI"
+            },
+            {
+              "id": "p1",
+              "text": "Identity Attack Graph de Sentinel Graph"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Al usar el entity tag Honeytoken en MDI, ¿qué se hace según el apartado?",
+          "explanation": "El tag clasifica una entidad señuelo; no equivale a desplegar artefactos de deception ni a una acción de contención.",
+          "objective": "Interpretar el efecto de una etiqueta.",
+          "difficulty": "intermedia",
+          "id": "v25-15-honeytoken",
+          "evidence": [
+            "- Entity tags: En `security.microsoft.com > Settings > Identities` se marcan tres etiquetas: `Sensitive`, `Honeytoken` y `Exchange server`. `Honeytoken` admite usuarios y dispositivos, y aquí solo se designa la entidad señuelo"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Autorizar el bloqueo de todas sus autenticaciones.",
+              "why": "MDI detecta, no bloquea autenticaciones por esa etiqueta."
+            },
+            {
+              "id": "o1",
+              "text": "Designar una entidad existente como señuelo.",
+              "why": "El tag clasifica una entidad señuelo; no equivale a desplegar artefactos de deception ni a una acción de contención."
+            },
+            {
+              "id": "o2",
+              "text": "Sembrar automáticamente archivos falsos en cada endpoint.",
+              "why": "El texto dice que aquí solo se designa la entidad; no describe ese despliegue."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [],
+      "audit": {
+        "mainConcepts": [
+          "Distinguir detección MDI, recomendaciones ISPA y rutas LMP.",
+          "Separar MDI de Sentinel Graph.",
+          "Reconocer el alcance de Honeytoken."
+        ],
+        "understanding": [
+          "Distinguir detección MDI, recomendaciones ISPA y rutas LMP.",
+          "Separar MDI de Sentinel Graph.",
+          "Reconocer el alcance de Honeytoken."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Distinguir detección MDI, recomendaciones ISPA y rutas LMP.",
+          "Separar MDI de Sentinel Graph.",
+          "Reconocer el alcance de Honeytoken."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "El texto dice que MDI detecta pero no corta autenticaciones.",
+          "GQL corresponde al grafo Sentinel, no a esta evaluación MDI.",
+          "MDI detecta, no bloquea autenticaciones por esa etiqueta.",
+          "El texto dice que aquí solo se designa la entidad; no describe ese despliegue."
+        ],
+        "evidence": [
+          "- `Identity security posture assessments (ISPA)`: producen recomendaciones de corrección en `Microsoft Secure Score > Recommended actions`, filtrando por categoría `Identity`, no alertas. Cada evaluación tiene su propio nombre.",
+          "- Qué mira: buscan configuraciones inseguras en el directorio, no ataques en curso. Permisos `DCSync` en cuentas no administrativas, delegación insegura, privilegios excesivos, `SID History` inseguro y debilidades de `AD CS`.",
+          "| Cómo se usa | Vista precalculada, se mira | Se consulta con GQL           |",
+          "| Cómo se usa | Vista precalculada, se mira | Se consulta con GQL           |",
+          "| Alcance     | AD on-premises              | Más amplio, incluido lo cloud |",
+          "| Alcance     | AD on-premises              | Más amplio, incluido lo cloud |",
+          "- Entity tags: En `security.microsoft.com > Settings > Identities` se marcan tres etiquetas: `Sensitive`, `Honeytoken` y `Exchange server`. `Honeytoken` admite usuarios y dispositivos, y aquí solo se designa la entidad señuelo"
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-3-proteccion-y-configuracion-de-workloads/microsoft-defender-for-cloud-apps-1",
+      "introduction": "Trabaja los conceptos de «Microsoft Defender for Cloud Apps» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Separar discovery por logs, API fuera de banda y proxy de sesión.",
+        "No confundir Unsanctioned con bloqueo aplicado.",
+        "Distinguir acceso a la app y acciones dentro de ella."
+      ],
+      "summary": [
+        "Separar discovery por logs, API fuera de banda y proxy de sesión.",
+        "No confundir Unsanctioned con bloqueo aplicado.",
+        "Distinguir acceso a la app y acciones dentro de ella."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "Una app se marca Unsanctioned en Cloud Discovery. ¿Qué falta para afirmar que el acceso quedó bloqueado?",
+          "explanation": "La etiqueta clasifica y vigila. MDE, las integraciones indicadas o un block script aportan el bloqueo.",
+          "objective": "Distinguir clasificación y enforcement.",
+          "difficulty": "intermedia",
+          "id": "v25-16-unsanctioned",
+          "evidence": [
+            "1. log collector para `Cloud Discovery`: descubre shadow IT por logs, no bloquea nada por sí solo. Etiquetar `Unsanctioned` (`Cloud discovery > Discovered apps`) solo filtra y vigila. El bloqueo llega por integración, y hay tres caminos:"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Comprobar una integración o camino de enforcement; la etiqueta sola no bloquea.",
+              "why": "La etiqueta clasifica y vigila. MDE, las integraciones indicadas o un block script aportan el bloqueo."
+            },
+            {
+              "id": "o1",
+              "text": "Nada: etiquetar corta cualquier sesión inmediatamente.",
+              "why": "Discovery descubre y etiqueta; el bloqueo llega por integración."
+            },
+            {
+              "id": "o2",
+              "text": "Un case de Purview Audit abierto por cada clic.",
+              "why": "Ese requisito no corresponde a los caminos descritos."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "match",
+          "prompt": "Relaciona el objetivo con el camino MDCA.",
+          "explanation": "Ver logs, actuar fuera de banda y controlar una sesión tienen tiempos y mecanismos diferentes.",
+          "objective": "Elegir conexión MDCA según el momento de control.",
+          "difficulty": "intermedia",
+          "id": "v25-16-rutas",
+          "evidence": [
+            "1. log collector para `Cloud Discovery`: descubre shadow IT por logs, no bloquea nada por sí solo. Etiquetar `Unsanctioned` (`Cloud discovery > Discovered apps`) solo filtra y vigila. El bloqueo llega por integración, y hay tres caminos:",
+            "2. `API connector` para apps ya sancionadas: MDCA habla con la app por su API, fuera de banda — no ve ni corta la sesión en vivo. Actúa después del hecho: suspende usuario, revoca token, pone en cuarentena un archivo, o aplica etiqueta. Escanea archivos cada 12 horas, más revisión casi inmediata si detecta un cambio.",
+            "3. reverse proxy para `Conditional Access App Control`: es la capa que controla en tiempo real quién entra a la app y qué puede hacer dentro (bloquea o limita `download`, `upload`, `cut/copy/paste`, `print`). Actúa ella misma como reverse proxy de sesión: no depende de `MDE` ni de un proxy externo, el bloqueo lo aplica MDCA en el momento. `security.microsoft.com > Cloud apps > Policies > Policy management > Conditional Access > Create policy` (requiere una Conditional Access policy de Entra: `entra.microsoft.com > Entra ID > Conditional Access > Policies > Access controls > Session > Use Conditional Access App Control`)."
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "Descubrir shadow IT a partir de logs"
+            },
+            {
+              "id": "r1",
+              "label": "Aplicar acciones posteriores mediante la API SaaS"
+            },
+            {
+              "id": "r2",
+              "label": "Limitar una descarga durante la sesión"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "Cloud Discovery/log collector"
+            },
+            {
+              "id": "p1",
+              "text": "API connector"
+            },
+            {
+              "id": "p2",
+              "text": "Conditional Access App Control/reverse proxy"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1",
+            "p2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Dos Session policies coinciden sobre una actividad. ¿Qué regla recoge el documento?",
+          "explanation": "La Access policy controla entrar a la aplicación; las Session policies gobiernan lo que se hace dentro.",
+          "objective": "Resolver coincidencias de políticas de sesión.",
+          "difficulty": "intermedia",
+          "id": "v25-16-sesion",
+          "evidence": [
+            "- Una `Session policy` controla actividades dentro de la sesión; si dos coinciden, se aplica la más restrictiva. Se define con un `Session control type` —`Monitor only`, `Block activities`, `Control file download (with inspection)`, `Control file upload (with inspection)`— más una `Action`: `Audit`, `Block`, o `Protect` (solo en download, aplica `sensitivity label` en vez de bloquear). Ejemplo de `Block activities`: cortar el envío de un mensaje sensible en Teams o Slack."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Siempre se suman las acciones sin resolver conflictos.",
+              "why": "El texto especifica la policy más restrictiva."
+            },
+            {
+              "id": "o1",
+              "text": "Solo se aplica la Access policy y ninguna Session policy.",
+              "why": "Access gobierna la entrada, no sustituye las actividades de sesión."
+            },
+            {
+              "id": "o2",
+              "text": "Se aplica la más restrictiva.",
+              "why": "La Access policy controla entrar a la aplicación; las Session policies gobiernan lo que se hace dentro."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "¿Qué significa Protect en el control de sesión descrito?",
+          "explanation": "Protect está limitado a download en la lista de acciones; no debe extrapolarse a upload o a revocación de tokens.",
+          "objective": "Respetar el alcance de la acción Protect.",
+          "difficulty": "intermedia",
+          "id": "v25-16-protect",
+          "evidence": [
+            "- Una `Session policy` controla actividades dentro de la sesión; si dos coinciden, se aplica la más restrictiva. Se define con un `Session control type` —`Monitor only`, `Block activities`, `Control file download (with inspection)`, `Control file upload (with inspection)`— más una `Action`: `Audit`, `Block`, o `Protect` (solo en download, aplica `sensitivity label` en vez de bloquear). Ejemplo de `Block activities`: cortar el envío de un mensaje sensible en Teams o Slack."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Aplicar una sensitivity label en download en vez de bloquear.",
+              "why": "Protect está limitado a download en la lista de acciones; no debe extrapolarse a upload o a revocación de tokens."
+            },
+            {
+              "id": "o1",
+              "text": "Deshabilitar toda inspección de upload y download.",
+              "why": "El apartado no define Protect como ausencia de inspección."
+            },
+            {
+              "id": "o2",
+              "text": "Revocar automáticamente el token mediante un API connector.",
+              "why": "Esa es una acción fuera de banda diferente."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [],
+      "audit": {
+        "mainConcepts": [
+          "Separar discovery por logs, API fuera de banda y proxy de sesión.",
+          "No confundir Unsanctioned con bloqueo aplicado.",
+          "Distinguir acceso a la app y acciones dentro de ella."
+        ],
+        "understanding": [
+          "Separar discovery por logs, API fuera de banda y proxy de sesión.",
+          "No confundir Unsanctioned con bloqueo aplicado.",
+          "Distinguir acceso a la app y acciones dentro de ella."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Separar discovery por logs, API fuera de banda y proxy de sesión.",
+          "No confundir Unsanctioned con bloqueo aplicado.",
+          "Distinguir acceso a la app y acciones dentro de ella."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "Discovery descubre y etiqueta; el bloqueo llega por integración.",
+          "Ese requisito no corresponde a los caminos descritos.",
+          "El texto especifica la policy más restrictiva.",
+          "Access gobierna la entrada, no sustituye las actividades de sesión.",
+          "El apartado no define Protect como ausencia de inspección."
+        ],
+        "evidence": [
+          "1. log collector para `Cloud Discovery`: descubre shadow IT por logs, no bloquea nada por sí solo. Etiquetar `Unsanctioned` (`Cloud discovery > Discovered apps`) solo filtra y vigila. El bloqueo llega por integración, y hay tres caminos:",
+          "1. log collector para `Cloud Discovery`: descubre shadow IT por logs, no bloquea nada por sí solo. Etiquetar `Unsanctioned` (`Cloud discovery > Discovered apps`) solo filtra y vigila. El bloqueo llega por integración, y hay tres caminos:",
+          "2. `API connector` para apps ya sancionadas: MDCA habla con la app por su API, fuera de banda — no ve ni corta la sesión en vivo. Actúa después del hecho: suspende usuario, revoca token, pone en cuarentena un archivo, o aplica etiqueta. Escanea archivos cada 12 horas, más revisión casi inmediata si detecta un cambio.",
+          "3. reverse proxy para `Conditional Access App Control`: es la capa que controla en tiempo real quién entra a la app y qué puede hacer dentro (bloquea o limita `download`, `upload`, `cut/copy/paste`, `print`). Actúa ella misma como reverse proxy de sesión: no depende de `MDE` ni de un proxy externo, el bloqueo lo aplica MDCA en el momento. `security.microsoft.com > Cloud apps > Policies > Policy management > Conditional Access > Create policy` (requiere una Conditional Access policy de Entra: `entra.microsoft.com > Entra ID > Conditional Access > Policies > Access controls > Session > Use Conditional Access App Control`).",
+          "- Una `Session policy` controla actividades dentro de la sesión; si dos coinciden, se aplica la más restrictiva. Se define con un `Session control type` —`Monitor only`, `Block activities`, `Control file download (with inspection)`, `Control file upload (with inspection)`— más una `Action`: `Audit`, `Block`, o `Protect` (solo en download, aplica `sensitivity label` en vez de bloquear). Ejemplo de `Block activities`: cortar el envío de un mensaje sensible en Teams o Slack.",
+          "- Una `Session policy` controla actividades dentro de la sesión; si dos coinciden, se aplica la más restrictiva. Se define con un `Session control type` —`Monitor only`, `Block activities`, `Control file download (with inspection)`, `Control file upload (with inspection)`— más una `Action`: `Audit`, `Block`, o `Protect` (solo en download, aplica `sensitivity label` en vez de bloquear). Ejemplo de `Block activities`: cortar el envío de un mensaje sensible en Teams o Slack."
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-3-proteccion-y-configuracion-de-workloads/microsoft-defender-for-cloud-1",
+      "introduction": "Trabaja los conceptos de «Microsoft Defender for Cloud» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Separar CSPM/postura y CWPP/runtime sin negar recomendaciones CWPP.",
+        "Relacionar policy, standard y recomendación.",
+        "Interpretar los dos scores cloud."
+      ],
+      "summary": [
+        "Separar CSPM/postura y CWPP/runtime sin negar recomendaciones CWPP.",
+        "Relacionar policy, standard y recomendación.",
+        "Interpretar los dos scores cloud."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "match",
+          "prompt": "Relaciona cada elemento de postura con su función.",
+          "explanation": "El estándar contiene el criterio; la policy lo aplica al ámbito; la recomendación expresa el incumplimiento.",
+          "objective": "Reconstruir la jerarquía de postura.",
+          "difficulty": "intermedia",
+          "id": "v25-17-jerarquia",
+          "evidence": [
+            "- `security policy`: a qué scope (suscripción, management group) le aplicas qué standards.",
+            "- `security standard`: el checklist contra el que te comparan (ej: MCSB).",
+            "- `recomendación`: lo que sale cuando un recurso no pasa una regla de ese checklist."
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "Security policy"
+            },
+            {
+              "id": "r1",
+              "label": "Security standard"
+            },
+            {
+              "id": "r2",
+              "label": "Recomendación"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "Asigna standards a un scope"
+            },
+            {
+              "id": "p1",
+              "text": "Checklist contra el que se compara"
+            },
+            {
+              "id": "p2",
+              "text": "Resultado cuando un recurso no pasa una regla"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1",
+            "p2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Un compañero dice que CWPP solo genera alertas y nunca recomendaciones. ¿Qué matiz falta?",
+          "explanation": "CWPP es la protección por workload con alertas runtime, pero no se limita a ellas.",
+          "objective": "Evitar una separación absoluta entre recomendaciones y productos.",
+          "difficulty": "intermedia",
+          "id": "v25-17-cwpp",
+          "evidence": [
+            "2. `Cloud Workload Protection Platform` (`CWPP`) no es simplemente lo opuesto: se habilita por workload y es el único que genera alertas de runtime, pero además aporta sus propias recomendaciones, guía de hardening y evaluación de vulnerabilidades sobre ese workload."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "También aporta recomendaciones, hardening y evaluación de vulnerabilidades del workload.",
+              "why": "CWPP es la protección por workload con alertas runtime, pero no se limita a ellas."
+            },
+            {
+              "id": "o1",
+              "text": "CSPM es quien genera todas las alertas runtime.",
+              "why": "El texto reserva runtime a CWPP y CSPM a configuración."
+            },
+            {
+              "id": "o2",
+              "text": "Cualquier recomendación demuestra un ataque confirmado.",
+              "why": "Las recomendaciones reflejan postura, no una confirmación de ataque."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Dos recursos tienen una recomendación parecida pero distinta exposición/criticidad. ¿Qué score descrito pondera esos factores?",
+          "explanation": "Cloud Secure Score pesa nivel de riesgo, factores y criticidad; no es una simple proporción de recursos sanos.",
+          "objective": "Distinguir cómputo clásico y ponderación de riesgo.",
+          "difficulty": "intermedia",
+          "id": "v25-17-score-cloud",
+          "evidence": [
+            "- `Cloud Secure Score` (portal Defender): no cuenta, pesa — una recomendación grave en un recurso expuesto pesa más que una menor en uno aislado (nivel de riesgo + risk factors + criticidad)."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Cloud Secure Score del portal Defender.",
+              "why": "Cloud Secure Score pesa nivel de riesgo, factores y criticidad; no es una simple proporción de recursos sanos."
+            },
+            {
+              "id": "o1",
+              "text": "El Secure Score clásico, que solo cuenta recursos sanos por control.",
+              "why": "El texto distingue la cuenta clásica de la ponderación por riesgo."
+            },
+            {
+              "id": "o2",
+              "text": "El número de alertas MDI del incidente.",
+              "why": "No es el score de postura descrito."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [],
+      "audit": {
+        "mainConcepts": [
+          "Separar CSPM/postura y CWPP/runtime sin negar recomendaciones CWPP.",
+          "Relacionar policy, standard y recomendación.",
+          "Interpretar los dos scores cloud."
+        ],
+        "understanding": [
+          "Separar CSPM/postura y CWPP/runtime sin negar recomendaciones CWPP.",
+          "Relacionar policy, standard y recomendación.",
+          "Interpretar los dos scores cloud."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Separar CSPM/postura y CWPP/runtime sin negar recomendaciones CWPP.",
+          "Relacionar policy, standard y recomendación.",
+          "Interpretar los dos scores cloud."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "El texto reserva runtime a CWPP y CSPM a configuración.",
+          "Las recomendaciones reflejan postura, no una confirmación de ataque.",
+          "El texto distingue la cuenta clásica de la ponderación por riesgo.",
+          "No es el score de postura descrito."
+        ],
+        "evidence": [
+          "- `security policy`: a qué scope (suscripción, management group) le aplicas qué standards.",
+          "- `security standard`: el checklist contra el que te comparan (ej: MCSB).",
+          "- `recomendación`: lo que sale cuando un recurso no pasa una regla de ese checklist.",
+          "2. `Cloud Workload Protection Platform` (`CWPP`) no es simplemente lo opuesto: se habilita por workload y es el único que genera alertas de runtime, pero además aporta sus propias recomendaciones, guía de hardening y evaluación de vulnerabilidades sobre ese workload.",
+          "- `Cloud Secure Score` (portal Defender): no cuenta, pesa — una recomendación grave en un recurso expuesto pesa más que una menor en uno aislado (nivel de riesgo + risk factors + criticidad)."
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-3-proteccion-y-configuracion-de-workloads/microsoft-purview-1",
+      "introduction": "Trabaja los conceptos de «Microsoft Purview» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Separar riesgo de persona y acciones sobre contenido.",
+        "Distinguir coincidencia, acción y alerta.",
+        "Probar DLP en Simulation mode antes del enforcement."
+      ],
+      "summary": [
+        "Separar riesgo de persona y acciones sobre contenido.",
+        "Distinguir coincidencia, acción y alerta.",
+        "Probar DLP en Simulation mode antes del enforcement."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "match",
+          "prompt": "Relaciona cada necesidad con la política del apartado.",
+          "explanation": "IRM configura vigilancia/riesgo del usuario; DLP configura condiciones y acciones sobre el manejo de datos.",
+          "objective": "Elegir la política por finalidad.",
+          "difficulty": "intermedia",
+          "id": "v25-18-irm-dlp",
+          "evidence": [
+            "- Una policy dice: a quién vigilo, qué evento lo mete en la vigilancia (`triggering event`, ej: se marca como usuario saliente), qué señales suman puntos, cuánto puntaje hace falta, y en qué ventana de tiempo.",
+            "- Una policy junta: dónde vigilar (`locations`), a quién (`users`/`groups`), bajo qué condición (`conditions`), y qué hacer si pasa (`actions`)."
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "Puntuar señales de riesgo de un usuario tras un triggering event"
+            },
+            {
+              "id": "r1",
+              "label": "Evaluar condiciones sobre datos sensibles y restringir acciones"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "Insider Risk Management"
+            },
+            {
+              "id": "p1",
+              "text": "Data Loss Prevention"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Una rule DLP tuvo un policy match. ¿Qué dato falta para concluir que generó alerta?",
+          "explanation": "Coincidir puede auditar, advertir o bloquear según configuración; la generación de alerta es otra decisión de la rule.",
+          "objective": "Distinguir coincidencia y alertado.",
+          "difficulty": "intermedia",
+          "id": "v25-18-match-alert",
+          "evidence": [
+            "- Si algo coincide puede: solo anotarlo (`audit`), avisarle al usuario, restringirle el acceso, o bloquear de plano (`Block`, o `Block with override` si le dejas saltárselo). Ojo: que coincida no significa que te avise — solo alerta si tú configuraste esa rule para alertar."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Que esa rule estuviera configurada para alertar.",
+              "why": "Coincidir puede auditar, advertir o bloquear según configuración; la generación de alerta es otra decisión de la rule."
+            },
+            {
+              "id": "o1",
+              "text": "Que el usuario tenga un rol Copilot owner.",
+              "why": "Ese rol no es la condición de alerta indicada."
+            },
+            {
+              "id": "o2",
+              "text": "Que toda policy match se convierta en incidente.",
+              "why": "El texto niega que match equivalga automáticamente a alerta."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Quieres estimar a quién afectaría una policy DLP sin bloquear aún. ¿Qué modo describe el texto?",
+          "explanation": "La simulación permite observar el impacto previsto antes de activar el control efectivo.",
+          "objective": "Elegir validación previa del impacto DLP.",
+          "difficulty": "intermedia",
+          "id": "v25-18-simulation",
+          "evidence": [
+            "- Antes de activarla en serio, la corres en `Simulation mode` para ver a quién le hubiera pegado, sin bloquear a nadie todavía."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Block with override.",
+              "why": "Ese modo bloquea permitiendo una excepción, no una simulación sin bloqueo."
+            },
+            {
+              "id": "o1",
+              "text": "Cambiar el triggering event de IRM.",
+              "why": "Es otro tipo de policy y no simula el enforcement DLP."
+            },
+            {
+              "id": "o2",
+              "text": "Simulation mode.",
+              "why": "La simulación permite observar el impacto previsto antes de activar el control efectivo."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [],
+      "audit": {
+        "mainConcepts": [
+          "Separar riesgo de persona y acciones sobre contenido.",
+          "Distinguir coincidencia, acción y alerta.",
+          "Probar DLP en Simulation mode antes del enforcement."
+        ],
+        "understanding": [
+          "Separar riesgo de persona y acciones sobre contenido.",
+          "Distinguir coincidencia, acción y alerta.",
+          "Probar DLP en Simulation mode antes del enforcement."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Separar riesgo de persona y acciones sobre contenido.",
+          "Distinguir coincidencia, acción y alerta.",
+          "Probar DLP en Simulation mode antes del enforcement."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "Ese rol no es la condición de alerta indicada.",
+          "El texto niega que match equivalga automáticamente a alerta.",
+          "Ese modo bloquea permitiendo una excepción, no una simulación sin bloqueo.",
+          "Es otro tipo de policy y no simula el enforcement DLP."
+        ],
+        "evidence": [
+          "- Una policy dice: a quién vigilo, qué evento lo mete en la vigilancia (`triggering event`, ej: se marca como usuario saliente), qué señales suman puntos, cuánto puntaje hace falta, y en qué ventana de tiempo.",
+          "- Una policy junta: dónde vigilar (`locations`), a quién (`users`/`groups`), bajo qué condición (`conditions`), y qué hacer si pasa (`actions`).",
+          "- Si algo coincide puede: solo anotarlo (`audit`), avisarle al usuario, restringirle el acceso, o bloquear de plano (`Block`, o `Block with override` si le dejas saltárselo). Ojo: que coincida no significa que te avise — solo alerta si tú configuraste esa rule para alertar.",
+          "- Antes de activarla en serio, la corres en `Simulation mode` para ver a quién le hubiera pegado, sin bloquear a nadie todavía."
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-3-proteccion-y-configuracion-de-workloads/microsoft-entra-id-protection-1",
+      "introduction": "Trabaja los conceptos de «Microsoft Entra ID Protection» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Distinguir riesgo de cuenta y de inicio de sesión.",
+        "Valorar el compromiso entre umbral y fricción.",
+        "Separar registrar MFA y exigirlo ante un riesgo."
+      ],
+      "summary": [
+        "Distinguir riesgo de cuenta y de inicio de sesión.",
+        "Valorar el compromiso entre umbral y fricción.",
+        "Separar registrar MFA y exigirlo ante un riesgo."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "match",
+          "prompt": "Relaciona la pregunta de seguridad con su política.",
+          "explanation": "El sujeto evaluado cambia: cuenta, sesión concreta o preparación de métodos MFA.",
+          "objective": "Seleccionar el objeto de una política de identidad.",
+          "difficulty": "intermedia",
+          "id": "v25-19-riesgos",
+          "evidence": [
+            "├──▶ User risk policy — probabilidad de cuenta comprometida",
+            "├──▶ Sign-in risk policy — la sesión concreta",
+            "├──▶ MFA registration policy — obliga a registrar métodos MFA"
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "¿Está comprometida la cuenta en general?"
+            },
+            {
+              "id": "r1",
+              "label": "¿Es sospechoso este inicio de sesión?"
+            },
+            {
+              "id": "r2",
+              "label": "¿Registró previamente métodos MFA?"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "User risk"
+            },
+            {
+              "id": "p1",
+              "text": "Sign-in risk"
+            },
+            {
+              "id": "p2",
+              "text": "MFA registration"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1",
+            "p2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Se eleva el umbral de riesgo a High para reducir interrupciones. ¿Qué compromiso destaca el apartado?",
+          "explanation": "Un umbral alto reduce fricción a costa de cobertura de niveles inferiores; no es una mejora sin contrapartida.",
+          "objective": "Razonar sobre el umbral de riesgo.",
+          "difficulty": "intermedia",
+          "id": "v25-19-umbral",
+          "evidence": [
+            "En `Microsoft Entra ID Protection`, esta capa reúne únicamente las políticas que responden al riesgo. El umbral de cada política es la decisión de diseño: alto la dispara pocas veces y molesta poco, pero deja fuera detecciones `Low`/`Medium` —donde un atacante puede moverse—; bajo protege más e interrumpe más. Las políticas basadas en `User risk` y `Sign-in risk` se configuran por separado en `Microsoft Entra ID > Conditional Access > Policies`. Las políticas `legacy` de ID Protection se retiran el 1 de octubre de 2026 y se migran a `Conditional Access`."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Aumenta necesariamente todas las detecciones Low.",
+              "why": "Elevar el umbral excluye niveles más bajos según el texto."
+            },
+            {
+              "id": "o1",
+              "text": "Elimina la necesidad de revisar las cuentas break-glass.",
+              "why": "Las exclusiones deben seguir revisándose."
+            },
+            {
+              "id": "o2",
+              "text": "Dispara menos veces, pero deja fuera detecciones Low/Medium.",
+              "why": "Un umbral alto reduce fricción a costa de cobertura de niveles inferiores; no es una mejora sin contrapartida."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Según el alcance descrito, ¿sobre qué identidades actúa Conditional Access para workload identities?",
+          "explanation": "El alcance es limitado y no debe extrapolarse desde usuarios humanos a cualquier identidad no humana.",
+          "objective": "Respetar límites de protección de workloads.",
+          "difficulty": "intermedia",
+          "id": "v25-19-workload",
+          "evidence": [
+            "Las 3 dejan excluir usuarios — ahí van las cuentas `break-glass` (revisar de vez en cuando, no dejarlas olvidadas). Marcar una red como de confianza baja los falsos positivos. Con workload identities, Conditional Access solo bloquea service principals de TU propio tenant — SaaS de terceros, apps multitenant y managed identities quedan fuera, no los toca."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Service principals del propio tenant.",
+              "why": "El alcance es limitado y no debe extrapolarse desde usuarios humanos a cualquier identidad no humana."
+            },
+            {
+              "id": "o1",
+              "text": "Todas las managed identities sin excepciones.",
+              "why": "El apartado las deja fuera."
+            },
+            {
+              "id": "o2",
+              "text": "Cualquier SaaS de terceros por el mero hecho de usarlo.",
+              "why": "El texto excluye SaaS de terceros y aplicaciones multitenant."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [
+        "No se evalúa la fecha de retirada de políticas legacy ni umbrales recomendados como garantía de vigencia."
+      ],
+      "audit": {
+        "mainConcepts": [
+          "Distinguir riesgo de cuenta y de inicio de sesión.",
+          "Valorar el compromiso entre umbral y fricción.",
+          "Separar registrar MFA y exigirlo ante un riesgo."
+        ],
+        "understanding": [
+          "Distinguir riesgo de cuenta y de inicio de sesión.",
+          "Valorar el compromiso entre umbral y fricción.",
+          "Separar registrar MFA y exigirlo ante un riesgo."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Distinguir riesgo de cuenta y de inicio de sesión.",
+          "Valorar el compromiso entre umbral y fricción.",
+          "Separar registrar MFA y exigirlo ante un riesgo."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "Elevar el umbral excluye niveles más bajos según el texto.",
+          "Las exclusiones deben seguir revisándose.",
+          "El apartado las deja fuera.",
+          "El texto excluye SaaS de terceros y aplicaciones multitenant."
+        ],
+        "evidence": [
+          "├──▶ User risk policy — probabilidad de cuenta comprometida",
+          "├──▶ Sign-in risk policy — la sesión concreta",
+          "├──▶ MFA registration policy — obliga a registrar métodos MFA",
+          "En `Microsoft Entra ID Protection`, esta capa reúne únicamente las políticas que responden al riesgo. El umbral de cada política es la decisión de diseño: alto la dispara pocas veces y molesta poco, pero deja fuera detecciones `Low`/`Medium` —donde un atacante puede moverse—; bajo protege más e interrumpe más. Las políticas basadas en `User risk` y `Sign-in risk` se configuran por separado en `Microsoft Entra ID > Conditional Access > Policies`. Las políticas `legacy` de ID Protection se retiran el 1 de octubre de 2026 y se migran a `Conditional Access`.",
+          "Las 3 dejan excluir usuarios — ahí van las cuentas `break-glass` (revisar de vez en cuando, no dejarlas olvidadas). Marcar una red como de confianza baja los falsos positivos. Con workload identities, Conditional Access solo bloquea service principals de TU propio tenant — SaaS de terceros, apps multitenant y managed identities quedan fuera, no los toca."
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-3-proteccion-y-configuracion-de-workloads/microsoft-secure-score-1",
+      "introduction": "Trabaja los conceptos de «Microsoft Secure Score» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Interpretar Secure Score como postura de configuración.",
+        "Distinguirlo de detección y Cloud Secure Score.",
+        "Reconocer mitigaciones alternativas en el seguimiento."
+      ],
+      "summary": [
+        "Interpretar Secure Score como postura de configuración.",
+        "Distinguirlo de detección y Cloud Secure Score.",
+        "Reconocer mitigaciones alternativas en el seguimiento."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "Sube Microsoft Secure Score. ¿Qué interpretación respeta el documento?",
+          "explanation": "Un score describe postura y acciones aplicadas; no prueba ausencia de ataques ni sustituye la investigación.",
+          "objective": "Interpretar el indicador sin inferencias indebidas.",
+          "difficulty": "intermedia",
+          "id": "v25-20-interpretar",
+          "evidence": [
+            "`Microsoft Secure Score` mide la postura de seguridad de la organización: cuanto más alto es número, más acciones recomendadas se han aplicado. No detecta ni alerta: puntúa configuración."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "El SOC ha confirmado necesariamente más incidentes.",
+              "why": "El score no detecta ni alerta; mide postura."
+            },
+            {
+              "id": "o1",
+              "text": "Todos los recursos cloud tienen riesgo cero.",
+              "why": "El texto no convierte un score en ausencia de riesgo."
+            },
+            {
+              "id": "o2",
+              "text": "Se han aplicado más acciones recomendadas de configuración.",
+              "why": "Un score describe postura y acciones aplicadas; no prueba ausencia de ataques ni sustituye la investigación."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "La recomendación se resuelve con una mitigación alternativa o un tercero. ¿Qué indica el apartado?",
+          "explanation": "El seguimiento distingue estados de las recomendaciones y contempla resolverlas fuera de la acción directa recomendada.",
+          "objective": "Reconocer formas de seguimiento de mitigación.",
+          "difficulty": "intermedia",
+          "id": "v25-20-alternativa",
+          "evidence": [
+            "2. Seguimiento: la pestaña `Recommended actions` lista cada recomendación con su estado —`To address`, `Planned`, `Risk accepted`, `Resolved through third party`, `Resolved through alternate mitigation`, `Completed`—. Una acción resuelta por un tercero o por mitigación alternativa también se refleja en la puntuación."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Debe generarse una alerta nueva para sumar postura.",
+              "why": "La puntuación no depende de una nueva alerta."
+            },
+            {
+              "id": "o1",
+              "text": "Ese estado también puede reflejarse en la puntuación.",
+              "why": "El seguimiento distingue estados de las recomendaciones y contempla resolverlas fuera de la acción directa recomendada."
+            },
+            {
+              "id": "o2",
+              "text": "Solo Completed puede influir en cualquier caso.",
+              "why": "El texto incluye explícitamente terceros y mitigación alternativa."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "match",
+          "prompt": "Relaciona los indicadores de postura.",
+          "explanation": "Compartir la palabra score no significa que midan el mismo ámbito.",
+          "objective": "Distinguir alcance de los indicadores de postura.",
+          "difficulty": "intermedia",
+          "id": "v25-20-scores",
+          "evidence": [
+            "├──▶ Microsoft Secure Score — postura de toda la organización, por configuración",
+            "├──▶ Cloud Secure Score — postura de la nube, por riesgo (vive en Defender for Cloud)"
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "Microsoft Secure Score"
+            },
+            {
+              "id": "r1",
+              "label": "Cloud Secure Score"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "Configuración de la organización"
+            },
+            {
+              "id": "p1",
+              "text": "Postura cloud ponderada por riesgo en Defender for Cloud"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [],
+      "audit": {
+        "mainConcepts": [
+          "Interpretar Secure Score como postura de configuración.",
+          "Distinguirlo de detección y Cloud Secure Score.",
+          "Reconocer mitigaciones alternativas en el seguimiento."
+        ],
+        "understanding": [
+          "Interpretar Secure Score como postura de configuración.",
+          "Distinguirlo de detección y Cloud Secure Score.",
+          "Reconocer mitigaciones alternativas en el seguimiento."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Interpretar Secure Score como postura de configuración.",
+          "Distinguirlo de detección y Cloud Secure Score.",
+          "Reconocer mitigaciones alternativas en el seguimiento."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "El score no detecta ni alerta; mide postura.",
+          "El texto no convierte un score en ausencia de riesgo.",
+          "La puntuación no depende de una nueva alerta.",
+          "El texto incluye explícitamente terceros y mitigación alternativa."
+        ],
+        "evidence": [
+          "`Microsoft Secure Score` mide la postura de seguridad de la organización: cuanto más alto es número, más acciones recomendadas se han aplicado. No detecta ni alerta: puntúa configuración.",
+          "2. Seguimiento: la pestaña `Recommended actions` lista cada recomendación con su estado —`To address`, `Planned`, `Risk accepted`, `Resolved through third party`, `Resolved through alternate mitigation`, `Completed`—. Una acción resuelta por un tercero o por mitigación alternativa también se refleja en la puntuación.",
+          "├──▶ Microsoft Secure Score — postura de toda la organización, por configuración",
+          "├──▶ Cloud Secure Score — postura de la nube, por riesgo (vive en Defender for Cloud)"
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    }
+  ]
+}

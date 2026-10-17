@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R03-L03",
+  "title": "Tablas, campos y exploración",
+  "revision": "f13eb3a449048bd38bbff03f",
+  "sourceVersion": "7be2e2f1ef0916b6f1b94b66cd091d7db8835d3733ffb1ba501f203712991ddd",
+  "sanitizedHash": "7be2e2f1ef0916b6f1b94b66cd091d7db8835d3733ffb1ba501f203712991ddd",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R01_R03/R03_SPL_BASICO/SP-R03-L03.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Identificar campos reales; utilizar `table`, `fields`, `fieldsummary`",
+  "preamble": "# SP-R03-L03 — Tablas, campos y exploración\n\n**Región:** Bosque SPL I (SP-R03) · **Prioridad:** P0 SOC N1/N2  \n**Estado:** material didáctico redactado; revisión humana recomendada. **SPL no ejecutado en Splunk real.**  \n**ID estable propuesto:** `SP-R03-L03` (no migrado a React)  \n**Prerrequisitos orientativos:** SP-R03-L01  \n**Objetivo del currículo:** Identificar campos reales; utilizar `table`, `fields`, `fieldsummary`\n\n",
+  "sections": [
+    {
+      "id": "SP-R03-L03-S01",
+      "title": "1. La pregunta que resuelve esta lección",
+      "markdown": "## 1. La pregunta que resuelve esta lección\n\n`table`, `fields` y `fieldsummary` sirven a propósitos distintos: presentación, selección de campos y exploración de cobertura.\n\n**Al completar la lección podrás:** Identificar campos reales; utilizar `table`, `fields`, `fieldsummary`. Debes explicar el porqué y los límites, no memorizar solo comandos.\n\n",
+      "line": 9,
+      "endLine": 13
+    },
+    {
+      "id": "SP-R03-L03-S02",
+      "title": "2. Desarrollo del conocimiento",
+      "markdown": "## 2. Desarrollo del conocimiento\n\n`table` produce una vista tabular de campos seleccionados; es útil para inspeccionar ejemplos o preparar informes, pero no demuestra la existencia de valores en todas las filas. `fields` ajusta campos disponibles a pasos posteriores; usarlo demasiado pronto puede eliminar columnas imprescindibles. `fieldsummary` resume qué campos aparecen y sus valores/nulos en los resultados observados, pero su cobertura solo describe esa muestra/ventana.\nAntes de usar `stats by user`, examina si `user` es un campo real y si representa una persona, una cuenta de servicio o un identificador enmascarado. El contenido de `_raw` puede ser sensible: evita publicarlo como parte de tareas de aprendizaje.\n\n",
+      "line": 15,
+      "endLine": 18
+    },
+    {
+      "id": "SP-R03-L03-S03",
+      "title": "3. Método de trabajo reproducible",
+      "markdown": "## 3. Método de trabajo reproducible\n\n1. Escoge índice y ventana; revisa una muestra pequeña.\n2. Presenta metadatos con table.\n3. Examina `fieldsummary` en ese subconjunto.\n4. Identifica campos obligatorios y nulos.\n5. Propón una normalización, sin asumir que ya existe CIM.\n\n",
+      "line": 20,
+      "endLine": 26
+    },
+    {
+      "id": "SP-R03-L03-S04",
+      "title": "4. Caso guiado — de la pregunta a la evidencia",
+      "markdown": "## 4. Caso guiado — de la pregunta a la evidencia\n\nUna tabla muestra 20 eventos con `src_ip` pero sin `src`. Si otra búsqueda agrega `by src`, puede obtener grupos inesperados o vacíos. Registra `src_ip` como dato realmente presente y evita inventar alias.\n\n### Esquema o ejemplo técnico\n\n```spl\nindex=INDICE_REAL earliest=-1h\n| head 20\n| fieldsummary\n```\n\n**Cómo interpretarlo:** El resultado resume solamente los primeros 20 eventos devueltos por la búsqueda y no toda la historia. `head` restringe muestra, no corrige ingesta.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n",
+      "line": 28,
+      "endLine": 42
+    },
+    {
+      "id": "SP-R03-L03-S05",
+      "title": "5. Diagnóstico y errores frecuentes",
+      "markdown": "## 5. Diagnóstico y errores frecuentes\n\nConfundir ausente con nulo; proyectar campos que no existen y concluir que se borraron; publicar logs sensibles completos.\n\n**Conexión con SC-200 (no equivalencia automática):** Cap. 13 (tablas/columnas), líneas 2517–2810.. En Splunk los esquemas, permisos y familias de producto son diferentes; verifica la correspondencia antes de reutilizar una técnica.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 44,
+      "endLine": 51
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R03-L03-Q01",
+      "lessonId": "SP-R03-L03",
+      "prompt": "¿Qué permite `fieldsummary`?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A13",
+        "SPLUNK_LECCIONES_R01_R03:A15"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R03-L03-Q01-O-937085179eb1",
+          "text": "Calcular el porcentaje de campos futuros que tendrá la siguiente ingesta"
+        },
+        {
+          "id": "SP-R03-L03-Q01-O-dff92e4a4c74",
+          "text": "Restaurar campos eliminados previamente por un comando fields"
+        },
+        {
+          "id": "SP-R03-L03-Q01-O-8ac1d554635e",
+          "text": "Inspeccionar los campos y su cobertura en los resultados observados, sin garantizar eventos futuros"
+        },
+        {
+          "id": "SP-R03-L03-Q01-O-5ee44d90b1aa",
+          "text": "Confirmar que una fuente del inventario produjo todos los eventos esperados"
+        }
+      ],
+      "solution": "SP-R03-L03-Q01-O-8ac1d554635e",
+      "explanation": "Describe presencia y características de campos en el conjunto de resultados.",
+      "anchors": [
+        {
+          "file": "R03_SPL_BASICO/SP-R03-L03.md",
+          "sourceHash": "7be2e2f1ef0916b6f1b94b66cd091d7db8835d3733ffb1ba501f203712991ddd",
+          "line": 15,
+          "endLine": 18,
+          "quote": "## 2. Desarrollo del conocimiento\n\n`table` produce una vista tabular de campos seleccionados; es útil para inspeccionar ejemplos o preparar informes, pero no demuestra la existencia de valores en todas las filas. `fields` ajusta campos disponibles a pasos posteriores; usarlo demasiado pronto puede eliminar columnas imprescindibles. `fieldsummary` resume qué campos aparecen y sus valores/nulos en los resultados observados, pero su cobertura solo describe esa muestra/ventana.\nAntes de usar `stats by user`, examina si `user` es un campo real y si representa una persona, una cuenta de servicio o un identificador enmascarado. El contenido de `_raw` puede ser sensible: evita publicarlo como parte de tareas de aprendizaje.\n\n"
+        },
+        {
+          "file": "R03_SPL_BASICO/SP-R03-L03.md",
+          "sourceHash": "7be2e2f1ef0916b6f1b94b66cd091d7db8835d3733ffb1ba501f203712991ddd",
+          "line": 28,
+          "endLine": 42,
+          "quote": "## 4. Caso guiado — de la pregunta a la evidencia\n\nUna tabla muestra 20 eventos con `src_ip` pero sin `src`. Si otra búsqueda agrega `by src`, puede obtener grupos inesperados o vacíos. Registra `src_ip` como dato realmente presente y evita inventar alias.\n\n### Esquema o ejemplo técnico\n\n```spl\nindex=INDICE_REAL earliest=-1h\n| head 20\n| fieldsummary\n```\n\n**Cómo interpretarlo:** El resultado resume solamente los primeros 20 eventos devueltos por la búsqueda y no toda la historia. `head` restringe muestra, no corrige ingesta.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R03-L03-Q02",
+      "lessonId": "SP-R03-L03",
+      "prompt": "¿Qué riesgo tiene `fields - user` antes de `stats count by user`?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A13",
+        "SPLUNK_LECCIONES_R01_R03:A15"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R03-L03-Q02-O-a1eb919a02e8",
+          "text": "El comando posterior conserva el conteo por usuario aunque se haya retirado ese campo"
+        },
+        {
+          "id": "SP-R03-L03-Q02-O-e83a4b6cebf7",
+          "text": "La agregación recupera user automáticamente desde el evento original"
+        },
+        {
+          "id": "SP-R03-L03-Q02-O-66bf921e36ef",
+          "text": "Los usuarios sin campo pasan a contarse como identidades distintas"
+        },
+        {
+          "id": "SP-R03-L03-Q02-O-0a92452eed4a",
+          "text": "Puede eliminar el campo requerido"
+        }
+      ],
+      "solution": "SP-R03-L03-Q02-O-0a92452eed4a",
+      "explanation": "La eliminación de un campo puede impedir pasos posteriores.",
+      "anchors": [
+        {
+          "file": "R03_SPL_BASICO/SP-R03-L03.md",
+          "sourceHash": "7be2e2f1ef0916b6f1b94b66cd091d7db8835d3733ffb1ba501f203712991ddd",
+          "line": 15,
+          "endLine": 18,
+          "quote": "## 2. Desarrollo del conocimiento\n\n`table` produce una vista tabular de campos seleccionados; es útil para inspeccionar ejemplos o preparar informes, pero no demuestra la existencia de valores en todas las filas. `fields` ajusta campos disponibles a pasos posteriores; usarlo demasiado pronto puede eliminar columnas imprescindibles. `fieldsummary` resume qué campos aparecen y sus valores/nulos en los resultados observados, pero su cobertura solo describe esa muestra/ventana.\nAntes de usar `stats by user`, examina si `user` es un campo real y si representa una persona, una cuenta de servicio o un identificador enmascarado. El contenido de `_raw` puede ser sensible: evita publicarlo como parte de tareas de aprendizaje.\n\n"
+        },
+        {
+          "file": "R03_SPL_BASICO/SP-R03-L03.md",
+          "sourceHash": "7be2e2f1ef0916b6f1b94b66cd091d7db8835d3733ffb1ba501f203712991ddd",
+          "line": 28,
+          "endLine": 42,
+          "quote": "## 4. Caso guiado — de la pregunta a la evidencia\n\nUna tabla muestra 20 eventos con `src_ip` pero sin `src`. Si otra búsqueda agrega `by src`, puede obtener grupos inesperados o vacíos. Registra `src_ip` como dato realmente presente y evita inventar alias.\n\n### Esquema o ejemplo técnico\n\n```spl\nindex=INDICE_REAL earliest=-1h\n| head 20\n| fieldsummary\n```\n\n**Cómo interpretarlo:** El resultado resume solamente los primeros 20 eventos devueltos por la búsqueda y no toda la historia. `head` restringe muestra, no corrige ingesta.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R03-L03-P01",
+      "lessonId": "SP-R03-L03",
+      "prompt": "Explica una estrategia para comprobar si existe `src` en registros de firewall.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A13",
+        "SPLUNK_LECCIONES_R01_R03:A15"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica los datos/condiciones necesarios",
+        "Explica el razonamiento y no solo el resultado",
+        "Reconoce al menos una limitación o comprobación adicional"
+      ],
+      "referenceAnswer": "Acotar índice/sourcetype/tiempo, inspeccionar muestras y fieldsummary, distinguir `src_ip` de `src` y documentar población/nulos."
+    }
+  ],
+  "solutionsMarkdown": "## 7. Solucionario con razonamiento\n\n- **SP-R03-L03-Q01: C** — Describe presencia y características de campos en el conjunto de resultados.\n\n- **SP-R03-L03-Q02: D** — La eliminación de un campo puede impedir pasos posteriores.\n\n- **SP-R03-L03-P01:** Acotar índice/sourcetype/tiempo, inspeccionar muestras y fieldsummary, distinguir `src_ip` de `src` y documentar población/nulos.\n\n**Guía de retroalimentación formativa:** Identifica los datos/condiciones necesarios; Explica el razonamiento y no solo el resultado; Reconoce al menos una limitación o comprobación adicional.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 8. Fuentes y trazabilidad\n\n- **Fuente de partida:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE2_BLOQUE1.md`, según la organización del paquete de investigación que conservas.\n- **Fuente Microsoft de contraste:** `../../01_FUENTE_ORIGINAL/SC-200.md`; Cap. 13 (tablas/columnas), líneas 2517–2810.\n- **[A13]** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/search-commands/fieldsummary\n- **[A15]** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/quick-reference/commands-by-category\n\n**Estado de confianza:** documentación técnica citada y propuesta pedagógica; no validado contra índices, sourcetypes, roles o versiones de tu laboratorio. Las URLs provienen de la investigación del 16/10/2026, con contraste puntual adicional de documentación oficial para HEC y forwarders. Ver `FUENTES_Y_LIMITES.md`.\n",
+  "originalMarkdown": "# SP-R03-L03 — Tablas, campos y exploración\n\n**Región:** Bosque SPL I (SP-R03) · **Prioridad:** P0 SOC N1/N2  \n**Estado:** material didáctico redactado; revisión humana recomendada. **SPL no ejecutado en Splunk real.**  \n**ID estable propuesto:** `SP-R03-L03` (no migrado a React)  \n**Prerrequisitos orientativos:** SP-R03-L01  \n**Objetivo del currículo:** Identificar campos reales; utilizar `table`, `fields`, `fieldsummary`\n\n## 1. La pregunta que resuelve esta lección\n\n`table`, `fields` y `fieldsummary` sirven a propósitos distintos: presentación, selección de campos y exploración de cobertura.\n\n**Al completar la lección podrás:** Identificar campos reales; utilizar `table`, `fields`, `fieldsummary`. Debes explicar el porqué y los límites, no memorizar solo comandos.\n\n## 2. Desarrollo del conocimiento\n\n`table` produce una vista tabular de campos seleccionados; es útil para inspeccionar ejemplos o preparar informes, pero no demuestra la existencia de valores en todas las filas. `fields` ajusta campos disponibles a pasos posteriores; usarlo demasiado pronto puede eliminar columnas imprescindibles. `fieldsummary` resume qué campos aparecen y sus valores/nulos en los resultados observados, pero su cobertura solo describe esa muestra/ventana.\nAntes de usar `stats by user`, examina si `user` es un campo real y si representa una persona, una cuenta de servicio o un identificador enmascarado. El contenido de `_raw` puede ser sensible: evita publicarlo como parte de tareas de aprendizaje.\n\n## 3. Método de trabajo reproducible\n\n1. Escoge índice y ventana; revisa una muestra pequeña.\n2. Presenta metadatos con table.\n3. Examina `fieldsummary` en ese subconjunto.\n4. Identifica campos obligatorios y nulos.\n5. Propón una normalización, sin asumir que ya existe CIM.\n\n## 4. Caso guiado — de la pregunta a la evidencia\n\nUna tabla muestra 20 eventos con `src_ip` pero sin `src`. Si otra búsqueda agrega `by src`, puede obtener grupos inesperados o vacíos. Registra `src_ip` como dato realmente presente y evita inventar alias.\n\n### Esquema o ejemplo técnico\n\n```spl\nindex=INDICE_REAL earliest=-1h\n| head 20\n| fieldsummary\n```\n\n**Cómo interpretarlo:** El resultado resume solamente los primeros 20 eventos devueltos por la búsqueda y no toda la historia. `head` restringe muestra, no corrige ingesta.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n## 5. Diagnóstico y errores frecuentes\n\nConfundir ausente con nulo; proyectar campos que no existen y concluir que se borraron; publicar logs sensibles completos.\n\n**Conexión con SC-200 (no equivalencia automática):** Cap. 13 (tablas/columnas), líneas 2517–2810.. En Splunk los esquemas, permisos y familias de producto son diferentes; verifica la correspondencia antes de reutilizar una técnica.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 6. Actividades\n\n### SP-R03-L03-Q01 — Opción múltiple\n\n¿Qué permite `fieldsummary`?\n\nA. Calcular el porcentaje de campos futuros que tendrá la siguiente ingesta\nB. Restaurar campos eliminados previamente por un comando fields\nC. Inspeccionar los campos y su cobertura en los resultados observados, sin garantizar eventos futuros\nD. Confirmar que una fuente del inventario produjo todos los eventos esperados\n\n### SP-R03-L03-Q02 — Opción múltiple\n\n¿Qué riesgo tiene `fields - user` antes de `stats count by user`?\n\nA. El comando posterior conserva el conteo por usuario aunque se haya retirado ese campo\nB. La agregación recupera user automáticamente desde el evento original\nC. Los usuarios sin campo pasan a contarse como identidades distintas\nD. Puede eliminar el campo requerido\n\n### SP-R03-L03-P01 — Práctica abierta formativa\n\nExplica una estrategia para comprobar si existe `src` en registros de firewall.\n\n## 7. Solucionario con razonamiento\n\n- **SP-R03-L03-Q01: C** — Describe presencia y características de campos en el conjunto de resultados.\n\n- **SP-R03-L03-Q02: D** — La eliminación de un campo puede impedir pasos posteriores.\n\n- **SP-R03-L03-P01:** Acotar índice/sourcetype/tiempo, inspeccionar muestras y fieldsummary, distinguir `src_ip` de `src` y documentar población/nulos.\n\n**Guía de retroalimentación formativa:** Identifica los datos/condiciones necesarios; Explica el razonamiento y no solo el resultado; Reconoce al menos una limitación o comprobación adicional.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Fuentes y trazabilidad\n\n- **Fuente de partida:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE2_BLOQUE1.md`, según la organización del paquete de investigación que conservas.\n- **Fuente Microsoft de contraste:** `../../01_FUENTE_ORIGINAL/SC-200.md`; Cap. 13 (tablas/columnas), líneas 2517–2810.\n- **[A13]** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/search-commands/fieldsummary\n- **[A15]** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/quick-reference/commands-by-category\n\n**Estado de confianza:** documentación técnica citada y propuesta pedagógica; no validado contra índices, sourcetypes, roles o versiones de tu laboratorio. Las URLs provienen de la investigación del 16/10/2026, con contraste puntual adicional de documentación oficial para HEC y forwarders. Ver `FUENTES_Y_LIMITES.md`.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 8,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "A13",
+      "key": "SPLUNK_LECCIONES_R01_R03:A13",
+      "url": "https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/search-commands/fieldsummary"
+    },
+    {
+      "id": "A15",
+      "key": "SPLUNK_LECCIONES_R01_R03:A15",
+      "url": "https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/quick-reference/commands-by-category"
+    }
+  ]
+}

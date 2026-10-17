@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R11-L02",
+  "title": "REST API para búsquedas",
+  "revision": "657bb0b82932fbba16dee671",
+  "sourceVersion": "f6cc750e005169090573f75c15475f15c2abe4663d99a91060f18b039c20251c",
+  "sanitizedHash": "f6cc750e005169090573f75c15475f15c2abe4663d99a91060f18b039c20251c",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R10_R11/R11_AUTOMATIZACION_SOAR/SP-R11-L02.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Identificar búsqueda, job SID, results y permisos",
+  "preamble": "# SP-R11-L02 — REST API para búsquedas\n\n**Región:** SP-R11 · **Producto:** Splunk Enterprise/Cloud (donde se indique) o SOAR Cloud explícito. · **Estado:** borrador documental / requiere revisión humana. · **SPL/CLI/API:** ilustrativo, NO ejecutado.\n\n**Resultado curricular:** Identificar búsqueda, job SID, results y permisos\n\n**Prerrequisitos:** R07, R09 (conceptual), R10\n\n",
+  "sections": [
+    {
+      "id": "SP-R11-L02-S01",
+      "title": "1. Explicación razonada",
+      "markdown": "## 1. Explicación razonada\n\nLa API REST de Splunk identifica cada trabajo de búsqueda por un **SID**. La referencia Enterprise 10.2 documenta creación con `POST /services/search/jobs`, consulta de estado con `GET /services/search/jobs/{sid}` y recuperación de resultados con `GET /services/search/v2/jobs/{sid}/results`. La versión se elige por endpoint, no sustituyendo globalmente un prefijo. Crear un job cambia el estado del servicio, aunque su SPL solo lea datos. Esta distinción no autoriza conexiones ni operaciones desde el curso.\n\nDiseña un cliente con SPL permitida, ventana e índices acotados, HTTPS verificado, rol mínimo, timeouts, presupuesto de jobs y trazabilidad. `count=0` permite pedir todos los resultados; la política didáctica exige 1–100. Algunos endpoints de resultados antiguos están obsoletos, pero creación y estado conservan las rutas anteriores en la referencia citada. Confirmar soporte Cloud y versión instalada antes de cualquier cliente real. Consulta [D10], sin asumir disponibilidad local.\n\nLos ejemplos de este bloque son URLs informativas con `example.test`, no solicitudes ejecutables; no se incluyen credenciales ni instrucciones para desactivar seguridad. Un SID no equivale a autorización para explorar resultados de otra cuenta.\n\n",
+      "line": 9,
+      "endLine": 15
+    },
+    {
+      "id": "SP-R11-L02-S02",
+      "title": "2. Conceptos clave",
+      "markdown": "## 2. Conceptos clave\n\n1. SID identifica job, no permiso global\n2. POST creación de job ≠ modificación de datos indexados\n3. Consultar resultados requiere RBAC y límite count/ventana\n4. Versiones API v2 deben validarse por producto\n5. HTTPS verificado y tokens acotados obligatorios\n\n",
+      "line": 17,
+      "endLine": 23
+    },
+    {
+      "id": "SP-R11-L02-S03",
+      "title": "3. Procedimiento de estudio y verificación",
+      "markdown": "## 3. Procedimiento de estudio y verificación\n\n1. Especifica una consulta SPL preaprobada con campos/índices permitidos.\n2. Diseña petición conceptual de creación job y recepción SID, sin ejecutarla.\n3. Define GET de estado y resultados con count máximo y expiración.\n4. Incluye autenticación, TLS, roles y límites de concurrencia.\n5. Define que 401/403, job caducado y timeout no deben disparar acciones mutantes.\n\n",
+      "line": 25,
+      "endLine": 31
+    },
+    {
+      "id": "SP-R11-L02-S04",
+      "title": "4. Endpoints documentados — NO ejecutar desde el ZIP",
+      "markdown": "## 4. Endpoints documentados — NO ejecutar desde el ZIP\n\n```text\nPOST https://splunk.example.test:8089/services/search/jobs\nGET  https://splunk.example.test:8089/services/search/jobs/{sid}\nGET  https://splunk.example.test:8089/services/search/v2/jobs/{sid}/results?count=100&output_mode=json\n# Los parámetros exactos/versiones se verifican en documentación; no hay credenciales.\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n",
+      "line": 33,
+      "endLine": 42
+    },
+    {
+      "id": "SP-R11-L02-S05",
+      "title": "5. Situación profesional",
+      "markdown": "## 5. Situación profesional\n\nUn cliente recibe un SID. Debe distinguir estado (`/services/search/jobs/{sid}`) de resultados (`/services/search/v2/jobs/{sid}/results`) según [D10]; no migrar automáticamente ambos al mismo prefijo. Son rutas documentales, sin llamadas ejecutadas.\n\n## 6. Errores comunes\n\n1. Confundir SID con token de autenticación\n2. Usar `count=0` sin límites y descargar resultados ilimitados\n3. Definir «solo lectura» por verbo HTTP ignorando efectos de SPL\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 44,
+      "endLine": 55
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R11-L02-Q01",
+      "lessonId": "SP-R11-L02",
+      "prompt": "¿Qué representa un SID en la API de búsquedas?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D10",
+        "SPLUNK_LECCIONES_R10_R11:D03"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R11-L02-Q01-O-939abdf85c67",
+          "text": "Un permiso para leer resultados de cualquier usuario de la instancia"
+        },
+        {
+          "id": "SP-R11-L02-Q01-O-ed7a3a48ca1e",
+          "text": "Un identificador de índice independiente del trabajo de búsqueda"
+        },
+        {
+          "id": "SP-R11-L02-Q01-O-277481df5d42",
+          "text": "El identificador de un trabajo de búsqueda, que no otorga por sí mismo permiso para leer sus resultados"
+        },
+        {
+          "id": "SP-R11-L02-Q01-O-89cf2b6714c0",
+          "text": "Un token de ingesta que autoriza también búsquedas"
+        }
+      ],
+      "solution": "SP-R11-L02-Q01-O-277481df5d42",
+      "explanation": "SID refiere al trabajo creado, no concede permisos por sí solo.",
+      "anchors": [
+        {
+          "file": "R11_AUTOMATIZACION_SOAR/SP-R11-L02.md",
+          "sourceHash": "f6cc750e005169090573f75c15475f15c2abe4663d99a91060f18b039c20251c",
+          "line": 17,
+          "endLine": 23,
+          "quote": "## 2. Conceptos clave\n\n1. SID identifica job, no permiso global\n2. POST creación de job ≠ modificación de datos indexados\n3. Consultar resultados requiere RBAC y límite count/ventana\n4. Versiones API v2 deben validarse por producto\n5. HTTPS verificado y tokens acotados obligatorios\n\n"
+        },
+        {
+          "file": "R11_AUTOMATIZACION_SOAR/SP-R11-L02.md",
+          "sourceHash": "f6cc750e005169090573f75c15475f15c2abe4663d99a91060f18b039c20251c",
+          "line": 33,
+          "endLine": 42,
+          "quote": "## 4. Endpoints documentados — NO ejecutar desde el ZIP\n\n```text\nPOST https://splunk.example.test:8089/services/search/jobs\nGET  https://splunk.example.test:8089/services/search/jobs/{sid}\nGET  https://splunk.example.test:8089/services/search/v2/jobs/{sid}/results?count=100&output_mode=json\n# Los parámetros exactos/versiones se verifican en documentación; no hay credenciales.\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R11-L02-Q02",
+      "lessonId": "SP-R11-L02",
+      "prompt": "¿Qué práctica disminuye el riesgo de extracción masiva?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D10",
+        "SPLUNK_LECCIONES_R10_R11:D03"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R11-L02-Q02-O-412d5c1d6476",
+          "text": "Usar solo TLS, manteniendo un rol administrativo y count=0"
+        },
+        {
+          "id": "SP-R11-L02-Q02-O-16addc41bea2",
+          "text": "Limitar la salida visible del dashboard pero descargar todos los resultados"
+        },
+        {
+          "id": "SP-R11-L02-Q02-O-2c2577fa2cb2",
+          "text": "Acotar el tiempo pero permitir cualquier índice y volumen de resultados"
+        },
+        {
+          "id": "SP-R11-L02-Q02-O-4d3a7918a941",
+          "text": "Acotar resultados, tiempo e índices mediante un rol mínimo y un límite de extracción definido"
+        }
+      ],
+      "solution": "SP-R11-L02-Q02-O-4d3a7918a941",
+      "explanation": "Los límites y RBAC restringen volumen y alcance.",
+      "anchors": [
+        {
+          "file": "R11_AUTOMATIZACION_SOAR/SP-R11-L02.md",
+          "sourceHash": "f6cc750e005169090573f75c15475f15c2abe4663d99a91060f18b039c20251c",
+          "line": 17,
+          "endLine": 23,
+          "quote": "## 2. Conceptos clave\n\n1. SID identifica job, no permiso global\n2. POST creación de job ≠ modificación de datos indexados\n3. Consultar resultados requiere RBAC y límite count/ventana\n4. Versiones API v2 deben validarse por producto\n5. HTTPS verificado y tokens acotados obligatorios\n\n"
+        },
+        {
+          "file": "R11_AUTOMATIZACION_SOAR/SP-R11-L02.md",
+          "sourceHash": "f6cc750e005169090573f75c15475f15c2abe4663d99a91060f18b039c20251c",
+          "line": 33,
+          "endLine": 42,
+          "quote": "## 4. Endpoints documentados — NO ejecutar desde el ZIP\n\n```text\nPOST https://splunk.example.test:8089/services/search/jobs\nGET  https://splunk.example.test:8089/services/search/jobs/{sid}\nGET  https://splunk.example.test:8089/services/search/v2/jobs/{sid}/results?count=100&output_mode=json\n# Los parámetros exactos/versiones se verifican en documentación; no hay credenciales.\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R11-L02-P01",
+      "lessonId": "SP-R11-L02",
+      "prompt": "Especifica contrato conceptual de cliente de búsqueda: entradas permitidas, salida, errores, seguridad y auditoría.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D10",
+        "SPLUNK_LECCIONES_R10_R11:D03"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Define fuente, producto, versión y límites del contexto",
+        "Resuelve el objetivo con un procedimiento replicable y no destructivo",
+        "Identifica error, caso benigno y riesgo operacional",
+        "Documenta permisos, aprobación y evidencia para revisión humana"
+      ],
+      "referenceAnswer": "Contrato documental Enterprise 10.2: POST /services/search/jobs crea SID; GET /services/search/jobs/{sid} consulta estado; GET /services/search/v2/jobs/{sid}/results recupera resultados. Exigir consultas y parámetros permitidos, earliest/latest, count entre 1 y 100, rol mínimo, HTTPS verificado, ownership y límites de jobs. Job expirado y 401/403 no disparan efectos externos. Sin llamadas REST; soporte de versión/Cloud pendiente."
+    }
+  ],
+  "solutionsMarkdown": "## 8. Solucionario con razonamiento\n\n- **SP-R11-L02-Q01: C** — SID refiere al trabajo creado, no concede permisos por sí solo.\n\n- **SP-R11-L02-Q02: D** — Los límites y RBAC restringen volumen y alcance.\n\n- **SP-R11-L02-P01:** Contrato documental Enterprise 10.2: POST /services/search/jobs crea SID; GET /services/search/jobs/{sid} consulta estado; GET /services/search/v2/jobs/{sid}/results recupera resultados. Exigir consultas y parámetros permitidos, earliest/latest, count entre 1 y 100, rol mínimo, HTTPS verificado, ownership y límites de jobs. Job expirado y 401/403 no disparan efectos externos. Sin llamadas REST; soporte de versión/Cloud pendiente.\n\n**Guía de retroalimentación formativa:** Define fuente, producto, versión y límites del contexto; Resuelve el objetivo con un procedimiento replicable y no destructivo; Identifica error, caso benigno y riesgo operacional; Documenta permisos, aprobación y evidencia para revisión humana.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 9. Fuentes, procedencia y limitaciones\n\n- **D10:** Splunk Enterprise 10.2 — Search REST endpoint descriptions — https://help.splunk.com/en/splunk-enterprise/rest-api-reference/10.2/search-endpoints/search-endpoint-descriptions\n- **D03:** Splunk Enterprise 10.2 — Manage roles in authorize.conf — https://help.splunk.com/en/splunk-enterprise/administer/manage-users-and-security/10.2/perform-advanced-user-and-role-management-in-splunk-enterprise/create-and-manage-roles-in-splunk-enterprise-using-the-authorize.conf-configuration-file\n\n- **Puente SC-200:** Capítulos 02, 09 y 12: permisos, investigación y APIs. Es correspondencia pedagógica, no equivalencia exacta de producto.\n- **Fuente del ID y resultado:** `SPLUNK_MASTER_RESEARCH/03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`.\n- **[DOC]:** fundamentos documentados en fuentes oficiales; no equivale a prueba de todos los supuestos.\n- **[OFFLINE]:** solo verificaciones Python sobre fixtures sintéticos.\n- **[NO EJECUTADO]:** no se ha abierto Splunk, ni SOAR, ni REST, ni se han aplicado configuraciones.\n- **[REVISIÓN]:** verificación humana del texto, respuestas, versiones y supuestos antes de integrar en React.\n",
+  "originalMarkdown": "# SP-R11-L02 — REST API para búsquedas\n\n**Región:** SP-R11 · **Producto:** Splunk Enterprise/Cloud (donde se indique) o SOAR Cloud explícito. · **Estado:** borrador documental / requiere revisión humana. · **SPL/CLI/API:** ilustrativo, NO ejecutado.\n\n**Resultado curricular:** Identificar búsqueda, job SID, results y permisos\n\n**Prerrequisitos:** R07, R09 (conceptual), R10\n\n## 1. Explicación razonada\n\nLa API REST de Splunk identifica cada trabajo de búsqueda por un **SID**. La referencia Enterprise 10.2 documenta creación con `POST /services/search/jobs`, consulta de estado con `GET /services/search/jobs/{sid}` y recuperación de resultados con `GET /services/search/v2/jobs/{sid}/results`. La versión se elige por endpoint, no sustituyendo globalmente un prefijo. Crear un job cambia el estado del servicio, aunque su SPL solo lea datos. Esta distinción no autoriza conexiones ni operaciones desde el curso.\n\nDiseña un cliente con SPL permitida, ventana e índices acotados, HTTPS verificado, rol mínimo, timeouts, presupuesto de jobs y trazabilidad. `count=0` permite pedir todos los resultados; la política didáctica exige 1–100. Algunos endpoints de resultados antiguos están obsoletos, pero creación y estado conservan las rutas anteriores en la referencia citada. Confirmar soporte Cloud y versión instalada antes de cualquier cliente real. Consulta [D10], sin asumir disponibilidad local.\n\nLos ejemplos de este bloque son URLs informativas con `example.test`, no solicitudes ejecutables; no se incluyen credenciales ni instrucciones para desactivar seguridad. Un SID no equivale a autorización para explorar resultados de otra cuenta.\n\n## 2. Conceptos clave\n\n1. SID identifica job, no permiso global\n2. POST creación de job ≠ modificación de datos indexados\n3. Consultar resultados requiere RBAC y límite count/ventana\n4. Versiones API v2 deben validarse por producto\n5. HTTPS verificado y tokens acotados obligatorios\n\n## 3. Procedimiento de estudio y verificación\n\n1. Especifica una consulta SPL preaprobada con campos/índices permitidos.\n2. Diseña petición conceptual de creación job y recepción SID, sin ejecutarla.\n3. Define GET de estado y resultados con count máximo y expiración.\n4. Incluye autenticación, TLS, roles y límites de concurrencia.\n5. Define que 401/403, job caducado y timeout no deben disparar acciones mutantes.\n\n## 4. Endpoints documentados — NO ejecutar desde el ZIP\n\n```text\nPOST https://splunk.example.test:8089/services/search/jobs\nGET  https://splunk.example.test:8089/services/search/jobs/{sid}\nGET  https://splunk.example.test:8089/services/search/v2/jobs/{sid}/results?count=100&output_mode=json\n# Los parámetros exactos/versiones se verifican en documentación; no hay credenciales.\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n## 5. Situación profesional\n\nUn cliente recibe un SID. Debe distinguir estado (`/services/search/jobs/{sid}`) de resultados (`/services/search/v2/jobs/{sid}/results`) según [D10]; no migrar automáticamente ambos al mismo prefijo. Son rutas documentales, sin llamadas ejecutadas.\n\n## 6. Errores comunes\n\n1. Confundir SID con token de autenticación\n2. Usar `count=0` sin límites y descargar resultados ilimitados\n3. Definir «solo lectura» por verbo HTTP ignorando efectos de SPL\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R11-L02-Q01 — Opción múltiple\n\n¿Qué representa un SID en la API de búsquedas?\n\nA. Un permiso para leer resultados de cualquier usuario de la instancia\nB. Un identificador de índice independiente del trabajo de búsqueda\nC. El identificador de un trabajo de búsqueda, que no otorga por sí mismo permiso para leer sus resultados\nD. Un token de ingesta que autoriza también búsquedas\n\n### SP-R11-L02-Q02 — Opción múltiple\n\n¿Qué práctica disminuye el riesgo de extracción masiva?\n\nA. Usar solo TLS, manteniendo un rol administrativo y count=0\nB. Limitar la salida visible del dashboard pero descargar todos los resultados\nC. Acotar el tiempo pero permitir cualquier índice y volumen de resultados\nD. Acotar resultados, tiempo e índices mediante un rol mínimo y un límite de extracción definido\n\n### SP-R11-L02-P01 — Práctica abierta formativa\n\nEspecifica contrato conceptual de cliente de búsqueda: entradas permitidas, salida, errores, seguridad y auditoría.\n\n## 8. Solucionario con razonamiento\n\n- **SP-R11-L02-Q01: C** — SID refiere al trabajo creado, no concede permisos por sí solo.\n\n- **SP-R11-L02-Q02: D** — Los límites y RBAC restringen volumen y alcance.\n\n- **SP-R11-L02-P01:** Contrato documental Enterprise 10.2: POST /services/search/jobs crea SID; GET /services/search/jobs/{sid} consulta estado; GET /services/search/v2/jobs/{sid}/results recupera resultados. Exigir consultas y parámetros permitidos, earliest/latest, count entre 1 y 100, rol mínimo, HTTPS verificado, ownership y límites de jobs. Job expirado y 401/403 no disparan efectos externos. Sin llamadas REST; soporte de versión/Cloud pendiente.\n\n**Guía de retroalimentación formativa:** Define fuente, producto, versión y límites del contexto; Resuelve el objetivo con un procedimiento replicable y no destructivo; Identifica error, caso benigno y riesgo operacional; Documenta permisos, aprobación y evidencia para revisión humana.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 9. Fuentes, procedencia y limitaciones\n\n- **D10:** Splunk Enterprise 10.2 — Search REST endpoint descriptions — https://help.splunk.com/en/splunk-enterprise/rest-api-reference/10.2/search-endpoints/search-endpoint-descriptions\n- **D03:** Splunk Enterprise 10.2 — Manage roles in authorize.conf — https://help.splunk.com/en/splunk-enterprise/administer/manage-users-and-security/10.2/perform-advanced-user-and-role-management-in-splunk-enterprise/create-and-manage-roles-in-splunk-enterprise-using-the-authorize.conf-configuration-file\n\n- **Puente SC-200:** Capítulos 02, 09 y 12: permisos, investigación y APIs. Es correspondencia pedagógica, no equivalencia exacta de producto.\n- **Fuente del ID y resultado:** `SPLUNK_MASTER_RESEARCH/03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`.\n- **[DOC]:** fundamentos documentados en fuentes oficiales; no equivale a prueba de todos los supuestos.\n- **[OFFLINE]:** solo verificaciones Python sobre fixtures sintéticos.\n- **[NO EJECUTADO]:** no se ha abierto Splunk, ni SOAR, ni REST, ni se han aplicado configuraciones.\n- **[REVISIÓN]:** verificación humana del texto, respuestas, versiones y supuestos antes de integrar en React.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D10",
+      "key": "SPLUNK_LECCIONES_R10_R11:D10",
+      "url": "https://help.splunk.com/en/splunk-enterprise/rest-api-reference/10.2/search-endpoints/search-endpoint-descriptions"
+    },
+    {
+      "id": "D03",
+      "key": "SPLUNK_LECCIONES_R10_R11:D03",
+      "url": "https://help.splunk.com/en/splunk-enterprise/administer/manage-users-and-security/10.2/perform-advanced-user-and-role-management-in-splunk-enterprise/create-and-manage-roles-in-splunk-enterprise-using-the-authorize.conf-configuration-file"
+    }
+  ]
+}

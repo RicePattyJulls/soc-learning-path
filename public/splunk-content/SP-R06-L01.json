@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R06-L01",
+  "title": "Triage: del aviso a la pregunta",
+  "revision": "489ee1c3137818835ae6be49",
+  "sourceVersion": "befb80647015a3c3bba8887e6ea3da9906aa58a9a0001c3ad72c43dffc56358b",
+  "sanitizedHash": "befb80647015a3c3bba8887e6ea3da9906aa58a9a0001c3ad72c43dffc56358b",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R06_R07/R06_CENTRO_SOC/SP-R06-L01.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Identificar origen de alerta, regla, ventana y entidad",
+  "preamble": "# SP-R06-L01 — Triage: del aviso a la pregunta\n\n**Región:** SP-R06 · **Prioridad:** P0 (SOC N1/N2) · **Estado:** material editorial para revisión · **SPL:** NO ejecutado en Splunk.\n\n**Objetivo curricular original:** Identificar origen de alerta, regla, ventana y entidad\n\n**Prerrequisitos:** R01–R05 y lectura de la matriz de campos. **Producto:** Splunk Enterprise/Cloud (búsquedas de lectura); funciones ES explícitamente condicionadas a Splunk Enterprise Security compatible.\n\n",
+  "sections": [
+    {
+      "id": "SP-R06-L01-S01",
+      "title": "1. Pregunta esencial y modelo mental",
+      "markdown": "## 1. Pregunta esencial y modelo mental\n\nUna alerta no es un incidente confirmado: es un resultado producido por una búsqueda, condición y ventana. El primer trabajo N1 consiste en reconstruir qué evaluó la regla y qué eventos sostienen su resultado. Si una alerta agrupa fallos de múltiples cuentas detrás de una IP, su severidad inicial no convierte a la IP en atacante. El análisis debe separar hechos, inferencias y preguntas abiertas.\n\n",
+      "line": 9,
+      "endLine": 11
+    },
+    {
+      "id": "SP-R06-L01-S02",
+      "title": "2. Conceptos que debes dominar",
+      "markdown": "## 2. Conceptos que debes dominar\n\n1. El paquete mínimo de una alerta incluye nombre/versión de regla, hora de ejecución, periodo de eventos, condición que disparó, fuente e identidades observadas.\n2. Un recuento agregado no sustituye la lista de eventos: conserva IDs para que otro analista reconstruya la misma observación.\n3. La ventana de búsqueda por `_time` no coincide necesariamente con el horario de ingesta; una regla puede operar sobre eventos tardíos.\n4. Distingue alerta de plataforma Splunk Enterprise de *finding* o investigación de Splunk Enterprise Security; no presupongas que ES está instalado.\n5. Hipótesis inicial: anomalía de autenticación. Afirmación aún prohibida: compromiso, identidad del atacante o causa final.\n\n",
+      "line": 13,
+      "endLine": 19
+    },
+    {
+      "id": "SP-R06-L01-S03",
+      "title": "3. Práctica guiada: del dato a la conclusión",
+      "markdown": "## 3. Práctica guiada: del dato a la conclusión\n\n1. Lee la descripción de una alerta simulada: 6 fallos de 6 usuarios desde 198.51.100.23 en la ventana UTC 09:00–09:15.\n2. Consulta el CSV de autenticación, verifica el `event_id` de cada fallo y revisa si existe un éxito asociado.\n3. Registra el sensor, anfitrión, tipo de evento, posibles omisiones de ingesta y responsable del activo.\n4. Escribe dos explicaciones rivales: spraying y automatismo/autenticación legítima mal configurada.\n5. Clasifica como INVESTIGAR o INCONCLUSO; conserva consulta y condiciones para reproducir.\n\n",
+      "line": 21,
+      "endLine": 27
+    },
+    {
+      "id": "SP-R06-L01-S04",
+      "title": "4. SPL ilustrativo de solo lectura — NO probado en Splunk",
+      "markdown": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4625 earliest=\"10/15/2026:09:00:00\" latest=\"10/15/2026:09:15:00\"\n| where _indextime<strptime(\"2026-10-15T09:16:00Z\",\"%Y-%m-%dT%H:%M:%SZ\")\n| stats count AS fallos dc(user) AS usuarios values(event_id) AS evidencias BY src\n| where fallos>=5 AND usuarios>=5\n```\n\n**Interpretación, supuestos y límites:** La alerta simulada usa eventos 09:00 inclusivo–09:15 exclusivo UTC e indexación anterior a 09:16 UTC. Resultado offline: seis fallos y seis usuarios; sin ese corte, tras 09:24, son siete fallos y seis usuarios. Los literales de búsqueda requieren usuario/search head en UTC. En el CSV, el corte se aplica a indexed_at_utc; importar el CSV ahora no recrea _indextime histórico. La SPL ilustra datos indexados en su momento, no un replay probado. Ver el contrato de datasets del paquete.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n",
+      "line": 29,
+      "endLine": 40
+    },
+    {
+      "id": "SP-R06-L01-S05",
+      "title": "5. Caso del turno SOC",
+      "markdown": "## 5. Caso del turno SOC\n\nUna señal coincide con patrón de múltiples cuentas, pero el usuario siguiente inicia sesión correctamente. Eso aumenta prioridad de validación, no prueba credenciales robadas.\n\n## 6. Errores frecuentes\n\n1. Dar por confirmado un ataque por el disparo de la regla.\n2. Olvidar la ventana, versión o condición de alerta y perder reproducibilidad.\n3. Atribuir una IP sin valorar NAT, VPN ni fuentes contradictorias.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 42,
+      "endLine": 53
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R06-L01-Q01",
+      "lessonId": "SP-R06-L01",
+      "prompt": "¿Qué significa que se haya activado una alerta de seis fallos?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D01",
+        "SPLUNK_LECCIONES_R06_R07:D12"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R06-L01-Q01-O-cd3a6298c80b",
+          "text": "Que la condición se cumpliría también con todos los eventos que llegarán tarde"
+        },
+        {
+          "id": "SP-R06-L01-Q01-O-b0d49d5e48b6",
+          "text": "Que la condición coincidió con los datos disponibles en esa ejecución; su significado requiere triage"
+        },
+        {
+          "id": "SP-R06-L01-Q01-O-9cac42bebcb9",
+          "text": "Que la alerta verificó la identidad real detrás de la dirección IP"
+        },
+        {
+          "id": "SP-R06-L01-Q01-O-cf28669dafcc",
+          "text": "Que las seis filas corresponden a seis sesiones de un único dispositivo"
+        }
+      ],
+      "solution": "SP-R06-L01-Q01-O-b0d49d5e48b6",
+      "explanation": "Una alerta registra coincidencia de condiciones, no una conclusión forense.",
+      "anchors": [
+        {
+          "file": "R06_CENTRO_SOC/SP-R06-L01.md",
+          "sourceHash": "befb80647015a3c3bba8887e6ea3da9906aa58a9a0001c3ad72c43dffc56358b",
+          "line": 13,
+          "endLine": 19,
+          "quote": "## 2. Conceptos que debes dominar\n\n1. El paquete mínimo de una alerta incluye nombre/versión de regla, hora de ejecución, periodo de eventos, condición que disparó, fuente e identidades observadas.\n2. Un recuento agregado no sustituye la lista de eventos: conserva IDs para que otro analista reconstruya la misma observación.\n3. La ventana de búsqueda por `_time` no coincide necesariamente con el horario de ingesta; una regla puede operar sobre eventos tardíos.\n4. Distingue alerta de plataforma Splunk Enterprise de *finding* o investigación de Splunk Enterprise Security; no presupongas que ES está instalado.\n5. Hipótesis inicial: anomalía de autenticación. Afirmación aún prohibida: compromiso, identidad del atacante o causa final.\n\n"
+        },
+        {
+          "file": "R06_CENTRO_SOC/SP-R06-L01.md",
+          "sourceHash": "befb80647015a3c3bba8887e6ea3da9906aa58a9a0001c3ad72c43dffc56358b",
+          "line": 29,
+          "endLine": 40,
+          "quote": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4625 earliest=\"10/15/2026:09:00:00\" latest=\"10/15/2026:09:15:00\"\n| where _indextime<strptime(\"2026-10-15T09:16:00Z\",\"%Y-%m-%dT%H:%M:%SZ\")\n| stats count AS fallos dc(user) AS usuarios values(event_id) AS evidencias BY src\n| where fallos>=5 AND usuarios>=5\n```\n\n**Interpretación, supuestos y límites:** La alerta simulada usa eventos 09:00 inclusivo–09:15 exclusivo UTC e indexación anterior a 09:16 UTC. Resultado offline: seis fallos y seis usuarios; sin ese corte, tras 09:24, son siete fallos y seis usuarios. Los literales de búsqueda requieren usuario/search head en UTC. En el CSV, el corte se aplica a indexed_at_utc; importar el CSV ahora no recrea _indextime histórico. La SPL ilustra datos indexados en su momento, no un replay probado. Ver el contrato de datasets del paquete.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R06-L01-Q02",
+      "lessonId": "SP-R06-L01",
+      "prompt": "¿Qué dato mejora más la reproducibilidad?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D01",
+        "SPLUNK_LECCIONES_R06_R07:D12"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R06-L01-Q02-O-c82fbf9b51a6",
+          "text": "El nombre de la regla sin su revisión ni el rango temporal"
+        },
+        {
+          "id": "SP-R06-L01-Q02-O-bf45ebfdf94c",
+          "text": "La severidad y el hostname del search head sin eventos de origen"
+        },
+        {
+          "id": "SP-R06-L01-Q02-O-450b55e95378",
+          "text": "La consulta y su revisión, el rango temporal y los IDs de eventos permiten reconstruir la observación"
+        },
+        {
+          "id": "SP-R06-L01-Q02-O-6e4fb288b24e",
+          "text": "Una captura del conteo sin los filtros de la búsqueda"
+        }
+      ],
+      "solution": "SP-R06-L01-Q02-O-450b55e95378",
+      "explanation": "La reproducibilidad necesita evidencia y parámetros verificables.",
+      "anchors": [
+        {
+          "file": "R06_CENTRO_SOC/SP-R06-L01.md",
+          "sourceHash": "befb80647015a3c3bba8887e6ea3da9906aa58a9a0001c3ad72c43dffc56358b",
+          "line": 13,
+          "endLine": 19,
+          "quote": "## 2. Conceptos que debes dominar\n\n1. El paquete mínimo de una alerta incluye nombre/versión de regla, hora de ejecución, periodo de eventos, condición que disparó, fuente e identidades observadas.\n2. Un recuento agregado no sustituye la lista de eventos: conserva IDs para que otro analista reconstruya la misma observación.\n3. La ventana de búsqueda por `_time` no coincide necesariamente con el horario de ingesta; una regla puede operar sobre eventos tardíos.\n4. Distingue alerta de plataforma Splunk Enterprise de *finding* o investigación de Splunk Enterprise Security; no presupongas que ES está instalado.\n5. Hipótesis inicial: anomalía de autenticación. Afirmación aún prohibida: compromiso, identidad del atacante o causa final.\n\n"
+        },
+        {
+          "file": "R06_CENTRO_SOC/SP-R06-L01.md",
+          "sourceHash": "befb80647015a3c3bba8887e6ea3da9906aa58a9a0001c3ad72c43dffc56358b",
+          "line": 29,
+          "endLine": 40,
+          "quote": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4625 earliest=\"10/15/2026:09:00:00\" latest=\"10/15/2026:09:15:00\"\n| where _indextime<strptime(\"2026-10-15T09:16:00Z\",\"%Y-%m-%dT%H:%M:%SZ\")\n| stats count AS fallos dc(user) AS usuarios values(event_id) AS evidencias BY src\n| where fallos>=5 AND usuarios>=5\n```\n\n**Interpretación, supuestos y límites:** La alerta simulada usa eventos 09:00 inclusivo–09:15 exclusivo UTC e indexación anterior a 09:16 UTC. Resultado offline: seis fallos y seis usuarios; sin ese corte, tras 09:24, son siete fallos y seis usuarios. Los literales de búsqueda requieren usuario/search head en UTC. En el CSV, el corte se aplica a indexed_at_utc; importar el CSV ahora no recrea _indextime histórico. La SPL ilustra datos indexados en su momento, no un replay probado. Ver el contrato de datasets del paquete.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R06-L01-P01",
+      "lessonId": "SP-R06-L01",
+      "prompt": "Crea ficha mínima para 198.51.100.23 usando eventos [09:00,09:15) UTC del 15/10/2026 y snapshot de indexación anterior a 09:16: eventos, búsqueda, hipótesis, datos faltantes y siguiente pivote.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D01",
+        "SPLUNK_LECCIONES_R06_R07:D12"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica datos y supuestos de la fuente",
+        "Plantea método correcto y distingue hechos de hipótesis",
+        "Explica limitaciones, alternativa benigna y telemetría ausente",
+        "Aporta evidencia, ventana e identificación reproducibles"
+      ],
+      "referenceAnswer": "Al snapshot anterior a 09:16 UTC, A001–A006 son seis fallos para seis cuentas y A007 es éxito de bob a 09:08. El evento tardío A021 ocurrió a 09:04 pero llegó a 09:24: retrospectivamente son siete fallos y seis cuentas. Estado: anomalía a investigar, sin compromiso demostrado. Registrar ambos tiempos y pedir identidad del cliente, contexto de IP y corroboración."
+    }
+  ],
+  "solutionsMarkdown": "### Solucionario con razonamiento\n\n- **SP-R06-L01-Q01: B** — Una alerta registra coincidencia de condiciones, no una conclusión forense.\n\n- **SP-R06-L01-Q02: C** — La reproducibilidad necesita evidencia y parámetros verificables.\n\n- **SP-R06-L01-P01:** Al snapshot anterior a 09:16 UTC, A001–A006 son seis fallos para seis cuentas y A007 es éxito de bob a 09:08. El evento tardío A021 ocurrió a 09:04 pero llegó a 09:24: retrospectivamente son siete fallos y seis cuentas. Estado: anomalía a investigar, sin compromiso demostrado. Registrar ambos tiempos y pedir identidad del cliente, contexto de IP y corroboración.\n\n**Guía de retroalimentación formativa:** Identifica datos y supuestos de la fuente; Plantea método correcto y distingue hechos de hipótesis; Explica limitaciones, alternativa benigna y telemetría ausente; Aporta evidencia, ventana e identificación reproducibles.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 8. Bibliografía, mapeo y estatus\n\n- **D01:** Condiciones de alertas y resultados — https://help.splunk.com/en/splunk-enterprise/alert-and-respond/alerting-manual/10.0/manage-alert-trigger-conditions-and-throttling/configure-alert-trigger-conditions\n- **D12:** Splunk ES 8.7: findings/analyst queue — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/findings/monitor-your-security-operations-center-with-findings-in-splunk-enterprise-security\n\n- **Currículo:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` — ID, título y resultado intactos.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` — los bloques R06/R07 y laboratorios de diseño.\n- **Puente SC-200:** Capítulos 07 (detección), 08 (correlación) y 09 (investigación). Documento en `../../01_FUENTE_ORIGINAL/SC-200.md`; relación conceptual, no traducción ni equivalencia garantizada.\n\n**Clasificación de evidencia:** [DOC] respaldo documental de fuentes; [DISEÑO] procedimientos y rúbricas propuestos; [OFFLINE] sólo cálculos de fixtures reproducibles; [NO PROBADO] ejemplos SPL no ejecutados en la instancia. Validación técnica/manual de contenidos pendiente antes de integrarlo en React.\n",
+  "originalMarkdown": "# SP-R06-L01 — Triage: del aviso a la pregunta\n\n**Región:** SP-R06 · **Prioridad:** P0 (SOC N1/N2) · **Estado:** material editorial para revisión · **SPL:** NO ejecutado en Splunk.\n\n**Objetivo curricular original:** Identificar origen de alerta, regla, ventana y entidad\n\n**Prerrequisitos:** R01–R05 y lectura de la matriz de campos. **Producto:** Splunk Enterprise/Cloud (búsquedas de lectura); funciones ES explícitamente condicionadas a Splunk Enterprise Security compatible.\n\n## 1. Pregunta esencial y modelo mental\n\nUna alerta no es un incidente confirmado: es un resultado producido por una búsqueda, condición y ventana. El primer trabajo N1 consiste en reconstruir qué evaluó la regla y qué eventos sostienen su resultado. Si una alerta agrupa fallos de múltiples cuentas detrás de una IP, su severidad inicial no convierte a la IP en atacante. El análisis debe separar hechos, inferencias y preguntas abiertas.\n\n## 2. Conceptos que debes dominar\n\n1. El paquete mínimo de una alerta incluye nombre/versión de regla, hora de ejecución, periodo de eventos, condición que disparó, fuente e identidades observadas.\n2. Un recuento agregado no sustituye la lista de eventos: conserva IDs para que otro analista reconstruya la misma observación.\n3. La ventana de búsqueda por `_time` no coincide necesariamente con el horario de ingesta; una regla puede operar sobre eventos tardíos.\n4. Distingue alerta de plataforma Splunk Enterprise de *finding* o investigación de Splunk Enterprise Security; no presupongas que ES está instalado.\n5. Hipótesis inicial: anomalía de autenticación. Afirmación aún prohibida: compromiso, identidad del atacante o causa final.\n\n## 3. Práctica guiada: del dato a la conclusión\n\n1. Lee la descripción de una alerta simulada: 6 fallos de 6 usuarios desde 198.51.100.23 en la ventana UTC 09:00–09:15.\n2. Consulta el CSV de autenticación, verifica el `event_id` de cada fallo y revisa si existe un éxito asociado.\n3. Registra el sensor, anfitrión, tipo de evento, posibles omisiones de ingesta y responsable del activo.\n4. Escribe dos explicaciones rivales: spraying y automatismo/autenticación legítima mal configurada.\n5. Clasifica como INVESTIGAR o INCONCLUSO; conserva consulta y condiciones para reproducir.\n\n## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4625 earliest=\"10/15/2026:09:00:00\" latest=\"10/15/2026:09:15:00\"\n| where _indextime<strptime(\"2026-10-15T09:16:00Z\",\"%Y-%m-%dT%H:%M:%SZ\")\n| stats count AS fallos dc(user) AS usuarios values(event_id) AS evidencias BY src\n| where fallos>=5 AND usuarios>=5\n```\n\n**Interpretación, supuestos y límites:** La alerta simulada usa eventos 09:00 inclusivo–09:15 exclusivo UTC e indexación anterior a 09:16 UTC. Resultado offline: seis fallos y seis usuarios; sin ese corte, tras 09:24, son siete fallos y seis usuarios. Los literales de búsqueda requieren usuario/search head en UTC. En el CSV, el corte se aplica a indexed_at_utc; importar el CSV ahora no recrea _indextime histórico. La SPL ilustra datos indexados en su momento, no un replay probado. Ver el contrato de datasets del paquete.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n## 5. Caso del turno SOC\n\nUna señal coincide con patrón de múltiples cuentas, pero el usuario siguiente inicia sesión correctamente. Eso aumenta prioridad de validación, no prueba credenciales robadas.\n\n## 6. Errores frecuentes\n\n1. Dar por confirmado un ataque por el disparo de la regla.\n2. Olvidar la ventana, versión o condición de alerta y perder reproducibilidad.\n3. Atribuir una IP sin valorar NAT, VPN ni fuentes contradictorias.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R06-L01-Q01 — Opción múltiple\n\n¿Qué significa que se haya activado una alerta de seis fallos?\n\nA. Que la condición se cumpliría también con todos los eventos que llegarán tarde\nB. Que la condición coincidió con los datos disponibles en esa ejecución; su significado requiere triage\nC. Que la alerta verificó la identidad real detrás de la dirección IP\nD. Que las seis filas corresponden a seis sesiones de un único dispositivo\n\n### SP-R06-L01-Q02 — Opción múltiple\n\n¿Qué dato mejora más la reproducibilidad?\n\nA. El nombre de la regla sin su revisión ni el rango temporal\nB. La severidad y el hostname del search head sin eventos de origen\nC. La consulta y su revisión, el rango temporal y los IDs de eventos permiten reconstruir la observación\nD. Una captura del conteo sin los filtros de la búsqueda\n\n### SP-R06-L01-P01 — Práctica abierta formativa\n\nCrea ficha mínima para 198.51.100.23 usando eventos [09:00,09:15) UTC del 15/10/2026 y snapshot de indexación anterior a 09:16: eventos, búsqueda, hipótesis, datos faltantes y siguiente pivote.\n\n### Solucionario con razonamiento\n\n- **SP-R06-L01-Q01: B** — Una alerta registra coincidencia de condiciones, no una conclusión forense.\n\n- **SP-R06-L01-Q02: C** — La reproducibilidad necesita evidencia y parámetros verificables.\n\n- **SP-R06-L01-P01:** Al snapshot anterior a 09:16 UTC, A001–A006 son seis fallos para seis cuentas y A007 es éxito de bob a 09:08. El evento tardío A021 ocurrió a 09:04 pero llegó a 09:24: retrospectivamente son siete fallos y seis cuentas. Estado: anomalía a investigar, sin compromiso demostrado. Registrar ambos tiempos y pedir identidad del cliente, contexto de IP y corroboración.\n\n**Guía de retroalimentación formativa:** Identifica datos y supuestos de la fuente; Plantea método correcto y distingue hechos de hipótesis; Explica limitaciones, alternativa benigna y telemetría ausente; Aporta evidencia, ventana e identificación reproducibles.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Bibliografía, mapeo y estatus\n\n- **D01:** Condiciones de alertas y resultados — https://help.splunk.com/en/splunk-enterprise/alert-and-respond/alerting-manual/10.0/manage-alert-trigger-conditions-and-throttling/configure-alert-trigger-conditions\n- **D12:** Splunk ES 8.7: findings/analyst queue — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/findings/monitor-your-security-operations-center-with-findings-in-splunk-enterprise-security\n\n- **Currículo:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` — ID, título y resultado intactos.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` — los bloques R06/R07 y laboratorios de diseño.\n- **Puente SC-200:** Capítulos 07 (detección), 08 (correlación) y 09 (investigación). Documento en `../../01_FUENTE_ORIGINAL/SC-200.md`; relación conceptual, no traducción ni equivalencia garantizada.\n\n**Clasificación de evidencia:** [DOC] respaldo documental de fuentes; [DISEÑO] procedimientos y rúbricas propuestos; [OFFLINE] sólo cálculos de fixtures reproducibles; [NO PROBADO] ejemplos SPL no ejecutados en la instancia. Validación técnica/manual de contenidos pendiente antes de integrarlo en React.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 8,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D01",
+      "key": "SPLUNK_LECCIONES_R06_R07:D01",
+      "url": "https://help.splunk.com/en/splunk-enterprise/alert-and-respond/alerting-manual/10.0/manage-alert-trigger-conditions-and-throttling/configure-alert-trigger-conditions"
+    },
+    {
+      "id": "D12",
+      "key": "SPLUNK_LECCIONES_R06_R07:D12",
+      "url": "https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/findings/monitor-your-security-operations-center-with-findings-in-splunk-enterprise-security"
+    }
+  ]
+}

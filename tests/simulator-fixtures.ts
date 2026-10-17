@@ -1,0 +1,22 @@
+import {readFileSync} from 'node:fs';
+import {scenarios} from '../src/simulator/scenarios';import {startAttempt,updateAttempt,emptySimulator} from '../src/simulator/engine';
+import type {Attempt,Scenario,SimEvent,SimulatorStore,Correlation} from '../src/simulator/types';
+export const eventsFor=(scenario:Scenario):SimEvent[]=>JSON.parse(readFileSync(new URL('../public/'+scenario.dataset.file,import.meta.url),'utf8')).events;
+export const solutions={
+ 'microsoft-access':{selected:['M101','M102','M104','M105','M106'],links:[['sequence','M101','M102','M104'],['owner','M104','M105','M106']],entity:'elena@example.test',category:'Autenticación',start:'2026-10-16T09:00:00Z',end:'2026-10-16T09:14:00Z',verdict:'incident',priority:'high',escalate:'yes',impact:'unauthorized_access',actions:['preserve','mfa','owner'],indicator:'203.0.113.40'},
+ 'microsoft-legitimate':{selected:['D201','D202','D203'],links:[['change','D201','D202'],['hash','D201','D203']],entity:'ws-ops-07',category:'Ejecución de procesos',start:'2026-10-16T11:00:00Z',end:'2026-10-16T11:06:00Z',verdict:'false_positive',priority:'low',escalate:'no',impact:'legitimate',actions:['preserve','exception','close'],indicator:'198.51.100.50'},
+ 'splunk-identities':{selected:['S301','S302','S303','S304','S305','S307','S308','S310'],links:[['identities','S301','S302','S303','S304','S305'],['separate','S301','S307','S308'],['window','S301','S310']],entity:'203.0.113.9',category:'Autenticación',start:'2026-10-16T09:00:00Z',end:'2026-10-16T09:15:00Z',verdict:'inconclusive',priority:'medium',escalate:'yes',impact:'unknown',actions:['preserve','owner','mfa'],indicator:'203.0.113.9'},
+ 'splunk-incomplete':{selected:['A001','A002','A003','A004','A005','A006','A007','A021'],links:[['sequence','A001','A002','A003','A004','A005','A006','A007'],['late','A004','A021']],entity:'198.51.100.23',category:'Autenticación',start:'2026-10-15T09:00:00Z',end:'2026-10-15T09:15:00Z',verdict:'inconclusive',priority:'high',escalate:'yes',impact:'unknown',actions:['preserve','owner','mfa','monitor'],indicator:'198.51.100.23'},
+} as const;
+export function goodInvestigation(scenario:Scenario,initial=emptySimulator(scenario.platform),id='training-1'){
+ let store=startAttempt(initial,scenario,id,1),clock=1;const events=eventsFor(scenario),solution=solutions[scenario.id as keyof typeof solutions];
+ const send=(action:Parameters<typeof updateAttempt>[4])=>{store=updateAttempt(store,scenario,events,id,action,++clock);};
+ if(scenario.extendedSnapshot)send({type:'extend-snapshot'});
+ send({type:'triage',value:{category:solution.category,entity:solution.entity,start:solution.start,end:solution.end}});
+ for(const eventId of solution.selected){send({type:'view',id:eventId});send({type:'select',id:eventId});}
+ send({type:'hypothesis',value:'Contrastar una explicación adversaria y otra legítima con los eventos citados; reconocer lo que estas fuentes no permiten afirmar.'});
+ for(const [i,link] of solution.links.entries())send({type:'correlate',value:{id:'relation-'+i,claimId:link[0],stance:'supports',eventIds:link.slice(1),reason:'La relación se limita a estas entidades, secuencia temporal y fuentes, sin inferir causalidad adicional.'}});
+ send({type:'decision',value:{verdict:solution.verdict,priority:solution.priority,escalate:solution.escalate,reason:'Decisión apoyada en las relaciones y sus límites; pedir corroboración o documentar la autorización concreta según la evidencia.',actions:[...solution.actions]}});
+ send({type:'report',value:{summary:'Resumen de los hechos observados y la decisión tomada para este caso sintético.',scope:'Cuenta, direcciones y ventana UTC del triage. El corte de disponibilidad queda registrado, sin extrapolar cobertura.',indicators:'Direcciones observadas en los eventos citados; son indicadores de contexto, no prueba de atribución por sí solos.',impactText:'Impacto limitado a lo respaldado por las fuentes. Se distingue falta de cobertura de ausencia de actividad.',recommendations:'Preservar los IDs de eventos y solicitar validación al responsable; no ejecutar acciones sobre productos reales.',conclusion:'Mantener la conclusión dentro de la evidencia y registrar incertidumbre, propietario y siguiente paso.',evidenceIds:[...solution.selected],indicatorValues:[solution.indicator],impact:solution.impact}});
+ return {store,attempt:store.attempts[scenario.id].find(a=>a.id===id)!,events,solution,clock};
+}

@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R04-L01",
+  "title": "Agregaciones con stats frente a eventstats",
+  "revision": "5b6a3c70259f05ff21bb8d5f",
+  "sourceVersion": "003caa2f3607aa2fd50cc3e601f8cf0fc2f177ebd84f21db72b1667e98c71ab8",
+  "sanitizedHash": "003caa2f3607aa2fd50cc3e601f8cf0fc2f177ebd84f21db72b1667e98c71ab8",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R04_R05/R04_SPL_AVANZADO/SP-R04-L01.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Elegir la agregación adecuada preservando o no eventos originales",
+  "preamble": "# SP-R04-L01 — Agregaciones con stats frente a eventstats\n\n**Región:** SP-R04 · **Prioridad:** P0/P1 SOC · **Estado:** borrador educativo para revisión · **SPL real:** no ejecutado.  \n**ID curricular intacto:** `SP-R04-L01` · **Resultado de aprendizaje:** Elegir la agregación adecuada preservando o no eventos originales  \n**Prerrequisitos:** R03 completada · **Producto:** Splunk Enterprise/Cloud con SPL clásico según versión y permisos; CIM exige configuración pertinente.\n\n",
+  "sections": [
+    {
+      "id": "SP-R04-L01-S01",
+      "title": "1. Pregunta esencial",
+      "markdown": "## 1. Pregunta esencial\n\nEn un turno SOC necesitas saber cuántas autenticaciones fallidas acumula una IP, pero también conservar cada evento para pivotar. `stats` resume el flujo en una tabla: desaparecen los eventos individuales de esa salida. `eventstats` calcula el total del grupo y lo adjunta a cada fila sin colapsarla. `streamstats`, que estudiarás después, calcula acumulados dependientes del orden. Confundirlos cambia la evidencia que puedes conservar.\n\n**Objetivo verificable:** Elegir la agregación adecuada preservando o no eventos originales.\n\n",
+      "line": 7,
+      "endLine": 11
+    },
+    {
+      "id": "SP-R04-L01-S02",
+      "title": "2. Modelo mental y conceptos",
+      "markdown": "## 2. Modelo mental y conceptos\n\n1. `stats count AS fallos dc(user) AS usuarios BY src` devuelve una fila por src; `dc` cuenta valores distintos presentes, no representa nulos como identidades nuevas.\n2. `eventstats count AS fallos_por_ip BY src` añade el total global del grupo a las filas originales que siguen en el pipeline.\n3. Filtrar `action=failure` antes de agregar cambia el universo de eventos; filtrar después de `stats` ya no puede recuperar la clase de eventos eliminada.\n4. `stats` permite muchas medidas, pero los campos no incluidos en agregaciones ni BY no estarán disponibles para pivotar desde esa tabla.\n\n",
+      "line": 13,
+      "endLine": 18
+    },
+    {
+      "id": "SP-R04-L01-S03",
+      "title": "3. Procedimiento guiado",
+      "markdown": "## 3. Procedimiento guiado\n\n1. Toma `auth_events.csv` y selecciona solamente los eventos cuyo action sea `failure`.\n2. Agrupa por src. Para 203.0.113.9, la fixture tiene siete fallos hacia cinco identidades no vacías en el bucket 09:00.\n3. Repite con eventstats: las siete filas de fallos siguen presentes y cada una recibe total=7. Comprueba por qué una lista de eventos para triage resulta distinta de una tabla resumida.\n4. Documenta que la IP compartida y la ausencia de eventos de éxito/fracaso en otras fuentes impiden afirmar compromiso.\n\n",
+      "line": 20,
+      "endLine": 25
+    },
+    {
+      "id": "SP-R04-L01-S04",
+      "title": "4. SPL ilustrativo — no ejecutado",
+      "markdown": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH src=\"203.0.113.9\" action=failure earliest=\"10/16/2026:09:00:00\" latest=\"10/16/2026:09:15:00\"\n| stats count AS fallos dc(user) AS cuentas BY src\n```\n\n**Comparación con otro patrón sobre el mismo objetivo:**\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH src=\"203.0.113.9\" action=failure earliest=\"10/16/2026:09:00:00\" latest=\"10/16/2026:09:15:00\"\n| eventstats count AS fallos_por_ip BY src\n| table _time src user action fallos_por_ip\n```\n\n**Interpretación, condiciones y alcance:** Usuario/search head en UTC y _time mapeado correctamente: el rango [09:00,09:15) del 16/10/2026 y src seleccionan siete fallos de .9. Sin restringir al primer bucket, el CSV completo contiene nueve fallos de esa IP. Índice/sourcetype siguen siendo marcadores no ejecutados; no se autoriza importar datos.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n",
+      "line": 27,
+      "endLine": 44
+    },
+    {
+      "id": "SP-R04-L01-S05",
+      "title": "5. Caso SOC",
+      "markdown": "## 5. Caso SOC\n\nUna regla muestra siete fallos desde una IP y cinco identidades distintas en un cuarto de hora. El analista debe exponer las siete evidencias, no solo el conteo.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 46,
+      "endLine": 51
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R04-L01-Q01",
+      "lessonId": "SP-R04-L01",
+      "prompt": "Necesitas ver cada evento y el total de fallos de su IP. ¿Qué comando eliges?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S01"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R04-L01-Q01-O-ed2662932160",
+          "text": "eventstats"
+        },
+        {
+          "id": "SP-R04-L01-Q01-O-8297e58c62f0",
+          "text": "dedup"
+        },
+        {
+          "id": "SP-R04-L01-Q01-O-5a7fe27cc1c2",
+          "text": "timechart"
+        },
+        {
+          "id": "SP-R04-L01-Q01-O-4b5af442229c",
+          "text": "stats"
+        }
+      ],
+      "solution": "SP-R04-L01-Q01-O-ed2662932160",
+      "explanation": "eventstats adjunta una métrica a filas originales. stats las transforma en filas agregadas.",
+      "anchors": [
+        {
+          "file": "R04_SPL_AVANZADO/SP-R04-L01.md",
+          "sourceHash": "003caa2f3607aa2fd50cc3e601f8cf0fc2f177ebd84f21db72b1667e98c71ab8",
+          "line": 13,
+          "endLine": 18,
+          "quote": "## 2. Modelo mental y conceptos\n\n1. `stats count AS fallos dc(user) AS usuarios BY src` devuelve una fila por src; `dc` cuenta valores distintos presentes, no representa nulos como identidades nuevas.\n2. `eventstats count AS fallos_por_ip BY src` añade el total global del grupo a las filas originales que siguen en el pipeline.\n3. Filtrar `action=failure` antes de agregar cambia el universo de eventos; filtrar después de `stats` ya no puede recuperar la clase de eventos eliminada.\n4. `stats` permite muchas medidas, pero los campos no incluidos en agregaciones ni BY no estarán disponibles para pivotar desde esa tabla.\n\n"
+        },
+        {
+          "file": "R04_SPL_AVANZADO/SP-R04-L01.md",
+          "sourceHash": "003caa2f3607aa2fd50cc3e601f8cf0fc2f177ebd84f21db72b1667e98c71ab8",
+          "line": 27,
+          "endLine": 44,
+          "quote": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH src=\"203.0.113.9\" action=failure earliest=\"10/16/2026:09:00:00\" latest=\"10/16/2026:09:15:00\"\n| stats count AS fallos dc(user) AS cuentas BY src\n```\n\n**Comparación con otro patrón sobre el mismo objetivo:**\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH src=\"203.0.113.9\" action=failure earliest=\"10/16/2026:09:00:00\" latest=\"10/16/2026:09:15:00\"\n| eventstats count AS fallos_por_ip BY src\n| table _time src user action fallos_por_ip\n```\n\n**Interpretación, condiciones y alcance:** Usuario/search head en UTC y _time mapeado correctamente: el rango [09:00,09:15) del 16/10/2026 y src seleccionan siete fallos de .9. Sin restringir al primer bucket, el CSV completo contiene nueve fallos de esa IP. Índice/sourcetype siguen siendo marcadores no ejecutados; no se autoriza importar datos.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R04-L01-Q02",
+      "lessonId": "SP-R04-L01",
+      "prompt": "Si `user` está vacío, ¿qué inferencia es válida sobre `dc(user)`?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S01"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R04-L01-Q02-O-5122c43f3a2b",
+          "text": "La cantidad de eventos coincide con dc(user) aunque haya repeticiones y ausencias"
+        },
+        {
+          "id": "SP-R04-L01-Q02-O-9be4b6f88571",
+          "text": "La cardinalidad permite deducir cuántos eventos carecen de identidad sin otro indicador"
+        },
+        {
+          "id": "SP-R04-L01-Q02-O-1ca0f7ab71c9",
+          "text": "Cada evento vacío añade una identidad distinta a dc(user)"
+        },
+        {
+          "id": "SP-R04-L01-Q02-O-7e295ed78ec4",
+          "text": "No equivale a contar todos los eventos; hay que inspeccionar nulos"
+        }
+      ],
+      "solution": "SP-R04-L01-Q02-O-7e295ed78ec4",
+      "explanation": "El número de eventos y la cardinalidad de un campo pueden divergir por valores ausentes.",
+      "anchors": [
+        {
+          "file": "R04_SPL_AVANZADO/SP-R04-L01.md",
+          "sourceHash": "003caa2f3607aa2fd50cc3e601f8cf0fc2f177ebd84f21db72b1667e98c71ab8",
+          "line": 13,
+          "endLine": 18,
+          "quote": "## 2. Modelo mental y conceptos\n\n1. `stats count AS fallos dc(user) AS usuarios BY src` devuelve una fila por src; `dc` cuenta valores distintos presentes, no representa nulos como identidades nuevas.\n2. `eventstats count AS fallos_por_ip BY src` añade el total global del grupo a las filas originales que siguen en el pipeline.\n3. Filtrar `action=failure` antes de agregar cambia el universo de eventos; filtrar después de `stats` ya no puede recuperar la clase de eventos eliminada.\n4. `stats` permite muchas medidas, pero los campos no incluidos en agregaciones ni BY no estarán disponibles para pivotar desde esa tabla.\n\n"
+        },
+        {
+          "file": "R04_SPL_AVANZADO/SP-R04-L01.md",
+          "sourceHash": "003caa2f3607aa2fd50cc3e601f8cf0fc2f177ebd84f21db72b1667e98c71ab8",
+          "line": 27,
+          "endLine": 44,
+          "quote": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH src=\"203.0.113.9\" action=failure earliest=\"10/16/2026:09:00:00\" latest=\"10/16/2026:09:15:00\"\n| stats count AS fallos dc(user) AS cuentas BY src\n```\n\n**Comparación con otro patrón sobre el mismo objetivo:**\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH src=\"203.0.113.9\" action=failure earliest=\"10/16/2026:09:00:00\" latest=\"10/16/2026:09:15:00\"\n| eventstats count AS fallos_por_ip BY src\n| table _time src user action fallos_por_ip\n```\n\n**Interpretación, condiciones y alcance:** Usuario/search head en UTC y _time mapeado correctamente: el rango [09:00,09:15) del 16/10/2026 y src seleccionan siete fallos de .9. Sin restringir al primer bucket, el CSV completo contiene nueve fallos de esa IP. Índice/sourcetype siguen siendo marcadores no ejecutados; no se autoriza importar datos.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R04-L01-P01",
+      "lessonId": "SP-R04-L01",
+      "prompt": "Escribe dos búsquedas, una para el conteo por IP y otra para enriquecer cada fila con el conteo de su IP. Explica qué cambia al quitar `action=failure` antes de ambas.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S01"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica fuentes, campos, ventana y supuestos",
+        "Aplica el método al escenario y explica cifras o semántica",
+        "Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante",
+        "Presenta una respuesta reproducible sin ejecutar cambios en sistemas"
+      ],
+      "referenceAnswer": "`stats count dc(user) BY src` resume; `eventstats count BY src` preserva filas. Con el filtro de fallos y la fixture: 203.0.113.9 tiene 9 fallos totales en todo el dataset (7 de 09:00 a 09:14 y 2 de 09:15 a 09:29); para 09:00 específicamente 7 fallos / 5 usuarios. Sin filtro, se incluyen éxitos en los totales."
+    }
+  ],
+  "solutionsMarkdown": "## 7. Solucionario con razonamiento\n\n- **SP-R04-L01-Q01: A** — eventstats adjunta una métrica a filas originales. stats las transforma en filas agregadas.\n\n- **SP-R04-L01-Q02: D** — El número de eventos y la cardinalidad de un campo pueden divergir por valores ausentes.\n\n- **SP-R04-L01-P01:** `stats count dc(user) BY src` resume; `eventstats count BY src` preserva filas. Con el filtro de fallos y la fixture: 203.0.113.9 tiene 9 fallos totales en todo el dataset (7 de 09:00 a 09:14 y 2 de 09:15 a 09:29); para 09:00 específicamente 7 fallos / 5 usuarios. Sin filtro, se incluyen éxitos en los totales.\n\n**Guía de retroalimentación formativa:** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Solucionario razonado\n\n**Q01 → B.** eventstats. eventstats adjunta una métrica a filas originales. stats las transforma en filas agregadas.\n\n**Q02 → C.** No equivale a contar todos los eventos; hay que inspeccionar nulos. El número de eventos y la cardinalidad de un campo pueden divergir por valores ausentes.\n\n**P01 → Solución orientativa:** `stats count dc(user) BY src` resume; `eventstats count BY src` preserva filas. Con el filtro de fallos y la fixture: 203.0.113.9 tiene 9 fallos totales en todo el dataset (7 de 09:00 a 09:14 y 2 de 09:15 a 09:29); para 09:00 específicamente 7 fallos / 5 usuarios. Sin filtro, se incluyen éxitos en los totales.\n\n**Rúbrica (0–4):** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas. Superar un test escrito no equivale por sí solo a dominar investigación SOC.\n\n",
+  "referencesMarkdown": "## 9. Fuentes y trazabilidad\n\n- **Origen curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`; título y objetivo preservados.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` (no reescrita).\n- **Puente de conceptos SC-200:** Cap. 13 (KQL summarize) y cap. 09 (investigación). Véase `../../01_FUENTE_ORIGINAL/SC-200.md` (sin trasladar esquemas literalmente).\n- **[S01] Estadísticas: stats, eventstats, streamstats:** https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.0/calculate-statistics/use-the-stats-command-and-functions\n\n**Estatus de evidencia:** documentación del producto + diseño educativo + cálculos offline sobre fixtures (cuando se indica). No se ha verificado ejecución/compatibilidad específica en Splunk del usuario; revisar con la versión real antes de usar en producción.\n",
+  "originalMarkdown": "# SP-R04-L01 — Agregaciones con stats frente a eventstats\n\n**Región:** SP-R04 · **Prioridad:** P0/P1 SOC · **Estado:** borrador educativo para revisión · **SPL real:** no ejecutado.  \n**ID curricular intacto:** `SP-R04-L01` · **Resultado de aprendizaje:** Elegir la agregación adecuada preservando o no eventos originales  \n**Prerrequisitos:** R03 completada · **Producto:** Splunk Enterprise/Cloud con SPL clásico según versión y permisos; CIM exige configuración pertinente.\n\n## 1. Pregunta esencial\n\nEn un turno SOC necesitas saber cuántas autenticaciones fallidas acumula una IP, pero también conservar cada evento para pivotar. `stats` resume el flujo en una tabla: desaparecen los eventos individuales de esa salida. `eventstats` calcula el total del grupo y lo adjunta a cada fila sin colapsarla. `streamstats`, que estudiarás después, calcula acumulados dependientes del orden. Confundirlos cambia la evidencia que puedes conservar.\n\n**Objetivo verificable:** Elegir la agregación adecuada preservando o no eventos originales.\n\n## 2. Modelo mental y conceptos\n\n1. `stats count AS fallos dc(user) AS usuarios BY src` devuelve una fila por src; `dc` cuenta valores distintos presentes, no representa nulos como identidades nuevas.\n2. `eventstats count AS fallos_por_ip BY src` añade el total global del grupo a las filas originales que siguen en el pipeline.\n3. Filtrar `action=failure` antes de agregar cambia el universo de eventos; filtrar después de `stats` ya no puede recuperar la clase de eventos eliminada.\n4. `stats` permite muchas medidas, pero los campos no incluidos en agregaciones ni BY no estarán disponibles para pivotar desde esa tabla.\n\n## 3. Procedimiento guiado\n\n1. Toma `auth_events.csv` y selecciona solamente los eventos cuyo action sea `failure`.\n2. Agrupa por src. Para 203.0.113.9, la fixture tiene siete fallos hacia cinco identidades no vacías en el bucket 09:00.\n3. Repite con eventstats: las siete filas de fallos siguen presentes y cada una recibe total=7. Comprueba por qué una lista de eventos para triage resulta distinta de una tabla resumida.\n4. Documenta que la IP compartida y la ausencia de eventos de éxito/fracaso en otras fuentes impiden afirmar compromiso.\n\n## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH src=\"203.0.113.9\" action=failure earliest=\"10/16/2026:09:00:00\" latest=\"10/16/2026:09:15:00\"\n| stats count AS fallos dc(user) AS cuentas BY src\n```\n\n**Comparación con otro patrón sobre el mismo objetivo:**\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH src=\"203.0.113.9\" action=failure earliest=\"10/16/2026:09:00:00\" latest=\"10/16/2026:09:15:00\"\n| eventstats count AS fallos_por_ip BY src\n| table _time src user action fallos_por_ip\n```\n\n**Interpretación, condiciones y alcance:** Usuario/search head en UTC y _time mapeado correctamente: el rango [09:00,09:15) del 16/10/2026 y src seleccionan siete fallos de .9. Sin restringir al primer bucket, el CSV completo contiene nueve fallos de esa IP. Índice/sourcetype siguen siendo marcadores no ejecutados; no se autoriza importar datos.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n## 5. Caso SOC\n\nUna regla muestra siete fallos desde una IP y cinco identidades distintas en un cuarto de hora. El analista debe exponer las siete evidencias, no solo el conteo.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 6. Actividades\n\n### SP-R04-L01-Q01 — Opción múltiple\n\nNecesitas ver cada evento y el total de fallos de su IP. ¿Qué comando eliges?\n\nA. eventstats\nB. dedup\nC. timechart\nD. stats\n\n### SP-R04-L01-Q02 — Opción múltiple\n\nSi `user` está vacío, ¿qué inferencia es válida sobre `dc(user)`?\n\nA. La cantidad de eventos coincide con dc(user) aunque haya repeticiones y ausencias\nB. La cardinalidad permite deducir cuántos eventos carecen de identidad sin otro indicador\nC. Cada evento vacío añade una identidad distinta a dc(user)\nD. No equivale a contar todos los eventos; hay que inspeccionar nulos\n\n### SP-R04-L01-P01 — Práctica abierta formativa\n\nEscribe dos búsquedas, una para el conteo por IP y otra para enriquecer cada fila con el conteo de su IP. Explica qué cambia al quitar `action=failure` antes de ambas.\n\n## 7. Solucionario con razonamiento\n\n- **SP-R04-L01-Q01: A** — eventstats adjunta una métrica a filas originales. stats las transforma en filas agregadas.\n\n- **SP-R04-L01-Q02: D** — El número de eventos y la cardinalidad de un campo pueden divergir por valores ausentes.\n\n- **SP-R04-L01-P01:** `stats count dc(user) BY src` resume; `eventstats count BY src` preserva filas. Con el filtro de fallos y la fixture: 203.0.113.9 tiene 9 fallos totales en todo el dataset (7 de 09:00 a 09:14 y 2 de 09:15 a 09:29); para 09:00 específicamente 7 fallos / 5 usuarios. Sin filtro, se incluyen éxitos en los totales.\n\n**Guía de retroalimentación formativa:** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Solucionario razonado\n\n**Q01 → B.** eventstats. eventstats adjunta una métrica a filas originales. stats las transforma en filas agregadas.\n\n**Q02 → C.** No equivale a contar todos los eventos; hay que inspeccionar nulos. El número de eventos y la cardinalidad de un campo pueden divergir por valores ausentes.\n\n**P01 → Solución orientativa:** `stats count dc(user) BY src` resume; `eventstats count BY src` preserva filas. Con el filtro de fallos y la fixture: 203.0.113.9 tiene 9 fallos totales en todo el dataset (7 de 09:00 a 09:14 y 2 de 09:15 a 09:29); para 09:00 específicamente 7 fallos / 5 usuarios. Sin filtro, se incluyen éxitos en los totales.\n\n**Rúbrica (0–4):** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas. Superar un test escrito no equivale por sí solo a dominar investigación SOC.\n\n## 9. Fuentes y trazabilidad\n\n- **Origen curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`; título y objetivo preservados.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` (no reescrita).\n- **Puente de conceptos SC-200:** Cap. 13 (KQL summarize) y cap. 09 (investigación). Véase `../../01_FUENTE_ORIGINAL/SC-200.md` (sin trasladar esquemas literalmente).\n- **[S01] Estadísticas: stats, eventstats, streamstats:** https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.0/calculate-statistics/use-the-stats-command-and-functions\n\n**Estatus de evidencia:** documentación del producto + diseño educativo + cálculos offline sobre fixtures (cuando se indica). No se ha verificado ejecución/compatibilidad específica en Splunk del usuario; revisar con la versión real antes de usar en producción.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "S01",
+      "key": "SPLUNK_LECCIONES_R04_R05:S01",
+      "url": "https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.0/calculate-statistics/use-the-stats-command-and-functions"
+    }
+  ]
+}

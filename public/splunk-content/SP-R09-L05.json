@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R09-L05",
+  "title": "Mission Control y analista",
+  "revision": "023fa7c6437268537e12d930",
+  "sourceVersion": "80bacd668685118ddd048907dba4bea9a116ce6f0bce83f1449e17748e4131d3",
+  "sanitizedHash": "80bacd668685118ddd048907dba4bea9a116ce6f0bce83f1449e17748e4131d3",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R08_R09/R09_ENTERPRISE_SECURITY/SP-R09-L05.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Comprender analyst queue y triage ES",
+  "preamble": "# SP-R09-L05 — Mission Control y analista\n\n**Región:** SP-R09 · **Estado:** borrador editorial para revisión · **SPL:** ilustrativo NO ejecutado.\n\n**Resultado de aprendizaje curricular:** Comprender analyst queue y triage ES.\n\n**Prerrequisitos:** R01–R07 según tema; R08 para agrupación/escalado R09. **Producto:** plataforma Splunk para SPL genérico; funciones ES 8.7/SOAR solo cuando se indiquen.\n\n",
+  "sections": [
+    {
+      "id": "SP-R09-L05-S01",
+      "title": "1. Explicación técnica",
+      "markdown": "## 1. Explicación técnica\n\nMission Control de ES organiza trabajo del analista mediante una analyst queue con findings, grupos e investigaciones según la versión. El valor de esta cola es operativo: permite clasificar, asignar y seguir el estado de un caso, preservar contexto y comunicar próximas acciones. La cola no sustituye la búsqueda de evidencia ni infiere automáticamente la verdad de una alerta.\n\nUn buen triage empieza por alcance, gravedad contextual, confianza, afectación de activos e información faltante. Si un finding habla de DCSync, el analista debe comprobar origen, permisos y visibilidad del DC antes de elevar. Si aparece un risk score, se usa como prioridad ajustada por fuentes y contexto, no como causa de cierre.\n\nLa interfaz cambia entre versiones. El paquete estudia el concepto de Mission Control documentado para ES 8.7, sin afirmar que tu entorno lo tiene instalado; los ejercicios de cola son papel/CSV, no interacciones reales con ES.\n\n",
+      "line": 9,
+      "endLine": 15
+    },
+    {
+      "id": "SP-R09-L05-S02",
+      "title": "2. Conceptos que debes distinguir",
+      "markdown": "## 2. Conceptos que debes distinguir\n\n1. Analyst queue como tablero operativo de findings e investigaciones\n2. Prioridad combina activo, evidencia, confianza y contexto\n3. Estados y asignación requieren rastro de decisiones\n4. La cola no valida por sí sola la detección\n\n",
+      "line": 17,
+      "endLine": 22
+    },
+    {
+      "id": "SP-R09-L05-S03",
+      "title": "3. Procedimiento reproducible y seguro",
+      "markdown": "## 3. Procedimiento reproducible y seguro\n\n1. Abre hipotético finding y verifica integridad de entidad/tiempo.\n2. Clasifica evidencia existente y faltante.\n3. Comprueba enriquecimientos y duplicados.\n4. Define responsable, siguiente acción y fecha de revisión.\n5. Escala solo por política y evidencia, manteniendo auditoría.\n\n",
+      "line": 24,
+      "endLine": 30
+    },
+    {
+      "id": "SP-R09-L05-S04",
+      "title": "4. SPL ilustrativo (solo lectura; no probado)",
+      "markdown": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_FINDINGS_PRACTICA sourcetype=ST_SYNTH_FINDING\n| stats count AS hallazgos values(category) AS tipos BY entity\n| sort - hallazgos\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n",
+      "line": 32,
+      "endLine": 40
+    },
+    {
+      "id": "SP-R09-L05-S05",
+      "title": "5. Escenario SOC",
+      "markdown": "## 5. Escenario SOC\n\nLa cola de entrenamiento presenta tres findings de alice y dos de backup; la decisión de trabajo requiere examinar categorías y autorización, no ordenar solo por conteo.\n\n## 6. Errores frecuentes\n\n1. Llamar findings a tickets confirmados\n2. Confundir estado de workflow con causalidad\n3. Cerrar un hallazgo sin conservar motivo y evidencia\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 42,
+      "endLine": 53
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R09-L05-Q01",
+      "lessonId": "SP-R09-L05",
+      "prompt": "¿Cuál es el objetivo principal de analyst queue?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D10",
+        "SPLUNK_LECCIONES_R08_R09:D11"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R09-L05-Q01-O-aea1629e7bbb",
+          "text": "Recibir y parsear la fuente original antes de indexarla"
+        },
+        {
+          "id": "SP-R09-L05-Q01-O-a164c2ae6ae3",
+          "text": "Definir el tamaño físico de los índices de autenticación"
+        },
+        {
+          "id": "SP-R09-L05-Q01-O-c16e68af41f4",
+          "text": "Garantizar la veracidad del hallazgo antes de que lo revise un analista"
+        },
+        {
+          "id": "SP-R09-L05-Q01-O-fc6f3807be8b",
+          "text": "Priorizar y gestionar hallazgos/investigaciones"
+        }
+      ],
+      "solution": "SP-R09-L05-Q01-O-fc6f3807be8b",
+      "explanation": "Es un espacio de operación SOC sobre findings.",
+      "anchors": [
+        {
+          "file": "R09_ENTERPRISE_SECURITY/SP-R09-L05.md",
+          "sourceHash": "80bacd668685118ddd048907dba4bea9a116ce6f0bce83f1449e17748e4131d3",
+          "line": 17,
+          "endLine": 22,
+          "quote": "## 2. Conceptos que debes distinguir\n\n1. Analyst queue como tablero operativo de findings e investigaciones\n2. Prioridad combina activo, evidencia, confianza y contexto\n3. Estados y asignación requieren rastro de decisiones\n4. La cola no valida por sí sola la detección\n\n"
+        },
+        {
+          "file": "R09_ENTERPRISE_SECURITY/SP-R09-L05.md",
+          "sourceHash": "80bacd668685118ddd048907dba4bea9a116ce6f0bce83f1449e17748e4131d3",
+          "line": 32,
+          "endLine": 40,
+          "quote": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_FINDINGS_PRACTICA sourcetype=ST_SYNTH_FINDING\n| stats count AS hallazgos values(category) AS tipos BY entity\n| sort - hallazgos\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R09-L05-Q02",
+      "lessonId": "SP-R09-L05",
+      "prompt": "¿Qué debe permanecer tras cerrar un hallazgo?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D10",
+        "SPLUNK_LECCIONES_R08_R09:D11"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R09-L05-Q02-O-37464e8030a9",
+          "text": "La captura de la cola sin las consultas y eventos que motivaron la decisión"
+        },
+        {
+          "id": "SP-R09-L05-Q02-O-6943d38278dc",
+          "text": "Evidencia, razonamiento y decisión reproducible"
+        },
+        {
+          "id": "SP-R09-L05-Q02-O-4fa4dcaaf772",
+          "text": "Solo el estado final porque el motivo puede deducirse del score"
+        },
+        {
+          "id": "SP-R09-L05-Q02-O-0f69dafe28c4",
+          "text": "El propietario del turno sin fuentes ni ventana temporal"
+        }
+      ],
+      "solution": "SP-R09-L05-Q02-O-6943d38278dc",
+      "explanation": "La trazabilidad es esencial para auditoría y relevo.",
+      "anchors": [
+        {
+          "file": "R09_ENTERPRISE_SECURITY/SP-R09-L05.md",
+          "sourceHash": "80bacd668685118ddd048907dba4bea9a116ce6f0bce83f1449e17748e4131d3",
+          "line": 17,
+          "endLine": 22,
+          "quote": "## 2. Conceptos que debes distinguir\n\n1. Analyst queue como tablero operativo de findings e investigaciones\n2. Prioridad combina activo, evidencia, confianza y contexto\n3. Estados y asignación requieren rastro de decisiones\n4. La cola no valida por sí sola la detección\n\n"
+        },
+        {
+          "file": "R09_ENTERPRISE_SECURITY/SP-R09-L05.md",
+          "sourceHash": "80bacd668685118ddd048907dba4bea9a116ce6f0bce83f1449e17748e4131d3",
+          "line": 32,
+          "endLine": 40,
+          "quote": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_FINDINGS_PRACTICA sourcetype=ST_SYNTH_FINDING\n| stats count AS hallazgos values(category) AS tipos BY entity\n| sort - hallazgos\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R09-L05-P01",
+      "lessonId": "SP-R09-L05",
+      "prompt": "Escribe una ficha de triage ES de F01–F03 con prioridades y pasos siguientes.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D10",
+        "SPLUNK_LECCIONES_R08_R09:D11"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Distingue fuente, campos y alcance de la pregunta",
+        "Diseña un método reproducible sin inferencia abusiva",
+        "Separa señales, hipótesis, contraejemplos y ausencia de datos",
+        "Comunica siguiente paso seguro y evidencia para otro analista"
+      ],
+      "referenceAnswer": "Entidad alice y señales heterogéneas; revisar identidad/tiempo, autenticación, endpoint y excepciones, propietario N1 y posible escalado N2. El CSV no demuestra ataque."
+    }
+  ],
+  "solutionsMarkdown": "## 8. Solucionario con razonamiento\n\n- **SP-R09-L05-Q01: D** — Es un espacio de operación SOC sobre findings.\n\n- **SP-R09-L05-Q02: B** — La trazabilidad es esencial para auditoría y relevo.\n\n- **SP-R09-L05-P01:** Entidad alice y señales heterogéneas; revisar identidad/tiempo, autenticación, endpoint y excepciones, propietario N1 y posible escalado N2. El CSV no demuestra ataque.\n\n**Guía de retroalimentación formativa:** Distingue fuente, campos y alcance de la pregunta; Diseña un método reproducible sin inferencia abusiva; Separa señales, hipótesis, contraejemplos y ausencia de datos; Comunica siguiente paso seguro y evidencia para otro analista.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 9. Fuentes verificables y conexiones\n\n- **D10:** Splunk ES 8.7 — Risk scoring — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/risk-based-alerting/risk-scoring-in-splunk-enterprise-security\n- **D11:** Splunk ES 8.7 — Overview of Mission Control — https://help.splunk.com/en/splunk-enterprise-security-8/user-guide/8.7/mission-control/overview-of-mission-control-in-splunk-enterprise-security\n\n- **Puente SC-200:** Capítulos 08, 09 y 11 (incidentes, investigación y respuesta). La comparación es conceptual, no una equivalencia producto a producto.\n- **Fuente curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` en la carpeta padre `SPLUNK_MASTER_RESEARCH`.\n- **Calidad:** [DOC] referencias externas consultables; [DISEÑO] escenario y actividad originales; [OFFLINE] solo cálculos de fixture; [NO PROBADO] SPL no ejecutado en Splunk. La revisión técnica independiente queda pendiente.\n",
+  "originalMarkdown": "# SP-R09-L05 — Mission Control y analista\n\n**Región:** SP-R09 · **Estado:** borrador editorial para revisión · **SPL:** ilustrativo NO ejecutado.\n\n**Resultado de aprendizaje curricular:** Comprender analyst queue y triage ES.\n\n**Prerrequisitos:** R01–R07 según tema; R08 para agrupación/escalado R09. **Producto:** plataforma Splunk para SPL genérico; funciones ES 8.7/SOAR solo cuando se indiquen.\n\n## 1. Explicación técnica\n\nMission Control de ES organiza trabajo del analista mediante una analyst queue con findings, grupos e investigaciones según la versión. El valor de esta cola es operativo: permite clasificar, asignar y seguir el estado de un caso, preservar contexto y comunicar próximas acciones. La cola no sustituye la búsqueda de evidencia ni infiere automáticamente la verdad de una alerta.\n\nUn buen triage empieza por alcance, gravedad contextual, confianza, afectación de activos e información faltante. Si un finding habla de DCSync, el analista debe comprobar origen, permisos y visibilidad del DC antes de elevar. Si aparece un risk score, se usa como prioridad ajustada por fuentes y contexto, no como causa de cierre.\n\nLa interfaz cambia entre versiones. El paquete estudia el concepto de Mission Control documentado para ES 8.7, sin afirmar que tu entorno lo tiene instalado; los ejercicios de cola son papel/CSV, no interacciones reales con ES.\n\n## 2. Conceptos que debes distinguir\n\n1. Analyst queue como tablero operativo de findings e investigaciones\n2. Prioridad combina activo, evidencia, confianza y contexto\n3. Estados y asignación requieren rastro de decisiones\n4. La cola no valida por sí sola la detección\n\n## 3. Procedimiento reproducible y seguro\n\n1. Abre hipotético finding y verifica integridad de entidad/tiempo.\n2. Clasifica evidencia existente y faltante.\n3. Comprueba enriquecimientos y duplicados.\n4. Define responsable, siguiente acción y fecha de revisión.\n5. Escala solo por política y evidencia, manteniendo auditoría.\n\n## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_FINDINGS_PRACTICA sourcetype=ST_SYNTH_FINDING\n| stats count AS hallazgos values(category) AS tipos BY entity\n| sort - hallazgos\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n## 5. Escenario SOC\n\nLa cola de entrenamiento presenta tres findings de alice y dos de backup; la decisión de trabajo requiere examinar categorías y autorización, no ordenar solo por conteo.\n\n## 6. Errores frecuentes\n\n1. Llamar findings a tickets confirmados\n2. Confundir estado de workflow con causalidad\n3. Cerrar un hallazgo sin conservar motivo y evidencia\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R09-L05-Q01 — Opción múltiple\n\n¿Cuál es el objetivo principal de analyst queue?\n\nA. Recibir y parsear la fuente original antes de indexarla\nB. Definir el tamaño físico de los índices de autenticación\nC. Garantizar la veracidad del hallazgo antes de que lo revise un analista\nD. Priorizar y gestionar hallazgos/investigaciones\n\n### SP-R09-L05-Q02 — Opción múltiple\n\n¿Qué debe permanecer tras cerrar un hallazgo?\n\nA. La captura de la cola sin las consultas y eventos que motivaron la decisión\nB. Evidencia, razonamiento y decisión reproducible\nC. Solo el estado final porque el motivo puede deducirse del score\nD. El propietario del turno sin fuentes ni ventana temporal\n\n### SP-R09-L05-P01 — Práctica abierta formativa\n\nEscribe una ficha de triage ES de F01–F03 con prioridades y pasos siguientes.\n\n## 8. Solucionario con razonamiento\n\n- **SP-R09-L05-Q01: D** — Es un espacio de operación SOC sobre findings.\n\n- **SP-R09-L05-Q02: B** — La trazabilidad es esencial para auditoría y relevo.\n\n- **SP-R09-L05-P01:** Entidad alice y señales heterogéneas; revisar identidad/tiempo, autenticación, endpoint y excepciones, propietario N1 y posible escalado N2. El CSV no demuestra ataque.\n\n**Guía de retroalimentación formativa:** Distingue fuente, campos y alcance de la pregunta; Diseña un método reproducible sin inferencia abusiva; Separa señales, hipótesis, contraejemplos y ausencia de datos; Comunica siguiente paso seguro y evidencia para otro analista.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 9. Fuentes verificables y conexiones\n\n- **D10:** Splunk ES 8.7 — Risk scoring — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/risk-based-alerting/risk-scoring-in-splunk-enterprise-security\n- **D11:** Splunk ES 8.7 — Overview of Mission Control — https://help.splunk.com/en/splunk-enterprise-security-8/user-guide/8.7/mission-control/overview-of-mission-control-in-splunk-enterprise-security\n\n- **Puente SC-200:** Capítulos 08, 09 y 11 (incidentes, investigación y respuesta). La comparación es conceptual, no una equivalencia producto a producto.\n- **Fuente curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` en la carpeta padre `SPLUNK_MASTER_RESEARCH`.\n- **Calidad:** [DOC] referencias externas consultables; [DISEÑO] escenario y actividad originales; [OFFLINE] solo cálculos de fixture; [NO PROBADO] SPL no ejecutado en Splunk. La revisión técnica independiente queda pendiente.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D10",
+      "key": "SPLUNK_LECCIONES_R08_R09:D10",
+      "url": "https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/risk-based-alerting/risk-scoring-in-splunk-enterprise-security"
+    },
+    {
+      "id": "D11",
+      "key": "SPLUNK_LECCIONES_R08_R09:D11",
+      "url": "https://help.splunk.com/en/splunk-enterprise-security-8/user-guide/8.7/mission-control/overview-of-mission-control-in-splunk-enterprise-security"
+    }
+  ]
+}

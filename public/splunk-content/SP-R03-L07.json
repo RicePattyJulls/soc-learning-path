@@ -1,0 +1,199 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R03-L07",
+  "title": "Primer mini-hunting guiado",
+  "revision": "37c837e13b8ff1e09a9f4ce7",
+  "sourceVersion": "ceca83f354ffc86731fad4cbee4a9986f26fa78178be455cd33678f7152ca3da",
+  "sanitizedHash": "ceca83f354ffc86731fad4cbee4a9986f26fa78178be455cd33678f7152ca3da",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R01_R03/R03_SPL_BASICO/SP-R03-L07.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Investigar fallos repetidos, explicar evidencias y límites",
+  "preamble": "# SP-R03-L07 — Primer mini-hunting guiado\n\n**Región:** Bosque SPL I (SP-R03) · **Prioridad:** P0 SOC N1/N2  \n**Estado:** material didáctico redactado; revisión humana recomendada. **SPL no ejecutado en Splunk real.**  \n**ID estable propuesto:** `SP-R03-L07` (no migrado a React)  \n**Prerrequisitos orientativos:** SP-R03-L01  \n**Objetivo del currículo:** Investigar fallos repetidos, explicar evidencias y límites\n\n",
+  "sections": [
+    {
+      "id": "SP-R03-L07-S01",
+      "title": "1. La pregunta que resuelve esta lección",
+      "markdown": "## 1. La pregunta que resuelve esta lección\n\nEl primer mini-hunting de autenticación es una investigación con hipótesis y alternativas, no una prueba automática de compromiso.\n\n**Al completar la lección podrás:** Investigar fallos repetidos, explicar evidencias y límites. Debes explicar el porqué y los límites, no memorizar solo comandos.\n\n",
+      "line": 9,
+      "endLine": 13
+    },
+    {
+      "id": "SP-R03-L07-S02",
+      "title": "2. Desarrollo del conocimiento",
+      "markdown": "## 2. Desarrollo del conocimiento\n\nUna hipótesis plausible de password spraying es que una fuente intenta credenciales contra muchas cuentas en un periodo breve. Para evaluarla necesitas eventos de autenticación fiables, identificación de IP origen y de identidad, definición de fallo, ventana, baseline y análisis de éxitos posteriores. Las direcciones usadas en la fixture son de rangos de documentación: no corresponden a IP del entorno del usuario.\nEl hunting debe preservar una salida inconclusa: con campos incompletos o cobertura insuficiente no se demuestra que la actividad sea benigna ni maliciosa. No confundas “la consulta encuentra seis fallos” con “la cuenta fue comprometida”. Los siguientes pasos defensivos son revisar si hubo éxitos, reputación/fuentes internas, cuentas de servicio y NAT/VPN, dentro de permisos autorizados.\n\n",
+      "line": 15,
+      "endLine": 18
+    },
+    {
+      "id": "SP-R03-L07-S03",
+      "title": "3. Método de trabajo reproducible",
+      "markdown": "## 3. Método de trabajo reproducible\n\n1. Define hipótesis y fuente autorizada.\n2. Verifica `action`, `user`, `src`, `_time` y cobertura temporal.\n3. Cuenta fallos y usuarios distintos por IP y bucket.\n4. Busca señales de éxito/cambio posterior en la fuente compatible.\n5. Clasifica evidencia: sospechosa, benigna con pruebas o inconclusa; documenta por qué.\n\n",
+      "line": 20,
+      "endLine": 26
+    },
+    {
+      "id": "SP-R03-L07-S04",
+      "title": "4. Caso guiado — de la pregunta a la evidencia",
+      "markdown": "## 4. Caso guiado — de la pregunta a la evidencia\n\nLa fixture offline incluida registra seis fallos hacia cinco cuentas desde 203.0.113.9 dentro de un mismo bucket de quince minutos, más actividad benigna e incompleta. Es evidencia sintética de un patrón que merece triage, no de intrusión confirmada.\n\n### Esquema o ejemplo técnico\n\n```spl\nindex=INDICE_AUTH action=failure earliest=-24h\n| bin _time span=15m\n| stats count AS fallos dc(user) AS cuentas by src _time\n| where cuentas>=5\n```\n\n**Cómo interpretarlo:** **No ejecutes este SPL con placeholders.** Solo tendría sentido en el índice autorizado con campos comprobados. Puedes verificar el resultado numérico de la fixture offline mediante `python3 scripts/verificar_fixture.py` sin usar Splunk.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n",
+      "line": 28,
+      "endLine": 43
+    },
+    {
+      "id": "SP-R03-L07-S05",
+      "title": "5. Diagnóstico y errores frecuentes",
+      "markdown": "## 5. Diagnóstico y errores frecuentes\n\nTratamiento de IP compartida como atacante seguro; ausencia de datos como prueba de benignidad; concluir éxito sin eventos de éxito; mezclar datos reales y sintéticos sin etiquetar.\n\n**Conexión con SC-200 (no equivalencia automática):** Cap. 07 (detección), líneas 1601–1879; cap. 10 (hunting), líneas 2105–2235; cap. 13, líneas 2517–2810.. En Splunk los esquemas, permisos y familias de producto son diferentes; verifica la correspondencia antes de reutilizar una técnica.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 45,
+      "endLine": 52
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R03-L07-Q01",
+      "lessonId": "SP-R03-L07",
+      "prompt": "¿Qué permite afirmar una IP con seis fallos hacia cinco usuarios?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A10",
+        "SPLUNK_LECCIONES_R01_R03:A11",
+        "SPLUNK_LECCIONES_R01_R03:A12"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R03-L07-Q01-O-130987a293e2",
+          "text": "Que el mismo actor controla las cinco cuentas observadas"
+        },
+        {
+          "id": "SP-R03-L07-Q01-O-0687c0f79e92",
+          "text": "Que la IP identifica un único dispositivo cliente aunque exista NAT"
+        },
+        {
+          "id": "SP-R03-L07-Q01-O-aa19fbb4af5c",
+          "text": "Sospecha que requiere contexto"
+        },
+        {
+          "id": "SP-R03-L07-Q01-O-8fd0c8575fb1",
+          "text": "Que los seis fallos acreditan intentos con una misma contraseña"
+        }
+      ],
+      "solution": "SP-R03-L07-Q01-O-aa19fbb4af5c",
+      "explanation": "Un patrón estadístico es indicio, no atribución ni prueba de éxito.",
+      "anchors": [
+        {
+          "file": "R03_SPL_BASICO/SP-R03-L07.md",
+          "sourceHash": "ceca83f354ffc86731fad4cbee4a9986f26fa78178be455cd33678f7152ca3da",
+          "line": 15,
+          "endLine": 18,
+          "quote": "## 2. Desarrollo del conocimiento\n\nUna hipótesis plausible de password spraying es que una fuente intenta credenciales contra muchas cuentas en un periodo breve. Para evaluarla necesitas eventos de autenticación fiables, identificación de IP origen y de identidad, definición de fallo, ventana, baseline y análisis de éxitos posteriores. Las direcciones usadas en la fixture son de rangos de documentación: no corresponden a IP del entorno del usuario.\nEl hunting debe preservar una salida inconclusa: con campos incompletos o cobertura insuficiente no se demuestra que la actividad sea benigna ni maliciosa. No confundas “la consulta encuentra seis fallos” con “la cuenta fue comprometida”. Los siguientes pasos defensivos son revisar si hubo éxitos, reputación/fuentes internas, cuentas de servicio y NAT/VPN, dentro de permisos autorizados.\n\n"
+        },
+        {
+          "file": "R03_SPL_BASICO/SP-R03-L07.md",
+          "sourceHash": "ceca83f354ffc86731fad4cbee4a9986f26fa78178be455cd33678f7152ca3da",
+          "line": 28,
+          "endLine": 43,
+          "quote": "## 4. Caso guiado — de la pregunta a la evidencia\n\nLa fixture offline incluida registra seis fallos hacia cinco cuentas desde 203.0.113.9 dentro de un mismo bucket de quince minutos, más actividad benigna e incompleta. Es evidencia sintética de un patrón que merece triage, no de intrusión confirmada.\n\n### Esquema o ejemplo técnico\n\n```spl\nindex=INDICE_AUTH action=failure earliest=-24h\n| bin _time span=15m\n| stats count AS fallos dc(user) AS cuentas by src _time\n| where cuentas>=5\n```\n\n**Cómo interpretarlo:** **No ejecutes este SPL con placeholders.** Solo tendría sentido en el índice autorizado con campos comprobados. Puedes verificar el resultado numérico de la fixture offline mediante `python3 scripts/verificar_fixture.py` sin usar Splunk.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R03-L07-Q02",
+      "lessonId": "SP-R03-L07",
+      "prompt": "¿Cuándo debe declararse una investigación inconclusa?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A10",
+        "SPLUNK_LECCIONES_R01_R03:A11",
+        "SPLUNK_LECCIONES_R01_R03:A12"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R03-L07-Q02-O-5b6786201aec",
+          "text": "Cuando faltan campos o cobertura esencial"
+        },
+        {
+          "id": "SP-R03-L07-Q02-O-8ae770b77c40",
+          "text": "Cuando una IP figura en el inventario, aunque no se haya comprobado la actividad"
+        },
+        {
+          "id": "SP-R03-L07-Q02-O-221500056732",
+          "text": "Cuando aparece un éxito posterior, sin revisar su identidad"
+        },
+        {
+          "id": "SP-R03-L07-Q02-O-bf19e5273a81",
+          "text": "Cuando no se activa el umbral, aunque falte la fuente principal"
+        }
+      ],
+      "solution": "SP-R03-L07-Q02-O-5b6786201aec",
+      "explanation": "Sin evidencia suficiente no se puede clasificar con garantías.",
+      "anchors": [
+        {
+          "file": "R03_SPL_BASICO/SP-R03-L07.md",
+          "sourceHash": "ceca83f354ffc86731fad4cbee4a9986f26fa78178be455cd33678f7152ca3da",
+          "line": 15,
+          "endLine": 18,
+          "quote": "## 2. Desarrollo del conocimiento\n\nUna hipótesis plausible de password spraying es que una fuente intenta credenciales contra muchas cuentas en un periodo breve. Para evaluarla necesitas eventos de autenticación fiables, identificación de IP origen y de identidad, definición de fallo, ventana, baseline y análisis de éxitos posteriores. Las direcciones usadas en la fixture son de rangos de documentación: no corresponden a IP del entorno del usuario.\nEl hunting debe preservar una salida inconclusa: con campos incompletos o cobertura insuficiente no se demuestra que la actividad sea benigna ni maliciosa. No confundas “la consulta encuentra seis fallos” con “la cuenta fue comprometida”. Los siguientes pasos defensivos son revisar si hubo éxitos, reputación/fuentes internas, cuentas de servicio y NAT/VPN, dentro de permisos autorizados.\n\n"
+        },
+        {
+          "file": "R03_SPL_BASICO/SP-R03-L07.md",
+          "sourceHash": "ceca83f354ffc86731fad4cbee4a9986f26fa78178be455cd33678f7152ca3da",
+          "line": 28,
+          "endLine": 43,
+          "quote": "## 4. Caso guiado — de la pregunta a la evidencia\n\nLa fixture offline incluida registra seis fallos hacia cinco cuentas desde 203.0.113.9 dentro de un mismo bucket de quince minutos, más actividad benigna e incompleta. Es evidencia sintética de un patrón que merece triage, no de intrusión confirmada.\n\n### Esquema o ejemplo técnico\n\n```spl\nindex=INDICE_AUTH action=failure earliest=-24h\n| bin _time span=15m\n| stats count AS fallos dc(user) AS cuentas by src _time\n| where cuentas>=5\n```\n\n**Cómo interpretarlo:** **No ejecutes este SPL con placeholders.** Solo tendría sentido en el índice autorizado con campos comprobados. Puedes verificar el resultado numérico de la fixture offline mediante `python3 scripts/verificar_fixture.py` sin usar Splunk.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R03-L07-P01",
+      "lessonId": "SP-R03-L07",
+      "prompt": "Dada la fixture, cuenta identidades únicas por IP/ventana y redacta un informe de cuatro frases que separe hechos, hipótesis, contexto y siguiente verificación.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A10",
+        "SPLUNK_LECCIONES_R01_R03:A11",
+        "SPLUNK_LECCIONES_R01_R03:A12"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica los datos/condiciones necesarios",
+        "Explica el razonamiento y no solo el resultado",
+        "Reconoce al menos una limitación o comprobación adicional"
+      ],
+      "referenceAnswer": "Para 203.0.113.9 a las 09:00: seis fallos, cinco identidades, 15 min. Hipótesis de spraying; comprobar NAT/VPN, baseline y éxitos. Sin evidencias de acceso correcto no se afirma compromiso."
+    }
+  ],
+  "solutionsMarkdown": "## 7. Solucionario con razonamiento\n\n- **SP-R03-L07-Q01: C** — Un patrón estadístico es indicio, no atribución ni prueba de éxito.\n\n- **SP-R03-L07-Q02: A** — Sin evidencia suficiente no se puede clasificar con garantías.\n\n- **SP-R03-L07-P01:** Para 203.0.113.9 a las 09:00: seis fallos, cinco identidades, 15 min. Hipótesis de spraying; comprobar NAT/VPN, baseline y éxitos. Sin evidencias de acceso correcto no se afirma compromiso.\n\n**Guía de retroalimentación formativa:** Identifica los datos/condiciones necesarios; Explica el razonamiento y no solo el resultado; Reconoce al menos una limitación o comprobación adicional.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 8. Fuentes y trazabilidad\n\n- **Fuente de partida:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE2_BLOQUE1.md`, según la organización del paquete de investigación que conservas.\n- **Fuente Microsoft de contraste:** `../../01_FUENTE_ORIGINAL/SC-200.md`; Cap. 07 (detección), líneas 1601–1879; cap. 10 (hunting), líneas 2105–2235; cap. 13, líneas 2517–2810.\n- **[A10]** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/search-commands/stats\n- **[A11]** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/search-commands/bin\n- **[A12]** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/search-commands/where\n\n**Estado de confianza:** documentación técnica citada y propuesta pedagógica; no validado contra índices, sourcetypes, roles o versiones de tu laboratorio. Las URLs provienen de la investigación del 16/10/2026, con contraste puntual adicional de documentación oficial para HEC y forwarders. Ver `FUENTES_Y_LIMITES.md`.\n",
+  "originalMarkdown": "# SP-R03-L07 — Primer mini-hunting guiado\n\n**Región:** Bosque SPL I (SP-R03) · **Prioridad:** P0 SOC N1/N2  \n**Estado:** material didáctico redactado; revisión humana recomendada. **SPL no ejecutado en Splunk real.**  \n**ID estable propuesto:** `SP-R03-L07` (no migrado a React)  \n**Prerrequisitos orientativos:** SP-R03-L01  \n**Objetivo del currículo:** Investigar fallos repetidos, explicar evidencias y límites\n\n## 1. La pregunta que resuelve esta lección\n\nEl primer mini-hunting de autenticación es una investigación con hipótesis y alternativas, no una prueba automática de compromiso.\n\n**Al completar la lección podrás:** Investigar fallos repetidos, explicar evidencias y límites. Debes explicar el porqué y los límites, no memorizar solo comandos.\n\n## 2. Desarrollo del conocimiento\n\nUna hipótesis plausible de password spraying es que una fuente intenta credenciales contra muchas cuentas en un periodo breve. Para evaluarla necesitas eventos de autenticación fiables, identificación de IP origen y de identidad, definición de fallo, ventana, baseline y análisis de éxitos posteriores. Las direcciones usadas en la fixture son de rangos de documentación: no corresponden a IP del entorno del usuario.\nEl hunting debe preservar una salida inconclusa: con campos incompletos o cobertura insuficiente no se demuestra que la actividad sea benigna ni maliciosa. No confundas “la consulta encuentra seis fallos” con “la cuenta fue comprometida”. Los siguientes pasos defensivos son revisar si hubo éxitos, reputación/fuentes internas, cuentas de servicio y NAT/VPN, dentro de permisos autorizados.\n\n## 3. Método de trabajo reproducible\n\n1. Define hipótesis y fuente autorizada.\n2. Verifica `action`, `user`, `src`, `_time` y cobertura temporal.\n3. Cuenta fallos y usuarios distintos por IP y bucket.\n4. Busca señales de éxito/cambio posterior en la fuente compatible.\n5. Clasifica evidencia: sospechosa, benigna con pruebas o inconclusa; documenta por qué.\n\n## 4. Caso guiado — de la pregunta a la evidencia\n\nLa fixture offline incluida registra seis fallos hacia cinco cuentas desde 203.0.113.9 dentro de un mismo bucket de quince minutos, más actividad benigna e incompleta. Es evidencia sintética de un patrón que merece triage, no de intrusión confirmada.\n\n### Esquema o ejemplo técnico\n\n```spl\nindex=INDICE_AUTH action=failure earliest=-24h\n| bin _time span=15m\n| stats count AS fallos dc(user) AS cuentas by src _time\n| where cuentas>=5\n```\n\n**Cómo interpretarlo:** **No ejecutes este SPL con placeholders.** Solo tendría sentido en el índice autorizado con campos comprobados. Puedes verificar el resultado numérico de la fixture offline mediante `python3 scripts/verificar_fixture.py` sin usar Splunk.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n## 5. Diagnóstico y errores frecuentes\n\nTratamiento de IP compartida como atacante seguro; ausencia de datos como prueba de benignidad; concluir éxito sin eventos de éxito; mezclar datos reales y sintéticos sin etiquetar.\n\n**Conexión con SC-200 (no equivalencia automática):** Cap. 07 (detección), líneas 1601–1879; cap. 10 (hunting), líneas 2105–2235; cap. 13, líneas 2517–2810.. En Splunk los esquemas, permisos y familias de producto son diferentes; verifica la correspondencia antes de reutilizar una técnica.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 6. Actividades\n\n### SP-R03-L07-Q01 — Opción múltiple\n\n¿Qué permite afirmar una IP con seis fallos hacia cinco usuarios?\n\nA. Que el mismo actor controla las cinco cuentas observadas\nB. Que la IP identifica un único dispositivo cliente aunque exista NAT\nC. Sospecha que requiere contexto\nD. Que los seis fallos acreditan intentos con una misma contraseña\n\n### SP-R03-L07-Q02 — Opción múltiple\n\n¿Cuándo debe declararse una investigación inconclusa?\n\nA. Cuando faltan campos o cobertura esencial\nB. Cuando una IP figura en el inventario, aunque no se haya comprobado la actividad\nC. Cuando aparece un éxito posterior, sin revisar su identidad\nD. Cuando no se activa el umbral, aunque falte la fuente principal\n\n### SP-R03-L07-P01 — Práctica abierta formativa\n\nDada la fixture, cuenta identidades únicas por IP/ventana y redacta un informe de cuatro frases que separe hechos, hipótesis, contexto y siguiente verificación.\n\n## 7. Solucionario con razonamiento\n\n- **SP-R03-L07-Q01: C** — Un patrón estadístico es indicio, no atribución ni prueba de éxito.\n\n- **SP-R03-L07-Q02: A** — Sin evidencia suficiente no se puede clasificar con garantías.\n\n- **SP-R03-L07-P01:** Para 203.0.113.9 a las 09:00: seis fallos, cinco identidades, 15 min. Hipótesis de spraying; comprobar NAT/VPN, baseline y éxitos. Sin evidencias de acceso correcto no se afirma compromiso.\n\n**Guía de retroalimentación formativa:** Identifica los datos/condiciones necesarios; Explica el razonamiento y no solo el resultado; Reconoce al menos una limitación o comprobación adicional.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Fuentes y trazabilidad\n\n- **Fuente de partida:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE2_BLOQUE1.md`, según la organización del paquete de investigación que conservas.\n- **Fuente Microsoft de contraste:** `../../01_FUENTE_ORIGINAL/SC-200.md`; Cap. 07 (detección), líneas 1601–1879; cap. 10 (hunting), líneas 2105–2235; cap. 13, líneas 2517–2810.\n- **[A10]** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/search-commands/stats\n- **[A11]** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/search-commands/bin\n- **[A12]** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/search-commands/where\n\n**Estado de confianza:** documentación técnica citada y propuesta pedagógica; no validado contra índices, sourcetypes, roles o versiones de tu laboratorio. Las URLs provienen de la investigación del 16/10/2026, con contraste puntual adicional de documentación oficial para HEC y forwarders. Ver `FUENTES_Y_LIMITES.md`.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 8,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "A10",
+      "key": "SPLUNK_LECCIONES_R01_R03:A10",
+      "url": "https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/search-commands/stats"
+    },
+    {
+      "id": "A11",
+      "key": "SPLUNK_LECCIONES_R01_R03:A11",
+      "url": "https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/search-commands/bin"
+    },
+    {
+      "id": "A12",
+      "key": "SPLUNK_LECCIONES_R01_R03:A12",
+      "url": "https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/search-commands/where"
+    }
+  ]
+}

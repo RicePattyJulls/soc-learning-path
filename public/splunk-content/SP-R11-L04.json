@@ -1,0 +1,208 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R11-L04",
+  "title": "Splunk SOAR y playbooks",
+  "revision": "d88a10d8718f3bc70be9e339",
+  "sourceVersion": "ac5fec159208159a7877c7ef9b9aa8857d0a94eed3cccb0fa3dc21c9ec773362",
+  "sanitizedHash": "ac5fec159208159a7877c7ef9b9aa8857d0a94eed3cccb0fa3dc21c9ec773362",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R10_R11/R11_AUTOMATIZACION_SOAR/SP-R11-L04.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Comprender apps, assets, acciones y dependencias",
+  "preamble": "# SP-R11-L04 — Splunk SOAR y playbooks\n\n**Región:** SP-R11 · **Producto:** Splunk Enterprise/Cloud (donde se indique) o SOAR Cloud explícito. · **Estado:** borrador documental / requiere revisión humana. · **SPL/CLI/API:** ilustrativo, NO ejecutado.\n\n**Resultado curricular:** Comprender apps, assets, acciones y dependencias\n\n**Prerrequisitos:** R07, R09 (conceptual), R10\n\n",
+  "sections": [
+    {
+      "id": "SP-R11-L04-S01",
+      "title": "1. Explicación razonada",
+      "markdown": "## 1. Explicación razonada\n\nSplunk SOAR es un producto de orquestación distinto de la plataforma Splunk Enterprise. Un **playbook** organiza decisiones, filtros, utilidades y **action blocks** que llaman acciones proporcionadas por apps y assets configurados. La disponibilidad de «lookup IP», «disable user» o «block IP» depende del conector y del recurso concreto. Ni instalar SOAR ni dibujar un bloque garantiza que una app esté disponible, autorizada o que el asset tenga las aprobaciones correctas.\n\nUn flujo defensivo razonable comienza con ingestión de un finding/evento relevante, normaliza indicadores, ejecuta *enriquecimientos de lectura*, comprueba cobertura y fiabilidad, añade comentarios para revisión y solicita aprobación antes de acciones que cambian estado. En SOAR (Cloud), Splunk documenta revisores y aprobaciones de action blocks/assets; su política concreta debe configurarse y probarse. Hay un riesgo especial al llamar acciones sin asset explícito: la documentación indica que puede ejecutarse en todos los assets compatibles, incluso los añadidos posteriormente. Diseña selecciones explícitas, no confíes en defaults permisivos.\n\nAdemás, un playbook interrumpido puede haber realizado acciones parciales que no se deshacen automáticamente. Los escenarios de aprendizaje serán pseudoflujos y datos sintéticos; no habrá conexiones con directorios, endpoints o firewalls.\n\n",
+      "line": 9,
+      "endLine": 15
+    },
+    {
+      "id": "SP-R11-L04-S02",
+      "title": "2. Conceptos clave",
+      "markdown": "## 2. Conceptos clave\n\n1. SOAR requiere producto + app + asset + permisos\n2. Playbooks definen bloques y dependencias, no solo SPL\n3. Elegir asset concreto evita ejecuciones inesperadas\n4. Reviewer/aprobación de acciones mutantes\n5. Interrupción puede dejar efectos parciales\n\n",
+      "line": 17,
+      "endLine": 23
+    },
+    {
+      "id": "SP-R11-L04-S03",
+      "title": "3. Procedimiento de estudio y verificación",
+      "markdown": "## 3. Procedimiento de estudio y verificación\n\n1. Identifica evento fuente, esquema y producto que lo produce.\n2. Enumera enriquecimientos RO y define fuente de cada uno.\n3. Determina action/connector/asset específico sin credenciales.\n4. Añade revisión humana y registro de aprobación.\n5. Especifica rollback o compensación para éxito parcial.\n\n",
+      "line": 25,
+      "endLine": 31
+    },
+    {
+      "id": "SP-R11-L04-S04",
+      "title": "4. Pseudoflujo SOAR — documental",
+      "markdown": "## 4. Pseudoflujo SOAR — documental\n\n```text\nfinding de ES (si ES está licenciado)\n  → normalizar IOC → reputación IP (consulta RO, asset explícito)\n  → añadir evidencia a caso → revisor humano\n  → decisión condicional: NO ACTION / crear ticket / cambio autorizado\n  → auditoría + verificación + opción de reversión\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n",
+      "line": 33,
+      "endLine": 43
+    },
+    {
+      "id": "SP-R11-L04-S05",
+      "title": "5. Situación profesional",
+      "markdown": "## 5. Situación profesional\n\nUn action block `block ip` no especifica asset. Una nueva integración compatible aparece en SOAR y aumenta la superficie de ejecución: siempre delimitar asset e identidades.\n\n## 6. Errores comunes\n\n1. Confundir editor SOAR con un módulo incluido en Enterprise base\n2. Acciones sin asset concreto\n3. Suponer rollback automático tras reinicio\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 45,
+      "endLine": 56
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R11-L04-Q01",
+      "lessonId": "SP-R11-L04",
+      "prompt": "¿De dónde proceden acciones reales de SOAR?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D11",
+        "SPLUNK_LECCIONES_R10_R11:D12",
+        "SPLUNK_LECCIONES_R10_R11:D14",
+        "SPLUNK_LECCIONES_R10_R11:D17"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R11-L04-Q01-O-9512e322fd48",
+          "text": "Del emparejamiento ES, que instala por sí solo cualquier acción de terceros"
+        },
+        {
+          "id": "SP-R11-L04-Q01-O-133061146faa",
+          "text": "Las apps y conectores con assets compatibles, instalados y autorizados para la acción concreta"
+        },
+        {
+          "id": "SP-R11-L04-Q01-O-2678762f6496",
+          "text": "De los campos SPL de entrada sin conectores ni assets"
+        },
+        {
+          "id": "SP-R11-L04-Q01-O-b6db227562b3",
+          "text": "Del nombre del bloque, aunque no haya app compatible instalada"
+        }
+      ],
+      "solution": "SP-R11-L04-Q01-O-133061146faa",
+      "explanation": "El conjunto de acciones depende de las apps y assets configurados.",
+      "anchors": [
+        {
+          "file": "R11_AUTOMATIZACION_SOAR/SP-R11-L04.md",
+          "sourceHash": "ac5fec159208159a7877c7ef9b9aa8857d0a94eed3cccb0fa3dc21c9ec773362",
+          "line": 17,
+          "endLine": 23,
+          "quote": "## 2. Conceptos clave\n\n1. SOAR requiere producto + app + asset + permisos\n2. Playbooks definen bloques y dependencias, no solo SPL\n3. Elegir asset concreto evita ejecuciones inesperadas\n4. Reviewer/aprobación de acciones mutantes\n5. Interrupción puede dejar efectos parciales\n\n"
+        },
+        {
+          "file": "R11_AUTOMATIZACION_SOAR/SP-R11-L04.md",
+          "sourceHash": "ac5fec159208159a7877c7ef9b9aa8857d0a94eed3cccb0fa3dc21c9ec773362",
+          "line": 33,
+          "endLine": 43,
+          "quote": "## 4. Pseudoflujo SOAR — documental\n\n```text\nfinding de ES (si ES está licenciado)\n  → normalizar IOC → reputación IP (consulta RO, asset explícito)\n  → añadir evidencia a caso → revisor humano\n  → decisión condicional: NO ACTION / crear ticket / cambio autorizado\n  → auditoría + verificación + opción de reversión\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R11-L04-Q02",
+      "lessonId": "SP-R11-L04",
+      "prompt": "¿Qué riesgo tiene omitir `asset` al invocar una acción según la API de SOAR?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D11",
+        "SPLUNK_LECCIONES_R10_R11:D12",
+        "SPLUNK_LECCIONES_R10_R11:D14",
+        "SPLUNK_LECCIONES_R10_R11:D17"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R11-L04-Q02-O-713962b2990b",
+          "text": "Puede aplicarse a todos los assets compatibles"
+        },
+        {
+          "id": "SP-R11-L04-Q02-O-4a84c2ac8194",
+          "text": "El asset se deduce del usuario del finding sin comprobar configuración"
+        },
+        {
+          "id": "SP-R11-L04-Q02-O-1e85c4db8cdc",
+          "text": "La omisión actúa como una aprobación humana de la operación"
+        },
+        {
+          "id": "SP-R11-L04-Q02-O-28b2c41e7bfc",
+          "text": "La API selecciona por defecto el único asset menos privilegiado"
+        }
+      ],
+      "solution": "SP-R11-L04-Q02-O-713962b2990b",
+      "explanation": "La documentación advierte expansión de targets al no concretar asset.",
+      "anchors": [
+        {
+          "file": "R11_AUTOMATIZACION_SOAR/SP-R11-L04.md",
+          "sourceHash": "ac5fec159208159a7877c7ef9b9aa8857d0a94eed3cccb0fa3dc21c9ec773362",
+          "line": 17,
+          "endLine": 23,
+          "quote": "## 2. Conceptos clave\n\n1. SOAR requiere producto + app + asset + permisos\n2. Playbooks definen bloques y dependencias, no solo SPL\n3. Elegir asset concreto evita ejecuciones inesperadas\n4. Reviewer/aprobación de acciones mutantes\n5. Interrupción puede dejar efectos parciales\n\n"
+        },
+        {
+          "file": "R11_AUTOMATIZACION_SOAR/SP-R11-L04.md",
+          "sourceHash": "ac5fec159208159a7877c7ef9b9aa8857d0a94eed3cccb0fa3dc21c9ec773362",
+          "line": 33,
+          "endLine": 43,
+          "quote": "## 4. Pseudoflujo SOAR — documental\n\n```text\nfinding de ES (si ES está licenciado)\n  → normalizar IOC → reputación IP (consulta RO, asset explícito)\n  → añadir evidencia a caso → revisor humano\n  → decisión condicional: NO ACTION / crear ticket / cambio autorizado\n  → auditoría + verificación + opción de reversión\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R11-L04-P01",
+      "lessonId": "SP-R11-L04",
+      "prompt": "Diseña un playbook de enriquecimiento de IP y ticket con aprobaciones para bloqueo condicional.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D11",
+        "SPLUNK_LECCIONES_R10_R11:D12",
+        "SPLUNK_LECCIONES_R10_R11:D14",
+        "SPLUNK_LECCIONES_R10_R11:D17"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Define fuente, producto, versión y límites del contexto",
+        "Resuelve el objetivo con un procedimiento replicable y no destructivo",
+        "Identifica error, caso benigno y riesgo operacional",
+        "Documenta permisos, aprobación y evidencia para revisión humana"
+      ],
+      "referenceAnswer": "Usar asset lookup explícito RO, decisión basada en evidencia y confidence, ticket interno, aprobación humana del bloqueo, asset de firewall elegido, audit logs, verificación y compensación."
+    }
+  ],
+  "solutionsMarkdown": "## 8. Solucionario con razonamiento\n\n- **SP-R11-L04-Q01: B** — El conjunto de acciones depende de las apps y assets configurados.\n\n- **SP-R11-L04-Q02: A** — La documentación advierte expansión de targets al no concretar asset.\n\n- **SP-R11-L04-P01:** Usar asset lookup explícito RO, decisión basada en evidencia y confidence, ticket interno, aprobación humana del bloqueo, asset de firewall elegido, audit logs, verificación y compensación.\n\n**Guía de retroalimentación formativa:** Define fuente, producto, versión y límites del contexto; Resuelve el objetivo con un procedimiento replicable y no destructivo; Identifica error, caso benigno y riesgo operacional; Documenta permisos, aprobación y evidencia para revisión humana.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 9. Fuentes, procedencia y limitaciones\n\n- **D11:** Splunk SOAR Cloud — Playbooks overview — https://help.splunk.com/en/splunk-soar/soar-cloud/build-playbooks/introduction-to-splunk-soar-playbooks/use-playbooks-to-automate-analyst-workflows-in-splunk-soar-cloud\n- **D12:** Splunk SOAR Cloud — Playbook automation API approvals — https://help.splunk.com/en/splunk-soar/soar-cloud/develop-apps/python-playbook-api-reference/automation-api/playbook-automation-api\n- **D14:** Splunk SOAR Cloud — Add action block — https://help.splunk.com/en/splunk-soar/soar-cloud/develop-apps/build-playbooks/use-the-playbook-editor-to-create-and-view-playbooks-to-automate-analyst-workflows/add-an-action-block-to-your-splunk-soar-cloud-playbook\n- **D17:** Splunk SOAR Cloud — Better playbook guidelines — https://help.splunk.com/en/splunk-soar/soar-cloud/develop-apps/build-playbooks/introduction-to-splunk-soar-playbooks/write-better-playbooks-by-following-these-guidelines\n\n- **Puente SC-200:** Capítulos 11–12: playbooks Logic Apps y control de respuesta, equivalencia parcial. Es correspondencia pedagógica, no equivalencia exacta de producto.\n- **Fuente del ID y resultado:** `SPLUNK_MASTER_RESEARCH/03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`.\n- **[DOC]:** fundamentos documentados en fuentes oficiales; no equivale a prueba de todos los supuestos.\n- **[OFFLINE]:** solo verificaciones Python sobre fixtures sintéticos.\n- **[NO EJECUTADO]:** no se ha abierto Splunk, ni SOAR, ni REST, ni se han aplicado configuraciones.\n- **[REVISIÓN]:** verificación humana del texto, respuestas, versiones y supuestos antes de integrar en React.\n",
+  "originalMarkdown": "# SP-R11-L04 — Splunk SOAR y playbooks\n\n**Región:** SP-R11 · **Producto:** Splunk Enterprise/Cloud (donde se indique) o SOAR Cloud explícito. · **Estado:** borrador documental / requiere revisión humana. · **SPL/CLI/API:** ilustrativo, NO ejecutado.\n\n**Resultado curricular:** Comprender apps, assets, acciones y dependencias\n\n**Prerrequisitos:** R07, R09 (conceptual), R10\n\n## 1. Explicación razonada\n\nSplunk SOAR es un producto de orquestación distinto de la plataforma Splunk Enterprise. Un **playbook** organiza decisiones, filtros, utilidades y **action blocks** que llaman acciones proporcionadas por apps y assets configurados. La disponibilidad de «lookup IP», «disable user» o «block IP» depende del conector y del recurso concreto. Ni instalar SOAR ni dibujar un bloque garantiza que una app esté disponible, autorizada o que el asset tenga las aprobaciones correctas.\n\nUn flujo defensivo razonable comienza con ingestión de un finding/evento relevante, normaliza indicadores, ejecuta *enriquecimientos de lectura*, comprueba cobertura y fiabilidad, añade comentarios para revisión y solicita aprobación antes de acciones que cambian estado. En SOAR (Cloud), Splunk documenta revisores y aprobaciones de action blocks/assets; su política concreta debe configurarse y probarse. Hay un riesgo especial al llamar acciones sin asset explícito: la documentación indica que puede ejecutarse en todos los assets compatibles, incluso los añadidos posteriormente. Diseña selecciones explícitas, no confíes en defaults permisivos.\n\nAdemás, un playbook interrumpido puede haber realizado acciones parciales que no se deshacen automáticamente. Los escenarios de aprendizaje serán pseudoflujos y datos sintéticos; no habrá conexiones con directorios, endpoints o firewalls.\n\n## 2. Conceptos clave\n\n1. SOAR requiere producto + app + asset + permisos\n2. Playbooks definen bloques y dependencias, no solo SPL\n3. Elegir asset concreto evita ejecuciones inesperadas\n4. Reviewer/aprobación de acciones mutantes\n5. Interrupción puede dejar efectos parciales\n\n## 3. Procedimiento de estudio y verificación\n\n1. Identifica evento fuente, esquema y producto que lo produce.\n2. Enumera enriquecimientos RO y define fuente de cada uno.\n3. Determina action/connector/asset específico sin credenciales.\n4. Añade revisión humana y registro de aprobación.\n5. Especifica rollback o compensación para éxito parcial.\n\n## 4. Pseudoflujo SOAR — documental\n\n```text\nfinding de ES (si ES está licenciado)\n  → normalizar IOC → reputación IP (consulta RO, asset explícito)\n  → añadir evidencia a caso → revisor humano\n  → decisión condicional: NO ACTION / crear ticket / cambio autorizado\n  → auditoría + verificación + opción de reversión\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n## 5. Situación profesional\n\nUn action block `block ip` no especifica asset. Una nueva integración compatible aparece en SOAR y aumenta la superficie de ejecución: siempre delimitar asset e identidades.\n\n## 6. Errores comunes\n\n1. Confundir editor SOAR con un módulo incluido en Enterprise base\n2. Acciones sin asset concreto\n3. Suponer rollback automático tras reinicio\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R11-L04-Q01 — Opción múltiple\n\n¿De dónde proceden acciones reales de SOAR?\n\nA. Del emparejamiento ES, que instala por sí solo cualquier acción de terceros\nB. Las apps y conectores con assets compatibles, instalados y autorizados para la acción concreta\nC. De los campos SPL de entrada sin conectores ni assets\nD. Del nombre del bloque, aunque no haya app compatible instalada\n\n### SP-R11-L04-Q02 — Opción múltiple\n\n¿Qué riesgo tiene omitir `asset` al invocar una acción según la API de SOAR?\n\nA. Puede aplicarse a todos los assets compatibles\nB. El asset se deduce del usuario del finding sin comprobar configuración\nC. La omisión actúa como una aprobación humana de la operación\nD. La API selecciona por defecto el único asset menos privilegiado\n\n### SP-R11-L04-P01 — Práctica abierta formativa\n\nDiseña un playbook de enriquecimiento de IP y ticket con aprobaciones para bloqueo condicional.\n\n## 8. Solucionario con razonamiento\n\n- **SP-R11-L04-Q01: B** — El conjunto de acciones depende de las apps y assets configurados.\n\n- **SP-R11-L04-Q02: A** — La documentación advierte expansión de targets al no concretar asset.\n\n- **SP-R11-L04-P01:** Usar asset lookup explícito RO, decisión basada en evidencia y confidence, ticket interno, aprobación humana del bloqueo, asset de firewall elegido, audit logs, verificación y compensación.\n\n**Guía de retroalimentación formativa:** Define fuente, producto, versión y límites del contexto; Resuelve el objetivo con un procedimiento replicable y no destructivo; Identifica error, caso benigno y riesgo operacional; Documenta permisos, aprobación y evidencia para revisión humana.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 9. Fuentes, procedencia y limitaciones\n\n- **D11:** Splunk SOAR Cloud — Playbooks overview — https://help.splunk.com/en/splunk-soar/soar-cloud/build-playbooks/introduction-to-splunk-soar-playbooks/use-playbooks-to-automate-analyst-workflows-in-splunk-soar-cloud\n- **D12:** Splunk SOAR Cloud — Playbook automation API approvals — https://help.splunk.com/en/splunk-soar/soar-cloud/develop-apps/python-playbook-api-reference/automation-api/playbook-automation-api\n- **D14:** Splunk SOAR Cloud — Add action block — https://help.splunk.com/en/splunk-soar/soar-cloud/develop-apps/build-playbooks/use-the-playbook-editor-to-create-and-view-playbooks-to-automate-analyst-workflows/add-an-action-block-to-your-splunk-soar-cloud-playbook\n- **D17:** Splunk SOAR Cloud — Better playbook guidelines — https://help.splunk.com/en/splunk-soar/soar-cloud/develop-apps/build-playbooks/introduction-to-splunk-soar-playbooks/write-better-playbooks-by-following-these-guidelines\n\n- **Puente SC-200:** Capítulos 11–12: playbooks Logic Apps y control de respuesta, equivalencia parcial. Es correspondencia pedagógica, no equivalencia exacta de producto.\n- **Fuente del ID y resultado:** `SPLUNK_MASTER_RESEARCH/03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`.\n- **[DOC]:** fundamentos documentados en fuentes oficiales; no equivale a prueba de todos los supuestos.\n- **[OFFLINE]:** solo verificaciones Python sobre fixtures sintéticos.\n- **[NO EJECUTADO]:** no se ha abierto Splunk, ni SOAR, ni REST, ni se han aplicado configuraciones.\n- **[REVISIÓN]:** verificación humana del texto, respuestas, versiones y supuestos antes de integrar en React.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D11",
+      "key": "SPLUNK_LECCIONES_R10_R11:D11",
+      "url": "https://help.splunk.com/en/splunk-soar/soar-cloud/build-playbooks/introduction-to-splunk-soar-playbooks/use-playbooks-to-automate-analyst-workflows-in-splunk-soar-cloud"
+    },
+    {
+      "id": "D12",
+      "key": "SPLUNK_LECCIONES_R10_R11:D12",
+      "url": "https://help.splunk.com/en/splunk-soar/soar-cloud/develop-apps/python-playbook-api-reference/automation-api/playbook-automation-api"
+    },
+    {
+      "id": "D14",
+      "key": "SPLUNK_LECCIONES_R10_R11:D14",
+      "url": "https://help.splunk.com/en/splunk-soar/soar-cloud/develop-apps/build-playbooks/use-the-playbook-editor-to-create-and-view-playbooks-to-automate-analyst-workflows/add-an-action-block-to-your-splunk-soar-cloud-playbook"
+    },
+    {
+      "id": "D17",
+      "key": "SPLUNK_LECCIONES_R10_R11:D17",
+      "url": "https://help.splunk.com/en/splunk-soar/soar-cloud/develop-apps/build-playbooks/introduction-to-splunk-soar-playbooks/write-better-playbooks-by-following-these-guidelines"
+    }
+  ]
+}

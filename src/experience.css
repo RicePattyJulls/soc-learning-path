@@ -1,0 +1,61 @@
+/* V2.4: orientation stays available while the world scrolls underneath. */
+.atlas-tools,.region-navigation { position:sticky; top:8px; z-index:20; flex-wrap:wrap; row-gap:12px; box-shadow:0 4px 0 #17365c12; }
+.atlas-tools>p { flex:1; }
+.atlas-orientation { display:flex; align-items:center; gap:16px; min-width:0; }
+.atlas-orientation label { min-width:0; }
+.atlas-orientation select { min-width:0; }
+.current-position { display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:46px; padding:9px 12px; border:1px solid #d6c5ef; border-bottom:3px solid #c5b4df; border-radius:10px; background:var(--violet-light); color:var(--violet-dark); font-size:13px; font-weight:700; white-space:nowrap; }
+.map-legend { flex:0 0 100%; width:100%; display:flex; align-items:center; flex-wrap:wrap; gap:8px 22px; list-style:none; padding:0; margin:0; font-size:12px; color:var(--ink-soft); }
+.map-legend li { display:flex; align-items:center; gap:6px; line-height:1.5; }
+.map-legend li:first-child svg { color:var(--violet-dark); }
+.map-legend li:nth-child(2) svg { color:#465d65; }
+.map-legend li:nth-child(3) svg { color:#087055; }
+.map-legend li:nth-child(4) svg { color:#805710; fill:#fff0b5; }
+.region-navigation label { flex:1; }
+.station-action { scroll-margin-block:180px 32px; }
+.station-action:focus-visible { outline:4px solid var(--ink); outline-offset:7px; box-shadow:0 0 0 4px #fff; }
+.map-lock-notice:focus-visible { outline:3px solid var(--ink); outline-offset:4px; }
+.academy-lesson>.back-link,.reader-page>.back-link { position:sticky; top:8px; z-index:15; width:max-content; max-width:100%; min-height:44px; padding:8px 12px; background:#f8fcff; border:1px solid var(--line); border-bottom:3px solid #ccdbee; border-radius:11px; box-shadow:0 3px 0 #17365c0d; }
+.lesson-phases,.reader-index { top:80px; }
+.reader-index { max-height:calc(100dvh - 100px); }
+.activity-surface h2,.answer-feedback,.reader-page .markdown :is(h3,h4,h5,h6) { scroll-margin-block:80px 20px; }
+.activity-surface .completion-feedback { transition:none; scroll-margin-block:80px 20px; }
+.activity-surface h2:focus-visible,.answer-feedback:focus-visible { outline:3px solid var(--violet); outline-offset:7px; border-radius:4px; }
+.academy-lesson .activity-surface,.reader-page .source-pane { border-top-color:var(--journey-accent,#b79be9); }
+.reader-page .source-pane { border-top-width:4px; }
+.question-navigation button { min-width:44px; }
+.map-treasure.earned .treasure-lift { background:radial-gradient(ellipse,#fff3b370,transparent 70%); border-radius:50%; }
+.achievement.earned { border-top:3px solid #d8b460; }
+.adventure-road>.road-segment[data-route-state="locked"]>.map-path { stroke:#e4e9df; }
+.adventure-road>.road-segment[data-route-state="locked"]>path:nth-child(3) { stroke:#b5bdb0; }
+.adventure-road>.road-segment[data-route-state="locked"]>.map-path-center { stroke:#f9fff3; stroke-dasharray:2 11; }
+.adventure-road>.road-segment[data-route-state="completed"]>path:nth-child(3) { stroke:#bfce95; }
+.button.primary:not(:disabled):active { box-shadow:inset 0 2px 0 #ffffff45,0 2px 0 var(--violet-dark); }
+.region-navigation-arrows a:active,.current-position:active,.primary-nav a:active,.question-navigation button:not(:disabled):active,.order-controls button:not(:disabled):active { transform:translateY(2px) scale(.98); }
+@media(hover:hover) and (pointer:fine) {
+  .current-position:hover { background:#e5d7fb; border-color:#b597d9; }
+}
+@media(prefers-reduced-motion:no-preference) {
+  .region-navigation-arrows a,.current-position,.primary-nav a,.question-navigation button,.order-controls button { transition:transform var(--motion-press) var(--ease-out); }
+  :root[data-presentation-input="pointer"] .map-lock-notice { transition:opacity var(--motion-feedback) var(--ease-out); }
+  @starting-style { :root[data-presentation-input="pointer"] .map-lock-notice { opacity:.65; } }
+}
+:root[data-presentation-input="keyboard"] .button,:root[data-presentation-input="keyboard"] .station-platform,:root[data-presentation-input="keyboard"] .treasure-lift,:root[data-presentation-input="keyboard"] .activity-surface,:root[data-presentation-input="keyboard"] .completion-feedback { transition:none; }
+@media(prefers-reduced-motion:reduce) {
+  .region-navigation-arrows a,.current-position,.primary-nav a,.question-navigation button,.order-controls button { transition:none; }
+  .button:not(:disabled):active,.region-navigation-arrows a:active,.current-position:active,.primary-nav a:active,.question-navigation button:not(:disabled):active,.order-controls button:not(:disabled):active { transform:none; }
+}
+@media(max-width:900px) {
+  .atlas-orientation { flex:1; justify-content:space-between; }
+  .atlas-orientation label { flex:1; justify-content:end; }
+}
+@media(max-width:680px) {
+  .region-navigation { row-gap:10px; top:6px; }
+  .region-navigation>.map-legend { grid-column:1/-1; }
+  .map-legend { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:5px 12px; }
+  .atlas-orientation { display:grid; grid-template-columns:auto minmax(0,1fr); gap:10px; width:100%; }
+  .atlas-orientation label { justify-content:stretch; }
+  .atlas-orientation .current-position { padding:9px; gap:5px; font-size:12px; white-space:normal; }
+  .atlas-tools { gap:10px; top:6px; }
+  .atlas-tools .map-legend { width:100%; }
+}

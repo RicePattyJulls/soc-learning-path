@@ -1,0 +1,200 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R10-L02",
+  "title": "RBAC y capabilities",
+  "revision": "1816729e8b37b8858eae5a52",
+  "sourceVersion": "66446eb2049b08d0f8fe34e87b0d1bde38ad010688f15ecdce265a149950ff33",
+  "sanitizedHash": "66446eb2049b08d0f8fe34e87b0d1bde38ad010688f15ecdce265a149950ff33",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R10_R11/R10_ADMINISTRACION/SP-R10-L02.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Aplicar índices permitidos, roles, inheritance y deny risks",
+  "preamble": "# SP-R10-L02 — RBAC y capabilities\n\n**Región:** SP-R10 · **Producto:** Splunk Enterprise/Cloud (donde se indique) o SOAR Cloud explícito. · **Estado:** borrador documental / requiere revisión humana. · **SPL/CLI/API:** ilustrativo, NO ejecutado.\n\n**Resultado curricular:** Aplicar índices permitidos, roles, inheritance y deny risks\n\n**Prerrequisitos:** R01–R05; revisar R06–R07 para impacto SOC\n\n",
+  "sections": [
+    {
+      "id": "SP-R10-L02-S01",
+      "title": "1. Explicación razonada",
+      "markdown": "## 1. Explicación razonada\n\nLa autorización de Splunk se basa en roles y `capabilities` además del acceso a índices, objetos de conocimiento y restricciones. Una persona puede tener más de un rol; la herencia tiende a agregar permisos. Por eso, asignar un rol restringido no revoca automáticamente los permisos de otro rol amplio. El diseño mínimo para un analista SOC debe comenzar por listar índices necesarios, ventanas, objetos visibles, limitaciones de exportación y acciones que NO deben permitirse.\n\nEn `authorize.conf`, `srchIndexesAllowed` define índices permitidos y `srchIndexesDisallowed` puede restringir en el contexto documentado; sin embargo, el control efectivo requiere revisar configuración de Splunk Web, herencia, roles combinados y capacidades. `importRoles` importa privilegios de roles padres; no existe una operación simple de «restar capacidades heredadas». La posibilidad de leer eventos no implica permiso para `delete`, editar roles, cambiar alert actions, administrar índices o invocar apps externas. Exigir solo `index=seguridad` en la UI no es control de acceso suficiente.\n\nRevisión mínima: representar tres personas (SOC lectura, detection engineer, administrador), ejecutar matriz de permisos esperados y negativos en un entorno de pruebas, inspeccionar audit logs y documentar excepciones. Debe probarse también quién ve campos sensibles, como IPs o identidades, y qué mecanismos de enmascaramiento aplican según la versión. Nunca incrustes tokens de API en datos del curso.\n\n",
+      "line": 9,
+      "endLine": 15
+    },
+    {
+      "id": "SP-R10-L02-S02",
+      "title": "2. Conceptos clave",
+      "markdown": "## 2. Conceptos clave\n\n1. Roles + capabilities + índices + objetos, no solo UI\n2. Herencia y varios roles pueden ampliar permisos\n3. Lectura de eventos no implica permiso de remediación\n4. Pruebas positivas Y negativas con cuentas de prueba\n5. Tokens, PII y auditoría quedan fuera de artefactos públicos\n\n",
+      "line": 17,
+      "endLine": 23
+    },
+    {
+      "id": "SP-R10-L02-S03",
+      "title": "3. Procedimiento de estudio y verificación",
+      "markdown": "## 3. Procedimiento de estudio y verificación\n\n1. Define una tarea real del SOC y los índices mínimos requeridos.\n2. Construye matriz por rol y capacidades autorizadas; marca expresamente acciones denegadas.\n3. Comprueba herencias y combinaciones de roles; identifica el rol más amplio.\n4. Diseña casos de prueba de lectura permitida, no permitida y edición prohibida.\n5. Registra resultados en sandbox autorizado, no en producción.\n\n",
+      "line": 25,
+      "endLine": 31
+    },
+    {
+      "id": "SP-R10-L02-S04",
+      "title": "4. Matriz de permisos de diseño",
+      "markdown": "## 4. Matriz de permisos de diseño\n\n```text\nSOC_L1: índices auth_synth, endpoint_synth; buscar/leer = sí; editar usuarios = no; borrar datos = no\nDETECTION_ENG: buscar = sí; administrar reglas = solo con revisión\nADMIN: operaciones administrativas bajo cambio y registro; no usar para triage diario\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n",
+      "line": 33,
+      "endLine": 41
+    },
+    {
+      "id": "SP-R10-L02-S05",
+      "title": "5. Situación profesional",
+      "markdown": "## 5. Situación profesional\n\nAna tiene rol SOC_L1 y también power heredado. Aunque SOC_L1 tenga índices reducidos, puede conservar privilegios amplios de power; revisar la combinación, no solo la ficha SOC_L1.\n\n## 6. Errores comunes\n\n1. Confundir autorización con filtro de interfaz\n2. Pensar que agregar rol restrictivo anula uno amplio\n3. Conceder delete_by_keyword o edit_roles por comodidad\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 43,
+      "endLine": 54
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R10-L02-Q01",
+      "lessonId": "SP-R10-L02",
+      "prompt": "¿Qué ocurre normalmente con capacidades heredadas al añadir un rol más restringido?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D03",
+        "SPLUNK_LECCIONES_R10_R11:D16",
+        "SPLUNK_LECCIONES_R10_R11:D19"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R10-L02-Q01-O-7383f03306e9",
+          "text": "El rol más restringido elimina las capacidades de los otros roles"
+        },
+        {
+          "id": "SP-R10-L02-Q01-O-96588a5f4ad9",
+          "text": "Los privilegios anteriores se sustituyen por el último rol asignado"
+        },
+        {
+          "id": "SP-R10-L02-Q01-O-d9552becdd30",
+          "text": "Se mantienen privilegios agregados, por lo que hay que revisar todos los roles"
+        },
+        {
+          "id": "SP-R10-L02-Q01-O-3e832765fee7",
+          "text": "La UI oculta las acciones y por eso desaparecen los permisos heredados"
+        }
+      ],
+      "solution": "SP-R10-L02-Q01-O-d9552becdd30",
+      "explanation": "La herencia/roles múltiples pueden ampliar permisos; verificar acceso efectivo.",
+      "anchors": [
+        {
+          "file": "R10_ADMINISTRACION/SP-R10-L02.md",
+          "sourceHash": "66446eb2049b08d0f8fe34e87b0d1bde38ad010688f15ecdce265a149950ff33",
+          "line": 17,
+          "endLine": 23,
+          "quote": "## 2. Conceptos clave\n\n1. Roles + capabilities + índices + objetos, no solo UI\n2. Herencia y varios roles pueden ampliar permisos\n3. Lectura de eventos no implica permiso de remediación\n4. Pruebas positivas Y negativas con cuentas de prueba\n5. Tokens, PII y auditoría quedan fuera de artefactos públicos\n\n"
+        },
+        {
+          "file": "R10_ADMINISTRACION/SP-R10-L02.md",
+          "sourceHash": "66446eb2049b08d0f8fe34e87b0d1bde38ad010688f15ecdce265a149950ff33",
+          "line": 33,
+          "endLine": 41,
+          "quote": "## 4. Matriz de permisos de diseño\n\n```text\nSOC_L1: índices auth_synth, endpoint_synth; buscar/leer = sí; editar usuarios = no; borrar datos = no\nDETECTION_ENG: buscar = sí; administrar reglas = solo con revisión\nADMIN: operaciones administrativas bajo cambio y registro; no usar para triage diario\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R10-L02-Q02",
+      "lessonId": "SP-R10-L02",
+      "prompt": "¿Cuál es una prueba negativa útil para SOC_L1?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D03",
+        "SPLUNK_LECCIONES_R10_R11:D16",
+        "SPLUNK_LECCIONES_R10_R11:D19"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R10-L02-Q02-O-fcbd30e185d2",
+          "text": "Comprobar que puede consultar un objeto compartido con su rol"
+        },
+        {
+          "id": "SP-R10-L02-Q02-O-9a598bc4f7f4",
+          "text": "Que no pueda modificar los objetos administrativos no autorizados"
+        },
+        {
+          "id": "SP-R10-L02-Q02-O-f628c3c8aa4b",
+          "text": "Comprobar que un informe autorizado mantiene los campos esperados"
+        },
+        {
+          "id": "SP-R10-L02-Q02-O-25f86044001f",
+          "text": "Comprobar que puede buscar eventos en un índice expresamente permitido"
+        }
+      ],
+      "solution": "SP-R10-L02-Q02-O-9a598bc4f7f4",
+      "explanation": "Una prueba negativa verifica explícitamente una operación que el rol debe denegar.",
+      "anchors": [
+        {
+          "file": "R10_ADMINISTRACION/SP-R10-L02.md",
+          "sourceHash": "66446eb2049b08d0f8fe34e87b0d1bde38ad010688f15ecdce265a149950ff33",
+          "line": 17,
+          "endLine": 23,
+          "quote": "## 2. Conceptos clave\n\n1. Roles + capabilities + índices + objetos, no solo UI\n2. Herencia y varios roles pueden ampliar permisos\n3. Lectura de eventos no implica permiso de remediación\n4. Pruebas positivas Y negativas con cuentas de prueba\n5. Tokens, PII y auditoría quedan fuera de artefactos públicos\n\n"
+        },
+        {
+          "file": "R10_ADMINISTRACION/SP-R10-L02.md",
+          "sourceHash": "66446eb2049b08d0f8fe34e87b0d1bde38ad010688f15ecdce265a149950ff33",
+          "line": 33,
+          "endLine": 41,
+          "quote": "## 4. Matriz de permisos de diseño\n\n```text\nSOC_L1: índices auth_synth, endpoint_synth; buscar/leer = sí; editar usuarios = no; borrar datos = no\nDETECTION_ENG: buscar = sí; administrar reglas = solo con revisión\nADMIN: operaciones administrativas bajo cambio y registro; no usar para triage diario\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R10-L02-P01",
+      "lessonId": "SP-R10-L02",
+      "prompt": "Diseña rol SOC de solo lectura con dos índices y explica cinco comprobaciones de seguridad.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D03",
+        "SPLUNK_LECCIONES_R10_R11:D16",
+        "SPLUNK_LECCIONES_R10_R11:D19"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Define fuente, producto, versión y límites del contexto",
+        "Resuelve el objetivo con un procedimiento replicable y no destructivo",
+        "Identifica error, caso benigno y riesgo operacional",
+        "Documenta permisos, aprobación y evidencia para revisión humana"
+      ],
+      "referenceAnswer": "Permitir índices del ejercicio y búsquedas acotadas; negar delete/collect/outputlookup no autorizado, administración, cambios alert actions y acceso a índices sensibles; comprobar herencia/PII y audit logs."
+    }
+  ],
+  "solutionsMarkdown": "## 8. Solucionario con razonamiento\n\n- **SP-R10-L02-Q01: C** — La herencia/roles múltiples pueden ampliar permisos; verificar acceso efectivo.\n\n- **SP-R10-L02-Q02: B** — Una prueba negativa verifica explícitamente una operación que el rol debe denegar.\n\n- **SP-R10-L02-P01:** Permitir índices del ejercicio y búsquedas acotadas; negar delete/collect/outputlookup no autorizado, administración, cambios alert actions y acceso a índices sensibles; comprobar herencia/PII y audit logs.\n\n**Guía de retroalimentación formativa:** Define fuente, producto, versión y límites del contexto; Resuelve el objetivo con un procedimiento replicable y no destructivo; Identifica error, caso benigno y riesgo operacional; Documenta permisos, aprobación y evidencia para revisión humana.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 9. Fuentes, procedencia y limitaciones\n\n- **D03:** Splunk Enterprise 10.2 — Manage roles in authorize.conf — https://help.splunk.com/en/splunk-enterprise/administer/manage-users-and-security/10.2/perform-advanced-user-and-role-management-in-splunk-enterprise/create-and-manage-roles-in-splunk-enterprise-using-the-authorize.conf-configuration-file\n- **D16:** Splunk Enterprise 10.2 — authorize.conf — https://help.splunk.com/en/splunk-enterprise/administer/admin-manual/10.2/configuration-file-reference/10.2.3-configuration-file-reference/authorize.conf\n- **D19:** Splunk Enterprise 10.6 — Role inheritance basics — https://help.splunk.com/en/splunk-enterprise/administer/manage-users-and-security/10.6/manage-splunk-platform-users-and-roles/about-configuring-role-based-user-access\n\n- **Puente SC-200:** Capítulos 02, 09 y 12: scopes, mínimos privilegios y automatización. Es correspondencia pedagógica, no equivalencia exacta de producto.\n- **Fuente del ID y resultado:** `SPLUNK_MASTER_RESEARCH/03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`.\n- **[DOC]:** fundamentos documentados en fuentes oficiales; no equivale a prueba de todos los supuestos.\n- **[OFFLINE]:** solo verificaciones Python sobre fixtures sintéticos.\n- **[NO EJECUTADO]:** no se ha abierto Splunk, ni SOAR, ni REST, ni se han aplicado configuraciones.\n- **[REVISIÓN]:** verificación humana del texto, respuestas, versiones y supuestos antes de integrar en React.\n",
+  "originalMarkdown": "# SP-R10-L02 — RBAC y capabilities\n\n**Región:** SP-R10 · **Producto:** Splunk Enterprise/Cloud (donde se indique) o SOAR Cloud explícito. · **Estado:** borrador documental / requiere revisión humana. · **SPL/CLI/API:** ilustrativo, NO ejecutado.\n\n**Resultado curricular:** Aplicar índices permitidos, roles, inheritance y deny risks\n\n**Prerrequisitos:** R01–R05; revisar R06–R07 para impacto SOC\n\n## 1. Explicación razonada\n\nLa autorización de Splunk se basa en roles y `capabilities` además del acceso a índices, objetos de conocimiento y restricciones. Una persona puede tener más de un rol; la herencia tiende a agregar permisos. Por eso, asignar un rol restringido no revoca automáticamente los permisos de otro rol amplio. El diseño mínimo para un analista SOC debe comenzar por listar índices necesarios, ventanas, objetos visibles, limitaciones de exportación y acciones que NO deben permitirse.\n\nEn `authorize.conf`, `srchIndexesAllowed` define índices permitidos y `srchIndexesDisallowed` puede restringir en el contexto documentado; sin embargo, el control efectivo requiere revisar configuración de Splunk Web, herencia, roles combinados y capacidades. `importRoles` importa privilegios de roles padres; no existe una operación simple de «restar capacidades heredadas». La posibilidad de leer eventos no implica permiso para `delete`, editar roles, cambiar alert actions, administrar índices o invocar apps externas. Exigir solo `index=seguridad` en la UI no es control de acceso suficiente.\n\nRevisión mínima: representar tres personas (SOC lectura, detection engineer, administrador), ejecutar matriz de permisos esperados y negativos en un entorno de pruebas, inspeccionar audit logs y documentar excepciones. Debe probarse también quién ve campos sensibles, como IPs o identidades, y qué mecanismos de enmascaramiento aplican según la versión. Nunca incrustes tokens de API en datos del curso.\n\n## 2. Conceptos clave\n\n1. Roles + capabilities + índices + objetos, no solo UI\n2. Herencia y varios roles pueden ampliar permisos\n3. Lectura de eventos no implica permiso de remediación\n4. Pruebas positivas Y negativas con cuentas de prueba\n5. Tokens, PII y auditoría quedan fuera de artefactos públicos\n\n## 3. Procedimiento de estudio y verificación\n\n1. Define una tarea real del SOC y los índices mínimos requeridos.\n2. Construye matriz por rol y capacidades autorizadas; marca expresamente acciones denegadas.\n3. Comprueba herencias y combinaciones de roles; identifica el rol más amplio.\n4. Diseña casos de prueba de lectura permitida, no permitida y edición prohibida.\n5. Registra resultados en sandbox autorizado, no en producción.\n\n## 4. Matriz de permisos de diseño\n\n```text\nSOC_L1: índices auth_synth, endpoint_synth; buscar/leer = sí; editar usuarios = no; borrar datos = no\nDETECTION_ENG: buscar = sí; administrar reglas = solo con revisión\nADMIN: operaciones administrativas bajo cambio y registro; no usar para triage diario\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n## 5. Situación profesional\n\nAna tiene rol SOC_L1 y también power heredado. Aunque SOC_L1 tenga índices reducidos, puede conservar privilegios amplios de power; revisar la combinación, no solo la ficha SOC_L1.\n\n## 6. Errores comunes\n\n1. Confundir autorización con filtro de interfaz\n2. Pensar que agregar rol restrictivo anula uno amplio\n3. Conceder delete_by_keyword o edit_roles por comodidad\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R10-L02-Q01 — Opción múltiple\n\n¿Qué ocurre normalmente con capacidades heredadas al añadir un rol más restringido?\n\nA. El rol más restringido elimina las capacidades de los otros roles\nB. Los privilegios anteriores se sustituyen por el último rol asignado\nC. Se mantienen privilegios agregados, por lo que hay que revisar todos los roles\nD. La UI oculta las acciones y por eso desaparecen los permisos heredados\n\n### SP-R10-L02-Q02 — Opción múltiple\n\n¿Cuál es una prueba negativa útil para SOC_L1?\n\nA. Comprobar que puede consultar un objeto compartido con su rol\nB. Que no pueda modificar los objetos administrativos no autorizados\nC. Comprobar que un informe autorizado mantiene los campos esperados\nD. Comprobar que puede buscar eventos en un índice expresamente permitido\n\n### SP-R10-L02-P01 — Práctica abierta formativa\n\nDiseña rol SOC de solo lectura con dos índices y explica cinco comprobaciones de seguridad.\n\n## 8. Solucionario con razonamiento\n\n- **SP-R10-L02-Q01: C** — La herencia/roles múltiples pueden ampliar permisos; verificar acceso efectivo.\n\n- **SP-R10-L02-Q02: B** — Una prueba negativa verifica explícitamente una operación que el rol debe denegar.\n\n- **SP-R10-L02-P01:** Permitir índices del ejercicio y búsquedas acotadas; negar delete/collect/outputlookup no autorizado, administración, cambios alert actions y acceso a índices sensibles; comprobar herencia/PII y audit logs.\n\n**Guía de retroalimentación formativa:** Define fuente, producto, versión y límites del contexto; Resuelve el objetivo con un procedimiento replicable y no destructivo; Identifica error, caso benigno y riesgo operacional; Documenta permisos, aprobación y evidencia para revisión humana.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 9. Fuentes, procedencia y limitaciones\n\n- **D03:** Splunk Enterprise 10.2 — Manage roles in authorize.conf — https://help.splunk.com/en/splunk-enterprise/administer/manage-users-and-security/10.2/perform-advanced-user-and-role-management-in-splunk-enterprise/create-and-manage-roles-in-splunk-enterprise-using-the-authorize.conf-configuration-file\n- **D16:** Splunk Enterprise 10.2 — authorize.conf — https://help.splunk.com/en/splunk-enterprise/administer/admin-manual/10.2/configuration-file-reference/10.2.3-configuration-file-reference/authorize.conf\n- **D19:** Splunk Enterprise 10.6 — Role inheritance basics — https://help.splunk.com/en/splunk-enterprise/administer/manage-users-and-security/10.6/manage-splunk-platform-users-and-roles/about-configuring-role-based-user-access\n\n- **Puente SC-200:** Capítulos 02, 09 y 12: scopes, mínimos privilegios y automatización. Es correspondencia pedagógica, no equivalencia exacta de producto.\n- **Fuente del ID y resultado:** `SPLUNK_MASTER_RESEARCH/03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`.\n- **[DOC]:** fundamentos documentados en fuentes oficiales; no equivale a prueba de todos los supuestos.\n- **[OFFLINE]:** solo verificaciones Python sobre fixtures sintéticos.\n- **[NO EJECUTADO]:** no se ha abierto Splunk, ni SOAR, ni REST, ni se han aplicado configuraciones.\n- **[REVISIÓN]:** verificación humana del texto, respuestas, versiones y supuestos antes de integrar en React.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D03",
+      "key": "SPLUNK_LECCIONES_R10_R11:D03",
+      "url": "https://help.splunk.com/en/splunk-enterprise/administer/manage-users-and-security/10.2/perform-advanced-user-and-role-management-in-splunk-enterprise/create-and-manage-roles-in-splunk-enterprise-using-the-authorize.conf-configuration-file"
+    },
+    {
+      "id": "D16",
+      "key": "SPLUNK_LECCIONES_R10_R11:D16",
+      "url": "https://help.splunk.com/en/splunk-enterprise/administer/admin-manual/10.2/configuration-file-reference/10.2.3-configuration-file-reference/authorize.conf"
+    },
+    {
+      "id": "D19",
+      "key": "SPLUNK_LECCIONES_R10_R11:D19",
+      "url": "https://help.splunk.com/en/splunk-enterprise/administer/manage-users-and-security/10.6/manage-splunk-platform-users-and-roles/about-configuring-role-based-user-access"
+    }
+  ]
+}

@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R11-L01",
+  "title": "Alerta, acción y automatización",
+  "revision": "ce7508e258f4273c0bf9d53e",
+  "sourceVersion": "ae19e58f50b39f1b0b9da0a3b028a877709e5e1c2f02d224a5fce5cb127c6091",
+  "sanitizedHash": "ae19e58f50b39f1b0b9da0a3b028a877709e5e1c2f02d224a5fce5cb127c6091",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R10_R11/R11_AUTOMATIZACION_SOAR/SP-R11-L01.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Distinguir búsqueda programada de workflow de respuesta",
+  "preamble": "# SP-R11-L01 — Alerta, acción y automatización\n\n**Región:** SP-R11 · **Producto:** Splunk Enterprise/Cloud (donde se indique) o SOAR Cloud explícito. · **Estado:** borrador documental / requiere revisión humana. · **SPL/CLI/API:** ilustrativo, NO ejecutado.\n\n**Resultado curricular:** Distinguir búsqueda programada de workflow de respuesta\n\n**Prerrequisitos:** R07, R09 (conceptual), R10\n\n",
+  "sections": [
+    {
+      "id": "SP-R11-L01-S01",
+      "title": "1. Explicación razonada",
+      "markdown": "## 1. Explicación razonada\n\nUna saved search puede ejecutarse de forma manual o programada para generar resultados y, si se configuran condiciones, alertas. Ese mecanismo no constituye automáticamente un sistema completo de respuesta a incidentes. Una **alert action** puede entregar un correo, webhook u otra integración; algunas acciones son informativas y otras pueden causar efectos reales al activar automatización externa. Antes de usar una acción hay que definir el propietario, permisos, datos expuestos, umbrales, calendario, supresión, deduplicación y tratamiento de errores.\n\nLa arquitectura de respuesta SOC debe separar *detectar* («existe una anomalía»), *enriquecer* («añadimos reputación y contexto»), *decidir* («hay evidencia suficiente y autorización») y *actuar* («modificamos un sistema»). Incluso una webhook que solo envía IPs puede transferir datos fuera de la organización; la etiqueta «notificación» no significa «sin riesgo». Una acción mutante como bloquear cuenta no se debe disparar directamente desde una alerta experimental.\n\nEn los ejercicios, las alertas de Splunk Enterprise y las detecciones/finding workflows de Enterprise Security son productos con diferente funcionalidad; ninguna saved search genérica crea un caso ES automáticamente. El output es un diseño de flujo, no una alerta configurada.\n\n",
+      "line": 9,
+      "endLine": 15
+    },
+    {
+      "id": "SP-R11-L01-S02",
+      "title": "2. Conceptos clave",
+      "markdown": "## 2. Conceptos clave\n\n1. Saved search ≠ automatización end-to-end\n2. Alert action puede tener consecuencias externas\n3. Separar detección, enriquecimiento, decisión y respuesta\n4. Deduplicación/owner/rate limiting previenen ruido\n5. ES findings requieren funciones ES específicas\n\n",
+      "line": 17,
+      "endLine": 23
+    },
+    {
+      "id": "SP-R11-L01-S03",
+      "title": "3. Procedimiento de estudio y verificación",
+      "markdown": "## 3. Procedimiento de estudio y verificación\n\n1. Define detección con criterio y fuentes reproducibles.\n2. Distingue salida informativa de la que muta activos.\n3. Redacta política de receptor y mínimo de datos transmitidos.\n4. Añade supervisión, deduplicación, ventanas y tratamiento de fallos.\n5. No conectes acciones reales sin autorización.\n\n",
+      "line": 25,
+      "endLine": 31
+    },
+    {
+      "id": "SP-R11-L01-S04",
+      "title": "4. Cadena de flujo seguro — pseudodiagrama",
+      "markdown": "## 4. Cadena de flujo seguro — pseudodiagrama\n\n```text\nConsulta SPL de solo lectura → evidencia → alerta programada\n → notificación interna mínima → triage SOC → aprobación humana si acción mutante\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n",
+      "line": 33,
+      "endLine": 40
+    },
+    {
+      "id": "SP-R11-L01-S05",
+      "title": "5. Situación profesional",
+      "markdown": "## 5. Situación profesional\n\nUna alerta de 10 fallos genera un webhook que pide «bloquear IP» a un firewall sin intervención. Debe revisarse: contexto benigno, legitimidad de la IP, integración/credenciales y paso de autorización.\n\n## 6. Errores comunes\n\n1. Conectar una búsqueda no validada directamente a contención\n2. Tratar envío externo como cero riesgo\n3. Confundir alert actions con SOAR incluido\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 42,
+      "endLine": 53
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R11-L01-Q01",
+      "lessonId": "SP-R11-L01",
+      "prompt": "¿Qué diferencia una alerta programada de respuesta automatizada?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D10",
+        "SPLUNK_LECCIONES_R10_R11:D11"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R11-L01-Q01-O-ea64788aa78b",
+          "text": "El trigger de la alerta verifica por sí solo legitimidad y riesgo del target"
+        },
+        {
+          "id": "SP-R11-L01-Q01-O-7da0186b32c4",
+          "text": "Una fila de resultado ya representa aprobación para contención"
+        },
+        {
+          "id": "SP-R11-L01-Q01-O-26fe2cc7e693",
+          "text": "La periodicidad de una búsqueda autoriza implícitamente sus acciones externas"
+        },
+        {
+          "id": "SP-R11-L01-Q01-O-559d3eb4a761",
+          "text": "Una alerta genera señal; respuesta requiere control y acciones con permisos"
+        }
+      ],
+      "solution": "SP-R11-L01-Q01-O-559d3eb4a761",
+      "explanation": "Crear resultados/alertas no implica gestionar una acción de respuesta segura.",
+      "anchors": [
+        {
+          "file": "R11_AUTOMATIZACION_SOAR/SP-R11-L01.md",
+          "sourceHash": "ae19e58f50b39f1b0b9da0a3b028a877709e5e1c2f02d224a5fce5cb127c6091",
+          "line": 17,
+          "endLine": 23,
+          "quote": "## 2. Conceptos clave\n\n1. Saved search ≠ automatización end-to-end\n2. Alert action puede tener consecuencias externas\n3. Separar detección, enriquecimiento, decisión y respuesta\n4. Deduplicación/owner/rate limiting previenen ruido\n5. ES findings requieren funciones ES específicas\n\n"
+        },
+        {
+          "file": "R11_AUTOMATIZACION_SOAR/SP-R11-L01.md",
+          "sourceHash": "ae19e58f50b39f1b0b9da0a3b028a877709e5e1c2f02d224a5fce5cb127c6091",
+          "line": 33,
+          "endLine": 40,
+          "quote": "## 4. Cadena de flujo seguro — pseudodiagrama\n\n```text\nConsulta SPL de solo lectura → evidencia → alerta programada\n → notificación interna mínima → triage SOC → aprobación humana si acción mutante\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R11-L01-Q02",
+      "lessonId": "SP-R11-L01",
+      "prompt": "¿Qué paso debe separarse antes de bloquear un activo?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D10",
+        "SPLUNK_LECCIONES_R10_R11:D11"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R11-L01-Q02-O-def735b76136",
+          "text": "Conservar solo la IP sin identificar el asset sobre el que se actuará"
+        },
+        {
+          "id": "SP-R11-L01-Q02-O-61bda65318c1",
+          "text": "Reutilizar una aprobación anterior sin revisar su objetivo ni vigencia"
+        },
+        {
+          "id": "SP-R11-L01-Q02-O-e7b697c2fff8",
+          "text": "Evaluar evidencia y autorización específicas para la acción, el asset y el objetivo antes de bloquear"
+        },
+        {
+          "id": "SP-R11-L01-Q02-O-b7c6dab3401d",
+          "text": "Aplicar el umbral y tratar toda coincidencia como aprobación"
+        }
+      ],
+      "solution": "SP-R11-L01-Q02-O-e7b697c2fff8",
+      "explanation": "Los efectos mutantes requieren política y aprobación aplicable.",
+      "anchors": [
+        {
+          "file": "R11_AUTOMATIZACION_SOAR/SP-R11-L01.md",
+          "sourceHash": "ae19e58f50b39f1b0b9da0a3b028a877709e5e1c2f02d224a5fce5cb127c6091",
+          "line": 17,
+          "endLine": 23,
+          "quote": "## 2. Conceptos clave\n\n1. Saved search ≠ automatización end-to-end\n2. Alert action puede tener consecuencias externas\n3. Separar detección, enriquecimiento, decisión y respuesta\n4. Deduplicación/owner/rate limiting previenen ruido\n5. ES findings requieren funciones ES específicas\n\n"
+        },
+        {
+          "file": "R11_AUTOMATIZACION_SOAR/SP-R11-L01.md",
+          "sourceHash": "ae19e58f50b39f1b0b9da0a3b028a877709e5e1c2f02d224a5fce5cb127c6091",
+          "line": 33,
+          "endLine": 40,
+          "quote": "## 4. Cadena de flujo seguro — pseudodiagrama\n\n```text\nConsulta SPL de solo lectura → evidencia → alerta programada\n → notificación interna mínima → triage SOC → aprobación humana si acción mutante\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R11-L01-P01",
+      "lessonId": "SP-R11-L01",
+      "prompt": "Diseña un flujo desde una búsqueda de fallos de login hasta un aviso SOC interno, y etiqueta claramente un posible bloqueo como paso independiente.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D10",
+        "SPLUNK_LECCIONES_R10_R11:D11"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Define fuente, producto, versión y límites del contexto",
+        "Resuelve el objetivo con un procedimiento replicable y no destructivo",
+        "Identifica error, caso benigno y riesgo operacional",
+        "Documenta permisos, aprobación y evidencia para revisión humana"
+      ],
+      "referenceAnswer": "Detección acotada; dedupe; notificación mínima; triage; evidencia, owner y SLA; aprobación para acción mutante y registro de auditoría. No integración real."
+    }
+  ],
+  "solutionsMarkdown": "## 8. Solucionario con razonamiento\n\n- **SP-R11-L01-Q01: D** — Crear resultados/alertas no implica gestionar una acción de respuesta segura.\n\n- **SP-R11-L01-Q02: C** — Los efectos mutantes requieren política y aprobación aplicable.\n\n- **SP-R11-L01-P01:** Detección acotada; dedupe; notificación mínima; triage; evidencia, owner y SLA; aprobación para acción mutante y registro de auditoría. No integración real.\n\n**Guía de retroalimentación formativa:** Define fuente, producto, versión y límites del contexto; Resuelve el objetivo con un procedimiento replicable y no destructivo; Identifica error, caso benigno y riesgo operacional; Documenta permisos, aprobación y evidencia para revisión humana.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 9. Fuentes, procedencia y limitaciones\n\n- **D10:** Splunk Enterprise 10.2 — Search REST endpoint descriptions — https://help.splunk.com/en/splunk-enterprise/rest-api-reference/10.2/search-endpoints/search-endpoint-descriptions\n- **D11:** Splunk SOAR Cloud — Playbooks overview — https://help.splunk.com/en/splunk-soar/soar-cloud/build-playbooks/introduction-to-splunk-soar-playbooks/use-playbooks-to-automate-analyst-workflows-in-splunk-soar-cloud\n\n- **Puente SC-200:** Capítulos 07, 11 y 12: reglas, respuesta y automatización. Es correspondencia pedagógica, no equivalencia exacta de producto.\n- **Fuente del ID y resultado:** `SPLUNK_MASTER_RESEARCH/03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`.\n- **[DOC]:** fundamentos documentados en fuentes oficiales; no equivale a prueba de todos los supuestos.\n- **[OFFLINE]:** solo verificaciones Python sobre fixtures sintéticos.\n- **[NO EJECUTADO]:** no se ha abierto Splunk, ni SOAR, ni REST, ni se han aplicado configuraciones.\n- **[REVISIÓN]:** verificación humana del texto, respuestas, versiones y supuestos antes de integrar en React.\n",
+  "originalMarkdown": "# SP-R11-L01 — Alerta, acción y automatización\n\n**Región:** SP-R11 · **Producto:** Splunk Enterprise/Cloud (donde se indique) o SOAR Cloud explícito. · **Estado:** borrador documental / requiere revisión humana. · **SPL/CLI/API:** ilustrativo, NO ejecutado.\n\n**Resultado curricular:** Distinguir búsqueda programada de workflow de respuesta\n\n**Prerrequisitos:** R07, R09 (conceptual), R10\n\n## 1. Explicación razonada\n\nUna saved search puede ejecutarse de forma manual o programada para generar resultados y, si se configuran condiciones, alertas. Ese mecanismo no constituye automáticamente un sistema completo de respuesta a incidentes. Una **alert action** puede entregar un correo, webhook u otra integración; algunas acciones son informativas y otras pueden causar efectos reales al activar automatización externa. Antes de usar una acción hay que definir el propietario, permisos, datos expuestos, umbrales, calendario, supresión, deduplicación y tratamiento de errores.\n\nLa arquitectura de respuesta SOC debe separar *detectar* («existe una anomalía»), *enriquecer* («añadimos reputación y contexto»), *decidir* («hay evidencia suficiente y autorización») y *actuar* («modificamos un sistema»). Incluso una webhook que solo envía IPs puede transferir datos fuera de la organización; la etiqueta «notificación» no significa «sin riesgo». Una acción mutante como bloquear cuenta no se debe disparar directamente desde una alerta experimental.\n\nEn los ejercicios, las alertas de Splunk Enterprise y las detecciones/finding workflows de Enterprise Security son productos con diferente funcionalidad; ninguna saved search genérica crea un caso ES automáticamente. El output es un diseño de flujo, no una alerta configurada.\n\n## 2. Conceptos clave\n\n1. Saved search ≠ automatización end-to-end\n2. Alert action puede tener consecuencias externas\n3. Separar detección, enriquecimiento, decisión y respuesta\n4. Deduplicación/owner/rate limiting previenen ruido\n5. ES findings requieren funciones ES específicas\n\n## 3. Procedimiento de estudio y verificación\n\n1. Define detección con criterio y fuentes reproducibles.\n2. Distingue salida informativa de la que muta activos.\n3. Redacta política de receptor y mínimo de datos transmitidos.\n4. Añade supervisión, deduplicación, ventanas y tratamiento de fallos.\n5. No conectes acciones reales sin autorización.\n\n## 4. Cadena de flujo seguro — pseudodiagrama\n\n```text\nConsulta SPL de solo lectura → evidencia → alerta programada\n → notificación interna mínima → triage SOC → aprobación humana si acción mutante\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n## 5. Situación profesional\n\nUna alerta de 10 fallos genera un webhook que pide «bloquear IP» a un firewall sin intervención. Debe revisarse: contexto benigno, legitimidad de la IP, integración/credenciales y paso de autorización.\n\n## 6. Errores comunes\n\n1. Conectar una búsqueda no validada directamente a contención\n2. Tratar envío externo como cero riesgo\n3. Confundir alert actions con SOAR incluido\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R11-L01-Q01 — Opción múltiple\n\n¿Qué diferencia una alerta programada de respuesta automatizada?\n\nA. El trigger de la alerta verifica por sí solo legitimidad y riesgo del target\nB. Una fila de resultado ya representa aprobación para contención\nC. La periodicidad de una búsqueda autoriza implícitamente sus acciones externas\nD. Una alerta genera señal; respuesta requiere control y acciones con permisos\n\n### SP-R11-L01-Q02 — Opción múltiple\n\n¿Qué paso debe separarse antes de bloquear un activo?\n\nA. Conservar solo la IP sin identificar el asset sobre el que se actuará\nB. Reutilizar una aprobación anterior sin revisar su objetivo ni vigencia\nC. Evaluar evidencia y autorización específicas para la acción, el asset y el objetivo antes de bloquear\nD. Aplicar el umbral y tratar toda coincidencia como aprobación\n\n### SP-R11-L01-P01 — Práctica abierta formativa\n\nDiseña un flujo desde una búsqueda de fallos de login hasta un aviso SOC interno, y etiqueta claramente un posible bloqueo como paso independiente.\n\n## 8. Solucionario con razonamiento\n\n- **SP-R11-L01-Q01: D** — Crear resultados/alertas no implica gestionar una acción de respuesta segura.\n\n- **SP-R11-L01-Q02: C** — Los efectos mutantes requieren política y aprobación aplicable.\n\n- **SP-R11-L01-P01:** Detección acotada; dedupe; notificación mínima; triage; evidencia, owner y SLA; aprobación para acción mutante y registro de auditoría. No integración real.\n\n**Guía de retroalimentación formativa:** Define fuente, producto, versión y límites del contexto; Resuelve el objetivo con un procedimiento replicable y no destructivo; Identifica error, caso benigno y riesgo operacional; Documenta permisos, aprobación y evidencia para revisión humana.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 9. Fuentes, procedencia y limitaciones\n\n- **D10:** Splunk Enterprise 10.2 — Search REST endpoint descriptions — https://help.splunk.com/en/splunk-enterprise/rest-api-reference/10.2/search-endpoints/search-endpoint-descriptions\n- **D11:** Splunk SOAR Cloud — Playbooks overview — https://help.splunk.com/en/splunk-soar/soar-cloud/build-playbooks/introduction-to-splunk-soar-playbooks/use-playbooks-to-automate-analyst-workflows-in-splunk-soar-cloud\n\n- **Puente SC-200:** Capítulos 07, 11 y 12: reglas, respuesta y automatización. Es correspondencia pedagógica, no equivalencia exacta de producto.\n- **Fuente del ID y resultado:** `SPLUNK_MASTER_RESEARCH/03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`.\n- **[DOC]:** fundamentos documentados en fuentes oficiales; no equivale a prueba de todos los supuestos.\n- **[OFFLINE]:** solo verificaciones Python sobre fixtures sintéticos.\n- **[NO EJECUTADO]:** no se ha abierto Splunk, ni SOAR, ni REST, ni se han aplicado configuraciones.\n- **[REVISIÓN]:** verificación humana del texto, respuestas, versiones y supuestos antes de integrar en React.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D10",
+      "key": "SPLUNK_LECCIONES_R10_R11:D10",
+      "url": "https://help.splunk.com/en/splunk-enterprise/rest-api-reference/10.2/search-endpoints/search-endpoint-descriptions"
+    },
+    {
+      "id": "D11",
+      "key": "SPLUNK_LECCIONES_R10_R11:D11",
+      "url": "https://help.splunk.com/en/splunk-soar/soar-cloud/build-playbooks/introduction-to-splunk-soar-playbooks/use-playbooks-to-automate-analyst-workflows-in-splunk-soar-cloud"
+    }
+  ]
+}

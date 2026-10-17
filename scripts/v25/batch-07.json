@@ -1,0 +1,1118 @@
+{
+  "batch": "07",
+  "lessons": [
+    {
+      "lessonId": "capitulo-7-deteccion-y-alertas/las-reglas-que-escribe-el-analista-1",
+      "introduction": "Trabaja los conceptos de «Las reglas que escribe el analista» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Compensar latencia sin duplicar eventos en Scheduled.",
+        "Separar motores NRT Sentinel y Continuous Defender.",
+        "Conservar entidades para correlación y acciones."
+      ],
+      "summary": [
+        "Compensar latencia sin duplicar eventos en Scheduled.",
+        "Separar motores NRT Sentinel y Continuous Defender.",
+        "Conservar entidades para correlación y acciones.",
+        "Distinguir plantilla y regla activa."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "En el ejemplo Scheduled, ¿por qué se combinan TimeGenerated amplio e ingestion_time() reciente?",
+          "explanation": "El primer filtro cubre el retraso medido; el segundo selecciona la llegada reciente para evitar duplicados entre ventanas solapadas.",
+          "objective": "Razonar sobre ventanas solapadas e ingesta tardía.",
+          "difficulty": "intermedia",
+          "id": "v25-41-doble-filtro",
+          "evidence": [
+            "- Primer `where`: amplía la búsqueda en `TimeGenerated` a 20 minutos (15 de retraso más 5 de frecuencia). Así un `TimeGenerated` de `10:00` sigue dentro cuando la fila por fin llega.",
+            "- Segundo `where`: como el primero vuelve a mirar los mismos 20 minutos en cada ejecución, este se queda solo con lo que llegó en los últimos 5 minutos según `ingestion_time()`, para no alertar dos veces."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Para incluir eventos demorados y contar solo los recién ingeridos en cada ejecución.",
+              "why": "El primer filtro cubre el retraso medido; el segundo selecciona la llegada reciente para evitar duplicados entre ventanas solapadas."
+            },
+            {
+              "id": "o1",
+              "text": "Para convertir la hora de llegada en hora original del evento.",
+              "why": "Los campos mantienen significados distintos."
+            },
+            {
+              "id": "o2",
+              "text": "Para volver a contar todo el lookback ampliado en cada ejecución.",
+              "why": "El segundo filtro evita precisamente esa repetición."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "En la tabla Scheduled, el evento se ingiere exactamente a las 10:15. A las 10:20, ¿por qué no vuelve a contarse?",
+          "explanation": "El operador estricto > en la llegada excluye el límite ya cubierto por la ejecución previa, mientras >= incluye el inicio del filtro de evento.",
+          "objective": "Interpretar límites inclusivos y exclusivos de KQL.",
+          "difficulty": "intermedia",
+          "id": "v25-41-borde",
+          "evidence": [
+            "1> El primer filtro usa `>=`, así que su inicio está incluido. El segundo usa `>`, así que su inicio está excluido. Por eso `10:15:00` cae solo en la ejecución de las `10:15`."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "El filtro ingestion_time() > ago(5min) excluye el límite inicial de las 10:15.",
+              "why": "El operador estricto > en la llegada excluye el límite ya cubierto por la ejecución previa, mientras >= incluye el inicio del filtro de evento."
+            },
+            {
+              "id": "o1",
+              "text": "Porque TimeGenerated cambia automáticamente a 10:20.",
+              "why": "La hora de ocurrencia no se reescribe en cada ejecución."
+            },
+            {
+              "id": "o2",
+              "text": "Porque el primer filtro deja de incluir siempre 10:00 a las 10:20.",
+              "why": "El ejemplo usa >= y sí incluye ese comienzo; lo excluye el segundo filtro."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Quieres pausar temporalmente una Scheduled sin perder su configuración. ¿Qué acción indica el apartado?",
+          "explanation": "Pausar la ejecución es distinto de alterar la condición que hace alertar una consulta.",
+          "objective": "Elegir una pausa explícita de detección.",
+          "difficulty": "intermedia",
+          "id": "v25-41-pausa",
+          "evidence": [
+            "- `Alert threshold` viene por defecto en `Is greater than 0`: la regla alerta si la consulta devuelve al menos una fila. Si por alguna razón (un mantenimiento, por ejemplo) no quieres que alerte durante un tiempo, no se toca el umbral, ni con `0` ni con `-1`: se pausa la regla con `Disable` y se reactiva con `Enable`, sin perder la configuración."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Disable y después Enable.",
+              "why": "Pausar la ejecución es distinto de alterar la condición que hace alertar una consulta."
+            },
+            {
+              "id": "o1",
+              "text": "Cambiar el umbral a cero para garantizar que no alerte.",
+              "why": "El texto advierte que no se pausa modificando el umbral."
+            },
+            {
+              "id": "o2",
+              "text": "Actualizar solo su Rule template.",
+              "why": "Una actualización de plantilla no cambia por sí sola la regla activa."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Se cambia a Continuous sobre SigninLogs, cuya fila tarda 15 minutos en llegar. ¿Qué límite permanece?",
+          "explanation": "Eliminar la espera a la siguiente ejecución no elimina el retraso previo de recopilación/escritura.",
+          "objective": "Separar latencia de fuente y frecuencia de regla.",
+          "difficulty": "intermedia",
+          "id": "v25-41-continuous-latencia",
+          "evidence": [
+            "- La latencia de la fuente sigue ahí: la alerta no puede salir antes de las `10:15`, porque hasta entonces la fila no existe."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "No puede alertar antes de que la fila llegue.",
+              "why": "Eliminar la espera a la siguiente ejecución no elimina el retraso previo de recopilación/escritura."
+            },
+            {
+              "id": "o1",
+              "text": "Eliminará el retraso de ingesta de la fuente.",
+              "why": "El texto conserva la latencia aunque no espere una ejecución periódica."
+            },
+            {
+              "id": "o2",
+              "text": "Convertirá automáticamente la regla en NRT del motor Sentinel.",
+              "why": "Continuous es una frecuencia de custom detection, no el motor NRT Sentinel."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Una custom detection va a mover o borrar correo. ¿Qué par de identificadores exige el apartado?",
+          "explanation": "Mapear una entidad en general y disponer de las claves necesarias para actuar sobre un mensaje no son la misma condición.",
+          "objective": "Conservar claves necesarias para una acción de correo.",
+          "difficulty": "intermedia",
+          "id": "v25-41-accion-correo",
+          "evidence": [
+            "- `Move to mailbox folder` (mueve a `Junk`, `Inbox` o `Deleted items`) y `Delete email` (`Soft delete` o `Hard delete`): ambas exigen `NetworkMessageId` y `RecipientEmailAddress`."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Solo AccountUpn, porque basta para cualquier acción.",
+              "why": "El texto pide identificadores de mensaje y destinatario para correo."
+            },
+            {
+              "id": "o1",
+              "text": "Solo DeviceId y ReportId.",
+              "why": "Son identificadores de eventos MDE, no el par del mensaje."
+            },
+            {
+              "id": "o2",
+              "text": "NetworkMessageId y RecipientEmailAddress.",
+              "why": "Mapear una entidad en general y disponer de las claves necesarias para actuar sobre un mensaje no son la misma condición."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        },
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "Se actualiza una Rule template después de activar su regla. ¿Qué comportamiento recoge la tabla?",
+          "explanation": "La plantilla es un origen de configuración; la instancia activa se gestiona como recurso propio.",
+          "objective": "Distinguir plantilla de instancia operativa.",
+          "difficulty": "intermedia",
+          "id": "v25-41-plantilla",
+          "evidence": [
+            "| Gestión                        | Desde `Analytics > Rule templates`, activar la plantilla y dejarla `Enabled` la deja en `Active rules` y marca la plantilla `In use`; actualizar la plantilla después no toca la regla activa. Sobre una regla ya creada: `Edit`, `Enable`/`Disable`, `Duplicate`, `Delete` | Igual que `Scheduled`                                                                                                                            | Desde `Hunting > Custom detection rules`: `Edit`, `Modify query`, `Turn on`/`Turn off`, `Delete`, `Run` bajo demanda; sin `Duplicate` |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "No modifica automáticamente la regla activa.",
+              "why": "La plantilla es un origen de configuración; la instancia activa se gestiona como recurso propio."
+            },
+            {
+              "id": "o1",
+              "text": "Reemplaza siempre la consulta activa y su historial sin intervención.",
+              "why": "El texto niega que la actualización toque la regla activa."
+            },
+            {
+              "id": "o2",
+              "text": "Deshabilita por definición todas las reglas del workspace.",
+              "why": "La tabla no establece ese efecto global."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [
+        "No se evalúan los identificadores llamados recomendados/no obligatorios ni el estado cambiante de AIR o cifras de servicio; requieren revisión adicional de vigencia."
+      ],
+      "audit": {
+        "mainConcepts": [
+          "Compensar latencia sin duplicar eventos en Scheduled.",
+          "Separar motores NRT Sentinel y Continuous Defender.",
+          "Conservar entidades para correlación y acciones.",
+          "Distinguir plantilla y regla activa."
+        ],
+        "understanding": [
+          "Compensar latencia sin duplicar eventos en Scheduled.",
+          "Separar motores NRT Sentinel y Continuous Defender.",
+          "Conservar entidades para correlación y acciones."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Compensar latencia sin duplicar eventos en Scheduled.",
+          "Separar motores NRT Sentinel y Continuous Defender.",
+          "Conservar entidades para correlación y acciones.",
+          "Distinguir plantilla y regla activa."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "Los campos mantienen significados distintos.",
+          "El segundo filtro evita precisamente esa repetición.",
+          "La hora de ocurrencia no se reescribe en cada ejecución.",
+          "El ejemplo usa >= y sí incluye ese comienzo; lo excluye el segundo filtro.",
+          "El texto advierte que no se pausa modificando el umbral."
+        ],
+        "evidence": [
+          "- Primer `where`: amplía la búsqueda en `TimeGenerated` a 20 minutos (15 de retraso más 5 de frecuencia). Así un `TimeGenerated` de `10:00` sigue dentro cuando la fila por fin llega.",
+          "- Segundo `where`: como el primero vuelve a mirar los mismos 20 minutos en cada ejecución, este se queda solo con lo que llegó en los últimos 5 minutos según `ingestion_time()`, para no alertar dos veces.",
+          "1> El primer filtro usa `>=`, así que su inicio está incluido. El segundo usa `>`, así que su inicio está excluido. Por eso `10:15:00` cae solo en la ejecución de las `10:15`.",
+          "- `Alert threshold` viene por defecto en `Is greater than 0`: la regla alerta si la consulta devuelve al menos una fila. Si por alguna razón (un mantenimiento, por ejemplo) no quieres que alerte durante un tiempo, no se toca el umbral, ni con `0` ni con `-1`: se pausa la regla con `Disable` y se reactiva con `Enable`, sin perder la configuración.",
+          "- La latencia de la fuente sigue ahí: la alerta no puede salir antes de las `10:15`, porque hasta entonces la fila no existe.",
+          "- `Move to mailbox folder` (mueve a `Junk`, `Inbox` o `Deleted items`) y `Delete email` (`Soft delete` o `Hard delete`): ambas exigen `NetworkMessageId` y `RecipientEmailAddress`.",
+          "| Gestión                        | Desde `Analytics > Rule templates`, activar la plantilla y dejarla `Enabled` la deja en `Active rules` y marca la plantilla `In use`; actualizar la plantilla después no toca la regla activa. Sobre una regla ya creada: `Edit`, `Enable`/`Disable`, `Duplicate`, `Delete` | Igual que `Scheduled`                                                                                                                            | Desde `Hunting > Custom detection rules`: `Edit`, `Modify query`, `Turn on`/`Turn off`, `Delete`, `Run` bajo demanda; sin `Duplicate` |"
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-7-deteccion-y-alertas/motores-de-logica-administrada-1",
+      "introduction": "Trabaja los conceptos de «Motores de lógica administrada» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Distinguir modelo administrado y consulta propia.",
+        "Separar correlación Fusion, TI y análisis de comportamiento.",
+        "No equiparar detección dinámica con remediación."
+      ],
+      "summary": [
+        "Distinguir modelo administrado y consulta propia.",
+        "Separar correlación Fusion, TI y análisis de comportamiento.",
+        "No equiparar detección dinámica con remediación."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "¿Qué limita la capacidad de personalización de estos motores administrados?",
+          "explanation": "Lógica administrada no significa ausencia de opciones en todos los casos, pero tampoco una consulta de autoría libre.",
+          "objective": "Distinguir configuración y autoría de lógica.",
+          "difficulty": "intermedia",
+          "id": "v25-42-modelo",
+          "evidence": [
+            "Aquí conviven las plantillas administradas de Sentinel y el `Dynamic Threat Detection Agent` de Defender XDR. No admiten KQL propio: según el motor pueden configurarse fuentes, severidades o exclusiones, pero no se edita el modelo."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Todos admiten necesariamente las mismas fuentes y severidades configurables.",
+              "why": "El texto condiciona opciones al motor concreto."
+            },
+            {
+              "id": "o1",
+              "text": "No se edita el modelo ni se aporta KQL propio; solo las opciones que cada motor admita.",
+              "why": "Lógica administrada no significa ausencia de opciones en todos los casos, pero tampoco una consulta de autoría libre."
+            },
+            {
+              "id": "o2",
+              "text": "Son consultas KQL editables como cualquier Scheduled.",
+              "why": "La lectura niega que admitan KQL propio."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "match",
+          "prompt": "Relaciona el mecanismo con su propósito.",
+          "explanation": "Correlacionar señales, cruzar observables y evaluar comportamiento no son salidas ni modelos idénticos.",
+          "objective": "Identificar finalidad de cada motor.",
+          "difficulty": "intermedia",
+          "id": "v25-42-motores",
+          "evidence": [
+            "| `Fusion`                                           | Regla `Advanced multistage attack detection`, habilitada por defecto; entrena con 30 días de histórico y correlaciona alertas y eventos de baja fidelidad en un incidente multietapa de bajo volumen y alta severidad. Se alimenta también de tus reglas `Scheduled`, si llevan entity mapping y tácticas MITRE                          | Desde `Configure Fusion`: excluir señales de origen, ajustar severidades por proveedor, excluir patrones de detección | GA; deja de estar disponible al habilitar `XDR incident integration` o incorporar Sentinel al portal de Defender (igual que `Microsoft security`), y las reglas existentes se deshabilitan solas |",
+            "| `Microsoft Defender Threat Intelligence Analytics` | Solo lectura; cruza indicadores de dominio, `IPv4` y `URL` de Microsoft contra `CommonSecurityLog`, `DnsEvents`, `Syslog`, `OfficeActivity`, `AzureActivity` y tablas ASIM; agrupa matches del mismo observable en 24 h, y pesa más una conexión permitida que una ya bloqueada                                                          | Nada                                                                                                                  | GA, no exige el SKU Premium de Defender TI                                                                                                                                                       |",
+            "| `ML behavior analytics`                            | Detecta comportamiento anómalo de inicio de sesión por `SSH` y `RDP` según IP, geolocalización e historial del usuario; genera alertas e incidentes de alta fidelidad                                                                                                                                                                    | Nada                                                                                                                  | Preview                                                                                                                                                                                          |"
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "Fusion"
+            },
+            {
+              "id": "r1",
+              "label": "Microsoft Defender Threat Intelligence Analytics"
+            },
+            {
+              "id": "r2",
+              "label": "ML behavior analytics"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "Correlación multietapa que produce incidente"
+            },
+            {
+              "id": "p1",
+              "text": "Cruce de indicadores Microsoft con registros compatibles"
+            },
+            {
+              "id": "p2",
+              "text": "Comportamiento anómalo SSH/RDP según contexto"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1",
+            "p2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Una alerta dinámica muestra Detection source = Security Copilot. ¿Qué identificación respalda la tabla?",
+          "explanation": "La fuente ayuda a atribuir la detección, pero una alerta no demuestra por sí sola la ejecución de una acción.",
+          "objective": "Atribuir una alerta sin confundir detección y respuesta.",
+          "difficulty": "intermedia",
+          "id": "v25-42-dynamic",
+          "evidence": [
+            "| `Dynamic Threat Detection Agent`                   | Corre en el backend sin onboarding, correlaciona alertas, eventos, anomalías e inteligencia para encontrar false negatives; produce alerta dinámica, identificable por `Detection source` = `Security Copilot`, con explicación en lenguaje natural, técnicas MITRE y pasos de remediación. No es `AIR` ni `Automatic Attack Disruption` | Nada, ni fuentes ni severidades                                                                                       | Public preview, gratis; consumirá `Security Compute Units` en `General Availability (GA)`                                                                                                        |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Prueba por sí sola que se ejecutó una remediación AIR.",
+              "why": "La tabla distingue el agente de detección de AIR."
+            },
+            {
+              "id": "o1",
+              "text": "Es necesariamente una custom detection escrita por el analista.",
+              "why": "El agente usa lógica administrada, no KQL propio."
+            },
+            {
+              "id": "o2",
+              "text": "Dynamic Threat Detection Agent; no equivale a AIR ni Automatic Attack Disruption.",
+              "why": "La fuente ayuda a atribuir la detección, pero una alerta no demuestra por sí sola la ejecución de una acción."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [
+        "Estados preview/GA, gratuidad y consumo futuro del agente no se evalúan como hechos vigentes."
+      ],
+      "audit": {
+        "mainConcepts": [
+          "Distinguir modelo administrado y consulta propia.",
+          "Separar correlación Fusion, TI y análisis de comportamiento.",
+          "No equiparar detección dinámica con remediación."
+        ],
+        "understanding": [
+          "Distinguir modelo administrado y consulta propia.",
+          "Separar correlación Fusion, TI y análisis de comportamiento.",
+          "No equiparar detección dinámica con remediación."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Distinguir modelo administrado y consulta propia.",
+          "Separar correlación Fusion, TI y análisis de comportamiento.",
+          "No equiparar detección dinámica con remediación."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "El texto condiciona opciones al motor concreto.",
+          "La lectura niega que admitan KQL propio.",
+          "La tabla distingue el agente de detección de AIR.",
+          "El agente usa lógica administrada, no KQL propio."
+        ],
+        "evidence": [
+          "Aquí conviven las plantillas administradas de Sentinel y el `Dynamic Threat Detection Agent` de Defender XDR. No admiten KQL propio: según el motor pueden configurarse fuentes, severidades o exclusiones, pero no se edita el modelo.",
+          "| `Fusion`                                           | Regla `Advanced multistage attack detection`, habilitada por defecto; entrena con 30 días de histórico y correlaciona alertas y eventos de baja fidelidad en un incidente multietapa de bajo volumen y alta severidad. Se alimenta también de tus reglas `Scheduled`, si llevan entity mapping y tácticas MITRE                          | Desde `Configure Fusion`: excluir señales de origen, ajustar severidades por proveedor, excluir patrones de detección | GA; deja de estar disponible al habilitar `XDR incident integration` o incorporar Sentinel al portal de Defender (igual que `Microsoft security`), y las reglas existentes se deshabilitan solas |",
+          "| `Microsoft Defender Threat Intelligence Analytics` | Solo lectura; cruza indicadores de dominio, `IPv4` y `URL` de Microsoft contra `CommonSecurityLog`, `DnsEvents`, `Syslog`, `OfficeActivity`, `AzureActivity` y tablas ASIM; agrupa matches del mismo observable en 24 h, y pesa más una conexión permitida que una ya bloqueada                                                          | Nada                                                                                                                  | GA, no exige el SKU Premium de Defender TI                                                                                                                                                       |",
+          "| `ML behavior analytics`                            | Detecta comportamiento anómalo de inicio de sesión por `SSH` y `RDP` según IP, geolocalización e historial del usuario; genera alertas e incidentes de alta fidelidad                                                                                                                                                                    | Nada                                                                                                                  | Preview                                                                                                                                                                                          |",
+          "| `Dynamic Threat Detection Agent`                   | Corre en el backend sin onboarding, correlaciona alertas, eventos, anomalías e inteligencia para encontrar false negatives; produce alerta dinámica, identificable por `Detection source` = `Security Copilot`, con explicación en lenguaje natural, técnicas MITRE y pasos de remediación. No es `AIR` ni `Automatic Attack Disruption` | Nada, ni fuentes ni severidades                                                                                       | Public preview, gratis; consumirá `Security Compute Units` en `General Availability (GA)`                                                                                                        |"
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-7-deteccion-y-alertas/lo-que-no-alerta-aunque-lo-parezca-1",
+      "introduction": "Trabaja los conceptos de «Lo que no alerta aunque lo parezca» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Distinguir contexto/anomalía de alerta.",
+        "Separar puntuaciones con significado distinto.",
+        "Convertir consulta manual en detección solo por configuración explícita."
+      ],
+      "summary": [
+        "Distinguir contexto/anomalía de alerta.",
+        "Separar puntuaciones con significado distinto.",
+        "Convertir consulta manual en detección solo por configuración explícita."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "Una fila tiene AnomalyScore alto en Anomalies. ¿Qué conclusión no está justificada por sí sola?",
+          "explanation": "Anomaly escribe datos y no alerta sola; un score alto no cambia automáticamente su tipo de salida.",
+          "objective": "Evitar convertir un dato derivado en alerta implícita.",
+          "difficulty": "intermedia",
+          "id": "v25-43-anomaly",
+          "evidence": [
+            "- `Anomaly`: escribe en `Anomalies`, nunca alerta sola. `UEBA anomalies` comparan cada entidad con su historia, sus peers y la organización; las ML anomaly rules customizables entrenan 7-21 días. Publica como mucho las 3.000 mejores por score. Se ajusta duplicando la regla (nace en `Flighting`); al convencer, pasa a `Production` y la original cae a `Flighting`."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Que su score puede diferir de InvestigationPriority.",
+              "why": "El apartado distingue ambos scores."
+            },
+            {
+              "id": "o1",
+              "text": "Que ya se generó una alerta por esa fila.",
+              "why": "Anomaly escribe datos y no alerta sola; un score alto no cambia automáticamente su tipo de salida."
+            },
+            {
+              "id": "o2",
+              "text": "Que existe un resultado de análisis de anomalías.",
+              "why": "El dato sí expresa una anomalía; el salto indebido es asumir alerta."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "match",
+          "prompt": "Relaciona puntuación y significado descrito.",
+          "explanation": "Los nombres y tablas identifican medidas diferentes; un valor alto en una no implica el mismo resultado en la otra.",
+          "objective": "Interpretar puntuaciones sin equipararlas.",
+          "difficulty": "intermedia",
+          "id": "v25-43-scores",
+          "evidence": [
+            "- Dos scores distintos: `InvestigationPriority` (`BehaviorAnalytics`, `0-10`) mide desviación de la línea base; `AnomalyScore` (`Anomalies`) mide intensidad del patrón. Uno alto no implica el otro."
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "InvestigationPriority en BehaviorAnalytics"
+            },
+            {
+              "id": "r1",
+              "label": "AnomalyScore en Anomalies"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "Desviación de la línea base"
+            },
+            {
+              "id": "p1",
+              "text": "Intensidad del patrón"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Una consulta Advanced Hunting encuentra una actividad sospechosa. ¿Qué falta para alertar de forma automatizada según el apartado?",
+          "explanation": "Una consulta exploratoria no se convierte sola en detección programada por producir resultados interesantes.",
+          "objective": "Separar exploración y detección operativa.",
+          "difficulty": "intermedia",
+          "id": "v25-43-hunting-alerta",
+          "evidence": [
+            "- `Advanced Hunting`: superficie de consulta, no motor de alerta. Solo se automatiza guardándola como `Custom detection rule` o regla analítica."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Nada: ejecutar cualquier consulta ya activa alertado permanente.",
+              "why": "Advanced Hunting se describe como superficie de consulta."
+            },
+            {
+              "id": "o1",
+              "text": "Subir manualmente AnomalyScore sin definir una regla.",
+              "why": "Modificar o interpretar un score no configura ese motor de alertado."
+            },
+            {
+              "id": "o2",
+              "text": "Guardarla como custom detection o regla analítica adecuada.",
+              "why": "Una consulta exploratoria no se convierte sola en detección programada por producir resultados interesantes."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [],
+      "audit": {
+        "mainConcepts": [
+          "Distinguir contexto/anomalía de alerta.",
+          "Separar puntuaciones con significado distinto.",
+          "Convertir consulta manual en detección solo por configuración explícita."
+        ],
+        "understanding": [
+          "Distinguir contexto/anomalía de alerta.",
+          "Separar puntuaciones con significado distinto.",
+          "Convertir consulta manual en detección solo por configuración explícita."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Distinguir contexto/anomalía de alerta.",
+          "Separar puntuaciones con significado distinto.",
+          "Convertir consulta manual en detección solo por configuración explícita."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "El apartado distingue ambos scores.",
+          "El dato sí expresa una anomalía; el salto indebido es asumir alerta.",
+          "Advanced Hunting se describe como superficie de consulta.",
+          "Modificar o interpretar un score no configura ese motor de alertado."
+        ],
+        "evidence": [
+          "- `Anomaly`: escribe en `Anomalies`, nunca alerta sola. `UEBA anomalies` comparan cada entidad con su historia, sus peers y la organización; las ML anomaly rules customizables entrenan 7-21 días. Publica como mucho las 3.000 mejores por score. Se ajusta duplicando la regla (nace en `Flighting`); al convencer, pasa a `Production` y la original cae a `Flighting`.",
+          "- Dos scores distintos: `InvestigationPriority` (`BehaviorAnalytics`, `0-10`) mide desviación de la línea base; `AnomalyScore` (`Anomalies`) mide intensidad del patrón. Uno alto no implica el otro.",
+          "- `Advanced Hunting`: superficie de consulta, no motor de alerta. Solo se automatiza guardándola como `Custom detection rule` o regla analítica."
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-7-deteccion-y-alertas/anatomia-supresion-y-cobertura-de-la-alerta-1",
+      "introduction": "Trabaja los conceptos de «Anatomía, supresión y cobertura de la alerta» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Separar entity mapping, detalles y agrupación de resultados.",
+        "Distinguir resolver, ocultar, suprimir y afinar.",
+        "Interpretar cobertura MITRE activa."
+      ],
+      "summary": [
+        "Separar entity mapping, detalles y agrupación de resultados.",
+        "Distinguir resolver, ocultar, suprimir y afinar.",
+        "Interpretar cobertura MITRE activa."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "match",
+          "prompt": "Relaciona el ajuste con su función.",
+          "explanation": "Añadir una IP como texto de detalle no equivale a mapearla como entidad; agrupar resultados tampoco define la correlación de incidentes.",
+          "objective": "Distinguir capas de construcción de una alerta.",
+          "difficulty": "intermedia",
+          "id": "v25-44-construccion",
+          "evidence": [
+            "- `Custom details`: No crean entidades ni sirven para correlacionar; eso lo hace el entity mapping. Límites: en Sentinel, 20 detalles y 2 KB por alerta; en una custom detection, 20 pares y 4 KB, y si te pasas se pierden todos, no solo lo que sobra.",
+            "- `Event grouping`: decide si una ejecución da una sola alerta que resume todos los resultados (`Group all events into a single alert`) o una alerta por resultado (`Trigger an alert for each event`). En el segundo caso el tope es 150 en `Scheduled` y 30 en `NRT` (alertas por ejecución); si se supera, salen 149 (o 29) individuales y una última que resume el resto.",
+            "- Acciones de respuesta: `Mark user as compromised`, `Isolate device`, `Move to mailbox folder`... actúan sobre una entidad. Si la columna no está mapeada como la entidad correcta, la acción no tiene sobre qué ejecutarse."
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "Entity mapping"
+            },
+            {
+              "id": "r1",
+              "label": "Custom details"
+            },
+            {
+              "id": "r2",
+              "label": "Event grouping"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "Identifica entidades para correlación y acciones"
+            },
+            {
+              "id": "p1",
+              "text": "Añade información sin crear entidades"
+            },
+            {
+              "id": "p2",
+              "text": "Decide una alerta resumida o alertas por resultado"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1",
+            "p2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "¿Qué hace la supresión de Sentinel Analytics Rules tras generar una alerta según la tabla?",
+          "explanation": "Suprimir ejecución no equivale a ajustar la query ni a resolver alertas ya existentes.",
+          "objective": "Interpretar impacto de supresión sobre cobertura.",
+          "difficulty": "intermedia",
+          "id": "v25-44-supresion",
+          "evidence": [
+            "| supresión de Sentinel Analytics Rules | Tras generar una alerta, deja de ejecutar la consulta durante el periodo configurado, hasta 24 h; no filtra ni excluye eventos                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Sigue ejecutando y filtra únicamente filas benignas.",
+              "why": "La tabla niega que filtre o excluya eventos."
+            },
+            {
+              "id": "o1",
+              "text": "Borra retroactivamente todas las alertas de esa regla.",
+              "why": "El mecanismo descrito afecta a la ejecución futura, no borra histórico."
+            },
+            {
+              "id": "o2",
+              "text": "Deja de ejecutar la consulta durante el periodo configurado.",
+              "why": "Suprimir ejecución no equivale a ajustar la query ni a resolver alertas ya existentes."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Una custom detection produce ruido conocido. ¿Qué vía de ajuste señala el aviso?",
+          "explanation": "El mecanismo de ajuste debe ser compatible con el productor de la alerta. Resolver estado y cambiar detección son acciones distintas.",
+          "objective": "Elegir el mecanismo válido para reducir ruido.",
+          "difficulty": "intermedia",
+          "id": "v25-44-custom-tuning",
+          "evidence": [
+            "`Alert tuning` (built-in o las reglas que crea el SOC) NO se aplica a alertas de `custom detection rules` ni de `Custom TI`, sin excepción por acción (`Hide`/`Resolve`/`Set as behavior`). Para bajar ruido ahí hay que tocar la condición/query de la propia regla, no crear una regla de alert tuning. Resolver no es suprimir: cerrar una alerta no impide que la misma actividad vuelva a alertar mañana."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Modificar condición/query de esa regla; Alert tuning no se aplica a custom detections.",
+              "why": "El mecanismo de ajuste debe ser compatible con el productor de la alerta. Resolver estado y cambiar detección son acciones distintas."
+            },
+            {
+              "id": "o1",
+              "text": "Crear Hide en Alert tuning y asumir la misma cobertura para custom detections.",
+              "why": "El aviso excluye esas alertas sin excepción por acción."
+            },
+            {
+              "id": "o2",
+              "text": "Resolver una alerta una vez para impedir toda repetición futura.",
+              "why": "Cerrar una alerta no impide que la actividad vuelva a generar otra."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Una Scheduled habilitada no tiene técnicas asignadas. ¿Qué ocurre en cobertura MITRE activa según el texto?",
+          "explanation": "La matriz representa la configuración etiquetada y activa; no basta con que exista una regla.",
+          "objective": "Interpretar una métrica de cobertura de detección.",
+          "difficulty": "intermedia",
+          "id": "v25-44-mitre",
+          "evidence": [
+            "- La trampa: una regla sin técnicas asignadas no suma cobertura."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Aporta automáticamente cobertura de todas las tácticas por su severidad.",
+              "why": "La severidad no sustituye la asignación de técnicas."
+            },
+            {
+              "id": "o1",
+              "text": "No suma cobertura hasta asignar técnicas.",
+              "why": "La matriz representa la configuración etiquetada y activa; no basta con que exista una regla."
+            },
+            {
+              "id": "o2",
+              "text": "Suma por el mero hecho de estar creada, incluso deshabilitada.",
+              "why": "La cobertura activa exige habilitación y técnicas asignadas."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [
+        "Los límites de campos y reglas de Alert tuning por producto se dejan fuera del conjunto evaluable para revisión adicional."
+      ],
+      "audit": {
+        "mainConcepts": [
+          "Separar entity mapping, detalles y agrupación de resultados.",
+          "Distinguir resolver, ocultar, suprimir y afinar.",
+          "Interpretar cobertura MITRE activa."
+        ],
+        "understanding": [
+          "Separar entity mapping, detalles y agrupación de resultados.",
+          "Distinguir resolver, ocultar, suprimir y afinar.",
+          "Interpretar cobertura MITRE activa."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Separar entity mapping, detalles y agrupación de resultados.",
+          "Distinguir resolver, ocultar, suprimir y afinar.",
+          "Interpretar cobertura MITRE activa."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "La tabla niega que filtre o excluya eventos.",
+          "El mecanismo descrito afecta a la ejecución futura, no borra histórico.",
+          "El aviso excluye esas alertas sin excepción por acción.",
+          "Cerrar una alerta no impide que la actividad vuelva a generar otra.",
+          "La severidad no sustituye la asignación de técnicas."
+        ],
+        "evidence": [
+          "- `Custom details`: No crean entidades ni sirven para correlacionar; eso lo hace el entity mapping. Límites: en Sentinel, 20 detalles y 2 KB por alerta; en una custom detection, 20 pares y 4 KB, y si te pasas se pierden todos, no solo lo que sobra.",
+          "- `Event grouping`: decide si una ejecución da una sola alerta que resume todos los resultados (`Group all events into a single alert`) o una alerta por resultado (`Trigger an alert for each event`). En el segundo caso el tope es 150 en `Scheduled` y 30 en `NRT` (alertas por ejecución); si se supera, salen 149 (o 29) individuales y una última que resume el resto.",
+          "- Acciones de respuesta: `Mark user as compromised`, `Isolate device`, `Move to mailbox folder`... actúan sobre una entidad. Si la columna no está mapeada como la entidad correcta, la acción no tiene sobre qué ejecutarse.",
+          "| supresión de Sentinel Analytics Rules | Tras generar una alerta, deja de ejecutar la consulta durante el periodo configurado, hasta 24 h; no filtra ni excluye eventos                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |",
+          "`Alert tuning` (built-in o las reglas que crea el SOC) NO se aplica a alertas de `custom detection rules` ni de `Custom TI`, sin excepción por acción (`Hide`/`Resolve`/`Set as behavior`). Para bajar ruido ahí hay que tocar la condición/query de la propia regla, no crear una regla de alert tuning. Resolver no es suprimir: cerrar una alerta no impide que la misma actividad vuelva a alertar mañana.",
+          "- La trampa: una regla sin técnicas asignadas no suma cobertura."
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-8-correlacion-e-incidentes/8-correlacion-e-incidentes-1",
+      "introduction": "Trabaja los conceptos de «8 · Correlación e incidentes» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Distinguir evidencia de alerta e historia del incidente.",
+        "Reconocer creación de incidente en Sentinel.",
+        "Separar correlación nativa y sincronización."
+      ],
+      "summary": [
+        "Distinguir evidencia de alerta e historia del incidente.",
+        "Reconocer creación de incidente en Sentinel.",
+        "Separar correlación nativa y sincronización."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "Una analytics rule genera una alerta pero Incident creation está deshabilitado. Según el flujo, ¿qué queda?",
+          "explanation": "La detección puede producir alerta sin que esa configuración cree incidente.",
+          "objective": "Interpretar la condición de creación de incidente.",
+          "difficulty": "intermedia",
+          "id": "v25-45-incident-creation",
+          "evidence": [
+            "├── no  → se queda como alerta suelta, no participa de nada más"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Una alerta suelta, sin incidente creado por esa regla.",
+              "why": "La detección puede producir alerta sin que esa configuración cree incidente."
+            },
+            {
+              "id": "o1",
+              "text": "Un incidente obligatorio por cada fila de telemetría.",
+              "why": "El flujo incluye un camino explícito sin creación de incidente."
+            },
+            {
+              "id": "o2",
+              "text": "Una remediación ya ejecutada sobre todas sus entidades.",
+              "why": "La creación de alerta/incidente no prueba respuesta ejecutada."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "¿Necesita Defender XDR algo de Sentinel para correlacionar sus propias alertas en incidentes según el flujo?",
+          "explanation": "La correlación XDR nativa y la participación adicional de alertas Sentinel son caminos distintos.",
+          "objective": "Reconocer autonomía de la correlación nativa.",
+          "difficulty": "intermedia",
+          "id": "v25-45-xdr-nativo",
+          "evidence": [
+            "ya con esto, sin necesitar nada de Sentinel"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "No; puede formar un incidente nuevo o existente con su motor nativo.",
+              "why": "La correlación XDR nativa y la participación adicional de alertas Sentinel son caminos distintos."
+            },
+            {
+              "id": "o1",
+              "text": "Sí; cada incidente requiere previamente una Scheduled en Sentinel.",
+              "why": "El productor 2 se describe sin necesitar Sentinel."
+            },
+            {
+              "id": "o2",
+              "text": "Sí; solo MDC puede crear un incidente sin workspace.",
+              "why": "La cadena XDR también forma incidentes por sí misma."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "¿Qué alcance usa el algoritmo propio MDC descrito para sus secuencias de ataque?",
+          "explanation": "MDC analiza secuencias de ataque y señales para distinguir patrones de coincidencias, con su propia superficie y alcance.",
+          "objective": "Distinguir alcance de correlación del producto.",
+          "difficulty": "intermedia",
+          "id": "v25-45-mdc-campana",
+          "evidence": [
+            "> MDC forma sus propios incidentes: correlaciona alertas y señales de baja fidelidad de distintos recursos, con algoritmos que analizan las secuencias de ataque reportadas en cada suscripción para distinguir un patrón real de una coincidencia. El incidente aparece en la misma página `Security alerts` y da la vista única de la campaña: severidad, estado, periodo de actividad, recursos afectados con sus etiquetas de Azure y las alertas correlacionadas. La remediación se ejecuta siguiendo los pasos de cada alerta que lo compone."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Solo el texto libre de un comentario de incidente.",
+              "why": "El aviso habla de secuencias y señales de recursos."
+            },
+            {
+              "id": "o1",
+              "text": "Cualquier workspace de cualquier tenant sin integración.",
+              "why": "Ese alcance global no está descrito; el aviso dice por suscripción."
+            },
+            {
+              "id": "o2",
+              "text": "Los recursos y señales reportados dentro de cada suscripción.",
+              "why": "MDC analiza secuencias de ataque y señales para distinguir patrones de coincidencias, con su propia superficie y alcance."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [],
+      "audit": {
+        "mainConcepts": [
+          "Distinguir evidencia de alerta e historia del incidente.",
+          "Reconocer creación de incidente en Sentinel.",
+          "Separar correlación nativa y sincronización."
+        ],
+        "understanding": [
+          "Distinguir evidencia de alerta e historia del incidente.",
+          "Reconocer creación de incidente en Sentinel.",
+          "Separar correlación nativa y sincronización."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Distinguir evidencia de alerta e historia del incidente.",
+          "Reconocer creación de incidente en Sentinel.",
+          "Separar correlación nativa y sincronización."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "El flujo incluye un camino explícito sin creación de incidente.",
+          "La creación de alerta/incidente no prueba respuesta ejecutada.",
+          "El productor 2 se describe sin necesitar Sentinel.",
+          "La cadena XDR también forma incidentes por sí misma.",
+          "El aviso habla de secuencias y señales de recursos."
+        ],
+        "evidence": [
+          "├── no  → se queda como alerta suelta, no participa de nada más",
+          "ya con esto, sin necesitar nada de Sentinel",
+          "> MDC forma sus propios incidentes: correlaciona alertas y señales de baja fidelidad de distintos recursos, con algoritmos que analizan las secuencias de ataque reportadas en cada suscripción para distinguir un patrón real de una coincidencia. El incidente aparece en la misma página `Security alerts` y da la vista única de la campaña: severidad, estado, periodo de actividad, recursos afectados con sus etiquetas de Azure y las alertas correlacionadas. La remediación se ejecuta siguiendo los pasos de cada alerta que lo compone."
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-8-correlacion-e-incidentes/quien-correlaciona-1",
+      "introduction": "Trabaja los conceptos de «Quién correlaciona» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Reconocer el motor unificado y el papel del primario.",
+        "Aplicar tags sobre el default del tenant.",
+        "No confundir agrupación y sincronización con otro motor."
+      ],
+      "summary": [
+        "Reconocer el motor unificado y el papel del primario.",
+        "Aplicar tags sobre el default del tenant.",
+        "No confundir agrupación y sincronización con otro motor."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "Hay varios workspaces conectados a Defender. ¿Qué límite de correlación destaca el apartado para secundarios?",
+          "explanation": "Compartir experiencia o cola no significa que todas las alertas de todos los workspaces participen en la misma correlación.",
+          "objective": "Distinguir visibilidad y participación en correlación.",
+          "difficulty": "intermedia",
+          "id": "v25-46-secundarios",
+          "evidence": [
+            "Hay dos motores de correlación. Sin onboarding pueden coexistir: Sentinel clásico correlaciona lo que llega a su workspace y XDR correlaciona por separado las alertas de sus workloads. Al incorporar el workspace primario al portal de Defender, el motor XDR pasa a gobernar la correlación de las alertas de Sentinel que participan en la experiencia unificada; los workspaces secundarios quedan fuera — sus alertas no se correlacionan con las de Defender ni con las de otros workspaces de Sentinel."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Sus alertas no se correlacionan con Defender ni con las de otros workspaces Sentinel.",
+              "why": "Compartir experiencia o cola no significa que todas las alertas de todos los workspaces participen en la misma correlación."
+            },
+            {
+              "id": "o1",
+              "text": "Todos se convierten en un único motor por compartir cola.",
+              "why": "La tabla y el párrafo separan visibilidad unificada y alcance de correlación."
+            },
+            {
+              "id": "o2",
+              "text": "Los secundarios dejan necesariamente de tener datos consultables.",
+              "why": "La limitación descrita trata de correlación, no de existencia de datos."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "El default de correlación del tenant está encendido. ¿Qué tag excluye expresamente una regla participante según el texto?",
+          "explanation": "Los tags de regla pueden prevalecer sobre el default; su ubicación al principio de descripción es significativa.",
+          "objective": "Aplicar una excepción al comportamiento por defecto.",
+          "difficulty": "intermedia",
+          "id": "v25-46-tags-default",
+          "evidence": [
+            "- `#INC_CORR#` y `#DONT_CORR#` son los tags que se escriben al principio de la descripción de una `analytics rule` de `Sentinel` para decidir si sus alertas entran o no a la correlación de `Defender XDR`, por encima del comportamiento por defecto del tenant. El toggle de tenant `Incident correlation default setting` viene apagado de fábrica: con eso apagado, ninguna regla participa salvo que lleve `#INC_CORR#` al principio de su descripción, que la suma explícitamente. Si en cambio ese toggle está encendido, es al revés: todas las reglas participan salvo las que lleven `#DONT_CORR#`, que las excluye. Una regla sin ninguno de los dos tags simplemente sigue el default del tenant. El tag no distingue mayúsculas, admite cualquier espaciado (o ninguno) después de él, y tiene que ir literalmente al principio del campo de descripción para que cuente. Cambiar el tag no afecta a las alertas ya creadas: cada alerta recibe su estado de correlación en el momento en que nace, y ese estado queda fijo."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "#INC_CORR# en cualquier comentario del incidente.",
+              "why": "El tag incluye, no excluye, y debe ir en la descripción de la regla."
+            },
+            {
+              "id": "o1",
+              "text": "Ningún tag: el default encendido no admite excepciones.",
+              "why": "El texto contempla excluir mediante DONT_CORR."
+            },
+            {
+              "id": "o2",
+              "text": "#DONT_CORR# al principio de la descripción.",
+              "why": "Los tags de regla pueden prevalecer sobre el default; su ubicación al principio de descripción es significativa."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "true-false",
+          "prompt": "Cambiar el tag de correlación modifica retroactivamente el estado de las alertas ya creadas.",
+          "solution": [
+            "false"
+          ],
+          "explanation": "Cada alerta fija su estado de correlación al nacer; cambiar la descripción afecta a las alertas nuevas, no reescribe las anteriores.",
+          "objective": "Distinguir cambios futuros e históricos de correlación.",
+          "difficulty": "basica",
+          "id": "v25-46-tags-historico",
+          "evidence": [
+            "- `#INC_CORR#` y `#DONT_CORR#` son los tags que se escriben al principio de la descripción de una `analytics rule` de `Sentinel` para decidir si sus alertas entran o no a la correlación de `Defender XDR`, por encima del comportamiento por defecto del tenant. El toggle de tenant `Incident correlation default setting` viene apagado de fábrica: con eso apagado, ninguna regla participa salvo que lleve `#INC_CORR#` al principio de su descripción, que la suma explícitamente. Si en cambio ese toggle está encendido, es al revés: todas las reglas participan salvo las que lleven `#DONT_CORR#`, que las excluye. Una regla sin ninguno de los dos tags simplemente sigue el default del tenant. El tag no distingue mayúsculas, admite cualquier espaciado (o ninguno) después de él, y tiene que ir literalmente al principio del campo de descripción para que cuente. Cambiar el tag no afecta a las alertas ya creadas: cada alerta recibe su estado de correlación en el momento en que nace, y ese estado queda fijo."
+          ],
+          "options": [
+            {
+              "id": "true",
+              "text": "Verdadero",
+              "why": "Cada alerta fija su estado de correlación al nacer; cambiar la descripción afecta a las alertas nuevas, no reescribe las anteriores."
+            },
+            {
+              "id": "false",
+              "text": "Falso",
+              "why": "Cada alerta fija su estado de correlación al nacer; cambiar la descripción afecta a las alertas nuevas, no reescribe las anteriores."
+            }
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Se crea un incidente manualmente en Sentinel sin nacer de una alerta. ¿Qué límite indica el aviso?",
+          "explanation": "El motor unificado correlaciona alertas participantes; la creación manual de un incidente es otra ruta de objetos.",
+          "objective": "Reconocer límites de incorporación de incidentes manuales.",
+          "difficulty": "intermedia",
+          "id": "v25-46-manual",
+          "evidence": [
+            "> La columna dice \"workspace incorporado\" porque esa es la condición que dispara el cambio, pero quien gobierna la correlación a partir de ahí es `XDR`, no el workspace — el workspace solo aporta las alertas que participan. Por eso un incidente creado a mano en Sentinel (portal de Azure, API, o playbook de Logic Apps), al no nacer de una alerta, nunca entra a esa correlación: sigue viéndose solo en Azure, Logic Apps y la API de Sentinel, y no aparece en el portal de Defender."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Siempre se convierte en alerta nativa para poder correlacionarlo.",
+              "why": "El aviso no describe esa conversión."
+            },
+            {
+              "id": "o1",
+              "text": "El reflejo de Azure ejecuta un segundo motor XDR sobre ese incidente.",
+              "why": "La tabla dice que Azure recibe representación, no otro motor."
+            },
+            {
+              "id": "o2",
+              "text": "No entra en la correlación XDR y no aparece en el portal Defender.",
+              "why": "El motor unificado correlaciona alertas participantes; la creación manual de un incidente es otra ruta de objetos."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [],
+      "audit": {
+        "mainConcepts": [
+          "Reconocer el motor unificado y el papel del primario.",
+          "Aplicar tags sobre el default del tenant.",
+          "No confundir agrupación y sincronización con otro motor."
+        ],
+        "understanding": [
+          "Reconocer el motor unificado y el papel del primario.",
+          "Aplicar tags sobre el default del tenant.",
+          "No confundir agrupación y sincronización con otro motor."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Reconocer el motor unificado y el papel del primario.",
+          "Aplicar tags sobre el default del tenant.",
+          "No confundir agrupación y sincronización con otro motor."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "La tabla y el párrafo separan visibilidad unificada y alcance de correlación.",
+          "La limitación descrita trata de correlación, no de existencia de datos.",
+          "El tag incluye, no excluye, y debe ir en la descripción de la regla.",
+          "El texto contempla excluir mediante DONT_CORR.",
+          "Cada alerta fija su estado de correlación al nacer; cambiar la descripción afecta a las alertas nuevas, no reescribe las anteriores."
+        ],
+        "evidence": [
+          "Hay dos motores de correlación. Sin onboarding pueden coexistir: Sentinel clásico correlaciona lo que llega a su workspace y XDR correlaciona por separado las alertas de sus workloads. Al incorporar el workspace primario al portal de Defender, el motor XDR pasa a gobernar la correlación de las alertas de Sentinel que participan en la experiencia unificada; los workspaces secundarios quedan fuera — sus alertas no se correlacionan con las de Defender ni con las de otros workspaces de Sentinel.",
+          "- `#INC_CORR#` y `#DONT_CORR#` son los tags que se escriben al principio de la descripción de una `analytics rule` de `Sentinel` para decidir si sus alertas entran o no a la correlación de `Defender XDR`, por encima del comportamiento por defecto del tenant. El toggle de tenant `Incident correlation default setting` viene apagado de fábrica: con eso apagado, ninguna regla participa salvo que lleve `#INC_CORR#` al principio de su descripción, que la suma explícitamente. Si en cambio ese toggle está encendido, es al revés: todas las reglas participan salvo las que lleven `#DONT_CORR#`, que las excluye. Una regla sin ninguno de los dos tags simplemente sigue el default del tenant. El tag no distingue mayúsculas, admite cualquier espaciado (o ninguno) después de él, y tiene que ir literalmente al principio del campo de descripción para que cuente. Cambiar el tag no afecta a las alertas ya creadas: cada alerta recibe su estado de correlación en el momento en que nace, y ese estado queda fijo.",
+          "- `#INC_CORR#` y `#DONT_CORR#` son los tags que se escriben al principio de la descripción de una `analytics rule` de `Sentinel` para decidir si sus alertas entran o no a la correlación de `Defender XDR`, por encima del comportamiento por defecto del tenant. El toggle de tenant `Incident correlation default setting` viene apagado de fábrica: con eso apagado, ninguna regla participa salvo que lleve `#INC_CORR#` al principio de su descripción, que la suma explícitamente. Si en cambio ese toggle está encendido, es al revés: todas las reglas participan salvo las que lleven `#DONT_CORR#`, que las excluye. Una regla sin ninguno de los dos tags simplemente sigue el default del tenant. El tag no distingue mayúsculas, admite cualquier espaciado (o ninguno) después de él, y tiene que ir literalmente al principio del campo de descripción para que cuente. Cambiar el tag no afecta a las alertas ya creadas: cada alerta recibe su estado de correlación en el momento en que nace, y ese estado queda fijo.",
+          "> La columna dice \"workspace incorporado\" porque esa es la condición que dispara el cambio, pero quien gobierna la correlación a partir de ahí es `XDR`, no el workspace — el workspace solo aporta las alertas que participan. Por eso un incidente creado a mano en Sentinel (portal de Azure, API, o playbook de Logic Apps), al no nacer de una alerta, nunca entra a esa correlación: sigue viéndose solo en Azure, Logic Apps y la API de Sentinel, y no aparece en el portal de Defender."
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    }
+  ]
+}

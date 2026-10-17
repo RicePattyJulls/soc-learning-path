@@ -1,0 +1,200 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R05-L01",
+  "title": "De campo crudo a conocimiento",
+  "revision": "77cbcd4f9281489c364139e9",
+  "sourceVersion": "905b08125821e46651fa8cdb32beb2ea85db476d60d8f052e9dcef0cce98a956",
+  "sanitizedHash": "905b08125821e46651fa8cdb32beb2ea85db476d60d8f052e9dcef0cce98a956",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R04_R05/R05_CIM_NORMALIZACION/SP-R05-L01.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Distinguir extracción, field alias, calculated field, tags y eventtypes",
+  "preamble": "# SP-R05-L01 — De campo crudo a conocimiento\n\n**Región:** SP-R05 · **Prioridad:** P0/P1 SOC · **Estado:** borrador educativo para revisión · **SPL real:** no ejecutado.  \n**ID curricular intacto:** `SP-R05-L01` · **Resultado de aprendizaje:** Distinguir extracción, field alias, calculated field, tags y eventtypes  \n**Prerrequisitos:** R02 y R04; campos de fuentes conocidas · **Producto:** Splunk Enterprise/Cloud con SPL clásico según versión y permisos; CIM exige configuración pertinente.\n\n",
+  "sections": [
+    {
+      "id": "SP-R05-L01-S01",
+      "title": "1. Pregunta esencial",
+      "markdown": "## 1. Pregunta esencial\n\nSplunk guarda eventos y permite definir conocimiento a la hora de buscar. Una extracción interpreta texto; un alias expone el mismo valor con otro nombre; un campo calculado deriva un dato; los eventtypes y tags agrupan eventos por significado para consultas y modelos. En CIM no basta con renombrar `Account_Name` a `user` sin comprobar que realmente se trata de la cuenta que inicia sesión.\n\n**Objetivo verificable:** Distinguir extracción, field alias, calculated field, tags y eventtypes.\n\n",
+      "line": 7,
+      "endLine": 11
+    },
+    {
+      "id": "SP-R05-L01-S02",
+      "title": "2. Modelo mental y conceptos",
+      "markdown": "## 2. Modelo mental y conceptos\n\n1. La extracción puede venir de add-ons y reglas propias; prueba sus expresiones con variaciones de formato y no destruyas `_raw`.\n2. `FIELDALIAS` presenta nombres alternativos en el contexto apropiado; no renombra el fichero original ni crea identidad semántica entre fuentes.\n3. `EVAL-...` crea campos calculados en búsqueda; documenta traducciones de códigos de éxito/fallo y los casos desconocidos.\n4. Eventtypes y tags son objetos de conocimiento: las restricciones del modelo se basan en clasificación correcta de eventos, no en la sola existencia de un sourcetype.\n\n",
+      "line": 13,
+      "endLine": 18
+    },
+    {
+      "id": "SP-R05-L01-S03",
+      "title": "3. Procedimiento guiado",
+      "markdown": "## 3. Procedimiento guiado\n\n1. Lee `auth_raw.csv`: las columnas Windows y Linux tienen nombres diferentes.\n2. Define una ficha de mapeo por fuente: origen, campo destino, significado, casos sin valor, tests.\n3. Propón `user` y `src` conceptuales para ambos tipos, y normaliza `action=success/failure` sólo para eventos de inicio de sesión reales.\n4. Excluye 4688 (creación de proceso) del modelo de autenticación; no conviertas cualquier evento Windows en login.\n\n",
+      "line": 20,
+      "endLine": 25
+    },
+    {
+      "id": "SP-R05-L01-S04",
+      "title": "4. SPL ilustrativo — no ejecutado",
+      "markdown": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_WINDOWS sourcetype=SOURCETYPE_WIN earliest=-24h\n| eval user=Account_Name, src=Source_Network_Address\n| eval action=case(EventCode=\"4624\",\"success\",EventCode=\"4625\",\"failure\",true(),\"unknown\")\n| table _time EventCode user src action\n```\n\n**Interpretación, condiciones y alcance:** Ejemplo en búsqueda, no configuración persistente: comprueba que los nombres concretos de campos se extraen en tu TA; EventCode puede ser número o cadena según la fuente. No etiquetes \"unknown\" como un inicio de sesión válido.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n",
+      "line": 27,
+      "endLine": 38
+    },
+    {
+      "id": "SP-R05-L01-S05",
+      "title": "5. Caso SOC",
+      "markdown": "## 5. Caso SOC\n\nWindows 4625 trae Account_Name y Linux registra usuario en linux_user. Ambos son fallos, pero uno carece de IP origen.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 40,
+      "endLine": 45
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R05-L01-Q01",
+      "lessonId": "SP-R05-L01",
+      "prompt": "¿Qué crea un field alias?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S08",
+        "SPLUNK_LECCIONES_R04_R05:S09",
+        "SPLUNK_LECCIONES_R04_R05:S13"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R05-L01-Q01-O-b388419e35b8",
+          "text": "Un nuevo campo indexado que siempre mejora la velocidad de búsqueda"
+        },
+        {
+          "id": "SP-R05-L01-Q01-O-91ed93414f81",
+          "text": "Un nombre alternativo del campo en búsqueda; el alias no inventa su valor ni demuestra su significado"
+        },
+        {
+          "id": "SP-R05-L01-Q01-O-fc6d947c5ab6",
+          "text": "Una modificación persistente del nombre del campo dentro de _raw"
+        },
+        {
+          "id": "SP-R05-L01-Q01-O-3849a658364f",
+          "text": "Un valor derivado que corrige semánticamente la identidad original"
+        }
+      ],
+      "solution": "SP-R05-L01-Q01-O-91ed93414f81",
+      "explanation": "Un alias no transforma los eventos almacenados ni demuestra semántica.",
+      "anchors": [
+        {
+          "file": "R05_CIM_NORMALIZACION/SP-R05-L01.md",
+          "sourceHash": "905b08125821e46651fa8cdb32beb2ea85db476d60d8f052e9dcef0cce98a956",
+          "line": 13,
+          "endLine": 18,
+          "quote": "## 2. Modelo mental y conceptos\n\n1. La extracción puede venir de add-ons y reglas propias; prueba sus expresiones con variaciones de formato y no destruyas `_raw`.\n2. `FIELDALIAS` presenta nombres alternativos en el contexto apropiado; no renombra el fichero original ni crea identidad semántica entre fuentes.\n3. `EVAL-...` crea campos calculados en búsqueda; documenta traducciones de códigos de éxito/fallo y los casos desconocidos.\n4. Eventtypes y tags son objetos de conocimiento: las restricciones del modelo se basan en clasificación correcta de eventos, no en la sola existencia de un sourcetype.\n\n"
+        },
+        {
+          "file": "R05_CIM_NORMALIZACION/SP-R05-L01.md",
+          "sourceHash": "905b08125821e46651fa8cdb32beb2ea85db476d60d8f052e9dcef0cce98a956",
+          "line": 27,
+          "endLine": 38,
+          "quote": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_WINDOWS sourcetype=SOURCETYPE_WIN earliest=-24h\n| eval user=Account_Name, src=Source_Network_Address\n| eval action=case(EventCode=\"4624\",\"success\",EventCode=\"4625\",\"failure\",true(),\"unknown\")\n| table _time EventCode user src action\n```\n\n**Interpretación, condiciones y alcance:** Ejemplo en búsqueda, no configuración persistente: comprueba que los nombres concretos de campos se extraen en tu TA; EventCode puede ser número o cadena según la fuente. No etiquetes \"unknown\" como un inicio de sesión válido.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R05-L01-Q02",
+      "lessonId": "SP-R05-L01",
+      "prompt": "¿Qué hacer con un 4688 del fixture?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S08",
+        "SPLUNK_LECCIONES_R04_R05:S09",
+        "SPLUNK_LECCIONES_R04_R05:S13"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R05-L01-Q02-O-ec77d480a2a0",
+          "text": "Mantenerlo fuera de Authentication: el 4688 del ejercicio es creación de proceso, no inicio de sesión"
+        },
+        {
+          "id": "SP-R05-L01-Q02-O-c0efae2db370",
+          "text": "Clasificarlo como autenticación si comparte host con un 4625"
+        },
+        {
+          "id": "SP-R05-L01-Q02-O-ee5534259a76",
+          "text": "Incluirlo como fallo de login porque contiene Account_Name"
+        },
+        {
+          "id": "SP-R05-L01-Q02-O-6eed4346fe23",
+          "text": "Inferir action=failure porque no contiene evidencia de inicio correcto"
+        }
+      ],
+      "solution": "SP-R05-L01-Q02-O-ec77d480a2a0",
+      "explanation": "4688 es creación de proceso; no cumple por sí mismo el propósito de Authentication.",
+      "anchors": [
+        {
+          "file": "R05_CIM_NORMALIZACION/SP-R05-L01.md",
+          "sourceHash": "905b08125821e46651fa8cdb32beb2ea85db476d60d8f052e9dcef0cce98a956",
+          "line": 13,
+          "endLine": 18,
+          "quote": "## 2. Modelo mental y conceptos\n\n1. La extracción puede venir de add-ons y reglas propias; prueba sus expresiones con variaciones de formato y no destruyas `_raw`.\n2. `FIELDALIAS` presenta nombres alternativos en el contexto apropiado; no renombra el fichero original ni crea identidad semántica entre fuentes.\n3. `EVAL-...` crea campos calculados en búsqueda; documenta traducciones de códigos de éxito/fallo y los casos desconocidos.\n4. Eventtypes y tags son objetos de conocimiento: las restricciones del modelo se basan en clasificación correcta de eventos, no en la sola existencia de un sourcetype.\n\n"
+        },
+        {
+          "file": "R05_CIM_NORMALIZACION/SP-R05-L01.md",
+          "sourceHash": "905b08125821e46651fa8cdb32beb2ea85db476d60d8f052e9dcef0cce98a956",
+          "line": 27,
+          "endLine": 38,
+          "quote": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_WINDOWS sourcetype=SOURCETYPE_WIN earliest=-24h\n| eval user=Account_Name, src=Source_Network_Address\n| eval action=case(EventCode=\"4624\",\"success\",EventCode=\"4625\",\"failure\",true(),\"unknown\")\n| table _time EventCode user src action\n```\n\n**Interpretación, condiciones y alcance:** Ejemplo en búsqueda, no configuración persistente: comprueba que los nombres concretos de campos se extraen en tu TA; EventCode puede ser número o cadena según la fuente. No etiquetes \"unknown\" como un inicio de sesión válido.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R05-L01-P01",
+      "lessonId": "SP-R05-L01",
+      "prompt": "Diseña una tabla fuente→campo CIM con valores ejemplo para Windows 4624/4625, Linux accepted/failed y 4688. Señala los casos excluidos.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S08",
+        "SPLUNK_LECCIONES_R04_R05:S09",
+        "SPLUNK_LECCIONES_R04_R05:S13"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica fuentes, campos, ventana y supuestos",
+        "Aplica el método al escenario y explica cifras o semántica",
+        "Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante",
+        "Presenta una respuesta reproducible sin ejecutar cambios en sistemas"
+      ],
+      "referenceAnswer": "Windows 4624→success y 4625→failure cuando representan logon; Linux accepted→success y failed→failure si el mensaje realmente es de autenticación; 4688 no entra en Authentication. Los eventos sin IP quedan con src ausente y bandera de calidad."
+    }
+  ],
+  "solutionsMarkdown": "## 7. Solucionario con razonamiento\n\n- **SP-R05-L01-Q01: B** — Un alias no transforma los eventos almacenados ni demuestra semántica.\n\n- **SP-R05-L01-Q02: A** — 4688 es creación de proceso; no cumple por sí mismo el propósito de Authentication.\n\n- **SP-R05-L01-P01:** Windows 4624→success y 4625→failure cuando representan logon; Linux accepted→success y failed→failure si el mensaje realmente es de autenticación; 4688 no entra en Authentication. Los eventos sin IP quedan con src ausente y bandera de calidad.\n\n**Guía de retroalimentación formativa:** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Solucionario razonado\n\n**Q01 → B.** Un nombre alternativo de campo en la búsqueda. Un alias no transforma los eventos almacenados ni demuestra semántica.\n\n**Q02 → B.** Clasificarlo fuera de Authentication. 4688 es creación de proceso; no cumple por sí mismo el propósito de Authentication.\n\n**P01 → Solución orientativa:** Windows 4624→success y 4625→failure cuando representan logon; Linux accepted→success y failed→failure si el mensaje realmente es de autenticación; 4688 no entra en Authentication. Los eventos sin IP quedan con src ausente y bandera de calidad.\n\n**Rúbrica (0–4):** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas. Superar un test escrito no equivale por sí solo a dominar investigación SOC.\n\n",
+  "referencesMarkdown": "## 9. Fuentes y trazabilidad\n\n- **Origen curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`; título y objetivo preservados.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` (no reescrita).\n- **Puente de conceptos SC-200:** Cap. 04 (ingesta y normalización), cap. 13 (mapeo de campos). Véase `../../01_FUENTE_ORIGINAL/SC-200.md` (sin trasladar esquemas literalmente).\n- **[S08] Authentication CIM: campos y tags:** https://help.splunk.com/en/splunk-enterprise/common-information-model/6.0/data-models/authentication\n- **[S09] CIM referencia: restricciones, tags y campos:** https://help.splunk.com/en/splunk-enterprise/common-information-model/8.7/data-models/how-to-use-the-cim-data-model-reference-tables\n- **[S13] Lookups: definiciones y operaciones:** https://help.splunk.com/en/splunk-enterprise/manage-knowledge-objects/knowledge-management-manual/10.4/use-lookups-in-splunk-web/about-lookups\n\n**Estatus de evidencia:** documentación del producto + diseño educativo + cálculos offline sobre fixtures (cuando se indica). No se ha verificado ejecución/compatibilidad específica en Splunk del usuario; revisar con la versión real antes de usar en producción.\n",
+  "originalMarkdown": "# SP-R05-L01 — De campo crudo a conocimiento\n\n**Región:** SP-R05 · **Prioridad:** P0/P1 SOC · **Estado:** borrador educativo para revisión · **SPL real:** no ejecutado.  \n**ID curricular intacto:** `SP-R05-L01` · **Resultado de aprendizaje:** Distinguir extracción, field alias, calculated field, tags y eventtypes  \n**Prerrequisitos:** R02 y R04; campos de fuentes conocidas · **Producto:** Splunk Enterprise/Cloud con SPL clásico según versión y permisos; CIM exige configuración pertinente.\n\n## 1. Pregunta esencial\n\nSplunk guarda eventos y permite definir conocimiento a la hora de buscar. Una extracción interpreta texto; un alias expone el mismo valor con otro nombre; un campo calculado deriva un dato; los eventtypes y tags agrupan eventos por significado para consultas y modelos. En CIM no basta con renombrar `Account_Name` a `user` sin comprobar que realmente se trata de la cuenta que inicia sesión.\n\n**Objetivo verificable:** Distinguir extracción, field alias, calculated field, tags y eventtypes.\n\n## 2. Modelo mental y conceptos\n\n1. La extracción puede venir de add-ons y reglas propias; prueba sus expresiones con variaciones de formato y no destruyas `_raw`.\n2. `FIELDALIAS` presenta nombres alternativos en el contexto apropiado; no renombra el fichero original ni crea identidad semántica entre fuentes.\n3. `EVAL-...` crea campos calculados en búsqueda; documenta traducciones de códigos de éxito/fallo y los casos desconocidos.\n4. Eventtypes y tags son objetos de conocimiento: las restricciones del modelo se basan en clasificación correcta de eventos, no en la sola existencia de un sourcetype.\n\n## 3. Procedimiento guiado\n\n1. Lee `auth_raw.csv`: las columnas Windows y Linux tienen nombres diferentes.\n2. Define una ficha de mapeo por fuente: origen, campo destino, significado, casos sin valor, tests.\n3. Propón `user` y `src` conceptuales para ambos tipos, y normaliza `action=success/failure` sólo para eventos de inicio de sesión reales.\n4. Excluye 4688 (creación de proceso) del modelo de autenticación; no conviertas cualquier evento Windows en login.\n\n## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_WINDOWS sourcetype=SOURCETYPE_WIN earliest=-24h\n| eval user=Account_Name, src=Source_Network_Address\n| eval action=case(EventCode=\"4624\",\"success\",EventCode=\"4625\",\"failure\",true(),\"unknown\")\n| table _time EventCode user src action\n```\n\n**Interpretación, condiciones y alcance:** Ejemplo en búsqueda, no configuración persistente: comprueba que los nombres concretos de campos se extraen en tu TA; EventCode puede ser número o cadena según la fuente. No etiquetes \"unknown\" como un inicio de sesión válido.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n## 5. Caso SOC\n\nWindows 4625 trae Account_Name y Linux registra usuario en linux_user. Ambos son fallos, pero uno carece de IP origen.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 6. Actividades\n\n### SP-R05-L01-Q01 — Opción múltiple\n\n¿Qué crea un field alias?\n\nA. Un nuevo campo indexado que siempre mejora la velocidad de búsqueda\nB. Un nombre alternativo del campo en búsqueda; el alias no inventa su valor ni demuestra su significado\nC. Una modificación persistente del nombre del campo dentro de _raw\nD. Un valor derivado que corrige semánticamente la identidad original\n\n### SP-R05-L01-Q02 — Opción múltiple\n\n¿Qué hacer con un 4688 del fixture?\n\nA. Mantenerlo fuera de Authentication: el 4688 del ejercicio es creación de proceso, no inicio de sesión\nB. Clasificarlo como autenticación si comparte host con un 4625\nC. Incluirlo como fallo de login porque contiene Account_Name\nD. Inferir action=failure porque no contiene evidencia de inicio correcto\n\n### SP-R05-L01-P01 — Práctica abierta formativa\n\nDiseña una tabla fuente→campo CIM con valores ejemplo para Windows 4624/4625, Linux accepted/failed y 4688. Señala los casos excluidos.\n\n## 7. Solucionario con razonamiento\n\n- **SP-R05-L01-Q01: B** — Un alias no transforma los eventos almacenados ni demuestra semántica.\n\n- **SP-R05-L01-Q02: A** — 4688 es creación de proceso; no cumple por sí mismo el propósito de Authentication.\n\n- **SP-R05-L01-P01:** Windows 4624→success y 4625→failure cuando representan logon; Linux accepted→success y failed→failure si el mensaje realmente es de autenticación; 4688 no entra en Authentication. Los eventos sin IP quedan con src ausente y bandera de calidad.\n\n**Guía de retroalimentación formativa:** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Solucionario razonado\n\n**Q01 → B.** Un nombre alternativo de campo en la búsqueda. Un alias no transforma los eventos almacenados ni demuestra semántica.\n\n**Q02 → B.** Clasificarlo fuera de Authentication. 4688 es creación de proceso; no cumple por sí mismo el propósito de Authentication.\n\n**P01 → Solución orientativa:** Windows 4624→success y 4625→failure cuando representan logon; Linux accepted→success y failed→failure si el mensaje realmente es de autenticación; 4688 no entra en Authentication. Los eventos sin IP quedan con src ausente y bandera de calidad.\n\n**Rúbrica (0–4):** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas. Superar un test escrito no equivale por sí solo a dominar investigación SOC.\n\n## 9. Fuentes y trazabilidad\n\n- **Origen curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`; título y objetivo preservados.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` (no reescrita).\n- **Puente de conceptos SC-200:** Cap. 04 (ingesta y normalización), cap. 13 (mapeo de campos). Véase `../../01_FUENTE_ORIGINAL/SC-200.md` (sin trasladar esquemas literalmente).\n- **[S08] Authentication CIM: campos y tags:** https://help.splunk.com/en/splunk-enterprise/common-information-model/6.0/data-models/authentication\n- **[S09] CIM referencia: restricciones, tags y campos:** https://help.splunk.com/en/splunk-enterprise/common-information-model/8.7/data-models/how-to-use-the-cim-data-model-reference-tables\n- **[S13] Lookups: definiciones y operaciones:** https://help.splunk.com/en/splunk-enterprise/manage-knowledge-objects/knowledge-management-manual/10.4/use-lookups-in-splunk-web/about-lookups\n\n**Estatus de evidencia:** documentación del producto + diseño educativo + cálculos offline sobre fixtures (cuando se indica). No se ha verificado ejecución/compatibilidad específica en Splunk del usuario; revisar con la versión real antes de usar en producción.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "S08",
+      "key": "SPLUNK_LECCIONES_R04_R05:S08",
+      "url": "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.0/data-models/authentication"
+    },
+    {
+      "id": "S09",
+      "key": "SPLUNK_LECCIONES_R04_R05:S09",
+      "url": "https://help.splunk.com/en/splunk-enterprise/common-information-model/8.7/data-models/how-to-use-the-cim-data-model-reference-tables"
+    },
+    {
+      "id": "S13",
+      "key": "SPLUNK_LECCIONES_R04_R05:S13",
+      "url": "https://help.splunk.com/en/splunk-enterprise/manage-knowledge-objects/knowledge-management-manual/10.4/use-lookups-in-splunk-web/about-lookups"
+    }
+  ]
+}

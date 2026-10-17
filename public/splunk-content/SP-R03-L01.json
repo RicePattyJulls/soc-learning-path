@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R03-L01",
+  "title": "Estrategia de búsqueda y ventanas",
+  "revision": "e2bce7c9d7c5cbdfa4a986df",
+  "sourceVersion": "ffc56f2a2ee3bab25b21ac5a52cf39735aae1e45e19f7cbe28168631771c4dd6",
+  "sanitizedHash": "ffc56f2a2ee3bab25b21ac5a52cf39735aae1e45e19f7cbe28168631771c4dd6",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R01_R03/R03_SPL_BASICO/SP-R03-L01.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Escribir consultas acotadas por índice, tiempo y tipo",
+  "preamble": "# SP-R03-L01 — Estrategia de búsqueda y ventanas\n\n**Región:** Bosque SPL I (SP-R03) · **Prioridad:** P0 SOC N1/N2  \n**Estado:** material didáctico redactado; revisión humana recomendada. **SPL no ejecutado en Splunk real.**  \n**ID estable propuesto:** `SP-R03-L01` (no migrado a React)  \n**Prerrequisitos orientativos:** SP-R01 y SP-R02 completos  \n**Objetivo del currículo:** Escribir consultas acotadas por índice, tiempo y tipo\n\n",
+  "sections": [
+    {
+      "id": "SP-R03-L01-S01",
+      "title": "1. La pregunta que resuelve esta lección",
+      "markdown": "## 1. La pregunta que resuelve esta lección\n\nAcotar índice, ventana, fuente y tipo antes de agregar mejora interpretabilidad y suele evitar búsquedas innecesariamente caras.\n\n**Al completar la lección podrás:** Escribir consultas acotadas por índice, tiempo y tipo. Debes explicar el porqué y los límites, no memorizar solo comandos.\n\n",
+      "line": 9,
+      "endLine": 13
+    },
+    {
+      "id": "SP-R03-L01-S02",
+      "title": "2. Desarrollo del conocimiento",
+      "markdown": "## 2. Desarrollo del conocimiento\n\nSPL clásico normalmente empieza con una búsqueda sobre eventos indexados, seguida de comandos separados por tuberías `|`. Es tentador empezar con `index=*` o búsquedas de todo el histórico, pero eso suele consumir recursos y mezclar fuentes heterogéneas. La primera versión de una búsqueda SOC debe fijar objetivo, periodo y conjunto de fuentes; después inspecciona los campos que realmente aparecen.\n`earliest` y `latest` acotan _time; sus límites importan tanto como el texto de búsqueda. Una consulta puede ser sintácticamente correcta y, sin embargo, responder la pregunta equivocada si ignora un sourcetype o aplica un huso horario inadecuado.\n\n",
+      "line": 15,
+      "endLine": 18
+    },
+    {
+      "id": "SP-R03-L01-S03",
+      "title": "3. Método de trabajo reproducible",
+      "markdown": "## 3. Método de trabajo reproducible\n\n1. Determina índice y sourcetype autorizados.\n2. Selecciona `earliest` y `latest` en función de la hipótesis.\n3. Verifica un conjunto pequeño de eventos.\n4. Anota campos presentes antes de filtrar.\n5. Recién entonces agrega y explica qué significa un cero.\n\n",
+      "line": 20,
+      "endLine": 26
+    },
+    {
+      "id": "SP-R03-L01-S04",
+      "title": "4. Caso guiado — de la pregunta a la evidencia",
+      "markdown": "## 4. Caso guiado — de la pregunta a la evidencia\n\nQuieres revisar un intervalo de 15 minutos de autenticaciones. Primero limita índice y `earliest=-15m` en una fuente cuyo reloj conoces; evita mezclar cambios de día, retrasos y servicios de otro entorno.\n\n### Esquema o ejemplo técnico\n\n```spl\nindex=INDICE_CONFIRMADO sourcetype=\"SOURCETYPE_REAL\" earliest=-15m\n| stats count by host\n```\n\n**Cómo interpretarlo:** Los identificadores en MAYÚSCULAS son placeholders; sustitúyelos solo tras inventario. Un conteo no representa necesariamente usuarios ni logins.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n",
+      "line": 28,
+      "endLine": 41
+    },
+    {
+      "id": "SP-R03-L01-S05",
+      "title": "5. Diagnóstico y errores frecuentes",
+      "markdown": "## 5. Diagnóstico y errores frecuentes\n\nEjecutar `index=*` sin límites; copiar filtros de otra fuente; interpretar ausencia de una ventana como ausencia histórica.\n\n**Conexión con SC-200 (no equivalencia automática):** Cap. 09 (investigación), líneas 1987–2104; cap. 13, líneas 2517–2810.. En Splunk los esquemas, permisos y familias de producto son diferentes; verifica la correspondencia antes de reutilizar una técnica.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 43,
+      "endLine": 50
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R03-L01-Q01",
+      "lessonId": "SP-R03-L01",
+      "prompt": "¿Qué acotación reduce el riesgo de búsquedas demasiado amplias?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A6",
+        "SPLUNK_LECCIONES_R01_R03:A14"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R03-L01-Q01-O-431f4715b7d9",
+          "text": "Restringir solo los campos de salida manteniendo todo el histórico"
+        },
+        {
+          "id": "SP-R03-L01-Q01-O-878a2cc80c56",
+          "text": "Ordenar por _time antes de decidir qué fuente se necesita"
+        },
+        {
+          "id": "SP-R03-L01-Q01-O-621a174552b3",
+          "text": "Aplicar head después de una búsqueda sin índice ni rango explícitos"
+        },
+        {
+          "id": "SP-R03-L01-Q01-O-8b468d993afb",
+          "text": "Seleccionar un índice y un rango temporal conocidos antes de aplicar transformaciones costosas"
+        }
+      ],
+      "solution": "SP-R03-L01-Q01-O-8b468d993afb",
+      "explanation": "Acotar datos hace la búsqueda más eficiente y reproducible.",
+      "anchors": [
+        {
+          "file": "R03_SPL_BASICO/SP-R03-L01.md",
+          "sourceHash": "ffc56f2a2ee3bab25b21ac5a52cf39735aae1e45e19f7cbe28168631771c4dd6",
+          "line": 15,
+          "endLine": 18,
+          "quote": "## 2. Desarrollo del conocimiento\n\nSPL clásico normalmente empieza con una búsqueda sobre eventos indexados, seguida de comandos separados por tuberías `|`. Es tentador empezar con `index=*` o búsquedas de todo el histórico, pero eso suele consumir recursos y mezclar fuentes heterogéneas. La primera versión de una búsqueda SOC debe fijar objetivo, periodo y conjunto de fuentes; después inspecciona los campos que realmente aparecen.\n`earliest` y `latest` acotan _time; sus límites importan tanto como el texto de búsqueda. Una consulta puede ser sintácticamente correcta y, sin embargo, responder la pregunta equivocada si ignora un sourcetype o aplica un huso horario inadecuado.\n\n"
+        },
+        {
+          "file": "R03_SPL_BASICO/SP-R03-L01.md",
+          "sourceHash": "ffc56f2a2ee3bab25b21ac5a52cf39735aae1e45e19f7cbe28168631771c4dd6",
+          "line": 28,
+          "endLine": 41,
+          "quote": "## 4. Caso guiado — de la pregunta a la evidencia\n\nQuieres revisar un intervalo de 15 minutos de autenticaciones. Primero limita índice y `earliest=-15m` en una fuente cuyo reloj conoces; evita mezclar cambios de día, retrasos y servicios de otro entorno.\n\n### Esquema o ejemplo técnico\n\n```spl\nindex=INDICE_CONFIRMADO sourcetype=\"SOURCETYPE_REAL\" earliest=-15m\n| stats count by host\n```\n\n**Cómo interpretarlo:** Los identificadores en MAYÚSCULAS son placeholders; sustitúyelos solo tras inventario. Un conteo no representa necesariamente usuarios ni logins.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R03-L01-Q02",
+      "lessonId": "SP-R03-L01",
+      "prompt": "En Splunk, `earliest=-15m` suele filtrar por:",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A6",
+        "SPLUNK_LECCIONES_R01_R03:A14"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R03-L01-Q02-O-7fc9f529975e",
+          "text": "El timestamp de recepción del forwarder aunque _time tenga otro valor"
+        },
+        {
+          "id": "SP-R03-L01-Q02-O-fdfec2f35b5d",
+          "text": "_indextime"
+        },
+        {
+          "id": "SP-R03-L01-Q02-O-9b2af2bb79e1",
+          "text": "El tiempo de evento _time; no se sustituye por _indextime porque el evento se reciba ahora"
+        },
+        {
+          "id": "SP-R03-L01-Q02-O-25ee40fccabc",
+          "text": "La hora de inicio del job menos quince minutos, sin filtrar los eventos"
+        }
+      ],
+      "solution": "SP-R03-L01-Q02-O-9b2af2bb79e1",
+      "explanation": "Los modificadores de tiempo estándar se basan en hora de evento.",
+      "anchors": [
+        {
+          "file": "R03_SPL_BASICO/SP-R03-L01.md",
+          "sourceHash": "ffc56f2a2ee3bab25b21ac5a52cf39735aae1e45e19f7cbe28168631771c4dd6",
+          "line": 15,
+          "endLine": 18,
+          "quote": "## 2. Desarrollo del conocimiento\n\nSPL clásico normalmente empieza con una búsqueda sobre eventos indexados, seguida de comandos separados por tuberías `|`. Es tentador empezar con `index=*` o búsquedas de todo el histórico, pero eso suele consumir recursos y mezclar fuentes heterogéneas. La primera versión de una búsqueda SOC debe fijar objetivo, periodo y conjunto de fuentes; después inspecciona los campos que realmente aparecen.\n`earliest` y `latest` acotan _time; sus límites importan tanto como el texto de búsqueda. Una consulta puede ser sintácticamente correcta y, sin embargo, responder la pregunta equivocada si ignora un sourcetype o aplica un huso horario inadecuado.\n\n"
+        },
+        {
+          "file": "R03_SPL_BASICO/SP-R03-L01.md",
+          "sourceHash": "ffc56f2a2ee3bab25b21ac5a52cf39735aae1e45e19f7cbe28168631771c4dd6",
+          "line": 28,
+          "endLine": 41,
+          "quote": "## 4. Caso guiado — de la pregunta a la evidencia\n\nQuieres revisar un intervalo de 15 minutos de autenticaciones. Primero limita índice y `earliest=-15m` en una fuente cuyo reloj conoces; evita mezclar cambios de día, retrasos y servicios de otro entorno.\n\n### Esquema o ejemplo técnico\n\n```spl\nindex=INDICE_CONFIRMADO sourcetype=\"SOURCETYPE_REAL\" earliest=-15m\n| stats count by host\n```\n\n**Cómo interpretarlo:** Los identificadores en MAYÚSCULAS son placeholders; sustitúyelos solo tras inventario. Un conteo no representa necesariamente usuarios ni logins.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R03-L01-P01",
+      "lessonId": "SP-R03-L01",
+      "prompt": "Escribe una búsqueda para contar eventos por host en un índice autorizado de la última hora.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A6",
+        "SPLUNK_LECCIONES_R01_R03:A14"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica los datos/condiciones necesarios",
+        "Explica el razonamiento y no solo el resultado",
+        "Reconoce al menos una limitación o comprobación adicional"
+      ],
+      "referenceAnswer": "`index=INDICE_CONFIRMADO earliest=-1h | stats count by host` después de sustituir el índice por su valor observado."
+    }
+  ],
+  "solutionsMarkdown": "## 7. Solucionario con razonamiento\n\n- **SP-R03-L01-Q01: D** — Acotar datos hace la búsqueda más eficiente y reproducible.\n\n- **SP-R03-L01-Q02: C** — Los modificadores de tiempo estándar se basan en hora de evento.\n\n- **SP-R03-L01-P01:** `index=INDICE_CONFIRMADO earliest=-1h | stats count by host` después de sustituir el índice por su valor observado.\n\n**Guía de retroalimentación formativa:** Identifica los datos/condiciones necesarios; Explica el razonamiento y no solo el resultado; Reconoce al menos una limitación o comprobación adicional.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 8. Fuentes y trazabilidad\n\n- **Fuente de partida:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE2_BLOQUE1.md`, según la organización del paquete de investigación que conservas.\n- **Fuente Microsoft de contraste:** `../../01_FUENTE_ORIGINAL/SC-200.md`; Cap. 09 (investigación), líneas 1987–2104; cap. 13, líneas 2517–2810.\n- **[A6]** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/time-format-variables-and-modifiers/time-modifiers\n- **[A14]** https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.6/optimize-searches/quick-tips-for-optimization\n\n**Estado de confianza:** documentación técnica citada y propuesta pedagógica; no validado contra índices, sourcetypes, roles o versiones de tu laboratorio. Las URLs provienen de la investigación del 16/10/2026, con contraste puntual adicional de documentación oficial para HEC y forwarders. Ver `FUENTES_Y_LIMITES.md`.\n",
+  "originalMarkdown": "# SP-R03-L01 — Estrategia de búsqueda y ventanas\n\n**Región:** Bosque SPL I (SP-R03) · **Prioridad:** P0 SOC N1/N2  \n**Estado:** material didáctico redactado; revisión humana recomendada. **SPL no ejecutado en Splunk real.**  \n**ID estable propuesto:** `SP-R03-L01` (no migrado a React)  \n**Prerrequisitos orientativos:** SP-R01 y SP-R02 completos  \n**Objetivo del currículo:** Escribir consultas acotadas por índice, tiempo y tipo\n\n## 1. La pregunta que resuelve esta lección\n\nAcotar índice, ventana, fuente y tipo antes de agregar mejora interpretabilidad y suele evitar búsquedas innecesariamente caras.\n\n**Al completar la lección podrás:** Escribir consultas acotadas por índice, tiempo y tipo. Debes explicar el porqué y los límites, no memorizar solo comandos.\n\n## 2. Desarrollo del conocimiento\n\nSPL clásico normalmente empieza con una búsqueda sobre eventos indexados, seguida de comandos separados por tuberías `|`. Es tentador empezar con `index=*` o búsquedas de todo el histórico, pero eso suele consumir recursos y mezclar fuentes heterogéneas. La primera versión de una búsqueda SOC debe fijar objetivo, periodo y conjunto de fuentes; después inspecciona los campos que realmente aparecen.\n`earliest` y `latest` acotan _time; sus límites importan tanto como el texto de búsqueda. Una consulta puede ser sintácticamente correcta y, sin embargo, responder la pregunta equivocada si ignora un sourcetype o aplica un huso horario inadecuado.\n\n## 3. Método de trabajo reproducible\n\n1. Determina índice y sourcetype autorizados.\n2. Selecciona `earliest` y `latest` en función de la hipótesis.\n3. Verifica un conjunto pequeño de eventos.\n4. Anota campos presentes antes de filtrar.\n5. Recién entonces agrega y explica qué significa un cero.\n\n## 4. Caso guiado — de la pregunta a la evidencia\n\nQuieres revisar un intervalo de 15 minutos de autenticaciones. Primero limita índice y `earliest=-15m` en una fuente cuyo reloj conoces; evita mezclar cambios de día, retrasos y servicios de otro entorno.\n\n### Esquema o ejemplo técnico\n\n```spl\nindex=INDICE_CONFIRMADO sourcetype=\"SOURCETYPE_REAL\" earliest=-15m\n| stats count by host\n```\n\n**Cómo interpretarlo:** Los identificadores en MAYÚSCULAS son placeholders; sustitúyelos solo tras inventario. Un conteo no representa necesariamente usuarios ni logins.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n## 5. Diagnóstico y errores frecuentes\n\nEjecutar `index=*` sin límites; copiar filtros de otra fuente; interpretar ausencia de una ventana como ausencia histórica.\n\n**Conexión con SC-200 (no equivalencia automática):** Cap. 09 (investigación), líneas 1987–2104; cap. 13, líneas 2517–2810.. En Splunk los esquemas, permisos y familias de producto son diferentes; verifica la correspondencia antes de reutilizar una técnica.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 6. Actividades\n\n### SP-R03-L01-Q01 — Opción múltiple\n\n¿Qué acotación reduce el riesgo de búsquedas demasiado amplias?\n\nA. Restringir solo los campos de salida manteniendo todo el histórico\nB. Ordenar por _time antes de decidir qué fuente se necesita\nC. Aplicar head después de una búsqueda sin índice ni rango explícitos\nD. Seleccionar un índice y un rango temporal conocidos antes de aplicar transformaciones costosas\n\n### SP-R03-L01-Q02 — Opción múltiple\n\nEn Splunk, `earliest=-15m` suele filtrar por:\n\nA. El timestamp de recepción del forwarder aunque _time tenga otro valor\nB. _indextime\nC. El tiempo de evento _time; no se sustituye por _indextime porque el evento se reciba ahora\nD. La hora de inicio del job menos quince minutos, sin filtrar los eventos\n\n### SP-R03-L01-P01 — Práctica abierta formativa\n\nEscribe una búsqueda para contar eventos por host en un índice autorizado de la última hora.\n\n## 7. Solucionario con razonamiento\n\n- **SP-R03-L01-Q01: D** — Acotar datos hace la búsqueda más eficiente y reproducible.\n\n- **SP-R03-L01-Q02: C** — Los modificadores de tiempo estándar se basan en hora de evento.\n\n- **SP-R03-L01-P01:** `index=INDICE_CONFIRMADO earliest=-1h | stats count by host` después de sustituir el índice por su valor observado.\n\n**Guía de retroalimentación formativa:** Identifica los datos/condiciones necesarios; Explica el razonamiento y no solo el resultado; Reconoce al menos una limitación o comprobación adicional.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Fuentes y trazabilidad\n\n- **Fuente de partida:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE2_BLOQUE1.md`, según la organización del paquete de investigación que conservas.\n- **Fuente Microsoft de contraste:** `../../01_FUENTE_ORIGINAL/SC-200.md`; Cap. 09 (investigación), líneas 1987–2104; cap. 13, líneas 2517–2810.\n- **[A6]** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/time-format-variables-and-modifiers/time-modifiers\n- **[A14]** https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.6/optimize-searches/quick-tips-for-optimization\n\n**Estado de confianza:** documentación técnica citada y propuesta pedagógica; no validado contra índices, sourcetypes, roles o versiones de tu laboratorio. Las URLs provienen de la investigación del 16/10/2026, con contraste puntual adicional de documentación oficial para HEC y forwarders. Ver `FUENTES_Y_LIMITES.md`.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 8,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "A6",
+      "key": "SPLUNK_LECCIONES_R01_R03:A6",
+      "url": "https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/time-format-variables-and-modifiers/time-modifiers"
+    },
+    {
+      "id": "A14",
+      "key": "SPLUNK_LECCIONES_R01_R03:A14",
+      "url": "https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.6/optimize-searches/quick-tips-for-optimization"
+    }
+  ]
+}

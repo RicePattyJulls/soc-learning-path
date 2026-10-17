@@ -1,0 +1,199 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R02-L04",
+  "title": "`inputs`, `props`, `transforms`, `outputs`",
+  "revision": "2c7919f6470df83ac0f27e38",
+  "sourceVersion": "fe9ea197766dc9fefb396258fb4f94107261f94a7b6d87ceb126157495bc8476",
+  "sanitizedHash": "fe9ea197766dc9fefb396258fb4f94107261f94a7b6d87ceb126157495bc8476",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R01_R03/R02_INGESTA/SP-R02-L04.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Asignar configuraciones a su fase y ubicación responsable",
+  "preamble": "# SP-R02-L04 — `inputs`, `props`, `transforms`, `outputs`\n\n**Región:** Río de Telemetría (SP-R02) · **Prioridad:** P0 SOC N1/N2  \n**Estado:** material didáctico redactado; revisión humana recomendada. **SPL no ejecutado en Splunk real.**  \n**ID estable propuesto:** `SP-R02-L04` (no migrado a React)  \n**Prerrequisitos orientativos:** SP-R02-L01, SP-R01 completo  \n**Objetivo del currículo:** Asignar configuraciones a su fase y ubicación responsable\n\n",
+  "sections": [
+    {
+      "id": "SP-R02-L04-S01",
+      "title": "1. La pregunta que resuelve esta lección",
+      "markdown": "## 1. La pregunta que resuelve esta lección\n\nConfigurar el input, la ruta, el parsing y la extracción implica fases y ficheros distintos; la ubicación correcta importa.\n\n**Al completar la lección podrás:** Asignar configuraciones a su fase y ubicación responsable. Debes explicar el porqué y los límites, no memorizar solo comandos.\n\n",
+      "line": 9,
+      "endLine": 13
+    },
+    {
+      "id": "SP-R02-L04-S02",
+      "title": "2. Desarrollo del conocimiento",
+      "markdown": "## 2. Desarrollo del conocimiento\n\n`inputs.conf` describe entradas; `outputs.conf` establece forwarding; `indexes.conf` administra índices. `props.conf` regula comportamientos de parsing y knowledge objects en distintos momentos; `transforms.conf` define transformaciones reutilizables. No es válido afirmar que todo props es index-time o que todo transforms altera eventos almacenados.\nSi UF envía datos sin parsear a indexer, muchas reglas de parsing deben residir en el primer parser de esa ruta. Si existe HF que procesa los eventos, parte de esas reglas se instala allí. Algunas configuraciones son específicas de search-time y deben estar donde se realiza búsqueda/knowledge. Aplicar `props.conf` incorrecto no arregla retrospectivamente el sourcetype de eventos ya indexados.\n\n",
+      "line": 15,
+      "endLine": 18
+    },
+    {
+      "id": "SP-R02-L04-S03",
+      "title": "3. Método de trabajo reproducible",
+      "markdown": "## 3. Método de trabajo reproducible\n\n1. Identifica la entrada real y el primer parser.\n2. Separa parámetros index-time de extracciones search-time.\n3. Revisa precedencia y despliegue de configuraciones antes de cambiar.\n4. Define prueba para eventos nuevos en entorno autorizado.\n5. Documenta efecto histórico y plan de reversión; aquí no cambies nada.\n\n",
+      "line": 20,
+      "endLine": 26
+    },
+    {
+      "id": "SP-R02-L04-S04",
+      "title": "4. Caso guiado — de la pregunta a la evidencia",
+      "markdown": "## 4. Caso guiado — de la pregunta a la evidencia\n\nEventos Windows ya almacenados muestran sourcetype equivocado. Una extracción search-time puede permitir lectura parcial, pero no reetiqueta metadatos históricos. Para futuros eventos se debe corregir fuente o fase responsable y comprobar con nuevo evento.\n\n### Esquema o ejemplo técnico\n\n```text\ninputs.conf → qué se recoge\noutputs.conf → a dónde se reenvía\nprops.conf (+ transforms.conf) → reglas según fase\nindexes.conf → políticas de índice en el nodo apropiado\n```\n\n**Cómo interpretarlo:** No son cuatro “comandos SPL”. Son archivos de configuración con ámbitos y precedencias; nunca presupongas que editar la copia de un UF soluciona parsing central.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n",
+      "line": 28,
+      "endLine": 43
+    },
+    {
+      "id": "SP-R02-L04-S05",
+      "title": "5. Diagnóstico y errores frecuentes",
+      "markdown": "## 5. Diagnóstico y errores frecuentes\n\nCambiar producción sin respaldo; ubicar transforms en todos los nodos; inferir retroactividad; prometer arreglar extracción con cambio de sourcetype sin probar.\n\n**Conexión con SC-200 (no equivalencia automática):** Cap. 04 (ingesta y transformaciones), líneas 1125–1368.. En Splunk los esquemas, permisos y familias de producto son diferentes; verifica la correspondencia antes de reutilizar una técnica.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 45,
+      "endLine": 52
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R02-L04-Q01",
+      "lessonId": "SP-R02-L04",
+      "prompt": "¿Qué archivo se asocia principalmente al reenvío?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A5",
+        "SPLUNK_LECCIONES_R01_R03:A7",
+        "SPLUNK_LECCIONES_R01_R03:A8"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R02-L04-Q01-O-1926a1d96746",
+          "text": "transforms.conf"
+        },
+        {
+          "id": "SP-R02-L04-Q01-O-38545aeae480",
+          "text": "inputs.conf"
+        },
+        {
+          "id": "SP-R02-L04-Q01-O-4f419f41e31b",
+          "text": "props.conf"
+        },
+        {
+          "id": "SP-R02-L04-Q01-O-53e91791fb8f",
+          "text": "outputs.conf"
+        }
+      ],
+      "solution": "SP-R02-L04-Q01-O-53e91791fb8f",
+      "explanation": "outputs.conf define forwarding y grupos de destino.",
+      "anchors": [
+        {
+          "file": "R02_INGESTA/SP-R02-L04.md",
+          "sourceHash": "fe9ea197766dc9fefb396258fb4f94107261f94a7b6d87ceb126157495bc8476",
+          "line": 15,
+          "endLine": 18,
+          "quote": "## 2. Desarrollo del conocimiento\n\n`inputs.conf` describe entradas; `outputs.conf` establece forwarding; `indexes.conf` administra índices. `props.conf` regula comportamientos de parsing y knowledge objects en distintos momentos; `transforms.conf` define transformaciones reutilizables. No es válido afirmar que todo props es index-time o que todo transforms altera eventos almacenados.\nSi UF envía datos sin parsear a indexer, muchas reglas de parsing deben residir en el primer parser de esa ruta. Si existe HF que procesa los eventos, parte de esas reglas se instala allí. Algunas configuraciones son específicas de search-time y deben estar donde se realiza búsqueda/knowledge. Aplicar `props.conf` incorrecto no arregla retrospectivamente el sourcetype de eventos ya indexados.\n\n"
+        },
+        {
+          "file": "R02_INGESTA/SP-R02-L04.md",
+          "sourceHash": "fe9ea197766dc9fefb396258fb4f94107261f94a7b6d87ceb126157495bc8476",
+          "line": 28,
+          "endLine": 43,
+          "quote": "## 4. Caso guiado — de la pregunta a la evidencia\n\nEventos Windows ya almacenados muestran sourcetype equivocado. Una extracción search-time puede permitir lectura parcial, pero no reetiqueta metadatos históricos. Para futuros eventos se debe corregir fuente o fase responsable y comprobar con nuevo evento.\n\n### Esquema o ejemplo técnico\n\n```text\ninputs.conf → qué se recoge\noutputs.conf → a dónde se reenvía\nprops.conf (+ transforms.conf) → reglas según fase\nindexes.conf → políticas de índice en el nodo apropiado\n```\n\n**Cómo interpretarlo:** No son cuatro “comandos SPL”. Son archivos de configuración con ámbitos y precedencias; nunca presupongas que editar la copia de un UF soluciona parsing central.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R02-L04-Q02",
+      "lessonId": "SP-R02-L04",
+      "prompt": "¿Modificar una regla de parsing hoy cambia automáticamente eventos ya indexados?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A5",
+        "SPLUNK_LECCIONES_R01_R03:A7",
+        "SPLUNK_LECCIONES_R01_R03:A8"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R02-L04-Q02-O-16f2b659f7ec",
+          "text": "Solo si la regla se distribuye también al Universal Forwarder"
+        },
+        {
+          "id": "SP-R02-L04-Q02-O-4f952cd2f111",
+          "text": "No, no reescribe automáticamente metadatos históricos"
+        },
+        {
+          "id": "SP-R02-L04-Q02-O-da2910554613",
+          "text": "Sí: se reetiquetan los eventos anteriores que usen el mismo source"
+        },
+        {
+          "id": "SP-R02-L04-Q02-O-beff3322160d",
+          "text": "Sí: el search head vuelve a aplicar el parsing al consultar el histórico"
+        }
+      ],
+      "solution": "SP-R02-L04-Q02-O-4f952cd2f111",
+      "explanation": "Cambios index-time afectan nuevos datos procesados; soluciones históricas requieren tratamiento específico.",
+      "anchors": [
+        {
+          "file": "R02_INGESTA/SP-R02-L04.md",
+          "sourceHash": "fe9ea197766dc9fefb396258fb4f94107261f94a7b6d87ceb126157495bc8476",
+          "line": 15,
+          "endLine": 18,
+          "quote": "## 2. Desarrollo del conocimiento\n\n`inputs.conf` describe entradas; `outputs.conf` establece forwarding; `indexes.conf` administra índices. `props.conf` regula comportamientos de parsing y knowledge objects en distintos momentos; `transforms.conf` define transformaciones reutilizables. No es válido afirmar que todo props es index-time o que todo transforms altera eventos almacenados.\nSi UF envía datos sin parsear a indexer, muchas reglas de parsing deben residir en el primer parser de esa ruta. Si existe HF que procesa los eventos, parte de esas reglas se instala allí. Algunas configuraciones son específicas de search-time y deben estar donde se realiza búsqueda/knowledge. Aplicar `props.conf` incorrecto no arregla retrospectivamente el sourcetype de eventos ya indexados.\n\n"
+        },
+        {
+          "file": "R02_INGESTA/SP-R02-L04.md",
+          "sourceHash": "fe9ea197766dc9fefb396258fb4f94107261f94a7b6d87ceb126157495bc8476",
+          "line": 28,
+          "endLine": 43,
+          "quote": "## 4. Caso guiado — de la pregunta a la evidencia\n\nEventos Windows ya almacenados muestran sourcetype equivocado. Una extracción search-time puede permitir lectura parcial, pero no reetiqueta metadatos históricos. Para futuros eventos se debe corregir fuente o fase responsable y comprobar con nuevo evento.\n\n### Esquema o ejemplo técnico\n\n```text\ninputs.conf → qué se recoge\noutputs.conf → a dónde se reenvía\nprops.conf (+ transforms.conf) → reglas según fase\nindexes.conf → políticas de índice en el nodo apropiado\n```\n\n**Cómo interpretarlo:** No son cuatro “comandos SPL”. Son archivos de configuración con ámbitos y precedencias; nunca presupongas que editar la copia de un UF soluciona parsing central.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R02-L04-P01",
+      "lessonId": "SP-R02-L04",
+      "prompt": "En un flujo UF→HF→indexer, ubica el parser y explica cómo verificar un sourcetype corregido.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A5",
+        "SPLUNK_LECCIONES_R01_R03:A7",
+        "SPLUNK_LECCIONES_R01_R03:A8"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica los datos/condiciones necesarios",
+        "Explica el razonamiento y no solo el resultado",
+        "Reconoce al menos una limitación o comprobación adicional"
+      ],
+      "referenceAnswer": "HF puede ser primer parser; revisar parámetros aplicables allí y efectuar prueba autorizada con evento nuevo. No cambiar datos históricos ni tocar servicios sin permiso."
+    }
+  ],
+  "solutionsMarkdown": "## 7. Solucionario con razonamiento\n\n- **SP-R02-L04-Q01: D** — outputs.conf define forwarding y grupos de destino.\n\n- **SP-R02-L04-Q02: B** — Cambios index-time afectan nuevos datos procesados; soluciones históricas requieren tratamiento específico.\n\n- **SP-R02-L04-P01:** HF puede ser primer parser; revisar parámetros aplicables allí y efectuar prueba autorizada con evento nuevo. No cambiar datos históricos ni tocar servicios sin permiso.\n\n**Guía de retroalimentación formativa:** Identifica los datos/condiciones necesarios; Explica el razonamiento y no solo el resultado; Reconoce al menos una limitación o comprobación adicional.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 8. Fuentes y trazabilidad\n\n- **Fuente de partida:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE2_BLOQUE1.md`, según la organización del paquete de investigación que conservas.\n- **Fuente Microsoft de contraste:** `../../01_FUENTE_ORIGINAL/SC-200.md`; Cap. 04 (ingesta y transformaciones), líneas 1125–1368.\n- **[A5]** https://help.splunk.com/en/splunk-enterprise/administer/admin-manual/10.6/administer-splunk-enterprise-with-configuration-files/configuration-parameters-and-the-data-pipeline\n- **[A7]** https://help.splunk.com/en/splunk-enterprise/administer/manage-indexers-and-indexer-clusters/10.6/indexing-overview/index-time-versus-search-time\n- **[A8]** https://help.splunk.com/en/splunk-enterprise/administer/admin-manual/10.6/configuration-file-reference/10.6.0-configuration-file-reference/props.conf\n\n**Estado de confianza:** documentación técnica citada y propuesta pedagógica; no validado contra índices, sourcetypes, roles o versiones de tu laboratorio. Las URLs provienen de la investigación del 16/10/2026, con contraste puntual adicional de documentación oficial para HEC y forwarders. Ver `FUENTES_Y_LIMITES.md`.\n",
+  "originalMarkdown": "# SP-R02-L04 — `inputs`, `props`, `transforms`, `outputs`\n\n**Región:** Río de Telemetría (SP-R02) · **Prioridad:** P0 SOC N1/N2  \n**Estado:** material didáctico redactado; revisión humana recomendada. **SPL no ejecutado en Splunk real.**  \n**ID estable propuesto:** `SP-R02-L04` (no migrado a React)  \n**Prerrequisitos orientativos:** SP-R02-L01, SP-R01 completo  \n**Objetivo del currículo:** Asignar configuraciones a su fase y ubicación responsable\n\n## 1. La pregunta que resuelve esta lección\n\nConfigurar el input, la ruta, el parsing y la extracción implica fases y ficheros distintos; la ubicación correcta importa.\n\n**Al completar la lección podrás:** Asignar configuraciones a su fase y ubicación responsable. Debes explicar el porqué y los límites, no memorizar solo comandos.\n\n## 2. Desarrollo del conocimiento\n\n`inputs.conf` describe entradas; `outputs.conf` establece forwarding; `indexes.conf` administra índices. `props.conf` regula comportamientos de parsing y knowledge objects en distintos momentos; `transforms.conf` define transformaciones reutilizables. No es válido afirmar que todo props es index-time o que todo transforms altera eventos almacenados.\nSi UF envía datos sin parsear a indexer, muchas reglas de parsing deben residir en el primer parser de esa ruta. Si existe HF que procesa los eventos, parte de esas reglas se instala allí. Algunas configuraciones son específicas de search-time y deben estar donde se realiza búsqueda/knowledge. Aplicar `props.conf` incorrecto no arregla retrospectivamente el sourcetype de eventos ya indexados.\n\n## 3. Método de trabajo reproducible\n\n1. Identifica la entrada real y el primer parser.\n2. Separa parámetros index-time de extracciones search-time.\n3. Revisa precedencia y despliegue de configuraciones antes de cambiar.\n4. Define prueba para eventos nuevos en entorno autorizado.\n5. Documenta efecto histórico y plan de reversión; aquí no cambies nada.\n\n## 4. Caso guiado — de la pregunta a la evidencia\n\nEventos Windows ya almacenados muestran sourcetype equivocado. Una extracción search-time puede permitir lectura parcial, pero no reetiqueta metadatos históricos. Para futuros eventos se debe corregir fuente o fase responsable y comprobar con nuevo evento.\n\n### Esquema o ejemplo técnico\n\n```text\ninputs.conf → qué se recoge\noutputs.conf → a dónde se reenvía\nprops.conf (+ transforms.conf) → reglas según fase\nindexes.conf → políticas de índice en el nodo apropiado\n```\n\n**Cómo interpretarlo:** No son cuatro “comandos SPL”. Son archivos de configuración con ámbitos y precedencias; nunca presupongas que editar la copia de un UF soluciona parsing central.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n## 5. Diagnóstico y errores frecuentes\n\nCambiar producción sin respaldo; ubicar transforms en todos los nodos; inferir retroactividad; prometer arreglar extracción con cambio de sourcetype sin probar.\n\n**Conexión con SC-200 (no equivalencia automática):** Cap. 04 (ingesta y transformaciones), líneas 1125–1368.. En Splunk los esquemas, permisos y familias de producto son diferentes; verifica la correspondencia antes de reutilizar una técnica.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 6. Actividades\n\n### SP-R02-L04-Q01 — Opción múltiple\n\n¿Qué archivo se asocia principalmente al reenvío?\n\nA. transforms.conf\nB. inputs.conf\nC. props.conf\nD. outputs.conf\n\n### SP-R02-L04-Q02 — Opción múltiple\n\n¿Modificar una regla de parsing hoy cambia automáticamente eventos ya indexados?\n\nA. Solo si la regla se distribuye también al Universal Forwarder\nB. No, no reescribe automáticamente metadatos históricos\nC. Sí: se reetiquetan los eventos anteriores que usen el mismo source\nD. Sí: el search head vuelve a aplicar el parsing al consultar el histórico\n\n### SP-R02-L04-P01 — Práctica abierta formativa\n\nEn un flujo UF→HF→indexer, ubica el parser y explica cómo verificar un sourcetype corregido.\n\n## 7. Solucionario con razonamiento\n\n- **SP-R02-L04-Q01: D** — outputs.conf define forwarding y grupos de destino.\n\n- **SP-R02-L04-Q02: B** — Cambios index-time afectan nuevos datos procesados; soluciones históricas requieren tratamiento específico.\n\n- **SP-R02-L04-P01:** HF puede ser primer parser; revisar parámetros aplicables allí y efectuar prueba autorizada con evento nuevo. No cambiar datos históricos ni tocar servicios sin permiso.\n\n**Guía de retroalimentación formativa:** Identifica los datos/condiciones necesarios; Explica el razonamiento y no solo el resultado; Reconoce al menos una limitación o comprobación adicional.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Fuentes y trazabilidad\n\n- **Fuente de partida:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE2_BLOQUE1.md`, según la organización del paquete de investigación que conservas.\n- **Fuente Microsoft de contraste:** `../../01_FUENTE_ORIGINAL/SC-200.md`; Cap. 04 (ingesta y transformaciones), líneas 1125–1368.\n- **[A5]** https://help.splunk.com/en/splunk-enterprise/administer/admin-manual/10.6/administer-splunk-enterprise-with-configuration-files/configuration-parameters-and-the-data-pipeline\n- **[A7]** https://help.splunk.com/en/splunk-enterprise/administer/manage-indexers-and-indexer-clusters/10.6/indexing-overview/index-time-versus-search-time\n- **[A8]** https://help.splunk.com/en/splunk-enterprise/administer/admin-manual/10.6/configuration-file-reference/10.6.0-configuration-file-reference/props.conf\n\n**Estado de confianza:** documentación técnica citada y propuesta pedagógica; no validado contra índices, sourcetypes, roles o versiones de tu laboratorio. Las URLs provienen de la investigación del 16/10/2026, con contraste puntual adicional de documentación oficial para HEC y forwarders. Ver `FUENTES_Y_LIMITES.md`.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 8,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "A5",
+      "key": "SPLUNK_LECCIONES_R01_R03:A5",
+      "url": "https://help.splunk.com/en/splunk-enterprise/administer/admin-manual/10.6/administer-splunk-enterprise-with-configuration-files/configuration-parameters-and-the-data-pipeline"
+    },
+    {
+      "id": "A7",
+      "key": "SPLUNK_LECCIONES_R01_R03:A7",
+      "url": "https://help.splunk.com/en/splunk-enterprise/administer/manage-indexers-and-indexer-clusters/10.6/indexing-overview/index-time-versus-search-time"
+    },
+    {
+      "id": "A8",
+      "key": "SPLUNK_LECCIONES_R01_R03:A8",
+      "url": "https://help.splunk.com/en/splunk-enterprise/administer/admin-manual/10.6/configuration-file-reference/10.6.0-configuration-file-reference/props.conf"
+    }
+  ]
+}

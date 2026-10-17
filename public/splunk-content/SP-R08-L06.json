@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R08-L06",
+  "title": "Exfiltración y baseline",
+  "revision": "2a89fb2685629f303cda2aeb",
+  "sourceVersion": "b488150d0950aa50e6c7da125fb2b61366fc3bc75340442a19116427070052b0",
+  "sanitizedHash": "b488150d0950aa50e6c7da125fb2b61366fc3bc75340442a19116427070052b0",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R08_R09/R08_THREAT_HUNTING/SP-R08-L06.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Buscar volumen, destinos raros y desviación de perfil",
+  "preamble": "# SP-R08-L06 — Exfiltración y baseline\n\n**Región:** SP-R08 · **Estado:** borrador editorial para revisión · **SPL:** ilustrativo NO ejecutado.\n\n**Resultado de aprendizaje curricular:** Buscar volumen, destinos raros y desviación de perfil.\n\n**Prerrequisitos:** R01–R07 según tema; R08 para agrupación/escalado R09. **Producto:** plataforma Splunk para SPL genérico; funciones ES 8.7/SOAR solo cuando se indiquen.\n\n",
+  "sections": [
+    {
+      "id": "SP-R08-L06-S01",
+      "title": "1. Explicación técnica",
+      "markdown": "## 1. Explicación técnica\n\nEl volumen de tráfico saliente no demuestra exfiltración. Copias de seguridad, distribución de software, sincronización y transferencias de trabajo pueden superar ampliamente el promedio. Una hipótesis defensiva debe combinar destino, bytes, horario, proceso, clasificación del activo y un baseline útil, distinguiendo comunicación de salida de extracción de datos protegidos.\n\nUn baseline requiere población homogénea y tiempo suficiente: comparar un servidor de backups con un portátil genera señales engañosas. La métrica más útil puede ser percentil por tipo de equipo, bytes hacia destinos externos nuevos y duración de conexiones. Una anomalía debería llevar a buscar identidad de proceso y destino, no a bloquear automáticamente.\n\nEl CSV de tráfico del paquete ilustra únicamente agregación sintética y no representa NetFlow/VPC Flow/stream real ni valida cobertura de un cliente Splunk. No hay que equiparar `bytes_out` con información efectivamente robada.\n\n",
+      "line": 9,
+      "endLine": 15
+    },
+    {
+      "id": "SP-R08-L06-S02",
+      "title": "2. Conceptos que debes distinguir",
+      "markdown": "## 2. Conceptos que debes distinguir\n\n1. Baselines por rol de activo, turno y ventana comparable\n2. Transferencia de red no prueba exfiltración de información\n3. Destino nuevo como contexto, con DNS/proxy/egress consistentes\n4. Uso de percentiles/median sin confundir volumen y riesgo\n\n",
+      "line": 17,
+      "endLine": 22
+    },
+    {
+      "id": "SP-R08-L06-S03",
+      "title": "3. Procedimiento reproducible y seguro",
+      "markdown": "## 3. Procedimiento reproducible y seguro\n\n1. Define origen, destino, bytes y dirección de flujo.\n2. Segmenta por clase de activo y horario.\n3. Calcula volumen por origen/destino y comparación histórica.\n4. Consulta cambios autorizados y aplicaciones de backup.\n5. Busca evidencia de contenido, proceso o canal anómalo antes de escalado.\n\n",
+      "line": 24,
+      "endLine": 30
+    },
+    {
+      "id": "SP-R08-L06-S04",
+      "title": "4. SPL ilustrativo (solo lectura; no probado)",
+      "markdown": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_NET sourcetype=ST_FLOW direction=\"outbound\"\n| stats sum(bytes_out) AS bytes_enviados count AS conexiones BY src dest\n| sort - bytes_enviados\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n",
+      "line": 32,
+      "endLine": 40
+    },
+    {
+      "id": "SP-R08-L06-S05",
+      "title": "5. Escenario SOC",
+      "markdown": "## 5. Escenario SOC\n\nEl host backup-01 envía más bytes que un equipo de finanzas, pero a destino aprobado; finance-07 envía mucho menos a una IP rara. No puedes priorizar solo por bytes.\n\n## 6. Errores frecuentes\n\n1. Usar un umbral universal para todos los activos\n2. Confundir un flujo con una prueba de archivos exfiltrados\n3. No comprobar dirección ni muestreo de la fuente\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 42,
+      "endLine": 53
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R08-L06-Q01",
+      "lessonId": "SP-R08-L06",
+      "prompt": "¿Qué ayuda más a interpretar 900 MB hacia una IP externa?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D04"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R08-L06-Q01-O-22c7f34f9695",
+          "text": "Rol de activo, destinatario, baseline y cambio autorizado"
+        },
+        {
+          "id": "SP-R08-L06-Q01-O-6e6e06ddb14b",
+          "text": "La posición del host en el ranking sin conocer el destino"
+        },
+        {
+          "id": "SP-R08-L06-Q01-O-db8c0553d60d",
+          "text": "El total de conexiones sin revisar procesos ni función del activo"
+        },
+        {
+          "id": "SP-R08-L06-Q01-O-d056444ed069",
+          "text": "Un umbral único de bytes para backups y equipos de usuario"
+        }
+      ],
+      "solution": "SP-R08-L06-Q01-O-22c7f34f9695",
+      "explanation": "Volumen sin contexto produce falsos positivos.",
+      "anchors": [
+        {
+          "file": "R08_THREAT_HUNTING/SP-R08-L06.md",
+          "sourceHash": "b488150d0950aa50e6c7da125fb2b61366fc3bc75340442a19116427070052b0",
+          "line": 17,
+          "endLine": 22,
+          "quote": "## 2. Conceptos que debes distinguir\n\n1. Baselines por rol de activo, turno y ventana comparable\n2. Transferencia de red no prueba exfiltración de información\n3. Destino nuevo como contexto, con DNS/proxy/egress consistentes\n4. Uso de percentiles/median sin confundir volumen y riesgo\n\n"
+        },
+        {
+          "file": "R08_THREAT_HUNTING/SP-R08-L06.md",
+          "sourceHash": "b488150d0950aa50e6c7da125fb2b61366fc3bc75340442a19116427070052b0",
+          "line": 32,
+          "endLine": 40,
+          "quote": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_NET sourcetype=ST_FLOW direction=\"outbound\"\n| stats sum(bytes_out) AS bytes_enviados count AS conexiones BY src dest\n| sort - bytes_enviados\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R08-L06-Q02",
+      "lessonId": "SP-R08-L06",
+      "prompt": "¿Qué NO confirma por sí solo un flow log?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D04"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R08-L06-Q02-O-5179293ddf4a",
+          "text": "La marca temporal observada por ese sensor"
+        },
+        {
+          "id": "SP-R08-L06-Q02-O-6b661d392277",
+          "text": "Exfiltración de datos confidenciales"
+        },
+        {
+          "id": "SP-R08-L06-Q02-O-f21a76a5ea43",
+          "text": "El volumen de bytes declarado por el sensor de flujo"
+        },
+        {
+          "id": "SP-R08-L06-Q02-O-32f1e099036b",
+          "text": "La dirección de destino declarada en el registro de flujo"
+        }
+      ],
+      "solution": "SP-R08-L06-Q02-O-6b661d392277",
+      "explanation": "El contenido y propósito no se desprenden del volumen.",
+      "anchors": [
+        {
+          "file": "R08_THREAT_HUNTING/SP-R08-L06.md",
+          "sourceHash": "b488150d0950aa50e6c7da125fb2b61366fc3bc75340442a19116427070052b0",
+          "line": 17,
+          "endLine": 22,
+          "quote": "## 2. Conceptos que debes distinguir\n\n1. Baselines por rol de activo, turno y ventana comparable\n2. Transferencia de red no prueba exfiltración de información\n3. Destino nuevo como contexto, con DNS/proxy/egress consistentes\n4. Uso de percentiles/median sin confundir volumen y riesgo\n\n"
+        },
+        {
+          "file": "R08_THREAT_HUNTING/SP-R08-L06.md",
+          "sourceHash": "b488150d0950aa50e6c7da125fb2b61366fc3bc75340442a19116427070052b0",
+          "line": 32,
+          "endLine": 40,
+          "quote": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_NET sourcetype=ST_FLOW direction=\"outbound\"\n| stats sum(bytes_out) AS bytes_enviados count AS conexiones BY src dest\n| sort - bytes_enviados\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R08-L06-P01",
+      "lessonId": "SP-R08-L06",
+      "prompt": "Compara `backup-01` y `finance-07` en net_egress.csv y describe cuál investigarías y por qué.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D04"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Distingue fuente, campos y alcance de la pregunta",
+        "Diseña un método reproducible sin inferencia abusiva",
+        "Separa señales, hipótesis, contraejemplos y ausencia de datos",
+        "Comunica siguiente paso seguro y evidencia para otro analista"
+      ],
+      "referenceAnswer": "backup-01: 865 MB decimales al destino aprobado 203.0.113.10 (850+15). finance-07: 210 MB totales; 190 MB al destino desconocido 203.0.113.99 y 20 MB al portal aprobado 203.0.113.20. Priorizar la salida desconocida de finance-07 por contexto, sin afirmar exfiltración. Ver proceso, identidad, DLP, baseline y cambios aprobados."
+    }
+  ],
+  "solutionsMarkdown": "## 8. Solucionario con razonamiento\n\n- **SP-R08-L06-Q01: A** — Volumen sin contexto produce falsos positivos.\n\n- **SP-R08-L06-Q02: B** — El contenido y propósito no se desprenden del volumen.\n\n- **SP-R08-L06-P01:** backup-01: 865 MB decimales al destino aprobado 203.0.113.10 (850+15). finance-07: 210 MB totales; 190 MB al destino desconocido 203.0.113.99 y 20 MB al portal aprobado 203.0.113.20. Priorizar la salida desconocida de finance-07 por contexto, sin afirmar exfiltración. Ver proceso, identidad, DLP, baseline y cambios aprobados.\n\n**Guía de retroalimentación formativa:** Distingue fuente, campos y alcance de la pregunta; Diseña un método reproducible sin inferencia abusiva; Separa señales, hipótesis, contraejemplos y ausencia de datos; Comunica siguiente paso seguro y evidencia para otro analista.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 9. Fuentes verificables y conexiones\n\n- **D04:** MITRE ATT&CK — Remote Services (T1021) — https://attack.mitre.org/techniques/T1021/\n\n- **Puente SC-200:** Capítulos 09–10, 13 (investigación y patrones analíticos). La comparación es conceptual, no una equivalencia producto a producto.\n- **Fuente curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` en la carpeta padre `SPLUNK_MASTER_RESEARCH`.\n- **Calidad:** [DOC] referencias externas consultables; [DISEÑO] escenario y actividad originales; [OFFLINE] solo cálculos de fixture; [NO PROBADO] SPL no ejecutado en Splunk. La revisión técnica independiente queda pendiente.\n",
+  "originalMarkdown": "# SP-R08-L06 — Exfiltración y baseline\n\n**Región:** SP-R08 · **Estado:** borrador editorial para revisión · **SPL:** ilustrativo NO ejecutado.\n\n**Resultado de aprendizaje curricular:** Buscar volumen, destinos raros y desviación de perfil.\n\n**Prerrequisitos:** R01–R07 según tema; R08 para agrupación/escalado R09. **Producto:** plataforma Splunk para SPL genérico; funciones ES 8.7/SOAR solo cuando se indiquen.\n\n## 1. Explicación técnica\n\nEl volumen de tráfico saliente no demuestra exfiltración. Copias de seguridad, distribución de software, sincronización y transferencias de trabajo pueden superar ampliamente el promedio. Una hipótesis defensiva debe combinar destino, bytes, horario, proceso, clasificación del activo y un baseline útil, distinguiendo comunicación de salida de extracción de datos protegidos.\n\nUn baseline requiere población homogénea y tiempo suficiente: comparar un servidor de backups con un portátil genera señales engañosas. La métrica más útil puede ser percentil por tipo de equipo, bytes hacia destinos externos nuevos y duración de conexiones. Una anomalía debería llevar a buscar identidad de proceso y destino, no a bloquear automáticamente.\n\nEl CSV de tráfico del paquete ilustra únicamente agregación sintética y no representa NetFlow/VPC Flow/stream real ni valida cobertura de un cliente Splunk. No hay que equiparar `bytes_out` con información efectivamente robada.\n\n## 2. Conceptos que debes distinguir\n\n1. Baselines por rol de activo, turno y ventana comparable\n2. Transferencia de red no prueba exfiltración de información\n3. Destino nuevo como contexto, con DNS/proxy/egress consistentes\n4. Uso de percentiles/median sin confundir volumen y riesgo\n\n## 3. Procedimiento reproducible y seguro\n\n1. Define origen, destino, bytes y dirección de flujo.\n2. Segmenta por clase de activo y horario.\n3. Calcula volumen por origen/destino y comparación histórica.\n4. Consulta cambios autorizados y aplicaciones de backup.\n5. Busca evidencia de contenido, proceso o canal anómalo antes de escalado.\n\n## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_NET sourcetype=ST_FLOW direction=\"outbound\"\n| stats sum(bytes_out) AS bytes_enviados count AS conexiones BY src dest\n| sort - bytes_enviados\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n## 5. Escenario SOC\n\nEl host backup-01 envía más bytes que un equipo de finanzas, pero a destino aprobado; finance-07 envía mucho menos a una IP rara. No puedes priorizar solo por bytes.\n\n## 6. Errores frecuentes\n\n1. Usar un umbral universal para todos los activos\n2. Confundir un flujo con una prueba de archivos exfiltrados\n3. No comprobar dirección ni muestreo de la fuente\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R08-L06-Q01 — Opción múltiple\n\n¿Qué ayuda más a interpretar 900 MB hacia una IP externa?\n\nA. Rol de activo, destinatario, baseline y cambio autorizado\nB. La posición del host en el ranking sin conocer el destino\nC. El total de conexiones sin revisar procesos ni función del activo\nD. Un umbral único de bytes para backups y equipos de usuario\n\n### SP-R08-L06-Q02 — Opción múltiple\n\n¿Qué NO confirma por sí solo un flow log?\n\nA. La marca temporal observada por ese sensor\nB. Exfiltración de datos confidenciales\nC. El volumen de bytes declarado por el sensor de flujo\nD. La dirección de destino declarada en el registro de flujo\n\n### SP-R08-L06-P01 — Práctica abierta formativa\n\nCompara `backup-01` y `finance-07` en net_egress.csv y describe cuál investigarías y por qué.\n\n## 8. Solucionario con razonamiento\n\n- **SP-R08-L06-Q01: A** — Volumen sin contexto produce falsos positivos.\n\n- **SP-R08-L06-Q02: B** — El contenido y propósito no se desprenden del volumen.\n\n- **SP-R08-L06-P01:** backup-01: 865 MB decimales al destino aprobado 203.0.113.10 (850+15). finance-07: 210 MB totales; 190 MB al destino desconocido 203.0.113.99 y 20 MB al portal aprobado 203.0.113.20. Priorizar la salida desconocida de finance-07 por contexto, sin afirmar exfiltración. Ver proceso, identidad, DLP, baseline y cambios aprobados.\n\n**Guía de retroalimentación formativa:** Distingue fuente, campos y alcance de la pregunta; Diseña un método reproducible sin inferencia abusiva; Separa señales, hipótesis, contraejemplos y ausencia de datos; Comunica siguiente paso seguro y evidencia para otro analista.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 9. Fuentes verificables y conexiones\n\n- **D04:** MITRE ATT&CK — Remote Services (T1021) — https://attack.mitre.org/techniques/T1021/\n\n- **Puente SC-200:** Capítulos 09–10, 13 (investigación y patrones analíticos). La comparación es conceptual, no una equivalencia producto a producto.\n- **Fuente curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` en la carpeta padre `SPLUNK_MASTER_RESEARCH`.\n- **Calidad:** [DOC] referencias externas consultables; [DISEÑO] escenario y actividad originales; [OFFLINE] solo cálculos de fixture; [NO PROBADO] SPL no ejecutado en Splunk. La revisión técnica independiente queda pendiente.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D04",
+      "key": "SPLUNK_LECCIONES_R08_R09:D04",
+      "url": "https://attack.mitre.org/techniques/T1021/"
+    }
+  ]
+}

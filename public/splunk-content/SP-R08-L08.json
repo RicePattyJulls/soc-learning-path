@@ -1,0 +1,200 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R08-L08",
+  "title": "Hunting-to-detection",
+  "revision": "72c1816632a38fa69a198a75",
+  "sourceVersion": "5d0ade4edb148e52ad74c6ae22badcd7a0e7462dc24d55d602782e7b1281c2b5",
+  "sanitizedHash": "5d0ade4edb148e52ad74c6ae22badcd7a0e7462dc24d55d602782e7b1281c2b5",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R08_R09/R08_THREAT_HUNTING/SP-R08-L08.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Convertir hallazgo confirmado en prueba y regla gestionable",
+  "preamble": "# SP-R08-L08 — Hunting-to-detection\n\n**Región:** SP-R08 · **Estado:** borrador editorial para revisión · **SPL:** ilustrativo NO ejecutado.\n\n**Resultado de aprendizaje curricular:** Convertir hallazgo confirmado en prueba y regla gestionable.\n\n**Prerrequisitos:** R01–R07 según tema; R08 para agrupación/escalado R09. **Producto:** plataforma Splunk para SPL genérico; funciones ES 8.7/SOAR solo cuando se indiquen.\n\n",
+  "sections": [
+    {
+      "id": "SP-R08-L08-S01",
+      "title": "1. Explicación técnica",
+      "markdown": "## 1. Explicación técnica\n\nUn hallazgo de hunting solo se convierte en detección gestionada si la analítica puede reproducirse con entradas y salidas definidas. El proceso es: hipótesis → estudio exploratorio → especificación de comportamiento → fixtures positivas/negativas → condición SPL → control de ruido → calendario/propietario → revisión y retiro. No se trata de activar inmediatamente una alerta basada en un caso único.\n\nEl caso de TGS muestra por qué: un filtro `TicketEncryptionType=0x17` puede marcar backup legítimo; exigir al menos cuatro nombres de servicio pierde patrones de volumen bajo. Una buena prueba documenta lo que el detector ve, lo que no ve y cómo un analista debe validar el resultado. Define qué hará el operador ante un match y cuándo se escala.\n\nLas saved searches y alertas en Splunk Enterprise tienen funciones de plataforma; la generación de findings/risk-scoring en ES requiere producto compatible y configuración. No atribuyas el mismo flujo operativo a ambos. Configurar una alarma real está fuera del alcance de este paquete.\n\n",
+      "line": 9,
+      "endLine": 15
+    },
+    {
+      "id": "SP-R08-L08-S02",
+      "title": "2. Conceptos que debes distinguir",
+      "markdown": "## 2. Conceptos que debes distinguir\n\n1. Detector como producto: dueño, objetivo, datos, falsos positivos, versionado\n2. Fixtures positivas y negativas, y datos insuficientes\n3. Ventanas de búsqueda frente a llegada tardía de eventos\n4. Separación de búsqueda SPL y salidas propias de Enterprise Security\n\n",
+      "line": 17,
+      "endLine": 22
+    },
+    {
+      "id": "SP-R08-L08-S03",
+      "title": "3. Procedimiento reproducible y seguro",
+      "markdown": "## 3. Procedimiento reproducible y seguro\n\n1. Escribe criterio de alerta observable y señal de verificación humana.\n2. Fija esquema, ventana y frecuencia propuesta sin habilitarla.\n3. Prueba fixture positivo, benigno y campo ausente.\n4. Documenta responsable, runbook y parámetros ajustables.\n5. Presenta diseño para aprobación y activación por equipo autorizado.\n\n",
+      "line": 24,
+      "endLine": 30
+    },
+    {
+      "id": "SP-R08-L08-S04",
+      "title": "4. SPL ilustrativo (solo lectura; no probado)",
+      "markdown": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4769\n| bin _time span=15m\n| stats count AS tgs dc(ServiceName) AS servicios BY user src _time\n| where tgs>=5 AND servicios>=4\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n",
+      "line": 32,
+      "endLine": 41
+    },
+    {
+      "id": "SP-R08-L08-S05",
+      "title": "5. Escenario SOC",
+      "markdown": "## 5. Escenario SOC\n\nEl detector propuesto prioriza K01–K06 e ignora cinco tickets de backup a un solo servicio; no equivale a validación de Kerberoasting ni a certeza de ausencia.\n\n## 6. Errores frecuentes\n\n1. Desplegar una búsqueda de laboratorio sin tuning ni runbook\n2. Confundir throttle con mejora de precisión\n3. Omitir evidencia de versión al editar una regla\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 43,
+      "endLine": 54
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R08-L08-Q01",
+      "lessonId": "SP-R08-L08",
+      "prompt": "¿Cuándo está lista una hipótesis para regla gestionada?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D01",
+        "SPLUNK_LECCIONES_R08_R09:D07",
+        "SPLUNK_LECCIONES_R08_R09:D15"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R08-L08-Q01-O-0a10d39abd4a",
+          "text": "Cuando coincide con un único positivo sin probar escenarios benignos"
+        },
+        {
+          "id": "SP-R08-L08-Q01-O-4b249f22ad53",
+          "text": "Cuando la consulta compila, aunque no se hayan comprobado los datos"
+        },
+        {
+          "id": "SP-R08-L08-Q01-O-af8965d6b4f3",
+          "text": "Cuando el autor asigna prioridad sin definir owner ni respuesta"
+        },
+        {
+          "id": "SP-R08-L08-Q01-O-b06253951957",
+          "text": "Con fuente, ejemplos, contraejemplos, propietario y respuesta especificados"
+        }
+      ],
+      "solution": "SP-R08-L08-Q01-O-b06253951957",
+      "explanation": "La operacionalización exige evaluación y ciclo de vida.",
+      "anchors": [
+        {
+          "file": "R08_THREAT_HUNTING/SP-R08-L08.md",
+          "sourceHash": "5d0ade4edb148e52ad74c6ae22badcd7a0e7462dc24d55d602782e7b1281c2b5",
+          "line": 17,
+          "endLine": 22,
+          "quote": "## 2. Conceptos que debes distinguir\n\n1. Detector como producto: dueño, objetivo, datos, falsos positivos, versionado\n2. Fixtures positivas y negativas, y datos insuficientes\n3. Ventanas de búsqueda frente a llegada tardía de eventos\n4. Separación de búsqueda SPL y salidas propias de Enterprise Security\n\n"
+        },
+        {
+          "file": "R08_THREAT_HUNTING/SP-R08-L08.md",
+          "sourceHash": "5d0ade4edb148e52ad74c6ae22badcd7a0e7462dc24d55d602782e7b1281c2b5",
+          "line": 32,
+          "endLine": 41,
+          "quote": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4769\n| bin _time span=15m\n| stats count AS tgs dc(ServiceName) AS servicios BY user src _time\n| where tgs>=5 AND servicios>=4\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R08-L08-Q02",
+      "lessonId": "SP-R08-L08",
+      "prompt": "¿Qué producto aporta findings como salida específica?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D01",
+        "SPLUNK_LECCIONES_R08_R09:D07",
+        "SPLUNK_LECCIONES_R08_R09:D15"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R08-L08-Q02-O-d49185bc57ff",
+          "text": "El add-on CIM por el hecho de definir modelos"
+        },
+        {
+          "id": "SP-R08-L08-Q02-O-370eb2e72c65",
+          "text": "Una saved search de Enterprise base sin configuración ES"
+        },
+        {
+          "id": "SP-R08-L08-Q02-O-2e744d6c8e07",
+          "text": "Splunk Enterprise Security en configuración soportada"
+        },
+        {
+          "id": "SP-R08-L08-Q02-O-4d4b3b108d6b",
+          "text": "El input HEC al aceptar una solicitud de eventos"
+        }
+      ],
+      "solution": "SP-R08-L08-Q02-O-2e744d6c8e07",
+      "explanation": "Los findings son del flujo ES, no de toda búsqueda base.",
+      "anchors": [
+        {
+          "file": "R08_THREAT_HUNTING/SP-R08-L08.md",
+          "sourceHash": "5d0ade4edb148e52ad74c6ae22badcd7a0e7462dc24d55d602782e7b1281c2b5",
+          "line": 17,
+          "endLine": 22,
+          "quote": "## 2. Conceptos que debes distinguir\n\n1. Detector como producto: dueño, objetivo, datos, falsos positivos, versionado\n2. Fixtures positivas y negativas, y datos insuficientes\n3. Ventanas de búsqueda frente a llegada tardía de eventos\n4. Separación de búsqueda SPL y salidas propias de Enterprise Security\n\n"
+        },
+        {
+          "file": "R08_THREAT_HUNTING/SP-R08-L08.md",
+          "sourceHash": "5d0ade4edb148e52ad74c6ae22badcd7a0e7462dc24d55d602782e7b1281c2b5",
+          "line": 32,
+          "endLine": 41,
+          "quote": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4769\n| bin _time span=15m\n| stats count AS tgs dc(ServiceName) AS servicios BY user src _time\n| where tgs>=5 AND servicios>=4\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R08-L08-P01",
+      "lessonId": "SP-R08-L08",
+      "prompt": "Diseña ficha de detección versionada para TGS anómalos con tres casos de prueba y pasos N1.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D01",
+        "SPLUNK_LECCIONES_R08_R09:D07",
+        "SPLUNK_LECCIONES_R08_R09:D15"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Distingue fuente, campos y alcance de la pregunta",
+        "Diseña un método reproducible sin inferencia abusiva",
+        "Separa señales, hipótesis, contraejemplos y ausencia de datos",
+        "Comunica siguiente paso seguro y evidencia para otro analista"
+      ],
+      "referenceAnswer": "Entrada 4769 validada, agregación por identidad/servicio/ventana, caso K01–K06 positivo provisional, backup caso benigno, cifrado faltante indeterminado; runbook incluye cobertura DC, identidad, baseline, mantenimiento y aprobación de despliegue."
+    }
+  ],
+  "solutionsMarkdown": "## 8. Solucionario con razonamiento\n\n- **SP-R08-L08-Q01: D** — La operacionalización exige evaluación y ciclo de vida.\n\n- **SP-R08-L08-Q02: C** — Los findings son del flujo ES, no de toda búsqueda base.\n\n- **SP-R08-L08-P01:** Entrada 4769 validada, agregación por identidad/servicio/ventana, caso K01–K06 positivo provisional, backup caso benigno, cifrado faltante indeterminado; runbook incluye cobertura DC, identidad, baseline, mantenimiento y aprobación de despliegue.\n\n**Guía de retroalimentación formativa:** Distingue fuente, campos y alcance de la pregunta; Diseña un método reproducible sin inferencia abusiva; Separa señales, hipótesis, contraejemplos y ausencia de datos; Comunica siguiente paso seguro y evidencia para otro analista.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 9. Fuentes verificables y conexiones\n\n- **D01:** MITRE ATT&CK — Kerberoasting (T1558.003) — https://attack.mitre.org/techniques/T1558/003/\n- **D07:** Splunk ES 8.7 — Use detections to search for threats — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/use-detections-to-search-for-threats-in-splunk-enterprise-security\n- **D15:** Splunk ES 8.7 — Tune detections — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/tune-detections-in-splunk-enterprise-security\n\n- **Puente SC-200:** Capítulos 07, 10, 12 (detección, hunting, operación). La comparación es conceptual, no una equivalencia producto a producto.\n- **Fuente curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` en la carpeta padre `SPLUNK_MASTER_RESEARCH`.\n- **Calidad:** [DOC] referencias externas consultables; [DISEÑO] escenario y actividad originales; [OFFLINE] solo cálculos de fixture; [NO PROBADO] SPL no ejecutado en Splunk. La revisión técnica independiente queda pendiente.\n",
+  "originalMarkdown": "# SP-R08-L08 — Hunting-to-detection\n\n**Región:** SP-R08 · **Estado:** borrador editorial para revisión · **SPL:** ilustrativo NO ejecutado.\n\n**Resultado de aprendizaje curricular:** Convertir hallazgo confirmado en prueba y regla gestionable.\n\n**Prerrequisitos:** R01–R07 según tema; R08 para agrupación/escalado R09. **Producto:** plataforma Splunk para SPL genérico; funciones ES 8.7/SOAR solo cuando se indiquen.\n\n## 1. Explicación técnica\n\nUn hallazgo de hunting solo se convierte en detección gestionada si la analítica puede reproducirse con entradas y salidas definidas. El proceso es: hipótesis → estudio exploratorio → especificación de comportamiento → fixtures positivas/negativas → condición SPL → control de ruido → calendario/propietario → revisión y retiro. No se trata de activar inmediatamente una alerta basada en un caso único.\n\nEl caso de TGS muestra por qué: un filtro `TicketEncryptionType=0x17` puede marcar backup legítimo; exigir al menos cuatro nombres de servicio pierde patrones de volumen bajo. Una buena prueba documenta lo que el detector ve, lo que no ve y cómo un analista debe validar el resultado. Define qué hará el operador ante un match y cuándo se escala.\n\nLas saved searches y alertas en Splunk Enterprise tienen funciones de plataforma; la generación de findings/risk-scoring en ES requiere producto compatible y configuración. No atribuyas el mismo flujo operativo a ambos. Configurar una alarma real está fuera del alcance de este paquete.\n\n## 2. Conceptos que debes distinguir\n\n1. Detector como producto: dueño, objetivo, datos, falsos positivos, versionado\n2. Fixtures positivas y negativas, y datos insuficientes\n3. Ventanas de búsqueda frente a llegada tardía de eventos\n4. Separación de búsqueda SPL y salidas propias de Enterprise Security\n\n## 3. Procedimiento reproducible y seguro\n\n1. Escribe criterio de alerta observable y señal de verificación humana.\n2. Fija esquema, ventana y frecuencia propuesta sin habilitarla.\n3. Prueba fixture positivo, benigno y campo ausente.\n4. Documenta responsable, runbook y parámetros ajustables.\n5. Presenta diseño para aprobación y activación por equipo autorizado.\n\n## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4769\n| bin _time span=15m\n| stats count AS tgs dc(ServiceName) AS servicios BY user src _time\n| where tgs>=5 AND servicios>=4\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n## 5. Escenario SOC\n\nEl detector propuesto prioriza K01–K06 e ignora cinco tickets de backup a un solo servicio; no equivale a validación de Kerberoasting ni a certeza de ausencia.\n\n## 6. Errores frecuentes\n\n1. Desplegar una búsqueda de laboratorio sin tuning ni runbook\n2. Confundir throttle con mejora de precisión\n3. Omitir evidencia de versión al editar una regla\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R08-L08-Q01 — Opción múltiple\n\n¿Cuándo está lista una hipótesis para regla gestionada?\n\nA. Cuando coincide con un único positivo sin probar escenarios benignos\nB. Cuando la consulta compila, aunque no se hayan comprobado los datos\nC. Cuando el autor asigna prioridad sin definir owner ni respuesta\nD. Con fuente, ejemplos, contraejemplos, propietario y respuesta especificados\n\n### SP-R08-L08-Q02 — Opción múltiple\n\n¿Qué producto aporta findings como salida específica?\n\nA. El add-on CIM por el hecho de definir modelos\nB. Una saved search de Enterprise base sin configuración ES\nC. Splunk Enterprise Security en configuración soportada\nD. El input HEC al aceptar una solicitud de eventos\n\n### SP-R08-L08-P01 — Práctica abierta formativa\n\nDiseña ficha de detección versionada para TGS anómalos con tres casos de prueba y pasos N1.\n\n## 8. Solucionario con razonamiento\n\n- **SP-R08-L08-Q01: D** — La operacionalización exige evaluación y ciclo de vida.\n\n- **SP-R08-L08-Q02: C** — Los findings son del flujo ES, no de toda búsqueda base.\n\n- **SP-R08-L08-P01:** Entrada 4769 validada, agregación por identidad/servicio/ventana, caso K01–K06 positivo provisional, backup caso benigno, cifrado faltante indeterminado; runbook incluye cobertura DC, identidad, baseline, mantenimiento y aprobación de despliegue.\n\n**Guía de retroalimentación formativa:** Distingue fuente, campos y alcance de la pregunta; Diseña un método reproducible sin inferencia abusiva; Separa señales, hipótesis, contraejemplos y ausencia de datos; Comunica siguiente paso seguro y evidencia para otro analista.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 9. Fuentes verificables y conexiones\n\n- **D01:** MITRE ATT&CK — Kerberoasting (T1558.003) — https://attack.mitre.org/techniques/T1558/003/\n- **D07:** Splunk ES 8.7 — Use detections to search for threats — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/use-detections-to-search-for-threats-in-splunk-enterprise-security\n- **D15:** Splunk ES 8.7 — Tune detections — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/tune-detections-in-splunk-enterprise-security\n\n- **Puente SC-200:** Capítulos 07, 10, 12 (detección, hunting, operación). La comparación es conceptual, no una equivalencia producto a producto.\n- **Fuente curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` en la carpeta padre `SPLUNK_MASTER_RESEARCH`.\n- **Calidad:** [DOC] referencias externas consultables; [DISEÑO] escenario y actividad originales; [OFFLINE] solo cálculos de fixture; [NO PROBADO] SPL no ejecutado en Splunk. La revisión técnica independiente queda pendiente.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D01",
+      "key": "SPLUNK_LECCIONES_R08_R09:D01",
+      "url": "https://attack.mitre.org/techniques/T1558/003/"
+    },
+    {
+      "id": "D07",
+      "key": "SPLUNK_LECCIONES_R08_R09:D07",
+      "url": "https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/use-detections-to-search-for-threats-in-splunk-enterprise-security"
+    },
+    {
+      "id": "D15",
+      "key": "SPLUNK_LECCIONES_R08_R09:D15",
+      "url": "https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/tune-detections-in-splunk-enterprise-security"
+    }
+  ]
+}

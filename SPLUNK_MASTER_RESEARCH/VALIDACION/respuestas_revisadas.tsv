@@ -1,0 +1,51 @@
+# Respuestas correctas precisadas para reducir también pistas de longitud; IDs de actividad intactos.
+R01-L01-Q01	Splunk Enterprise Security, con Mission Control y sus flujos SOC en versiones compatibles
+R01-L01-Q02	Que esa telemetría está disponible si fue indexada; recibirla no demuestra prevención ni respuesta
+R01-L02-Q01	Los indexers almacenan los datos indexados y buscan en ellos; el search head coordina resultados
+R01-L03-Q02	Cuando el flujo requiere parsing o routing intermedio; HF aporta esa capacidad sin ser obligatorio
+R02-L01-Q01	HTTP Event Collector, como entrada HTTP(S) autenticada para eventos enviados por la aplicación
+R02-L03-Q01	Autenticar el envío al receptor HEC con el ámbito de índices configurado; no autoriza búsquedas
+R02-L03-Q02	No: falta comprobar indexación, tiempo y campos en la población que utilizará el informe SOC
+R02-L06-Q01	Distinguir eventos ausentes de problemas de extracción o selección: un panel vacío no separa esas causas
+R03-L01-Q01	Seleccionar un índice y un rango temporal conocidos antes de aplicar transformaciones costosas
+R03-L01-Q02	El tiempo de evento _time; no se sustituye por _indextime porque el evento se reciba ahora
+R03-L02-Q01	Después de stats: primero se calcula la columna fallos y luego se aplica el umbral sobre ella
+R03-L03-Q01	Inspeccionar los campos y su cobertura en los resultados observados, sin garantizar eventos futuros
+R03-L04-Q01	No: eval calcula valores del pipeline de búsqueda y no reescribe el evento guardado en el índice
+R03-L05-Q01	La cantidad de valores distintos observados en user; no cuenta cada repetición del mismo usuario
+R03-L06-Q01	Asignar _time a bloques discretos de quince minutos; el conteo y la agrupación se hacen después
+R04-L02-Q01	El conteo acumulado hasta cada fila, siguiendo el orden que recibe streamstats en ese pipeline
+R04-L02-Q02	Verificar el orden temporal y la semántica de _time, y resolver empates con un criterio estable
+R04-L04-Q01	dc cuenta valores distintos presentes; count sin argumento cuenta los eventos recuperados del grupo
+R04-L05-Q01	Agrupar con stats por la entidad común, si ambos tipos de eventos ya están en el flujo normalizado
+R04-L06-Q01	Un conjunto secundario incompleto puede reducir las coincidencias aunque la lógica aparente sea correcta
+R05-L01-Q01	Un nombre alternativo del campo en búsqueda; el alias no inventa su valor ni demuestra su significado
+R05-L01-Q02	Mantenerlo fuera de Authentication: el 4688 del ejercicio es creación de proceso, no inicio de sesión
+R05-L02-Q01	Contexto del activo que debe contrastarse con la vigencia y calidad del inventario, sin cierre automático
+R05-L02-Q02	Evitar reemplazar campos de salida ya presentes en los eventos que se enriquecen mediante lookup
+R05-L03-Q01	Unificar significado de campos y datasets para búsquedas comparables, sin fabricar datos de la fuente
+R05-L04-Q01	Una jerarquía de datasets y restricciones de búsqueda que determina qué eventos forman parte del modelo
+R06-L01-Q01	Que la condición coincidió con los datos disponibles en esa ejecución; su significado requiere triage
+R06-L01-Q02	La consulta y su revisión, el rango temporal y los IDs de eventos permiten reconstruir la observación
+R06-L02-Q01	Una clave de agrupación compartida que necesita contexto de traducción e identidad para atribuir actividad
+R06-L03-Q01	En el controlador de dominio que actúa como KDC, bajo las condiciones de auditoría correspondientes
+R06-L04-Q01	_indextime - _time: diferencia entre indexación y tiempo de evento, que aún requiere contexto
+R07-L01-Q01	Hipótesis, telemetría, ventana y criterio con resultado esperado, antes de escoger operadores o umbrales
+R07-L02-Q01	Reducir notificaciones repetidas según clave y duración; no cambia qué eventos cumplen la búsqueda
+R07-L03-Q01	Un patrón anómalo de solicitudes TGS y servicios, corroborado con contexto Kerberos y baseline
+R07-L03-Q02	Comparar el comportamiento observable y sus evidencias con la definición de la técnica, sin sobreclasificar
+R08-L01-Q01	Definir qué se observará y qué condiciones refutarían la hipótesis, incluyendo una alternativa benigna
+R08-L02-Q02	La diversidad de servicio por solicitante, verificando qué significa ese campo en la fuente observada
+R08-L04-Q01	La distribución entre identidades frente a intentos concentrados en una cuenta, dentro de una ventana
+R09-L01-Q01	A la plataforma Enterprise o Cloud: buscar índices es una función de plataforma y no exige ES por sí sola
+R09-L02-Q01	Eventos o datos de entrada que satisfacen una condición analítica y pueden producir la salida configurada
+R09-L03-Q01	Findings o intermediate findings previos y su contexto, para relacionarlos mediante criterios explícitos
+R09-L03-Q02	NAT y proxy pueden fusionar sujetos diferentes bajo la misma IP; la clave no identifica por sí sola al actor
+R10-L01-Q01	La configuración fusionada de la instancia consultada y el archivo de procedencia de sus parámetros
+R10-L04-Q01	El límite de tamaño del índice puede provocar congelación antes del plazo temporal previsto
+R11-L01-Q02	Evaluar evidencia y autorización específicas para la acción, el asset y el objetivo antes de bloquear
+R11-L02-Q01	El identificador de un trabajo de búsqueda, que no otorga por sí mismo permiso para leer sus resultados
+R11-L02-Q02	Acotar resultados, tiempo e índices mediante un rol mínimo y un límite de extracción definido
+R11-L03-Q01	Un identificador y contexto mínimo con enlace autenticado, evitando trasladar eventos crudos o secretos
+R11-L04-Q01	Las apps y conectores con assets compatibles, instalados y autorizados para la acción concreta
+R11-L06-Q01	Conservar estado unknown y reconciliar el resultado antes de repetir una operación con posible efecto

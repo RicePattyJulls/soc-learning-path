@@ -1,0 +1,200 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R06-L08",
+  "title": "Caso completo de SOC",
+  "revision": "8ee9f7a0b67a901da4fff246",
+  "sourceVersion": "592448d486019c320dd9ccddf0b54ff67d084d57b80c1347d1e8c84db0d37bb8",
+  "sanitizedHash": "592448d486019c320dd9ccddf0b54ff67d084d57b80c1347d1e8c84db0d37bb8",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R06_R07/R06_CENTRO_SOC/SP-R06-L08.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Investigar caso de múltiples señales con revisión humana",
+  "preamble": "# SP-R06-L08 — Caso completo de SOC\n\n**Región:** SP-R06 · **Prioridad:** P0 (SOC N1/N2) · **Estado:** material editorial para revisión · **SPL:** NO ejecutado en Splunk.\n\n**Objetivo curricular original:** Investigar caso de múltiples señales con revisión humana\n\n**Prerrequisitos:** R01–R05 y lectura de la matriz de campos. **Producto:** Splunk Enterprise/Cloud (búsquedas de lectura); funciones ES explícitamente condicionadas a Splunk Enterprise Security compatible.\n\n",
+  "sections": [
+    {
+      "id": "SP-R06-L08-S01",
+      "title": "1. Pregunta esencial y modelo mental",
+      "markdown": "## 1. Pregunta esencial y modelo mental\n\nEl caso integrador combina todas las competencias N1: reproducir alerta, pivotar a identidad, revisar Windows, reconstruir cronología, buscar hipótesis alternativa y escribir un informe revisable. No existe respuesta única sin contexto; el ejercicio dispone de una verdad de fixture para calificar cálculos, pero su interpretación final se evalúa mediante rúbrica.\n\n",
+      "line": 9,
+      "endLine": 11
+    },
+    {
+      "id": "SP-R06-L08-S02",
+      "title": "2. Conceptos que debes dominar",
+      "markdown": "## 2. Conceptos que debes dominar\n\n1. La cohorte 198.51.100.23 tiene seis fallos hacia seis cuentas entre 09:01–09:06 UTC y un éxito a las 09:08 UTC para bob.\n2. A021 se indexa 20 minutos después de su hora de evento; un sensor retrasado puede cambiar recuentos retrospectivos.\n3. La fuente de proxy y la identidad del dispositivo cliente no están disponibles en este fixture.\n4. Comparar grupo de IP con grupo por usuario evita conclusiones basadas solo en un campo.\n5. El resultado correcto no afirma compromiso: propone escalado o investigación proporcional y evidencia faltante.\n\n",
+      "line": 13,
+      "endLine": 19
+    },
+    {
+      "id": "SP-R06-L08-S03",
+      "title": "3. Práctica guiada: del dato a la conclusión",
+      "markdown": "## 3. Práctica guiada: del dato a la conclusión\n\n1. Ejecuta verificador offline y anota medidas canónicas.\n2. Redacta búsqueda base de fallos 4625 por src para ventana 09:00–09:15 UTC.\n3. Inspecciona éxito A007 y evento tardío A021, decide si se cuenta en la regla diseñada.\n4. Contrasta tarea autorizada svc-batch y origen proxy compartido para distinguir ruido de la cohorte.\n5. Entrega handoff, clasificación, MITRE condicional y plan de corroboración.\n\n",
+      "line": 21,
+      "endLine": 27
+    },
+    {
+      "id": "SP-R06-L08-S04",
+      "title": "4. SPL ilustrativo de solo lectura — NO probado en Splunk",
+      "markdown": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC (EventCode=4624 OR EventCode=4625)\n| bin _time span=15m\n| stats count(eval(EventCode=4625)) AS fallos dc(eval(if(EventCode=4625,user,null()))) AS usuarios values(event_id) AS ids BY src _time\n| where fallos>=5 AND usuarios>=5\n```\n\n**Interpretación, supuestos y límites:** `bin` y agregación son ilustrativos y su comportamiento depende de zona horaria/campos reales; si A021 cae en el mismo bucket, la cuenta de eventos retrospectiva difiere de lo disponible al disparar alerta a 09:16.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n",
+      "line": 29,
+      "endLine": 40
+    },
+    {
+      "id": "SP-R06-L08-S05",
+      "title": "5. Caso del turno SOC",
+      "markdown": "## 5. Caso del turno SOC\n\nLa detección dispara y un log tardío llega después. ¿Cómo reportarías los números observados en momentos diferentes?\n\n## 6. Errores frecuentes\n\n1. Olvidar delay de A021 y atribuirlo automáticamente a la primera evaluación de alerta.\n2. Excluir VPN/NAT o servicios sin evidencia.\n3. Tomar el resultado del fixture como evidencia de ataque real.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 42,
+      "endLine": 53
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R06-L08-Q01",
+      "lessonId": "SP-R06-L08",
+      "prompt": "¿Por qué cambia el total entre ejecución de 09:16 y búsqueda retrospectiva?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D01",
+        "SPLUNK_LECCIONES_R06_R07:D03",
+        "SPLUNK_LECCIONES_R06_R07:D06"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R06-L08-Q01-O-729a44b0a3a3",
+          "text": "La hora de evento cambió al refrescar el dashboard"
+        },
+        {
+          "id": "SP-R06-L08-Q01-O-c802ab2aadad",
+          "text": "La segunda búsqueda convirtió un éxito en fallo al agregar por IP"
+        },
+        {
+          "id": "SP-R06-L08-Q01-O-b3469430fdaf",
+          "text": "Los buckets de _time pasaron a agruparse por _indextime de forma automática"
+        },
+        {
+          "id": "SP-R06-L08-Q01-O-8fec44063032",
+          "text": "Entró un evento tardío tras la primera ejecución"
+        }
+      ],
+      "solution": "SP-R06-L08-Q01-O-8fec44063032",
+      "explanation": "El registro A021 tiene _time temprano e ingesta tardía.",
+      "anchors": [
+        {
+          "file": "R06_CENTRO_SOC/SP-R06-L08.md",
+          "sourceHash": "592448d486019c320dd9ccddf0b54ff67d084d57b80c1347d1e8c84db0d37bb8",
+          "line": 13,
+          "endLine": 19,
+          "quote": "## 2. Conceptos que debes dominar\n\n1. La cohorte 198.51.100.23 tiene seis fallos hacia seis cuentas entre 09:01–09:06 UTC y un éxito a las 09:08 UTC para bob.\n2. A021 se indexa 20 minutos después de su hora de evento; un sensor retrasado puede cambiar recuentos retrospectivos.\n3. La fuente de proxy y la identidad del dispositivo cliente no están disponibles en este fixture.\n4. Comparar grupo de IP con grupo por usuario evita conclusiones basadas solo en un campo.\n5. El resultado correcto no afirma compromiso: propone escalado o investigación proporcional y evidencia faltante.\n\n"
+        },
+        {
+          "file": "R06_CENTRO_SOC/SP-R06-L08.md",
+          "sourceHash": "592448d486019c320dd9ccddf0b54ff67d084d57b80c1347d1e8c84db0d37bb8",
+          "line": 29,
+          "endLine": 40,
+          "quote": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC (EventCode=4624 OR EventCode=4625)\n| bin _time span=15m\n| stats count(eval(EventCode=4625)) AS fallos dc(eval(if(EventCode=4625,user,null()))) AS usuarios values(event_id) AS ids BY src _time\n| where fallos>=5 AND usuarios>=5\n```\n\n**Interpretación, supuestos y límites:** `bin` y agregación son ilustrativos y su comportamiento depende de zona horaria/campos reales; si A021 cae en el mismo bucket, la cuenta de eventos retrospectiva difiere de lo disponible al disparar alerta a 09:16.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R06-L08-Q02",
+      "lessonId": "SP-R06-L08",
+      "prompt": "¿Qué resultado de un caso sintético puede declararse verificado?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D01",
+        "SPLUNK_LECCIONES_R06_R07:D03",
+        "SPLUNK_LECCIONES_R06_R07:D06"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R06-L08-Q02-O-78039b6663b2",
+          "text": "La legitimidad operativa de las identidades que aparecen en los CSV"
+        },
+        {
+          "id": "SP-R06-L08-Q02-O-7b7549d0765a",
+          "text": "Cálculos sobre la fixture y razonamiento documentado"
+        },
+        {
+          "id": "SP-R06-L08-Q02-O-6e80300d4c07",
+          "text": "La precisión del detector en la red del usuario"
+        },
+        {
+          "id": "SP-R06-L08-Q02-O-c7d6839019c7",
+          "text": "El esquema de campos que extraería el TA de Windows instalado"
+        }
+      ],
+      "solution": "SP-R06-L08-Q02-O-7b7549d0765a",
+      "explanation": "La evidencia offline no demuestra una intrusión real.",
+      "anchors": [
+        {
+          "file": "R06_CENTRO_SOC/SP-R06-L08.md",
+          "sourceHash": "592448d486019c320dd9ccddf0b54ff67d084d57b80c1347d1e8c84db0d37bb8",
+          "line": 13,
+          "endLine": 19,
+          "quote": "## 2. Conceptos que debes dominar\n\n1. La cohorte 198.51.100.23 tiene seis fallos hacia seis cuentas entre 09:01–09:06 UTC y un éxito a las 09:08 UTC para bob.\n2. A021 se indexa 20 minutos después de su hora de evento; un sensor retrasado puede cambiar recuentos retrospectivos.\n3. La fuente de proxy y la identidad del dispositivo cliente no están disponibles en este fixture.\n4. Comparar grupo de IP con grupo por usuario evita conclusiones basadas solo en un campo.\n5. El resultado correcto no afirma compromiso: propone escalado o investigación proporcional y evidencia faltante.\n\n"
+        },
+        {
+          "file": "R06_CENTRO_SOC/SP-R06-L08.md",
+          "sourceHash": "592448d486019c320dd9ccddf0b54ff67d084d57b80c1347d1e8c84db0d37bb8",
+          "line": 29,
+          "endLine": 40,
+          "quote": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC (EventCode=4624 OR EventCode=4625)\n| bin _time span=15m\n| stats count(eval(EventCode=4625)) AS fallos dc(eval(if(EventCode=4625,user,null()))) AS usuarios values(event_id) AS ids BY src _time\n| where fallos>=5 AND usuarios>=5\n```\n\n**Interpretación, supuestos y límites:** `bin` y agregación son ilustrativos y su comportamiento depende de zona horaria/campos reales; si A021 cae en el mismo bucket, la cuenta de eventos retrospectiva difiere de lo disponible al disparar alerta a 09:16.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R06-L08-P01",
+      "lessonId": "SP-R06-L08",
+      "prompt": "Entrega informe SOC completo para las cohortes sospechosa y autorizada; adjunta consulta, hechos, contraejemplos, cobertura y escalado.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D01",
+        "SPLUNK_LECCIONES_R06_R07:D03",
+        "SPLUNK_LECCIONES_R06_R07:D06"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica datos y supuestos de la fuente",
+        "Plantea método correcto y distingue hechos de hipótesis",
+        "Explica limitaciones, alternativa benigna y telemetría ausente",
+        "Aporta evidencia, ventana e identificación reproducibles"
+      ],
+      "referenceAnswer": "Seis fallos distintos al corte temprano (A001–A006), éxito A007 para bob; A021 es un séptimo fallo que ocurrió 09:04 pero llegó 09:24. Al leer el dataset completo hay 7 fallos de 6 cuentas. Separar ambos cortes es esencial. El contexto svc-batch favorece mantenimiento, pero no cierra sin corroboración."
+    }
+  ],
+  "solutionsMarkdown": "### Solucionario con razonamiento\n\n- **SP-R06-L08-Q01: D** — El registro A021 tiene _time temprano e ingesta tardía.\n\n- **SP-R06-L08-Q02: B** — La evidencia offline no demuestra una intrusión real.\n\n- **SP-R06-L08-P01:** Seis fallos distintos al corte temprano (A001–A006), éxito A007 para bob; A021 es un séptimo fallo que ocurrió 09:04 pero llegó 09:24. Al leer el dataset completo hay 7 fallos de 6 cuentas. Separar ambos cortes es esencial. El contexto svc-batch favorece mantenimiento, pero no cierra sin corroboración.\n\n**Guía de retroalimentación formativa:** Identifica datos y supuestos de la fuente; Plantea método correcto y distingue hechos de hipótesis; Explica limitaciones, alternativa benigna y telemetría ausente; Aporta evidencia, ventana e identificación reproducibles.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 8. Bibliografía, mapeo y estatus\n\n- **D01:** Condiciones de alertas y resultados — https://help.splunk.com/en/splunk-enterprise/alert-and-respond/alerting-manual/10.0/manage-alert-trigger-conditions-and-throttling/configure-alert-trigger-conditions\n- **D03:** Retraso de indexación y campos _time/_indextime — https://help.splunk.com/en/data-management/monitor-data-onboarding/troubleshoot-splunk-enterprise/10.6/data-acquisition-problems/event-indexing-delay\n- **D06:** Windows: 4625 fallo de inicio de sesión — https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4625\n\n- **Currículo:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` — ID, título y resultado intactos.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` — los bloques R06/R07 y laboratorios de diseño.\n- **Puente SC-200:** Capítulos 07–09 y 13: detección, investigación y agregación. Documento en `../../01_FUENTE_ORIGINAL/SC-200.md`; relación conceptual, no traducción ni equivalencia garantizada.\n\n**Clasificación de evidencia:** [DOC] respaldo documental de fuentes; [DISEÑO] procedimientos y rúbricas propuestos; [OFFLINE] sólo cálculos de fixtures reproducibles; [NO PROBADO] ejemplos SPL no ejecutados en la instancia. Validación técnica/manual de contenidos pendiente antes de integrarlo en React.\n",
+  "originalMarkdown": "# SP-R06-L08 — Caso completo de SOC\n\n**Región:** SP-R06 · **Prioridad:** P0 (SOC N1/N2) · **Estado:** material editorial para revisión · **SPL:** NO ejecutado en Splunk.\n\n**Objetivo curricular original:** Investigar caso de múltiples señales con revisión humana\n\n**Prerrequisitos:** R01–R05 y lectura de la matriz de campos. **Producto:** Splunk Enterprise/Cloud (búsquedas de lectura); funciones ES explícitamente condicionadas a Splunk Enterprise Security compatible.\n\n## 1. Pregunta esencial y modelo mental\n\nEl caso integrador combina todas las competencias N1: reproducir alerta, pivotar a identidad, revisar Windows, reconstruir cronología, buscar hipótesis alternativa y escribir un informe revisable. No existe respuesta única sin contexto; el ejercicio dispone de una verdad de fixture para calificar cálculos, pero su interpretación final se evalúa mediante rúbrica.\n\n## 2. Conceptos que debes dominar\n\n1. La cohorte 198.51.100.23 tiene seis fallos hacia seis cuentas entre 09:01–09:06 UTC y un éxito a las 09:08 UTC para bob.\n2. A021 se indexa 20 minutos después de su hora de evento; un sensor retrasado puede cambiar recuentos retrospectivos.\n3. La fuente de proxy y la identidad del dispositivo cliente no están disponibles en este fixture.\n4. Comparar grupo de IP con grupo por usuario evita conclusiones basadas solo en un campo.\n5. El resultado correcto no afirma compromiso: propone escalado o investigación proporcional y evidencia faltante.\n\n## 3. Práctica guiada: del dato a la conclusión\n\n1. Ejecuta verificador offline y anota medidas canónicas.\n2. Redacta búsqueda base de fallos 4625 por src para ventana 09:00–09:15 UTC.\n3. Inspecciona éxito A007 y evento tardío A021, decide si se cuenta en la regla diseñada.\n4. Contrasta tarea autorizada svc-batch y origen proxy compartido para distinguir ruido de la cohorte.\n5. Entrega handoff, clasificación, MITRE condicional y plan de corroboración.\n\n## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC (EventCode=4624 OR EventCode=4625)\n| bin _time span=15m\n| stats count(eval(EventCode=4625)) AS fallos dc(eval(if(EventCode=4625,user,null()))) AS usuarios values(event_id) AS ids BY src _time\n| where fallos>=5 AND usuarios>=5\n```\n\n**Interpretación, supuestos y límites:** `bin` y agregación son ilustrativos y su comportamiento depende de zona horaria/campos reales; si A021 cae en el mismo bucket, la cuenta de eventos retrospectiva difiere de lo disponible al disparar alerta a 09:16.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n## 5. Caso del turno SOC\n\nLa detección dispara y un log tardío llega después. ¿Cómo reportarías los números observados en momentos diferentes?\n\n## 6. Errores frecuentes\n\n1. Olvidar delay de A021 y atribuirlo automáticamente a la primera evaluación de alerta.\n2. Excluir VPN/NAT o servicios sin evidencia.\n3. Tomar el resultado del fixture como evidencia de ataque real.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R06-L08-Q01 — Opción múltiple\n\n¿Por qué cambia el total entre ejecución de 09:16 y búsqueda retrospectiva?\n\nA. La hora de evento cambió al refrescar el dashboard\nB. La segunda búsqueda convirtió un éxito en fallo al agregar por IP\nC. Los buckets de _time pasaron a agruparse por _indextime de forma automática\nD. Entró un evento tardío tras la primera ejecución\n\n### SP-R06-L08-Q02 — Opción múltiple\n\n¿Qué resultado de un caso sintético puede declararse verificado?\n\nA. La legitimidad operativa de las identidades que aparecen en los CSV\nB. Cálculos sobre la fixture y razonamiento documentado\nC. La precisión del detector en la red del usuario\nD. El esquema de campos que extraería el TA de Windows instalado\n\n### SP-R06-L08-P01 — Práctica abierta formativa\n\nEntrega informe SOC completo para las cohortes sospechosa y autorizada; adjunta consulta, hechos, contraejemplos, cobertura y escalado.\n\n### Solucionario con razonamiento\n\n- **SP-R06-L08-Q01: D** — El registro A021 tiene _time temprano e ingesta tardía.\n\n- **SP-R06-L08-Q02: B** — La evidencia offline no demuestra una intrusión real.\n\n- **SP-R06-L08-P01:** Seis fallos distintos al corte temprano (A001–A006), éxito A007 para bob; A021 es un séptimo fallo que ocurrió 09:04 pero llegó 09:24. Al leer el dataset completo hay 7 fallos de 6 cuentas. Separar ambos cortes es esencial. El contexto svc-batch favorece mantenimiento, pero no cierra sin corroboración.\n\n**Guía de retroalimentación formativa:** Identifica datos y supuestos de la fuente; Plantea método correcto y distingue hechos de hipótesis; Explica limitaciones, alternativa benigna y telemetría ausente; Aporta evidencia, ventana e identificación reproducibles.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Bibliografía, mapeo y estatus\n\n- **D01:** Condiciones de alertas y resultados — https://help.splunk.com/en/splunk-enterprise/alert-and-respond/alerting-manual/10.0/manage-alert-trigger-conditions-and-throttling/configure-alert-trigger-conditions\n- **D03:** Retraso de indexación y campos _time/_indextime — https://help.splunk.com/en/data-management/monitor-data-onboarding/troubleshoot-splunk-enterprise/10.6/data-acquisition-problems/event-indexing-delay\n- **D06:** Windows: 4625 fallo de inicio de sesión — https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4625\n\n- **Currículo:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` — ID, título y resultado intactos.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` — los bloques R06/R07 y laboratorios de diseño.\n- **Puente SC-200:** Capítulos 07–09 y 13: detección, investigación y agregación. Documento en `../../01_FUENTE_ORIGINAL/SC-200.md`; relación conceptual, no traducción ni equivalencia garantizada.\n\n**Clasificación de evidencia:** [DOC] respaldo documental de fuentes; [DISEÑO] procedimientos y rúbricas propuestos; [OFFLINE] sólo cálculos de fixtures reproducibles; [NO PROBADO] ejemplos SPL no ejecutados en la instancia. Validación técnica/manual de contenidos pendiente antes de integrarlo en React.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 8,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D01",
+      "key": "SPLUNK_LECCIONES_R06_R07:D01",
+      "url": "https://help.splunk.com/en/splunk-enterprise/alert-and-respond/alerting-manual/10.0/manage-alert-trigger-conditions-and-throttling/configure-alert-trigger-conditions"
+    },
+    {
+      "id": "D03",
+      "key": "SPLUNK_LECCIONES_R06_R07:D03",
+      "url": "https://help.splunk.com/en/data-management/monitor-data-onboarding/troubleshoot-splunk-enterprise/10.6/data-acquisition-problems/event-indexing-delay"
+    },
+    {
+      "id": "D06",
+      "key": "SPLUNK_LECCIONES_R06_R07:D06",
+      "url": "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4625"
+    }
+  ]
+}

@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R09-L06",
+  "title": "Investigations y evidencias",
+  "revision": "f51f45fe4236d4d652841679",
+  "sourceVersion": "12af89035992d162cf2cfbd71d2bd632d4f4d6946f96a7897a4d3e4081983006",
+  "sanitizedHash": "12af89035992d162cf2cfbd71d2bd632d4f4d6946f96a7897a4d3e4081983006",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R08_R09/R09_ENTERPRISE_SECURITY/SP-R09-L06.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Escalar, registrar, resolver y revisar hallazgos",
+  "preamble": "# SP-R09-L06 — Investigations y evidencias\n\n**Región:** SP-R09 · **Estado:** borrador editorial para revisión · **SPL:** ilustrativo NO ejecutado.\n\n**Resultado de aprendizaje curricular:** Escalar, registrar, resolver y revisar hallazgos.\n\n**Prerrequisitos:** R01–R07 según tema; R08 para agrupación/escalado R09. **Producto:** plataforma Splunk para SPL genérico; funciones ES 8.7/SOAR solo cuando se indiquen.\n\n",
+  "sections": [
+    {
+      "id": "SP-R09-L06-S01",
+      "title": "1. Explicación técnica",
+      "markdown": "## 1. Explicación técnica\n\nUna investigación agrupa evidencia contextualizada sobre un posible problema de seguridad. Debe contener hipótesis, línea temporal, entidades afectadas, enlaces a eventos originales, decisiones, propietario y criterios para cierre o escalado. En ES 8.7 Mission Control muestra investigaciones junto a findings; eso no significa que la aplicación pueda demostrar automáticamente la identidad de un atacante.\n\nEl análisis diferencia: evento crudo, resultado de detección, finding, finding group e investigación/caso gestionado. Cada transición debe preservar IDs y explicación de la relación. Es mala práctica afirmar que dos señales forman un único incidente solo porque comparten un dominio o una IP de NAT.\n\nLa prioridad y estado de un caso son decisiones humanas y organizativas; un caso puede cerrarse por actividad aprobada, falso positivo de analítica, falta de datos o evidencia insuficiente. La justificación debe incluir si conviene crear un ticket de mejora de telemetría o corrección de la regla.\n\n",
+      "line": 9,
+      "endLine": 15
+    },
+    {
+      "id": "SP-R09-L06-S02",
+      "title": "2. Conceptos que debes distinguir",
+      "markdown": "## 2. Conceptos que debes distinguir\n\n1. Unidad de investigación: entidad y período justificados\n2. Cadena de custodia analítica: IDs, timestamps y consultas reproducibles\n3. Motivo de cierre distinto de certeza absoluta\n4. Feedback de investigación hacia detección y cobertura\n\n",
+      "line": 17,
+      "endLine": 22
+    },
+    {
+      "id": "SP-R09-L06-S03",
+      "title": "3. Procedimiento reproducible y seguro",
+      "markdown": "## 3. Procedimiento reproducible y seguro\n\n1. Formula pregunta principal del caso.\n2. Enumera eventos y findings preservando IDs.\n3. Construye cronología UTC con fuentes y retrasos.\n4. Separa hechos, inferencias y contrafactuales benignos.\n5. Propón escalado o cierre documentado y control posterior.\n\n",
+      "line": 24,
+      "endLine": 30
+    },
+    {
+      "id": "SP-R09-L06-S04",
+      "title": "4. SPL ilustrativo (solo lectura; no probado)",
+      "markdown": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_FINDINGS_PRACTICA sourcetype=ST_SYNTH_FINDING entity=\"alice\"\n| sort 0 _time\n| table _time finding_id entity category risk_points\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n",
+      "line": 32,
+      "endLine": 40
+    },
+    {
+      "id": "SP-R09-L06-S05",
+      "title": "5. Escenario SOC",
+      "markdown": "## 5. Escenario SOC\n\nLa línea temporal de F01–F03 debe adjuntarse al caso sin inventar contenido de logs ni certeza de compromiso.\n\n## 6. Errores frecuentes\n\n1. Conservar solo un pantallazo sin evento origen\n2. Confundir hallazgo agrupado con una entidad atacante\n3. Omitir escenarios donde el caso queda indeterminado\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 42,
+      "endLine": 53
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R09-L06-Q01",
+      "lessonId": "SP-R09-L06",
+      "prompt": "¿Qué hace reproducible una investigación?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D07",
+        "SPLUNK_LECCIONES_R08_R09:D11"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R09-L06-Q01-O-c9ce08e8b064",
+          "text": "La memoria del analista sobre la secuencia sin identificadores"
+        },
+        {
+          "id": "SP-R09-L06-Q01-O-fea9e7a0b45f",
+          "text": "IDs de evidencia, consultas, ventana y decisiones"
+        },
+        {
+          "id": "SP-R09-L06-Q01-O-77a75220ac35",
+          "text": "La misma captura en cada turno aunque cambien los filtros"
+        },
+        {
+          "id": "SP-R09-L06-Q01-O-605521199134",
+          "text": "El título y la severidad sin vincular eventos de origen"
+        }
+      ],
+      "solution": "SP-R09-L06-Q01-O-fea9e7a0b45f",
+      "explanation": "La trazabilidad permite revalidar cada paso.",
+      "anchors": [
+        {
+          "file": "R09_ENTERPRISE_SECURITY/SP-R09-L06.md",
+          "sourceHash": "12af89035992d162cf2cfbd71d2bd632d4f4d6946f96a7897a4d3e4081983006",
+          "line": 17,
+          "endLine": 22,
+          "quote": "## 2. Conceptos que debes distinguir\n\n1. Unidad de investigación: entidad y período justificados\n2. Cadena de custodia analítica: IDs, timestamps y consultas reproducibles\n3. Motivo de cierre distinto de certeza absoluta\n4. Feedback de investigación hacia detección y cobertura\n\n"
+        },
+        {
+          "file": "R09_ENTERPRISE_SECURITY/SP-R09-L06.md",
+          "sourceHash": "12af89035992d162cf2cfbd71d2bd632d4f4d6946f96a7897a4d3e4081983006",
+          "line": 32,
+          "endLine": 40,
+          "quote": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_FINDINGS_PRACTICA sourcetype=ST_SYNTH_FINDING entity=\"alice\"\n| sort 0 _time\n| table _time finding_id entity category risk_points\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R09-L06-Q02",
+      "lessonId": "SP-R09-L06",
+      "prompt": "¿Cuál es un cierre legítimo si falta telemetría?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D07",
+        "SPLUNK_LECCIONES_R08_R09:D11"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R09-L06-Q02-O-5d8d30de753d",
+          "text": "Indeterminado por datos insuficientes con acciones de mejora"
+        },
+        {
+          "id": "SP-R09-L06-Q02-O-6f1d2e2979d5",
+          "text": "Falso positivo confirmado porque la consulta no pudo ejecutarse"
+        },
+        {
+          "id": "SP-R09-L06-Q02-O-2970fbcc4d6c",
+          "text": "Malicioso por la pérdida de visibilidad, sin otra evidencia"
+        },
+        {
+          "id": "SP-R09-L06-Q02-O-b240f8ecf12d",
+          "text": "Benigno por ausencia de coincidencia en una fuente que no tiene datos"
+        }
+      ],
+      "solution": "SP-R09-L06-Q02-O-5d8d30de753d",
+      "explanation": "La ausencia de información puede impedir una conclusión categórica.",
+      "anchors": [
+        {
+          "file": "R09_ENTERPRISE_SECURITY/SP-R09-L06.md",
+          "sourceHash": "12af89035992d162cf2cfbd71d2bd632d4f4d6946f96a7897a4d3e4081983006",
+          "line": 17,
+          "endLine": 22,
+          "quote": "## 2. Conceptos que debes distinguir\n\n1. Unidad de investigación: entidad y período justificados\n2. Cadena de custodia analítica: IDs, timestamps y consultas reproducibles\n3. Motivo de cierre distinto de certeza absoluta\n4. Feedback de investigación hacia detección y cobertura\n\n"
+        },
+        {
+          "file": "R09_ENTERPRISE_SECURITY/SP-R09-L06.md",
+          "sourceHash": "12af89035992d162cf2cfbd71d2bd632d4f4d6946f96a7897a4d3e4081983006",
+          "line": 32,
+          "endLine": 40,
+          "quote": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_FINDINGS_PRACTICA sourcetype=ST_SYNTH_FINDING entity=\"alice\"\n| sort 0 _time\n| table _time finding_id entity category risk_points\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R09-L06-P01",
+      "lessonId": "SP-R09-L06",
+      "prompt": "Redacta informe breve de caso con finding, hipótesis, línea temporal y dos cierres posibles.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D07",
+        "SPLUNK_LECCIONES_R08_R09:D11"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Distingue fuente, campos y alcance de la pregunta",
+        "Diseña un método reproducible sin inferencia abusiva",
+        "Separa señales, hipótesis, contraejemplos y ausencia de datos",
+        "Comunica siguiente paso seguro y evidencia para otro analista"
+      ],
+      "referenceAnswer": "IDs F01/F02/F03 y tiempos UTC; hipótesis de sesión inusual, fuentes auth/endpoint, limitación proxy y baseline. Cierres: benigno corroborado por cambio, o indeterminado sin auditoría; agregar acciones y responsable."
+    }
+  ],
+  "solutionsMarkdown": "## 8. Solucionario con razonamiento\n\n- **SP-R09-L06-Q01: B** — La trazabilidad permite revalidar cada paso.\n\n- **SP-R09-L06-Q02: A** — La ausencia de información puede impedir una conclusión categórica.\n\n- **SP-R09-L06-P01:** IDs F01/F02/F03 y tiempos UTC; hipótesis de sesión inusual, fuentes auth/endpoint, limitación proxy y baseline. Cierres: benigno corroborado por cambio, o indeterminado sin auditoría; agregar acciones y responsable.\n\n**Guía de retroalimentación formativa:** Distingue fuente, campos y alcance de la pregunta; Diseña un método reproducible sin inferencia abusiva; Separa señales, hipótesis, contraejemplos y ausencia de datos; Comunica siguiente paso seguro y evidencia para otro analista.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 9. Fuentes verificables y conexiones\n\n- **D07:** Splunk ES 8.7 — Use detections to search for threats — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/use-detections-to-search-for-threats-in-splunk-enterprise-security\n- **D11:** Splunk ES 8.7 — Overview of Mission Control — https://help.splunk.com/en/splunk-enterprise-security-8/user-guide/8.7/mission-control/overview-of-mission-control-in-splunk-enterprise-security\n\n- **Puente SC-200:** Capítulos 08, 09 y 11 (investigación y respuesta). La comparación es conceptual, no una equivalencia producto a producto.\n- **Fuente curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` en la carpeta padre `SPLUNK_MASTER_RESEARCH`.\n- **Calidad:** [DOC] referencias externas consultables; [DISEÑO] escenario y actividad originales; [OFFLINE] solo cálculos de fixture; [NO PROBADO] SPL no ejecutado en Splunk. La revisión técnica independiente queda pendiente.\n",
+  "originalMarkdown": "# SP-R09-L06 — Investigations y evidencias\n\n**Región:** SP-R09 · **Estado:** borrador editorial para revisión · **SPL:** ilustrativo NO ejecutado.\n\n**Resultado de aprendizaje curricular:** Escalar, registrar, resolver y revisar hallazgos.\n\n**Prerrequisitos:** R01–R07 según tema; R08 para agrupación/escalado R09. **Producto:** plataforma Splunk para SPL genérico; funciones ES 8.7/SOAR solo cuando se indiquen.\n\n## 1. Explicación técnica\n\nUna investigación agrupa evidencia contextualizada sobre un posible problema de seguridad. Debe contener hipótesis, línea temporal, entidades afectadas, enlaces a eventos originales, decisiones, propietario y criterios para cierre o escalado. En ES 8.7 Mission Control muestra investigaciones junto a findings; eso no significa que la aplicación pueda demostrar automáticamente la identidad de un atacante.\n\nEl análisis diferencia: evento crudo, resultado de detección, finding, finding group e investigación/caso gestionado. Cada transición debe preservar IDs y explicación de la relación. Es mala práctica afirmar que dos señales forman un único incidente solo porque comparten un dominio o una IP de NAT.\n\nLa prioridad y estado de un caso son decisiones humanas y organizativas; un caso puede cerrarse por actividad aprobada, falso positivo de analítica, falta de datos o evidencia insuficiente. La justificación debe incluir si conviene crear un ticket de mejora de telemetría o corrección de la regla.\n\n## 2. Conceptos que debes distinguir\n\n1. Unidad de investigación: entidad y período justificados\n2. Cadena de custodia analítica: IDs, timestamps y consultas reproducibles\n3. Motivo de cierre distinto de certeza absoluta\n4. Feedback de investigación hacia detección y cobertura\n\n## 3. Procedimiento reproducible y seguro\n\n1. Formula pregunta principal del caso.\n2. Enumera eventos y findings preservando IDs.\n3. Construye cronología UTC con fuentes y retrasos.\n4. Separa hechos, inferencias y contrafactuales benignos.\n5. Propón escalado o cierre documentado y control posterior.\n\n## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_FINDINGS_PRACTICA sourcetype=ST_SYNTH_FINDING entity=\"alice\"\n| sort 0 _time\n| table _time finding_id entity category risk_points\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n## 5. Escenario SOC\n\nLa línea temporal de F01–F03 debe adjuntarse al caso sin inventar contenido de logs ni certeza de compromiso.\n\n## 6. Errores frecuentes\n\n1. Conservar solo un pantallazo sin evento origen\n2. Confundir hallazgo agrupado con una entidad atacante\n3. Omitir escenarios donde el caso queda indeterminado\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R09-L06-Q01 — Opción múltiple\n\n¿Qué hace reproducible una investigación?\n\nA. La memoria del analista sobre la secuencia sin identificadores\nB. IDs de evidencia, consultas, ventana y decisiones\nC. La misma captura en cada turno aunque cambien los filtros\nD. El título y la severidad sin vincular eventos de origen\n\n### SP-R09-L06-Q02 — Opción múltiple\n\n¿Cuál es un cierre legítimo si falta telemetría?\n\nA. Indeterminado por datos insuficientes con acciones de mejora\nB. Falso positivo confirmado porque la consulta no pudo ejecutarse\nC. Malicioso por la pérdida de visibilidad, sin otra evidencia\nD. Benigno por ausencia de coincidencia en una fuente que no tiene datos\n\n### SP-R09-L06-P01 — Práctica abierta formativa\n\nRedacta informe breve de caso con finding, hipótesis, línea temporal y dos cierres posibles.\n\n## 8. Solucionario con razonamiento\n\n- **SP-R09-L06-Q01: B** — La trazabilidad permite revalidar cada paso.\n\n- **SP-R09-L06-Q02: A** — La ausencia de información puede impedir una conclusión categórica.\n\n- **SP-R09-L06-P01:** IDs F01/F02/F03 y tiempos UTC; hipótesis de sesión inusual, fuentes auth/endpoint, limitación proxy y baseline. Cierres: benigno corroborado por cambio, o indeterminado sin auditoría; agregar acciones y responsable.\n\n**Guía de retroalimentación formativa:** Distingue fuente, campos y alcance de la pregunta; Diseña un método reproducible sin inferencia abusiva; Separa señales, hipótesis, contraejemplos y ausencia de datos; Comunica siguiente paso seguro y evidencia para otro analista.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 9. Fuentes verificables y conexiones\n\n- **D07:** Splunk ES 8.7 — Use detections to search for threats — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/use-detections-to-search-for-threats-in-splunk-enterprise-security\n- **D11:** Splunk ES 8.7 — Overview of Mission Control — https://help.splunk.com/en/splunk-enterprise-security-8/user-guide/8.7/mission-control/overview-of-mission-control-in-splunk-enterprise-security\n\n- **Puente SC-200:** Capítulos 08, 09 y 11 (investigación y respuesta). La comparación es conceptual, no una equivalencia producto a producto.\n- **Fuente curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` en la carpeta padre `SPLUNK_MASTER_RESEARCH`.\n- **Calidad:** [DOC] referencias externas consultables; [DISEÑO] escenario y actividad originales; [OFFLINE] solo cálculos de fixture; [NO PROBADO] SPL no ejecutado en Splunk. La revisión técnica independiente queda pendiente.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D07",
+      "key": "SPLUNK_LECCIONES_R08_R09:D07",
+      "url": "https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/use-detections-to-search-for-threats-in-splunk-enterprise-security"
+    },
+    {
+      "id": "D11",
+      "key": "SPLUNK_LECCIONES_R08_R09:D11",
+      "url": "https://help.splunk.com/en/splunk-enterprise-security-8/user-guide/8.7/mission-control/overview-of-mission-control-in-splunk-enterprise-security"
+    }
+  ]
+}

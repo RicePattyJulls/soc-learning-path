@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R05-L03",
+  "title": "CIM: vocabulario común",
+  "revision": "af6c1c9cfc9c747500911e64",
+  "sourceVersion": "2f18e01bf3177a775038ea7e6a566e9093e04251cb68cbfdd9fc56aa6f5e590b",
+  "sanitizedHash": "2f18e01bf3177a775038ea7e6a566e9093e04251cb68cbfdd9fc56aa6f5e590b",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R04_R05/R05_CIM_NORMALIZACION/SP-R05-L03.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Aplicar conceptos src, dest, user, action, signature y dataset",
+  "preamble": "# SP-R05-L03 — CIM: vocabulario común\n\n**Región:** SP-R05 · **Prioridad:** P0/P1 SOC · **Estado:** borrador educativo para revisión · **SPL real:** no ejecutado.  \n**ID curricular intacto:** `SP-R05-L03` · **Resultado de aprendizaje:** Aplicar conceptos src, dest, user, action, signature y dataset  \n**Prerrequisitos:** R02 y R04; campos de fuentes conocidas · **Producto:** Splunk Enterprise/Cloud con SPL clásico según versión y permisos; CIM exige configuración pertinente.\n\n",
+  "sections": [
+    {
+      "id": "SP-R05-L03-S01",
+      "title": "1. Pregunta esencial",
+      "markdown": "## 1. Pregunta esencial\n\nEl Common Information Model (CIM) define un vocabulario compartido para investigar fuentes heterogéneas. En el dominio Authentication interesa saber quién (`user`) intentó autenticarse, desde dónde (`src`), hacia qué destino (`dest`) y con qué resultado (`action`) cuando la fuente permite inferirlo. No es un nuevo índice ni un conector que inventa esos campos automáticamente.\n\n**Objetivo verificable:** Aplicar conceptos src, dest, user, action, signature y dataset.\n\n",
+      "line": 7,
+      "endLine": 11
+    },
+    {
+      "id": "SP-R05-L03-S02",
+      "title": "2. Modelo mental y conceptos",
+      "markdown": "## 2. Modelo mental y conceptos\n\n1. El CIM es un contrato semántico: los campos y sus significados importan más que la coincidencia literal de nombres.\n2. La referencia Authentication identifica eventos con el tag correspondiente y restricciones del dataset; no basta con añadir `action=failure` a cualquier evento.\n3. `source` es metadato Splunk del origen del evento y NO debe confundirse con `src` (origen lógico de conexión) en CIM.\n4. Los datasets de otras familias como Change o Network Traffic tienen semánticas propias; no fuerces todas las fuentes a Authentication.\n\n",
+      "line": 13,
+      "endLine": 18
+    },
+    {
+      "id": "SP-R05-L03-S03",
+      "title": "3. Procedimiento guiado",
+      "markdown": "## 3. Procedimiento guiado\n\n1. Selecciona los eventos con `event_kind=login` en `auth_raw.csv`.\n2. Mapea user, src y action según la familia de origen; anota qué campos faltan.\n3. Para cada fila clasifica: autenticación, no autenticación o indeterminado.\n4. Verifica que tu resumen no dé una falsa cobertura de logs por el mero hecho de ver tags CIM.\n\n",
+      "line": 20,
+      "endLine": 25
+    },
+    {
+      "id": "SP-R05-L03-S04",
+      "title": "4. SPL ilustrativo — no ejecutado",
+      "markdown": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH tag=authentication earliest=-24h\n| stats count AS eventos dc(user) AS usuarios BY action\n```\n\n**Interpretación, condiciones y alcance:** `tag=authentication` presupone que la asignación de tags/eventtypes y el add-on pertinente se han configurado y validado. Puede no funcionar en un Splunk base sin esos objetos de conocimiento.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n",
+      "line": 27,
+      "endLine": 36
+    },
+    {
+      "id": "SP-R05-L03-S05",
+      "title": "5. Caso SOC",
+      "markdown": "## 5. Caso SOC\n\nDos fuentes ofrecen `user` y `src`, pero una de ellas es un evento de creación de proceso. ¿Qué debes comprobar?\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 38,
+      "endLine": 43
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R05-L03-Q01",
+      "lessonId": "SP-R05-L03",
+      "prompt": "¿Cuál es el propósito del CIM?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S08",
+        "SPLUNK_LECCIONES_R04_R05:S09"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R05-L03-Q01-O-14011f8902d2",
+          "text": "Garantizar que cada TA extraiga todos los campos sin validación"
+        },
+        {
+          "id": "SP-R05-L03-Q01-O-968d4c5223f8",
+          "text": "Convertir automáticamente toda la telemetría en Authentication"
+        },
+        {
+          "id": "SP-R05-L03-Q01-O-1d1f2efca593",
+          "text": "Unificar significado de campos y datasets para búsquedas comparables, sin fabricar datos de la fuente"
+        },
+        {
+          "id": "SP-R05-L03-Q01-O-5a017bd5ee4a",
+          "text": "Definir un índice físico por cada fabricante de origen"
+        }
+      ],
+      "solution": "SP-R05-L03-Q01-O-1d1f2efca593",
+      "explanation": "El CIM define un esquema semántico consumible por búsquedas y modelos.",
+      "anchors": [
+        {
+          "file": "R05_CIM_NORMALIZACION/SP-R05-L03.md",
+          "sourceHash": "2f18e01bf3177a775038ea7e6a566e9093e04251cb68cbfdd9fc56aa6f5e590b",
+          "line": 13,
+          "endLine": 18,
+          "quote": "## 2. Modelo mental y conceptos\n\n1. El CIM es un contrato semántico: los campos y sus significados importan más que la coincidencia literal de nombres.\n2. La referencia Authentication identifica eventos con el tag correspondiente y restricciones del dataset; no basta con añadir `action=failure` a cualquier evento.\n3. `source` es metadato Splunk del origen del evento y NO debe confundirse con `src` (origen lógico de conexión) en CIM.\n4. Los datasets de otras familias como Change o Network Traffic tienen semánticas propias; no fuerces todas las fuentes a Authentication.\n\n"
+        },
+        {
+          "file": "R05_CIM_NORMALIZACION/SP-R05-L03.md",
+          "sourceHash": "2f18e01bf3177a775038ea7e6a566e9093e04251cb68cbfdd9fc56aa6f5e590b",
+          "line": 27,
+          "endLine": 36,
+          "quote": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH tag=authentication earliest=-24h\n| stats count AS eventos dc(user) AS usuarios BY action\n```\n\n**Interpretación, condiciones y alcance:** `tag=authentication` presupone que la asignación de tags/eventtypes y el add-on pertinente se han configurado y validado. Puede no funcionar en un Splunk base sin esos objetos de conocimiento.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R05-L03-Q02",
+      "lessonId": "SP-R05-L03",
+      "prompt": "¿Qué diferencia hay entre source y src?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S08",
+        "SPLUNK_LECCIONES_R04_R05:S09"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R05-L03-Q02-O-f4e247d2bd53",
+          "text": "src es el valor atribuido al emisor Splunk y sustituye a host"
+        },
+        {
+          "id": "SP-R05-L03-Q02-O-b2305047121e",
+          "text": "source y src pueden intercambiarse si los dos tienen valores de texto"
+        },
+        {
+          "id": "SP-R05-L03-Q02-O-d734e75e5220",
+          "text": "source identifica la IP remota y src el canal o archivo ingerido"
+        },
+        {
+          "id": "SP-R05-L03-Q02-O-262da89d85d0",
+          "text": "source es metadato de origen del dato; src puede ser IP/host origen del evento"
+        }
+      ],
+      "solution": "SP-R05-L03-Q02-O-262da89d85d0",
+      "explanation": "Los nombres tienen significados distintos.",
+      "anchors": [
+        {
+          "file": "R05_CIM_NORMALIZACION/SP-R05-L03.md",
+          "sourceHash": "2f18e01bf3177a775038ea7e6a566e9093e04251cb68cbfdd9fc56aa6f5e590b",
+          "line": 13,
+          "endLine": 18,
+          "quote": "## 2. Modelo mental y conceptos\n\n1. El CIM es un contrato semántico: los campos y sus significados importan más que la coincidencia literal de nombres.\n2. La referencia Authentication identifica eventos con el tag correspondiente y restricciones del dataset; no basta con añadir `action=failure` a cualquier evento.\n3. `source` es metadato Splunk del origen del evento y NO debe confundirse con `src` (origen lógico de conexión) en CIM.\n4. Los datasets de otras familias como Change o Network Traffic tienen semánticas propias; no fuerces todas las fuentes a Authentication.\n\n"
+        },
+        {
+          "file": "R05_CIM_NORMALIZACION/SP-R05-L03.md",
+          "sourceHash": "2f18e01bf3177a775038ea7e6a566e9093e04251cb68cbfdd9fc56aa6f5e590b",
+          "line": 27,
+          "endLine": 36,
+          "quote": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH tag=authentication earliest=-24h\n| stats count AS eventos dc(user) AS usuarios BY action\n```\n\n**Interpretación, condiciones y alcance:** `tag=authentication` presupone que la asignación de tags/eventtypes y el add-on pertinente se han configurado y validado. Puede no funcionar en un Splunk base sin esos objetos de conocimiento.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R05-L03-P01",
+      "lessonId": "SP-R05-L03",
+      "prompt": "Construye una ficha de cumplimiento CIM Authentication para tres eventos válidos y uno inválido del fixture; etiqueta campos ausentes y semántica incorrecta.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S08",
+        "SPLUNK_LECCIONES_R04_R05:S09"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica fuentes, campos, ventana y supuestos",
+        "Aplica el método al escenario y explica cifras o semántica",
+        "Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante",
+        "Presenta una respuesta reproducible sin ejecutar cambios en sistemas"
+      ],
+      "referenceAnswer": "Los eventos Windows 4624/4625 y Linux accepted/failed pueden entrar si hay mapeo y tags correctos; 4688 no es autenticación. El src vacío no se fabrica: queda como brecha observable de calidad."
+    }
+  ],
+  "solutionsMarkdown": "## 7. Solucionario con razonamiento\n\n- **SP-R05-L03-Q01: C** — El CIM define un esquema semántico consumible por búsquedas y modelos.\n\n- **SP-R05-L03-Q02: D** — Los nombres tienen significados distintos.\n\n- **SP-R05-L03-P01:** Los eventos Windows 4624/4625 y Linux accepted/failed pueden entrar si hay mapeo y tags correctos; 4688 no es autenticación. El src vacío no se fabrica: queda como brecha observable de calidad.\n\n**Guía de retroalimentación formativa:** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Solucionario razonado\n\n**Q01 → B.** Unificar significado de campos y datasets. El CIM define un esquema semántico consumible por búsquedas y modelos.\n\n**Q02 → B.** source es metadato de origen del dato; src puede ser IP/host origen del evento. Los nombres tienen significados distintos.\n\n**P01 → Solución orientativa:** Los eventos Windows 4624/4625 y Linux accepted/failed pueden entrar si hay mapeo y tags correctos; 4688 no es autenticación. El src vacío no se fabrica: queda como brecha observable de calidad.\n\n**Rúbrica (0–4):** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas. Superar un test escrito no equivale por sí solo a dominar investigación SOC.\n\n",
+  "referencesMarkdown": "## 9. Fuentes y trazabilidad\n\n- **Origen curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`; título y objetivo preservados.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` (no reescrita).\n- **Puente de conceptos SC-200:** Cap. 04 (ingesta), 13 (tablas y relaciones), sin equivalencia 1:1 con ASIM. Véase `../../01_FUENTE_ORIGINAL/SC-200.md` (sin trasladar esquemas literalmente).\n- **[S08] Authentication CIM: campos y tags:** https://help.splunk.com/en/splunk-enterprise/common-information-model/6.0/data-models/authentication\n- **[S09] CIM referencia: restricciones, tags y campos:** https://help.splunk.com/en/splunk-enterprise/common-information-model/8.7/data-models/how-to-use-the-cim-data-model-reference-tables\n\n**Estatus de evidencia:** documentación del producto + diseño educativo + cálculos offline sobre fixtures (cuando se indica). No se ha verificado ejecución/compatibilidad específica en Splunk del usuario; revisar con la versión real antes de usar en producción.\n",
+  "originalMarkdown": "# SP-R05-L03 — CIM: vocabulario común\n\n**Región:** SP-R05 · **Prioridad:** P0/P1 SOC · **Estado:** borrador educativo para revisión · **SPL real:** no ejecutado.  \n**ID curricular intacto:** `SP-R05-L03` · **Resultado de aprendizaje:** Aplicar conceptos src, dest, user, action, signature y dataset  \n**Prerrequisitos:** R02 y R04; campos de fuentes conocidas · **Producto:** Splunk Enterprise/Cloud con SPL clásico según versión y permisos; CIM exige configuración pertinente.\n\n## 1. Pregunta esencial\n\nEl Common Information Model (CIM) define un vocabulario compartido para investigar fuentes heterogéneas. En el dominio Authentication interesa saber quién (`user`) intentó autenticarse, desde dónde (`src`), hacia qué destino (`dest`) y con qué resultado (`action`) cuando la fuente permite inferirlo. No es un nuevo índice ni un conector que inventa esos campos automáticamente.\n\n**Objetivo verificable:** Aplicar conceptos src, dest, user, action, signature y dataset.\n\n## 2. Modelo mental y conceptos\n\n1. El CIM es un contrato semántico: los campos y sus significados importan más que la coincidencia literal de nombres.\n2. La referencia Authentication identifica eventos con el tag correspondiente y restricciones del dataset; no basta con añadir `action=failure` a cualquier evento.\n3. `source` es metadato Splunk del origen del evento y NO debe confundirse con `src` (origen lógico de conexión) en CIM.\n4. Los datasets de otras familias como Change o Network Traffic tienen semánticas propias; no fuerces todas las fuentes a Authentication.\n\n## 3. Procedimiento guiado\n\n1. Selecciona los eventos con `event_kind=login` en `auth_raw.csv`.\n2. Mapea user, src y action según la familia de origen; anota qué campos faltan.\n3. Para cada fila clasifica: autenticación, no autenticación o indeterminado.\n4. Verifica que tu resumen no dé una falsa cobertura de logs por el mero hecho de ver tags CIM.\n\n## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH tag=authentication earliest=-24h\n| stats count AS eventos dc(user) AS usuarios BY action\n```\n\n**Interpretación, condiciones y alcance:** `tag=authentication` presupone que la asignación de tags/eventtypes y el add-on pertinente se han configurado y validado. Puede no funcionar en un Splunk base sin esos objetos de conocimiento.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n## 5. Caso SOC\n\nDos fuentes ofrecen `user` y `src`, pero una de ellas es un evento de creación de proceso. ¿Qué debes comprobar?\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 6. Actividades\n\n### SP-R05-L03-Q01 — Opción múltiple\n\n¿Cuál es el propósito del CIM?\n\nA. Garantizar que cada TA extraiga todos los campos sin validación\nB. Convertir automáticamente toda la telemetría en Authentication\nC. Unificar significado de campos y datasets para búsquedas comparables, sin fabricar datos de la fuente\nD. Definir un índice físico por cada fabricante de origen\n\n### SP-R05-L03-Q02 — Opción múltiple\n\n¿Qué diferencia hay entre source y src?\n\nA. src es el valor atribuido al emisor Splunk y sustituye a host\nB. source y src pueden intercambiarse si los dos tienen valores de texto\nC. source identifica la IP remota y src el canal o archivo ingerido\nD. source es metadato de origen del dato; src puede ser IP/host origen del evento\n\n### SP-R05-L03-P01 — Práctica abierta formativa\n\nConstruye una ficha de cumplimiento CIM Authentication para tres eventos válidos y uno inválido del fixture; etiqueta campos ausentes y semántica incorrecta.\n\n## 7. Solucionario con razonamiento\n\n- **SP-R05-L03-Q01: C** — El CIM define un esquema semántico consumible por búsquedas y modelos.\n\n- **SP-R05-L03-Q02: D** — Los nombres tienen significados distintos.\n\n- **SP-R05-L03-P01:** Los eventos Windows 4624/4625 y Linux accepted/failed pueden entrar si hay mapeo y tags correctos; 4688 no es autenticación. El src vacío no se fabrica: queda como brecha observable de calidad.\n\n**Guía de retroalimentación formativa:** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Solucionario razonado\n\n**Q01 → B.** Unificar significado de campos y datasets. El CIM define un esquema semántico consumible por búsquedas y modelos.\n\n**Q02 → B.** source es metadato de origen del dato; src puede ser IP/host origen del evento. Los nombres tienen significados distintos.\n\n**P01 → Solución orientativa:** Los eventos Windows 4624/4625 y Linux accepted/failed pueden entrar si hay mapeo y tags correctos; 4688 no es autenticación. El src vacío no se fabrica: queda como brecha observable de calidad.\n\n**Rúbrica (0–4):** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas. Superar un test escrito no equivale por sí solo a dominar investigación SOC.\n\n## 9. Fuentes y trazabilidad\n\n- **Origen curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`; título y objetivo preservados.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` (no reescrita).\n- **Puente de conceptos SC-200:** Cap. 04 (ingesta), 13 (tablas y relaciones), sin equivalencia 1:1 con ASIM. Véase `../../01_FUENTE_ORIGINAL/SC-200.md` (sin trasladar esquemas literalmente).\n- **[S08] Authentication CIM: campos y tags:** https://help.splunk.com/en/splunk-enterprise/common-information-model/6.0/data-models/authentication\n- **[S09] CIM referencia: restricciones, tags y campos:** https://help.splunk.com/en/splunk-enterprise/common-information-model/8.7/data-models/how-to-use-the-cim-data-model-reference-tables\n\n**Estatus de evidencia:** documentación del producto + diseño educativo + cálculos offline sobre fixtures (cuando se indica). No se ha verificado ejecución/compatibilidad específica en Splunk del usuario; revisar con la versión real antes de usar en producción.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "S08",
+      "key": "SPLUNK_LECCIONES_R04_R05:S08",
+      "url": "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.0/data-models/authentication"
+    },
+    {
+      "id": "S09",
+      "key": "SPLUNK_LECCIONES_R04_R05:S09",
+      "url": "https://help.splunk.com/en/splunk-enterprise/common-information-model/8.7/data-models/how-to-use-the-cim-data-model-reference-tables"
+    }
+  ]
+}

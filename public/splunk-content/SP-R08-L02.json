@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R08-L02",
+  "title": "Kerberos y señales 4769",
+  "revision": "6c077e29a7817a622ae54c27",
+  "sourceVersion": "b54c41aee740a1ef10f0fbd49b6ef619212fde4ba462f7623535d2509e90d7f1",
+  "sanitizedHash": "b54c41aee740a1ef10f0fbd49b6ef619212fde4ba462f7623535d2509e90d7f1",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R08_R09/R08_THREAT_HUNTING/SP-R08-L02.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Interpretar TGS RC4 y contexto normal/anómalo",
+  "preamble": "# SP-R08-L02 — Kerberos y señales 4769\n\n**Región:** SP-R08 · **Estado:** borrador editorial para revisión · **SPL:** ilustrativo NO ejecutado.\n\n**Resultado de aprendizaje curricular:** Interpretar TGS RC4 y contexto normal/anómalo.\n\n**Prerrequisitos:** R01–R07 según tema; R08 para agrupación/escalado R09. **Producto:** plataforma Splunk para SPL genérico; funciones ES 8.7/SOAR solo cuando se indiquen.\n\n",
+  "sections": [
+    {
+      "id": "SP-R08-L02-S01",
+      "title": "1. Explicación técnica",
+      "markdown": "## 1. Explicación técnica\n\nEl evento 4769 aparece al solicitarse un ticket de servicio Kerberos al controlador de dominio, siempre que exista la auditoría pertinente. En algunos formatos hay campos de cuenta solicitante, servicio y tipo de cifrado. Su disponibilidad y semántica dependen de versión, parche y normalización. En particular, `ServiceName` no debe declararse automáticamente un SPN completo: podría representar una cuenta de servicio.\n\nKerberoasting (T1558.003) se relaciona con obtener tickets de servicio susceptibles de ataque offline. Una ráfaga de solicitudes o el uso de RC4 son **señales de contexto**, no prueba de cracking ni de compromiso. Los servicios antiguos, tareas de inventario y las cuentas de backup pueden producir volúmenes legítimos. AES tampoco elimina automáticamente una hipótesis; la detección se debe apoyar en comparaciones y otras evidencias.\n\nEl análisis prioriza diversidad observable de servicios, solicitante, frecuencia, horario, equipo, historial y excepciones de negocio documentadas. No equipares los campos sintéticos `service` y `encryption` a extracción Windows real sin inspeccionarla.\n\n",
+      "line": 9,
+      "endLine": 15
+    },
+    {
+      "id": "SP-R08-L02-S02",
+      "title": "2. Conceptos que debes distinguir",
+      "markdown": "## 2. Conceptos que debes distinguir\n\n1. 4769: solicitud TGS en DC, no ejecución en destino\n2. 0x17 asociado con RC4 en determinados esquemas; no evidencia suficiente\n3. Diversidad de servicios no equivale a diversidad de SPN sin mapeo\n4. AES, campos vacíos y contexto autorizado como controles negativos\n\n",
+      "line": 17,
+      "endLine": 22
+    },
+    {
+      "id": "SP-R08-L02-S03",
+      "title": "3. Procedimiento reproducible y seguro",
+      "markdown": "## 3. Procedimiento reproducible y seguro\n\n1. Verifica que los DC generan 4769 y existen eventos recientes.\n2. Comprueba qué campo representa servicio y quién solicitó el TGS.\n3. Calcula volúmenes por cuenta y diversidad de servicio en 15 minutos.\n4. Contrasta con baseline, cuentas de servicio y mantenimiento.\n5. Busca pruebas independientes de actividad posterior antes de escalar.\n\n",
+      "line": 24,
+      "endLine": 30
+    },
+    {
+      "id": "SP-R08-L02-S04",
+      "title": "4. SPL ilustrativo (solo lectura; no probado)",
+      "markdown": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4769\n| bin _time span=15m\n| stats count AS tgs dc(ServiceName) AS servicios values(TicketEncryptionType) AS cifrados BY user src _time\n| where tgs>=5 AND servicios>=4\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n",
+      "line": 32,
+      "endLine": 41
+    },
+    {
+      "id": "SP-R08-L02-S05",
+      "title": "5. Escenario SOC",
+      "markdown": "## 5. Escenario SOC\n\nEn `tgs_requests.csv` el usuario temporal pide seis servicios distintos; `svc-backup` solicita cinco veces el mismo. Ambos pueden usar RC4; la diversidad cambia la prioridad, no establece culpabilidad.\n\n## 6. Errores frecuentes\n\n1. Usar RC4=ataque como regla determinista\n2. Tratar `ServiceName` de Windows como SPN inequívoco\n3. Afirmar que el archivo sintético representa todos los esquemas 4769\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 43,
+      "endLine": 54
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R08-L02-Q01",
+      "lessonId": "SP-R08-L02",
+      "prompt": "¿Qué acredita por sí mismo un 4769 bien interpretado?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D01",
+        "SPLUNK_LECCIONES_R08_R09:D06"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R08-L02-Q01-O-3e3bd4726fe2",
+          "text": "Petición observada de ticket de servicio"
+        },
+        {
+          "id": "SP-R08-L02-Q01-O-f5441cdaea35",
+          "text": "Que el usuario accedió al servicio y ejecutó una operación"
+        },
+        {
+          "id": "SP-R08-L02-Q01-O-071cf65fea04",
+          "text": "Que el ticket fue sometido a cracking fuera de línea"
+        },
+        {
+          "id": "SP-R08-L02-Q01-O-c1ef5fc343c7",
+          "text": "Que la cuenta de servicio fue comprometida por el solicitante"
+        }
+      ],
+      "solution": "SP-R08-L02-Q01-O-3e3bd4726fe2",
+      "explanation": "No prueba que el ticket se haya roto offline.",
+      "anchors": [
+        {
+          "file": "R08_THREAT_HUNTING/SP-R08-L02.md",
+          "sourceHash": "b54c41aee740a1ef10f0fbd49b6ef619212fde4ba462f7623535d2509e90d7f1",
+          "line": 17,
+          "endLine": 22,
+          "quote": "## 2. Conceptos que debes distinguir\n\n1. 4769: solicitud TGS en DC, no ejecución en destino\n2. 0x17 asociado con RC4 en determinados esquemas; no evidencia suficiente\n3. Diversidad de servicios no equivale a diversidad de SPN sin mapeo\n4. AES, campos vacíos y contexto autorizado como controles negativos\n\n"
+        },
+        {
+          "file": "R08_THREAT_HUNTING/SP-R08-L02.md",
+          "sourceHash": "b54c41aee740a1ef10f0fbd49b6ef619212fde4ba462f7623535d2509e90d7f1",
+          "line": 32,
+          "endLine": 41,
+          "quote": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4769\n| bin _time span=15m\n| stats count AS tgs dc(ServiceName) AS servicios values(TicketEncryptionType) AS cifrados BY user src _time\n| where tgs>=5 AND servicios>=4\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R08-L02-Q02",
+      "lessonId": "SP-R08-L02",
+      "prompt": "¿Qué métrica separa mejor seis servicios de cinco solicitudes al mismo?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D01",
+        "SPLUNK_LECCIONES_R08_R09:D06"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R08-L02-Q02-O-625d569f90cc",
+          "text": "El número total de solicitudes sin agrupar por servicio"
+        },
+        {
+          "id": "SP-R08-L02-Q02-O-aed42e9abede",
+          "text": "El número de DC emisores, sin reconciliar servicios y solicitantes"
+        },
+        {
+          "id": "SP-R08-L02-Q02-O-ba7f1daaecf0",
+          "text": "La diversidad de servicio por solicitante, verificando qué significa ese campo en la fuente observada"
+        },
+        {
+          "id": "SP-R08-L02-Q02-O-0c1d79cbabd5",
+          "text": "El porcentaje de solicitudes RC4 sin revisar diversidad de servicio"
+        }
+      ],
+      "solution": "SP-R08-L02-Q02-O-ba7f1daaecf0",
+      "explanation": "Se necesita cardinalidad de servicios, no solo número de filas.",
+      "anchors": [
+        {
+          "file": "R08_THREAT_HUNTING/SP-R08-L02.md",
+          "sourceHash": "b54c41aee740a1ef10f0fbd49b6ef619212fde4ba462f7623535d2509e90d7f1",
+          "line": 17,
+          "endLine": 22,
+          "quote": "## 2. Conceptos que debes distinguir\n\n1. 4769: solicitud TGS en DC, no ejecución en destino\n2. 0x17 asociado con RC4 en determinados esquemas; no evidencia suficiente\n3. Diversidad de servicios no equivale a diversidad de SPN sin mapeo\n4. AES, campos vacíos y contexto autorizado como controles negativos\n\n"
+        },
+        {
+          "file": "R08_THREAT_HUNTING/SP-R08-L02.md",
+          "sourceHash": "b54c41aee740a1ef10f0fbd49b6ef619212fde4ba462f7623535d2509e90d7f1",
+          "line": 32,
+          "endLine": 41,
+          "quote": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4769\n| bin _time span=15m\n| stats count AS tgs dc(ServiceName) AS servicios values(TicketEncryptionType) AS cifrados BY user src _time\n| where tgs>=5 AND servicios>=4\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R08-L02-P01",
+      "lessonId": "SP-R08-L02",
+      "prompt": "Compara K01–K06, K07–K11 y K12–K15 con recuentos, cifrado y contexto; explica qué caso requiere seguimiento.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D01",
+        "SPLUNK_LECCIONES_R08_R09:D06"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Distingue fuente, campos y alcance de la pregunta",
+        "Diseña un método reproducible sin inferencia abusiva",
+        "Separa señales, hipótesis, contraejemplos y ausencia de datos",
+        "Comunica siguiente paso seguro y evidencia para otro analista"
+      ],
+      "referenceAnswer": "K01–K06: 6 TGS y 6 nombres de servicio, RC4; priorizar indagación. K07–K11: 5 TGS y 1 servicio, cuenta de backup documentada; priorizar control benigno. K12–K15: 4 servicios con AES, evaluar baseline; no clasificar malicioso solo por variedad."
+    }
+  ],
+  "solutionsMarkdown": "## 8. Solucionario con razonamiento\n\n- **SP-R08-L02-Q01: A** — No prueba que el ticket se haya roto offline.\n\n- **SP-R08-L02-Q02: C** — Se necesita cardinalidad de servicios, no solo número de filas.\n\n- **SP-R08-L02-P01:** K01–K06: 6 TGS y 6 nombres de servicio, RC4; priorizar indagación. K07–K11: 5 TGS y 1 servicio, cuenta de backup documentada; priorizar control benigno. K12–K15: 4 servicios con AES, evaluar baseline; no clasificar malicioso solo por variedad.\n\n**Guía de retroalimentación formativa:** Distingue fuente, campos y alcance de la pregunta; Diseña un método reproducible sin inferencia abusiva; Separa señales, hipótesis, contraejemplos y ausencia de datos; Comunica siguiente paso seguro y evidencia para otro analista.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 9. Fuentes verificables y conexiones\n\n- **D01:** MITRE ATT&CK — Kerberoasting (T1558.003) — https://attack.mitre.org/techniques/T1558/003/\n- **D06:** Windows Security Event 4769 — https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4769\n\n- **Puente SC-200:** Capítulos 04, 07, 09 y 10 (ingesta, detección e investigación). La comparación es conceptual, no una equivalencia producto a producto.\n- **Fuente curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` en la carpeta padre `SPLUNK_MASTER_RESEARCH`.\n- **Calidad:** [DOC] referencias externas consultables; [DISEÑO] escenario y actividad originales; [OFFLINE] solo cálculos de fixture; [NO PROBADO] SPL no ejecutado en Splunk. La revisión técnica independiente queda pendiente.\n",
+  "originalMarkdown": "# SP-R08-L02 — Kerberos y señales 4769\n\n**Región:** SP-R08 · **Estado:** borrador editorial para revisión · **SPL:** ilustrativo NO ejecutado.\n\n**Resultado de aprendizaje curricular:** Interpretar TGS RC4 y contexto normal/anómalo.\n\n**Prerrequisitos:** R01–R07 según tema; R08 para agrupación/escalado R09. **Producto:** plataforma Splunk para SPL genérico; funciones ES 8.7/SOAR solo cuando se indiquen.\n\n## 1. Explicación técnica\n\nEl evento 4769 aparece al solicitarse un ticket de servicio Kerberos al controlador de dominio, siempre que exista la auditoría pertinente. En algunos formatos hay campos de cuenta solicitante, servicio y tipo de cifrado. Su disponibilidad y semántica dependen de versión, parche y normalización. En particular, `ServiceName` no debe declararse automáticamente un SPN completo: podría representar una cuenta de servicio.\n\nKerberoasting (T1558.003) se relaciona con obtener tickets de servicio susceptibles de ataque offline. Una ráfaga de solicitudes o el uso de RC4 son **señales de contexto**, no prueba de cracking ni de compromiso. Los servicios antiguos, tareas de inventario y las cuentas de backup pueden producir volúmenes legítimos. AES tampoco elimina automáticamente una hipótesis; la detección se debe apoyar en comparaciones y otras evidencias.\n\nEl análisis prioriza diversidad observable de servicios, solicitante, frecuencia, horario, equipo, historial y excepciones de negocio documentadas. No equipares los campos sintéticos `service` y `encryption` a extracción Windows real sin inspeccionarla.\n\n## 2. Conceptos que debes distinguir\n\n1. 4769: solicitud TGS en DC, no ejecución en destino\n2. 0x17 asociado con RC4 en determinados esquemas; no evidencia suficiente\n3. Diversidad de servicios no equivale a diversidad de SPN sin mapeo\n4. AES, campos vacíos y contexto autorizado como controles negativos\n\n## 3. Procedimiento reproducible y seguro\n\n1. Verifica que los DC generan 4769 y existen eventos recientes.\n2. Comprueba qué campo representa servicio y quién solicitó el TGS.\n3. Calcula volúmenes por cuenta y diversidad de servicio en 15 minutos.\n4. Contrasta con baseline, cuentas de servicio y mantenimiento.\n5. Busca pruebas independientes de actividad posterior antes de escalar.\n\n## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4769\n| bin _time span=15m\n| stats count AS tgs dc(ServiceName) AS servicios values(TicketEncryptionType) AS cifrados BY user src _time\n| where tgs>=5 AND servicios>=4\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n## 5. Escenario SOC\n\nEn `tgs_requests.csv` el usuario temporal pide seis servicios distintos; `svc-backup` solicita cinco veces el mismo. Ambos pueden usar RC4; la diversidad cambia la prioridad, no establece culpabilidad.\n\n## 6. Errores frecuentes\n\n1. Usar RC4=ataque como regla determinista\n2. Tratar `ServiceName` de Windows como SPN inequívoco\n3. Afirmar que el archivo sintético representa todos los esquemas 4769\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R08-L02-Q01 — Opción múltiple\n\n¿Qué acredita por sí mismo un 4769 bien interpretado?\n\nA. Petición observada de ticket de servicio\nB. Que el usuario accedió al servicio y ejecutó una operación\nC. Que el ticket fue sometido a cracking fuera de línea\nD. Que la cuenta de servicio fue comprometida por el solicitante\n\n### SP-R08-L02-Q02 — Opción múltiple\n\n¿Qué métrica separa mejor seis servicios de cinco solicitudes al mismo?\n\nA. El número total de solicitudes sin agrupar por servicio\nB. El número de DC emisores, sin reconciliar servicios y solicitantes\nC. La diversidad de servicio por solicitante, verificando qué significa ese campo en la fuente observada\nD. El porcentaje de solicitudes RC4 sin revisar diversidad de servicio\n\n### SP-R08-L02-P01 — Práctica abierta formativa\n\nCompara K01–K06, K07–K11 y K12–K15 con recuentos, cifrado y contexto; explica qué caso requiere seguimiento.\n\n## 8. Solucionario con razonamiento\n\n- **SP-R08-L02-Q01: A** — No prueba que el ticket se haya roto offline.\n\n- **SP-R08-L02-Q02: C** — Se necesita cardinalidad de servicios, no solo número de filas.\n\n- **SP-R08-L02-P01:** K01–K06: 6 TGS y 6 nombres de servicio, RC4; priorizar indagación. K07–K11: 5 TGS y 1 servicio, cuenta de backup documentada; priorizar control benigno. K12–K15: 4 servicios con AES, evaluar baseline; no clasificar malicioso solo por variedad.\n\n**Guía de retroalimentación formativa:** Distingue fuente, campos y alcance de la pregunta; Diseña un método reproducible sin inferencia abusiva; Separa señales, hipótesis, contraejemplos y ausencia de datos; Comunica siguiente paso seguro y evidencia para otro analista.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 9. Fuentes verificables y conexiones\n\n- **D01:** MITRE ATT&CK — Kerberoasting (T1558.003) — https://attack.mitre.org/techniques/T1558/003/\n- **D06:** Windows Security Event 4769 — https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4769\n\n- **Puente SC-200:** Capítulos 04, 07, 09 y 10 (ingesta, detección e investigación). La comparación es conceptual, no una equivalencia producto a producto.\n- **Fuente curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` en la carpeta padre `SPLUNK_MASTER_RESEARCH`.\n- **Calidad:** [DOC] referencias externas consultables; [DISEÑO] escenario y actividad originales; [OFFLINE] solo cálculos de fixture; [NO PROBADO] SPL no ejecutado en Splunk. La revisión técnica independiente queda pendiente.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D01",
+      "key": "SPLUNK_LECCIONES_R08_R09:D01",
+      "url": "https://attack.mitre.org/techniques/T1558/003/"
+    },
+    {
+      "id": "D06",
+      "key": "SPLUNK_LECCIONES_R08_R09:D06",
+      "url": "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4769"
+    }
+  ]
+}

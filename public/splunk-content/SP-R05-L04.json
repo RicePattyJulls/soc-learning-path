@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R05-L04",
+  "title": "Data models y datasets",
+  "revision": "eefef920c735e335917e6449",
+  "sourceVersion": "3bb2b73dbe47f7c77268800951adb791c1e9c714e51513b5255eedbd0616de41",
+  "sanitizedHash": "3bb2b73dbe47f7c77268800951adb791c1e9c714e51513b5255eedbd0616de41",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R04_R05/R05_CIM_NORMALIZACION/SP-R05-L04.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Entender jerarquías, constraints y requisitos de tags",
+  "preamble": "# SP-R05-L04 — Data models y datasets\n\n**Región:** SP-R05 · **Prioridad:** P0/P1 SOC · **Estado:** borrador educativo para revisión · **SPL real:** no ejecutado.  \n**ID curricular intacto:** `SP-R05-L04` · **Resultado de aprendizaje:** Entender jerarquías, constraints y requisitos de tags  \n**Prerrequisitos:** R02 y R04; campos de fuentes conocidas · **Producto:** Splunk Enterprise/Cloud con SPL clásico según versión y permisos; CIM exige configuración pertinente.\n\n",
+  "sections": [
+    {
+      "id": "SP-R05-L04-S01",
+      "title": "1. Pregunta esencial",
+      "markdown": "## 1. Pregunta esencial\n\nUn data model define datasets jerárquicos y restricciones para reunir eventos con la misma finalidad analítica. En Authentication puedes encontrar raíz y datasets especializados, cuya composición depende de etiquetas, eventtypes y otros predicados. Una búsqueda sobre el modelo no equivale a consultar sin filtros todos los índices de la organización.\n\n**Objetivo verificable:** Entender jerarquías, constraints y requisitos de tags.\n\n",
+      "line": 7,
+      "endLine": 11
+    },
+    {
+      "id": "SP-R05-L04-S02",
+      "title": "2. Modelo mental y conceptos",
+      "markdown": "## 2. Modelo mental y conceptos\n\n1. Un modelo es una estructura de conocimiento de búsqueda, no una copia física automática de cada evento del índice.\n2. Los datasets hijos heredan condiciones y campos según su jerarquía; examina constraints reales de modelo/versiones en vez de inferirlos por el título.\n3. El tag authentication clasifica, pero restricciones adicionales pueden excluir eventos aunque lleven el tag.\n4. Antes de declarar cobertura, compara qué eventos cumplen el dataset, cuáles quedan fuera y por qué.\n\n",
+      "line": 13,
+      "endLine": 18
+    },
+    {
+      "id": "SP-R05-L04-S03",
+      "title": "3. Procedimiento guiado",
+      "markdown": "## 3. Procedimiento guiado\n\n1. Dibuja conceptual y documentalmente la raíz Authentication y al menos un dataset especializado.\n2. Para cada rama especifica fuente, tags, campos esperados y constraints documentados.\n3. Usa el fixture para mostrar que el evento 4688 no se debe incluir en datos de inicio de sesión.\n4. Documenta qué falta para habilitar un modelo real: add-on, knowledge objects, permisos y datos.\n\n",
+      "line": 20,
+      "endLine": 25
+    },
+    {
+      "id": "SP-R05-L04-S04",
+      "title": "4. SPL ilustrativo — no ejecutado",
+      "markdown": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\n| datamodel Authentication\n```\n\n**Interpretación, condiciones y alcance:** `| datamodel Authentication` permite examinar un modelo existente; no garantiza que esté instalado y compartido. No ejecutes configuraciones en un entorno no autorizado. El ejemplo de inspección no es una consulta de todos los eventos de login.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n",
+      "line": 27,
+      "endLine": 35
+    },
+    {
+      "id": "SP-R05-L04-S05",
+      "title": "5. Caso SOC",
+      "markdown": "## 5. Caso SOC\n\nUn tablero Authentication no muestra eventos Linux aunque la búsqueda cruda sí: ¿cuáles son tus hipótesis?\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 37,
+      "endLine": 42
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R05-L04-Q01",
+      "lessonId": "SP-R05-L04",
+      "prompt": "¿Qué organiza un data model?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S15",
+        "SPLUNK_LECCIONES_R04_R05:S09"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R05-L04-Q01-O-a7474abc371d",
+          "text": "La distribución de roles entre search heads e indexers"
+        },
+        {
+          "id": "SP-R05-L04-Q01-O-efbf5b521597",
+          "text": "La política física de rotación de buckets de un índice"
+        },
+        {
+          "id": "SP-R05-L04-Q01-O-9b37af744951",
+          "text": "Una jerarquía de datasets y restricciones de búsqueda que determina qué eventos forman parte del modelo"
+        },
+        {
+          "id": "SP-R05-L04-Q01-O-b6a735758061",
+          "text": "Un catálogo de dispositivos cuya presencia valida los eventos"
+        }
+      ],
+      "solution": "SP-R05-L04-Q01-O-9b37af744951",
+      "explanation": "Los datasets y sus restricciones componen el modelo.",
+      "anchors": [
+        {
+          "file": "R05_CIM_NORMALIZACION/SP-R05-L04.md",
+          "sourceHash": "3bb2b73dbe47f7c77268800951adb791c1e9c714e51513b5255eedbd0616de41",
+          "line": 13,
+          "endLine": 18,
+          "quote": "## 2. Modelo mental y conceptos\n\n1. Un modelo es una estructura de conocimiento de búsqueda, no una copia física automática de cada evento del índice.\n2. Los datasets hijos heredan condiciones y campos según su jerarquía; examina constraints reales de modelo/versiones en vez de inferirlos por el título.\n3. El tag authentication clasifica, pero restricciones adicionales pueden excluir eventos aunque lleven el tag.\n4. Antes de declarar cobertura, compara qué eventos cumplen el dataset, cuáles quedan fuera y por qué.\n\n"
+        },
+        {
+          "file": "R05_CIM_NORMALIZACION/SP-R05-L04.md",
+          "sourceHash": "3bb2b73dbe47f7c77268800951adb791c1e9c714e51513b5255eedbd0616de41",
+          "line": 27,
+          "endLine": 35,
+          "quote": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\n| datamodel Authentication\n```\n\n**Interpretación, condiciones y alcance:** `| datamodel Authentication` permite examinar un modelo existente; no garantiza que esté instalado y compartido. No ejecutes configuraciones en un entorno no autorizado. El ejemplo de inspección no es una consulta de todos los eventos de login.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R05-L04-Q02",
+      "lessonId": "SP-R05-L04",
+      "prompt": "Una búsqueda cruda encuentra eventos que CIM no devuelve. ¿Qué revisar?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S15",
+        "SPLUNK_LECCIONES_R04_R05:S09"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R05-L04-Q02-O-b5606fa1af9b",
+          "text": "Tags, constraints, campos y permisos"
+        },
+        {
+          "id": "SP-R05-L04-Q02-O-1570421d24b9",
+          "text": "Solo el volumen del índice, porque el modelo incluye todos sus eventos"
+        },
+        {
+          "id": "SP-R05-L04-Q02-O-1bc324501938",
+          "text": "Únicamente la aceleración, aunque falten tags o campos requeridos"
+        },
+        {
+          "id": "SP-R05-L04-Q02-O-bf6d5218cffe",
+          "text": "Solo el nombre del modelo, suponiendo correctas sus restricciones"
+        }
+      ],
+      "solution": "SP-R05-L04-Q02-O-b5606fa1af9b",
+      "explanation": "La presencia en un índice no implica pertenencia automática al dataset.",
+      "anchors": [
+        {
+          "file": "R05_CIM_NORMALIZACION/SP-R05-L04.md",
+          "sourceHash": "3bb2b73dbe47f7c77268800951adb791c1e9c714e51513b5255eedbd0616de41",
+          "line": 13,
+          "endLine": 18,
+          "quote": "## 2. Modelo mental y conceptos\n\n1. Un modelo es una estructura de conocimiento de búsqueda, no una copia física automática de cada evento del índice.\n2. Los datasets hijos heredan condiciones y campos según su jerarquía; examina constraints reales de modelo/versiones en vez de inferirlos por el título.\n3. El tag authentication clasifica, pero restricciones adicionales pueden excluir eventos aunque lleven el tag.\n4. Antes de declarar cobertura, compara qué eventos cumplen el dataset, cuáles quedan fuera y por qué.\n\n"
+        },
+        {
+          "file": "R05_CIM_NORMALIZACION/SP-R05-L04.md",
+          "sourceHash": "3bb2b73dbe47f7c77268800951adb791c1e9c714e51513b5255eedbd0616de41",
+          "line": 27,
+          "endLine": 35,
+          "quote": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\n| datamodel Authentication\n```\n\n**Interpretación, condiciones y alcance:** `| datamodel Authentication` permite examinar un modelo existente; no garantiza que esté instalado y compartido. No ejecutes configuraciones en un entorno no autorizado. El ejemplo de inspección no es una consulta de todos los eventos de login.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R05-L04-P01",
+      "lessonId": "SP-R05-L04",
+      "prompt": "Diseña un diagrama raíz→dataset hijo con fuente/tag/campos/constraints y un plan de auditoría de eventos incluidos/excluidos.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S15",
+        "SPLUNK_LECCIONES_R04_R05:S09"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica fuentes, campos, ventana y supuestos",
+        "Aplica el método al escenario y explica cifras o semántica",
+        "Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante",
+        "Presenta una respuesta reproducible sin ejecutar cambios en sistemas"
+      ],
+      "referenceAnswer": "Causas posibles: tags ausentes, campo action incorrecto, permissions/app context, constraints adicionales, parsing de timestamps, índices/roles o fuentes fuera de periodo. Verificar antes de atribuir fallo al producto."
+    }
+  ],
+  "solutionsMarkdown": "## 7. Solucionario con razonamiento\n\n- **SP-R05-L04-Q01: C** — Los datasets y sus restricciones componen el modelo.\n\n- **SP-R05-L04-Q02: A** — La presencia en un índice no implica pertenencia automática al dataset.\n\n- **SP-R05-L04-P01:** Causas posibles: tags ausentes, campo action incorrecto, permissions/app context, constraints adicionales, parsing de timestamps, índices/roles o fuentes fuera de periodo. Verificar antes de atribuir fallo al producto.\n\n**Guía de retroalimentación formativa:** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Solucionario razonado\n\n**Q01 → A.** Una jerarquía de datasets y conocimiento de búsqueda. Los datasets y sus restricciones componen el modelo.\n\n**Q02 → B.** Tags, constraints, campos y permisos. La presencia en un índice no implica pertenencia automática al dataset.\n\n**P01 → Solución orientativa:** Causas posibles: tags ausentes, campo action incorrecto, permissions/app context, constraints adicionales, parsing de timestamps, índices/roles o fuentes fuera de periodo. Verificar antes de atribuir fallo al producto.\n\n**Rúbrica (0–4):** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas. Superar un test escrito no equivale por sí solo a dominar investigación SOC.\n\n",
+  "referencesMarkdown": "## 9. Fuentes y trazabilidad\n\n- **Origen curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`; título y objetivo preservados.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` (no reescrita).\n- **Puente de conceptos SC-200:** Cap. 04 (normalización) y 13 (modelo de datos). Véase `../../01_FUENTE_ORIGINAL/SC-200.md` (sin trasladar esquemas literalmente).\n- **[S15] Data models (comando y estructura):** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.0/search-commands/datamodel\n- **[S09] CIM referencia: restricciones, tags y campos:** https://help.splunk.com/en/splunk-enterprise/common-information-model/8.7/data-models/how-to-use-the-cim-data-model-reference-tables\n\n**Estatus de evidencia:** documentación del producto + diseño educativo + cálculos offline sobre fixtures (cuando se indica). No se ha verificado ejecución/compatibilidad específica en Splunk del usuario; revisar con la versión real antes de usar en producción.\n",
+  "originalMarkdown": "# SP-R05-L04 — Data models y datasets\n\n**Región:** SP-R05 · **Prioridad:** P0/P1 SOC · **Estado:** borrador educativo para revisión · **SPL real:** no ejecutado.  \n**ID curricular intacto:** `SP-R05-L04` · **Resultado de aprendizaje:** Entender jerarquías, constraints y requisitos de tags  \n**Prerrequisitos:** R02 y R04; campos de fuentes conocidas · **Producto:** Splunk Enterprise/Cloud con SPL clásico según versión y permisos; CIM exige configuración pertinente.\n\n## 1. Pregunta esencial\n\nUn data model define datasets jerárquicos y restricciones para reunir eventos con la misma finalidad analítica. En Authentication puedes encontrar raíz y datasets especializados, cuya composición depende de etiquetas, eventtypes y otros predicados. Una búsqueda sobre el modelo no equivale a consultar sin filtros todos los índices de la organización.\n\n**Objetivo verificable:** Entender jerarquías, constraints y requisitos de tags.\n\n## 2. Modelo mental y conceptos\n\n1. Un modelo es una estructura de conocimiento de búsqueda, no una copia física automática de cada evento del índice.\n2. Los datasets hijos heredan condiciones y campos según su jerarquía; examina constraints reales de modelo/versiones en vez de inferirlos por el título.\n3. El tag authentication clasifica, pero restricciones adicionales pueden excluir eventos aunque lleven el tag.\n4. Antes de declarar cobertura, compara qué eventos cumplen el dataset, cuáles quedan fuera y por qué.\n\n## 3. Procedimiento guiado\n\n1. Dibuja conceptual y documentalmente la raíz Authentication y al menos un dataset especializado.\n2. Para cada rama especifica fuente, tags, campos esperados y constraints documentados.\n3. Usa el fixture para mostrar que el evento 4688 no se debe incluir en datos de inicio de sesión.\n4. Documenta qué falta para habilitar un modelo real: add-on, knowledge objects, permisos y datos.\n\n## 4. SPL ilustrativo — no ejecutado\n\n```spl\n| datamodel Authentication\n```\n\n**Interpretación, condiciones y alcance:** `| datamodel Authentication` permite examinar un modelo existente; no garantiza que esté instalado y compartido. No ejecutes configuraciones en un entorno no autorizado. El ejemplo de inspección no es una consulta de todos los eventos de login.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n## 5. Caso SOC\n\nUn tablero Authentication no muestra eventos Linux aunque la búsqueda cruda sí: ¿cuáles son tus hipótesis?\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 6. Actividades\n\n### SP-R05-L04-Q01 — Opción múltiple\n\n¿Qué organiza un data model?\n\nA. La distribución de roles entre search heads e indexers\nB. La política física de rotación de buckets de un índice\nC. Una jerarquía de datasets y restricciones de búsqueda que determina qué eventos forman parte del modelo\nD. Un catálogo de dispositivos cuya presencia valida los eventos\n\n### SP-R05-L04-Q02 — Opción múltiple\n\nUna búsqueda cruda encuentra eventos que CIM no devuelve. ¿Qué revisar?\n\nA. Tags, constraints, campos y permisos\nB. Solo el volumen del índice, porque el modelo incluye todos sus eventos\nC. Únicamente la aceleración, aunque falten tags o campos requeridos\nD. Solo el nombre del modelo, suponiendo correctas sus restricciones\n\n### SP-R05-L04-P01 — Práctica abierta formativa\n\nDiseña un diagrama raíz→dataset hijo con fuente/tag/campos/constraints y un plan de auditoría de eventos incluidos/excluidos.\n\n## 7. Solucionario con razonamiento\n\n- **SP-R05-L04-Q01: C** — Los datasets y sus restricciones componen el modelo.\n\n- **SP-R05-L04-Q02: A** — La presencia en un índice no implica pertenencia automática al dataset.\n\n- **SP-R05-L04-P01:** Causas posibles: tags ausentes, campo action incorrecto, permissions/app context, constraints adicionales, parsing de timestamps, índices/roles o fuentes fuera de periodo. Verificar antes de atribuir fallo al producto.\n\n**Guía de retroalimentación formativa:** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Solucionario razonado\n\n**Q01 → A.** Una jerarquía de datasets y conocimiento de búsqueda. Los datasets y sus restricciones componen el modelo.\n\n**Q02 → B.** Tags, constraints, campos y permisos. La presencia en un índice no implica pertenencia automática al dataset.\n\n**P01 → Solución orientativa:** Causas posibles: tags ausentes, campo action incorrecto, permissions/app context, constraints adicionales, parsing de timestamps, índices/roles o fuentes fuera de periodo. Verificar antes de atribuir fallo al producto.\n\n**Rúbrica (0–4):** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas. Superar un test escrito no equivale por sí solo a dominar investigación SOC.\n\n## 9. Fuentes y trazabilidad\n\n- **Origen curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`; título y objetivo preservados.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` (no reescrita).\n- **Puente de conceptos SC-200:** Cap. 04 (normalización) y 13 (modelo de datos). Véase `../../01_FUENTE_ORIGINAL/SC-200.md` (sin trasladar esquemas literalmente).\n- **[S15] Data models (comando y estructura):** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.0/search-commands/datamodel\n- **[S09] CIM referencia: restricciones, tags y campos:** https://help.splunk.com/en/splunk-enterprise/common-information-model/8.7/data-models/how-to-use-the-cim-data-model-reference-tables\n\n**Estatus de evidencia:** documentación del producto + diseño educativo + cálculos offline sobre fixtures (cuando se indica). No se ha verificado ejecución/compatibilidad específica en Splunk del usuario; revisar con la versión real antes de usar en producción.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "S15",
+      "key": "SPLUNK_LECCIONES_R04_R05:S15",
+      "url": "https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.0/search-commands/datamodel"
+    },
+    {
+      "id": "S09",
+      "key": "SPLUNK_LECCIONES_R04_R05:S09",
+      "url": "https://help.splunk.com/en/splunk-enterprise/common-information-model/8.7/data-models/how-to-use-the-cim-data-model-reference-tables"
+    }
+  ]
+}

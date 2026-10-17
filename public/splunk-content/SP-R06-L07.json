@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R06-L07",
+  "title": "Decidir cuándo escalar",
+  "revision": "f9d9a8ebfdb5a884ac911db0",
+  "sourceVersion": "c00c83493dd18568790a98c7c16ace4400784c87d3e1155bce3735cd38315b89",
+  "sanitizedHash": "c00c83493dd18568790a98c7c16ace4400784c87d3e1155bce3735cd38315b89",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R06_R07/R06_CENTRO_SOC/SP-R06-L07.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Definir condiciones de evidencia suficiente y de inconcluso",
+  "preamble": "# SP-R06-L07 — Decidir cuándo escalar\n\n**Región:** SP-R06 · **Prioridad:** P0 (SOC N1/N2) · **Estado:** material editorial para revisión · **SPL:** NO ejecutado en Splunk.\n\n**Objetivo curricular original:** Definir condiciones de evidencia suficiente y de inconcluso\n\n**Prerrequisitos:** R01–R05 y lectura de la matriz de campos. **Producto:** Splunk Enterprise/Cloud (búsquedas de lectura); funciones ES explícitamente condicionadas a Splunk Enterprise Security compatible.\n\n",
+  "sections": [
+    {
+      "id": "SP-R06-L07-S01",
+      "title": "1. Pregunta esencial y modelo mental",
+      "markdown": "## 1. Pregunta esencial y modelo mental\n\nEscalar no exige certeza absoluta, pero sí una razón explícita: impacto potencial, criticidad del activo, riesgo de continuidad, acceso privilegiado o señal múltiple. Por otro lado, cerrar “falso positivo” porque faltan logs es un error: sin cobertura la clasificación correcta puede ser inconclusa.\n\n",
+      "line": 9,
+      "endLine": 11
+    },
+    {
+      "id": "SP-R06-L07-S02",
+      "title": "2. Conceptos que debes dominar",
+      "markdown": "## 2. Conceptos que debes dominar\n\n1. Define condiciones de escalado antes del incidente para reducir arbitrariedad entre turnos.\n2. Distingue confirmed, suspicious, benign-supported e inconclusive; no fuerces un binario verdadero/falso.\n3. Ausencia de evento de éxito en una fuente incompleta no prueba que no existiera.\n4. Elevada criticidad o identidad privilegiada justifican escalado con menos señales que un activo de prueba, pero nunca permiten inventar hechos.\n5. Documenta quién toma decisiones de contención: un analista N1 puede recomendar, pero no debe ejecutar sin autorización.\n\n",
+      "line": 13,
+      "endLine": 19
+    },
+    {
+      "id": "SP-R06-L07-S03",
+      "title": "3. Práctica guiada: del dato a la conclusión",
+      "markdown": "## 3. Práctica guiada: del dato a la conclusión\n\n1. Compara tres casos: A001–A007 con éxito; A008–A012 con ticket autorizado; fuente caída sin datos.\n2. Para cada uno elige investigar, escalar o inconcluso, con condición observable.\n3. Indica los dos siguientes pivotes de lectura, evitando cambios de sistemas.\n4. Diferencia severidad operacional de confianza en la hipótesis.\n5. Redacta handoff N1→N2 con IDs y resultados pendientes.\n\n",
+      "line": 21,
+      "endLine": 27
+    },
+    {
+      "id": "SP-R06-L07-S04",
+      "title": "4. SPL ilustrativo de solo lectura — NO probado en Splunk",
+      "markdown": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC user=\"bob\"\n| stats count AS eventos values(EventCode) AS tipos min(_time) AS primero max(_time) AS ultimo BY user src\n```\n\n**Interpretación, supuestos y límites:** La consulta resume actividad, pero no verifica privilegios, MFA ni cambios en el endpoint. Esos datos pueden estar en índices diferentes que deben ser inventariados.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n",
+      "line": 29,
+      "endLine": 38
+    },
+    {
+      "id": "SP-R06-L07-S05",
+      "title": "5. Caso del turno SOC",
+      "markdown": "## 5. Caso del turno SOC\n\nSeis fallos distribuidos, éxito en usuario sensible y visibilidad parcial de endpoint: la decisión puede ser escalar como sospechoso con confianza limitada.\n\n## 6. Errores frecuentes\n\n1. Cerrar como falso positivo por falta de ingesta.\n2. Contener una cuenta sin autorización.\n3. Escalar con adjetivos sin ventana, evento ni activo.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 40,
+      "endLine": 51
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R06-L07-Q01",
+      "lessonId": "SP-R06-L07",
+      "prompt": "¿Cómo clasificar una alerta cuando fallan los sensores clave?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D06",
+        "SPLUNK_LECCIONES_R06_R07:D12"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R06-L07-Q01-O-27ba603856d7",
+          "text": "Negativa, porque no se observó un éxito en las fuentes ausentes"
+        },
+        {
+          "id": "SP-R06-L07-Q01-O-04686c6a3dff",
+          "text": "Inconclusa por visibilidad insuficiente"
+        },
+        {
+          "id": "SP-R06-L07-Q01-O-56b95b3b3a07",
+          "text": "Benigna, si el umbral no se cumple en los datos restantes"
+        },
+        {
+          "id": "SP-R06-L07-Q01-O-40065c526d8a",
+          "text": "Positiva, porque el fallo de sensores demuestra evasión deliberada"
+        }
+      ],
+      "solution": "SP-R06-L07-Q01-O-04686c6a3dff",
+      "explanation": "La falta de telemetría limita la conclusión.",
+      "anchors": [
+        {
+          "file": "R06_CENTRO_SOC/SP-R06-L07.md",
+          "sourceHash": "c00c83493dd18568790a98c7c16ace4400784c87d3e1155bce3735cd38315b89",
+          "line": 13,
+          "endLine": 19,
+          "quote": "## 2. Conceptos que debes dominar\n\n1. Define condiciones de escalado antes del incidente para reducir arbitrariedad entre turnos.\n2. Distingue confirmed, suspicious, benign-supported e inconclusive; no fuerces un binario verdadero/falso.\n3. Ausencia de evento de éxito en una fuente incompleta no prueba que no existiera.\n4. Elevada criticidad o identidad privilegiada justifican escalado con menos señales que un activo de prueba, pero nunca permiten inventar hechos.\n5. Documenta quién toma decisiones de contención: un analista N1 puede recomendar, pero no debe ejecutar sin autorización.\n\n"
+        },
+        {
+          "file": "R06_CENTRO_SOC/SP-R06-L07.md",
+          "sourceHash": "c00c83493dd18568790a98c7c16ace4400784c87d3e1155bce3735cd38315b89",
+          "line": 29,
+          "endLine": 38,
+          "quote": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC user=\"bob\"\n| stats count AS eventos values(EventCode) AS tipos min(_time) AS primero max(_time) AS ultimo BY user src\n```\n\n**Interpretación, supuestos y límites:** La consulta resume actividad, pero no verifica privilegios, MFA ni cambios en el endpoint. Esos datos pueden estar en índices diferentes que deben ser inventariados.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R06-L07-Q02",
+      "lessonId": "SP-R06-L07",
+      "prompt": "¿Qué acción es apropiada para SOC N1 sin permisos de respuesta?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D06",
+        "SPLUNK_LECCIONES_R06_R07:D12"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R06-L07-Q02-O-9368e5312afc",
+          "text": "Contener primero y solicitar revisión después para reducir el tiempo de respuesta"
+        },
+        {
+          "id": "SP-R06-L07-Q02-O-9824fc918ae5",
+          "text": "Ampliar su rol temporalmente para confirmar una hipótesis"
+        },
+        {
+          "id": "SP-R06-L07-Q02-O-794d69153550",
+          "text": "Documentar y recomendar escalado autorizado"
+        },
+        {
+          "id": "SP-R06-L07-Q02-O-6c7eef2d8141",
+          "text": "Modificar la regla para que deje de generar ruido durante el análisis"
+        }
+      ],
+      "solution": "SP-R06-L07-Q02-O-794d69153550",
+      "explanation": "Separación de roles y autorización protege la operación.",
+      "anchors": [
+        {
+          "file": "R06_CENTRO_SOC/SP-R06-L07.md",
+          "sourceHash": "c00c83493dd18568790a98c7c16ace4400784c87d3e1155bce3735cd38315b89",
+          "line": 13,
+          "endLine": 19,
+          "quote": "## 2. Conceptos que debes dominar\n\n1. Define condiciones de escalado antes del incidente para reducir arbitrariedad entre turnos.\n2. Distingue confirmed, suspicious, benign-supported e inconclusive; no fuerces un binario verdadero/falso.\n3. Ausencia de evento de éxito en una fuente incompleta no prueba que no existiera.\n4. Elevada criticidad o identidad privilegiada justifican escalado con menos señales que un activo de prueba, pero nunca permiten inventar hechos.\n5. Documenta quién toma decisiones de contención: un analista N1 puede recomendar, pero no debe ejecutar sin autorización.\n\n"
+        },
+        {
+          "file": "R06_CENTRO_SOC/SP-R06-L07.md",
+          "sourceHash": "c00c83493dd18568790a98c7c16ace4400784c87d3e1155bce3735cd38315b89",
+          "line": 29,
+          "endLine": 38,
+          "quote": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC user=\"bob\"\n| stats count AS eventos values(EventCode) AS tipos min(_time) AS primero max(_time) AS ultimo BY user src\n```\n\n**Interpretación, supuestos y límites:** La consulta resume actividad, pero no verifica privilegios, MFA ni cambios en el endpoint. Esos datos pueden estar en índices diferentes que deben ser inventariados.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R06-L07-P01",
+      "lessonId": "SP-R06-L07",
+      "prompt": "Construye árbol de decisión de tres ramas (escalar, continuar triage, inconcluso) a partir de criterios observables.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D06",
+        "SPLUNK_LECCIONES_R06_R07:D12"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica datos y supuestos de la fuente",
+        "Plantea método correcto y distingue hechos de hipótesis",
+        "Explica limitaciones, alternativa benigna y telemetría ausente",
+        "Aporta evidencia, ventana e identificación reproducibles"
+      ],
+      "referenceAnswer": "Escalar si privilegios/impacto alto, éxito extraño corroborado u otras señales independientes; continuar si faltan pivotes disponibles sin urgencia; inconcluso si cobertura imposibilita descartar/confirmar. Siempre conservar evidencia."
+    }
+  ],
+  "solutionsMarkdown": "### Solucionario con razonamiento\n\n- **SP-R06-L07-Q01: B** — La falta de telemetría limita la conclusión.\n\n- **SP-R06-L07-Q02: C** — Separación de roles y autorización protege la operación.\n\n- **SP-R06-L07-P01:** Escalar si privilegios/impacto alto, éxito extraño corroborado u otras señales independientes; continuar si faltan pivotes disponibles sin urgencia; inconcluso si cobertura imposibilita descartar/confirmar. Siempre conservar evidencia.\n\n**Guía de retroalimentación formativa:** Identifica datos y supuestos de la fuente; Plantea método correcto y distingue hechos de hipótesis; Explica limitaciones, alternativa benigna y telemetría ausente; Aporta evidencia, ventana e identificación reproducibles.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 8. Bibliografía, mapeo y estatus\n\n- **D06:** Windows: 4625 fallo de inicio de sesión — https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4625\n- **D12:** Splunk ES 8.7: findings/analyst queue — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/findings/monitor-your-security-operations-center-with-findings-in-splunk-enterprise-security\n\n- **Currículo:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` — ID, título y resultado intactos.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` — los bloques R06/R07 y laboratorios de diseño.\n- **Puente SC-200:** Capítulos 08,09 y 11: correlación, investigación y respuesta. Documento en `../../01_FUENTE_ORIGINAL/SC-200.md`; relación conceptual, no traducción ni equivalencia garantizada.\n\n**Clasificación de evidencia:** [DOC] respaldo documental de fuentes; [DISEÑO] procedimientos y rúbricas propuestos; [OFFLINE] sólo cálculos de fixtures reproducibles; [NO PROBADO] ejemplos SPL no ejecutados en la instancia. Validación técnica/manual de contenidos pendiente antes de integrarlo en React.\n",
+  "originalMarkdown": "# SP-R06-L07 — Decidir cuándo escalar\n\n**Región:** SP-R06 · **Prioridad:** P0 (SOC N1/N2) · **Estado:** material editorial para revisión · **SPL:** NO ejecutado en Splunk.\n\n**Objetivo curricular original:** Definir condiciones de evidencia suficiente y de inconcluso\n\n**Prerrequisitos:** R01–R05 y lectura de la matriz de campos. **Producto:** Splunk Enterprise/Cloud (búsquedas de lectura); funciones ES explícitamente condicionadas a Splunk Enterprise Security compatible.\n\n## 1. Pregunta esencial y modelo mental\n\nEscalar no exige certeza absoluta, pero sí una razón explícita: impacto potencial, criticidad del activo, riesgo de continuidad, acceso privilegiado o señal múltiple. Por otro lado, cerrar “falso positivo” porque faltan logs es un error: sin cobertura la clasificación correcta puede ser inconclusa.\n\n## 2. Conceptos que debes dominar\n\n1. Define condiciones de escalado antes del incidente para reducir arbitrariedad entre turnos.\n2. Distingue confirmed, suspicious, benign-supported e inconclusive; no fuerces un binario verdadero/falso.\n3. Ausencia de evento de éxito en una fuente incompleta no prueba que no existiera.\n4. Elevada criticidad o identidad privilegiada justifican escalado con menos señales que un activo de prueba, pero nunca permiten inventar hechos.\n5. Documenta quién toma decisiones de contención: un analista N1 puede recomendar, pero no debe ejecutar sin autorización.\n\n## 3. Práctica guiada: del dato a la conclusión\n\n1. Compara tres casos: A001–A007 con éxito; A008–A012 con ticket autorizado; fuente caída sin datos.\n2. Para cada uno elige investigar, escalar o inconcluso, con condición observable.\n3. Indica los dos siguientes pivotes de lectura, evitando cambios de sistemas.\n4. Diferencia severidad operacional de confianza en la hipótesis.\n5. Redacta handoff N1→N2 con IDs y resultados pendientes.\n\n## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC user=\"bob\"\n| stats count AS eventos values(EventCode) AS tipos min(_time) AS primero max(_time) AS ultimo BY user src\n```\n\n**Interpretación, supuestos y límites:** La consulta resume actividad, pero no verifica privilegios, MFA ni cambios en el endpoint. Esos datos pueden estar en índices diferentes que deben ser inventariados.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n## 5. Caso del turno SOC\n\nSeis fallos distribuidos, éxito en usuario sensible y visibilidad parcial de endpoint: la decisión puede ser escalar como sospechoso con confianza limitada.\n\n## 6. Errores frecuentes\n\n1. Cerrar como falso positivo por falta de ingesta.\n2. Contener una cuenta sin autorización.\n3. Escalar con adjetivos sin ventana, evento ni activo.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R06-L07-Q01 — Opción múltiple\n\n¿Cómo clasificar una alerta cuando fallan los sensores clave?\n\nA. Negativa, porque no se observó un éxito en las fuentes ausentes\nB. Inconclusa por visibilidad insuficiente\nC. Benigna, si el umbral no se cumple en los datos restantes\nD. Positiva, porque el fallo de sensores demuestra evasión deliberada\n\n### SP-R06-L07-Q02 — Opción múltiple\n\n¿Qué acción es apropiada para SOC N1 sin permisos de respuesta?\n\nA. Contener primero y solicitar revisión después para reducir el tiempo de respuesta\nB. Ampliar su rol temporalmente para confirmar una hipótesis\nC. Documentar y recomendar escalado autorizado\nD. Modificar la regla para que deje de generar ruido durante el análisis\n\n### SP-R06-L07-P01 — Práctica abierta formativa\n\nConstruye árbol de decisión de tres ramas (escalar, continuar triage, inconcluso) a partir de criterios observables.\n\n### Solucionario con razonamiento\n\n- **SP-R06-L07-Q01: B** — La falta de telemetría limita la conclusión.\n\n- **SP-R06-L07-Q02: C** — Separación de roles y autorización protege la operación.\n\n- **SP-R06-L07-P01:** Escalar si privilegios/impacto alto, éxito extraño corroborado u otras señales independientes; continuar si faltan pivotes disponibles sin urgencia; inconcluso si cobertura imposibilita descartar/confirmar. Siempre conservar evidencia.\n\n**Guía de retroalimentación formativa:** Identifica datos y supuestos de la fuente; Plantea método correcto y distingue hechos de hipótesis; Explica limitaciones, alternativa benigna y telemetría ausente; Aporta evidencia, ventana e identificación reproducibles.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Bibliografía, mapeo y estatus\n\n- **D06:** Windows: 4625 fallo de inicio de sesión — https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4625\n- **D12:** Splunk ES 8.7: findings/analyst queue — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/findings/monitor-your-security-operations-center-with-findings-in-splunk-enterprise-security\n\n- **Currículo:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` — ID, título y resultado intactos.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` — los bloques R06/R07 y laboratorios de diseño.\n- **Puente SC-200:** Capítulos 08,09 y 11: correlación, investigación y respuesta. Documento en `../../01_FUENTE_ORIGINAL/SC-200.md`; relación conceptual, no traducción ni equivalencia garantizada.\n\n**Clasificación de evidencia:** [DOC] respaldo documental de fuentes; [DISEÑO] procedimientos y rúbricas propuestos; [OFFLINE] sólo cálculos de fixtures reproducibles; [NO PROBADO] ejemplos SPL no ejecutados en la instancia. Validación técnica/manual de contenidos pendiente antes de integrarlo en React.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 8,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D06",
+      "key": "SPLUNK_LECCIONES_R06_R07:D06",
+      "url": "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4625"
+    },
+    {
+      "id": "D12",
+      "key": "SPLUNK_LECCIONES_R06_R07:D12",
+      "url": "https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/findings/monitor-your-security-operations-center-with-findings-in-splunk-enterprise-security"
+    }
+  ]
+}

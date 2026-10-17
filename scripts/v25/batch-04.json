@@ -1,0 +1,1065 @@
+{
+  "batch": "04",
+  "lessons": [
+    {
+      "lessonId": "capitulo-4-ingesta/4-ingesta-1",
+      "introduction": "Trabaja los conceptos de «4 · Ingesta» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Separar tiempo del evento y de escritura en tabla.",
+        "Distinguir ruta nativa XDR y copia al workspace.",
+        "Relacionar tier de almacenamiento y consulta."
+      ],
+      "summary": [
+        "Separar tiempo del evento y de escritura en tabla.",
+        "Distinguir ruta nativa XDR y copia al workspace.",
+        "Relacionar tier de almacenamiento y consulta."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "match",
+          "prompt": "Relaciona el tiempo consultado con su campo o función.",
+          "explanation": "La latencia se obtiene comparando el momento del evento con el de ingesta; no se deben intercambiar esos relojes.",
+          "objective": "Interpretar los dos momentos de un evento.",
+          "difficulty": "intermedia",
+          "id": "v25-21-tiempos",
+          "evidence": [
+            "La `ingesta` es el recorrido completo del dato desde su recopilación o recepción en el origen hasta su almacenamiento en la tabla. Ese recorrido tarda: cada fila guarda cuándo ocurrió el evento en el origen, en `TimeGenerated` en las tablas del workspace de Sentinel y en `Timestamp` en las tablas nativas de Defender XDR, y en ambos casos `ingestion_time()` devuelve cuándo quedó escrita en la tabla. La diferencia entre las dos es la latencia de ingesta, que depende de cada fuente y que las reglas de detección tienen que tener en cuenta (ver `# 7 · Detección y alertas > ## Las reglas que escribe el analista > ### Reglas Scheduled`). La tabla siguiente relaciona el origen, el conector, el tipo de conexión, la configuración y la transformación —cuando corresponda— que hacen posible ese recorrido."
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "Evento en tablas del workspace Sentinel"
+            },
+            {
+              "id": "r1",
+              "label": "Evento en tablas nativas Defender XDR"
+            },
+            {
+              "id": "r2",
+              "label": "Escritura del registro en la tabla"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "TimeGenerated"
+            },
+            {
+              "id": "p1",
+              "text": "Timestamp"
+            },
+            {
+              "id": "p2",
+              "text": "ingestion_time()"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1",
+            "p2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Un workload XDR está licenciado e incorporado y quieres consultar su telemetría nativa. ¿Qué distingue el texto de copiarla a Sentinel?",
+          "explanation": "La ruta nativa no lleva el conector del mapa; la copia al workspace sí es una ruta adicional de ingesta.",
+          "objective": "Distinguir disponibilidad nativa y copia de datos.",
+          "difficulty": "intermedia",
+          "id": "v25-21-nativa",
+          "evidence": [
+            "Este capítulo cubre únicamente la ruta hacia el workspace de Sentinel. La ruta nativa no aparece en el mapa siguiente porque no tiene conector ni mecanismo de ingesta que configurar: la telemetría de `MDE`, `MDO`, `MDI` y `MDCA` se escribe sola en el `XDR default tier` en cuanto el workload está licenciado e incorporado, y desde ahí se consulta en `Advanced Hunting` sin ningún paso intermedio. Eso no significa que no haya nada que activar, sino que lo que se activa es licencia y onboarding, no ingesta: `MDE` incorpora cada dispositivo, `MDI` activa su sensor, `MDCA` conecta cada fuente de datos y `MDC` habilita sus planes por suscripción, todo ello en `# 1`. El conector solo aparece cuando ese dato nativo tiene además que copiarse al workspace, y esa copia es lo que empieza aquí."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Advanced Hunting puede consultar el XDR default tier sin configurar ese conector de copia.",
+              "why": "La ruta nativa no lleva el conector del mapa; la copia al workspace sí es una ruta adicional de ingesta."
+            },
+            {
+              "id": "o1",
+              "text": "Toda consulta nativa exige duplicar primero cada tabla en Log Analytics.",
+              "why": "El apartado distingue ruta nativa de copia al workspace."
+            },
+            {
+              "id": "o2",
+              "text": "La licencia incorpora siempre por sí sola todos los dispositivos.",
+              "why": "El texto conserva los requisitos de onboarding de cada workload."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Una detección usa eventos recién ocurridos, pero algunos tardan en llegar. ¿Qué variable debe contemplar según la introducción?",
+          "explanation": "Los datos pueden llegar después de su TimeGenerated/Timestamp; las reglas deben considerar esa diferencia.",
+          "objective": "Relacionar retraso de datos y evaluación de reglas.",
+          "difficulty": "intermedia",
+          "id": "v25-21-latencia",
+          "evidence": [
+            "La `ingesta` es el recorrido completo del dato desde su recopilación o recepción en el origen hasta su almacenamiento en la tabla. Ese recorrido tarda: cada fila guarda cuándo ocurrió el evento en el origen, en `TimeGenerated` en las tablas del workspace de Sentinel y en `Timestamp` en las tablas nativas de Defender XDR, y en ambos casos `ingestion_time()` devuelve cuándo quedó escrita en la tabla. La diferencia entre las dos es la latencia de ingesta, que depende de cada fuente y que las reglas de detección tienen que tener en cuenta (ver `# 7 · Detección y alertas > ## Las reglas que escribe el analista > ### Reglas Scheduled`). La tabla siguiente relaciona el origen, el conector, el tipo de conexión, la configuración y la transformación —cuando corresponda— que hacen posible ese recorrido."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Solo la hora a la que se creó el incidente.",
+              "why": "Ese instante no mide la demora entre ocurrencia y escritura de los eventos."
+            },
+            {
+              "id": "o1",
+              "text": "La latencia de ingesta de esa fuente.",
+              "why": "Los datos pueden llegar después de su TimeGenerated/Timestamp; las reglas deben considerar esa diferencia."
+            },
+            {
+              "id": "o2",
+              "text": "Que ingestion_time() es siempre la hora original del evento.",
+              "why": "La función devuelve la escritura en tabla, no la ocurrencia."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Quieres usar registros Basic en analytics rules según el diagrama. ¿Qué paso señala?",
+          "explanation": "El diagrama diferencia consulta puntual de Basic y uso de reglas en Analytics.",
+          "objective": "Relacionar el tier con la capacidad de detección.",
+          "difficulty": "intermedia",
+          "id": "v25-21-basic",
+          "evidence": [
+            "│      └──▶ (para usarse en analytics rules: promover a Analytics)"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Promoverlos a Analytics.",
+              "why": "El diagrama diferencia consulta puntual de Basic y uso de reglas en Analytics."
+            },
+            {
+              "id": "o1",
+              "text": "Tratar Basic como consulta KQL completa sin cambiar nada.",
+              "why": "El diagrama lo describe como KQL limitado."
+            },
+            {
+              "id": "o2",
+              "text": "Convertir la licencia de MDE en permiso de ejecución.",
+              "why": "Esa acción no modifica el tier de los datos."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [],
+      "audit": {
+        "mainConcepts": [
+          "Separar tiempo del evento y de escritura en tabla.",
+          "Distinguir ruta nativa XDR y copia al workspace.",
+          "Relacionar tier de almacenamiento y consulta."
+        ],
+        "understanding": [
+          "Separar tiempo del evento y de escritura en tabla.",
+          "Distinguir ruta nativa XDR y copia al workspace.",
+          "Relacionar tier de almacenamiento y consulta."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Separar tiempo del evento y de escritura en tabla.",
+          "Distinguir ruta nativa XDR y copia al workspace.",
+          "Relacionar tier de almacenamiento y consulta."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "El apartado distingue ruta nativa de copia al workspace.",
+          "El texto conserva los requisitos de onboarding de cada workload.",
+          "La función devuelve la escritura en tabla, no la ocurrencia.",
+          "El problema descrito es temporal, no de presentación.",
+          "El diagrama lo describe como KQL limitado."
+        ],
+        "evidence": [
+          "La `ingesta` es el recorrido completo del dato desde su recopilación o recepción en el origen hasta su almacenamiento en la tabla. Ese recorrido tarda: cada fila guarda cuándo ocurrió el evento en el origen, en `TimeGenerated` en las tablas del workspace de Sentinel y en `Timestamp` en las tablas nativas de Defender XDR, y en ambos casos `ingestion_time()` devuelve cuándo quedó escrita en la tabla. La diferencia entre las dos es la latencia de ingesta, que depende de cada fuente y que las reglas de detección tienen que tener en cuenta (ver `# 7 · Detección y alertas > ## Las reglas que escribe el analista > ### Reglas Scheduled`). La tabla siguiente relaciona el origen, el conector, el tipo de conexión, la configuración y la transformación —cuando corresponda— que hacen posible ese recorrido.",
+          "Este capítulo cubre únicamente la ruta hacia el workspace de Sentinel. La ruta nativa no aparece en el mapa siguiente porque no tiene conector ni mecanismo de ingesta que configurar: la telemetría de `MDE`, `MDO`, `MDI` y `MDCA` se escribe sola en el `XDR default tier` en cuanto el workload está licenciado e incorporado, y desde ahí se consulta en `Advanced Hunting` sin ningún paso intermedio. Eso no significa que no haya nada que activar, sino que lo que se activa es licencia y onboarding, no ingesta: `MDE` incorpora cada dispositivo, `MDI` activa su sensor, `MDCA` conecta cada fuente de datos y `MDC` habilita sus planes por suscripción, todo ello en `# 1`. El conector solo aparece cuando ese dato nativo tiene además que copiarse al workspace, y esa copia es lo que empieza aquí.",
+          "La `ingesta` es el recorrido completo del dato desde su recopilación o recepción en el origen hasta su almacenamiento en la tabla. Ese recorrido tarda: cada fila guarda cuándo ocurrió el evento en el origen, en `TimeGenerated` en las tablas del workspace de Sentinel y en `Timestamp` en las tablas nativas de Defender XDR, y en ambos casos `ingestion_time()` devuelve cuándo quedó escrita en la tabla. La diferencia entre las dos es la latencia de ingesta, que depende de cada fuente y que las reglas de detección tienen que tener en cuenta (ver `# 7 · Detección y alertas > ## Las reglas que escribe el analista > ### Reglas Scheduled`). La tabla siguiente relaciona el origen, el conector, el tipo de conexión, la configuración y la transformación —cuando corresponda— que hacen posible ese recorrido.",
+          "│      └──▶ (para usarse en analytics rules: promover a Analytics)"
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-4-ingesta/mapa-principal-1",
+      "introduction": "Trabaja los conceptos de «Mapa principal» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Leer el mapa de ingesta como responsabilidades, no saltos físicos.",
+        "Elegir tabla y recopilación según la fuente.",
+        "Distinguir eventos, alertas y datos normalizados."
+      ],
+      "summary": [
+        "Leer el mapa de ingesta como responsabilidades, no saltos físicos.",
+        "Elegir tabla y recopilación según la fuente.",
+        "Distinguir eventos, alertas y datos normalizados."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "¿Cómo deben leerse Tipo de conexión y Configuración en el mapa?",
+          "explanation": "Las columnas organizan conceptos; una transformación admitida se aplica antes del almacenamiento.",
+          "objective": "Interpretar un esquema de responsabilidades.",
+          "difficulty": "intermedia",
+          "id": "v25-22-columnas",
+          "evidence": [
+            "Las columnas relacionan responsabilidades; el `tipo de conexión` y la `configuración` describen el flujo, no son saltos por los que viaje el registro. La `transformación`, cuando se configura y la ruta la admite, se aplica antes de almacenar el dato; se desarrolla en `Transformación`."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Como descripciones del flujo y sus responsabilidades, no saltos por donde viaja cada registro.",
+              "why": "Las columnas organizan conceptos; una transformación admitida se aplica antes del almacenamiento."
+            },
+            {
+              "id": "o1",
+              "text": "Como dos servidores intermedios obligatorios.",
+              "why": "La introducción niega que sean saltos del registro."
+            },
+            {
+              "id": "o2",
+              "text": "Como tablas finales idénticas para todos los orígenes.",
+              "why": "La columna Tabla varía según la ruta."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "match",
+          "prompt": "Relaciona ruta y tabla de destino del mapa.",
+          "explanation": "La tabla depende de la ruta específica; no todos los registros Windows ni toda la actividad cloud comparten destino.",
+          "objective": "Seleccionar tablas por ruta de ingesta.",
+          "difficulty": "intermedia",
+          "id": "v25-22-destinos",
+          "evidence": [
+            "| Windows                                            | `Windows Security Events via AMA`                                  | `Windows agent-based`                                                                                    | `Azure Monitor Agent (AMA)`                                  | Conjunto de eventos o `XPath`, `DCR` y `DCRA`                                 | En la `DCR`, si se define                                               | `SecurityEvent`                                                                                                 |",
+            "| Appliance o dispositivo compatible con `CEF`       | `Common Event Format (CEF) via AMA`                                | `agent-based`                                                                                            | `CEF` sobre `Syslog` → `AMA`                                 | `Forwarder` Linux, `DCR` y `DCRA`                                             | En la `DCR`, si se define                                               | `CommonSecurityLog`                                                                                             |",
+            "| `Microsoft 365`                                    | `Microsoft 365`                                                    | `API-based`                                                                                              | `Office 365 Management Activity API`                         | Conectar el `tenant` y habilitar los `workloads` compatibles                  | `Workspace transformation DCR`                                          | `OfficeActivity`                                                                                                |"
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "Windows Security Events via AMA"
+            },
+            {
+              "id": "r1",
+              "label": "CEF via AMA"
+            },
+            {
+              "id": "r2",
+              "label": "Conector Microsoft 365"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "SecurityEvent"
+            },
+            {
+              "id": "p1",
+              "text": "CommonSecurityLog"
+            },
+            {
+              "id": "p2",
+              "text": "OfficeActivity"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1",
+            "p2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Se recopilan eventos Windows mediante WEF → WEC → AMA. ¿Qué tabla recoge esa fila?",
+          "explanation": "Aunque el origen sea Windows, el mecanismo y conector determinan el destino concreto del mapa.",
+          "objective": "Distinguir rutas de eventos Windows.",
+          "difficulty": "intermedia",
+          "id": "v25-22-wef",
+          "evidence": [
+            "| Equipos Windows                                    | `Windows Forwarded Events`                                         | `Windows agent-based`                                                                                    | `WEF` → `WEC` → `AMA`                                        | Suscripción de reenvío, `DCR` y `DCRA`                                        | En la `DCR`, si se define                                               | `WindowsEvent`                                                                                                  |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "SecurityEvent en cualquier recopilación de Windows.",
+              "why": "La tabla reserva SecurityEvent a la ruta Windows Security Events via AMA."
+            },
+            {
+              "id": "o1",
+              "text": "CommonSecurityLog.",
+              "why": "Ese destino corresponde a CEF sobre Syslog."
+            },
+            {
+              "id": "o2",
+              "text": "WindowsEvent.",
+              "why": "Aunque el origen sea Windows, el mecanismo y conector determinan el destino concreto del mapa."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "¿Qué límite enumera el mapa para Connect events de XDR?",
+          "explanation": "Conectar XDR no equivale a copiar toda su telemetría ni a confundir objetos de incidentes con tablas de eventos.",
+          "objective": "Interpretar alcance de selección de eventos.",
+          "difficulty": "intermedia",
+          "id": "v25-22-xdr-seleccion",
+          "evidence": [
+            "| `MDE`, `MDO`, `MDI` y `MDCA`                       | `Microsoft Defender XDR — Connect events`                          | `service-to-service`                                                                                     | Recopilación administrada de tablas seleccionadas            | Selección por grupo en `Advanced Hunting`; excluye `DeviceTvm*`               | `Workspace transformation DCR` en tablas compatibles                    | Tablas seleccionadas de `Endpoint`, `Office 365`, `Identity`, `Cloud Apps` y `Alerts`; incluye `UrlClickEvents` |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Solo sincroniza objetos SecurityIncident.",
+              "why": "Eso corresponde al camino de incidentes/alertas, no a los eventos crudos."
+            },
+            {
+              "id": "o1",
+              "text": "Se seleccionan grupos de tablas en Advanced Hunting y se excluye DeviceTvm*.",
+              "why": "Conectar XDR no equivale a copiar toda su telemetría ni a confundir objetos de incidentes con tablas de eventos."
+            },
+            {
+              "id": "o2",
+              "text": "Copia obligatoriamente todas las tablas sin selección.",
+              "why": "La fila dice recopilación de tablas seleccionadas."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [],
+      "audit": {
+        "mainConcepts": [
+          "Leer el mapa de ingesta como responsabilidades, no saltos físicos.",
+          "Elegir tabla y recopilación según la fuente.",
+          "Distinguir eventos, alertas y datos normalizados."
+        ],
+        "understanding": [
+          "Leer el mapa de ingesta como responsabilidades, no saltos físicos.",
+          "Elegir tabla y recopilación según la fuente.",
+          "Distinguir eventos, alertas y datos normalizados."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Leer el mapa de ingesta como responsabilidades, no saltos físicos.",
+          "Elegir tabla y recopilación según la fuente.",
+          "Distinguir eventos, alertas y datos normalizados."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "La introducción niega que sean saltos del registro.",
+          "La columna Tabla varía según la ruta.",
+          "La tabla reserva SecurityEvent a la ruta Windows Security Events via AMA.",
+          "Ese destino corresponde a CEF sobre Syslog.",
+          "Eso corresponde al camino de incidentes/alertas, no a los eventos crudos."
+        ],
+        "evidence": [
+          "Las columnas relacionan responsabilidades; el `tipo de conexión` y la `configuración` describen el flujo, no son saltos por los que viaje el registro. La `transformación`, cuando se configura y la ruta la admite, se aplica antes de almacenar el dato; se desarrolla en `Transformación`.",
+          "| Windows                                            | `Windows Security Events via AMA`                                  | `Windows agent-based`                                                                                    | `Azure Monitor Agent (AMA)`                                  | Conjunto de eventos o `XPath`, `DCR` y `DCRA`                                 | En la `DCR`, si se define                                               | `SecurityEvent`                                                                                                 |",
+          "| Appliance o dispositivo compatible con `CEF`       | `Common Event Format (CEF) via AMA`                                | `agent-based`                                                                                            | `CEF` sobre `Syslog` → `AMA`                                 | `Forwarder` Linux, `DCR` y `DCRA`                                             | En la `DCR`, si se define                                               | `CommonSecurityLog`                                                                                             |",
+          "| `Microsoft 365`                                    | `Microsoft 365`                                                    | `API-based`                                                                                              | `Office 365 Management Activity API`                         | Conectar el `tenant` y habilitar los `workloads` compatibles                  | `Workspace transformation DCR`                                          | `OfficeActivity`                                                                                                |",
+          "| Equipos Windows                                    | `Windows Forwarded Events`                                         | `Windows agent-based`                                                                                    | `WEF` → `WEC` → `AMA`                                        | Suscripción de reenvío, `DCR` y `DCRA`                                        | En la `DCR`, si se define                                               | `WindowsEvent`                                                                                                  |",
+          "| `MDE`, `MDO`, `MDI` y `MDCA`                       | `Microsoft Defender XDR — Connect events`                          | `service-to-service`                                                                                     | Recopilación administrada de tablas seleccionadas            | Selección por grupo en `Advanced Hunting`; excluye `DeviceTvm*`               | `Workspace transformation DCR` en tablas compatibles                    | Tablas seleccionadas de `Endpoint`, `Office 365`, `Identity`, `Cloud Apps` y `Alerts`; incluye `UrlClickEvents` |"
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-4-ingesta/origen-1",
+      "introduction": "Trabaja los conceptos de «Origen» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Identificar quién genera la señal.",
+        "Separar origen, conector, mecanismo y tabla.",
+        "Distinguir superficies de identidad y actividad."
+      ],
+      "summary": [
+        "Identificar quién genera la señal.",
+        "Separar origen, conector, mecanismo y tabla.",
+        "Distinguir superficies de identidad y actividad."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "En una ruta de ingesta de una aplicación personalizada, ¿qué es el origen?",
+          "explanation": "Identificar al productor evita mezclar el evento original con el transporte o almacenamiento.",
+          "objective": "Identificar el productor de una señal.",
+          "difficulty": "intermedia",
+          "id": "v25-23-productor",
+          "evidence": [
+            "Un origen es el workload, sistema, servicio, dispositivo, recurso, aplicación o proveedor que genera los datos o señales iniciales que se quieren ingerir. No es el conector que habilita su flujo, el mecanismo que los recopila ni la tabla que los almacena."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "La aplicación que genera la actividad inicial.",
+              "why": "Identificar al productor evita mezclar el evento original con el transporte o almacenamiento."
+            },
+            {
+              "id": "o1",
+              "text": "La tabla donde finalmente se almacena.",
+              "why": "La tabla es el destino, no quien genera el dato."
+            },
+            {
+              "id": "o2",
+              "text": "El conector que habilita el flujo.",
+              "why": "El documento distingue explícitamente origen y conector."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "match",
+          "prompt": "Relaciona el origen con la señal del apartado.",
+          "explanation": "La naturaleza del origen orienta qué señales pueden investigarse; el transporte se decide después.",
+          "objective": "Elegir fuente según la evidencia buscada.",
+          "difficulty": "intermedia",
+          "id": "v25-23-observacion",
+          "evidence": [
+            "| `Microsoft Graph`                            | Solicitudes HTTP que acceden a recursos del tenant mediante su API (`Microsoft Graph activity logs`)                                  |",
+            "| Linux                                        | Actividad del sistema y sus servicios (Mensajes `Syslog`)                                                                             |",
+            "| Proveedores de inteligencia de amenazas      | Amenazas conocidas y su contexto                                                                                                      |"
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "Microsoft Graph"
+            },
+            {
+              "id": "r1",
+              "label": "Linux"
+            },
+            {
+              "id": "r2",
+              "label": "Proveedores de inteligencia"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "Solicitudes HTTP a recursos del tenant mediante su API"
+            },
+            {
+              "id": "p1",
+              "text": "Actividad del sistema y servicios en Syslog"
+            },
+            {
+              "id": "p2",
+              "text": "Amenazas conocidas y su contexto"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1",
+            "p2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "¿Qué separación de requisitos exige la fila de MDI?",
+          "explanation": "La amplitud del origen MDI no elimina requisitos específicos de sensores y conectores.",
+          "objective": "Reconocer requisitos por cada fuente de identidad.",
+          "difficulty": "intermedia",
+          "id": "v25-23-mdi-rutas",
+          "evidence": [
+            "| `Microsoft Defender for Identity (MDI)`      | `Active Directory` local mediante sensores; `Microsoft Entra ID` y otros sistemas de `Identity and Access Management (IAM)`, como `Okta`, mediante conectores de `API`; y plataformas de `Privileged Access Management (PAM)`, como `CyberArk`, `Delinea` y `BeyondTrust`. Los requisitos del sensor local y los del conector de cada proveedor se comprueban por separado |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Consultar solamente la tabla final y omitir la conexión del origen.",
+              "why": "La existencia de una tabla no prueba la recopilación de esa fuente."
+            },
+            {
+              "id": "o1",
+              "text": "Comprobar por separado el sensor local y el conector API de cada proveedor.",
+              "why": "La amplitud del origen MDI no elimina requisitos específicos de sensores y conectores."
+            },
+            {
+              "id": "o2",
+              "text": "Suponer que un sensor AD incorpora automáticamente todo proveedor IAM/PAM.",
+              "why": "La fila distingue expresamente los caminos."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [],
+      "audit": {
+        "mainConcepts": [
+          "Identificar quién genera la señal.",
+          "Separar origen, conector, mecanismo y tabla.",
+          "Distinguir superficies de identidad y actividad."
+        ],
+        "understanding": [
+          "Identificar quién genera la señal.",
+          "Separar origen, conector, mecanismo y tabla.",
+          "Distinguir superficies de identidad y actividad."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Identificar quién genera la señal.",
+          "Separar origen, conector, mecanismo y tabla.",
+          "Distinguir superficies de identidad y actividad."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "La tabla es el destino, no quien genera el dato.",
+          "El documento distingue explícitamente origen y conector.",
+          "La existencia de una tabla no prueba la recopilación de esa fuente.",
+          "La fila distingue expresamente los caminos."
+        ],
+        "evidence": [
+          "Un origen es el workload, sistema, servicio, dispositivo, recurso, aplicación o proveedor que genera los datos o señales iniciales que se quieren ingerir. No es el conector que habilita su flujo, el mecanismo que los recopila ni la tabla que los almacena.",
+          "| `Microsoft Graph`                            | Solicitudes HTTP que acceden a recursos del tenant mediante su API (`Microsoft Graph activity logs`)                                  |",
+          "| Linux                                        | Actividad del sistema y sus servicios (Mensajes `Syslog`)                                                                             |",
+          "| Proveedores de inteligencia de amenazas      | Amenazas conocidas y su contexto                                                                                                      |",
+          "| `Microsoft Defender for Identity (MDI)`      | `Active Directory` local mediante sensores; `Microsoft Entra ID` y otros sistemas de `Identity and Access Management (IAM)`, como `Okta`, mediante conectores de `API`; y plataformas de `Privileged Access Management (PAM)`, como `CyberArk`, `Delinea` y `BeyondTrust`. Los requisitos del sensor local y los del conector de cada proveedor se comprueban por separado |"
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-4-ingesta/conector-o-ruta-1",
+      "introduction": "Trabaja los conceptos de «Conector o ruta» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Elegir Connect incidents, entities o events por tipo de dato.",
+        "Distinguir alertas de Defender for Cloud y resource logs.",
+        "Reconocer alternativas para fuentes sin conector adecuado."
+      ],
+      "summary": [
+        "Elegir Connect incidents, entities o events por tipo de dato.",
+        "Distinguir alertas de Defender for Cloud y resource logs.",
+        "Reconocer alternativas para fuentes sin conector adecuado."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "match",
+          "prompt": "Relaciona cada opción del conector XDR con su propósito.",
+          "explanation": "Habilitar una opción no debe confundirse con habilitar todas las categorías de datos.",
+          "objective": "Elegir la opción XDR por objeto de datos.",
+          "difficulty": "intermedia",
+          "id": "v25-24-xdr-modos",
+          "evidence": [
+            "- `Connect incidents & alerts`: sincroniza incidentes y alertas.",
+            "- `Connect entities`: incorpora identidades de Active Directory local mediante `MDI`; exige `UEBA`.",
+            "- `Connect events`: ingiere las tablas de `Advanced Hunting` seleccionadas."
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "Connect incidents & alerts"
+            },
+            {
+              "id": "r1",
+              "label": "Connect entities"
+            },
+            {
+              "id": "r2",
+              "label": "Connect events"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "Sincronizar incidentes y alertas"
+            },
+            {
+              "id": "p1",
+              "text": "Incorporar identidades AD local mediante MDI y UEBA"
+            },
+            {
+              "id": "p2",
+              "text": "Ingerir tablas Advanced Hunting seleccionadas"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1",
+            "p2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Buscas resource logs de recursos protegidos por Defender for Cloud, no solo sus alertas. ¿Qué ruta cita el apartado?",
+          "explanation": "El tipo de dato determina la ruta: una alerta de seguridad y un resource log no son el mismo objeto.",
+          "objective": "Distinguir datos de recurso y alertas.",
+          "difficulty": "intermedia",
+          "id": "v25-24-mdc-logs",
+          "evidence": [
+            "- `Diagnostic settings`: exporta aparte los resource logs de los recursos protegidos."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Diagnostic settings aparte.",
+              "why": "El tipo de dato determina la ruta: una alerta de seguridad y un resource log no son el mismo objeto."
+            },
+            {
+              "id": "o1",
+              "text": "El conector de alertas convierte siempre todos los resource logs.",
+              "why": "El texto distingue entrega de alertas y exportación aparte de resource logs."
+            },
+            {
+              "id": "o2",
+              "text": "Connect entities de MDI.",
+              "why": "Esa opción incorpora identidades AD, no logs de recursos Azure."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "No existe un conector adecuado para la fuente. ¿Qué alternativas contempla el texto?",
+          "explanation": "La alternativa debe implementar una ruta de entrega real y respetar la interfaz de destino.",
+          "objective": "Reconocer alternativas de integración admitidas.",
+          "difficulty": "intermedia",
+          "id": "v25-24-sin-conector",
+          "evidence": [
+            "Las soluciones de `Content hub` proporcionan conectores para otras nubes, dispositivos y aplicaciones. Si no existe uno adecuado, se utiliza `CCF`, `Logs Ingestion API` o código propio. Los indicadores de amenazas se integran mediante `TAXII` o `Threat Intelligence Upload API` y se desarrollan en `Threat Intelligence`."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Elegir cualquier conector disponible aunque no admita ese tipo de dato.",
+              "why": "La selección debe respetar los requisitos y el dato soportado, no solo que exista un conector."
+            },
+            {
+              "id": "o1",
+              "text": "CCF, Logs Ingestion API o código propio.",
+              "why": "La alternativa debe implementar una ruta de entrega real y respetar la interfaz de destino."
+            },
+            {
+              "id": "o2",
+              "text": "Usar Connect incidents & alerts para enviar un formato propio de eventos.",
+              "why": "Esa opción sincroniza incidentes y alertas; no implementa cualquier fuente de eventos."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [],
+      "audit": {
+        "mainConcepts": [
+          "Elegir Connect incidents, entities o events por tipo de dato.",
+          "Distinguir alertas de Defender for Cloud y resource logs.",
+          "Reconocer alternativas para fuentes sin conector adecuado."
+        ],
+        "understanding": [
+          "Elegir Connect incidents, entities o events por tipo de dato.",
+          "Distinguir alertas de Defender for Cloud y resource logs.",
+          "Reconocer alternativas para fuentes sin conector adecuado."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Elegir Connect incidents, entities o events por tipo de dato.",
+          "Distinguir alertas de Defender for Cloud y resource logs.",
+          "Reconocer alternativas para fuentes sin conector adecuado."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "El texto distingue entrega de alertas y exportación aparte de resource logs.",
+          "Esa opción incorpora identidades AD, no logs de recursos Azure.",
+          "Esa opción solo sincroniza sus objetos, no cualquier fuente.",
+          "Nombrar una tabla no implementa recopilación."
+        ],
+        "evidence": [
+          "- `Connect incidents & alerts`: sincroniza incidentes y alertas.",
+          "- `Connect entities`: incorpora identidades de Active Directory local mediante `MDI`; exige `UEBA`.",
+          "- `Connect events`: ingiere las tablas de `Advanced Hunting` seleccionadas.",
+          "- `Diagnostic settings`: exporta aparte los resource logs de los recursos protegidos.",
+          "Las soluciones de `Content hub` proporcionan conectores para otras nubes, dispositivos y aplicaciones. Si no existe uno adecuado, se utiliza `CCF`, `Logs Ingestion API` o código propio. Los indicadores de amenazas se integran mediante `TAXII` o `Threat Intelligence Upload API` y se desarrollan en `Threat Intelligence`."
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-4-ingesta/tipo-de-conexion-1",
+      "introduction": "Trabaja los conceptos de «Tipo de conexión» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Separar clasificación de conexión y mecanismo de recopilación.",
+        "Distinguir API, agente, exportación y service-to-service.",
+        "No confundir tipo técnico y alcance administrativo."
+      ],
+      "summary": [
+        "Separar clasificación de conexión y mecanismo de recopilación.",
+        "Distinguir API, agente, exportación y service-to-service.",
+        "No confundir tipo técnico y alcance administrativo."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "match",
+          "prompt": "Relaciona cada clase de conexión con su significado.",
+          "explanation": "La clasificación describe cómo se conecta la ruta; no es por sí misma el componente que recopila datos.",
+          "objective": "Clasificar conexiones por su función técnica.",
+          "difficulty": "intermedia",
+          "id": "v25-25-clasificar",
+          "evidence": [
+            "- `API-based`: conexión que obtiene o recibe registros mediante una `API`.",
+            "- `diagnostic settings-based`: exportación de categorías de registros mediante `Diagnostic settings`.",
+            "- `service-to-service`: integración directa entre servicios, administrada por Microsoft."
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "API-based"
+            },
+            {
+              "id": "r1",
+              "label": "Diagnostic settings-based"
+            },
+            {
+              "id": "r2",
+              "label": "Service-to-service"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "Obtiene o recibe registros mediante una API"
+            },
+            {
+              "id": "p1",
+              "text": "Exporta categorías de registros"
+            },
+            {
+              "id": "p2",
+              "text": "Integración directa administrada entre servicios"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1",
+            "p2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Un conector MDC se describe como subscription-based. ¿Qué expresa esa etiqueta?",
+          "explanation": "Tenant-based/subscription-based delimitan el alcance; no sustituyen API/agente/service-to-service como explicación técnica.",
+          "objective": "Separar alcance y mecanismo técnico.",
+          "difficulty": "intermedia",
+          "id": "v25-25-scope-tipo",
+          "evidence": [
+            "`Tenant-based` y `subscription-based` indican el alcance de los conectores independientes de `Defender for Cloud`; `Custom code` indica una implementación personalizada. `Connect entities` hereda `service-to-service` del conector `XDR`, porque esa opción no tiene una clasificación separada."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Que no necesita permisos por usar una suscripción.",
+              "why": "El término de alcance no elimina requisitos."
+            },
+            {
+              "id": "o1",
+              "text": "Que siempre recopila usando AMA en cada recurso.",
+              "why": "La etiqueta no define ese mecanismo de transporte."
+            },
+            {
+              "id": "o2",
+              "text": "Su alcance administrativo, no una nueva clase de transporte.",
+              "why": "Tenant-based/subscription-based delimitan el alcance; no sustituyen API/agente/service-to-service como explicación técnica."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "true-false",
+          "prompt": "Según el apartado, usar CEF sobre Syslog hacia AMA sigue siendo una ruta agent-based.",
+          "solution": [
+            "true"
+          ],
+          "explanation": "El formato CEF no elimina el agente: el texto incluye expresamente Syslog, CEF y archivos mediante AMA dentro de agent-based.",
+          "objective": "Distinguir formato y necesidad de agente.",
+          "difficulty": "basica",
+          "id": "v25-25-cef-agente",
+          "evidence": [
+            "- `agent-based`: recopilación mediante un agente instalado; `Windows agent-based` es la variante para Windows. Las rutas `Syslog`, `CEF` y archivos mediante `AMA` también usan agente."
+          ],
+          "options": [
+            {
+              "id": "true",
+              "text": "Verdadero",
+              "why": "El formato CEF no elimina el agente: el texto incluye expresamente Syslog, CEF y archivos mediante AMA dentro de agent-based."
+            },
+            {
+              "id": "false",
+              "text": "Falso",
+              "why": "El formato CEF no elimina el agente: el texto incluye expresamente Syslog, CEF y archivos mediante AMA dentro de agent-based."
+            }
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [],
+      "audit": {
+        "mainConcepts": [
+          "Separar clasificación de conexión y mecanismo de recopilación.",
+          "Distinguir API, agente, exportación y service-to-service.",
+          "No confundir tipo técnico y alcance administrativo."
+        ],
+        "understanding": [
+          "Separar clasificación de conexión y mecanismo de recopilación.",
+          "Distinguir API, agente, exportación y service-to-service.",
+          "No confundir tipo técnico y alcance administrativo."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Separar clasificación de conexión y mecanismo de recopilación.",
+          "Distinguir API, agente, exportación y service-to-service.",
+          "No confundir tipo técnico y alcance administrativo."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "El término de alcance no elimina requisitos.",
+          "La etiqueta no define ese mecanismo de transporte.",
+          "El formato CEF no elimina el agente: el texto incluye expresamente Syslog, CEF y archivos mediante AMA dentro de agent-based."
+        ],
+        "evidence": [
+          "- `API-based`: conexión que obtiene o recibe registros mediante una `API`.",
+          "- `diagnostic settings-based`: exportación de categorías de registros mediante `Diagnostic settings`.",
+          "- `service-to-service`: integración directa entre servicios, administrada por Microsoft.",
+          "`Tenant-based` y `subscription-based` indican el alcance de los conectores independientes de `Defender for Cloud`; `Custom code` indica una implementación personalizada. `Connect entities` hereda `service-to-service` del conector `XDR`, porque esa opción no tiene una clasificación separada.",
+          "- `agent-based`: recopilación mediante un agente instalado; `Windows agent-based` es la variante para Windows. Las rutas `Syslog`, `CEF` y archivos mediante `AMA` también usan agente."
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-4-ingesta/data-collection-method-1",
+      "introduction": "Trabaja los conceptos de «Data collection method» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Reconocer WEF, WEC y AMA como funciones diferentes.",
+        "Separar formato CEF y transporte Syslog.",
+        "Vincular el agente con la DCR."
+      ],
+      "summary": [
+        "Reconocer WEF, WEC y AMA como funciones diferentes.",
+        "Separar formato CEF y transporte Syslog.",
+        "Vincular el agente con la DCR."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "match",
+          "prompt": "Relaciona cada cadena con su descripción.",
+          "explanation": "Las cadenas distinguen formato, reenvío y agente; no son tres nombres para una misma tabla.",
+          "objective": "Interpretar componentes de una cadena de recopilación.",
+          "difficulty": "intermedia",
+          "id": "v25-26-cadenas",
+          "evidence": [
+            "- `Windows Event Forwarding (WEF)` → `Windows Event Collector (WEC)` → `AMA`: reenvía eventos de Windows hasta `AMA`.",
+            "- `Syslog` → `AMA`: el demonio `Syslog` entrega los mensajes a `AMA`.",
+            "- `Common Event Format (CEF)` sobre `Syslog` → `AMA`: el formato `CEF` viaja por `Syslog` hasta `AMA`."
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "WEF → WEC → AMA"
+            },
+            {
+              "id": "r1",
+              "label": "Syslog → AMA"
+            },
+            {
+              "id": "r2",
+              "label": "CEF sobre Syslog → AMA"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "Reenvío Windows hasta el agente"
+            },
+            {
+              "id": "p1",
+              "text": "El demonio entrega mensajes al agente"
+            },
+            {
+              "id": "p2",
+              "text": "Un formato de evento viaja por Syslog hasta el agente"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1",
+            "p2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "¿Qué dirige la recopilación y envío de AMA según esta lectura?",
+          "explanation": "El mecanismo AMA recopila y envía según una regla de recopilación; no decide por el nombre de una tabla.",
+          "objective": "Relacionar AMA y su configuración.",
+          "difficulty": "intermedia",
+          "id": "v25-26-dcr",
+          "evidence": [
+            "- `Azure Monitor Agent (AMA)`: agente que recopila y envía datos según una `DCR`."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Solo el formato CEF, independientemente de la configuración del agente.",
+              "why": "CEF describe el formato; no sustituye la regla que dirige al agente."
+            },
+            {
+              "id": "o1",
+              "text": "Una DCR.",
+              "why": "El mecanismo AMA recopila y envía según una regla de recopilación; no decide por el nombre de una tabla."
+            },
+            {
+              "id": "o2",
+              "text": "Solo WEF para cualquier fuente, incluidas las de Syslog.",
+              "why": "WEF pertenece al reenvío Windows; la definición de AMA lo vincula a una DCR."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "En la cadena Windows indicada, ¿qué elemento aparece entre WEF y AMA?",
+          "explanation": "La lectura expande el recorrido de varios pasos: reenvío WEF, colector WEC y entrega mediante AMA.",
+          "objective": "Reconstruir un recorrido Windows sin mezclar fuentes.",
+          "difficulty": "intermedia",
+          "id": "v25-26-wec",
+          "evidence": [
+            "- `Windows Event Forwarding (WEF)` → `Windows Event Collector (WEC)` → `AMA`: reenvía eventos de Windows hasta `AMA`."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Windows Event Collector (WEC).",
+              "why": "La lectura expande el recorrido de varios pasos: reenvío WEF, colector WEC y entrega mediante AMA."
+            },
+            {
+              "id": "o1",
+              "text": "El demonio Syslog.",
+              "why": "Syslog corresponde a otra cadena del apartado."
+            },
+            {
+              "id": "o2",
+              "text": "Ninguno: WEF entrega siempre directamente a AMA en la cadena indicada.",
+              "why": "El texto incluye expresamente un colector WEC entre ambos."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [],
+      "audit": {
+        "mainConcepts": [
+          "Reconocer WEF, WEC y AMA como funciones diferentes.",
+          "Separar formato CEF y transporte Syslog.",
+          "Vincular el agente con la DCR."
+        ],
+        "understanding": [
+          "Reconocer WEF, WEC y AMA como funciones diferentes.",
+          "Separar formato CEF y transporte Syslog.",
+          "Vincular el agente con la DCR."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Reconocer WEF, WEC y AMA como funciones diferentes.",
+          "Separar formato CEF y transporte Syslog.",
+          "Vincular el agente con la DCR."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "El texto vincula explícitamente el agente con una DCR.",
+          "No pertenece al mecanismo de recopilación AMA.",
+          "Syslog corresponde a otra cadena del apartado.",
+          "TAXII no forma parte del reenvío Windows descrito."
+        ],
+        "evidence": [
+          "- `Windows Event Forwarding (WEF)` → `Windows Event Collector (WEC)` → `AMA`: reenvía eventos de Windows hasta `AMA`.",
+          "- `Syslog` → `AMA`: el demonio `Syslog` entrega los mensajes a `AMA`.",
+          "- `Common Event Format (CEF)` sobre `Syslog` → `AMA`: el formato `CEF` viaja por `Syslog` hasta `AMA`.",
+          "- `Azure Monitor Agent (AMA)`: agente que recopila y envía datos según una `DCR`.",
+          "- `Windows Event Forwarding (WEF)` → `Windows Event Collector (WEC)` → `AMA`: reenvía eventos de Windows hasta `AMA`."
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    }
+  ]
+}

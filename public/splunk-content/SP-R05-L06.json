@@ -1,0 +1,200 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R05-L06",
+  "title": "tstats y aceleración",
+  "revision": "e6df1805e444b0b83de3398c",
+  "sourceVersion": "bbbe4a8d06a052099b9910f7ce10767b4e7c5de4354f66f04b1cf53e242bea53",
+  "sanitizedHash": "bbbe4a8d06a052099b9910f7ce10767b4e7c5de4354f66f04b1cf53e242bea53",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R04_R05/R05_CIM_NORMALIZACION/SP-R05-L06.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Diferenciar estadísticas sobre índice y summaries de data models",
+  "preamble": "# SP-R05-L06 — tstats y aceleración\n\n**Región:** SP-R05 · **Prioridad:** P0/P1 SOC · **Estado:** borrador educativo para revisión · **SPL real:** no ejecutado.  \n**ID curricular intacto:** `SP-R05-L06` · **Resultado de aprendizaje:** Diferenciar estadísticas sobre índice y summaries de data models  \n**Prerrequisitos:** R02 y R04; campos de fuentes conocidas · **Producto:** Splunk Enterprise/Cloud con SPL clásico según versión y permisos; CIM exige configuración pertinente.\n\n",
+  "sections": [
+    {
+      "id": "SP-R05-L06-S01",
+      "title": "1. Pregunta esencial",
+      "markdown": "## 1. Pregunta esencial\n\n`tstats` explota campos indexados y puede consultar resúmenes de modelos acelerados. Es rápido en escenarios adecuados, pero una consulta con `summariesonly=true` restringe los datos a lo resumido. Si una ventana no se ha acelerado, una búsqueda limitada a summaries puede omitir eventos. Por eso el analista debe validar el rango acelerado antes de concluir que no hubo actividad.\n\n**Objetivo verificable:** Diferenciar estadísticas sobre índice y summaries de data models.\n\n",
+      "line": 7,
+      "endLine": 11
+    },
+    {
+      "id": "SP-R05-L06-S02",
+      "title": "2. Modelo mental y conceptos",
+      "markdown": "## 2. Modelo mental y conceptos\n\n1. `| tstats count WHERE index=... BY sourcetype` opera sobre metadatos/campos indexados; no equivale a stats de cualquier campo extraído en tiempo de búsqueda.\n2. `FROM datamodel=Authentication.Authentication` presupone el modelo instalado, accesible y con dataset correcto para el producto/versión.\n3. En modelos acelerados, `summariesonly=true` evita recurrir a partes no resumidas: aumenta previsibilidad de rendimiento, puede perder cobertura.\n4. Verifica qué datos existen en el rango y dónde acaba la aceleración; cero resultados puede ser un problema de summaries, no una observación de seguridad.\n\n",
+      "line": 13,
+      "endLine": 18
+    },
+    {
+      "id": "SP-R05-L06-S03",
+      "title": "3. Procedimiento guiado",
+      "markdown": "## 3. Procedimiento guiado\n\n1. Lee `acceleration_coverage.csv`: compara raw_count y summarized_count en tres ventanas.\n2. Suma ambos totales: raw=19, resumido=12; la diferencia 7 corresponde a dato no resumido según la simulación.\n3. Razona cuándo priorizar completitud frente a latencia en un análisis de incidentes.\n4. Especifica qué buscarías en un entorno real: estado de aceleración, periodo, restricciones, permisos y backfill.\n\n",
+      "line": 20,
+      "endLine": 25
+    },
+    {
+      "id": "SP-R05-L06-S04",
+      "title": "4. SPL ilustrativo — no ejecutado",
+      "markdown": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\n| tstats summariesonly=true count AS eventos FROM datamodel=Authentication.Authentication BY Authentication.action\n```\n\n**Interpretación, condiciones y alcance:** Ejemplo de SPL clásico CONDICIONAL a que exista Authentication y su dataset raíz (revisar versión, contextos y sintaxis efectiva). La única salida numérica de este bloque procede de `acceleration_coverage.csv`, no de esa consulta. Para simple cuenta indexada: `| tstats count WHERE index=INDICE_AUTH BY sourcetype` (rol/índice reales).\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n",
+      "line": 27,
+      "endLine": 35
+    },
+    {
+      "id": "SP-R05-L06-S05",
+      "title": "5. Caso SOC",
+      "markdown": "## 5. Caso SOC\n\nUn dashboard acelerado muestra 12 eventos; la consulta de cobertura de ejemplo indica 19. ¿Cómo redactas ese hallazgo?\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 37,
+      "endLine": 42
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R05-L06-Q01",
+      "lessonId": "SP-R05-L06",
+      "prompt": "¿Cuál es el riesgo de summariesonly=true?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S11",
+        "SPLUNK_LECCIONES_R04_R05:S12",
+        "SPLUNK_LECCIONES_R04_R05:S15"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R05-L06-Q01-O-1eef6cb417c2",
+          "text": "Completa automáticamente los huecos del resumen buscando siempre eventos crudos"
+        },
+        {
+          "id": "SP-R05-L06-Q01-O-57e9b1b24252",
+          "text": "Puede omitir datos no incluidos en summaries"
+        },
+        {
+          "id": "SP-R05-L06-Q01-O-ce09b33bc23e",
+          "text": "Convierte cualquier campo search-time en campo indexado para cubrir los huecos"
+        },
+        {
+          "id": "SP-R05-L06-Q01-O-e1e9eade53c4",
+          "text": "Excluye únicamente los eventos que no pertenecen al índice seleccionado"
+        }
+      ],
+      "solution": "SP-R05-L06-Q01-O-57e9b1b24252",
+      "explanation": "Ese modo limita el ámbito a resúmenes existentes.",
+      "anchors": [
+        {
+          "file": "R05_CIM_NORMALIZACION/SP-R05-L06.md",
+          "sourceHash": "bbbe4a8d06a052099b9910f7ce10767b4e7c5de4354f66f04b1cf53e242bea53",
+          "line": 13,
+          "endLine": 18,
+          "quote": "## 2. Modelo mental y conceptos\n\n1. `| tstats count WHERE index=... BY sourcetype` opera sobre metadatos/campos indexados; no equivale a stats de cualquier campo extraído en tiempo de búsqueda.\n2. `FROM datamodel=Authentication.Authentication` presupone el modelo instalado, accesible y con dataset correcto para el producto/versión.\n3. En modelos acelerados, `summariesonly=true` evita recurrir a partes no resumidas: aumenta previsibilidad de rendimiento, puede perder cobertura.\n4. Verifica qué datos existen en el rango y dónde acaba la aceleración; cero resultados puede ser un problema de summaries, no una observación de seguridad.\n\n"
+        },
+        {
+          "file": "R05_CIM_NORMALIZACION/SP-R05-L06.md",
+          "sourceHash": "bbbe4a8d06a052099b9910f7ce10767b4e7c5de4354f66f04b1cf53e242bea53",
+          "line": 27,
+          "endLine": 35,
+          "quote": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\n| tstats summariesonly=true count AS eventos FROM datamodel=Authentication.Authentication BY Authentication.action\n```\n\n**Interpretación, condiciones y alcance:** Ejemplo de SPL clásico CONDICIONAL a que exista Authentication y su dataset raíz (revisar versión, contextos y sintaxis efectiva). La única salida numérica de este bloque procede de `acceleration_coverage.csv`, no de esa consulta. Para simple cuenta indexada: `| tstats count WHERE index=INDICE_AUTH BY sourcetype` (rol/índice reales).\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R05-L06-Q02",
+      "lessonId": "SP-R05-L06",
+      "prompt": "¿Qué tipos de campos utiliza tstats?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S11",
+        "SPLUNK_LECCIONES_R04_R05:S12",
+        "SPLUNK_LECCIONES_R04_R05:S15"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R05-L06-Q02-O-93ad28a99cdb",
+          "text": "Los campos de una lookup table sin referencia a índice o modelo"
+        },
+        {
+          "id": "SP-R05-L06-Q02-O-91747e9b0fbd",
+          "text": "Solo los valores de texto de _raw recuperados por el último search"
+        },
+        {
+          "id": "SP-R05-L06-Q02-O-688fd1b6639b",
+          "text": "Cualquier alias creado antes con eval, aunque no esté en el índice ni en el modelo"
+        },
+        {
+          "id": "SP-R05-L06-Q02-O-8b27427f7c02",
+          "text": "Campos indexados o datos de modelos acelerados según sintaxis"
+        }
+      ],
+      "solution": "SP-R05-L06-Q02-O-8b27427f7c02",
+      "explanation": "tstats se apoya en estructuras de indexación y resúmenes del modelo.",
+      "anchors": [
+        {
+          "file": "R05_CIM_NORMALIZACION/SP-R05-L06.md",
+          "sourceHash": "bbbe4a8d06a052099b9910f7ce10767b4e7c5de4354f66f04b1cf53e242bea53",
+          "line": 13,
+          "endLine": 18,
+          "quote": "## 2. Modelo mental y conceptos\n\n1. `| tstats count WHERE index=... BY sourcetype` opera sobre metadatos/campos indexados; no equivale a stats de cualquier campo extraído en tiempo de búsqueda.\n2. `FROM datamodel=Authentication.Authentication` presupone el modelo instalado, accesible y con dataset correcto para el producto/versión.\n3. En modelos acelerados, `summariesonly=true` evita recurrir a partes no resumidas: aumenta previsibilidad de rendimiento, puede perder cobertura.\n4. Verifica qué datos existen en el rango y dónde acaba la aceleración; cero resultados puede ser un problema de summaries, no una observación de seguridad.\n\n"
+        },
+        {
+          "file": "R05_CIM_NORMALIZACION/SP-R05-L06.md",
+          "sourceHash": "bbbe4a8d06a052099b9910f7ce10767b4e7c5de4354f66f04b1cf53e242bea53",
+          "line": 27,
+          "endLine": 35,
+          "quote": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\n| tstats summariesonly=true count AS eventos FROM datamodel=Authentication.Authentication BY Authentication.action\n```\n\n**Interpretación, condiciones y alcance:** Ejemplo de SPL clásico CONDICIONAL a que exista Authentication y su dataset raíz (revisar versión, contextos y sintaxis efectiva). La única salida numérica de este bloque procede de `acceleration_coverage.csv`, no de esa consulta. Para simple cuenta indexada: `| tstats count WHERE index=INDICE_AUTH BY sourcetype` (rol/índice reales).\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R05-L06-P01",
+      "lessonId": "SP-R05-L06",
+      "prompt": "Calcula los datos cubiertos/no cubiertos en la fixture de aceleración y diseña una consulta de control con ventana y datos fuente, distinguiendo simulación de ejecución real.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S11",
+        "SPLUNK_LECCIONES_R04_R05:S12",
+        "SPLUNK_LECCIONES_R04_R05:S15"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica fuentes, campos, ventana y supuestos",
+        "Aplica el método al escenario y explica cifras o semántica",
+        "Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante",
+        "Presenta una respuesta reproducible sin ejecutar cambios en sistemas"
+      ],
+      "referenceAnswer": "raw_count=19; summarized_count=12; faltan 7 del resumen. La simulación no permite inferir causa real de backfill ni rendimiento; sería incorrecto concluir que no existieron los 7 eventos."
+    }
+  ],
+  "solutionsMarkdown": "## 7. Solucionario con razonamiento\n\n- **SP-R05-L06-Q01: B** — Ese modo limita el ámbito a resúmenes existentes.\n\n- **SP-R05-L06-Q02: D** — tstats se apoya en estructuras de indexación y resúmenes del modelo.\n\n- **SP-R05-L06-P01:** raw_count=19; summarized_count=12; faltan 7 del resumen. La simulación no permite inferir causa real de backfill ni rendimiento; sería incorrecto concluir que no existieron los 7 eventos.\n\n**Guía de retroalimentación formativa:** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Solucionario razonado\n\n**Q01 → B.** Puede omitir datos no incluidos en summaries. Ese modo limita el ámbito a resúmenes existentes.\n\n**Q02 → B.** Campos indexados o datos de modelos acelerados según sintaxis. tstats se apoya en estructuras de indexación y resúmenes del modelo.\n\n**P01 → Solución orientativa:** raw_count=19; summarized_count=12; faltan 7 del resumen. La simulación no permite inferir causa real de backfill ni rendimiento; sería incorrecto concluir que no existieron los 7 eventos.\n\n**Rúbrica (0–4):** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas. Superar un test escrito no equivale por sí solo a dominar investigación SOC.\n\n",
+  "referencesMarkdown": "## 9. Fuentes y trazabilidad\n\n- **Origen curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`; título y objetivo preservados.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` (no reescrita).\n- **Puente de conceptos SC-200:** Cap. 05 (retención/almacenamiento) y 13 (búsqueda y KQL). Véase `../../01_FUENTE_ORIGINAL/SC-200.md` (sin trasladar esquemas literalmente).\n- **[S11] tstats (SPL clásico):** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.2/search-commands/tstats\n- **[S12] Aceleración de data models:** https://help.splunk.com/en/splunk-enterprise/manage-knowledge-objects/knowledge-management-manual/9.1/use-data-summaries-to-accelerate-searches/accelerate-data-models\n- **[S15] Data models (comando y estructura):** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.0/search-commands/datamodel\n\n**Estatus de evidencia:** documentación del producto + diseño educativo + cálculos offline sobre fixtures (cuando se indica). No se ha verificado ejecución/compatibilidad específica en Splunk del usuario; revisar con la versión real antes de usar en producción.\n",
+  "originalMarkdown": "# SP-R05-L06 — tstats y aceleración\n\n**Región:** SP-R05 · **Prioridad:** P0/P1 SOC · **Estado:** borrador educativo para revisión · **SPL real:** no ejecutado.  \n**ID curricular intacto:** `SP-R05-L06` · **Resultado de aprendizaje:** Diferenciar estadísticas sobre índice y summaries de data models  \n**Prerrequisitos:** R02 y R04; campos de fuentes conocidas · **Producto:** Splunk Enterprise/Cloud con SPL clásico según versión y permisos; CIM exige configuración pertinente.\n\n## 1. Pregunta esencial\n\n`tstats` explota campos indexados y puede consultar resúmenes de modelos acelerados. Es rápido en escenarios adecuados, pero una consulta con `summariesonly=true` restringe los datos a lo resumido. Si una ventana no se ha acelerado, una búsqueda limitada a summaries puede omitir eventos. Por eso el analista debe validar el rango acelerado antes de concluir que no hubo actividad.\n\n**Objetivo verificable:** Diferenciar estadísticas sobre índice y summaries de data models.\n\n## 2. Modelo mental y conceptos\n\n1. `| tstats count WHERE index=... BY sourcetype` opera sobre metadatos/campos indexados; no equivale a stats de cualquier campo extraído en tiempo de búsqueda.\n2. `FROM datamodel=Authentication.Authentication` presupone el modelo instalado, accesible y con dataset correcto para el producto/versión.\n3. En modelos acelerados, `summariesonly=true` evita recurrir a partes no resumidas: aumenta previsibilidad de rendimiento, puede perder cobertura.\n4. Verifica qué datos existen en el rango y dónde acaba la aceleración; cero resultados puede ser un problema de summaries, no una observación de seguridad.\n\n## 3. Procedimiento guiado\n\n1. Lee `acceleration_coverage.csv`: compara raw_count y summarized_count en tres ventanas.\n2. Suma ambos totales: raw=19, resumido=12; la diferencia 7 corresponde a dato no resumido según la simulación.\n3. Razona cuándo priorizar completitud frente a latencia en un análisis de incidentes.\n4. Especifica qué buscarías en un entorno real: estado de aceleración, periodo, restricciones, permisos y backfill.\n\n## 4. SPL ilustrativo — no ejecutado\n\n```spl\n| tstats summariesonly=true count AS eventos FROM datamodel=Authentication.Authentication BY Authentication.action\n```\n\n**Interpretación, condiciones y alcance:** Ejemplo de SPL clásico CONDICIONAL a que exista Authentication y su dataset raíz (revisar versión, contextos y sintaxis efectiva). La única salida numérica de este bloque procede de `acceleration_coverage.csv`, no de esa consulta. Para simple cuenta indexada: `| tstats count WHERE index=INDICE_AUTH BY sourcetype` (rol/índice reales).\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n## 5. Caso SOC\n\nUn dashboard acelerado muestra 12 eventos; la consulta de cobertura de ejemplo indica 19. ¿Cómo redactas ese hallazgo?\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 6. Actividades\n\n### SP-R05-L06-Q01 — Opción múltiple\n\n¿Cuál es el riesgo de summariesonly=true?\n\nA. Completa automáticamente los huecos del resumen buscando siempre eventos crudos\nB. Puede omitir datos no incluidos en summaries\nC. Convierte cualquier campo search-time en campo indexado para cubrir los huecos\nD. Excluye únicamente los eventos que no pertenecen al índice seleccionado\n\n### SP-R05-L06-Q02 — Opción múltiple\n\n¿Qué tipos de campos utiliza tstats?\n\nA. Los campos de una lookup table sin referencia a índice o modelo\nB. Solo los valores de texto de _raw recuperados por el último search\nC. Cualquier alias creado antes con eval, aunque no esté en el índice ni en el modelo\nD. Campos indexados o datos de modelos acelerados según sintaxis\n\n### SP-R05-L06-P01 — Práctica abierta formativa\n\nCalcula los datos cubiertos/no cubiertos en la fixture de aceleración y diseña una consulta de control con ventana y datos fuente, distinguiendo simulación de ejecución real.\n\n## 7. Solucionario con razonamiento\n\n- **SP-R05-L06-Q01: B** — Ese modo limita el ámbito a resúmenes existentes.\n\n- **SP-R05-L06-Q02: D** — tstats se apoya en estructuras de indexación y resúmenes del modelo.\n\n- **SP-R05-L06-P01:** raw_count=19; summarized_count=12; faltan 7 del resumen. La simulación no permite inferir causa real de backfill ni rendimiento; sería incorrecto concluir que no existieron los 7 eventos.\n\n**Guía de retroalimentación formativa:** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Solucionario razonado\n\n**Q01 → B.** Puede omitir datos no incluidos en summaries. Ese modo limita el ámbito a resúmenes existentes.\n\n**Q02 → B.** Campos indexados o datos de modelos acelerados según sintaxis. tstats se apoya en estructuras de indexación y resúmenes del modelo.\n\n**P01 → Solución orientativa:** raw_count=19; summarized_count=12; faltan 7 del resumen. La simulación no permite inferir causa real de backfill ni rendimiento; sería incorrecto concluir que no existieron los 7 eventos.\n\n**Rúbrica (0–4):** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas. Superar un test escrito no equivale por sí solo a dominar investigación SOC.\n\n## 9. Fuentes y trazabilidad\n\n- **Origen curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`; título y objetivo preservados.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` (no reescrita).\n- **Puente de conceptos SC-200:** Cap. 05 (retención/almacenamiento) y 13 (búsqueda y KQL). Véase `../../01_FUENTE_ORIGINAL/SC-200.md` (sin trasladar esquemas literalmente).\n- **[S11] tstats (SPL clásico):** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.2/search-commands/tstats\n- **[S12] Aceleración de data models:** https://help.splunk.com/en/splunk-enterprise/manage-knowledge-objects/knowledge-management-manual/9.1/use-data-summaries-to-accelerate-searches/accelerate-data-models\n- **[S15] Data models (comando y estructura):** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.0/search-commands/datamodel\n\n**Estatus de evidencia:** documentación del producto + diseño educativo + cálculos offline sobre fixtures (cuando se indica). No se ha verificado ejecución/compatibilidad específica en Splunk del usuario; revisar con la versión real antes de usar en producción.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "S11",
+      "key": "SPLUNK_LECCIONES_R04_R05:S11",
+      "url": "https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.2/search-commands/tstats"
+    },
+    {
+      "id": "S12",
+      "key": "SPLUNK_LECCIONES_R04_R05:S12",
+      "url": "https://help.splunk.com/en/splunk-enterprise/manage-knowledge-objects/knowledge-management-manual/9.1/use-data-summaries-to-accelerate-searches/accelerate-data-models"
+    },
+    {
+      "id": "S15",
+      "key": "SPLUNK_LECCIONES_R04_R05:S15",
+      "url": "https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.0/search-commands/datamodel"
+    }
+  ]
+}

@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R11-L06",
+  "title": "Escenarios de error",
+  "revision": "6e560e3cb0f065eeb5d45c65",
+  "sourceVersion": "5c10011d4cf77b871208fd8d2cd496631b1a0dd118263f69f764201fe73f06dd",
+  "sanitizedHash": "5c10011d4cf77b871208fd8d2cd496631b1a0dd118263f69f764201fe73f06dd",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R10_R11/R11_AUTOMATIZACION_SOAR/SP-R11-L06.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Diseñar idempotencia, retries y manejo de timeout",
+  "preamble": "# SP-R11-L06 — Escenarios de error\n\n**Región:** SP-R11 · **Producto:** Splunk Enterprise/Cloud (donde se indique) o SOAR Cloud explícito. · **Estado:** borrador documental / requiere revisión humana. · **SPL/CLI/API:** ilustrativo, NO ejecutado.\n\n**Resultado curricular:** Diseñar idempotencia, retries y manejo de timeout\n\n**Prerrequisitos:** R07, R09 (conceptual), R10\n\n",
+  "sections": [
+    {
+      "id": "SP-R11-L06-S01",
+      "title": "1. Explicación razonada",
+      "markdown": "## 1. Explicación razonada\n\nUna automatización robusta distingue fallos *transitorios* (timeout, 429, 503), *permanentes* (401/403, target inválido) y resultados **desconocidos** (se perdió la respuesta después de que el destino quizá actuara). Reintentar ciegamente una operación mutante después de timeout puede duplicar acciones. La idempotencia exige una clave estable derivada de solicitud aprobada + acción + target + versión, registrada en un ledger con estados `pending`, `applied`, `denied`, `unknown` y `reconciled`.\n\nUn flujo de lectura puede tolerar reintentos limitados con backoff y jitter; una acción mutante en estado `unknown` necesita consultar de forma segura el estado del activo o abrir revisión humana antes de repetir. Una caída del playbook no revierte automáticamente cambios previos, por lo que hay que definir compensación y registrar progreso. La compensación tampoco garantiza restitución exacta si el contexto cambió.\n\nLa práctica dispone de `automation_runs.csv` con ocho intentos sintéticos y `idempotency_key`. El verificador offline agrupa claves, calcula cuántos *efectos ya confirmados* deberían contarse exactamente una vez y marca estados que requieren reconciliación. NO simula respuestas de una API real ni la ejecución de SOAR.\n\n",
+      "line": 9,
+      "endLine": 15
+    },
+    {
+      "id": "SP-R11-L06-S02",
+      "title": "2. Conceptos clave",
+      "markdown": "## 2. Conceptos clave\n\n1. Timeout de mutación produce estado unknown, no necesariamente fallo total\n2. Idempotency key evita efectos duplicados al reintentar\n3. Lectura ≠ mutación para política de retries\n4. Errores 401/403 no se arreglan reintentando\n5. Parcialidad y compensación requieren evidencia\n\n",
+      "line": 17,
+      "endLine": 23
+    },
+    {
+      "id": "SP-R11-L06-S03",
+      "title": "3. Procedimiento de estudio y verificación",
+      "markdown": "## 3. Procedimiento de estudio y verificación\n\n1. Clasifica resultados de API: éxito, transient, permanent, unknown.\n2. Define clave idempotente compuesta por action+target+approval.\n3. Distingue reintentos de consultas RO y operaciones mutantes.\n4. Para unknown en cambio de estado, reconcilia antes de reintentar.\n5. Registra auditoría, retry budget y stop condition.\n\n",
+      "line": 25,
+      "endLine": 31
+    },
+    {
+      "id": "SP-R11-L06-S04",
+      "title": "4. Pseudocódigo de simulación sin efectos",
+      "markdown": "## 4. Pseudocódigo de simulación sin efectos\n\n```text\nfor request in fixture:\n    if request.status == \"applied\": ledger.add(request.idempotency_key)\n    elif request.status == \"unknown\": needs_review.add(request.idempotency_key)\n    elif request.status in {\"forbidden\", \"invalid\"}: stop_and_audit()\n# Sin APIs, sin mutaciones, sin reintentos reales\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n",
+      "line": 33,
+      "endLine": 43
+    },
+    {
+      "id": "SP-R11-L06-S05",
+      "title": "5. Situación profesional",
+      "markdown": "## 5. Situación profesional\n\nDos filas con misma idempotency_key indican ejecución confirmada y replay: no deben contarse como dos bloqueos. Un timeout en una acción mutante queda unknown; escalar a reconciliación, no reejecutar.\n\n## 6. Errores comunes\n\n1. Reintentar indefinidamente ante 403\n2. Contar replay como nueva acción ejecutada\n3. Interpretar timeout como evidencia de que destino no actuó\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 45,
+      "endLine": 56
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R11-L06-Q01",
+      "lessonId": "SP-R11-L06",
+      "prompt": "¿Cómo se trata un timeout tras pedir bloqueo?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D12",
+        "SPLUNK_LECCIONES_R10_R11:D17"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R11-L06-Q01-O-9330d511a887",
+          "text": "Conservar estado unknown y reconciliar el resultado antes de repetir una operación con posible efecto"
+        },
+        {
+          "id": "SP-R11-L06-Q01-O-896f434ac4be",
+          "text": "Reintentar inmediatamente suponiendo que el destino no recibió nada"
+        },
+        {
+          "id": "SP-R11-L06-Q01-O-194f854a209b",
+          "text": "Contar el efecto como aplicado porque la solicitud salió del cliente"
+        },
+        {
+          "id": "SP-R11-L06-Q01-O-72686d92ab44",
+          "text": "Marcar fallo definitivo sin comprobar si el destino ya actuó"
+        }
+      ],
+      "solution": "SP-R11-L06-Q01-O-9330d511a887",
+      "explanation": "Timeout no informa con certeza si el servidor aplicó la mutación.",
+      "anchors": [
+        {
+          "file": "R11_AUTOMATIZACION_SOAR/SP-R11-L06.md",
+          "sourceHash": "5c10011d4cf77b871208fd8d2cd496631b1a0dd118263f69f764201fe73f06dd",
+          "line": 17,
+          "endLine": 23,
+          "quote": "## 2. Conceptos clave\n\n1. Timeout de mutación produce estado unknown, no necesariamente fallo total\n2. Idempotency key evita efectos duplicados al reintentar\n3. Lectura ≠ mutación para política de retries\n4. Errores 401/403 no se arreglan reintentando\n5. Parcialidad y compensación requieren evidencia\n\n"
+        },
+        {
+          "file": "R11_AUTOMATIZACION_SOAR/SP-R11-L06.md",
+          "sourceHash": "5c10011d4cf77b871208fd8d2cd496631b1a0dd118263f69f764201fe73f06dd",
+          "line": 33,
+          "endLine": 43,
+          "quote": "## 4. Pseudocódigo de simulación sin efectos\n\n```text\nfor request in fixture:\n    if request.status == \"applied\": ledger.add(request.idempotency_key)\n    elif request.status == \"unknown\": needs_review.add(request.idempotency_key)\n    elif request.status in {\"forbidden\", \"invalid\"}: stop_and_audit()\n# Sin APIs, sin mutaciones, sin reintentos reales\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R11-L06-Q02",
+      "lessonId": "SP-R11-L06",
+      "prompt": "¿Cuándo conviene detener reintentos automáticos?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D12",
+        "SPLUNK_LECCIONES_R10_R11:D17"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R11-L06-Q02-O-0ec757da0ee2",
+          "text": "Ante un 429 de lectura respetando Retry-After y el límite de intentos"
+        },
+        {
+          "id": "SP-R11-L06-Q02-O-b41aa307e9c9",
+          "text": "Antes del primer reintento autorizado de una lectura sin efectos mutantes"
+        },
+        {
+          "id": "SP-R11-L06-Q02-O-926528ea7797",
+          "text": "Ante 401/403 o confirmación de target incorrecto"
+        },
+        {
+          "id": "SP-R11-L06-Q02-O-e515bb67c046",
+          "text": "Ante un GET de lectura con 503 transitorio dentro del presupuesto"
+        }
+      ],
+      "solution": "SP-R11-L06-Q02-O-926528ea7797",
+      "explanation": "Fallos permanentes/no autorizados no son transitorios.",
+      "anchors": [
+        {
+          "file": "R11_AUTOMATIZACION_SOAR/SP-R11-L06.md",
+          "sourceHash": "5c10011d4cf77b871208fd8d2cd496631b1a0dd118263f69f764201fe73f06dd",
+          "line": 17,
+          "endLine": 23,
+          "quote": "## 2. Conceptos clave\n\n1. Timeout de mutación produce estado unknown, no necesariamente fallo total\n2. Idempotency key evita efectos duplicados al reintentar\n3. Lectura ≠ mutación para política de retries\n4. Errores 401/403 no se arreglan reintentando\n5. Parcialidad y compensación requieren evidencia\n\n"
+        },
+        {
+          "file": "R11_AUTOMATIZACION_SOAR/SP-R11-L06.md",
+          "sourceHash": "5c10011d4cf77b871208fd8d2cd496631b1a0dd118263f69f764201fe73f06dd",
+          "line": 33,
+          "endLine": 43,
+          "quote": "## 4. Pseudocódigo de simulación sin efectos\n\n```text\nfor request in fixture:\n    if request.status == \"applied\": ledger.add(request.idempotency_key)\n    elif request.status == \"unknown\": needs_review.add(request.idempotency_key)\n    elif request.status in {\"forbidden\", \"invalid\"}: stop_and_audit()\n# Sin APIs, sin mutaciones, sin reintentos reales\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R11-L06-P01",
+      "lessonId": "SP-R11-L06",
+      "prompt": "Analiza `automation_runs.csv`, identifica duplicados, unknown, forbidden y reintentos seguros.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D12",
+        "SPLUNK_LECCIONES_R10_R11:D17"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Define fuente, producto, versión y límites del contexto",
+        "Resuelve el objetivo con un procedimiento replicable y no destructivo",
+        "Identifica error, caso benigno y riesgo operacional",
+        "Documenta permisos, aprobación y evidencia para revisión humana"
+      ],
+      "referenceAnswer": "Clave BLOCK|203.0.113.15|APR-1 con replay: una sola aplicación confirmada; unknown de otra clave exige reconciliación. 403 detiene; consulta RO con 503 permite reintento limitado. No realizar acciones."
+    }
+  ],
+  "solutionsMarkdown": "## 8. Solucionario con razonamiento\n\n- **SP-R11-L06-Q01: A** — Timeout no informa con certeza si el servidor aplicó la mutación.\n\n- **SP-R11-L06-Q02: C** — Fallos permanentes/no autorizados no son transitorios.\n\n- **SP-R11-L06-P01:** Clave BLOCK|203.0.113.15|APR-1 con replay: una sola aplicación confirmada; unknown de otra clave exige reconciliación. 403 detiene; consulta RO con 503 permite reintento limitado. No realizar acciones.\n\n**Guía de retroalimentación formativa:** Define fuente, producto, versión y límites del contexto; Resuelve el objetivo con un procedimiento replicable y no destructivo; Identifica error, caso benigno y riesgo operacional; Documenta permisos, aprobación y evidencia para revisión humana.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 9. Fuentes, procedencia y limitaciones\n\n- **D12:** Splunk SOAR Cloud — Playbook automation API approvals — https://help.splunk.com/en/splunk-soar/soar-cloud/develop-apps/python-playbook-api-reference/automation-api/playbook-automation-api\n- **D17:** Splunk SOAR Cloud — Better playbook guidelines — https://help.splunk.com/en/splunk-soar/soar-cloud/develop-apps/build-playbooks/introduction-to-splunk-soar-playbooks/write-better-playbooks-by-following-these-guidelines\n\n- **Puente SC-200:** Capítulo 12: manejo de errores, compensación y control de ejecución. Es correspondencia pedagógica, no equivalencia exacta de producto.\n- **Fuente del ID y resultado:** `SPLUNK_MASTER_RESEARCH/03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`.\n- **[DOC]:** fundamentos documentados en fuentes oficiales; no equivale a prueba de todos los supuestos.\n- **[OFFLINE]:** solo verificaciones Python sobre fixtures sintéticos.\n- **[NO EJECUTADO]:** no se ha abierto Splunk, ni SOAR, ni REST, ni se han aplicado configuraciones.\n- **[REVISIÓN]:** verificación humana del texto, respuestas, versiones y supuestos antes de integrar en React.\n",
+  "originalMarkdown": "# SP-R11-L06 — Escenarios de error\n\n**Región:** SP-R11 · **Producto:** Splunk Enterprise/Cloud (donde se indique) o SOAR Cloud explícito. · **Estado:** borrador documental / requiere revisión humana. · **SPL/CLI/API:** ilustrativo, NO ejecutado.\n\n**Resultado curricular:** Diseñar idempotencia, retries y manejo de timeout\n\n**Prerrequisitos:** R07, R09 (conceptual), R10\n\n## 1. Explicación razonada\n\nUna automatización robusta distingue fallos *transitorios* (timeout, 429, 503), *permanentes* (401/403, target inválido) y resultados **desconocidos** (se perdió la respuesta después de que el destino quizá actuara). Reintentar ciegamente una operación mutante después de timeout puede duplicar acciones. La idempotencia exige una clave estable derivada de solicitud aprobada + acción + target + versión, registrada en un ledger con estados `pending`, `applied`, `denied`, `unknown` y `reconciled`.\n\nUn flujo de lectura puede tolerar reintentos limitados con backoff y jitter; una acción mutante en estado `unknown` necesita consultar de forma segura el estado del activo o abrir revisión humana antes de repetir. Una caída del playbook no revierte automáticamente cambios previos, por lo que hay que definir compensación y registrar progreso. La compensación tampoco garantiza restitución exacta si el contexto cambió.\n\nLa práctica dispone de `automation_runs.csv` con ocho intentos sintéticos y `idempotency_key`. El verificador offline agrupa claves, calcula cuántos *efectos ya confirmados* deberían contarse exactamente una vez y marca estados que requieren reconciliación. NO simula respuestas de una API real ni la ejecución de SOAR.\n\n## 2. Conceptos clave\n\n1. Timeout de mutación produce estado unknown, no necesariamente fallo total\n2. Idempotency key evita efectos duplicados al reintentar\n3. Lectura ≠ mutación para política de retries\n4. Errores 401/403 no se arreglan reintentando\n5. Parcialidad y compensación requieren evidencia\n\n## 3. Procedimiento de estudio y verificación\n\n1. Clasifica resultados de API: éxito, transient, permanent, unknown.\n2. Define clave idempotente compuesta por action+target+approval.\n3. Distingue reintentos de consultas RO y operaciones mutantes.\n4. Para unknown en cambio de estado, reconcilia antes de reintentar.\n5. Registra auditoría, retry budget y stop condition.\n\n## 4. Pseudocódigo de simulación sin efectos\n\n```text\nfor request in fixture:\n    if request.status == \"applied\": ledger.add(request.idempotency_key)\n    elif request.status == \"unknown\": needs_review.add(request.idempotency_key)\n    elif request.status in {\"forbidden\", \"invalid\"}: stop_and_audit()\n# Sin APIs, sin mutaciones, sin reintentos reales\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n## 5. Situación profesional\n\nDos filas con misma idempotency_key indican ejecución confirmada y replay: no deben contarse como dos bloqueos. Un timeout en una acción mutante queda unknown; escalar a reconciliación, no reejecutar.\n\n## 6. Errores comunes\n\n1. Reintentar indefinidamente ante 403\n2. Contar replay como nueva acción ejecutada\n3. Interpretar timeout como evidencia de que destino no actuó\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R11-L06-Q01 — Opción múltiple\n\n¿Cómo se trata un timeout tras pedir bloqueo?\n\nA. Conservar estado unknown y reconciliar el resultado antes de repetir una operación con posible efecto\nB. Reintentar inmediatamente suponiendo que el destino no recibió nada\nC. Contar el efecto como aplicado porque la solicitud salió del cliente\nD. Marcar fallo definitivo sin comprobar si el destino ya actuó\n\n### SP-R11-L06-Q02 — Opción múltiple\n\n¿Cuándo conviene detener reintentos automáticos?\n\nA. Ante un 429 de lectura respetando Retry-After y el límite de intentos\nB. Antes del primer reintento autorizado de una lectura sin efectos mutantes\nC. Ante 401/403 o confirmación de target incorrecto\nD. Ante un GET de lectura con 503 transitorio dentro del presupuesto\n\n### SP-R11-L06-P01 — Práctica abierta formativa\n\nAnaliza `automation_runs.csv`, identifica duplicados, unknown, forbidden y reintentos seguros.\n\n## 8. Solucionario con razonamiento\n\n- **SP-R11-L06-Q01: A** — Timeout no informa con certeza si el servidor aplicó la mutación.\n\n- **SP-R11-L06-Q02: C** — Fallos permanentes/no autorizados no son transitorios.\n\n- **SP-R11-L06-P01:** Clave BLOCK|203.0.113.15|APR-1 con replay: una sola aplicación confirmada; unknown de otra clave exige reconciliación. 403 detiene; consulta RO con 503 permite reintento limitado. No realizar acciones.\n\n**Guía de retroalimentación formativa:** Define fuente, producto, versión y límites del contexto; Resuelve el objetivo con un procedimiento replicable y no destructivo; Identifica error, caso benigno y riesgo operacional; Documenta permisos, aprobación y evidencia para revisión humana.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 9. Fuentes, procedencia y limitaciones\n\n- **D12:** Splunk SOAR Cloud — Playbook automation API approvals — https://help.splunk.com/en/splunk-soar/soar-cloud/develop-apps/python-playbook-api-reference/automation-api/playbook-automation-api\n- **D17:** Splunk SOAR Cloud — Better playbook guidelines — https://help.splunk.com/en/splunk-soar/soar-cloud/develop-apps/build-playbooks/introduction-to-splunk-soar-playbooks/write-better-playbooks-by-following-these-guidelines\n\n- **Puente SC-200:** Capítulo 12: manejo de errores, compensación y control de ejecución. Es correspondencia pedagógica, no equivalencia exacta de producto.\n- **Fuente del ID y resultado:** `SPLUNK_MASTER_RESEARCH/03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`.\n- **[DOC]:** fundamentos documentados en fuentes oficiales; no equivale a prueba de todos los supuestos.\n- **[OFFLINE]:** solo verificaciones Python sobre fixtures sintéticos.\n- **[NO EJECUTADO]:** no se ha abierto Splunk, ni SOAR, ni REST, ni se han aplicado configuraciones.\n- **[REVISIÓN]:** verificación humana del texto, respuestas, versiones y supuestos antes de integrar en React.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D12",
+      "key": "SPLUNK_LECCIONES_R10_R11:D12",
+      "url": "https://help.splunk.com/en/splunk-soar/soar-cloud/develop-apps/python-playbook-api-reference/automation-api/playbook-automation-api"
+    },
+    {
+      "id": "D17",
+      "key": "SPLUNK_LECCIONES_R10_R11:D17",
+      "url": "https://help.splunk.com/en/splunk-soar/soar-cloud/develop-apps/build-playbooks/introduction-to-splunk-soar-playbooks/write-better-playbooks-by-following-these-guidelines"
+    }
+  ]
+}

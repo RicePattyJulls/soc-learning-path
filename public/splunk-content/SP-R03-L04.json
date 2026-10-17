@@ -1,0 +1,199 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R03-L04",
+  "title": "Campos calculados con `eval`",
+  "revision": "1a17e50ebed53a1d94e2c02b",
+  "sourceVersion": "a8b580bf84896b26ec69117de7ab9d68f735a10941a6bd428034f6c2f70c0a8a",
+  "sanitizedHash": "a8b580bf84896b26ec69117de7ab9d68f735a10941a6bd428034f6c2f70c0a8a",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R01_R03/R03_SPL_BASICO/SP-R03-L04.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Calcular una etiqueta o diferencia de tiempo sin tocar eventos almacenados",
+  "preamble": "# SP-R03-L04 — Campos calculados con `eval`\n\n**Región:** Bosque SPL I (SP-R03) · **Prioridad:** P0 SOC N1/N2  \n**Estado:** material didáctico redactado; revisión humana recomendada. **SPL no ejecutado en Splunk real.**  \n**ID estable propuesto:** `SP-R03-L04` (no migrado a React)  \n**Prerrequisitos orientativos:** SP-R03-L01  \n**Objetivo del currículo:** Calcular una etiqueta o diferencia de tiempo sin tocar eventos almacenados\n\n",
+  "sections": [
+    {
+      "id": "SP-R03-L04-S01",
+      "title": "1. La pregunta que resuelve esta lección",
+      "markdown": "## 1. La pregunta que resuelve esta lección\n\n`eval` crea campos calculados en tiempo de búsqueda; ayuda a interpretar datos sin reescribir el evento indexado.\n\n**Al completar la lección podrás:** Calcular una etiqueta o diferencia de tiempo sin tocar eventos almacenados. Debes explicar el porqué y los límites, no memorizar solo comandos.\n\n",
+      "line": 9,
+      "endLine": 13
+    },
+    {
+      "id": "SP-R03-L04-S02",
+      "title": "2. Desarrollo del conocimiento",
+      "markdown": "## 2. Desarrollo del conocimiento\n\n`eval` permite combinar operaciones numéricas, condicionales y funciones sobre campos accesibles. Un ejemplo SOC es calcular diferencia entre `_indextime` y `_time` para observar desfase. Otro es construir una etiqueta interpretativa si existe un campo de resultado validado. La etiqueta calculada no modifica `_raw` ni el timestamp original guardado.\nAntes de calcular verifica los tipos, unidades y valores faltantes. Si tienes dos tiempos que no son comparables por zona horaria, una diferencia precisa en segundos sigue siendo equivocada semánticamente. Después de `eval`, usa `where` para filtrar si procede, pero explica qué muestras descartaste.\n\n",
+      "line": 15,
+      "endLine": 18
+    },
+    {
+      "id": "SP-R03-L04-S03",
+      "title": "3. Método de trabajo reproducible",
+      "markdown": "## 3. Método de trabajo reproducible\n\n1. Comprueba que los operandos están presentes y en unidades compatibles.\n2. Escribe la operación `eval` mínima.\n3. Revisa casos nulos, negativos y extremos.\n4. Documenta significado y límites de la nueva columna.\n5. Resume resultados solo si el cálculo básico es válido.\n\n",
+      "line": 20,
+      "endLine": 26
+    },
+    {
+      "id": "SP-R03-L04-S04",
+      "title": "4. Caso guiado — de la pregunta a la evidencia",
+      "markdown": "## 4. Caso guiado — de la pregunta a la evidencia\n\nUn evento con `_time`=09:00 y `_indextime`=09:02 produce `demora_seg`=120. Esto demuestra una diferencia entre dos relojes interpretados, pero no identifica qué componente tardó dos minutos.\n\n### Esquema o ejemplo técnico\n\n```spl\nindex=INDICE_REAL earliest=-24h\n| eval demora_seg=_indextime-_time\n| table _time _indextime demora_seg\n```\n\n**Cómo interpretarlo:** Este SPL está propuesto, no probado. Considera valores negativos y parseo; `eval` opera en la búsqueda.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n",
+      "line": 28,
+      "endLine": 42
+    },
+    {
+      "id": "SP-R03-L04-S05",
+      "title": "5. Diagnóstico y errores frecuentes",
+      "markdown": "## 5. Diagnóstico y errores frecuentes\n\nTratar campo derivado como prueba del tiempo real de intrusión; evitar mostrar errores de timestamp; mezclar unidades de milisegundos/segundos.\n\n**Conexión con SC-200 (no equivalencia automática):** Cap. 04 (ingesta/latencia), líneas 1125–1368; cap. 13 (KQL extend), líneas 2517–2810.. En Splunk los esquemas, permisos y familias de producto son diferentes; verifica la correspondencia antes de reutilizar una técnica.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 44,
+      "endLine": 51
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R03-L04-Q01",
+      "lessonId": "SP-R03-L04",
+      "prompt": "¿`eval` cambia `_raw` almacenado?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A6",
+        "SPLUNK_LECCIONES_R01_R03:A7",
+        "SPLUNK_LECCIONES_R01_R03:A15"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R03-L04-Q01-O-a17c90f0cffd",
+          "text": "No, pero actualiza la configuración props.conf para búsquedas futuras"
+        },
+        {
+          "id": "SP-R03-L04-Q01-O-f48d5dca241a",
+          "text": "No: eval calcula valores del pipeline de búsqueda y no reescribe el evento guardado en el índice"
+        },
+        {
+          "id": "SP-R03-L04-Q01-O-46d97be1d166",
+          "text": "Sí: persiste el campo calculado dentro del evento del índice"
+        },
+        {
+          "id": "SP-R03-L04-Q01-O-df98f7d7b54c",
+          "text": "Sí: al reutilizar el nombre _raw vuelve a escribir el almacenamiento"
+        }
+      ],
+      "solution": "SP-R03-L04-Q01-O-f48d5dca241a",
+      "explanation": "Un campo calculado en búsqueda no reescribe el evento indexado.",
+      "anchors": [
+        {
+          "file": "R03_SPL_BASICO/SP-R03-L04.md",
+          "sourceHash": "a8b580bf84896b26ec69117de7ab9d68f735a10941a6bd428034f6c2f70c0a8a",
+          "line": 15,
+          "endLine": 18,
+          "quote": "## 2. Desarrollo del conocimiento\n\n`eval` permite combinar operaciones numéricas, condicionales y funciones sobre campos accesibles. Un ejemplo SOC es calcular diferencia entre `_indextime` y `_time` para observar desfase. Otro es construir una etiqueta interpretativa si existe un campo de resultado validado. La etiqueta calculada no modifica `_raw` ni el timestamp original guardado.\nAntes de calcular verifica los tipos, unidades y valores faltantes. Si tienes dos tiempos que no son comparables por zona horaria, una diferencia precisa en segundos sigue siendo equivocada semánticamente. Después de `eval`, usa `where` para filtrar si procede, pero explica qué muestras descartaste.\n\n"
+        },
+        {
+          "file": "R03_SPL_BASICO/SP-R03-L04.md",
+          "sourceHash": "a8b580bf84896b26ec69117de7ab9d68f735a10941a6bd428034f6c2f70c0a8a",
+          "line": 28,
+          "endLine": 42,
+          "quote": "## 4. Caso guiado — de la pregunta a la evidencia\n\nUn evento con `_time`=09:00 y `_indextime`=09:02 produce `demora_seg`=120. Esto demuestra una diferencia entre dos relojes interpretados, pero no identifica qué componente tardó dos minutos.\n\n### Esquema o ejemplo técnico\n\n```spl\nindex=INDICE_REAL earliest=-24h\n| eval demora_seg=_indextime-_time\n| table _time _indextime demora_seg\n```\n\n**Cómo interpretarlo:** Este SPL está propuesto, no probado. Considera valores negativos y parseo; `eval` opera en la búsqueda.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R03-L04-Q02",
+      "lessonId": "SP-R03-L04",
+      "prompt": "¿Qué implica `demora_seg=-30`?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A6",
+        "SPLUNK_LECCIONES_R01_R03:A7",
+        "SPLUNK_LECCIONES_R01_R03:A15"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R03-L04-Q02-O-0655746c27da",
+          "text": "Que el evento no existe, porque todo retraso de ingesta debe ser positivo"
+        },
+        {
+          "id": "SP-R03-L04-Q02-O-792c80369b9d",
+          "text": "Que debe sumarse treinta segundos al tiempo indexado para corregir el dato"
+        },
+        {
+          "id": "SP-R03-L04-Q02-O-e8cffdec6bdc",
+          "text": "Que el transporte entregó el evento treinta segundos antes de que ocurriera"
+        },
+        {
+          "id": "SP-R03-L04-Q02-O-c25eb1aed359",
+          "text": "Posible desfase/reloj/time parsing o tiempo futuro"
+        }
+      ],
+      "solution": "SP-R03-L04-Q02-O-c25eb1aed359",
+      "explanation": "Una demora negativa requiere revisar supuestos temporales; no basta descartarla.",
+      "anchors": [
+        {
+          "file": "R03_SPL_BASICO/SP-R03-L04.md",
+          "sourceHash": "a8b580bf84896b26ec69117de7ab9d68f735a10941a6bd428034f6c2f70c0a8a",
+          "line": 15,
+          "endLine": 18,
+          "quote": "## 2. Desarrollo del conocimiento\n\n`eval` permite combinar operaciones numéricas, condicionales y funciones sobre campos accesibles. Un ejemplo SOC es calcular diferencia entre `_indextime` y `_time` para observar desfase. Otro es construir una etiqueta interpretativa si existe un campo de resultado validado. La etiqueta calculada no modifica `_raw` ni el timestamp original guardado.\nAntes de calcular verifica los tipos, unidades y valores faltantes. Si tienes dos tiempos que no son comparables por zona horaria, una diferencia precisa en segundos sigue siendo equivocada semánticamente. Después de `eval`, usa `where` para filtrar si procede, pero explica qué muestras descartaste.\n\n"
+        },
+        {
+          "file": "R03_SPL_BASICO/SP-R03-L04.md",
+          "sourceHash": "a8b580bf84896b26ec69117de7ab9d68f735a10941a6bd428034f6c2f70c0a8a",
+          "line": 28,
+          "endLine": 42,
+          "quote": "## 4. Caso guiado — de la pregunta a la evidencia\n\nUn evento con `_time`=09:00 y `_indextime`=09:02 produce `demora_seg`=120. Esto demuestra una diferencia entre dos relojes interpretados, pero no identifica qué componente tardó dos minutos.\n\n### Esquema o ejemplo técnico\n\n```spl\nindex=INDICE_REAL earliest=-24h\n| eval demora_seg=_indextime-_time\n| table _time _indextime demora_seg\n```\n\n**Cómo interpretarlo:** Este SPL está propuesto, no probado. Considera valores negativos y parseo; `eval` opera en la búsqueda.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R03-L04-P01",
+      "lessonId": "SP-R03-L04",
+      "prompt": "Calcula la demora en minutos a partir de `_indextime` y `_time`.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A6",
+        "SPLUNK_LECCIONES_R01_R03:A7",
+        "SPLUNK_LECCIONES_R01_R03:A15"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica los datos/condiciones necesarios",
+        "Explica el razonamiento y no solo el resultado",
+        "Reconoce al menos una limitación o comprobación adicional"
+      ],
+      "referenceAnswer": "`| eval demora_min=(_indextime-_time)/60` y explicar que es una métrica aproximada dependiente del timestamp."
+    }
+  ],
+  "solutionsMarkdown": "## 7. Solucionario con razonamiento\n\n- **SP-R03-L04-Q01: B** — Un campo calculado en búsqueda no reescribe el evento indexado.\n\n- **SP-R03-L04-Q02: D** — Una demora negativa requiere revisar supuestos temporales; no basta descartarla.\n\n- **SP-R03-L04-P01:** `| eval demora_min=(_indextime-_time)/60` y explicar que es una métrica aproximada dependiente del timestamp.\n\n**Guía de retroalimentación formativa:** Identifica los datos/condiciones necesarios; Explica el razonamiento y no solo el resultado; Reconoce al menos una limitación o comprobación adicional.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 8. Fuentes y trazabilidad\n\n- **Fuente de partida:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE2_BLOQUE1.md`, según la organización del paquete de investigación que conservas.\n- **Fuente Microsoft de contraste:** `../../01_FUENTE_ORIGINAL/SC-200.md`; Cap. 04 (ingesta/latencia), líneas 1125–1368; cap. 13 (KQL extend), líneas 2517–2810.\n- **[A6]** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/time-format-variables-and-modifiers/time-modifiers\n- **[A7]** https://help.splunk.com/en/splunk-enterprise/administer/manage-indexers-and-indexer-clusters/10.6/indexing-overview/index-time-versus-search-time\n- **[A15]** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/quick-reference/commands-by-category\n\n**Estado de confianza:** documentación técnica citada y propuesta pedagógica; no validado contra índices, sourcetypes, roles o versiones de tu laboratorio. Las URLs provienen de la investigación del 16/10/2026, con contraste puntual adicional de documentación oficial para HEC y forwarders. Ver `FUENTES_Y_LIMITES.md`.\n",
+  "originalMarkdown": "# SP-R03-L04 — Campos calculados con `eval`\n\n**Región:** Bosque SPL I (SP-R03) · **Prioridad:** P0 SOC N1/N2  \n**Estado:** material didáctico redactado; revisión humana recomendada. **SPL no ejecutado en Splunk real.**  \n**ID estable propuesto:** `SP-R03-L04` (no migrado a React)  \n**Prerrequisitos orientativos:** SP-R03-L01  \n**Objetivo del currículo:** Calcular una etiqueta o diferencia de tiempo sin tocar eventos almacenados\n\n## 1. La pregunta que resuelve esta lección\n\n`eval` crea campos calculados en tiempo de búsqueda; ayuda a interpretar datos sin reescribir el evento indexado.\n\n**Al completar la lección podrás:** Calcular una etiqueta o diferencia de tiempo sin tocar eventos almacenados. Debes explicar el porqué y los límites, no memorizar solo comandos.\n\n## 2. Desarrollo del conocimiento\n\n`eval` permite combinar operaciones numéricas, condicionales y funciones sobre campos accesibles. Un ejemplo SOC es calcular diferencia entre `_indextime` y `_time` para observar desfase. Otro es construir una etiqueta interpretativa si existe un campo de resultado validado. La etiqueta calculada no modifica `_raw` ni el timestamp original guardado.\nAntes de calcular verifica los tipos, unidades y valores faltantes. Si tienes dos tiempos que no son comparables por zona horaria, una diferencia precisa en segundos sigue siendo equivocada semánticamente. Después de `eval`, usa `where` para filtrar si procede, pero explica qué muestras descartaste.\n\n## 3. Método de trabajo reproducible\n\n1. Comprueba que los operandos están presentes y en unidades compatibles.\n2. Escribe la operación `eval` mínima.\n3. Revisa casos nulos, negativos y extremos.\n4. Documenta significado y límites de la nueva columna.\n5. Resume resultados solo si el cálculo básico es válido.\n\n## 4. Caso guiado — de la pregunta a la evidencia\n\nUn evento con `_time`=09:00 y `_indextime`=09:02 produce `demora_seg`=120. Esto demuestra una diferencia entre dos relojes interpretados, pero no identifica qué componente tardó dos minutos.\n\n### Esquema o ejemplo técnico\n\n```spl\nindex=INDICE_REAL earliest=-24h\n| eval demora_seg=_indextime-_time\n| table _time _indextime demora_seg\n```\n\n**Cómo interpretarlo:** Este SPL está propuesto, no probado. Considera valores negativos y parseo; `eval` opera en la búsqueda.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n## 5. Diagnóstico y errores frecuentes\n\nTratar campo derivado como prueba del tiempo real de intrusión; evitar mostrar errores de timestamp; mezclar unidades de milisegundos/segundos.\n\n**Conexión con SC-200 (no equivalencia automática):** Cap. 04 (ingesta/latencia), líneas 1125–1368; cap. 13 (KQL extend), líneas 2517–2810.. En Splunk los esquemas, permisos y familias de producto son diferentes; verifica la correspondencia antes de reutilizar una técnica.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 6. Actividades\n\n### SP-R03-L04-Q01 — Opción múltiple\n\n¿`eval` cambia `_raw` almacenado?\n\nA. No, pero actualiza la configuración props.conf para búsquedas futuras\nB. No: eval calcula valores del pipeline de búsqueda y no reescribe el evento guardado en el índice\nC. Sí: persiste el campo calculado dentro del evento del índice\nD. Sí: al reutilizar el nombre _raw vuelve a escribir el almacenamiento\n\n### SP-R03-L04-Q02 — Opción múltiple\n\n¿Qué implica `demora_seg=-30`?\n\nA. Que el evento no existe, porque todo retraso de ingesta debe ser positivo\nB. Que debe sumarse treinta segundos al tiempo indexado para corregir el dato\nC. Que el transporte entregó el evento treinta segundos antes de que ocurriera\nD. Posible desfase/reloj/time parsing o tiempo futuro\n\n### SP-R03-L04-P01 — Práctica abierta formativa\n\nCalcula la demora en minutos a partir de `_indextime` y `_time`.\n\n## 7. Solucionario con razonamiento\n\n- **SP-R03-L04-Q01: B** — Un campo calculado en búsqueda no reescribe el evento indexado.\n\n- **SP-R03-L04-Q02: D** — Una demora negativa requiere revisar supuestos temporales; no basta descartarla.\n\n- **SP-R03-L04-P01:** `| eval demora_min=(_indextime-_time)/60` y explicar que es una métrica aproximada dependiente del timestamp.\n\n**Guía de retroalimentación formativa:** Identifica los datos/condiciones necesarios; Explica el razonamiento y no solo el resultado; Reconoce al menos una limitación o comprobación adicional.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Fuentes y trazabilidad\n\n- **Fuente de partida:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE2_BLOQUE1.md`, según la organización del paquete de investigación que conservas.\n- **Fuente Microsoft de contraste:** `../../01_FUENTE_ORIGINAL/SC-200.md`; Cap. 04 (ingesta/latencia), líneas 1125–1368; cap. 13 (KQL extend), líneas 2517–2810.\n- **[A6]** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/time-format-variables-and-modifiers/time-modifiers\n- **[A7]** https://help.splunk.com/en/splunk-enterprise/administer/manage-indexers-and-indexer-clusters/10.6/indexing-overview/index-time-versus-search-time\n- **[A15]** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/quick-reference/commands-by-category\n\n**Estado de confianza:** documentación técnica citada y propuesta pedagógica; no validado contra índices, sourcetypes, roles o versiones de tu laboratorio. Las URLs provienen de la investigación del 16/10/2026, con contraste puntual adicional de documentación oficial para HEC y forwarders. Ver `FUENTES_Y_LIMITES.md`.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 8,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "A6",
+      "key": "SPLUNK_LECCIONES_R01_R03:A6",
+      "url": "https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/time-format-variables-and-modifiers/time-modifiers"
+    },
+    {
+      "id": "A7",
+      "key": "SPLUNK_LECCIONES_R01_R03:A7",
+      "url": "https://help.splunk.com/en/splunk-enterprise/administer/manage-indexers-and-indexer-clusters/10.6/indexing-overview/index-time-versus-search-time"
+    },
+    {
+      "id": "A15",
+      "key": "SPLUNK_LECCIONES_R01_R03:A15",
+      "url": "https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/quick-reference/commands-by-category"
+    }
+  ]
+}

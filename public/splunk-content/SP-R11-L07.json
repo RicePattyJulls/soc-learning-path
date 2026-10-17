@@ -1,0 +1,216 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R11-L07",
+  "title": "Proyecto final transversal",
+  "revision": "bf8c99c40d66c170b8e327cd",
+  "sourceVersion": "b97b4d9c94a118db1cd0ae692d8047c9f0bebbfdd824607a43f02b994ed65da9",
+  "sanitizedHash": "b97b4d9c94a118db1cd0ae692d8047c9f0bebbfdd824607a43f02b994ed65da9",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R10_R11/R11_AUTOMATIZACION_SOAR/SP-R11-L07.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Diseñar ingesta→detección→investigación→respuesta aprobada",
+  "preamble": "# SP-R11-L07 — Proyecto final transversal\n\n**Región:** SP-R11 · **Producto:** Splunk Enterprise/Cloud (donde se indique) o SOAR Cloud explícito. · **Estado:** borrador documental / requiere revisión humana. · **SPL/CLI/API:** ilustrativo, NO ejecutado.\n\n**Resultado curricular:** Diseñar ingesta→detección→investigación→respuesta aprobada\n\n**Prerrequisitos:** R07, R09 (conceptual), R10\n\n",
+  "sections": [
+    {
+      "id": "SP-R11-L07-S01",
+      "title": "1. Explicación razonada",
+      "markdown": "## 1. Explicación razonada\n\nEl proyecto final une los conocimientos de once regiones sin confundir productos ni afirmar pruebas realizadas. El flujo propuesto recibe autenticaciones sintéticas y genera una hipótesis sobre fallos por usuario/IP; verifica cobertura, normalización, consulta SPL y alertado, realiza triage y crea una intención de respuesta **sin** ejecutarla. Los umbrales se calibran con falsos positivos: un proxy compartido y el servicio de backup del caso obligan a distinguir densidad estadística, privilegios y daño plausible.\n\nEl entregable profesional no es un diagrama vistoso. Es un **paquete auditable**: arquitectura, fuentes y campos, SPL limitado, tabla de resultados esperados, triage SOC, control de acceso a índices, reglas de autorización, idempotencia, alerting, métricas de tiempo y plan de recuperación. Identifica en cada paso cuál sería ejecutable en Splunk Enterprise base y cuál necesitaría Enterprise Security o SOAR. Un proyecto puede aprobar la evaluación offline con datasets sintéticos, pero seguirá sin demostrar compatibilidad operativa ni producción.\n\nAl final construye un plan de pilotaje: inventario de entorno con consentimiento, ingestión sintética, comprobación de campos, ejecución de SPL en sandbox, pruebas de caso benigno/sospechoso, permisos negativos, observabilidad y reversión. Se prohíbe importar datos o activar webhooks reales desde el paquete.\n\n",
+      "line": 9,
+      "endLine": 15
+    },
+    {
+      "id": "SP-R11-L07-S02",
+      "title": "2. Conceptos clave",
+      "markdown": "## 2. Conceptos clave\n\n1. Cadena completa: ingesta→búsqueda→detección→investigación→aprobación\n2. Un hallazgo estadístico no prueba ataque\n3. Dependencias Enterprise/ES/SOAR explícitas\n4. Evidencia y registro de decisiones para relevo SOC\n5. Validación offline ≠ despliegue ni prueba Splunk real\n\n",
+      "line": 17,
+      "endLine": 23
+    },
+    {
+      "id": "SP-R11-L07-S03",
+      "title": "3. Procedimiento de estudio y verificación",
+      "markdown": "## 3. Procedimiento de estudio y verificación\n\n1. Define dos fuentes sintéticas, sus campos y responsabilidades.\n2. Escribe SPL ilustrativa de solo lectura con filtros y ventana.\n3. Genera señales, controles benignos e incertidumbre de cobertura.\n4. Diseña triage y decisión condicionada con aprobación humana.\n5. Prepara runbook de piloto y matrices de prueba sin conectores reales.\n\n",
+      "line": 25,
+      "endLine": 31
+    },
+    {
+      "id": "SP-R11-L07-S04",
+      "title": "4. SPL ilustrativa — reemplazar índices y campos tras inventario",
+      "markdown": "## 4. SPL ilustrativa — reemplazar índices y campos tras inventario\n\n```text\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4625 earliest=\"10/15/2026:09:00:00\" latest=\"10/15/2026:09:15:00\"\n| bin _time span=15m\n| stats count AS fallos dc(user) AS usuarios BY src _time\n| where fallos>=5 AND usuarios>=5\n| table _time src fallos usuarios\n```\n\n**Contrato temporal:** reutiliza auth_activity.csv de R06–R07, con usuario/search head en UTC y snapshot retrospectivo posterior a 09:24. Offline: 198.51.100.23 tiene 7 fallos/6 cuentas y es candidata sin ataque confirmado; 203.0.113.15 tiene 5/1 bajo mantenimiento; 192.0.2.44 tiene 4/3 y sigue inconclusa. Para el snapshot anterior a 09:16, la candidata es 6/6. EventCode es el campo del CSV R06, no status de R08; no mezclar los dos archivos homónimos.\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n",
+      "line": 33,
+      "endLine": 45
+    },
+    {
+      "id": "SP-R11-L07-S05",
+      "title": "5. Situación profesional",
+      "markdown": "## 5. Situación profesional\n\nEl caso integrador reutiliza los inventarios de R06: candidata 198.51.100.23, mantenimiento 203.0.113.15 y proxy inconcluso 192.0.2.44. La condición no selecciona mantenimiento ni proxy; esa no coincidencia no aporta por sí sola una verdad benigna. Aprobaciones e idempotencia de R11 son ejercicios en papel separados de estas observaciones.\n\n## 6. Errores comunes\n\n1. Usar la palabra «confirmado» por un simple umbral\n2. Atribuir SOAR a Enterprise base\n3. Integrar React con IDs no revisados o progreso compartido por accidente\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 47,
+      "endLine": 58
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R11-L07-Q01",
+      "lessonId": "SP-R11-L07",
+      "prompt": "¿Qué evidencia mínima requiere un caso SOC reproducible?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D03",
+        "SPLUNK_LECCIONES_R10_R11:D05",
+        "SPLUNK_LECCIONES_R10_R11:D10",
+        "SPLUNK_LECCIONES_R10_R11:D11",
+        "SPLUNK_LECCIONES_R10_R11:D12"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R11-L07-Q01-O-7fa2c8bc03f6",
+          "text": "Fuente, campos, ventana, consulta, resultados, control benigno y decisión trazable"
+        },
+        {
+          "id": "SP-R11-L07-Q01-O-5f083bdf665d",
+          "text": "Un diagrama de arquitectura sin evidencia del caso ni decisión trazable"
+        },
+        {
+          "id": "SP-R11-L07-Q01-O-99dfc6d17fb2",
+          "text": "Una lista de IPs sin contexto benigno ni consultas reproducibles"
+        },
+        {
+          "id": "SP-R11-L07-Q01-O-9f7d4fda43c6",
+          "text": "Un conteo agregado sin fuente, ventana ni criterio de selección"
+        }
+      ],
+      "solution": "SP-R11-L07-Q01-O-7fa2c8bc03f6",
+      "explanation": "Las decisiones deben poder auditarse con datos y procedimientos reproducibles.",
+      "anchors": [
+        {
+          "file": "R11_AUTOMATIZACION_SOAR/SP-R11-L07.md",
+          "sourceHash": "b97b4d9c94a118db1cd0ae692d8047c9f0bebbfdd824607a43f02b994ed65da9",
+          "line": 17,
+          "endLine": 23,
+          "quote": "## 2. Conceptos clave\n\n1. Cadena completa: ingesta→búsqueda→detección→investigación→aprobación\n2. Un hallazgo estadístico no prueba ataque\n3. Dependencias Enterprise/ES/SOAR explícitas\n4. Evidencia y registro de decisiones para relevo SOC\n5. Validación offline ≠ despliegue ni prueba Splunk real\n\n"
+        },
+        {
+          "file": "R11_AUTOMATIZACION_SOAR/SP-R11-L07.md",
+          "sourceHash": "b97b4d9c94a118db1cd0ae692d8047c9f0bebbfdd824607a43f02b994ed65da9",
+          "line": 33,
+          "endLine": 45,
+          "quote": "## 4. SPL ilustrativa — reemplazar índices y campos tras inventario\n\n```text\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4625 earliest=\"10/15/2026:09:00:00\" latest=\"10/15/2026:09:15:00\"\n| bin _time span=15m\n| stats count AS fallos dc(user) AS usuarios BY src _time\n| where fallos>=5 AND usuarios>=5\n| table _time src fallos usuarios\n```\n\n**Contrato temporal:** reutiliza auth_activity.csv de R06–R07, con usuario/search head en UTC y snapshot retrospectivo posterior a 09:24. Offline: 198.51.100.23 tiene 7 fallos/6 cuentas y es candidata sin ataque confirmado; 203.0.113.15 tiene 5/1 bajo mantenimiento; 192.0.2.44 tiene 4/3 y sigue inconclusa. Para el snapshot anterior a 09:16, la candidata es 6/6. EventCode es el campo del CSV R06, no status de R08; no mezclar los dos archivos homónimos.\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R11-L07-Q02",
+      "lessonId": "SP-R11-L07",
+      "prompt": "¿Qué estado tiene el proyecto final mientras no se ejecute en Splunk?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D03",
+        "SPLUNK_LECCIONES_R10_R11:D05",
+        "SPLUNK_LECCIONES_R10_R11:D10",
+        "SPLUNK_LECCIONES_R10_R11:D11",
+        "SPLUNK_LECCIONES_R10_R11:D12"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R11-L07-Q02-O-ec406e46176f",
+          "text": "Validación de sintaxis SPL porque los recuentos Python coinciden"
+        },
+        {
+          "id": "SP-R11-L07-Q02-O-06fd090b5209",
+          "text": "Validación de respuesta SOAR porque existe una política de aprobación en papel"
+        },
+        {
+          "id": "SP-R11-L07-Q02-O-7bd80250dc79",
+          "text": "Validación de compatibilidad ES porque el CSV contiene findings"
+        },
+        {
+          "id": "SP-R11-L07-Q02-O-7df806da872a",
+          "text": "Diseño + pruebas offline, pendiente de validación real"
+        }
+      ],
+      "solution": "SP-R11-L07-Q02-O-7df806da872a",
+      "explanation": "Ningún CSV offline sustituye pruebas reales en producto y versiones específicas.",
+      "anchors": [
+        {
+          "file": "R11_AUTOMATIZACION_SOAR/SP-R11-L07.md",
+          "sourceHash": "b97b4d9c94a118db1cd0ae692d8047c9f0bebbfdd824607a43f02b994ed65da9",
+          "line": 17,
+          "endLine": 23,
+          "quote": "## 2. Conceptos clave\n\n1. Cadena completa: ingesta→búsqueda→detección→investigación→aprobación\n2. Un hallazgo estadístico no prueba ataque\n3. Dependencias Enterprise/ES/SOAR explícitas\n4. Evidencia y registro de decisiones para relevo SOC\n5. Validación offline ≠ despliegue ni prueba Splunk real\n\n"
+        },
+        {
+          "file": "R11_AUTOMATIZACION_SOAR/SP-R11-L07.md",
+          "sourceHash": "b97b4d9c94a118db1cd0ae692d8047c9f0bebbfdd824607a43f02b994ed65da9",
+          "line": 33,
+          "endLine": 45,
+          "quote": "## 4. SPL ilustrativa — reemplazar índices y campos tras inventario\n\n```text\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4625 earliest=\"10/15/2026:09:00:00\" latest=\"10/15/2026:09:15:00\"\n| bin _time span=15m\n| stats count AS fallos dc(user) AS usuarios BY src _time\n| where fallos>=5 AND usuarios>=5\n| table _time src fallos usuarios\n```\n\n**Contrato temporal:** reutiliza auth_activity.csv de R06–R07, con usuario/search head en UTC y snapshot retrospectivo posterior a 09:24. Offline: 198.51.100.23 tiene 7 fallos/6 cuentas y es candidata sin ataque confirmado; 203.0.113.15 tiene 5/1 bajo mantenimiento; 192.0.2.44 tiene 4/3 y sigue inconclusa. Para el snapshot anterior a 09:16, la candidata es 6/6. EventCode es el campo del CSV R06, no status de R08; no mezclar los dos archivos homónimos.\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R11-L07-P01",
+      "lessonId": "SP-R11-L07",
+      "prompt": "Entrega diseño del mini-SOC Splunk (fuente→SPL→triage→alerta→aprobación) con matriz de riesgos y pruebas.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D03",
+        "SPLUNK_LECCIONES_R10_R11:D05",
+        "SPLUNK_LECCIONES_R10_R11:D10",
+        "SPLUNK_LECCIONES_R10_R11:D11",
+        "SPLUNK_LECCIONES_R10_R11:D12"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Define fuente, producto, versión y límites del contexto",
+        "Resuelve el objetivo con un procedimiento replicable y no destructivo",
+        "Identifica error, caso benigno y riesgo operacional",
+        "Documenta permisos, aprobación y evidencia para revisión humana"
+      ],
+      "referenceAnswer": "Reutilizar auth_activity.csv y authorized_context.csv de R06–R07, no el archivo homónimo de R08. Eventos [09:00,09:15) UTC del 15/10/2026: snapshot retrospectivo .23=7/6, mantenimiento .15=5/1, proxy .44=4/3. Con >=5 fallos y >=5 cuentas solo .23 es candidata; a corte anterior a 09:16 era 6/6. No asignar verdad de ataque al candidato ni benignidad al proxy. Diseñar roles, aviso mínimo, triage, aprobación específica, ledger y rollback sin conectar Enterprise, ES o SOAR. Las abiertas son formativas; aprobar teoría no demuestra dominio práctico."
+    }
+  ],
+  "solutionsMarkdown": "## 8. Solucionario con razonamiento\n\n- **SP-R11-L07-Q01: A** — Las decisiones deben poder auditarse con datos y procedimientos reproducibles.\n\n- **SP-R11-L07-Q02: D** — Ningún CSV offline sustituye pruebas reales en producto y versiones específicas.\n\n- **SP-R11-L07-P01:** Reutilizar auth_activity.csv y authorized_context.csv de R06–R07, no el archivo homónimo de R08. Eventos [09:00,09:15) UTC del 15/10/2026: snapshot retrospectivo .23=7/6, mantenimiento .15=5/1, proxy .44=4/3. Con >=5 fallos y >=5 cuentas solo .23 es candidata; a corte anterior a 09:16 era 6/6. No asignar verdad de ataque al candidato ni benignidad al proxy. Diseñar roles, aviso mínimo, triage, aprobación específica, ledger y rollback sin conectar Enterprise, ES o SOAR. Las abiertas son formativas; aprobar teoría no demuestra dominio práctico.\n\n**Guía de retroalimentación formativa:** Define fuente, producto, versión y límites del contexto; Resuelve el objetivo con un procedimiento replicable y no destructivo; Identifica error, caso benigno y riesgo operacional; Documenta permisos, aprobación y evidencia para revisión humana.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 9. Fuentes, procedencia y limitaciones\n\n- **D03:** Splunk Enterprise 10.2 — Manage roles in authorize.conf — https://help.splunk.com/en/splunk-enterprise/administer/manage-users-and-security/10.2/perform-advanced-user-and-role-management-in-splunk-enterprise/create-and-manage-roles-in-splunk-enterprise-using-the-authorize.conf-configuration-file\n- **D05:** Splunk Enterprise 10.2 — Search optimization — https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.2/optimize-searches/write-better-searches\n- **D10:** Splunk Enterprise 10.2 — Search REST endpoint descriptions — https://help.splunk.com/en/splunk-enterprise/rest-api-reference/10.2/search-endpoints/search-endpoint-descriptions\n- **D11:** Splunk SOAR Cloud — Playbooks overview — https://help.splunk.com/en/splunk-soar/soar-cloud/build-playbooks/introduction-to-splunk-soar-playbooks/use-playbooks-to-automate-analyst-workflows-in-splunk-soar-cloud\n- **D12:** Splunk SOAR Cloud — Playbook automation API approvals — https://help.splunk.com/en/splunk-soar/soar-cloud/develop-apps/python-playbook-api-reference/automation-api/playbook-automation-api\n\n- **Puente SC-200:** Capítulos 04, 07, 08, 09, 11 y 12: ciclo completo de defensa. Es correspondencia pedagógica, no equivalencia exacta de producto.\n- **Fuente del ID y resultado:** `SPLUNK_MASTER_RESEARCH/03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`.\n- **[DOC]:** fundamentos documentados en fuentes oficiales; no equivale a prueba de todos los supuestos.\n- **[OFFLINE]:** solo verificaciones Python sobre fixtures sintéticos.\n- **[NO EJECUTADO]:** no se ha abierto Splunk, ni SOAR, ni REST, ni se han aplicado configuraciones.\n- **[REVISIÓN]:** verificación humana del texto, respuestas, versiones y supuestos antes de integrar en React.\n",
+  "originalMarkdown": "# SP-R11-L07 — Proyecto final transversal\n\n**Región:** SP-R11 · **Producto:** Splunk Enterprise/Cloud (donde se indique) o SOAR Cloud explícito. · **Estado:** borrador documental / requiere revisión humana. · **SPL/CLI/API:** ilustrativo, NO ejecutado.\n\n**Resultado curricular:** Diseñar ingesta→detección→investigación→respuesta aprobada\n\n**Prerrequisitos:** R07, R09 (conceptual), R10\n\n## 1. Explicación razonada\n\nEl proyecto final une los conocimientos de once regiones sin confundir productos ni afirmar pruebas realizadas. El flujo propuesto recibe autenticaciones sintéticas y genera una hipótesis sobre fallos por usuario/IP; verifica cobertura, normalización, consulta SPL y alertado, realiza triage y crea una intención de respuesta **sin** ejecutarla. Los umbrales se calibran con falsos positivos: un proxy compartido y el servicio de backup del caso obligan a distinguir densidad estadística, privilegios y daño plausible.\n\nEl entregable profesional no es un diagrama vistoso. Es un **paquete auditable**: arquitectura, fuentes y campos, SPL limitado, tabla de resultados esperados, triage SOC, control de acceso a índices, reglas de autorización, idempotencia, alerting, métricas de tiempo y plan de recuperación. Identifica en cada paso cuál sería ejecutable en Splunk Enterprise base y cuál necesitaría Enterprise Security o SOAR. Un proyecto puede aprobar la evaluación offline con datasets sintéticos, pero seguirá sin demostrar compatibilidad operativa ni producción.\n\nAl final construye un plan de pilotaje: inventario de entorno con consentimiento, ingestión sintética, comprobación de campos, ejecución de SPL en sandbox, pruebas de caso benigno/sospechoso, permisos negativos, observabilidad y reversión. Se prohíbe importar datos o activar webhooks reales desde el paquete.\n\n## 2. Conceptos clave\n\n1. Cadena completa: ingesta→búsqueda→detección→investigación→aprobación\n2. Un hallazgo estadístico no prueba ataque\n3. Dependencias Enterprise/ES/SOAR explícitas\n4. Evidencia y registro de decisiones para relevo SOC\n5. Validación offline ≠ despliegue ni prueba Splunk real\n\n## 3. Procedimiento de estudio y verificación\n\n1. Define dos fuentes sintéticas, sus campos y responsabilidades.\n2. Escribe SPL ilustrativa de solo lectura con filtros y ventana.\n3. Genera señales, controles benignos e incertidumbre de cobertura.\n4. Diseña triage y decisión condicionada con aprobación humana.\n5. Prepara runbook de piloto y matrices de prueba sin conectores reales.\n\n## 4. SPL ilustrativa — reemplazar índices y campos tras inventario\n\n```text\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4625 earliest=\"10/15/2026:09:00:00\" latest=\"10/15/2026:09:15:00\"\n| bin _time span=15m\n| stats count AS fallos dc(user) AS usuarios BY src _time\n| where fallos>=5 AND usuarios>=5\n| table _time src fallos usuarios\n```\n\n**Contrato temporal:** reutiliza auth_activity.csv de R06–R07, con usuario/search head en UTC y snapshot retrospectivo posterior a 09:24. Offline: 198.51.100.23 tiene 7 fallos/6 cuentas y es candidata sin ataque confirmado; 203.0.113.15 tiene 5/1 bajo mantenimiento; 192.0.2.44 tiene 4/3 y sigue inconclusa. Para el snapshot anterior a 09:16, la candidata es 6/6. EventCode es el campo del CSV R06, no status de R08; no mezclar los dos archivos homónimos.\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n## 5. Situación profesional\n\nEl caso integrador reutiliza los inventarios de R06: candidata 198.51.100.23, mantenimiento 203.0.113.15 y proxy inconcluso 192.0.2.44. La condición no selecciona mantenimiento ni proxy; esa no coincidencia no aporta por sí sola una verdad benigna. Aprobaciones e idempotencia de R11 son ejercicios en papel separados de estas observaciones.\n\n## 6. Errores comunes\n\n1. Usar la palabra «confirmado» por un simple umbral\n2. Atribuir SOAR a Enterprise base\n3. Integrar React con IDs no revisados o progreso compartido por accidente\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R11-L07-Q01 — Opción múltiple\n\n¿Qué evidencia mínima requiere un caso SOC reproducible?\n\nA. Fuente, campos, ventana, consulta, resultados, control benigno y decisión trazable\nB. Un diagrama de arquitectura sin evidencia del caso ni decisión trazable\nC. Una lista de IPs sin contexto benigno ni consultas reproducibles\nD. Un conteo agregado sin fuente, ventana ni criterio de selección\n\n### SP-R11-L07-Q02 — Opción múltiple\n\n¿Qué estado tiene el proyecto final mientras no se ejecute en Splunk?\n\nA. Validación de sintaxis SPL porque los recuentos Python coinciden\nB. Validación de respuesta SOAR porque existe una política de aprobación en papel\nC. Validación de compatibilidad ES porque el CSV contiene findings\nD. Diseño + pruebas offline, pendiente de validación real\n\n### SP-R11-L07-P01 — Práctica abierta formativa\n\nEntrega diseño del mini-SOC Splunk (fuente→SPL→triage→alerta→aprobación) con matriz de riesgos y pruebas.\n\n## 8. Solucionario con razonamiento\n\n- **SP-R11-L07-Q01: A** — Las decisiones deben poder auditarse con datos y procedimientos reproducibles.\n\n- **SP-R11-L07-Q02: D** — Ningún CSV offline sustituye pruebas reales en producto y versiones específicas.\n\n- **SP-R11-L07-P01:** Reutilizar auth_activity.csv y authorized_context.csv de R06–R07, no el archivo homónimo de R08. Eventos [09:00,09:15) UTC del 15/10/2026: snapshot retrospectivo .23=7/6, mantenimiento .15=5/1, proxy .44=4/3. Con >=5 fallos y >=5 cuentas solo .23 es candidata; a corte anterior a 09:16 era 6/6. No asignar verdad de ataque al candidato ni benignidad al proxy. Diseñar roles, aviso mínimo, triage, aprobación específica, ledger y rollback sin conectar Enterprise, ES o SOAR. Las abiertas son formativas; aprobar teoría no demuestra dominio práctico.\n\n**Guía de retroalimentación formativa:** Define fuente, producto, versión y límites del contexto; Resuelve el objetivo con un procedimiento replicable y no destructivo; Identifica error, caso benigno y riesgo operacional; Documenta permisos, aprobación y evidencia para revisión humana.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 9. Fuentes, procedencia y limitaciones\n\n- **D03:** Splunk Enterprise 10.2 — Manage roles in authorize.conf — https://help.splunk.com/en/splunk-enterprise/administer/manage-users-and-security/10.2/perform-advanced-user-and-role-management-in-splunk-enterprise/create-and-manage-roles-in-splunk-enterprise-using-the-authorize.conf-configuration-file\n- **D05:** Splunk Enterprise 10.2 — Search optimization — https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.2/optimize-searches/write-better-searches\n- **D10:** Splunk Enterprise 10.2 — Search REST endpoint descriptions — https://help.splunk.com/en/splunk-enterprise/rest-api-reference/10.2/search-endpoints/search-endpoint-descriptions\n- **D11:** Splunk SOAR Cloud — Playbooks overview — https://help.splunk.com/en/splunk-soar/soar-cloud/build-playbooks/introduction-to-splunk-soar-playbooks/use-playbooks-to-automate-analyst-workflows-in-splunk-soar-cloud\n- **D12:** Splunk SOAR Cloud — Playbook automation API approvals — https://help.splunk.com/en/splunk-soar/soar-cloud/develop-apps/python-playbook-api-reference/automation-api/playbook-automation-api\n\n- **Puente SC-200:** Capítulos 04, 07, 08, 09, 11 y 12: ciclo completo de defensa. Es correspondencia pedagógica, no equivalencia exacta de producto.\n- **Fuente del ID y resultado:** `SPLUNK_MASTER_RESEARCH/03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`.\n- **[DOC]:** fundamentos documentados en fuentes oficiales; no equivale a prueba de todos los supuestos.\n- **[OFFLINE]:** solo verificaciones Python sobre fixtures sintéticos.\n- **[NO EJECUTADO]:** no se ha abierto Splunk, ni SOAR, ni REST, ni se han aplicado configuraciones.\n- **[REVISIÓN]:** verificación humana del texto, respuestas, versiones y supuestos antes de integrar en React.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D03",
+      "key": "SPLUNK_LECCIONES_R10_R11:D03",
+      "url": "https://help.splunk.com/en/splunk-enterprise/administer/manage-users-and-security/10.2/perform-advanced-user-and-role-management-in-splunk-enterprise/create-and-manage-roles-in-splunk-enterprise-using-the-authorize.conf-configuration-file"
+    },
+    {
+      "id": "D05",
+      "key": "SPLUNK_LECCIONES_R10_R11:D05",
+      "url": "https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.2/optimize-searches/write-better-searches"
+    },
+    {
+      "id": "D10",
+      "key": "SPLUNK_LECCIONES_R10_R11:D10",
+      "url": "https://help.splunk.com/en/splunk-enterprise/rest-api-reference/10.2/search-endpoints/search-endpoint-descriptions"
+    },
+    {
+      "id": "D11",
+      "key": "SPLUNK_LECCIONES_R10_R11:D11",
+      "url": "https://help.splunk.com/en/splunk-soar/soar-cloud/build-playbooks/introduction-to-splunk-soar-playbooks/use-playbooks-to-automate-analyst-workflows-in-splunk-soar-cloud"
+    },
+    {
+      "id": "D12",
+      "key": "SPLUNK_LECCIONES_R10_R11:D12",
+      "url": "https://help.splunk.com/en/splunk-soar/soar-cloud/develop-apps/python-playbook-api-reference/automation-api/playbook-automation-api"
+    }
+  ]
+}

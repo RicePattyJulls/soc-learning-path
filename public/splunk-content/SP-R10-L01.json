@@ -1,0 +1,200 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R10-L01",
+  "title": "Configuración por archivos y precedence",
+  "revision": "4d4774504bf12fdd2b53e00a",
+  "sourceVersion": "348ce3fc9464a478481ca3288b38a84949799c80a64c557fd0c9026156a029be",
+  "sanitizedHash": "348ce3fc9464a478481ca3288b38a84949799c80a64c557fd0c9026156a029be",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R10_R11/R10_ADMINISTRACION/SP-R10-L01.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Conocer apps/system local y btool sin aplicar cambios",
+  "preamble": "# SP-R10-L01 — Configuración por archivos y precedence\n\n**Región:** SP-R10 · **Producto:** Splunk Enterprise/Cloud (donde se indique) o SOAR Cloud explícito. · **Estado:** borrador documental / requiere revisión humana. · **SPL/CLI/API:** ilustrativo, NO ejecutado.\n\n**Resultado curricular:** Conocer apps/system local y btool sin aplicar cambios\n\n**Prerrequisitos:** R01–R05; revisar R06–R07 para impacto SOC\n\n",
+  "sections": [
+    {
+      "id": "SP-R10-L01-S01",
+      "title": "1. Explicación razonada",
+      "markdown": "## 1. Explicación razonada\n\nSplunk resuelve opciones de configuración combinando archivos como `inputs.conf`, `props.conf`, `transforms.conf`, `authorize.conf` y `savedsearches.conf`. No basta con localizar una línea en disco: el valor efectivo depende de *precedence*, contexto global o app/usuario, exportación de knowledge objects y de la carga del servicio. `default/` suele contener valores distribuidos por el software o una app; editarlo directamente destruye trazabilidad de actualizaciones. Los cambios organizativos se gestionan en `local/` y se prueban antes del despliegue.\n\nUna falsa regla «system/local siempre gana» es peligrosa: Splunk diferencia contextos. Para search-time también importan directorios por usuario, app actual y visibilidad. `btool` resuelve y muestra una vista fusionada de ficheros `.conf`; con `--debug` identifica el fichero de procedencia. No prueba por sí solo que un componente haya recargado la configuración o que una extracción de campo funcione. Y btool solo cubre sus archivos de configuración: no certifica permisos de SO, rutas de red ni autenticación externa.\n\nEl troubleshooting correcto identifica primero **qué parámetro**, **qué contexto**, **qué instancia**, **qué fichero ganador** y **qué efecto se esperaba**. En un despliegue distribuido, ejecutar btool en el search head no muestra automáticamente el valor que ganó en un forwarder. Si un campo desaparece, confirma qué instancia realiza parseo y cuál realiza extracción en search time. No copies archivos del host de producción al material didáctico.\n\n",
+      "line": 9,
+      "endLine": 15
+    },
+    {
+      "id": "SP-R10-L01-S02",
+      "title": "2. Conceptos clave",
+      "markdown": "## 2. Conceptos clave\n\n1. Precedence por contexto: global frente a usuario/app\n2. `local` como lugar normal de personalización; no editar `default`\n3. `btool ... list --debug` observa configuración, no opera servicio\n4. Instancia local consultada no representa todo el cluster\n5. El fichero ganador no prueba que el dato se ingiera correctamente\n\n",
+      "line": 17,
+      "endLine": 23
+    },
+    {
+      "id": "SP-R10-L01-S03",
+      "title": "3. Procedimiento de estudio y verificación",
+      "markdown": "## 3. Procedimiento de estudio y verificación\n\n1. Identifica la configuración afectada y si es index-time o search-time.\n2. Dibuja una tabla con rutas posibles, app y usuario implicados.\n3. En una instancia autorizada, examina btool en modo lectura y la ruta `--debug`.\n4. Relaciona el valor fusionado con la instancia que ejecuta esa fase.\n5. Documenta discrepancias; no guardes cambios ni reinicies por rutina.\n\n",
+      "line": 25,
+      "endLine": 31
+    },
+    {
+      "id": "SP-R10-L01-S04",
+      "title": "4. CLI ilustrativa — inspección, no ejecutada",
+      "markdown": "## 4. CLI ilustrativa — inspección, no ejecutada\n\n```text\n# SOLO lectura; ajustar contexto a una instalación autorizada\n$SPLUNK_HOME/bin/splunk btool props list --debug\n# Para settings de búsqueda, estudiar también contexto --app y --user; no asumir un orden universal.\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n",
+      "line": 33,
+      "endLine": 41
+    },
+    {
+      "id": "SP-R10-L01-S05",
+      "title": "5. Situación profesional",
+      "markdown": "## 5. Situación profesional\n\nUn sourcetype parece tener `TIME_FORMAT` diferente en dos nodos. El analista miró únicamente el `system/default` del search head. ¿Qué falta? Localizar nodo de parsing y valor efectivo con btool, distinguiendo contexto y restart/reload.\n\n## 6. Errores comunes\n\n1. Repetir una precedence universal aunque cambia con contexto\n2. Modificar `default` para corregir producción\n3. Tratar btool como prueba de pipeline de ingesta\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 43,
+      "endLine": 54
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R10-L01-Q01",
+      "lessonId": "SP-R10-L01",
+      "prompt": "¿Qué evidencia proporciona `btool ... list --debug`?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D01",
+        "SPLUNK_LECCIONES_R10_R11:D02",
+        "SPLUNK_LECCIONES_R10_R11:D18"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R10-L01-Q01-O-da76d9bb5eec",
+          "text": "El valor ya cargado en memoria por todos los nodos del cluster"
+        },
+        {
+          "id": "SP-R10-L01-Q01-O-c6dc0f7d3396",
+          "text": "Una prueba de que la extracción produce campos correctos en eventos nuevos"
+        },
+        {
+          "id": "SP-R10-L01-Q01-O-bdb30d9ed11c",
+          "text": "La configuración efectiva de un forwarder remoto no consultado"
+        },
+        {
+          "id": "SP-R10-L01-Q01-O-77c5e28f78c7",
+          "text": "La configuración fusionada de la instancia consultada y el archivo de procedencia de sus parámetros"
+        }
+      ],
+      "solution": "SP-R10-L01-Q01-O-77c5e28f78c7",
+      "explanation": "Permite inspeccionar el valor efectivo de ficheros .conf y su procedencia; no sustituye pruebas del pipeline.",
+      "anchors": [
+        {
+          "file": "R10_ADMINISTRACION/SP-R10-L01.md",
+          "sourceHash": "348ce3fc9464a478481ca3288b38a84949799c80a64c557fd0c9026156a029be",
+          "line": 17,
+          "endLine": 23,
+          "quote": "## 2. Conceptos clave\n\n1. Precedence por contexto: global frente a usuario/app\n2. `local` como lugar normal de personalización; no editar `default`\n3. `btool ... list --debug` observa configuración, no opera servicio\n4. Instancia local consultada no representa todo el cluster\n5. El fichero ganador no prueba que el dato se ingiera correctamente\n\n"
+        },
+        {
+          "file": "R10_ADMINISTRACION/SP-R10-L01.md",
+          "sourceHash": "348ce3fc9464a478481ca3288b38a84949799c80a64c557fd0c9026156a029be",
+          "line": 33,
+          "endLine": 41,
+          "quote": "## 4. CLI ilustrativa — inspección, no ejecutada\n\n```text\n# SOLO lectura; ajustar contexto a una instalación autorizada\n$SPLUNK_HOME/bin/splunk btool props list --debug\n# Para settings de búsqueda, estudiar también contexto --app y --user; no asumir un orden universal.\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R10-L01-Q02",
+      "lessonId": "SP-R10-L01",
+      "prompt": "¿Cuál es la razón principal para no editar archivos en `default/`?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D01",
+        "SPLUNK_LECCIONES_R10_R11:D02",
+        "SPLUNK_LECCIONES_R10_R11:D18"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R10-L01-Q02-O-f3c11ad4ee53",
+          "text": "Porque modificar default cambia retroactivamente todos los eventos indexados"
+        },
+        {
+          "id": "SP-R10-L01-Q02-O-59fff46d5681",
+          "text": "Pueden sobrescribirse al actualizar una app o el producto"
+        },
+        {
+          "id": "SP-R10-L01-Q02-O-951b62710756",
+          "text": "Porque Splunk da prioridad a default sobre cualquier contexto local"
+        },
+        {
+          "id": "SP-R10-L01-Q02-O-ff0b2922442b",
+          "text": "Porque default solo se aplica si no hay entradas configuradas"
+        }
+      ],
+      "solution": "SP-R10-L01-Q02-O-59fff46d5681",
+      "explanation": "La personalización en `local/` evita perder cambios al actualizar distribuciones.",
+      "anchors": [
+        {
+          "file": "R10_ADMINISTRACION/SP-R10-L01.md",
+          "sourceHash": "348ce3fc9464a478481ca3288b38a84949799c80a64c557fd0c9026156a029be",
+          "line": 17,
+          "endLine": 23,
+          "quote": "## 2. Conceptos clave\n\n1. Precedence por contexto: global frente a usuario/app\n2. `local` como lugar normal de personalización; no editar `default`\n3. `btool ... list --debug` observa configuración, no opera servicio\n4. Instancia local consultada no representa todo el cluster\n5. El fichero ganador no prueba que el dato se ingiera correctamente\n\n"
+        },
+        {
+          "file": "R10_ADMINISTRACION/SP-R10-L01.md",
+          "sourceHash": "348ce3fc9464a478481ca3288b38a84949799c80a64c557fd0c9026156a029be",
+          "line": 33,
+          "endLine": 41,
+          "quote": "## 4. CLI ilustrativa — inspección, no ejecutada\n\n```text\n# SOLO lectura; ajustar contexto a una instalación autorizada\n$SPLUNK_HOME/bin/splunk btool props list --debug\n# Para settings de búsqueda, estudiar también contexto --app y --user; no asumir un orden universal.\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R10-L01-P01",
+      "lessonId": "SP-R10-L01",
+      "prompt": "Propón una matriz de diagnóstico para una precedencia inesperada de `props.conf` entre un forwarder y un search head, sin editar archivos.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D01",
+        "SPLUNK_LECCIONES_R10_R11:D02",
+        "SPLUNK_LECCIONES_R10_R11:D18"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Define fuente, producto, versión y límites del contexto",
+        "Resuelve el objetivo con un procedimiento replicable y no destructivo",
+        "Identifica error, caso benigno y riesgo operacional",
+        "Documenta permisos, aprobación y evidencia para revisión humana"
+      ],
+      "referenceAnswer": "Registrar instancia, responsabilidad de parsing, fichero, contexto, ruta ganadora btool, versión de app y prueba de campo después de aprobación. No se puede concluir por inspeccionar un nodo distinto."
+    }
+  ],
+  "solutionsMarkdown": "## 8. Solucionario con razonamiento\n\n- **SP-R10-L01-Q01: D** — Permite inspeccionar el valor efectivo de ficheros .conf y su procedencia; no sustituye pruebas del pipeline.\n\n- **SP-R10-L01-Q02: B** — La personalización en `local/` evita perder cambios al actualizar distribuciones.\n\n- **SP-R10-L01-P01:** Registrar instancia, responsabilidad de parsing, fichero, contexto, ruta ganadora btool, versión de app y prueba de campo después de aprobación. No se puede concluir por inspeccionar un nodo distinto.\n\n**Guía de retroalimentación formativa:** Define fuente, producto, versión y límites del contexto; Resuelve el objetivo con un procedimiento replicable y no destructivo; Identifica error, caso benigno y riesgo operacional; Documenta permisos, aprobación y evidencia para revisión humana.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 9. Fuentes, procedencia y limitaciones\n\n- **D01:** Splunk Enterprise 10.4 — Configuration file precedence — https://help.splunk.com/en/splunk-enterprise/administer/admin-manual/10.4/administer-splunk-enterprise-with-configuration-files/configuration-file-precedence\n- **D02:** Splunk Enterprise 10.2 — btool CLI help — https://help.splunk.com/en/splunk-enterprise/administer/troubleshoot/10.2/contact-splunk-support/command-line-tools-for-use-with-support\n- **D18:** Splunk Enterprise 10.2 — app.conf — https://help.splunk.com/en/splunk-enterprise/administer/admin-manual/10.2/configuration-file-reference/10.2.0-configuration-file-reference/app.conf\n\n- **Puente SC-200:** Capítulos 02 y 04: RBAC y gestión de configuración/ingesta. Es correspondencia pedagógica, no equivalencia exacta de producto.\n- **Fuente del ID y resultado:** `SPLUNK_MASTER_RESEARCH/03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`.\n- **[DOC]:** fundamentos documentados en fuentes oficiales; no equivale a prueba de todos los supuestos.\n- **[OFFLINE]:** solo verificaciones Python sobre fixtures sintéticos.\n- **[NO EJECUTADO]:** no se ha abierto Splunk, ni SOAR, ni REST, ni se han aplicado configuraciones.\n- **[REVISIÓN]:** verificación humana del texto, respuestas, versiones y supuestos antes de integrar en React.\n",
+  "originalMarkdown": "# SP-R10-L01 — Configuración por archivos y precedence\n\n**Región:** SP-R10 · **Producto:** Splunk Enterprise/Cloud (donde se indique) o SOAR Cloud explícito. · **Estado:** borrador documental / requiere revisión humana. · **SPL/CLI/API:** ilustrativo, NO ejecutado.\n\n**Resultado curricular:** Conocer apps/system local y btool sin aplicar cambios\n\n**Prerrequisitos:** R01–R05; revisar R06–R07 para impacto SOC\n\n## 1. Explicación razonada\n\nSplunk resuelve opciones de configuración combinando archivos como `inputs.conf`, `props.conf`, `transforms.conf`, `authorize.conf` y `savedsearches.conf`. No basta con localizar una línea en disco: el valor efectivo depende de *precedence*, contexto global o app/usuario, exportación de knowledge objects y de la carga del servicio. `default/` suele contener valores distribuidos por el software o una app; editarlo directamente destruye trazabilidad de actualizaciones. Los cambios organizativos se gestionan en `local/` y se prueban antes del despliegue.\n\nUna falsa regla «system/local siempre gana» es peligrosa: Splunk diferencia contextos. Para search-time también importan directorios por usuario, app actual y visibilidad. `btool` resuelve y muestra una vista fusionada de ficheros `.conf`; con `--debug` identifica el fichero de procedencia. No prueba por sí solo que un componente haya recargado la configuración o que una extracción de campo funcione. Y btool solo cubre sus archivos de configuración: no certifica permisos de SO, rutas de red ni autenticación externa.\n\nEl troubleshooting correcto identifica primero **qué parámetro**, **qué contexto**, **qué instancia**, **qué fichero ganador** y **qué efecto se esperaba**. En un despliegue distribuido, ejecutar btool en el search head no muestra automáticamente el valor que ganó en un forwarder. Si un campo desaparece, confirma qué instancia realiza parseo y cuál realiza extracción en search time. No copies archivos del host de producción al material didáctico.\n\n## 2. Conceptos clave\n\n1. Precedence por contexto: global frente a usuario/app\n2. `local` como lugar normal de personalización; no editar `default`\n3. `btool ... list --debug` observa configuración, no opera servicio\n4. Instancia local consultada no representa todo el cluster\n5. El fichero ganador no prueba que el dato se ingiera correctamente\n\n## 3. Procedimiento de estudio y verificación\n\n1. Identifica la configuración afectada y si es index-time o search-time.\n2. Dibuja una tabla con rutas posibles, app y usuario implicados.\n3. En una instancia autorizada, examina btool en modo lectura y la ruta `--debug`.\n4. Relaciona el valor fusionado con la instancia que ejecuta esa fase.\n5. Documenta discrepancias; no guardes cambios ni reinicies por rutina.\n\n## 4. CLI ilustrativa — inspección, no ejecutada\n\n```text\n# SOLO lectura; ajustar contexto a una instalación autorizada\n$SPLUNK_HOME/bin/splunk btool props list --debug\n# Para settings de búsqueda, estudiar también contexto --app y --user; no asumir un orden universal.\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n## 5. Situación profesional\n\nUn sourcetype parece tener `TIME_FORMAT` diferente en dos nodos. El analista miró únicamente el `system/default` del search head. ¿Qué falta? Localizar nodo de parsing y valor efectivo con btool, distinguiendo contexto y restart/reload.\n\n## 6. Errores comunes\n\n1. Repetir una precedence universal aunque cambia con contexto\n2. Modificar `default` para corregir producción\n3. Tratar btool como prueba de pipeline de ingesta\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R10-L01-Q01 — Opción múltiple\n\n¿Qué evidencia proporciona `btool ... list --debug`?\n\nA. El valor ya cargado en memoria por todos los nodos del cluster\nB. Una prueba de que la extracción produce campos correctos en eventos nuevos\nC. La configuración efectiva de un forwarder remoto no consultado\nD. La configuración fusionada de la instancia consultada y el archivo de procedencia de sus parámetros\n\n### SP-R10-L01-Q02 — Opción múltiple\n\n¿Cuál es la razón principal para no editar archivos en `default/`?\n\nA. Porque modificar default cambia retroactivamente todos los eventos indexados\nB. Pueden sobrescribirse al actualizar una app o el producto\nC. Porque Splunk da prioridad a default sobre cualquier contexto local\nD. Porque default solo se aplica si no hay entradas configuradas\n\n### SP-R10-L01-P01 — Práctica abierta formativa\n\nPropón una matriz de diagnóstico para una precedencia inesperada de `props.conf` entre un forwarder y un search head, sin editar archivos.\n\n## 8. Solucionario con razonamiento\n\n- **SP-R10-L01-Q01: D** — Permite inspeccionar el valor efectivo de ficheros .conf y su procedencia; no sustituye pruebas del pipeline.\n\n- **SP-R10-L01-Q02: B** — La personalización en `local/` evita perder cambios al actualizar distribuciones.\n\n- **SP-R10-L01-P01:** Registrar instancia, responsabilidad de parsing, fichero, contexto, ruta ganadora btool, versión de app y prueba de campo después de aprobación. No se puede concluir por inspeccionar un nodo distinto.\n\n**Guía de retroalimentación formativa:** Define fuente, producto, versión y límites del contexto; Resuelve el objetivo con un procedimiento replicable y no destructivo; Identifica error, caso benigno y riesgo operacional; Documenta permisos, aprobación y evidencia para revisión humana.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 9. Fuentes, procedencia y limitaciones\n\n- **D01:** Splunk Enterprise 10.4 — Configuration file precedence — https://help.splunk.com/en/splunk-enterprise/administer/admin-manual/10.4/administer-splunk-enterprise-with-configuration-files/configuration-file-precedence\n- **D02:** Splunk Enterprise 10.2 — btool CLI help — https://help.splunk.com/en/splunk-enterprise/administer/troubleshoot/10.2/contact-splunk-support/command-line-tools-for-use-with-support\n- **D18:** Splunk Enterprise 10.2 — app.conf — https://help.splunk.com/en/splunk-enterprise/administer/admin-manual/10.2/configuration-file-reference/10.2.0-configuration-file-reference/app.conf\n\n- **Puente SC-200:** Capítulos 02 y 04: RBAC y gestión de configuración/ingesta. Es correspondencia pedagógica, no equivalencia exacta de producto.\n- **Fuente del ID y resultado:** `SPLUNK_MASTER_RESEARCH/03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`.\n- **[DOC]:** fundamentos documentados en fuentes oficiales; no equivale a prueba de todos los supuestos.\n- **[OFFLINE]:** solo verificaciones Python sobre fixtures sintéticos.\n- **[NO EJECUTADO]:** no se ha abierto Splunk, ni SOAR, ni REST, ni se han aplicado configuraciones.\n- **[REVISIÓN]:** verificación humana del texto, respuestas, versiones y supuestos antes de integrar en React.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D01",
+      "key": "SPLUNK_LECCIONES_R10_R11:D01",
+      "url": "https://help.splunk.com/en/splunk-enterprise/administer/admin-manual/10.4/administer-splunk-enterprise-with-configuration-files/configuration-file-precedence"
+    },
+    {
+      "id": "D02",
+      "key": "SPLUNK_LECCIONES_R10_R11:D02",
+      "url": "https://help.splunk.com/en/splunk-enterprise/administer/troubleshoot/10.2/contact-splunk-support/command-line-tools-for-use-with-support"
+    },
+    {
+      "id": "D18",
+      "key": "SPLUNK_LECCIONES_R10_R11:D18",
+      "url": "https://help.splunk.com/en/splunk-enterprise/administer/admin-manual/10.2/configuration-file-reference/10.2.0-configuration-file-reference/app.conf"
+    }
+  ]
+}

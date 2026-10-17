@@ -1,0 +1,200 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R09-L01",
+  "title": "Qué añade ES a Splunk Enterprise",
+  "revision": "013ad594706680e1c93084cd",
+  "sourceVersion": "10c3918936c6e7e825c365f6bc7d325ceb7d0ac3cc336d2530d90819db84bd1a",
+  "sanitizedHash": "10c3918936c6e7e825c365f6bc7d325ceb7d0ac3cc336d2530d90819db84bd1a",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R08_R09/R09_ENTERPRISE_SECURITY/SP-R09-L01.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Distinguir producto base, ES y herramientas complementarias",
+  "preamble": "# SP-R09-L01 — Qué añade ES a Splunk Enterprise\n\n**Región:** SP-R09 · **Estado:** borrador editorial para revisión · **SPL:** ilustrativo NO ejecutado.\n\n**Resultado de aprendizaje curricular:** Distinguir producto base, ES y herramientas complementarias.\n\n**Prerrequisitos:** R01–R07 según tema; R08 para agrupación/escalado R09. **Producto:** plataforma Splunk para SPL genérico; funciones ES 8.7/SOAR solo cuando se indiquen.\n\n",
+  "sections": [
+    {
+      "id": "SP-R09-L01-S01",
+      "title": "1. Explicación técnica",
+      "markdown": "## 1. Explicación técnica\n\nSplunk Enterprise o Splunk Cloud Platform almacenan y permiten buscar eventos, generar informes y configurar alertas según licencia/permisos. **Splunk Enterprise Security (ES)** es una solución especializada en operaciones de seguridad sobre una plataforma Splunk compatible; añade procesos como detecciones que producen findings, flujos de triage en Mission Control y capacidades de risk-based alerting. **Splunk SOAR** añade orquestación de acciones mediante apps y playbooks cuando está desplegado y conectado.\n\nUn diagrama correcto separa los productos: fuente → forwarder/HEC → índice/plataforma → detección ES → finding → investigación → decisión → posible acción SOAR. No siempre se usa toda esa cadena: una instalación de Splunk Enterprise base puede buscar eventos y crear saved searches sin ES.\n\nLa terminología depende de versión; los materiales de R09 usan **documentación ES 8.7** como referencia, sin afirmar que esa versión sea la instalada en tu laboratorio. La existencia de la interfaz, índices, permisos, licencias o funciones debe inventariarse antes de enseñar clics operativos sobre una instancia real.\n\n",
+      "line": 9,
+      "endLine": 15
+    },
+    {
+      "id": "SP-R09-L01-S02",
+      "title": "2. Conceptos que debes distinguir",
+      "markdown": "## 2. Conceptos que debes distinguir\n\n1. Plataforma Enterprise/Cloud: ingesta, almacenamiento, SPL y alertas\n2. ES: detecciones, findings, misión SOC y RBA según versión\n3. SOAR: conectores, acciones, playbooks y controles de ejecución\n4. Versionado y licenciamiento: sin evidencias, no asumir capacidades\n\n",
+      "line": 17,
+      "endLine": 22
+    },
+    {
+      "id": "SP-R09-L01-S03",
+      "title": "3. Procedimiento reproducible y seguro",
+      "markdown": "## 3. Procedimiento reproducible y seguro\n\n1. Identifica qué producto cumple cada función del flujo.\n2. Distingue searching/alerting de findings/Mission Control.\n3. Añade límites por licencia, versión e integración.\n4. Define qué laboratorios funcionan offline y cuáles piden ES.\n5. Documenta la versión real solo cuando haya inventario autorizado.\n\n",
+      "line": 24,
+      "endLine": 30
+    },
+    {
+      "id": "SP-R09-L01-S04",
+      "title": "4. SPL ilustrativo (solo lectura; no probado)",
+      "markdown": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_AUTH sourcetype=ST_AUTH\n| stats count AS eventos BY status\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n",
+      "line": 32,
+      "endLine": 39
+    },
+    {
+      "id": "SP-R09-L01-S05",
+      "title": "5. Escenario SOC",
+      "markdown": "## 5. Escenario SOC\n\nUna búsqueda `stats count` puede ejecutarse en Splunk Enterprise sin ES; el panel de analyst queue y grouping de findings requiere ES compatible.\n\n## 6. Errores frecuentes\n\n1. Decir que SOAR viene incluido necesariamente con Splunk Enterprise\n2. Aplicar pantallas ES 8.7 a un sistema sin verificar\n3. Atribuir risk score de ES a cualquier alert action\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 41,
+      "endLine": 52
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R09-L01-Q01",
+      "lessonId": "SP-R09-L01",
+      "prompt": "¿Dónde pertenece una búsqueda SPL sobre índices?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D07",
+        "SPLUNK_LECCIONES_R08_R09:D11",
+        "SPLUNK_LECCIONES_R08_R09:D13"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R09-L01-Q01-O-a7b421465692",
+          "text": "A SOAR, que ejecuta la indexación y almacenamiento de la plataforma"
+        },
+        {
+          "id": "SP-R09-L01-Q01-O-e13e2c158aa8",
+          "text": "A la plataforma Enterprise o Cloud: buscar índices es una función de plataforma y no exige ES por sí sola"
+        },
+        {
+          "id": "SP-R09-L01-Q01-O-8bdfa1424d4b",
+          "text": "Solo a Enterprise Security, incluso para un conteo básico"
+        },
+        {
+          "id": "SP-R09-L01-Q01-O-7167b01aac75",
+          "text": "Al add-on CIM, que reemplaza el motor de búsquedas"
+        }
+      ],
+      "solution": "SP-R09-L01-Q01-O-e13e2c158aa8",
+      "explanation": "La plataforma soporta búsqueda aunque ES no esté instalado.",
+      "anchors": [
+        {
+          "file": "R09_ENTERPRISE_SECURITY/SP-R09-L01.md",
+          "sourceHash": "10c3918936c6e7e825c365f6bc7d325ceb7d0ac3cc336d2530d90819db84bd1a",
+          "line": 17,
+          "endLine": 22,
+          "quote": "## 2. Conceptos que debes distinguir\n\n1. Plataforma Enterprise/Cloud: ingesta, almacenamiento, SPL y alertas\n2. ES: detecciones, findings, misión SOC y RBA según versión\n3. SOAR: conectores, acciones, playbooks y controles de ejecución\n4. Versionado y licenciamiento: sin evidencias, no asumir capacidades\n\n"
+        },
+        {
+          "file": "R09_ENTERPRISE_SECURITY/SP-R09-L01.md",
+          "sourceHash": "10c3918936c6e7e825c365f6bc7d325ceb7d0ac3cc336d2530d90819db84bd1a",
+          "line": 32,
+          "endLine": 39,
+          "quote": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_AUTH sourcetype=ST_AUTH\n| stats count AS eventos BY status\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R09-L01-Q02",
+      "lessonId": "SP-R09-L01",
+      "prompt": "¿Qué afirmación requiere verificar producto/versión?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D07",
+        "SPLUNK_LECCIONES_R08_R09:D11",
+        "SPLUNK_LECCIONES_R08_R09:D13"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R09-L01-Q02-O-295e33f2259a",
+          "text": "Que una tubería SPL encadena comandos sobre resultados"
+        },
+        {
+          "id": "SP-R09-L01-Q02-O-cf5c58529238",
+          "text": "Que table proyecta campos disponibles en el pipeline"
+        },
+        {
+          "id": "SP-R09-L01-Q02-O-2a0076f422e3",
+          "text": "Que Mission Control y analyst queue estén disponibles"
+        },
+        {
+          "id": "SP-R09-L01-Q02-O-312be0c44f13",
+          "text": "Que stats agrega eventos recuperados por una búsqueda"
+        }
+      ],
+      "solution": "SP-R09-L01-Q02-O-2a0076f422e3",
+      "explanation": "Mission Control forma parte del flujo ES, no del producto base sin comprobación.",
+      "anchors": [
+        {
+          "file": "R09_ENTERPRISE_SECURITY/SP-R09-L01.md",
+          "sourceHash": "10c3918936c6e7e825c365f6bc7d325ceb7d0ac3cc336d2530d90819db84bd1a",
+          "line": 17,
+          "endLine": 22,
+          "quote": "## 2. Conceptos que debes distinguir\n\n1. Plataforma Enterprise/Cloud: ingesta, almacenamiento, SPL y alertas\n2. ES: detecciones, findings, misión SOC y RBA según versión\n3. SOAR: conectores, acciones, playbooks y controles de ejecución\n4. Versionado y licenciamiento: sin evidencias, no asumir capacidades\n\n"
+        },
+        {
+          "file": "R09_ENTERPRISE_SECURITY/SP-R09-L01.md",
+          "sourceHash": "10c3918936c6e7e825c365f6bc7d325ceb7d0ac3cc336d2530d90819db84bd1a",
+          "line": 32,
+          "endLine": 39,
+          "quote": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_AUTH sourcetype=ST_AUTH\n| stats count AS eventos BY status\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R09-L01-P01",
+      "lessonId": "SP-R09-L01",
+      "prompt": "Dibuja un mapa de responsabilidades para ingestión, SPL, findings, triage y playbook.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D07",
+        "SPLUNK_LECCIONES_R08_R09:D11",
+        "SPLUNK_LECCIONES_R08_R09:D13"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Distingue fuente, campos y alcance de la pregunta",
+        "Diseña un método reproducible sin inferencia abusiva",
+        "Separa señales, hipótesis, contraejemplos y ausencia de datos",
+        "Comunica siguiente paso seguro y evidencia para otro analista"
+      ],
+      "referenceAnswer": "Forwarder/HEC e indexer/search head: plataforma; detección/findings/Mission Control: ES; acción playbook e integración con terceros: SOAR, con app, permiso, pairing y human-in-loop cuando sea disruptivo."
+    }
+  ],
+  "solutionsMarkdown": "## 8. Solucionario con razonamiento\n\n- **SP-R09-L01-Q01: B** — La plataforma soporta búsqueda aunque ES no esté instalado.\n\n- **SP-R09-L01-Q02: C** — Mission Control forma parte del flujo ES, no del producto base sin comprobación.\n\n- **SP-R09-L01-P01:** Forwarder/HEC e indexer/search head: plataforma; detección/findings/Mission Control: ES; acción playbook e integración con terceros: SOAR, con app, permiso, pairing y human-in-loop cuando sea disruptivo.\n\n**Guía de retroalimentación formativa:** Distingue fuente, campos y alcance de la pregunta; Diseña un método reproducible sin inferencia abusiva; Separa señales, hipótesis, contraejemplos y ausencia de datos; Comunica siguiente paso seguro y evidencia para otro analista.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 9. Fuentes verificables y conexiones\n\n- **D07:** Splunk ES 8.7 — Use detections to search for threats — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/use-detections-to-search-for-threats-in-splunk-enterprise-security\n- **D11:** Splunk ES 8.7 — Overview of Mission Control — https://help.splunk.com/en/splunk-enterprise-security-8/user-guide/8.7/mission-control/overview-of-mission-control-in-splunk-enterprise-security\n- **D13:** Splunk ES 8.7 — Pair Splunk with SOAR — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/configuration-and-settings/pair-splunk-enterprise-security-with-splunk-soar\n\n- **Puente SC-200:** Capítulos 01, 04, 07, 08 y 12 (licencias, ingesta, detección, casos, automatización). La comparación es conceptual, no una equivalencia producto a producto.\n- **Fuente curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` en la carpeta padre `SPLUNK_MASTER_RESEARCH`.\n- **Calidad:** [DOC] referencias externas consultables; [DISEÑO] escenario y actividad originales; [OFFLINE] solo cálculos de fixture; [NO PROBADO] SPL no ejecutado en Splunk. La revisión técnica independiente queda pendiente.\n",
+  "originalMarkdown": "# SP-R09-L01 — Qué añade ES a Splunk Enterprise\n\n**Región:** SP-R09 · **Estado:** borrador editorial para revisión · **SPL:** ilustrativo NO ejecutado.\n\n**Resultado de aprendizaje curricular:** Distinguir producto base, ES y herramientas complementarias.\n\n**Prerrequisitos:** R01–R07 según tema; R08 para agrupación/escalado R09. **Producto:** plataforma Splunk para SPL genérico; funciones ES 8.7/SOAR solo cuando se indiquen.\n\n## 1. Explicación técnica\n\nSplunk Enterprise o Splunk Cloud Platform almacenan y permiten buscar eventos, generar informes y configurar alertas según licencia/permisos. **Splunk Enterprise Security (ES)** es una solución especializada en operaciones de seguridad sobre una plataforma Splunk compatible; añade procesos como detecciones que producen findings, flujos de triage en Mission Control y capacidades de risk-based alerting. **Splunk SOAR** añade orquestación de acciones mediante apps y playbooks cuando está desplegado y conectado.\n\nUn diagrama correcto separa los productos: fuente → forwarder/HEC → índice/plataforma → detección ES → finding → investigación → decisión → posible acción SOAR. No siempre se usa toda esa cadena: una instalación de Splunk Enterprise base puede buscar eventos y crear saved searches sin ES.\n\nLa terminología depende de versión; los materiales de R09 usan **documentación ES 8.7** como referencia, sin afirmar que esa versión sea la instalada en tu laboratorio. La existencia de la interfaz, índices, permisos, licencias o funciones debe inventariarse antes de enseñar clics operativos sobre una instancia real.\n\n## 2. Conceptos que debes distinguir\n\n1. Plataforma Enterprise/Cloud: ingesta, almacenamiento, SPL y alertas\n2. ES: detecciones, findings, misión SOC y RBA según versión\n3. SOAR: conectores, acciones, playbooks y controles de ejecución\n4. Versionado y licenciamiento: sin evidencias, no asumir capacidades\n\n## 3. Procedimiento reproducible y seguro\n\n1. Identifica qué producto cumple cada función del flujo.\n2. Distingue searching/alerting de findings/Mission Control.\n3. Añade límites por licencia, versión e integración.\n4. Define qué laboratorios funcionan offline y cuáles piden ES.\n5. Documenta la versión real solo cuando haya inventario autorizado.\n\n## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_AUTH sourcetype=ST_AUTH\n| stats count AS eventos BY status\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n## 5. Escenario SOC\n\nUna búsqueda `stats count` puede ejecutarse en Splunk Enterprise sin ES; el panel de analyst queue y grouping de findings requiere ES compatible.\n\n## 6. Errores frecuentes\n\n1. Decir que SOAR viene incluido necesariamente con Splunk Enterprise\n2. Aplicar pantallas ES 8.7 a un sistema sin verificar\n3. Atribuir risk score de ES a cualquier alert action\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R09-L01-Q01 — Opción múltiple\n\n¿Dónde pertenece una búsqueda SPL sobre índices?\n\nA. A SOAR, que ejecuta la indexación y almacenamiento de la plataforma\nB. A la plataforma Enterprise o Cloud: buscar índices es una función de plataforma y no exige ES por sí sola\nC. Solo a Enterprise Security, incluso para un conteo básico\nD. Al add-on CIM, que reemplaza el motor de búsquedas\n\n### SP-R09-L01-Q02 — Opción múltiple\n\n¿Qué afirmación requiere verificar producto/versión?\n\nA. Que una tubería SPL encadena comandos sobre resultados\nB. Que table proyecta campos disponibles en el pipeline\nC. Que Mission Control y analyst queue estén disponibles\nD. Que stats agrega eventos recuperados por una búsqueda\n\n### SP-R09-L01-P01 — Práctica abierta formativa\n\nDibuja un mapa de responsabilidades para ingestión, SPL, findings, triage y playbook.\n\n## 8. Solucionario con razonamiento\n\n- **SP-R09-L01-Q01: B** — La plataforma soporta búsqueda aunque ES no esté instalado.\n\n- **SP-R09-L01-Q02: C** — Mission Control forma parte del flujo ES, no del producto base sin comprobación.\n\n- **SP-R09-L01-P01:** Forwarder/HEC e indexer/search head: plataforma; detección/findings/Mission Control: ES; acción playbook e integración con terceros: SOAR, con app, permiso, pairing y human-in-loop cuando sea disruptivo.\n\n**Guía de retroalimentación formativa:** Distingue fuente, campos y alcance de la pregunta; Diseña un método reproducible sin inferencia abusiva; Separa señales, hipótesis, contraejemplos y ausencia de datos; Comunica siguiente paso seguro y evidencia para otro analista.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 9. Fuentes verificables y conexiones\n\n- **D07:** Splunk ES 8.7 — Use detections to search for threats — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/use-detections-to-search-for-threats-in-splunk-enterprise-security\n- **D11:** Splunk ES 8.7 — Overview of Mission Control — https://help.splunk.com/en/splunk-enterprise-security-8/user-guide/8.7/mission-control/overview-of-mission-control-in-splunk-enterprise-security\n- **D13:** Splunk ES 8.7 — Pair Splunk with SOAR — https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/configuration-and-settings/pair-splunk-enterprise-security-with-splunk-soar\n\n- **Puente SC-200:** Capítulos 01, 04, 07, 08 y 12 (licencias, ingesta, detección, casos, automatización). La comparación es conceptual, no una equivalencia producto a producto.\n- **Fuente curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` en la carpeta padre `SPLUNK_MASTER_RESEARCH`.\n- **Calidad:** [DOC] referencias externas consultables; [DISEÑO] escenario y actividad originales; [OFFLINE] solo cálculos de fixture; [NO PROBADO] SPL no ejecutado en Splunk. La revisión técnica independiente queda pendiente.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D07",
+      "key": "SPLUNK_LECCIONES_R08_R09:D07",
+      "url": "https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/detections/use-detections-to-search-for-threats-in-splunk-enterprise-security"
+    },
+    {
+      "id": "D11",
+      "key": "SPLUNK_LECCIONES_R08_R09:D11",
+      "url": "https://help.splunk.com/en/splunk-enterprise-security-8/user-guide/8.7/mission-control/overview-of-mission-control-in-splunk-enterprise-security"
+    },
+    {
+      "id": "D13",
+      "key": "SPLUNK_LECCIONES_R08_R09:D13",
+      "url": "https://help.splunk.com/en/splunk-enterprise-security-8/administer/8.7/configuration-and-settings/pair-splunk-enterprise-security-with-splunk-soar"
+    }
+  ]
+}

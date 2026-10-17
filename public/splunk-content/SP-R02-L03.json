@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R02-L03",
+  "title": "HTTP Event Collector",
+  "revision": "2c09895a2c70e4144b5a9365",
+  "sourceVersion": "6c34c4599cc44726b89b6af931b34c3d2d5d392cec525d278ea8ee44456d5134",
+  "sanitizedHash": "6c34c4599cc44726b89b6af931b34c3d2d5d392cec525d278ea8ee44456d5134",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R01_R03/R02_INGESTA/SP-R02-L03.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Distinguir endpoint/token/input/index y controles TLS",
+  "preamble": "# SP-R02-L03 — HTTP Event Collector\n\n**Región:** Río de Telemetría (SP-R02) · **Prioridad:** P0 SOC N1/N2  \n**Estado:** material didáctico redactado; revisión humana recomendada. **SPL no ejecutado en Splunk real.**  \n**ID estable propuesto:** `SP-R02-L03` (no migrado a React)  \n**Prerrequisitos orientativos:** SP-R02-L01, SP-R01 completo  \n**Objetivo del currículo:** Distinguir endpoint/token/input/index y controles TLS\n\n",
+  "sections": [
+    {
+      "id": "SP-R02-L03-S01",
+      "title": "1. La pregunta que resuelve esta lección",
+      "markdown": "## 1. La pregunta que resuelve esta lección\n\nHEC envía eventos por HTTP(S) con token de ingestión, no autoriza búsquedas ni reemplaza el control RBAC.\n\n**Al completar la lección podrás:** Distinguir endpoint/token/input/index y controles TLS. Debes explicar el porqué y los límites, no memorizar solo comandos.\n\n",
+      "line": 9,
+      "endLine": 13
+    },
+    {
+      "id": "SP-R02-L03-S02",
+      "title": "2. Desarrollo del conocimiento",
+      "markdown": "## 2. Desarrollo del conocimiento\n\nHTTP Event Collector (HEC) recibe eventos de clientes que envían solicitudes HTTP(S). En Splunk Enterprise se configura un input, se habilita HEC y se crea al menos un token. El token y la configuración pueden especificar índice, sourcetype, source y opciones de reconocimiento; TLS y red dependen del despliegue. Una respuesta HTTP satisfactoria significa que la solicitud fue aceptada por esa etapa, no sustituye comprobar indexación y visibilidad end-to-end.\nNo publiques tokens en código, capturas ni repositorios. En un entorno de producción, exigir HTTPS con certificados validados, rotación/revocación, restricciones de índices y monitorización. Un token HEC no es una sesión de un analista capaz de ejecutar SPL.\n\n",
+      "line": 15,
+      "endLine": 18
+    },
+    {
+      "id": "SP-R02-L03-S03",
+      "title": "3. Método de trabajo reproducible",
+      "markdown": "## 3. Método de trabajo reproducible\n\n1. Diseña el esquema JSON y clasifica datos sensibles.\n2. Identifica HEC endpoint, TLS y token autorizado, sin copiar secretos.\n3. Define sourcetype e índice permitido.\n4. Prepara un evento sintético sin PII real.\n5. Planifica verificación de recepción, indexación y resultado; no lo envíes sin permiso.\n\n",
+      "line": 20,
+      "endLine": 26
+    },
+    {
+      "id": "SP-R02-L03-S04",
+      "title": "4. Caso guiado — de la pregunta a la evidencia",
+      "markdown": "## 4. Caso guiado — de la pregunta a la evidencia\n\nUna app remite `{\"event\":{\"actor\":\"demo.user\",\"action\":\"login_failure\"},\"sourcetype\":\"demo:auth\"}`. El contenido ilustra un body de evento; no incluye token ni endpoint activo. La configuración real del HEC debe existir previamente.\n\n### Esquema o ejemplo técnico\n\n```text\nPOST https://HEC_HOST:PUERTO/services/collector/event\nAuthorization: Splunk TOKEN_NO_REAL\nContent-Type: application/json\n{\"event\":{\"actor\":\"demo.user\",\"action\":\"login_failure\"},\"sourcetype\":\"demo:auth\"}\n```\n\n**Cómo interpretarlo:** Este es pseudoejemplo didáctico, **no** una orden para ejecutar. Los nombres son placeholders; el endpoint concreto depende del despliegue. Nunca desactives la validación TLS para “hacer funcionar” el laboratorio.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n",
+      "line": 28,
+      "endLine": 43
+    },
+    {
+      "id": "SP-R02-L03-S05",
+      "title": "5. Diagnóstico y errores frecuentes",
+      "markdown": "## 5. Diagnóstico y errores frecuentes\n\nAtribuir a HEC la capacidad de búsqueda; pegar tokens reales; confundir HTTP 200 con detección y correlación verificadas.\n\n**Conexión con SC-200 (no equivalencia automática):** Cap. 04 (conectores/rutas), líneas 1125–1368.. En Splunk los esquemas, permisos y familias de producto son diferentes; verifica la correspondencia antes de reutilizar una técnica.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 45,
+      "endLine": 52
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R02-L03-Q01",
+      "lessonId": "SP-R02-L03",
+      "prompt": "¿Para qué sirve el token HEC?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A9",
+        "SPLUNK_LECCIONES_R01_R03:HEC"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R02-L03-Q01-O-152d463b31d4",
+          "text": "Autenticar al search head frente a sus search peers"
+        },
+        {
+          "id": "SP-R02-L03-Q01-O-98fb2c0c7558",
+          "text": "Elegir el sourcetype de cada búsqueda sin configurar el input"
+        },
+        {
+          "id": "SP-R02-L03-Q01-O-dd82872614d1",
+          "text": "Autenticar el envío al receptor HEC con el ámbito de índices configurado; no autoriza búsquedas"
+        },
+        {
+          "id": "SP-R02-L03-Q01-O-3c4e45b8977c",
+          "text": "Autorizar las búsquedas del analista en los índices permitidos"
+        }
+      ],
+      "solution": "SP-R02-L03-Q01-O-dd82872614d1",
+      "explanation": "Token HEC pertenece a la recepción de eventos; no a la cuenta de búsqueda.",
+      "anchors": [
+        {
+          "file": "R02_INGESTA/SP-R02-L03.md",
+          "sourceHash": "6c34c4599cc44726b89b6af931b34c3d2d5d392cec525d278ea8ee44456d5134",
+          "line": 15,
+          "endLine": 18,
+          "quote": "## 2. Desarrollo del conocimiento\n\nHTTP Event Collector (HEC) recibe eventos de clientes que envían solicitudes HTTP(S). En Splunk Enterprise se configura un input, se habilita HEC y se crea al menos un token. El token y la configuración pueden especificar índice, sourcetype, source y opciones de reconocimiento; TLS y red dependen del despliegue. Una respuesta HTTP satisfactoria significa que la solicitud fue aceptada por esa etapa, no sustituye comprobar indexación y visibilidad end-to-end.\nNo publiques tokens en código, capturas ni repositorios. En un entorno de producción, exigir HTTPS con certificados validados, rotación/revocación, restricciones de índices y monitorización. Un token HEC no es una sesión de un analista capaz de ejecutar SPL.\n\n"
+        },
+        {
+          "file": "R02_INGESTA/SP-R02-L03.md",
+          "sourceHash": "6c34c4599cc44726b89b6af931b34c3d2d5d392cec525d278ea8ee44456d5134",
+          "line": 28,
+          "endLine": 43,
+          "quote": "## 4. Caso guiado — de la pregunta a la evidencia\n\nUna app remite `{\"event\":{\"actor\":\"demo.user\",\"action\":\"login_failure\"},\"sourcetype\":\"demo:auth\"}`. El contenido ilustra un body de evento; no incluye token ni endpoint activo. La configuración real del HEC debe existir previamente.\n\n### Esquema o ejemplo técnico\n\n```text\nPOST https://HEC_HOST:PUERTO/services/collector/event\nAuthorization: Splunk TOKEN_NO_REAL\nContent-Type: application/json\n{\"event\":{\"actor\":\"demo.user\",\"action\":\"login_failure\"},\"sourcetype\":\"demo:auth\"}\n```\n\n**Cómo interpretarlo:** Este es pseudoejemplo didáctico, **no** una orden para ejecutar. Los nombres son placeholders; el endpoint concreto depende del despliegue. Nunca desactives la validación TLS para “hacer funcionar” el laboratorio.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R02-L03-Q02",
+      "lessonId": "SP-R02-L03",
+      "prompt": "¿Una respuesta aceptada por HEC garantiza un informe SOC completo?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A9",
+        "SPLUNK_LECCIONES_R01_R03:HEC"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R02-L03-Q02-O-a32b018fb7a8",
+          "text": "No: falta comprobar indexación, tiempo y campos en la población que utilizará el informe SOC"
+        },
+        {
+          "id": "SP-R02-L03-Q02-O-6e7b6be18ff7",
+          "text": "Sí: el token restringido garantiza la ventana temporal del informe"
+        },
+        {
+          "id": "SP-R02-L03-Q02-O-a8f0a16c3257",
+          "text": "Sí: la aceptación HTTP confirma la extracción de los campos del dashboard"
+        },
+        {
+          "id": "SP-R02-L03-Q02-O-c48a30e8ff60",
+          "text": "No: es necesario crear una detección ES antes de comprobar un evento indexado"
+        }
+      ],
+      "solution": "SP-R02-L03-Q02-O-a32b018fb7a8",
+      "explanation": "La evidencia end-to-end requiere hallar el evento, campos y tiempo esperados.",
+      "anchors": [
+        {
+          "file": "R02_INGESTA/SP-R02-L03.md",
+          "sourceHash": "6c34c4599cc44726b89b6af931b34c3d2d5d392cec525d278ea8ee44456d5134",
+          "line": 15,
+          "endLine": 18,
+          "quote": "## 2. Desarrollo del conocimiento\n\nHTTP Event Collector (HEC) recibe eventos de clientes que envían solicitudes HTTP(S). En Splunk Enterprise se configura un input, se habilita HEC y se crea al menos un token. El token y la configuración pueden especificar índice, sourcetype, source y opciones de reconocimiento; TLS y red dependen del despliegue. Una respuesta HTTP satisfactoria significa que la solicitud fue aceptada por esa etapa, no sustituye comprobar indexación y visibilidad end-to-end.\nNo publiques tokens en código, capturas ni repositorios. En un entorno de producción, exigir HTTPS con certificados validados, rotación/revocación, restricciones de índices y monitorización. Un token HEC no es una sesión de un analista capaz de ejecutar SPL.\n\n"
+        },
+        {
+          "file": "R02_INGESTA/SP-R02-L03.md",
+          "sourceHash": "6c34c4599cc44726b89b6af931b34c3d2d5d392cec525d278ea8ee44456d5134",
+          "line": 28,
+          "endLine": 43,
+          "quote": "## 4. Caso guiado — de la pregunta a la evidencia\n\nUna app remite `{\"event\":{\"actor\":\"demo.user\",\"action\":\"login_failure\"},\"sourcetype\":\"demo:auth\"}`. El contenido ilustra un body de evento; no incluye token ni endpoint activo. La configuración real del HEC debe existir previamente.\n\n### Esquema o ejemplo técnico\n\n```text\nPOST https://HEC_HOST:PUERTO/services/collector/event\nAuthorization: Splunk TOKEN_NO_REAL\nContent-Type: application/json\n{\"event\":{\"actor\":\"demo.user\",\"action\":\"login_failure\"},\"sourcetype\":\"demo:auth\"}\n```\n\n**Cómo interpretarlo:** Este es pseudoejemplo didáctico, **no** una orden para ejecutar. Los nombres son placeholders; el endpoint concreto depende del despliegue. Nunca desactives la validación TLS para “hacer funcionar” el laboratorio.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R02-L03-P01",
+      "lessonId": "SP-R02-L03",
+      "prompt": "Diseña una prueba HEC segura para un evento sintético sin ejecutar envío real.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A9",
+        "SPLUNK_LECCIONES_R01_R03:HEC"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica los datos/condiciones necesarios",
+        "Explica el razonamiento y no solo el resultado",
+        "Reconoce al menos una limitación o comprobación adicional"
+      ],
+      "referenceAnswer": "Usar endpoint autorizado con TLS validado y token restringido, payload sintético, respuesta controlada y búsqueda posterior con índice/tiempo/sourcetype confirmados; registrar errores sin exponer token."
+    }
+  ],
+  "solutionsMarkdown": "## 7. Solucionario con razonamiento\n\n- **SP-R02-L03-Q01: C** — Token HEC pertenece a la recepción de eventos; no a la cuenta de búsqueda.\n\n- **SP-R02-L03-Q02: A** — La evidencia end-to-end requiere hallar el evento, campos y tiempo esperados.\n\n- **SP-R02-L03-P01:** Usar endpoint autorizado con TLS validado y token restringido, payload sintético, respuesta controlada y búsqueda posterior con índice/tiempo/sourcetype confirmados; registrar errores sin exponer token.\n\n**Guía de retroalimentación formativa:** Identifica los datos/condiciones necesarios; Explica el razonamiento y no solo el resultado; Reconoce al menos una limitación o comprobación adicional.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 8. Fuentes y trazabilidad\n\n- **Fuente de partida:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE2_BLOQUE1.md`, según la organización del paquete de investigación que conservas.\n- **Fuente Microsoft de contraste:** `../../01_FUENTE_ORIGINAL/SC-200.md`; Cap. 04 (conectores/rutas), líneas 1125–1368.\n- **[A9]** https://help.splunk.com/en/splunk-enterprise/get-data-in/get-started-with-getting-data-in/10.6/get-data-with-http-event-collector/set-up-and-use-http-event-collector-in-splunk-web\n- **[HEC]** https://help.splunk.com/en/splunk-enterprise/get-data-in/collect-http-event-data/http-event-collector-examples\n\n**Estado de confianza:** documentación técnica citada y propuesta pedagógica; no validado contra índices, sourcetypes, roles o versiones de tu laboratorio. Las URLs provienen de la investigación del 16/10/2026, con contraste puntual adicional de documentación oficial para HEC y forwarders. Ver `FUENTES_Y_LIMITES.md`.\n",
+  "originalMarkdown": "# SP-R02-L03 — HTTP Event Collector\n\n**Región:** Río de Telemetría (SP-R02) · **Prioridad:** P0 SOC N1/N2  \n**Estado:** material didáctico redactado; revisión humana recomendada. **SPL no ejecutado en Splunk real.**  \n**ID estable propuesto:** `SP-R02-L03` (no migrado a React)  \n**Prerrequisitos orientativos:** SP-R02-L01, SP-R01 completo  \n**Objetivo del currículo:** Distinguir endpoint/token/input/index y controles TLS\n\n## 1. La pregunta que resuelve esta lección\n\nHEC envía eventos por HTTP(S) con token de ingestión, no autoriza búsquedas ni reemplaza el control RBAC.\n\n**Al completar la lección podrás:** Distinguir endpoint/token/input/index y controles TLS. Debes explicar el porqué y los límites, no memorizar solo comandos.\n\n## 2. Desarrollo del conocimiento\n\nHTTP Event Collector (HEC) recibe eventos de clientes que envían solicitudes HTTP(S). En Splunk Enterprise se configura un input, se habilita HEC y se crea al menos un token. El token y la configuración pueden especificar índice, sourcetype, source y opciones de reconocimiento; TLS y red dependen del despliegue. Una respuesta HTTP satisfactoria significa que la solicitud fue aceptada por esa etapa, no sustituye comprobar indexación y visibilidad end-to-end.\nNo publiques tokens en código, capturas ni repositorios. En un entorno de producción, exigir HTTPS con certificados validados, rotación/revocación, restricciones de índices y monitorización. Un token HEC no es una sesión de un analista capaz de ejecutar SPL.\n\n## 3. Método de trabajo reproducible\n\n1. Diseña el esquema JSON y clasifica datos sensibles.\n2. Identifica HEC endpoint, TLS y token autorizado, sin copiar secretos.\n3. Define sourcetype e índice permitido.\n4. Prepara un evento sintético sin PII real.\n5. Planifica verificación de recepción, indexación y resultado; no lo envíes sin permiso.\n\n## 4. Caso guiado — de la pregunta a la evidencia\n\nUna app remite `{\"event\":{\"actor\":\"demo.user\",\"action\":\"login_failure\"},\"sourcetype\":\"demo:auth\"}`. El contenido ilustra un body de evento; no incluye token ni endpoint activo. La configuración real del HEC debe existir previamente.\n\n### Esquema o ejemplo técnico\n\n```text\nPOST https://HEC_HOST:PUERTO/services/collector/event\nAuthorization: Splunk TOKEN_NO_REAL\nContent-Type: application/json\n{\"event\":{\"actor\":\"demo.user\",\"action\":\"login_failure\"},\"sourcetype\":\"demo:auth\"}\n```\n\n**Cómo interpretarlo:** Este es pseudoejemplo didáctico, **no** una orden para ejecutar. Los nombres son placeholders; el endpoint concreto depende del despliegue. Nunca desactives la validación TLS para “hacer funcionar” el laboratorio.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n## 5. Diagnóstico y errores frecuentes\n\nAtribuir a HEC la capacidad de búsqueda; pegar tokens reales; confundir HTTP 200 con detección y correlación verificadas.\n\n**Conexión con SC-200 (no equivalencia automática):** Cap. 04 (conectores/rutas), líneas 1125–1368.. En Splunk los esquemas, permisos y familias de producto son diferentes; verifica la correspondencia antes de reutilizar una técnica.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 6. Actividades\n\n### SP-R02-L03-Q01 — Opción múltiple\n\n¿Para qué sirve el token HEC?\n\nA. Autenticar al search head frente a sus search peers\nB. Elegir el sourcetype de cada búsqueda sin configurar el input\nC. Autenticar el envío al receptor HEC con el ámbito de índices configurado; no autoriza búsquedas\nD. Autorizar las búsquedas del analista en los índices permitidos\n\n### SP-R02-L03-Q02 — Opción múltiple\n\n¿Una respuesta aceptada por HEC garantiza un informe SOC completo?\n\nA. No: falta comprobar indexación, tiempo y campos en la población que utilizará el informe SOC\nB. Sí: el token restringido garantiza la ventana temporal del informe\nC. Sí: la aceptación HTTP confirma la extracción de los campos del dashboard\nD. No: es necesario crear una detección ES antes de comprobar un evento indexado\n\n### SP-R02-L03-P01 — Práctica abierta formativa\n\nDiseña una prueba HEC segura para un evento sintético sin ejecutar envío real.\n\n## 7. Solucionario con razonamiento\n\n- **SP-R02-L03-Q01: C** — Token HEC pertenece a la recepción de eventos; no a la cuenta de búsqueda.\n\n- **SP-R02-L03-Q02: A** — La evidencia end-to-end requiere hallar el evento, campos y tiempo esperados.\n\n- **SP-R02-L03-P01:** Usar endpoint autorizado con TLS validado y token restringido, payload sintético, respuesta controlada y búsqueda posterior con índice/tiempo/sourcetype confirmados; registrar errores sin exponer token.\n\n**Guía de retroalimentación formativa:** Identifica los datos/condiciones necesarios; Explica el razonamiento y no solo el resultado; Reconoce al menos una limitación o comprobación adicional.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Fuentes y trazabilidad\n\n- **Fuente de partida:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE2_BLOQUE1.md`, según la organización del paquete de investigación que conservas.\n- **Fuente Microsoft de contraste:** `../../01_FUENTE_ORIGINAL/SC-200.md`; Cap. 04 (conectores/rutas), líneas 1125–1368.\n- **[A9]** https://help.splunk.com/en/splunk-enterprise/get-data-in/get-started-with-getting-data-in/10.6/get-data-with-http-event-collector/set-up-and-use-http-event-collector-in-splunk-web\n- **[HEC]** https://help.splunk.com/en/splunk-enterprise/get-data-in/collect-http-event-data/http-event-collector-examples\n\n**Estado de confianza:** documentación técnica citada y propuesta pedagógica; no validado contra índices, sourcetypes, roles o versiones de tu laboratorio. Las URLs provienen de la investigación del 16/10/2026, con contraste puntual adicional de documentación oficial para HEC y forwarders. Ver `FUENTES_Y_LIMITES.md`.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 8,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "A9",
+      "key": "SPLUNK_LECCIONES_R01_R03:A9",
+      "url": "https://help.splunk.com/en/splunk-enterprise/get-data-in/get-started-with-getting-data-in/10.6/get-data-with-http-event-collector/set-up-and-use-http-event-collector-in-splunk-web"
+    },
+    {
+      "id": "HEC",
+      "key": "SPLUNK_LECCIONES_R01_R03:HEC",
+      "url": "https://help.splunk.com/en/splunk-enterprise/get-data-in/collect-http-event-data/http-event-collector-examples"
+    }
+  ]
+}

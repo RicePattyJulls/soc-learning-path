@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R08-L03",
+  "title": "DCSync: replicación y derechos",
+  "revision": "01f74b1d59c91913d9393e76",
+  "sourceVersion": "3d0558b2a9028654a52ab4664d591dfa4294e196f8a16b260873cbab674244d9",
+  "sanitizedHash": "3d0558b2a9028654a52ab4664d591dfa4294e196f8a16b260873cbab674244d9",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R08_R09/R08_THREAT_HUNTING/SP-R08-L03.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Entender señales 4662, DC autorizados y configuración de auditoría",
+  "preamble": "# SP-R08-L03 — DCSync: replicación y derechos\n\n**Región:** SP-R08 · **Estado:** borrador editorial para revisión · **SPL:** ilustrativo NO ejecutado.\n\n**Resultado de aprendizaje curricular:** Entender señales 4662, DC autorizados y configuración de auditoría.\n\n**Prerrequisitos:** R01–R07 según tema; R08 para agrupación/escalado R09. **Producto:** plataforma Splunk para SPL genérico; funciones ES 8.7/SOAR solo cuando se indiquen.\n\n",
+  "sections": [
+    {
+      "id": "SP-R08-L03-S01",
+      "title": "1. Explicación técnica",
+      "markdown": "## 1. Explicación técnica\n\nDCSync (T1003.006) es el abuso potencial de interfaces de replicación de Active Directory para solicitar información de credenciales. El objetivo defensivo es diferenciar replicación administrativa legítima, servicios con delegación y peticiones anómalas fuera de equipos autorizados. No basta con hallar un usuario privilegiado o una operación de objeto.\n\nEl evento 4662 informa sobre una operación realizada en un objeto del servicio de directorio **si se cumplen las condiciones de auditoría**. Su interpretación depende de la subcategoría «Audit Directory Service Access», la SACL del objeto, los detalles de operación/derechos y la normalización. La ausencia del evento no descarta DCSync. Los derechos de replicación tienen identificadores específicos; sus valores en eventos reales deben comprobarse en el esquema del dominio antes de usar filtros.\n\nLa actividad sintética usa una etiqueta semántica `replication_right` normalizada **por diseño**, no un campo universal del evento 4662. Correlaciona solicitante, origen, controlador de dominio, autorización y cambios administrativos; evita ejecutar herramientas de replicación o extracción de contraseñas.\n\n",
+      "line": 9,
+      "endLine": 15
+    },
+    {
+      "id": "SP-R08-L03-S02",
+      "title": "2. Conceptos que debes distinguir",
+      "markdown": "## 2. Conceptos que debes distinguir\n\n1. DCSync T1003.006: hipótesis sobre abuso de replicación, no sinónimo de 4662\n2. Auditoría DS Access y SACL: condiciones necesarias para visibilidad\n3. Origen esperado: DC y sistemas delegados autorizados\n4. Campos de ejercicio no equivalen a GUID ni parser de Windows en producción\n\n",
+      "line": 17,
+      "endLine": 22
+    },
+    {
+      "id": "SP-R08-L03-S03",
+      "title": "3. Procedimiento reproducible y seguro",
+      "markdown": "## 3. Procedimiento reproducible y seguro\n\n1. Verifica configuración de auditoría y objetos auditados.\n2. Identifica 4662 candidatos con derechos relacionados con replicación.\n3. Determina originador real (cuenta, host, IP) y si es un DC autorizado.\n4. Cruza cambios de permisos y necesidades de negocio.\n5. Escala con evidencias, grado de certeza y lagunas de telemetría.\n\n",
+      "line": 24,
+      "endLine": 30
+    },
+    {
+      "id": "SP-R08-L03-S04",
+      "title": "4. SPL ilustrativo (solo lectura; no probado)",
+      "markdown": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4662\n| search operation_kind=\"replication_right\"\n| stats count AS operaciones values(object_name) AS objetos BY subject src dc\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n",
+      "line": 32,
+      "endLine": 40
+    },
+    {
+      "id": "SP-R08-L03-S05",
+      "title": "5. Escenario SOC",
+      "markdown": "## 5. Escenario SOC\n\nEn `replication_events.csv`, DC01↔DC02 tiene contexto autorizado; una estación de trabajo solicita derechos de replicación con una identidad temporal. Sin corroboración no se declara robo de hashes.\n\n## 6. Errores frecuentes\n\n1. Asignar 4662 = DCSync confirmado\n2. Ignorar servicios legítimos con derechos delegados\n3. Suponer que el texto `replication_right` es nativo de Windows\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 42,
+      "endLine": 53
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R08-L03-Q01",
+      "lessonId": "SP-R08-L03",
+      "prompt": "¿Qué requisito afecta la visibilidad del evento 4662?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D02",
+        "SPLUNK_LECCIONES_R08_R09:D05"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R08-L03-Q01-O-a438ab6eb40d",
+          "text": "Comprobar permisos de búsqueda en Splunk sin verificar generación y SACL"
+        },
+        {
+          "id": "SP-R08-L03-Q01-O-f180e6c593cb",
+          "text": "Auditar inicios de sesión 4624 sin configurar auditoría de objetos"
+        },
+        {
+          "id": "SP-R08-L03-Q01-O-af47b4aba0e4",
+          "text": "Recoger solo solicitudes TGS de los DC"
+        },
+        {
+          "id": "SP-R08-L03-Q01-O-cf28d2e43c37",
+          "text": "Auditoría de Directory Service Access y SACL adecuada"
+        }
+      ],
+      "solution": "SP-R08-L03-Q01-O-cf28d2e43c37",
+      "explanation": "El evento depende de política de auditoría y acceso a objetos auditados.",
+      "anchors": [
+        {
+          "file": "R08_THREAT_HUNTING/SP-R08-L03.md",
+          "sourceHash": "3d0558b2a9028654a52ab4664d591dfa4294e196f8a16b260873cbab674244d9",
+          "line": 17,
+          "endLine": 22,
+          "quote": "## 2. Conceptos que debes distinguir\n\n1. DCSync T1003.006: hipótesis sobre abuso de replicación, no sinónimo de 4662\n2. Auditoría DS Access y SACL: condiciones necesarias para visibilidad\n3. Origen esperado: DC y sistemas delegados autorizados\n4. Campos de ejercicio no equivalen a GUID ni parser de Windows en producción\n\n"
+        },
+        {
+          "file": "R08_THREAT_HUNTING/SP-R08-L03.md",
+          "sourceHash": "3d0558b2a9028654a52ab4664d591dfa4294e196f8a16b260873cbab674244d9",
+          "line": 32,
+          "endLine": 40,
+          "quote": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4662\n| search operation_kind=\"replication_right\"\n| stats count AS operaciones values(object_name) AS objetos BY subject src dc\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R08-L03-Q02",
+      "lessonId": "SP-R08-L03",
+      "prompt": "¿Qué evidencia ayuda a priorizar DCSync?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D02",
+        "SPLUNK_LECCIONES_R08_R09:D05"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R08-L03-Q02-O-f25dd65075ec",
+          "text": "Origen no autorizado + derechos de replicación + corroboración"
+        },
+        {
+          "id": "SP-R08-L03-Q02-O-8aeb50231e1e",
+          "text": "Un pico de 4769 sin evidencia de derechos de replicación"
+        },
+        {
+          "id": "SP-R08-L03-Q02-O-27507bd2b0f4",
+          "text": "La pertenencia de la cuenta al dominio sin revisar la operación"
+        },
+        {
+          "id": "SP-R08-L03-Q02-O-448fa9d4668d",
+          "text": "Un DC autorizado que replica según su función y ventana documentada"
+        }
+      ],
+      "solution": "SP-R08-L03-Q02-O-f25dd65075ec",
+      "explanation": "Se requieren origen, permiso, contexto y señales convergentes.",
+      "anchors": [
+        {
+          "file": "R08_THREAT_HUNTING/SP-R08-L03.md",
+          "sourceHash": "3d0558b2a9028654a52ab4664d591dfa4294e196f8a16b260873cbab674244d9",
+          "line": 17,
+          "endLine": 22,
+          "quote": "## 2. Conceptos que debes distinguir\n\n1. DCSync T1003.006: hipótesis sobre abuso de replicación, no sinónimo de 4662\n2. Auditoría DS Access y SACL: condiciones necesarias para visibilidad\n3. Origen esperado: DC y sistemas delegados autorizados\n4. Campos de ejercicio no equivalen a GUID ni parser de Windows en producción\n\n"
+        },
+        {
+          "file": "R08_THREAT_HUNTING/SP-R08-L03.md",
+          "sourceHash": "3d0558b2a9028654a52ab4664d591dfa4294e196f8a16b260873cbab674244d9",
+          "line": 32,
+          "endLine": 40,
+          "quote": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4662\n| search operation_kind=\"replication_right\"\n| stats count AS operaciones values(object_name) AS objetos BY subject src dc\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R08-L03-P01",
+      "lessonId": "SP-R08-L03",
+      "prompt": "Escribe la ficha de investigación para D06–D08 sin atribuir ejecución de DCSync como hecho.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D02",
+        "SPLUNK_LECCIONES_R08_R09:D05"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Distingue fuente, campos y alcance de la pregunta",
+        "Diseña un método reproducible sin inferencia abusiva",
+        "Separa señales, hipótesis, contraejemplos y ausencia de datos",
+        "Comunica siguiente paso seguro y evidencia para otro analista"
+      ],
+      "referenceAnswer": "Se observa origen WKST-17, cuenta temporal y replicación normalizada en el fixture; no figura en inventario autorizado. Verificar GUID, auditoría/SACL, red RPC al DC, origen técnico y permisos. Estado: sospecha priorizada, no extracción confirmada."
+    }
+  ],
+  "solutionsMarkdown": "## 8. Solucionario con razonamiento\n\n- **SP-R08-L03-Q01: D** — El evento depende de política de auditoría y acceso a objetos auditados.\n\n- **SP-R08-L03-Q02: A** — Se requieren origen, permiso, contexto y señales convergentes.\n\n- **SP-R08-L03-P01:** Se observa origen WKST-17, cuenta temporal y replicación normalizada en el fixture; no figura en inventario autorizado. Verificar GUID, auditoría/SACL, red RPC al DC, origen técnico y permisos. Estado: sospecha priorizada, no extracción confirmada.\n\n**Guía de retroalimentación formativa:** Distingue fuente, campos y alcance de la pregunta; Diseña un método reproducible sin inferencia abusiva; Separa señales, hipótesis, contraejemplos y ausencia de datos; Comunica siguiente paso seguro y evidencia para otro analista.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 9. Fuentes verificables y conexiones\n\n- **D02:** MITRE ATT&CK — DCSync (T1003.006) — https://attack.mitre.org/techniques/T1003/006/\n- **D05:** Windows — Audit Directory Service Access (4662 y SACL) — https://learn.microsoft.com/windows/security/threat-protection/auditing/audit-directory-service-access\n\n- **Puente SC-200:** Capítulos 02, 09 y 10 (permisos, investigación y hunting). La comparación es conceptual, no una equivalencia producto a producto.\n- **Fuente curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` en la carpeta padre `SPLUNK_MASTER_RESEARCH`.\n- **Calidad:** [DOC] referencias externas consultables; [DISEÑO] escenario y actividad originales; [OFFLINE] solo cálculos de fixture; [NO PROBADO] SPL no ejecutado en Splunk. La revisión técnica independiente queda pendiente.\n",
+  "originalMarkdown": "# SP-R08-L03 — DCSync: replicación y derechos\n\n**Región:** SP-R08 · **Estado:** borrador editorial para revisión · **SPL:** ilustrativo NO ejecutado.\n\n**Resultado de aprendizaje curricular:** Entender señales 4662, DC autorizados y configuración de auditoría.\n\n**Prerrequisitos:** R01–R07 según tema; R08 para agrupación/escalado R09. **Producto:** plataforma Splunk para SPL genérico; funciones ES 8.7/SOAR solo cuando se indiquen.\n\n## 1. Explicación técnica\n\nDCSync (T1003.006) es el abuso potencial de interfaces de replicación de Active Directory para solicitar información de credenciales. El objetivo defensivo es diferenciar replicación administrativa legítima, servicios con delegación y peticiones anómalas fuera de equipos autorizados. No basta con hallar un usuario privilegiado o una operación de objeto.\n\nEl evento 4662 informa sobre una operación realizada en un objeto del servicio de directorio **si se cumplen las condiciones de auditoría**. Su interpretación depende de la subcategoría «Audit Directory Service Access», la SACL del objeto, los detalles de operación/derechos y la normalización. La ausencia del evento no descarta DCSync. Los derechos de replicación tienen identificadores específicos; sus valores en eventos reales deben comprobarse en el esquema del dominio antes de usar filtros.\n\nLa actividad sintética usa una etiqueta semántica `replication_right` normalizada **por diseño**, no un campo universal del evento 4662. Correlaciona solicitante, origen, controlador de dominio, autorización y cambios administrativos; evita ejecutar herramientas de replicación o extracción de contraseñas.\n\n## 2. Conceptos que debes distinguir\n\n1. DCSync T1003.006: hipótesis sobre abuso de replicación, no sinónimo de 4662\n2. Auditoría DS Access y SACL: condiciones necesarias para visibilidad\n3. Origen esperado: DC y sistemas delegados autorizados\n4. Campos de ejercicio no equivalen a GUID ni parser de Windows en producción\n\n## 3. Procedimiento reproducible y seguro\n\n1. Verifica configuración de auditoría y objetos auditados.\n2. Identifica 4662 candidatos con derechos relacionados con replicación.\n3. Determina originador real (cuenta, host, IP) y si es un DC autorizado.\n4. Cruza cambios de permisos y necesidades de negocio.\n5. Escala con evidencias, grado de certeza y lagunas de telemetría.\n\n## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4662\n| search operation_kind=\"replication_right\"\n| stats count AS operaciones values(object_name) AS objetos BY subject src dc\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n## 5. Escenario SOC\n\nEn `replication_events.csv`, DC01↔DC02 tiene contexto autorizado; una estación de trabajo solicita derechos de replicación con una identidad temporal. Sin corroboración no se declara robo de hashes.\n\n## 6. Errores frecuentes\n\n1. Asignar 4662 = DCSync confirmado\n2. Ignorar servicios legítimos con derechos delegados\n3. Suponer que el texto `replication_right` es nativo de Windows\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R08-L03-Q01 — Opción múltiple\n\n¿Qué requisito afecta la visibilidad del evento 4662?\n\nA. Comprobar permisos de búsqueda en Splunk sin verificar generación y SACL\nB. Auditar inicios de sesión 4624 sin configurar auditoría de objetos\nC. Recoger solo solicitudes TGS de los DC\nD. Auditoría de Directory Service Access y SACL adecuada\n\n### SP-R08-L03-Q02 — Opción múltiple\n\n¿Qué evidencia ayuda a priorizar DCSync?\n\nA. Origen no autorizado + derechos de replicación + corroboración\nB. Un pico de 4769 sin evidencia de derechos de replicación\nC. La pertenencia de la cuenta al dominio sin revisar la operación\nD. Un DC autorizado que replica según su función y ventana documentada\n\n### SP-R08-L03-P01 — Práctica abierta formativa\n\nEscribe la ficha de investigación para D06–D08 sin atribuir ejecución de DCSync como hecho.\n\n## 8. Solucionario con razonamiento\n\n- **SP-R08-L03-Q01: D** — El evento depende de política de auditoría y acceso a objetos auditados.\n\n- **SP-R08-L03-Q02: A** — Se requieren origen, permiso, contexto y señales convergentes.\n\n- **SP-R08-L03-P01:** Se observa origen WKST-17, cuenta temporal y replicación normalizada en el fixture; no figura en inventario autorizado. Verificar GUID, auditoría/SACL, red RPC al DC, origen técnico y permisos. Estado: sospecha priorizada, no extracción confirmada.\n\n**Guía de retroalimentación formativa:** Distingue fuente, campos y alcance de la pregunta; Diseña un método reproducible sin inferencia abusiva; Separa señales, hipótesis, contraejemplos y ausencia de datos; Comunica siguiente paso seguro y evidencia para otro analista.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 9. Fuentes verificables y conexiones\n\n- **D02:** MITRE ATT&CK — DCSync (T1003.006) — https://attack.mitre.org/techniques/T1003/006/\n- **D05:** Windows — Audit Directory Service Access (4662 y SACL) — https://learn.microsoft.com/windows/security/threat-protection/auditing/audit-directory-service-access\n\n- **Puente SC-200:** Capítulos 02, 09 y 10 (permisos, investigación y hunting). La comparación es conceptual, no una equivalencia producto a producto.\n- **Fuente curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` en la carpeta padre `SPLUNK_MASTER_RESEARCH`.\n- **Calidad:** [DOC] referencias externas consultables; [DISEÑO] escenario y actividad originales; [OFFLINE] solo cálculos de fixture; [NO PROBADO] SPL no ejecutado en Splunk. La revisión técnica independiente queda pendiente.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D02",
+      "key": "SPLUNK_LECCIONES_R08_R09:D02",
+      "url": "https://attack.mitre.org/techniques/T1003/006/"
+    },
+    {
+      "id": "D05",
+      "key": "SPLUNK_LECCIONES_R08_R09:D05",
+      "url": "https://learn.microsoft.com/windows/security/threat-protection/auditing/audit-directory-service-access"
+    }
+  ]
+}

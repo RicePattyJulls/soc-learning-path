@@ -1,0 +1,19 @@
+import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';import path from 'node:path';import {fileURLToPath} from 'node:url';
+import {ROOT,filesUnder,hashes,sha256} from './splunk-integrity.mjs';import {checkV20Protected} from './splunk-v20-integrity.mjs';import {simulatorChange} from './simulator-reconciliation.mjs';import {buildSimulator} from './prepare-simulator.mjs';
+export async function checkSimulatorIntegrity(root=ROOT){
+ const dir=path.join(root,'output/soc-simulator-v1/respaldo'),baseline=JSON.parse(await readFile(path.join(dir,'inventario.json')));
+ const copies=await hashes(Object.keys(baseline.original),path.join(dir,'archivos'));assert.deepEqual(copies,baseline.original);assert.equal(sha256(JSON.stringify(copies)),baseline.inventorySha256);
+ assert.deepEqual(await hashes(Object.keys(baseline.protected),root),baseline.protected,'Originales o evidencia histórica modificados');
+ const current=await hashes(Object.keys(baseline.original),root),changed=Object.keys(current).filter(f=>current[f]!==baseline.original[f]);
+ const allowed=['src/App.tsx','src/components/AcademySelector.tsx','docs/RETOMAR.md','scripts/splunk-checkpoint-reconciliation.mjs','scripts/splunk-v11-integrity.mjs','scripts/splunk-v20-reconciliation.mjs','scripts/splunk-v20-integrity.mjs'];
+ for(const file of changed)assert.ok(allowed.includes(file)&&simulatorChange(file,baseline.original[file],current[file]),'Cambio fuera del módulo: '+file);
+ const app=await readFile(path.join(root,'src/App.tsx'),'utf8'),oldApp=await readFile(path.join(dir,'archivos/src/App.tsx'),'utf8');
+ let expectedApp=oldApp.replace("import CourseBoundary from './components/CourseBoundary';","import CourseBoundary from './components/CourseBoundary';\nimport SimulatorBoundary from './simulator/SimulatorBoundary';").replace("const SplunkApp = lazy(() => import('./splunk/SplunkApp'));","const SplunkApp = lazy(() => import('./splunk/SplunkApp'));\nconst SimulatorApp = lazy(() => import('./simulator/entry'));").replace("const course = route.page === 'splunk' ? 'splunk' : 'sc200';","const course = route.page === 'splunk' || route.page === 'simulador' && route.id.startsWith('splunk') ? 'splunk' : 'sc200';").replace("{course === 'splunk' ? <CourseBoundary>","{route.page === 'simulador' ? <SimulatorBoundary><Suspense fallback={<main id=\"main-content\" tabIndex={-1} className=\"page-shell\" role=\"status\">Abriendo el centro SOC…</main>}><SimulatorApp routeId={route.id}/></Suspense></SimulatorBoundary> : course === 'splunk' ? <CourseBoundary>");
+ assert.equal(app,expectedApp,'Dispatcher: solo extensión exacta, Sc200App literal intacto');
+ const selector=await readFile(path.join(root,'src/components/AcademySelector.tsx'),'utf8'),oldSelector=await readFile(path.join(dir,'archivos/src/components/AcademySelector.tsx'),'utf8');
+ assert.equal(selector,oldSelector.replace('  </nav>;',"    <a href={course === 'splunk' ? '#/simulador/splunk' : '#/simulador/microsoft'}>Centro SOC · Simulador</a>\n  </nav>;"),'Selector: solo enlace al módulo');
+ const built=await buildSimulator();for(const [file,text] of built.outputs)assert.equal(await readFile(path.join(root,file),'utf8'),text,'Dataset reproducible: '+file);
+ assert.deepEqual(await filesUnder('public/simulator-data',root),built.outputs.map(([f])=>f).sort());
+ return {prior:await checkV20Protected(root),verifiedCopies:Object.keys(copies).length,protectedSources:Object.keys(baseline.protected).length,changedAuthorized:changed,educationalCounts:{sc200:[13,76,719,272],splunk:[11,80,240]},simulator:{datasets:4,events:50},educationalStorage:'Motores/claves/XP intactos; no se consultan datos personales',maps:'Atlas/lectores/paisajes/río R02 sin cambios'};
+}
+if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url))console.log(JSON.stringify(await checkSimulatorIntegrity(),null,2));

@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R10-L08",
+  "title": "Backup, upgrades y operación",
+  "revision": "37aee40d2262fddf57da6633",
+  "sourceVersion": "bfd697438dae096c9b72d50b176b158dce905c928c91aaebec405df11d6d5325",
+  "sanitizedHash": "bfd697438dae096c9b72d50b176b158dce905c928c91aaebec405df11d6d5325",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R10_R11/R10_ADMINISTRACION/SP-R10-L08.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Planificar restores, checks, acceso de mantenimiento",
+  "preamble": "# SP-R10-L08 — Backup, upgrades y operación\n\n**Región:** SP-R10 · **Producto:** Splunk Enterprise/Cloud (donde se indique) o SOAR Cloud explícito. · **Estado:** borrador documental / requiere revisión humana. · **SPL/CLI/API:** ilustrativo, NO ejecutado.\n\n**Resultado curricular:** Planificar restores, checks, acceso de mantenimiento\n\n**Prerrequisitos:** R01–R05; revisar R06–R07 para impacto SOC\n\n",
+  "sections": [
+    {
+      "id": "SP-R10-L08-S01",
+      "title": "1. Explicación razonada",
+      "markdown": "## 1. Explicación razonada\n\nUna estrategia operacional segura trata cambios y recuperaciones como procedimientos ensayables: inventario, compatibilidad por versión, copia de configuraciones, índices cuando corresponda, conocimientos, claves y certificados según políticas, validación de integridad y ruta de restauración. «Tengo un ZIP de etc» no basta para asegurar que restaurarás eventos, KV Store, secretos, apps, identidades o el cluster; cada componente tiene su propio procedimiento. Las copias deben protegerse tanto como datos productivos, y comprobarse con una restauración controlada.\n\nEn upgrades, evalúa release notes, compatibilidad de apps, TA, forwarders, search peers, licencias y plan de mantenimiento. La documentación de Splunk Enterprise 10.2 advierte que no hay downgrade soportado in-place simplemente instalando una versión antigua encima: rollback implica una estrategia previa de restauración/reinstalación apropiada. Una prueba piloto y un punto de recuperación verificable son obligatorios para un cambio crítico, especialmente cuando afecta ingesta y búsquedas de SOC.\n\nLa aceptación posterior a mantenimiento debe comprobar salud de fuentes, latencia, búsquedas críticas, permisos y alertas, comparando con baseline pre-cambio. También documenta qué harás si la reversión está bloqueada; un plan de recuperación que requiere credenciales perdidas no es plan.\n\n",
+      "line": 9,
+      "endLine": 15
+    },
+    {
+      "id": "SP-R10-L08-S02",
+      "title": "2. Conceptos clave",
+      "markdown": "## 2. Conceptos clave\n\n1. Backup completo depende de configs, datos y servicios afectados\n2. Restore ensayado = evidencia distinta a copia creada\n3. No asumir downgrade in-place soportado\n4. Compatibilidad TA/apps e índice tras upgrade\n5. Runbook tiene responsables, rollback y post-check\n\n",
+      "line": 17,
+      "endLine": 23
+    },
+    {
+      "id": "SP-R10-L08-S03",
+      "title": "3. Procedimiento de estudio y verificación",
+      "markdown": "## 3. Procedimiento de estudio y verificación\n\n1. Delimita activos Splunk afectados, versión y dependencias.\n2. Enumera backup de config/datos/KV Store según instalación y permisos.\n3. Diseña validación aislada de restore con evidencias y tiempos medidos.\n4. Documenta orden de upgrade y plan de reversión soportado.\n5. Define checklist post-cambio de eventos, alertas, permisos y SLO.\n\n",
+      "line": 25,
+      "endLine": 31
+    },
+    {
+      "id": "SP-R10-L08-S04",
+      "title": "4. Runbook de cambios — esquema",
+      "markdown": "## 4. Runbook de cambios — esquema\n\n```text\nAntes: inventario + ventana + backup verificable + baseline de ingesta\nDurante: cambios aprobados, responsables y stop condition\nDespués: lecturas de índices, alertas esperadas, performance, acceso\nSi falla: recuperación planificada desde backup compatible, no downgrade ciego\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n",
+      "line": 33,
+      "endLine": 42
+    },
+    {
+      "id": "SP-R10-L08-S05",
+      "title": "5. Situación profesional",
+      "markdown": "## 5. Situación profesional\n\nUn administrador planea «instalar 10.1 encima de 10.2 si sale mal». El plan carece de restauración compatible y contradice la advertencia oficial sobre downgrade.\n\n## 6. Errores comunes\n\n1. Confundir backup de configuración con backup de índices\n2. Actualizar sin probar apps/TA\n3. Dar por exitosa una restauración nunca ensayada\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 44,
+      "endLine": 55
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R10-L08-Q01",
+      "lessonId": "SP-R10-L08",
+      "prompt": "¿Qué prueba que un plan de backup es recuperable?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D09",
+        "SPLUNK_LECCIONES_R10_R11:D18"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R10-L08-Q01-O-a2038fdcb3c4",
+          "text": "Que se copiaron configs aunque no se hayan identificado datos o KV Store"
+        },
+        {
+          "id": "SP-R10-L08-Q01-O-bdf8e99186f1",
+          "text": "Una restauración de ensayo con validación y evidencias"
+        },
+        {
+          "id": "SP-R10-L08-Q01-O-1927a0b1e95c",
+          "text": "Que el archivo comprimido conserva su nombre y fecha"
+        },
+        {
+          "id": "SP-R10-L08-Q01-O-4d84eba479cf",
+          "text": "Que la copia se completó sin errores pero nunca se restauró"
+        }
+      ],
+      "solution": "SP-R10-L08-Q01-O-bdf8e99186f1",
+      "explanation": "La recuperación debe comprobarse con restore, integridad y criterios de aceptación.",
+      "anchors": [
+        {
+          "file": "R10_ADMINISTRACION/SP-R10-L08.md",
+          "sourceHash": "bfd697438dae096c9b72d50b176b158dce905c928c91aaebec405df11d6d5325",
+          "line": 17,
+          "endLine": 23,
+          "quote": "## 2. Conceptos clave\n\n1. Backup completo depende de configs, datos y servicios afectados\n2. Restore ensayado = evidencia distinta a copia creada\n3. No asumir downgrade in-place soportado\n4. Compatibilidad TA/apps e índice tras upgrade\n5. Runbook tiene responsables, rollback y post-check\n\n"
+        },
+        {
+          "file": "R10_ADMINISTRACION/SP-R10-L08.md",
+          "sourceHash": "bfd697438dae096c9b72d50b176b158dce905c928c91aaebec405df11d6d5325",
+          "line": 33,
+          "endLine": 42,
+          "quote": "## 4. Runbook de cambios — esquema\n\n```text\nAntes: inventario + ventana + backup verificable + baseline de ingesta\nDurante: cambios aprobados, responsables y stop condition\nDespués: lecturas de índices, alertas esperadas, performance, acceso\nSi falla: recuperación planificada desde backup compatible, no downgrade ciego\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R10-L08-Q02",
+      "lessonId": "SP-R10-L08",
+      "prompt": "¿Qué estrategia es insegura para rollback de Splunk 10.2?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D09",
+        "SPLUNK_LECCIONES_R10_R11:D18"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R10-L08-Q02-O-4dc226fb3ef6",
+          "text": "Intentar sobrescribir con una versión antigua como downgrade directo"
+        },
+        {
+          "id": "SP-R10-L08-Q02-O-729da80fcff9",
+          "text": "Restaurar una copia compatible mediante un procedimiento ensayado"
+        },
+        {
+          "id": "SP-R10-L08-Q02-O-dce4b428dc05",
+          "text": "Probar la recuperación de los componentes afectados en entorno aislado"
+        },
+        {
+          "id": "SP-R10-L08-Q02-O-6539ea54cca7",
+          "text": "Verificar ingesta y búsquedas críticas después de restaurar"
+        }
+      ],
+      "solution": "SP-R10-L08-Q02-O-4dc226fb3ef6",
+      "explanation": "El producto no admite un downgrade in-place de ese modo.",
+      "anchors": [
+        {
+          "file": "R10_ADMINISTRACION/SP-R10-L08.md",
+          "sourceHash": "bfd697438dae096c9b72d50b176b158dce905c928c91aaebec405df11d6d5325",
+          "line": 17,
+          "endLine": 23,
+          "quote": "## 2. Conceptos clave\n\n1. Backup completo depende de configs, datos y servicios afectados\n2. Restore ensayado = evidencia distinta a copia creada\n3. No asumir downgrade in-place soportado\n4. Compatibilidad TA/apps e índice tras upgrade\n5. Runbook tiene responsables, rollback y post-check\n\n"
+        },
+        {
+          "file": "R10_ADMINISTRACION/SP-R10-L08.md",
+          "sourceHash": "bfd697438dae096c9b72d50b176b158dce905c928c91aaebec405df11d6d5325",
+          "line": 33,
+          "endLine": 42,
+          "quote": "## 4. Runbook de cambios — esquema\n\n```text\nAntes: inventario + ventana + backup verificable + baseline de ingesta\nDurante: cambios aprobados, responsables y stop condition\nDespués: lecturas de índices, alertas esperadas, performance, acceso\nSi falla: recuperación planificada desde backup compatible, no downgrade ciego\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R10-L08-P01",
+      "lessonId": "SP-R10-L08",
+      "prompt": "Construye runbook de upgrade que contemple fallo de un TA crítico y recuperación sin pérdida aceptable de logs.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D09",
+        "SPLUNK_LECCIONES_R10_R11:D18"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Define fuente, producto, versión y límites del contexto",
+        "Resuelve el objetivo con un procedimiento replicable y no destructivo",
+        "Identifica error, caso benigno y riesgo operacional",
+        "Documenta permisos, aprobación y evidencia para revisión humana"
+      ],
+      "referenceAnswer": "Incluye backups por componente, test restore, compatibilidad, pausa/reanudación según change control, validación E2E de telemetría, ventanas, contingencia y responsables."
+    }
+  ],
+  "solutionsMarkdown": "## 8. Solucionario con razonamiento\n\n- **SP-R10-L08-Q01: B** — La recuperación debe comprobarse con restore, integridad y criterios de aceptación.\n\n- **SP-R10-L08-Q02: A** — El producto no admite un downgrade in-place de ese modo.\n\n- **SP-R10-L08-P01:** Incluye backups por componente, test restore, compatibilidad, pausa/reanudación según change control, validación E2E de telemetría, ventanas, contingencia y responsables.\n\n**Guía de retroalimentación formativa:** Define fuente, producto, versión y límites del contexto; Resuelve el objetivo con un procedimiento replicable y no destructivo; Identifica error, caso benigno y riesgo operacional; Documenta permisos, aprobación y evidencia para revisión humana.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 9. Fuentes, procedencia y limitaciones\n\n- **D09:** Splunk Enterprise 10.2 — Backup before UNIX upgrade — https://help.splunk.com/en/splunk-enterprise/get-started/install-and-upgrade/10.2/upgrade-or-migrate-splunk-enterprise/upgrade-to-version-10.2-on-unix\n- **D18:** Splunk Enterprise 10.2 — app.conf — https://help.splunk.com/en/splunk-enterprise/administer/admin-manual/10.2/configuration-file-reference/10.2.0-configuration-file-reference/app.conf\n\n- **Puente SC-200:** Capítulos 05 y 11: operación, evidencias y recuperación. Es correspondencia pedagógica, no equivalencia exacta de producto.\n- **Fuente del ID y resultado:** `SPLUNK_MASTER_RESEARCH/03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`.\n- **[DOC]:** fundamentos documentados en fuentes oficiales; no equivale a prueba de todos los supuestos.\n- **[OFFLINE]:** solo verificaciones Python sobre fixtures sintéticos.\n- **[NO EJECUTADO]:** no se ha abierto Splunk, ni SOAR, ni REST, ni se han aplicado configuraciones.\n- **[REVISIÓN]:** verificación humana del texto, respuestas, versiones y supuestos antes de integrar en React.\n",
+  "originalMarkdown": "# SP-R10-L08 — Backup, upgrades y operación\n\n**Región:** SP-R10 · **Producto:** Splunk Enterprise/Cloud (donde se indique) o SOAR Cloud explícito. · **Estado:** borrador documental / requiere revisión humana. · **SPL/CLI/API:** ilustrativo, NO ejecutado.\n\n**Resultado curricular:** Planificar restores, checks, acceso de mantenimiento\n\n**Prerrequisitos:** R01–R05; revisar R06–R07 para impacto SOC\n\n## 1. Explicación razonada\n\nUna estrategia operacional segura trata cambios y recuperaciones como procedimientos ensayables: inventario, compatibilidad por versión, copia de configuraciones, índices cuando corresponda, conocimientos, claves y certificados según políticas, validación de integridad y ruta de restauración. «Tengo un ZIP de etc» no basta para asegurar que restaurarás eventos, KV Store, secretos, apps, identidades o el cluster; cada componente tiene su propio procedimiento. Las copias deben protegerse tanto como datos productivos, y comprobarse con una restauración controlada.\n\nEn upgrades, evalúa release notes, compatibilidad de apps, TA, forwarders, search peers, licencias y plan de mantenimiento. La documentación de Splunk Enterprise 10.2 advierte que no hay downgrade soportado in-place simplemente instalando una versión antigua encima: rollback implica una estrategia previa de restauración/reinstalación apropiada. Una prueba piloto y un punto de recuperación verificable son obligatorios para un cambio crítico, especialmente cuando afecta ingesta y búsquedas de SOC.\n\nLa aceptación posterior a mantenimiento debe comprobar salud de fuentes, latencia, búsquedas críticas, permisos y alertas, comparando con baseline pre-cambio. También documenta qué harás si la reversión está bloqueada; un plan de recuperación que requiere credenciales perdidas no es plan.\n\n## 2. Conceptos clave\n\n1. Backup completo depende de configs, datos y servicios afectados\n2. Restore ensayado = evidencia distinta a copia creada\n3. No asumir downgrade in-place soportado\n4. Compatibilidad TA/apps e índice tras upgrade\n5. Runbook tiene responsables, rollback y post-check\n\n## 3. Procedimiento de estudio y verificación\n\n1. Delimita activos Splunk afectados, versión y dependencias.\n2. Enumera backup de config/datos/KV Store según instalación y permisos.\n3. Diseña validación aislada de restore con evidencias y tiempos medidos.\n4. Documenta orden de upgrade y plan de reversión soportado.\n5. Define checklist post-cambio de eventos, alertas, permisos y SLO.\n\n## 4. Runbook de cambios — esquema\n\n```text\nAntes: inventario + ventana + backup verificable + baseline de ingesta\nDurante: cambios aprobados, responsables y stop condition\nDespués: lecturas de índices, alertas esperadas, performance, acceso\nSi falla: recuperación planificada desde backup compatible, no downgrade ciego\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n## 5. Situación profesional\n\nUn administrador planea «instalar 10.1 encima de 10.2 si sale mal». El plan carece de restauración compatible y contradice la advertencia oficial sobre downgrade.\n\n## 6. Errores comunes\n\n1. Confundir backup de configuración con backup de índices\n2. Actualizar sin probar apps/TA\n3. Dar por exitosa una restauración nunca ensayada\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R10-L08-Q01 — Opción múltiple\n\n¿Qué prueba que un plan de backup es recuperable?\n\nA. Que se copiaron configs aunque no se hayan identificado datos o KV Store\nB. Una restauración de ensayo con validación y evidencias\nC. Que el archivo comprimido conserva su nombre y fecha\nD. Que la copia se completó sin errores pero nunca se restauró\n\n### SP-R10-L08-Q02 — Opción múltiple\n\n¿Qué estrategia es insegura para rollback de Splunk 10.2?\n\nA. Intentar sobrescribir con una versión antigua como downgrade directo\nB. Restaurar una copia compatible mediante un procedimiento ensayado\nC. Probar la recuperación de los componentes afectados en entorno aislado\nD. Verificar ingesta y búsquedas críticas después de restaurar\n\n### SP-R10-L08-P01 — Práctica abierta formativa\n\nConstruye runbook de upgrade que contemple fallo de un TA crítico y recuperación sin pérdida aceptable de logs.\n\n## 8. Solucionario con razonamiento\n\n- **SP-R10-L08-Q01: B** — La recuperación debe comprobarse con restore, integridad y criterios de aceptación.\n\n- **SP-R10-L08-Q02: A** — El producto no admite un downgrade in-place de ese modo.\n\n- **SP-R10-L08-P01:** Incluye backups por componente, test restore, compatibilidad, pausa/reanudación según change control, validación E2E de telemetría, ventanas, contingencia y responsables.\n\n**Guía de retroalimentación formativa:** Define fuente, producto, versión y límites del contexto; Resuelve el objetivo con un procedimiento replicable y no destructivo; Identifica error, caso benigno y riesgo operacional; Documenta permisos, aprobación y evidencia para revisión humana.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 9. Fuentes, procedencia y limitaciones\n\n- **D09:** Splunk Enterprise 10.2 — Backup before UNIX upgrade — https://help.splunk.com/en/splunk-enterprise/get-started/install-and-upgrade/10.2/upgrade-or-migrate-splunk-enterprise/upgrade-to-version-10.2-on-unix\n- **D18:** Splunk Enterprise 10.2 — app.conf — https://help.splunk.com/en/splunk-enterprise/administer/admin-manual/10.2/configuration-file-reference/10.2.0-configuration-file-reference/app.conf\n\n- **Puente SC-200:** Capítulos 05 y 11: operación, evidencias y recuperación. Es correspondencia pedagógica, no equivalencia exacta de producto.\n- **Fuente del ID y resultado:** `SPLUNK_MASTER_RESEARCH/03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`.\n- **[DOC]:** fundamentos documentados en fuentes oficiales; no equivale a prueba de todos los supuestos.\n- **[OFFLINE]:** solo verificaciones Python sobre fixtures sintéticos.\n- **[NO EJECUTADO]:** no se ha abierto Splunk, ni SOAR, ni REST, ni se han aplicado configuraciones.\n- **[REVISIÓN]:** verificación humana del texto, respuestas, versiones y supuestos antes de integrar en React.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D09",
+      "key": "SPLUNK_LECCIONES_R10_R11:D09",
+      "url": "https://help.splunk.com/en/splunk-enterprise/get-started/install-and-upgrade/10.2/upgrade-or-migrate-splunk-enterprise/upgrade-to-version-10.2-on-unix"
+    },
+    {
+      "id": "D18",
+      "key": "SPLUNK_LECCIONES_R10_R11:D18",
+      "url": "https://help.splunk.com/en/splunk-enterprise/administer/admin-manual/10.2/configuration-file-reference/10.2.0-configuration-file-reference/app.conf"
+    }
+  ]
+}

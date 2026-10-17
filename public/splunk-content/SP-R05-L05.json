@@ -1,0 +1,200 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R05-L05",
+  "title": "Validación de CIM",
+  "revision": "cf51ac4195f187a342f5baf4",
+  "sourceVersion": "00cc982b0a69452fd64f4762c6ffd6abf4b2d5843aed6d7721b6223b1838a242",
+  "sanitizedHash": "00cc982b0a69452fd64f4762c6ffd6abf4b2d5843aed6d7721b6223b1838a242",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R04_R05/R05_CIM_NORMALIZACION/SP-R05-L05.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Comprobar cobertura de fuentes, nulos, tipos y mapeos incorrectos",
+  "preamble": "# SP-R05-L05 — Validación de CIM\n\n**Región:** SP-R05 · **Prioridad:** P0/P1 SOC · **Estado:** borrador educativo para revisión · **SPL real:** no ejecutado.  \n**ID curricular intacto:** `SP-R05-L05` · **Resultado de aprendizaje:** Comprobar cobertura de fuentes, nulos, tipos y mapeos incorrectos  \n**Prerrequisitos:** R02 y R04; campos de fuentes conocidas · **Producto:** Splunk Enterprise/Cloud con SPL clásico según versión y permisos; CIM exige configuración pertinente.\n\n",
+  "sections": [
+    {
+      "id": "SP-R05-L05-S01",
+      "title": "1. Pregunta esencial",
+      "markdown": "## 1. Pregunta esencial\n\nUna integración CIM puede “parecer” funcionar mientras elimina justo los eventos necesarios. La validación exige comparar una muestra cruda contra eventos normalizados, revisar cobertura de campos y detectar mapeos sospechosos. El resultado debe incluir tanto métricas de completitud como ejemplos concretos de exclusiones; no basta con comprobar que una consulta devuelve más de cero filas.\n\n**Objetivo verificable:** Comprobar cobertura de fuentes, nulos, tipos y mapeos incorrectos.\n\n",
+      "line": 7,
+      "endLine": 11
+    },
+    {
+      "id": "SP-R05-L05-S02",
+      "title": "2. Modelo mental y conceptos",
+      "markdown": "## 2. Modelo mental y conceptos\n\n1. Audita por sourcetype el porcentaje de eventos con user, src y action válidos; no utilices un denominador que mezcle procesos, logins y otro tráfico.\n2. Comprueba semántica de cada campo con ejemplos reales, incluido el sentido de src/dest y los valores action de cada origen.\n3. Revisa eventos sin tag Authentication y eventos etiquetados incorrectamente.\n4. Apóyate en herramientas de validación del add-on CIM si están disponibles en el contexto del producto y versión; el CSV solo simula esa revisión.\n\n",
+      "line": 13,
+      "endLine": 18
+    },
+    {
+      "id": "SP-R05-L05-S03",
+      "title": "3. Procedimiento guiado",
+      "markdown": "## 3. Procedimiento guiado\n\n1. Abre `auth_raw.csv` y clasifica cada fila como login o no login.\n2. Compara las cuatro autenticaciones utilizables con una 4625 sin IP y un 4688 ajeno a logins.\n3. Produce métricas con denominador explícito: total de logins, src presente, user presente, action reconocida.\n4. Crea un informe de errores de mapeo con acciones para el propietario de ingestión, sin cambiar la configuración.\n\n",
+      "line": 20,
+      "endLine": 25
+    },
+    {
+      "id": "SP-R05-L05-S04",
+      "title": "4. SPL ilustrativo — no ejecutado",
+      "markdown": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH tag=authentication earliest=-24h\n| eval falta_user=if(isnull(user) OR len(trim(user))=0,1,0)\n| eval falta_src=if(isnull(src) OR len(trim(src))=0,1,0)\n| stats count AS eventos sum(falta_user) AS sin_user sum(falta_src) AS sin_src BY sourcetype\n```\n\n**Interpretación, condiciones y alcance:** La búsqueda requiere tags/configuración CIM y campos inspeccionados. Si un evento tiene src=\"-\" no es técnicamente nulo: exige validación de valores centinela. Informa recuentos separados por origen; mezclar fuentes heterogéneas puede ocultar errores.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n",
+      "line": 27,
+      "endLine": 38
+    },
+    {
+      "id": "SP-R05-L05-S05",
+      "title": "5. Caso SOC",
+      "markdown": "## 5. Caso SOC\n\nUna fuente tiene usuarios, IP y resultados; otra no registra IP por diseño. ¿Cómo presentas cobertura sin engañar?\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 40,
+      "endLine": 45
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R05-L05-Q01",
+      "lessonId": "SP-R05-L05",
+      "prompt": "¿Qué mide una auditoría correcta CIM?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S10",
+        "SPLUNK_LECCIONES_R04_R05:S08",
+        "SPLUNK_LECCIONES_R04_R05:S09"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R05-L05-Q01-O-c6fa9e3ad72d",
+          "text": "Cobertura de datos y corrección semántica por fuente"
+        },
+        {
+          "id": "SP-R05-L05-Q01-O-19718bdd75ae",
+          "text": "La presencia del nombre user sin contrastar a qué cuenta se refiere"
+        },
+        {
+          "id": "SP-R05-L05-Q01-O-972b1ea020e1",
+          "text": "El porcentaje de eventos con cualquier campo, sin revisar su significado"
+        },
+        {
+          "id": "SP-R05-L05-Q01-O-dfa35e28adc4",
+          "text": "El volumen combinado de procesos y autenticaciones como denominador único"
+        }
+      ],
+      "solution": "SP-R05-L05-Q01-O-c6fa9e3ad72d",
+      "explanation": "Los datos deben estar presentes y representar conceptos correctos.",
+      "anchors": [
+        {
+          "file": "R05_CIM_NORMALIZACION/SP-R05-L05.md",
+          "sourceHash": "00cc982b0a69452fd64f4762c6ffd6abf4b2d5843aed6d7721b6223b1838a242",
+          "line": 13,
+          "endLine": 18,
+          "quote": "## 2. Modelo mental y conceptos\n\n1. Audita por sourcetype el porcentaje de eventos con user, src y action válidos; no utilices un denominador que mezcle procesos, logins y otro tráfico.\n2. Comprueba semántica de cada campo con ejemplos reales, incluido el sentido de src/dest y los valores action de cada origen.\n3. Revisa eventos sin tag Authentication y eventos etiquetados incorrectamente.\n4. Apóyate en herramientas de validación del add-on CIM si están disponibles en el contexto del producto y versión; el CSV solo simula esa revisión.\n\n"
+        },
+        {
+          "file": "R05_CIM_NORMALIZACION/SP-R05-L05.md",
+          "sourceHash": "00cc982b0a69452fd64f4762c6ffd6abf4b2d5843aed6d7721b6223b1838a242",
+          "line": 27,
+          "endLine": 38,
+          "quote": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH tag=authentication earliest=-24h\n| eval falta_user=if(isnull(user) OR len(trim(user))=0,1,0)\n| eval falta_src=if(isnull(src) OR len(trim(src))=0,1,0)\n| stats count AS eventos sum(falta_user) AS sin_user sum(falta_src) AS sin_src BY sourcetype\n```\n\n**Interpretación, condiciones y alcance:** La búsqueda requiere tags/configuración CIM y campos inspeccionados. Si un evento tiene src=\"-\" no es técnicamente nulo: exige validación de valores centinela. Informa recuentos separados por origen; mezclar fuentes heterogéneas puede ocultar errores.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R05-L05-Q02",
+      "lessonId": "SP-R05-L05",
+      "prompt": "¿Debe un evento 4688 contarse como login fallido?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S10",
+        "SPLUNK_LECCIONES_R04_R05:S08",
+        "SPLUNK_LECCIONES_R04_R05:S09"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R05-L05-Q02-O-19a8823ca0ff",
+          "text": "Sí, si el proceso se ejecuta con un usuario que también falló un login"
+        },
+        {
+          "id": "SP-R05-L05-Q02-O-6aca65dca2cd",
+          "text": "No: representa otro tipo de evento"
+        },
+        {
+          "id": "SP-R05-L05-Q02-O-24ed69746883",
+          "text": "Sí, si ocurre dentro del mismo bucket que un 4625"
+        },
+        {
+          "id": "SP-R05-L05-Q02-O-7ae60c570457",
+          "text": "Sí, si el TA extrae campos con los mismos nombres que Authentication"
+        }
+      ],
+      "solution": "SP-R05-L05-Q02-O-6aca65dca2cd",
+      "explanation": "El tipo de evento define su inclusión; un nombre de campo no basta.",
+      "anchors": [
+        {
+          "file": "R05_CIM_NORMALIZACION/SP-R05-L05.md",
+          "sourceHash": "00cc982b0a69452fd64f4762c6ffd6abf4b2d5843aed6d7721b6223b1838a242",
+          "line": 13,
+          "endLine": 18,
+          "quote": "## 2. Modelo mental y conceptos\n\n1. Audita por sourcetype el porcentaje de eventos con user, src y action válidos; no utilices un denominador que mezcle procesos, logins y otro tráfico.\n2. Comprueba semántica de cada campo con ejemplos reales, incluido el sentido de src/dest y los valores action de cada origen.\n3. Revisa eventos sin tag Authentication y eventos etiquetados incorrectamente.\n4. Apóyate en herramientas de validación del add-on CIM si están disponibles en el contexto del producto y versión; el CSV solo simula esa revisión.\n\n"
+        },
+        {
+          "file": "R05_CIM_NORMALIZACION/SP-R05-L05.md",
+          "sourceHash": "00cc982b0a69452fd64f4762c6ffd6abf4b2d5843aed6d7721b6223b1838a242",
+          "line": 27,
+          "endLine": 38,
+          "quote": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH tag=authentication earliest=-24h\n| eval falta_user=if(isnull(user) OR len(trim(user))=0,1,0)\n| eval falta_src=if(isnull(src) OR len(trim(src))=0,1,0)\n| stats count AS eventos sum(falta_user) AS sin_user sum(falta_src) AS sin_src BY sourcetype\n```\n\n**Interpretación, condiciones y alcance:** La búsqueda requiere tags/configuración CIM y campos inspeccionados. Si un evento tiene src=\"-\" no es técnicamente nulo: exige validación de valores centinela. Informa recuentos separados por origen; mezclar fuentes heterogéneas puede ocultar errores.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R05-L05-P01",
+      "lessonId": "SP-R05-L05",
+      "prompt": "Audita el fixture crudo con el script offline y redacta un reporte por fuente: cobertura, causa probable, prueba de diagnóstico y quién debe corregirlo.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S10",
+        "SPLUNK_LECCIONES_R04_R05:S08",
+        "SPLUNK_LECCIONES_R04_R05:S09"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica fuentes, campos, ventana y supuestos",
+        "Aplica el método al escenario y explica cifras o semántica",
+        "Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante",
+        "Presenta una respuesta reproducible sin ejecutar cambios en sistemas"
+      ],
+      "referenceAnswer": "El conjunto tiene 6 filas: cinco eventos etiquetados login (Windows dos éxitos/fallos + Linux accepted/failed + Windows sin IP), uno proceso 4688 excluido. De los cinco login, 4 tienen IP no vacía, 5 identidad, 5 acción reconocible. Estos valores se comprueban con Python; no garantizan compatibilidad real con CIM."
+    }
+  ],
+  "solutionsMarkdown": "## 7. Solucionario con razonamiento\n\n- **SP-R05-L05-Q01: A** — Los datos deben estar presentes y representar conceptos correctos.\n\n- **SP-R05-L05-Q02: B** — El tipo de evento define su inclusión; un nombre de campo no basta.\n\n- **SP-R05-L05-P01:** El conjunto tiene 6 filas: cinco eventos etiquetados login (Windows dos éxitos/fallos + Linux accepted/failed + Windows sin IP), uno proceso 4688 excluido. De los cinco login, 4 tienen IP no vacía, 5 identidad, 5 acción reconocible. Estos valores se comprueban con Python; no garantizan compatibilidad real con CIM.\n\n**Guía de retroalimentación formativa:** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Solucionario razonado\n\n**Q01 → B.** Cobertura de datos y corrección semántica por fuente. Los datos deben estar presentes y representar conceptos correctos.\n\n**Q02 → B.** No: representa otro tipo de evento. El tipo de evento define su inclusión; un nombre de campo no basta.\n\n**P01 → Solución orientativa:** El conjunto tiene 6 filas: cinco eventos etiquetados login (Windows dos éxitos/fallos + Linux accepted/failed + Windows sin IP), uno proceso 4688 excluido. De los cinco login, 4 tienen IP no vacía, 5 identidad, 5 acción reconocible. Estos valores se comprueban con Python; no garantizan compatibilidad real con CIM.\n\n**Rúbrica (0–4):** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas. Superar un test escrito no equivale por sí solo a dominar investigación SOC.\n\n",
+  "referencesMarkdown": "## 9. Fuentes y trazabilidad\n\n- **Origen curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`; título y objetivo preservados.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` (no reescrita).\n- **Puente de conceptos SC-200:** Cap. 04 (normalización), 07 (calidad de detección). Véase `../../01_FUENTE_ORIGINAL/SC-200.md` (sin trasladar esquemas literalmente).\n- **[S10] Validación CIM:** https://help.splunk.com/en/splunk-enterprise/common-information-model/6.3/using-the-common-information-model/use-the-cim-to-validate-your-data\n- **[S08] Authentication CIM: campos y tags:** https://help.splunk.com/en/splunk-enterprise/common-information-model/6.0/data-models/authentication\n- **[S09] CIM referencia: restricciones, tags y campos:** https://help.splunk.com/en/splunk-enterprise/common-information-model/8.7/data-models/how-to-use-the-cim-data-model-reference-tables\n\n**Estatus de evidencia:** documentación del producto + diseño educativo + cálculos offline sobre fixtures (cuando se indica). No se ha verificado ejecución/compatibilidad específica en Splunk del usuario; revisar con la versión real antes de usar en producción.\n",
+  "originalMarkdown": "# SP-R05-L05 — Validación de CIM\n\n**Región:** SP-R05 · **Prioridad:** P0/P1 SOC · **Estado:** borrador educativo para revisión · **SPL real:** no ejecutado.  \n**ID curricular intacto:** `SP-R05-L05` · **Resultado de aprendizaje:** Comprobar cobertura de fuentes, nulos, tipos y mapeos incorrectos  \n**Prerrequisitos:** R02 y R04; campos de fuentes conocidas · **Producto:** Splunk Enterprise/Cloud con SPL clásico según versión y permisos; CIM exige configuración pertinente.\n\n## 1. Pregunta esencial\n\nUna integración CIM puede “parecer” funcionar mientras elimina justo los eventos necesarios. La validación exige comparar una muestra cruda contra eventos normalizados, revisar cobertura de campos y detectar mapeos sospechosos. El resultado debe incluir tanto métricas de completitud como ejemplos concretos de exclusiones; no basta con comprobar que una consulta devuelve más de cero filas.\n\n**Objetivo verificable:** Comprobar cobertura de fuentes, nulos, tipos y mapeos incorrectos.\n\n## 2. Modelo mental y conceptos\n\n1. Audita por sourcetype el porcentaje de eventos con user, src y action válidos; no utilices un denominador que mezcle procesos, logins y otro tráfico.\n2. Comprueba semántica de cada campo con ejemplos reales, incluido el sentido de src/dest y los valores action de cada origen.\n3. Revisa eventos sin tag Authentication y eventos etiquetados incorrectamente.\n4. Apóyate en herramientas de validación del add-on CIM si están disponibles en el contexto del producto y versión; el CSV solo simula esa revisión.\n\n## 3. Procedimiento guiado\n\n1. Abre `auth_raw.csv` y clasifica cada fila como login o no login.\n2. Compara las cuatro autenticaciones utilizables con una 4625 sin IP y un 4688 ajeno a logins.\n3. Produce métricas con denominador explícito: total de logins, src presente, user presente, action reconocida.\n4. Crea un informe de errores de mapeo con acciones para el propietario de ingestión, sin cambiar la configuración.\n\n## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH tag=authentication earliest=-24h\n| eval falta_user=if(isnull(user) OR len(trim(user))=0,1,0)\n| eval falta_src=if(isnull(src) OR len(trim(src))=0,1,0)\n| stats count AS eventos sum(falta_user) AS sin_user sum(falta_src) AS sin_src BY sourcetype\n```\n\n**Interpretación, condiciones y alcance:** La búsqueda requiere tags/configuración CIM y campos inspeccionados. Si un evento tiene src=\"-\" no es técnicamente nulo: exige validación de valores centinela. Informa recuentos separados por origen; mezclar fuentes heterogéneas puede ocultar errores.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n## 5. Caso SOC\n\nUna fuente tiene usuarios, IP y resultados; otra no registra IP por diseño. ¿Cómo presentas cobertura sin engañar?\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 6. Actividades\n\n### SP-R05-L05-Q01 — Opción múltiple\n\n¿Qué mide una auditoría correcta CIM?\n\nA. Cobertura de datos y corrección semántica por fuente\nB. La presencia del nombre user sin contrastar a qué cuenta se refiere\nC. El porcentaje de eventos con cualquier campo, sin revisar su significado\nD. El volumen combinado de procesos y autenticaciones como denominador único\n\n### SP-R05-L05-Q02 — Opción múltiple\n\n¿Debe un evento 4688 contarse como login fallido?\n\nA. Sí, si el proceso se ejecuta con un usuario que también falló un login\nB. No: representa otro tipo de evento\nC. Sí, si ocurre dentro del mismo bucket que un 4625\nD. Sí, si el TA extrae campos con los mismos nombres que Authentication\n\n### SP-R05-L05-P01 — Práctica abierta formativa\n\nAudita el fixture crudo con el script offline y redacta un reporte por fuente: cobertura, causa probable, prueba de diagnóstico y quién debe corregirlo.\n\n## 7. Solucionario con razonamiento\n\n- **SP-R05-L05-Q01: A** — Los datos deben estar presentes y representar conceptos correctos.\n\n- **SP-R05-L05-Q02: B** — El tipo de evento define su inclusión; un nombre de campo no basta.\n\n- **SP-R05-L05-P01:** El conjunto tiene 6 filas: cinco eventos etiquetados login (Windows dos éxitos/fallos + Linux accepted/failed + Windows sin IP), uno proceso 4688 excluido. De los cinco login, 4 tienen IP no vacía, 5 identidad, 5 acción reconocible. Estos valores se comprueban con Python; no garantizan compatibilidad real con CIM.\n\n**Guía de retroalimentación formativa:** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Solucionario razonado\n\n**Q01 → B.** Cobertura de datos y corrección semántica por fuente. Los datos deben estar presentes y representar conceptos correctos.\n\n**Q02 → B.** No: representa otro tipo de evento. El tipo de evento define su inclusión; un nombre de campo no basta.\n\n**P01 → Solución orientativa:** El conjunto tiene 6 filas: cinco eventos etiquetados login (Windows dos éxitos/fallos + Linux accepted/failed + Windows sin IP), uno proceso 4688 excluido. De los cinco login, 4 tienen IP no vacía, 5 identidad, 5 acción reconocible. Estos valores se comprueban con Python; no garantizan compatibilidad real con CIM.\n\n**Rúbrica (0–4):** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas. Superar un test escrito no equivale por sí solo a dominar investigación SOC.\n\n## 9. Fuentes y trazabilidad\n\n- **Origen curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`; título y objetivo preservados.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` (no reescrita).\n- **Puente de conceptos SC-200:** Cap. 04 (normalización), 07 (calidad de detección). Véase `../../01_FUENTE_ORIGINAL/SC-200.md` (sin trasladar esquemas literalmente).\n- **[S10] Validación CIM:** https://help.splunk.com/en/splunk-enterprise/common-information-model/6.3/using-the-common-information-model/use-the-cim-to-validate-your-data\n- **[S08] Authentication CIM: campos y tags:** https://help.splunk.com/en/splunk-enterprise/common-information-model/6.0/data-models/authentication\n- **[S09] CIM referencia: restricciones, tags y campos:** https://help.splunk.com/en/splunk-enterprise/common-information-model/8.7/data-models/how-to-use-the-cim-data-model-reference-tables\n\n**Estatus de evidencia:** documentación del producto + diseño educativo + cálculos offline sobre fixtures (cuando se indica). No se ha verificado ejecución/compatibilidad específica en Splunk del usuario; revisar con la versión real antes de usar en producción.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "S10",
+      "key": "SPLUNK_LECCIONES_R04_R05:S10",
+      "url": "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.3/using-the-common-information-model/use-the-cim-to-validate-your-data"
+    },
+    {
+      "id": "S08",
+      "key": "SPLUNK_LECCIONES_R04_R05:S08",
+      "url": "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.0/data-models/authentication"
+    },
+    {
+      "id": "S09",
+      "key": "SPLUNK_LECCIONES_R04_R05:S09",
+      "url": "https://help.splunk.com/en/splunk-enterprise/common-information-model/8.7/data-models/how-to-use-the-cim-data-model-reference-tables"
+    }
+  ]
+}

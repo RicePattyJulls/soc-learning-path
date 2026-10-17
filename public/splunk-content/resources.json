@@ -1,0 +1,47 @@
+{
+  "courseId": "splunk",
+  "regionId": "SP-R01",
+  "lab": "# LAB-R01 — Arquitectura sin instalaciones\n\n**Tipo:** práctica en papel; sin Splunk ni cambios de configuración.\n\n## Escenario\n\nUna empresa tiene 30 Windows, 5 Linux y un firewall syslog. Quiere buscar autenticaciones fallidas y conservar evidencia durante un periodo que aún debe acordar.\n\n## Encargo\n\n1. Dibuja fuente → input/receptor → parser → indexer y analista → search head → indexer.\n2. Etiqueta UF, HF (opcional), receptor syslog y los componentes realmente imprescindibles.\n3. Identifica tres preguntas de capacidad: eventos/segundo, retención y red.\n4. Explica qué producto Splunk puede buscar eventos y qué capacidades ES/SOAR **no** están demostradas.\n\n## Solución de referencia\n\nUF es opción razonable para Windows/Linux cuando el input lo permite; firewall a receptor syslog apropiado; indexer almacena y search head coordina (una sola instancia puede combinar funciones en laboratorio). HF no es obligatorio. ES/SOAR requieren comprobación independiente de producto y licencia. La topología exacta queda pendiente de volumen, permisos y disponibilidad.\n\n## Criterio de éxito\n\nNo confundir UF con indexer; diferenciar flujo de eventos de consultas; justificar HF y declarar supuestos. No requiere acceso real.\n",
+  "datasets": {
+    "schema_version": "1.0",
+    "revision": "2026-10-16-r1",
+    "package": "SPLUNK_LECCIONES_R01_R03",
+    "scope": "synthetic_csv_contract_offline_only",
+    "splunk_execution": false,
+    "datasets": [
+      {
+        "file": "PRACTICAS/fixtures/auth_sintetico.csv",
+        "sha256": "f9674d6c79e8d027034e75e398801ccddda369fd4fe817e4c54520fc8b9a79ab",
+        "row_count": 10,
+        "columns": [
+          "timestamp_utc",
+          "src",
+          "user",
+          "action",
+          "source"
+        ],
+        "row_id": null,
+        "field_mapping_for_design": {
+          "timestamp_utc": "_time",
+          "src": "src",
+          "user": "user",
+          "action": "action",
+          "source": "source"
+        },
+        "timezone": "UTC where a time/date column exists",
+        "time_bounds": "[start,end)",
+        "snapshot_cutoff": "synthetic_index_time < cutoff",
+        "mapping_executed_in_splunk": false
+      }
+    ],
+    "notes": [
+      "Cada dataset conserva su escenario; una IP coincidente no une escenarios.",
+      "Las asignaciones son diseño; no instalan extracciones, inputs ni lookups.",
+      "_time en el modelo offline es epoch sintético; no es metadata creada en una instancia.",
+      "fixture_index_epoch nunca sustituye al metadato _indextime real.",
+      "TI: inicio inclusivo y expiración exclusiva a medianoche UTC; referencia 2026-10-16T12:00:00Z.",
+      "ServiceName sintético no certifica un SPN nativo; operation_kind no es campo nativo 4662."
+    ]
+  },
+  "note": "Contrato documental del paquete. R01 no importa los CSV ni las lecciones R02/R03."
+}

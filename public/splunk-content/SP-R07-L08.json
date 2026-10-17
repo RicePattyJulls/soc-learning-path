@@ -1,0 +1,221 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R07-L08",
+  "title": "Laboratorio de revisión por pares",
+  "revision": "d5402fcd6ec598b6fcf7e533",
+  "sourceVersion": "eae035aa8d906d16262063d6936109b1f6439f73f60df7554a33f656e2028228",
+  "sanitizedHash": "3d7300821e915b2b0710066f4699c7d817b8dada1f52af16fdd935090977cb69",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R06_R07/R07_DETECTION_ENGINEERING/SP-R07-L08.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Auditar detección de servicio Kerberos bajo supuestos de schema",
+  "preamble": "# SP-R07-L08 — Laboratorio de revisión por pares\n\n**Región:** SP-R07 · **Prioridad:** P0/P1 (SOC/Detection Engineering) · **Estado:** material editorial para revisión · **SPL:** NO ejecutado en Splunk.\n\n**Objetivo curricular original:** Auditar detección de servicio Kerberos bajo supuestos de schema\n\n**Prerrequisitos:** R01–R06; distinguir Enterprise/Cloud y Enterprise Security. **Producto:** Splunk Enterprise/Cloud (búsquedas de lectura); funciones ES explícitamente condicionadas a Splunk Enterprise Security compatible.\n\n",
+  "sections": [
+    {
+      "id": "SP-R07-L08-S01",
+      "title": "1. Pregunta esencial y modelo mental",
+      "markdown": "## 1. Pregunta esencial y modelo mental\n\nUna revisión por pares de Kerberos no consiste en copiar una búsqueda de Internet. Los 4769 pueden expresar peticiones TGS legítimas, y sus campos cambian entre versiones. Una detección que solo marca RC4 genera falsos positivos en servicios heredados; una que solo busca RC4 pierde escenarios con AES o auditoría incompleta. El objetivo del laboratorio es encontrar FP, FN y puntos ciegos sin simular explotación.\n\n",
+      "line": 9,
+      "endLine": 11
+    },
+    {
+      "id": "SP-R07-L08-S02",
+      "title": "2. Conceptos que debes dominar",
+      "markdown": "## 2. Conceptos que debes dominar\n\n1. En K001–K006 aparece un solicitante con múltiples SPNs y `TicketEncryptionType=0x17` en ventana reducida: candidato para investigación, no ataque confirmado.\n2. En K007–K011 aparece svc-backup con RC4 hacia único servicio bajo mantenimiento autorizado: un detector `RC4` produciría falso positivo.\n3. En K012–K015 aparece un patrón de múltiples servicios con AES 0x12: un filtro exclusivo RC4 no lo observaría, lo que no prueba malicia de ese patrón.\n4. K016 es un 4769 con campo de cifrado vacío: clasificar calidad insuficiente en lugar de asumir RC4 o AES.\n5. 4769 v0/v2 tras actualizaciones Windows puede cambiar campos; verifica DC, auditoría, eventos, ingesta, tipos de cuenta y SPN del entorno real.\n\n",
+      "line": 13,
+      "endLine": 19
+    },
+    {
+      "id": "SP-R07-L08-S03",
+      "title": "3. Práctica guiada: del dato a la conclusión",
+      "markdown": "## 3. Práctica guiada: del dato a la conclusión\n\n1. Lee kerberos_tgs.csv y agrupa por user, src, count, dc(ServiceName), tipo de cifrado.\n2. Compara dos candidatos: cualquier RC4 versus al menos cinco SPNs distintos en 15 minutos.\n3. Identifica caso benigno autorizado (svc-backup), caso sospechoso y caso sin tipo de cifrado.\n4. Propón cómo detectar casos multicuenta con AES sin afirmar que son Kerberoasting.\n5. Entrega revisión con FP, FN, campo ausente, benchmark, versionado de eventos y pruebas adicionales.\n\n",
+      "line": 21,
+      "endLine": 27
+    },
+    {
+      "id": "SP-R07-L08-S04",
+      "title": "4. SPL ilustrativo de solo lectura — NO probado en Splunk",
+      "markdown": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4769\n| bin _time span=15m\n| stats count AS tgs dc(ServiceName) AS spn_distintos values(TicketEncryptionType) AS tipos BY user src _time\n| where tgs>=5 AND spn_distintos>=5\n```\n\n**Interpretación, supuestos y límites:** La consulta requiere que ServiceName sea SPN comparable y que user/src hayan sido extraídos apropiadamente; en Windows real el nombre de servicio puede ser una cuenta y no el SPN completo. El CSV es esquema pedagógico. Nunca ejecutar inferencias de Kerberoasting sobre cifrado aislado.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n",
+      "line": 29,
+      "endLine": 40
+    },
+    {
+      "id": "SP-R07-L08-S05",
+      "title": "5. Caso del turno SOC",
+      "markdown": "## 5. Caso del turno SOC\n\nLa regla “RC4=malicioso” dispara tanto en señales de alta variedad de servicio como en mantenimiento conocido; necesita pruebas negativas.\n\n## 6. Errores frecuentes\n\n1. Dar por confirmado Kerberoasting por TGS RC4 aislado.\n2. No revisar ausencia de ServiceName/TicketEncryptionType o campos renombrados.\n3. Confundir K007–K011 con ataque por contar cinco tickets sin diversidad de SPN.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 42,
+      "endLine": 53
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R07-L08-Q01",
+      "lessonId": "SP-R07-L08",
+      "prompt": "¿Cuál regla suele aumentar FP en redes mixtas con servicio heredado?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D07",
+        "SPLUNK_LECCIONES_R06_R07:D08",
+        "SPLUNK_LECCIONES_R06_R07:D09",
+        "SPLUNK_LECCIONES_R06_R07:D10",
+        "SPLUNK_LECCIONES_R06_R07:D13"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R07-L08-Q01-O-5f733cbe331a",
+          "text": "Comparar el cifrado con el baseline de cada cuenta de servicio"
+        },
+        {
+          "id": "SP-R07-L08-Q01-O-8686e1275fd6",
+          "text": "Marcar todo RC4 como ataque"
+        },
+        {
+          "id": "SP-R07-L08-Q01-O-ded2ec3793e9",
+          "text": "Separar cuentas técnicas autorizadas de solicitantes no inventariados"
+        },
+        {
+          "id": "SP-R07-L08-Q01-O-85096e23cdb7",
+          "text": "Revisar variedad de servicios y horario antes de escalar el caso"
+        }
+      ],
+      "solution": "SP-R07-L08-Q01-O-8686e1275fd6",
+      "explanation": "RC4 existe también en operaciones legítimas; necesita contexto.",
+      "anchors": [
+        {
+          "file": "R07_DETECTION_ENGINEERING/SP-R07-L08.md",
+          "sourceHash": "3d7300821e915b2b0710066f4699c7d817b8dada1f52af16fdd935090977cb69",
+          "line": 13,
+          "endLine": 19,
+          "quote": "## 2. Conceptos que debes dominar\n\n1. En K001–K006 aparece un solicitante con múltiples SPNs y `TicketEncryptionType=0x17` en ventana reducida: candidato para investigación, no ataque confirmado.\n2. En K007–K011 aparece svc-backup con RC4 hacia único servicio bajo mantenimiento autorizado: un detector `RC4` produciría falso positivo.\n3. En K012–K015 aparece un patrón de múltiples servicios con AES 0x12: un filtro exclusivo RC4 no lo observaría, lo que no prueba malicia de ese patrón.\n4. K016 es un 4769 con campo de cifrado vacío: clasificar calidad insuficiente en lugar de asumir RC4 o AES.\n5. 4769 v0/v2 tras actualizaciones Windows puede cambiar campos; verifica DC, auditoría, eventos, ingesta, tipos de cuenta y SPN del entorno real.\n\n"
+        },
+        {
+          "file": "R07_DETECTION_ENGINEERING/SP-R07-L08.md",
+          "sourceHash": "3d7300821e915b2b0710066f4699c7d817b8dada1f52af16fdd935090977cb69",
+          "line": 29,
+          "endLine": 40,
+          "quote": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4769\n| bin _time span=15m\n| stats count AS tgs dc(ServiceName) AS spn_distintos values(TicketEncryptionType) AS tipos BY user src _time\n| where tgs>=5 AND spn_distintos>=5\n```\n\n**Interpretación, supuestos y límites:** La consulta requiere que ServiceName sea SPN comparable y que user/src hayan sido extraídos apropiadamente; en Windows real el nombre de servicio puede ser una cuenta y no el SPN completo. El CSV es esquema pedagógico. Nunca ejecutar inferencias de Kerberoasting sobre cifrado aislado.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R07-L08-Q02",
+      "lessonId": "SP-R07-L08",
+      "prompt": "¿Qué demuestra por sí solo 4769 con TGS RC4?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D07",
+        "SPLUNK_LECCIONES_R06_R07:D08",
+        "SPLUNK_LECCIONES_R06_R07:D09",
+        "SPLUNK_LECCIONES_R06_R07:D10",
+        "SPLUNK_LECCIONES_R06_R07:D13"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R07-L08-Q02-O-b552c3c16c8a",
+          "text": "Que el solicitante obtuvo la contraseña de la cuenta de servicio"
+        },
+        {
+          "id": "SP-R07-L08-Q02-O-3f8c5aebfc8a",
+          "text": "Que el servicio ejecutó una acción remota tras entregar el ticket"
+        },
+        {
+          "id": "SP-R07-L08-Q02-O-575d1e812055",
+          "text": "Que el TGS fue utilizado con éxito contra el recurso de destino"
+        },
+        {
+          "id": "SP-R07-L08-Q02-O-281df330f45c",
+          "text": "Solicitud de ticket de servicio con ese cifrado si campo correcto; no cracking confirmado"
+        }
+      ],
+      "solution": "SP-R07-L08-Q02-O-281df330f45c",
+      "explanation": "El ticket solicitado no prueba fuerza bruta offline ni control de credenciales.",
+      "anchors": [
+        {
+          "file": "R07_DETECTION_ENGINEERING/SP-R07-L08.md",
+          "sourceHash": "3d7300821e915b2b0710066f4699c7d817b8dada1f52af16fdd935090977cb69",
+          "line": 13,
+          "endLine": 19,
+          "quote": "## 2. Conceptos que debes dominar\n\n1. En K001–K006 aparece un solicitante con múltiples SPNs y `TicketEncryptionType=0x17` en ventana reducida: candidato para investigación, no ataque confirmado.\n2. En K007–K011 aparece svc-backup con RC4 hacia único servicio bajo mantenimiento autorizado: un detector `RC4` produciría falso positivo.\n3. En K012–K015 aparece un patrón de múltiples servicios con AES 0x12: un filtro exclusivo RC4 no lo observaría, lo que no prueba malicia de ese patrón.\n4. K016 es un 4769 con campo de cifrado vacío: clasificar calidad insuficiente en lugar de asumir RC4 o AES.\n5. 4769 v0/v2 tras actualizaciones Windows puede cambiar campos; verifica DC, auditoría, eventos, ingesta, tipos de cuenta y SPN del entorno real.\n\n"
+        },
+        {
+          "file": "R07_DETECTION_ENGINEERING/SP-R07-L08.md",
+          "sourceHash": "3d7300821e915b2b0710066f4699c7d817b8dada1f52af16fdd935090977cb69",
+          "line": 29,
+          "endLine": 40,
+          "quote": "## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4769\n| bin _time span=15m\n| stats count AS tgs dc(ServiceName) AS spn_distintos values(TicketEncryptionType) AS tipos BY user src _time\n| where tgs>=5 AND spn_distintos>=5\n```\n\n**Interpretación, supuestos y límites:** La consulta requiere que ServiceName sea SPN comparable y que user/src hayan sido extraídos apropiadamente; en Windows real el nombre de servicio puede ser una cuenta y no el SPN completo. El CSV es esquema pedagógico. Nunca ejecutar inferencias de Kerberoasting sobre cifrado aislado.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R07-L08-P01",
+      "lessonId": "SP-R07-L08",
+      "prompt": "Audita tres detecciones (solo RC4, ≥5 TGS, ≥5 SPNs) para K001–K016; calcula FP/FN respecto a etiquetas didácticas y propone versión prudente con desconocidos.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R06_R07:D07",
+        "SPLUNK_LECCIONES_R06_R07:D08",
+        "SPLUNK_LECCIONES_R06_R07:D09",
+        "SPLUNK_LECCIONES_R06_R07:D10",
+        "SPLUNK_LECCIONES_R06_R07:D13"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica datos y supuestos de la fuente",
+        "Plantea método correcto y distingue hechos de hipótesis",
+        "Explica limitaciones, alternativa benigna y telemetría ausente",
+        "Aporta evidencia, ventana e identificación reproducibles"
+      ],
+      "referenceAnswer": "Solo RC4: marcaría también svc-backup (FP); TGS>=5: marcaría mantenimiento de un SPN (FP); diversidad>=5: identifica cohorte K001–K006, pero no cubre K012–K015 (4 SPNs AES, categoría “sospecha didáctica sin confirmación”, no etiquetar automáticamente FN si no existe ground truth de ataque). K016 no evaluable para filtro cifrado. Combinar volumen, baseline, cifrado y evidencia independiente."
+    }
+  ],
+  "solutionsMarkdown": "### Solucionario con razonamiento\n\n- **SP-R07-L08-Q01: B** — RC4 existe también en operaciones legítimas; necesita contexto.\n\n- **SP-R07-L08-Q02: D** — El ticket solicitado no prueba fuerza bruta offline ni control de credenciales.\n\n- **SP-R07-L08-P01:** Solo RC4: marcaría también svc-backup (FP); TGS>=5: marcaría mantenimiento de un SPN (FP); diversidad>=5: identifica cohorte K001–K006, pero no cubre K012–K015 (4 SPNs AES, categoría “sospecha didáctica sin confirmación”, no etiquetar automáticamente FN si no existe ground truth de ataque). K016 no evaluable para filtro cifrado. Combinar volumen, baseline, cifrado y evidencia independiente.\n\n**Guía de retroalimentación formativa:** Identifica datos y supuestos de la fuente; Plantea método correcto y distingue hechos de hipótesis; Explica limitaciones, alternativa benigna y telemetría ausente; Aporta evidencia, ventana e identificación reproducibles.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 8. Bibliografía, mapeo y estatus\n\n- **D07:** Windows: 4769 solicitud de ticket de servicio — https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4769\n- **D08:** MITRE ATT&CK T1558.003 Kerberoasting — https://attack.mitre.org/techniques/T1558/003/\n- **D09:** MITRE DET0157 detección Kerberoasting — https://attack.mitre.org/detectionstrategies/DET0157/\n- **D10:** Kerberos y RC4: cambios de auditoría Windows — https://www.microsoft.com/en-us/windows-server/blog/2025/12/03/beyond-rc4-for-windows-authentication/\n- **D13:** Splunk Security Content: solicitud de ticket Kerberos sospechosa (detección de otra técnica) — https://research.splunk.com/endpoint/[DATO OCULTO: identifier]/\n\n- **Currículo:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` — ID, título y resultado intactos.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` — los bloques R06/R07 y laboratorios de diseño.\n- **Puente SC-200:** Capítulos 07,09,10: detección, investigación e hipótesis de amenaza. Documento en `../../01_FUENTE_ORIGINAL/SC-200.md`; relación conceptual, no traducción ni equivalencia garantizada.\n\n**Clasificación de evidencia:** [DOC] respaldo documental de fuentes; [DISEÑO] procedimientos y rúbricas propuestos; [OFFLINE] sólo cálculos de fixtures reproducibles; [NO PROBADO] ejemplos SPL no ejecutados en la instancia. Validación técnica/manual de contenidos pendiente antes de integrarlo en React.\n",
+  "originalMarkdown": "# SP-R07-L08 — Laboratorio de revisión por pares\n\n**Región:** SP-R07 · **Prioridad:** P0/P1 (SOC/Detection Engineering) · **Estado:** material editorial para revisión · **SPL:** NO ejecutado en Splunk.\n\n**Objetivo curricular original:** Auditar detección de servicio Kerberos bajo supuestos de schema\n\n**Prerrequisitos:** R01–R06; distinguir Enterprise/Cloud y Enterprise Security. **Producto:** Splunk Enterprise/Cloud (búsquedas de lectura); funciones ES explícitamente condicionadas a Splunk Enterprise Security compatible.\n\n## 1. Pregunta esencial y modelo mental\n\nUna revisión por pares de Kerberos no consiste en copiar una búsqueda de Internet. Los 4769 pueden expresar peticiones TGS legítimas, y sus campos cambian entre versiones. Una detección que solo marca RC4 genera falsos positivos en servicios heredados; una que solo busca RC4 pierde escenarios con AES o auditoría incompleta. El objetivo del laboratorio es encontrar FP, FN y puntos ciegos sin simular explotación.\n\n## 2. Conceptos que debes dominar\n\n1. En K001–K006 aparece un solicitante con múltiples SPNs y `TicketEncryptionType=0x17` en ventana reducida: candidato para investigación, no ataque confirmado.\n2. En K007–K011 aparece svc-backup con RC4 hacia único servicio bajo mantenimiento autorizado: un detector `RC4` produciría falso positivo.\n3. En K012–K015 aparece un patrón de múltiples servicios con AES 0x12: un filtro exclusivo RC4 no lo observaría, lo que no prueba malicia de ese patrón.\n4. K016 es un 4769 con campo de cifrado vacío: clasificar calidad insuficiente en lugar de asumir RC4 o AES.\n5. 4769 v0/v2 tras actualizaciones Windows puede cambiar campos; verifica DC, auditoría, eventos, ingesta, tipos de cuenta y SPN del entorno real.\n\n## 3. Práctica guiada: del dato a la conclusión\n\n1. Lee kerberos_tgs.csv y agrupa por user, src, count, dc(ServiceName), tipo de cifrado.\n2. Compara dos candidatos: cualquier RC4 versus al menos cinco SPNs distintos en 15 minutos.\n3. Identifica caso benigno autorizado (svc-backup), caso sospechoso y caso sin tipo de cifrado.\n4. Propón cómo detectar casos multicuenta con AES sin afirmar que son Kerberoasting.\n5. Entrega revisión con FP, FN, campo ausente, benchmark, versionado de eventos y pruebas adicionales.\n\n## 4. SPL ilustrativo de solo lectura — NO probado en Splunk\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4769\n| bin _time span=15m\n| stats count AS tgs dc(ServiceName) AS spn_distintos values(TicketEncryptionType) AS tipos BY user src _time\n| where tgs>=5 AND spn_distintos>=5\n```\n\n**Interpretación, supuestos y límites:** La consulta requiere que ServiceName sea SPN comparable y que user/src hayan sido extraídos apropiadamente; en Windows real el nombre de servicio puede ser una cuenta y no el SPN completo. El CSV es esquema pedagógico. Nunca ejecutar inferencias de Kerberoasting sobre cifrado aislado.\n\nEl índice `IDX_WINDOWS` y sourcetype `ST_WINSEC` son marcadores pedagógicos. **No representan recursos descubiertos** en tu laboratorio. Los campos (`user`, `src`, `event_id`, `ServiceName`, etc.) existen en las fixtures con los nombres que se declaran, pero **no están garantizados en Windows/Splunk real**. La zona horaria configurada en el search head puede alterar la interpretación de fechas literales. No ejecutar búsquedas/alertas ni acciones de respuesta sobre producción sin autorización.\n\n## 5. Caso del turno SOC\n\nLa regla “RC4=malicioso” dispara tanto en señales de alta variedad de servicio como en mantenimiento conocido; necesita pruebas negativas.\n\n## 6. Errores frecuentes\n\n1. Dar por confirmado Kerberoasting por TGS RC4 aislado.\n2. No revisar ausencia de ServiceName/TicketEncryptionType o campos renombrados.\n3. Confundir K007–K011 con ataque por contar cinco tickets sin diversidad de SPN.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R07-L08-Q01 — Opción múltiple\n\n¿Cuál regla suele aumentar FP en redes mixtas con servicio heredado?\n\nA. Comparar el cifrado con el baseline de cada cuenta de servicio\nB. Marcar todo RC4 como ataque\nC. Separar cuentas técnicas autorizadas de solicitantes no inventariados\nD. Revisar variedad de servicios y horario antes de escalar el caso\n\n### SP-R07-L08-Q02 — Opción múltiple\n\n¿Qué demuestra por sí solo 4769 con TGS RC4?\n\nA. Que el solicitante obtuvo la contraseña de la cuenta de servicio\nB. Que el servicio ejecutó una acción remota tras entregar el ticket\nC. Que el TGS fue utilizado con éxito contra el recurso de destino\nD. Solicitud de ticket de servicio con ese cifrado si campo correcto; no cracking confirmado\n\n### SP-R07-L08-P01 — Práctica abierta formativa\n\nAudita tres detecciones (solo RC4, ≥5 TGS, ≥5 SPNs) para K001–K016; calcula FP/FN respecto a etiquetas didácticas y propone versión prudente con desconocidos.\n\n### Solucionario con razonamiento\n\n- **SP-R07-L08-Q01: B** — RC4 existe también en operaciones legítimas; necesita contexto.\n\n- **SP-R07-L08-Q02: D** — El ticket solicitado no prueba fuerza bruta offline ni control de credenciales.\n\n- **SP-R07-L08-P01:** Solo RC4: marcaría también svc-backup (FP); TGS>=5: marcaría mantenimiento de un SPN (FP); diversidad>=5: identifica cohorte K001–K006, pero no cubre K012–K015 (4 SPNs AES, categoría “sospecha didáctica sin confirmación”, no etiquetar automáticamente FN si no existe ground truth de ataque). K016 no evaluable para filtro cifrado. Combinar volumen, baseline, cifrado y evidencia independiente.\n\n**Guía de retroalimentación formativa:** Identifica datos y supuestos de la fuente; Plantea método correcto y distingue hechos de hipótesis; Explica limitaciones, alternativa benigna y telemetría ausente; Aporta evidencia, ventana e identificación reproducibles.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Bibliografía, mapeo y estatus\n\n- **D07:** Windows: 4769 solicitud de ticket de servicio — https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4769\n- **D08:** MITRE ATT&CK T1558.003 Kerberoasting — https://attack.mitre.org/techniques/T1558/003/\n- **D09:** MITRE DET0157 detección Kerberoasting — https://attack.mitre.org/detectionstrategies/DET0157/\n- **D10:** Kerberos y RC4: cambios de auditoría Windows — https://www.microsoft.com/en-us/windows-server/blog/2025/12/03/beyond-rc4-for-windows-authentication/\n- **D13:** Splunk Security Content: solicitud de ticket Kerberos sospechosa (detección de otra técnica) — https://research.splunk.com/endpoint/[DATO OCULTO: identifier]/\n\n- **Currículo:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` — ID, título y resultado intactos.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` — los bloques R06/R07 y laboratorios de diseño.\n- **Puente SC-200:** Capítulos 07,09,10: detección, investigación e hipótesis de amenaza. Documento en `../../01_FUENTE_ORIGINAL/SC-200.md`; relación conceptual, no traducción ni equivalencia garantizada.\n\n**Clasificación de evidencia:** [DOC] respaldo documental de fuentes; [DISEÑO] procedimientos y rúbricas propuestos; [OFFLINE] sólo cálculos de fixtures reproducibles; [NO PROBADO] ejemplos SPL no ejecutados en la instancia. Validación técnica/manual de contenidos pendiente antes de integrarlo en React.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 8,
+    "redactions": [
+      {
+        "kind": "identifier",
+        "line": 97
+      }
+    ]
+  },
+  "references": [
+    {
+      "id": "D07",
+      "key": "SPLUNK_LECCIONES_R06_R07:D07",
+      "url": "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4769"
+    },
+    {
+      "id": "D08",
+      "key": "SPLUNK_LECCIONES_R06_R07:D08",
+      "url": "https://attack.mitre.org/techniques/T1558/003/"
+    },
+    {
+      "id": "D09",
+      "key": "SPLUNK_LECCIONES_R06_R07:D09",
+      "url": "https://attack.mitre.org/detectionstrategies/DET0157/"
+    },
+    {
+      "id": "D10",
+      "key": "SPLUNK_LECCIONES_R06_R07:D10",
+      "url": "https://www.microsoft.com/en-us/windows-server/blog/2025/12/03/beyond-rc4-for-windows-authentication/"
+    },
+    {
+      "id": "D13",
+      "key": "SPLUNK_LECCIONES_R06_R07:D13",
+      "url": "https://research.splunk.com/endpoint/[DATO"
+    }
+  ]
+}

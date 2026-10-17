@@ -1,0 +1,117 @@
+{
+  "schema_version": "1.0",
+  "revision": "2026-10-16-r1",
+  "package": "SPLUNK_LECCIONES_R06_R07",
+  "scope": "synthetic_csv_contract_offline_only",
+  "splunk_execution": false,
+  "datasets": [
+    {
+      "file": "PRACTICAS/fixtures/auth_activity.csv",
+      "sha256": "97fffee0f541c791d07c1c6d3f5d8789bce6e9cf802ebb5731739a9fef5ceea1",
+      "row_count": 21,
+      "columns": [
+        "event_id",
+        "event_time_utc",
+        "indexed_at_utc",
+        "EventCode",
+        "user",
+        "src",
+        "host",
+        "dest",
+        "LogonType",
+        "scenario",
+        "fixture_label"
+      ],
+      "row_id": "event_id",
+      "field_mapping_for_design": {
+        "event_id": "event_id",
+        "event_time_utc": "_time",
+        "indexed_at_utc": "fixture_index_epoch",
+        "EventCode": "EventCode",
+        "user": "user",
+        "src": "src",
+        "host": "host",
+        "dest": "dest",
+        "LogonType": "LogonType",
+        "scenario": "scenario",
+        "fixture_label": "fixture_label"
+      },
+      "timezone": "UTC where a time/date column exists",
+      "time_bounds": "[start,end)",
+      "snapshot_cutoff": "synthetic_index_time < cutoff",
+      "mapping_executed_in_splunk": false
+    },
+    {
+      "file": "PRACTICAS/fixtures/authorized_context.csv",
+      "sha256": "e88e0cccde85eb272cc33e858000242f476f2e9f20d8fc18467635b4497f98d8",
+      "row_count": 3,
+      "columns": [
+        "src",
+        "user",
+        "asset",
+        "from_utc",
+        "until_utc",
+        "context",
+        "verification",
+        "owner"
+      ],
+      "row_id": null,
+      "field_mapping_for_design": {
+        "src": "src",
+        "user": "user",
+        "asset": "asset",
+        "from_utc": "from_utc",
+        "until_utc": "until_utc",
+        "context": "context",
+        "verification": "verification",
+        "owner": "owner"
+      },
+      "timezone": "UTC where a time/date column exists",
+      "time_bounds": "[start,end)",
+      "snapshot_cutoff": "synthetic_index_time < cutoff",
+      "mapping_executed_in_splunk": false
+    },
+    {
+      "file": "PRACTICAS/fixtures/kerberos_tgs.csv",
+      "sha256": "b5339b5c5a0194f2d7fdfd2d1dbc386f52bea8f34f94627876e6e08ce214f336",
+      "row_count": 16,
+      "columns": [
+        "event_id",
+        "event_time_utc",
+        "EventCode",
+        "user",
+        "src",
+        "host",
+        "ServiceName",
+        "TicketEncryptionType",
+        "scenario",
+        "fixture_label"
+      ],
+      "row_id": "event_id",
+      "field_mapping_for_design": {
+        "event_id": "event_id",
+        "event_time_utc": "_time",
+        "EventCode": "EventCode",
+        "user": "user",
+        "src": "src",
+        "host": "host",
+        "ServiceName": "ServiceName",
+        "TicketEncryptionType": "TicketEncryptionType",
+        "scenario": "scenario",
+        "fixture_label": "fixture_label"
+      },
+      "timezone": "UTC where a time/date column exists",
+      "time_bounds": "[start,end)",
+      "snapshot_cutoff": "synthetic_index_time < cutoff",
+      "mapping_executed_in_splunk": false
+    }
+  ],
+  "notes": [
+    "Cada dataset conserva su escenario; una IP coincidente no une escenarios.",
+    "Las asignaciones son diseño; no instalan extracciones, inputs ni lookups.",
+    "_time en el modelo offline es epoch sintético; no es metadata creada en una instancia.",
+    "fixture_index_epoch nunca sustituye al metadato _indextime real.",
+    "TI: inicio inclusivo y expiración exclusiva a medianoche UTC; referencia 2026-10-16T12:00:00Z.",
+    "ServiceName sintético no certifica un SPN nativo; operation_kind no es campo nativo 4662."
+  ]
+}

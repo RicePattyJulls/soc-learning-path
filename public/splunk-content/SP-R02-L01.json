@@ -1,0 +1,199 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R02-L01",
+  "title": "Seleccionar fuentes y rutas de entrada",
+  "revision": "5841e837a058453cb5829be8",
+  "sourceVersion": "f9abcce81b2fd356dcff36c238b2dc062bcbc88dae4654ba10dd4bfddeb9855b",
+  "sanitizedHash": "f9abcce81b2fd356dcff36c238b2dc062bcbc88dae4654ba10dd4bfddeb9855b",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R01_R03/R02_INGESTA/SP-R02-L01.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Elegir UF, HEC u otro método y justificarlo",
+  "preamble": "# SP-R02-L01 — Seleccionar fuentes y rutas de entrada\n\n**Región:** Río de Telemetría (SP-R02) · **Prioridad:** P0 SOC N1/N2  \n**Estado:** material didáctico redactado; revisión humana recomendada. **SPL no ejecutado en Splunk real.**  \n**ID estable propuesto:** `SP-R02-L01` (no migrado a React)  \n**Prerrequisitos orientativos:** SP-R01 completo  \n**Objetivo del currículo:** Elegir UF, HEC u otro método y justificarlo\n\n",
+  "sections": [
+    {
+      "id": "SP-R02-L01-S01",
+      "title": "1. La pregunta que resuelve esta lección",
+      "markdown": "## 1. La pregunta que resuelve esta lección\n\nEl camino de ingesta se decide por origen, protocolo, formato, seguridad y dónde ocurrirá el parsing.\n\n**Al completar la lección podrás:** Elegir UF, HEC u otro método y justificarlo. Debes explicar el porqué y los límites, no memorizar solo comandos.\n\n",
+      "line": 9,
+      "endLine": 13
+    },
+    {
+      "id": "SP-R02-L01-S02",
+      "title": "2. Desarrollo del conocimiento",
+      "markdown": "## 2. Desarrollo del conocimiento\n\nUn archivo local puede seguir una entrada monitorizada mediante UF; una aplicación capaz de emitir JSON por HTTP puede emplear HEC; un firewall puede transmitir syslog a un receptor diseñado para ello. No existe una ruta universal. Los métodos difieren en seguridad, resistencia a caídas, identidad del emisor y normalización.\nA diferencia de “conector X → tabla Y” de Sentinel, en Splunk debes conocer input, receptor, asignación de índice y sourcetype, parsing y acceso a índices. Los add-ons pueden aportar inputs y extracciones, pero no sustituyen la validación de lo que realmente envía la fuente.\n\n",
+      "line": 15,
+      "endLine": 18
+    },
+    {
+      "id": "SP-R02-L01-S03",
+      "title": "3. Método de trabajo reproducible",
+      "markdown": "## 3. Método de trabajo reproducible\n\n1. Registra origen, volumen y formato esperado.\n2. Comprueba si la fuente puede enviar a UF/HEC/syslog/TA.\n3. Define TLS, credenciales o tokens según método.\n4. Designa receptor, índice y sourcetype y documenta supuestos.\n5. Planifica una prueba sintética no destructiva y un indicador de recepción.\n\n",
+      "line": 20,
+      "endLine": 26
+    },
+    {
+      "id": "SP-R02-L01-S04",
+      "title": "4. Caso guiado — de la pregunta a la evidencia",
+      "markdown": "## 4. Caso guiado — de la pregunta a la evidencia\n\nWindows Security Events: evaluar input de eventos con UF/TA compatible. Aplicación propia: HEC con token restringido. Firewall: syslog recibido por componente apropiado. Es un diseño, no prueba que los tres flujos funcionen en el laboratorio.\n\n### Esquema o ejemplo técnico\n\n```text\nFuente → input compatible → (UF/HEC/relay) → parsing → índice → búsqueda con permisos.\n```\n\n**Cómo interpretarlo:** La tecnología de envío no asegura calidad: un evento puede llegar sin la zona horaria correcta, sin campo usuario, o con el sourcetype equivocado.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n",
+      "line": 28,
+      "endLine": 40
+    },
+    {
+      "id": "SP-R02-L01-S05",
+      "title": "5. Diagnóstico y errores frecuentes",
+      "markdown": "## 5. Diagnóstico y errores frecuentes\n\nConfundir HEC con API de búsqueda; afirmar que cualquier syslog es CIM; no vigilar pérdida durante caídas; dar permisos amplios al token.\n\n**Conexión con SC-200 (no equivalencia automática):** Cap. 04 (origen, conector, ruta), líneas 1125–1368.. En Splunk los esquemas, permisos y familias de producto son diferentes; verifica la correspondencia antes de reutilizar una técnica.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 42,
+      "endLine": 49
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R02-L01-Q01",
+      "lessonId": "SP-R02-L01",
+      "prompt": "¿Qué encaja mejor con una app que envía eventos JSON por HTTP?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A3",
+        "SPLUNK_LECCIONES_R01_R03:A5",
+        "SPLUNK_LECCIONES_R01_R03:HEC"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R02-L01-Q01-O-21f61fdf33dc",
+          "text": "Usar la API Search REST como receptor de los eventos JSON"
+        },
+        {
+          "id": "SP-R02-L01-Q01-O-b30505a0caea",
+          "text": "Monitorizar con UF un archivo que la aplicación no escribe"
+        },
+        {
+          "id": "SP-R02-L01-Q01-O-5d227e7ec271",
+          "text": "HTTP Event Collector, como entrada HTTP(S) autenticada para eventos enviados por la aplicación"
+        },
+        {
+          "id": "SP-R02-L01-Q01-O-61508a439ee4",
+          "text": "Enviar JSON directamente al puerto de recepción de forwarders sin protocolo compatible"
+        }
+      ],
+      "solution": "SP-R02-L01-Q01-O-5d227e7ec271",
+      "explanation": "HEC es una entrada HTTP autenticada, no lenguaje de búsqueda.",
+      "anchors": [
+        {
+          "file": "R02_INGESTA/SP-R02-L01.md",
+          "sourceHash": "f9abcce81b2fd356dcff36c238b2dc062bcbc88dae4654ba10dd4bfddeb9855b",
+          "line": 15,
+          "endLine": 18,
+          "quote": "## 2. Desarrollo del conocimiento\n\nUn archivo local puede seguir una entrada monitorizada mediante UF; una aplicación capaz de emitir JSON por HTTP puede emplear HEC; un firewall puede transmitir syslog a un receptor diseñado para ello. No existe una ruta universal. Los métodos difieren en seguridad, resistencia a caídas, identidad del emisor y normalización.\nA diferencia de “conector X → tabla Y” de Sentinel, en Splunk debes conocer input, receptor, asignación de índice y sourcetype, parsing y acceso a índices. Los add-ons pueden aportar inputs y extracciones, pero no sustituyen la validación de lo que realmente envía la fuente.\n\n"
+        },
+        {
+          "file": "R02_INGESTA/SP-R02-L01.md",
+          "sourceHash": "f9abcce81b2fd356dcff36c238b2dc062bcbc88dae4654ba10dd4bfddeb9855b",
+          "line": 28,
+          "endLine": 40,
+          "quote": "## 4. Caso guiado — de la pregunta a la evidencia\n\nWindows Security Events: evaluar input de eventos con UF/TA compatible. Aplicación propia: HEC con token restringido. Firewall: syslog recibido por componente apropiado. Es un diseño, no prueba que los tres flujos funcionen en el laboratorio.\n\n### Esquema o ejemplo técnico\n\n```text\nFuente → input compatible → (UF/HEC/relay) → parsing → índice → búsqueda con permisos.\n```\n\n**Cómo interpretarlo:** La tecnología de envío no asegura calidad: un evento puede llegar sin la zona horaria correcta, sin campo usuario, o con el sourcetype equivocado.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R02-L01-Q02",
+      "lessonId": "SP-R02-L01",
+      "prompt": "¿Qué dato debe verificarse después de recibir syslog?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A3",
+        "SPLUNK_LECCIONES_R01_R03:A5",
+        "SPLUNK_LECCIONES_R01_R03:HEC"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R02-L01-Q02-O-c4a9e178cd16",
+          "text": "Que parsing y sourcetype representan la fuente"
+        },
+        {
+          "id": "SP-R02-L01-Q02-O-2921ba381d8c",
+          "text": "Que el volumen recibido coincide, aunque se desconozca el tiempo de evento"
+        },
+        {
+          "id": "SP-R02-L01-Q02-O-dc1d6c21ef79",
+          "text": "Que el puerto receptor recibe mensajes, dando por validado el parsing"
+        },
+        {
+          "id": "SP-R02-L01-Q02-O-47a02c6872b4",
+          "text": "Que el nombre del índice coincide con el fabricante, sin revisar sourcetype"
+        }
+      ],
+      "solution": "SP-R02-L01-Q02-O-c4a9e178cd16",
+      "explanation": "Llegada, clasificación y extracción son comprobaciones independientes.",
+      "anchors": [
+        {
+          "file": "R02_INGESTA/SP-R02-L01.md",
+          "sourceHash": "f9abcce81b2fd356dcff36c238b2dc062bcbc88dae4654ba10dd4bfddeb9855b",
+          "line": 15,
+          "endLine": 18,
+          "quote": "## 2. Desarrollo del conocimiento\n\nUn archivo local puede seguir una entrada monitorizada mediante UF; una aplicación capaz de emitir JSON por HTTP puede emplear HEC; un firewall puede transmitir syslog a un receptor diseñado para ello. No existe una ruta universal. Los métodos difieren en seguridad, resistencia a caídas, identidad del emisor y normalización.\nA diferencia de “conector X → tabla Y” de Sentinel, en Splunk debes conocer input, receptor, asignación de índice y sourcetype, parsing y acceso a índices. Los add-ons pueden aportar inputs y extracciones, pero no sustituyen la validación de lo que realmente envía la fuente.\n\n"
+        },
+        {
+          "file": "R02_INGESTA/SP-R02-L01.md",
+          "sourceHash": "f9abcce81b2fd356dcff36c238b2dc062bcbc88dae4654ba10dd4bfddeb9855b",
+          "line": 28,
+          "endLine": 40,
+          "quote": "## 4. Caso guiado — de la pregunta a la evidencia\n\nWindows Security Events: evaluar input de eventos con UF/TA compatible. Aplicación propia: HEC con token restringido. Firewall: syslog recibido por componente apropiado. Es un diseño, no prueba que los tres flujos funcionen en el laboratorio.\n\n### Esquema o ejemplo técnico\n\n```text\nFuente → input compatible → (UF/HEC/relay) → parsing → índice → búsqueda con permisos.\n```\n\n**Cómo interpretarlo:** La tecnología de envío no asegura calidad: un evento puede llegar sin la zona horaria correcta, sin campo usuario, o con el sourcetype equivocado.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R02-L01-P01",
+      "lessonId": "SP-R02-L01",
+      "prompt": "Asigna una ruta a Windows, una API JSON y un firewall syslog; añade un riesgo de cada una.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R01_R03:A3",
+        "SPLUNK_LECCIONES_R01_R03:A5",
+        "SPLUNK_LECCIONES_R01_R03:HEC"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica los datos/condiciones necesarios",
+        "Explica el razonamiento y no solo el resultado",
+        "Reconoce al menos una limitación o comprobación adicional"
+      ],
+      "referenceAnswer": "Windows→UF/input de eventos (permisos/canales); JSON→HEC (token/TLS); syslog→receiver/relay (pérdida de UDP, timestamps y normalización según diseño)."
+    }
+  ],
+  "solutionsMarkdown": "## 7. Solucionario con razonamiento\n\n- **SP-R02-L01-Q01: C** — HEC es una entrada HTTP autenticada, no lenguaje de búsqueda.\n\n- **SP-R02-L01-Q02: A** — Llegada, clasificación y extracción son comprobaciones independientes.\n\n- **SP-R02-L01-P01:** Windows→UF/input de eventos (permisos/canales); JSON→HEC (token/TLS); syslog→receiver/relay (pérdida de UDP, timestamps y normalización según diseño).\n\n**Guía de retroalimentación formativa:** Identifica los datos/condiciones necesarios; Explica el razonamiento y no solo el resultado; Reconoce al menos una limitación o comprobación adicional.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 8. Fuentes y trazabilidad\n\n- **Fuente de partida:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE2_BLOQUE1.md`, según la organización del paquete de investigación que conservas.\n- **Fuente Microsoft de contraste:** `../../01_FUENTE_ORIGINAL/SC-200.md`; Cap. 04 (origen, conector, ruta), líneas 1125–1368.\n- **[A3]** https://help.splunk.com/en/splunk-enterprise/administer/manage-indexers-and-indexer-clusters/10.6/indexing-overview/how-indexing-works\n- **[A5]** https://help.splunk.com/en/splunk-enterprise/administer/admin-manual/10.6/administer-splunk-enterprise-with-configuration-files/configuration-parameters-and-the-data-pipeline\n- **[HEC]** https://help.splunk.com/en/splunk-enterprise/get-data-in/collect-http-event-data/http-event-collector-examples\n\n**Estado de confianza:** documentación técnica citada y propuesta pedagógica; no validado contra índices, sourcetypes, roles o versiones de tu laboratorio. Las URLs provienen de la investigación del 16/10/2026, con contraste puntual adicional de documentación oficial para HEC y forwarders. Ver `FUENTES_Y_LIMITES.md`.\n",
+  "originalMarkdown": "# SP-R02-L01 — Seleccionar fuentes y rutas de entrada\n\n**Región:** Río de Telemetría (SP-R02) · **Prioridad:** P0 SOC N1/N2  \n**Estado:** material didáctico redactado; revisión humana recomendada. **SPL no ejecutado en Splunk real.**  \n**ID estable propuesto:** `SP-R02-L01` (no migrado a React)  \n**Prerrequisitos orientativos:** SP-R01 completo  \n**Objetivo del currículo:** Elegir UF, HEC u otro método y justificarlo\n\n## 1. La pregunta que resuelve esta lección\n\nEl camino de ingesta se decide por origen, protocolo, formato, seguridad y dónde ocurrirá el parsing.\n\n**Al completar la lección podrás:** Elegir UF, HEC u otro método y justificarlo. Debes explicar el porqué y los límites, no memorizar solo comandos.\n\n## 2. Desarrollo del conocimiento\n\nUn archivo local puede seguir una entrada monitorizada mediante UF; una aplicación capaz de emitir JSON por HTTP puede emplear HEC; un firewall puede transmitir syslog a un receptor diseñado para ello. No existe una ruta universal. Los métodos difieren en seguridad, resistencia a caídas, identidad del emisor y normalización.\nA diferencia de “conector X → tabla Y” de Sentinel, en Splunk debes conocer input, receptor, asignación de índice y sourcetype, parsing y acceso a índices. Los add-ons pueden aportar inputs y extracciones, pero no sustituyen la validación de lo que realmente envía la fuente.\n\n## 3. Método de trabajo reproducible\n\n1. Registra origen, volumen y formato esperado.\n2. Comprueba si la fuente puede enviar a UF/HEC/syslog/TA.\n3. Define TLS, credenciales o tokens según método.\n4. Designa receptor, índice y sourcetype y documenta supuestos.\n5. Planifica una prueba sintética no destructiva y un indicador de recepción.\n\n## 4. Caso guiado — de la pregunta a la evidencia\n\nWindows Security Events: evaluar input de eventos con UF/TA compatible. Aplicación propia: HEC con token restringido. Firewall: syslog recibido por componente apropiado. Es un diseño, no prueba que los tres flujos funcionen en el laboratorio.\n\n### Esquema o ejemplo técnico\n\n```text\nFuente → input compatible → (UF/HEC/relay) → parsing → índice → búsqueda con permisos.\n```\n\n**Cómo interpretarlo:** La tecnología de envío no asegura calidad: un evento puede llegar sin la zona horaria correcta, sin campo usuario, o con el sourcetype equivocado.\n\n**Advertencia:** los nombres de índice/sourcetype en mayúsculas, cuando aparecen, son marcadores sin valor operativo. No ejecutes ejemplos sin confirmar permisos, datos y versión. Los resultados aquí descritos son didácticos y no afirman ejecución en tu instancia.\n\n## 5. Diagnóstico y errores frecuentes\n\nConfundir HEC con API de búsqueda; afirmar que cualquier syslog es CIM; no vigilar pérdida durante caídas; dar permisos amplios al token.\n\n**Conexión con SC-200 (no equivalencia automática):** Cap. 04 (origen, conector, ruta), líneas 1125–1368.. En Splunk los esquemas, permisos y familias de producto son diferentes; verifica la correspondencia antes de reutilizar una técnica.\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 6. Actividades\n\n### SP-R02-L01-Q01 — Opción múltiple\n\n¿Qué encaja mejor con una app que envía eventos JSON por HTTP?\n\nA. Usar la API Search REST como receptor de los eventos JSON\nB. Monitorizar con UF un archivo que la aplicación no escribe\nC. HTTP Event Collector, como entrada HTTP(S) autenticada para eventos enviados por la aplicación\nD. Enviar JSON directamente al puerto de recepción de forwarders sin protocolo compatible\n\n### SP-R02-L01-Q02 — Opción múltiple\n\n¿Qué dato debe verificarse después de recibir syslog?\n\nA. Que parsing y sourcetype representan la fuente\nB. Que el volumen recibido coincide, aunque se desconozca el tiempo de evento\nC. Que el puerto receptor recibe mensajes, dando por validado el parsing\nD. Que el nombre del índice coincide con el fabricante, sin revisar sourcetype\n\n### SP-R02-L01-P01 — Práctica abierta formativa\n\nAsigna una ruta a Windows, una API JSON y un firewall syslog; añade un riesgo de cada una.\n\n## 7. Solucionario con razonamiento\n\n- **SP-R02-L01-Q01: C** — HEC es una entrada HTTP autenticada, no lenguaje de búsqueda.\n\n- **SP-R02-L01-Q02: A** — Llegada, clasificación y extracción son comprobaciones independientes.\n\n- **SP-R02-L01-P01:** Windows→UF/input de eventos (permisos/canales); JSON→HEC (token/TLS); syslog→receiver/relay (pérdida de UDP, timestamps y normalización según diseño).\n\n**Guía de retroalimentación formativa:** Identifica los datos/condiciones necesarios; Explica el razonamiento y no solo el resultado; Reconoce al menos una limitación o comprobación adicional.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Fuentes y trazabilidad\n\n- **Fuente de partida:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE2_BLOQUE1.md`, según la organización del paquete de investigación que conservas.\n- **Fuente Microsoft de contraste:** `../../01_FUENTE_ORIGINAL/SC-200.md`; Cap. 04 (origen, conector, ruta), líneas 1125–1368.\n- **[A3]** https://help.splunk.com/en/splunk-enterprise/administer/manage-indexers-and-indexer-clusters/10.6/indexing-overview/how-indexing-works\n- **[A5]** https://help.splunk.com/en/splunk-enterprise/administer/admin-manual/10.6/administer-splunk-enterprise-with-configuration-files/configuration-parameters-and-the-data-pipeline\n- **[HEC]** https://help.splunk.com/en/splunk-enterprise/get-data-in/collect-http-event-data/http-event-collector-examples\n\n**Estado de confianza:** documentación técnica citada y propuesta pedagógica; no validado contra índices, sourcetypes, roles o versiones de tu laboratorio. Las URLs provienen de la investigación del 16/10/2026, con contraste puntual adicional de documentación oficial para HEC y forwarders. Ver `FUENTES_Y_LIMITES.md`.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 8,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "A3",
+      "key": "SPLUNK_LECCIONES_R01_R03:A3",
+      "url": "https://help.splunk.com/en/splunk-enterprise/administer/manage-indexers-and-indexer-clusters/10.6/indexing-overview/how-indexing-works"
+    },
+    {
+      "id": "A5",
+      "key": "SPLUNK_LECCIONES_R01_R03:A5",
+      "url": "https://help.splunk.com/en/splunk-enterprise/administer/admin-manual/10.6/administer-splunk-enterprise-with-configuration-files/configuration-parameters-and-the-data-pipeline"
+    },
+    {
+      "id": "HEC",
+      "key": "SPLUNK_LECCIONES_R01_R03:HEC",
+      "url": "https://help.splunk.com/en/splunk-enterprise/get-data-in/collect-http-event-data/http-event-collector-examples"
+    }
+  ]
+}

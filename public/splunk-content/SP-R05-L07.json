@@ -1,0 +1,200 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R05-L07",
+  "title": "Rendimiento del modelado",
+  "revision": "bd78db56e207aeb676e01e33",
+  "sourceVersion": "3b4f51fecde44394585352c0420a39075510e8346124a60d8d9ea82fb46444bf",
+  "sanitizedHash": "3b4f51fecde44394585352c0420a39075510e8346124a60d8d9ea82fb46444bf",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R04_R05/R05_CIM_NORMALIZACION/SP-R05-L07.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Evaluar coste de aceleración, constraints e índices allowlist",
+  "preamble": "# SP-R05-L07 — Rendimiento del modelado\n\n**Región:** SP-R05 · **Prioridad:** P0/P1 SOC · **Estado:** borrador educativo para revisión · **SPL real:** no ejecutado.  \n**ID curricular intacto:** `SP-R05-L07` · **Resultado de aprendizaje:** Evaluar coste de aceleración, constraints e índices allowlist  \n**Prerrequisitos:** R02 y R04; campos de fuentes conocidas · **Producto:** Splunk Enterprise/Cloud con SPL clásico según versión y permisos; CIM exige configuración pertinente.\n\n",
+  "sections": [
+    {
+      "id": "SP-R05-L07-S01",
+      "title": "1. Pregunta esencial",
+      "markdown": "## 1. Pregunta esencial\n\nEl rendimiento del modelado depende de qué fuentes se incorporan, qué constraints se aplican y cuánto trabajo se dedica a mantener summaries acelerados. Acelerar todo sin límites puede consumir recursos y complicar la interpretación de la cobertura. El enfoque profesional plantea presupuesto, criterios de inclusión, observabilidad y retorno analítico.\n\n**Objetivo verificable:** Evaluar coste de aceleración, constraints e índices allowlist.\n\n",
+      "line": 7,
+      "endLine": 11
+    },
+    {
+      "id": "SP-R05-L07-S02",
+      "title": "2. Modelo mental y conceptos",
+      "markdown": "## 2. Modelo mental y conceptos\n\n1. Define por qué un data model necesita aceleración: casos de uso, frecuencia de búsqueda, latencia tolerada y ventana de retención.\n2. La selección de índices y sourcetypes y las constraints deben reflejar cobertura real, no esconder datos incorrectos.\n3. La aceleración consume recursos durante el resumen/backfill; un modelo vacío o desactualizado no se arregla con mayor CPU por sí solo.\n4. Mide con Job Inspector y métricas del entorno autorizado; para un entorno pequeño, prioriza consultas correctas antes de acelerar.\n\n",
+      "line": 13,
+      "endLine": 18
+    },
+    {
+      "id": "SP-R05-L07-S03",
+      "title": "3. Procedimiento guiado",
+      "markdown": "## 3. Procedimiento guiado\n\n1. Imagina 100 millones de eventos diarios en varios sourcetypes; sólo una parte corresponde a Authentication.\n2. Define política: fuentes, esquema, retención, cobertura temporal, necesidad de aceleración y propietario.\n3. Propón seguimiento de retraso de summaries, porcentaje de campos completos y tiempos de consultas reales.\n4. Documenta plan de rollback conceptual; no cambies data models ni límites del laboratorio con este material.\n\n",
+      "line": 20,
+      "endLine": 25
+    },
+    {
+      "id": "SP-R05-L07-S04",
+      "title": "4. SPL ilustrativo — no ejecutado",
+      "markdown": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\n| tstats summariesonly=true count AS eventos FROM datamodel=Authentication.Authentication BY Authentication.action\n```\n\n**Interpretación, condiciones y alcance:** Es un ejemplo de lectura que sólo sería significativo después de verificar la existencia y aceleración del modelo. No proporciona métricas, ni es una orden de configurar ni reiniciar Splunk.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n",
+      "line": 27,
+      "endLine": 35
+    },
+    {
+      "id": "SP-R05-L07-S05",
+      "title": "5. Caso SOC",
+      "markdown": "## 5. Caso SOC\n\nUn equipo pide acelerar Authentication para ganar velocidad, pero la calidad de src/user es irregular. ¿Qué orden de trabajo propones?\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 37,
+      "endLine": 42
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R05-L07-Q01",
+      "lessonId": "SP-R05-L07",
+      "prompt": "¿Qué condición precede a acelerar un modelo para SOC?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S12",
+        "SPLUNK_LECCIONES_R04_R05:S16",
+        "SPLUNK_LECCIONES_R04_R05:S09"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R05-L07-Q01-O-feda5861be45",
+          "text": "Un gráfico rápido aunque el modelo omita fuentes requeridas"
+        },
+        {
+          "id": "SP-R05-L07-Q01-O-12a3b196a311",
+          "text": "Compatibilidad real de fuentes/campos y caso de uso"
+        },
+        {
+          "id": "SP-R05-L07-Q01-O-0c920df10fbe",
+          "text": "La coincidencia de nombres de campos sin comprobar su significado"
+        },
+        {
+          "id": "SP-R05-L07-Q01-O-c2da957b24e9",
+          "text": "Un horizonte de resumen amplio antes de conocer el volumen y la calidad"
+        }
+      ],
+      "solution": "SP-R05-L07-Q01-O-12a3b196a311",
+      "explanation": "Sin un esquema fiable se acelera una representación potencialmente incorrecta.",
+      "anchors": [
+        {
+          "file": "R05_CIM_NORMALIZACION/SP-R05-L07.md",
+          "sourceHash": "3b4f51fecde44394585352c0420a39075510e8346124a60d8d9ea82fb46444bf",
+          "line": 13,
+          "endLine": 18,
+          "quote": "## 2. Modelo mental y conceptos\n\n1. Define por qué un data model necesita aceleración: casos de uso, frecuencia de búsqueda, latencia tolerada y ventana de retención.\n2. La selección de índices y sourcetypes y las constraints deben reflejar cobertura real, no esconder datos incorrectos.\n3. La aceleración consume recursos durante el resumen/backfill; un modelo vacío o desactualizado no se arregla con mayor CPU por sí solo.\n4. Mide con Job Inspector y métricas del entorno autorizado; para un entorno pequeño, prioriza consultas correctas antes de acelerar.\n\n"
+        },
+        {
+          "file": "R05_CIM_NORMALIZACION/SP-R05-L07.md",
+          "sourceHash": "3b4f51fecde44394585352c0420a39075510e8346124a60d8d9ea82fb46444bf",
+          "line": 27,
+          "endLine": 35,
+          "quote": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\n| tstats summariesonly=true count AS eventos FROM datamodel=Authentication.Authentication BY Authentication.action\n```\n\n**Interpretación, condiciones y alcance:** Es un ejemplo de lectura que sólo sería significativo después de verificar la existencia y aceleración del modelo. No proporciona métricas, ni es una orden de configurar ni reiniciar Splunk.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R05-L07-Q02",
+      "lessonId": "SP-R05-L07",
+      "prompt": "¿Qué demuestra una fixture CSV sobre aceleración?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S12",
+        "SPLUNK_LECCIONES_R04_R05:S16",
+        "SPLUNK_LECCIONES_R04_R05:S09"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R05-L07-Q02-O-3749534405f2",
+          "text": "El tiempo de backfill de los indexers a partir del número de filas CSV"
+        },
+        {
+          "id": "SP-R05-L07-Q02-O-45314aed0c41",
+          "text": "El ahorro de CPU esperado al activar aceleración en el laboratorio"
+        },
+        {
+          "id": "SP-R05-L07-Q02-O-97ba79544651",
+          "text": "Semántica de pérdida de cobertura simulada"
+        },
+        {
+          "id": "SP-R05-L07-Q02-O-6ebef3648813",
+          "text": "La cobertura real de un modelo de datos compartido con el rol del alumno"
+        }
+      ],
+      "solution": "SP-R05-L07-Q02-O-97ba79544651",
+      "explanation": "La simulación valida cálculos conceptuales, no tiempos de Splunk.",
+      "anchors": [
+        {
+          "file": "R05_CIM_NORMALIZACION/SP-R05-L07.md",
+          "sourceHash": "3b4f51fecde44394585352c0420a39075510e8346124a60d8d9ea82fb46444bf",
+          "line": 13,
+          "endLine": 18,
+          "quote": "## 2. Modelo mental y conceptos\n\n1. Define por qué un data model necesita aceleración: casos de uso, frecuencia de búsqueda, latencia tolerada y ventana de retención.\n2. La selección de índices y sourcetypes y las constraints deben reflejar cobertura real, no esconder datos incorrectos.\n3. La aceleración consume recursos durante el resumen/backfill; un modelo vacío o desactualizado no se arregla con mayor CPU por sí solo.\n4. Mide con Job Inspector y métricas del entorno autorizado; para un entorno pequeño, prioriza consultas correctas antes de acelerar.\n\n"
+        },
+        {
+          "file": "R05_CIM_NORMALIZACION/SP-R05-L07.md",
+          "sourceHash": "3b4f51fecde44394585352c0420a39075510e8346124a60d8d9ea82fb46444bf",
+          "line": 27,
+          "endLine": 35,
+          "quote": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\n| tstats summariesonly=true count AS eventos FROM datamodel=Authentication.Authentication BY Authentication.action\n```\n\n**Interpretación, condiciones y alcance:** Es un ejemplo de lectura que sólo sería significativo después de verificar la existencia y aceleración del modelo. No proporciona métricas, ni es una orden de configurar ni reiniciar Splunk.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R05-L07-P01",
+      "lessonId": "SP-R05-L07",
+      "prompt": "Entrega un documento de diseño de una página con índices/sourcetypes candidatos, medidas de calidad, costes, horizonte, criterio de aceptación y rollback.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S12",
+        "SPLUNK_LECCIONES_R04_R05:S16",
+        "SPLUNK_LECCIONES_R04_R05:S09"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica fuentes, campos, ventana y supuestos",
+        "Aplica el método al escenario y explica cifras o semántica",
+        "Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante",
+        "Presenta una respuesta reproducible sin ejecutar cambios en sistemas"
+      ],
+      "referenceAnswer": "Primero auditar normalización y datos; luego establecer consultas de referencia y medir coste; sólo después valorar aceleración y su capacidad/ventanas; revisar impacto y regresiones bajo autorización. No afirmar ahorro de CPU sin métrica real."
+    }
+  ],
+  "solutionsMarkdown": "## 7. Solucionario con razonamiento\n\n- **SP-R05-L07-Q01: B** — Sin un esquema fiable se acelera una representación potencialmente incorrecta.\n\n- **SP-R05-L07-Q02: C** — La simulación valida cálculos conceptuales, no tiempos de Splunk.\n\n- **SP-R05-L07-P01:** Primero auditar normalización y datos; luego establecer consultas de referencia y medir coste; sólo después valorar aceleración y su capacidad/ventanas; revisar impacto y regresiones bajo autorización. No afirmar ahorro de CPU sin métrica real.\n\n**Guía de retroalimentación formativa:** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Solucionario razonado\n\n**Q01 → A.** Compatibilidad real de fuentes/campos y caso de uso. Sin un esquema fiable se acelera una representación potencialmente incorrecta.\n\n**Q02 → B.** Semántica de pérdida de cobertura simulada. La simulación valida cálculos conceptuales, no tiempos de Splunk.\n\n**P01 → Solución orientativa:** Primero auditar normalización y datos; luego establecer consultas de referencia y medir coste; sólo después valorar aceleración y su capacidad/ventanas; revisar impacto y regresiones bajo autorización. No afirmar ahorro de CPU sin métrica real.\n\n**Rúbrica (0–4):** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas. Superar un test escrito no equivale por sí solo a dominar investigación SOC.\n\n",
+  "referencesMarkdown": "## 9. Fuentes y trazabilidad\n\n- **Origen curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`; título y objetivo preservados.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` (no reescrita).\n- **Puente de conceptos SC-200:** Cap. 04 (calidad de ingesta), 05 (almacenamiento/coste). Véase `../../01_FUENTE_ORIGINAL/SC-200.md` (sin trasladar esquemas literalmente).\n- **[S12] Aceleración de data models:** https://help.splunk.com/en/splunk-enterprise/manage-knowledge-objects/knowledge-management-manual/9.1/use-data-summaries-to-accelerate-searches/accelerate-data-models\n- **[S16] Search job inspector avanzado:** https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.2/manage-jobs/view-search-job-properties\n- **[S09] CIM referencia: restricciones, tags y campos:** https://help.splunk.com/en/splunk-enterprise/common-information-model/8.7/data-models/how-to-use-the-cim-data-model-reference-tables\n\n**Estatus de evidencia:** documentación del producto + diseño educativo + cálculos offline sobre fixtures (cuando se indica). No se ha verificado ejecución/compatibilidad específica en Splunk del usuario; revisar con la versión real antes de usar en producción.\n",
+  "originalMarkdown": "# SP-R05-L07 — Rendimiento del modelado\n\n**Región:** SP-R05 · **Prioridad:** P0/P1 SOC · **Estado:** borrador educativo para revisión · **SPL real:** no ejecutado.  \n**ID curricular intacto:** `SP-R05-L07` · **Resultado de aprendizaje:** Evaluar coste de aceleración, constraints e índices allowlist  \n**Prerrequisitos:** R02 y R04; campos de fuentes conocidas · **Producto:** Splunk Enterprise/Cloud con SPL clásico según versión y permisos; CIM exige configuración pertinente.\n\n## 1. Pregunta esencial\n\nEl rendimiento del modelado depende de qué fuentes se incorporan, qué constraints se aplican y cuánto trabajo se dedica a mantener summaries acelerados. Acelerar todo sin límites puede consumir recursos y complicar la interpretación de la cobertura. El enfoque profesional plantea presupuesto, criterios de inclusión, observabilidad y retorno analítico.\n\n**Objetivo verificable:** Evaluar coste de aceleración, constraints e índices allowlist.\n\n## 2. Modelo mental y conceptos\n\n1. Define por qué un data model necesita aceleración: casos de uso, frecuencia de búsqueda, latencia tolerada y ventana de retención.\n2. La selección de índices y sourcetypes y las constraints deben reflejar cobertura real, no esconder datos incorrectos.\n3. La aceleración consume recursos durante el resumen/backfill; un modelo vacío o desactualizado no se arregla con mayor CPU por sí solo.\n4. Mide con Job Inspector y métricas del entorno autorizado; para un entorno pequeño, prioriza consultas correctas antes de acelerar.\n\n## 3. Procedimiento guiado\n\n1. Imagina 100 millones de eventos diarios en varios sourcetypes; sólo una parte corresponde a Authentication.\n2. Define política: fuentes, esquema, retención, cobertura temporal, necesidad de aceleración y propietario.\n3. Propón seguimiento de retraso de summaries, porcentaje de campos completos y tiempos de consultas reales.\n4. Documenta plan de rollback conceptual; no cambies data models ni límites del laboratorio con este material.\n\n## 4. SPL ilustrativo — no ejecutado\n\n```spl\n| tstats summariesonly=true count AS eventos FROM datamodel=Authentication.Authentication BY Authentication.action\n```\n\n**Interpretación, condiciones y alcance:** Es un ejemplo de lectura que sólo sería significativo después de verificar la existencia y aceleración del modelo. No proporciona métricas, ni es una orden de configurar ni reiniciar Splunk.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n## 5. Caso SOC\n\nUn equipo pide acelerar Authentication para ganar velocidad, pero la calidad de src/user es irregular. ¿Qué orden de trabajo propones?\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 6. Actividades\n\n### SP-R05-L07-Q01 — Opción múltiple\n\n¿Qué condición precede a acelerar un modelo para SOC?\n\nA. Un gráfico rápido aunque el modelo omita fuentes requeridas\nB. Compatibilidad real de fuentes/campos y caso de uso\nC. La coincidencia de nombres de campos sin comprobar su significado\nD. Un horizonte de resumen amplio antes de conocer el volumen y la calidad\n\n### SP-R05-L07-Q02 — Opción múltiple\n\n¿Qué demuestra una fixture CSV sobre aceleración?\n\nA. El tiempo de backfill de los indexers a partir del número de filas CSV\nB. El ahorro de CPU esperado al activar aceleración en el laboratorio\nC. Semántica de pérdida de cobertura simulada\nD. La cobertura real de un modelo de datos compartido con el rol del alumno\n\n### SP-R05-L07-P01 — Práctica abierta formativa\n\nEntrega un documento de diseño de una página con índices/sourcetypes candidatos, medidas de calidad, costes, horizonte, criterio de aceptación y rollback.\n\n## 7. Solucionario con razonamiento\n\n- **SP-R05-L07-Q01: B** — Sin un esquema fiable se acelera una representación potencialmente incorrecta.\n\n- **SP-R05-L07-Q02: C** — La simulación valida cálculos conceptuales, no tiempos de Splunk.\n\n- **SP-R05-L07-P01:** Primero auditar normalización y datos; luego establecer consultas de referencia y medir coste; sólo después valorar aceleración y su capacidad/ventanas; revisar impacto y regresiones bajo autorización. No afirmar ahorro de CPU sin métrica real.\n\n**Guía de retroalimentación formativa:** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Solucionario razonado\n\n**Q01 → A.** Compatibilidad real de fuentes/campos y caso de uso. Sin un esquema fiable se acelera una representación potencialmente incorrecta.\n\n**Q02 → B.** Semántica de pérdida de cobertura simulada. La simulación valida cálculos conceptuales, no tiempos de Splunk.\n\n**P01 → Solución orientativa:** Primero auditar normalización y datos; luego establecer consultas de referencia y medir coste; sólo después valorar aceleración y su capacidad/ventanas; revisar impacto y regresiones bajo autorización. No afirmar ahorro de CPU sin métrica real.\n\n**Rúbrica (0–4):** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas. Superar un test escrito no equivale por sí solo a dominar investigación SOC.\n\n## 9. Fuentes y trazabilidad\n\n- **Origen curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`; título y objetivo preservados.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` (no reescrita).\n- **Puente de conceptos SC-200:** Cap. 04 (calidad de ingesta), 05 (almacenamiento/coste). Véase `../../01_FUENTE_ORIGINAL/SC-200.md` (sin trasladar esquemas literalmente).\n- **[S12] Aceleración de data models:** https://help.splunk.com/en/splunk-enterprise/manage-knowledge-objects/knowledge-management-manual/9.1/use-data-summaries-to-accelerate-searches/accelerate-data-models\n- **[S16] Search job inspector avanzado:** https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.2/manage-jobs/view-search-job-properties\n- **[S09] CIM referencia: restricciones, tags y campos:** https://help.splunk.com/en/splunk-enterprise/common-information-model/8.7/data-models/how-to-use-the-cim-data-model-reference-tables\n\n**Estatus de evidencia:** documentación del producto + diseño educativo + cálculos offline sobre fixtures (cuando se indica). No se ha verificado ejecución/compatibilidad específica en Splunk del usuario; revisar con la versión real antes de usar en producción.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "S12",
+      "key": "SPLUNK_LECCIONES_R04_R05:S12",
+      "url": "https://help.splunk.com/en/splunk-enterprise/manage-knowledge-objects/knowledge-management-manual/9.1/use-data-summaries-to-accelerate-searches/accelerate-data-models"
+    },
+    {
+      "id": "S16",
+      "key": "SPLUNK_LECCIONES_R04_R05:S16",
+      "url": "https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.2/manage-jobs/view-search-job-properties"
+    },
+    {
+      "id": "S09",
+      "key": "SPLUNK_LECCIONES_R04_R05:S09",
+      "url": "https://help.splunk.com/en/splunk-enterprise/common-information-model/8.7/data-models/how-to-use-the-cim-data-model-reference-tables"
+    }
+  ]
+}

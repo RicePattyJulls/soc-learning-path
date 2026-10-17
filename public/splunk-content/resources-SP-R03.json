@@ -1,0 +1,53 @@
+{
+  "courseId": "splunk",
+  "regionId": "SP-R03",
+  "lab": "# LAB-R03 — Mini-hunting offline de autenticaciones\n\n**Tipo:** fixture sintética + Python estándar, sin conexión a Splunk.\n\n## Datos\n\n`fixtures/auth_sintetico.csv`. IPs 203.0.113.9, 198.51.100.20 y 192.0.2.25 son rangos de documentación. Usuarios `example.test` son sintéticos; no provienen de tu laboratorio.\n\n## Encargo\n\n1. Filtra `action=failure` en ventana de 15 minutos por timestamp UTC.\n2. Agrupa por `src` y bucket temporal; cuenta eventos y usuarios distintos no vacíos.\n3. Marca como patrón que merece investigación los grupos con **al menos cinco usuarios distintos**.\n4. Explica qué cambia si usas conteo diario en vez de buckets de 15 minutos.\n5. Separa: hechos, hipótesis, datos faltantes y próxima comprobación autorizada.\n6. Diseña equivalente SPL sobre una fuente cuyos campos `action`, `user`, `src` estén confirmados.\n\n## SPL ilustrativo — NO probado en Splunk\n\n```spl\nindex=INDICE_AUTH action=failure earliest=-24h\n| bin _time span=15m\n| stats count AS intentos dc(user) AS cuentas by src _time\n| where cuentas>=5\n```\n\nEste SPL es **orientativo**: nuestro CSV usa `timestamp_utc`, que Splunk deberá mapear correctamente a `_time` al ingerirlo. No ingieras ni configures el laboratorio sin permiso.\n\n## Resultado esperado del fixture\n\n- 203.0.113.9, 09:00–09:14 UTC: 6 eventos de fallo, 5 cuentas únicas → patrón de sospecha; **no** ataque confirmado.\n- 198.51.100.20, 09:00–09:14 UTC: 1 fallo, 1 cuenta → no alcanza umbral.\n- 192.0.2.25, 09:00–09:14 UTC: 1 fallo sin identidad → no alcanza umbral ni demuestra cobertura de usuario.\n- 203.0.113.9, 09:15–09:29 UTC: 1 fallo, 1 cuenta → otro bucket, no se mezcla con el primero.\n\n## Pautas para revisar\n\nUna regla puede clasificar un patrón como sospechoso. Validación real requerirá observar un índice real y comprobar nulos, esquema, alertas posteriores, sesgos por NAT/VPN, baseline y relojes. La prueba offline confirma conteos de una fixture; NO valida el SPL.\n\n## Ejecución de prueba offline opcional\n\nDesde esta carpeta: `python3 scripts/verificar_fixture.py`.\n",
+  "datasets": {
+    "schema_version": "1.0",
+    "revision": "2026-10-16-r1",
+    "package": "SPLUNK_LECCIONES_R01_R03",
+    "scope": "synthetic_csv_contract_offline_only",
+    "splunk_execution": false,
+    "datasets": [
+      {
+        "file": "PRACTICAS/fixtures/auth_sintetico.csv",
+        "sha256": "f9674d6c79e8d027034e75e398801ccddda369fd4fe817e4c54520fc8b9a79ab",
+        "row_count": 10,
+        "columns": [
+          "timestamp_utc",
+          "src",
+          "user",
+          "action",
+          "source"
+        ],
+        "row_id": null,
+        "field_mapping_for_design": {
+          "timestamp_utc": "_time",
+          "src": "src",
+          "user": "user",
+          "action": "action",
+          "source": "source"
+        },
+        "timezone": "UTC where a time/date column exists",
+        "time_bounds": "[start,end)",
+        "snapshot_cutoff": "synthetic_index_time < cutoff",
+        "mapping_executed_in_splunk": false
+      }
+    ],
+    "notes": [
+      "Cada dataset conserva su escenario; una IP coincidente no une escenarios.",
+      "Las asignaciones son diseño; no instalan extracciones, inputs ni lookups.",
+      "_time en el modelo offline es epoch sintético; no es metadata creada en una instancia.",
+      "fixture_index_epoch nunca sustituye al metadato _indextime real.",
+      "TI: inicio inclusivo y expiración exclusiva a medianoche UTC; referencia 2026-10-16T12:00:00Z.",
+      "ServiceName sintético no certifica un SPN nativo; operation_kind no es campo nativo 4662."
+    ]
+  },
+  "note": "Material sintético y documental, sin ingesta, envío HTTP ni ejecución SPL. La ventana relativa es ilustrativa; los conteos pertenecen al CSV fechado en UTC.",
+  "fixture": {
+    "file": "auth_sintetico.csv",
+    "sha256": "f9674d6c79e8d027034e75e398801ccddda369fd4fe817e4c54520fc8b9a79ab",
+    "text": "timestamp_utc,src,user,action,source\r\n2026-10-16T09:01:00Z,203.0.113.9,alice@example.test,failure,idp-demo\r\n2026-10-16T09:02:00Z,203.0.113.9,bob@example.test,failure,idp-demo\r\n2026-10-16T09:03:00Z,203.0.113.9,charlie@example.test,failure,idp-demo\r\n2026-10-16T09:04:00Z,203.0.113.9,david@example.test,failure,idp-demo\r\n2026-10-16T09:05:00Z,203.0.113.9,emma@example.test,failure,idp-demo\r\n2026-10-16T09:06:00Z,203.0.113.9,alice@example.test,failure,idp-demo\r\n2026-10-16T09:07:00Z,198.51.100.20,frank@example.test,failure,idp-demo\r\n2026-10-16T09:08:00Z,198.51.100.20,frank@example.test,success,idp-demo\r\n2026-10-16T09:09:00Z,192.0.2.25,,failure,idp-demo\r\n2026-10-16T09:16:00Z,203.0.113.9,george@example.test,failure,idp-demo\r\n",
+    "synthetic": true
+  }
+}

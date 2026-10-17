@@ -1,0 +1,1215 @@
+{
+  "batch": "10",
+  "lessons": [
+    {
+      "lessonId": "capitulo-11-respuesta-y-remediacion/1-ejecutar-la-accion-sobre-el-activo-1",
+      "introduction": "Trabaja los conceptos de «1 · Ejecutar la acción sobre el activo» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Elegir contención según activo administrado o no administrado.",
+        "Distinguir acciones puntuales, control persistente y estado.",
+        "Verificar resultado por activo y respetar recuperación."
+      ],
+      "summary": [
+        "Elegir contención según activo administrado o no administrado.",
+        "Distinguir acciones puntuales, control persistente y estado.",
+        "Verificar resultado por activo y respetar recuperación.",
+        "Separar revocación de sesiones y remediación de credenciales."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "match",
+          "prompt": "Relaciona acción y efecto de contención.",
+          "explanation": "Aislar actúa sobre el equipo incorporado; contener un no administrado se aplica desde sus vecinos y no instala ni limpia el activo.",
+          "objective": "Elegir contención según gestión del activo.",
+          "difficulty": "intermedia",
+          "id": "v25-60-dispositivos",
+          "evidence": [
+            "| `Isolate device` | Equipo incorporado comprometido: restringe su red y mantiene el canal con MDE | `Release from isolation` |",
+            "| `Contain device` | Dispositivo no administrado sospechoso: los endpoints compatibles incorporados a MDE bloquean su comunicación con él | `Release from containment` |"
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "Isolate device"
+            },
+            {
+              "id": "r1",
+              "label": "Contain device"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "Restringe red del equipo incorporado manteniendo canal MDE",
+              "why": "Aislar actúa sobre el equipo incorporado; contener un no administrado se aplica desde sus vecinos y no instala ni limpia el activo."
+            },
+            {
+              "id": "p1",
+              "text": "Los endpoints MDE vecinos bloquean comunicación con el no administrado",
+              "why": "Aislar actúa sobre el equipo incorporado; contener un no administrado se aplica desde sus vecinos y no instala ni limpia el activo."
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1"
+          ]
+        },
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "Una acción Stop and quarantine no llega porque el equipo sigue offline al agotarse su timeout de entrega. ¿Qué error debe evitarse?",
+          "explanation": "Los tres días descritos son para entrega de la acción; no prueban ni una ejecución exitosa ni una caducidad de cuarentena.",
+          "objective": "Distinguir timeout de entrega y efecto de remediación.",
+          "difficulty": "intermedia",
+          "id": "v25-60-cuarentena-timeout",
+          "evidence": [
+            "- Los tres días son el timeout de entrega de la acción: si el equipo sigue desconectado, no la recibe. No significa que la cuarentena dure tres días. Comprobar `Success`, `Failed` y `Pending` por dispositivo. Restaurar exige haber confirmado que el archivo es legítimo. [Learn: archivos](https://learn.microsoft.com/en-us/defender-endpoint/respond-file-alerts)."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Comprobar Pending/Failed/Success por dispositivo.",
+              "why": "El texto exige comprobar el resultado individual."
+            },
+            {
+              "id": "o1",
+              "text": "Distinguir bloquear futuras ejecuciones de retirar el fichero observado.",
+              "why": "La lectura diferencia cuarentena puntual y control persistente."
+            },
+            {
+              "id": "o2",
+              "text": "Interpretar ese timeout como duración de la cuarentena.",
+              "why": "Los tres días descritos son para entrega de la acción; no prueban ni una ejecución exitosa ni una caducidad de cuarentena."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Una cuenta tiene credenciales robadas. ¿Por qué Dismiss risk no sustituye su remediación?",
+          "explanation": "Cerrar un estado no elimina la causa: la cuenta y sus credenciales requieren las acciones apropiadas y verificación posterior.",
+          "objective": "Distinguir estado de riesgo y neutralización de amenaza.",
+          "difficulty": "intermedia",
+          "id": "v25-60-dismiss",
+          "evidence": [
+            "- `Dismiss risk` (descartar) y remediar no son equivalentes: descartar cambia el estado del riesgo, pero no neutraliza credenciales robadas. [Learn: remediar riesgos](https://learn.microsoft.com/en-us/entra/id-protection/howto-identity-protection-remediate-unblock)."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Porque descartar siempre cambia la contraseña automáticamente.",
+              "why": "El apartado niega ese efecto."
+            },
+            {
+              "id": "o1",
+              "text": "Porque confirmar compromiso y revocar sesiones son la misma operación.",
+              "why": "El texto separa estado, contención y cambio de credenciales."
+            },
+            {
+              "id": "o2",
+              "text": "Cambia el estado de riesgo, pero no neutraliza las credenciales.",
+              "why": "Cerrar un estado no elimina la causa: la cuenta y sus credenciales requieren las acciones apropiadas y verificación posterior."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Se revocaron refresh tokens. ¿Qué límite de recuperación de acceso recuerda el texto?",
+          "explanation": "Bloqueo de cuenta, revocación de tokens y sesiones de aplicación son controles relacionados pero no equivalentes.",
+          "objective": "Interpretar alcance de revocación de acceso.",
+          "difficulty": "intermedia",
+          "id": "v25-60-revocar",
+          "evidence": [
+            "- Deshabilitar y revocar tampoco son equivalentes: bloquear la cuenta impide obtener nuevo acceso; revocar refresh tokens no garantiza que todos los access tokens y sesiones de aplicaciones terminen inmediatamente. CAE acelera la invalidación en aplicaciones compatibles; las sesiones propias de una aplicación requieren su mecanismo de revocación. En identidades híbridas, actuar también sobre el origen de Active Directory. [Learn: revocar acceso](https://learn.microsoft.com/en-us/entra/identity/users/users-revoke-access)."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "No garantiza terminar inmediatamente todos los access tokens ni sesiones propias de aplicaciones.",
+              "why": "Bloqueo de cuenta, revocación de tokens y sesiones de aplicación son controles relacionados pero no equivalentes."
+            },
+            {
+              "id": "o1",
+              "text": "Garantiza por definición el cierre inmediato de toda sesión en cualquier app.",
+              "why": "La lectura conserva límites y mecanismos propios de revocación."
+            },
+            {
+              "id": "o2",
+              "text": "Restablece automáticamente todas las contraseñas de AD híbrido.",
+              "why": "El texto exige actuar también sobre el origen de identidad cuando corresponde."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Un mensaje recibió Hard delete. ¿Qué matiz debe conservarse según el apartado?",
+          "explanation": "El efecto para el usuario no describe por sí solo todas las obligaciones o mecanismos de conservación del servicio.",
+          "objective": "Distinguir eliminación de usuario y conservación administrativa.",
+          "difficulty": "intermedia",
+          "id": "v25-60-hard-delete",
+          "evidence": [
+            "- `Hard delete` no significa siempre irrecuperable: con `single-item recovery` o una conservación aplicable, un administrador puede restaurarlo. Aparte de eso, la ubicación decide si el mensaje admite una acción de remediación desde `Explorer`: correo on-premises/externo, `failed`/`dropped` o ya `hard-deleted` no cuentan como accionables del buzón cloud."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Es siempre irrecuperable en toda circunstancia.",
+              "why": "El texto menciona excepciones de recuperación administrativa."
+            },
+            {
+              "id": "o1",
+              "text": "Solo cambió a Junk y sigue igual para el usuario.",
+              "why": "Mover a Junk es una acción distinta de Hard delete."
+            },
+            {
+              "id": "o2",
+              "text": "Se purga para el usuario, pero podría existir recuperación administrativa por conservación o single-item recovery.",
+              "why": "El efecto para el usuario no describe por sí solo todas las obligaciones o mecanismos de conservación del servicio."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Una alerta MDC se cambia a resuelta tras revisar el contexto. ¿Qué comprobación sigue siendo necesaria?",
+          "explanation": "El registro del caso y la acción sobre el recurso deben comprobarse por separado.",
+          "objective": "No confundir cierre administrativo y corrección técnica.",
+          "difficulty": "intermedia",
+          "id": "v25-60-mdc-remediar",
+          "evidence": [
+            "Aplicar la corrección al recurso y verificarla antes de dar la alerta por atendida. **Cambiar su estado no ejecuta la remediación.** [Learn: responder en MDC](https://learn.microsoft.com/en-us/azure/defender-for-cloud/manage-respond-alerts)."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Ninguna: el cambio de estado rota automáticamente los secretos afectados.",
+              "why": "El texto niega que cambiar estado ejecute remediación."
+            },
+            {
+              "id": "o1",
+              "text": "Solo crear una suppression rule para eliminar la amenaza.",
+              "why": "Suprimir alertas reduce ruido, no remedia el activo."
+            },
+            {
+              "id": "o2",
+              "text": "Que la corrección del recurso se ejecutó y se verificó; el estado no la ejecuta.",
+              "why": "El registro del caso y la acción sobre el recurso deben comprobarse por separado."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [
+        "No se evalúan cambios fechados de AIR ni límites de entrega/dispositivos como garantías de vigencia; el timeout se usa para distinguir conceptos."
+      ],
+      "audit": {
+        "mainConcepts": [
+          "Elegir contención según activo administrado o no administrado.",
+          "Distinguir acciones puntuales, control persistente y estado.",
+          "Verificar resultado por activo y respetar recuperación.",
+          "Separar revocación de sesiones y remediación de credenciales."
+        ],
+        "understanding": [
+          "Elegir contención según activo administrado o no administrado.",
+          "Distinguir acciones puntuales, control persistente y estado.",
+          "Verificar resultado por activo y respetar recuperación."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Elegir contención según activo administrado o no administrado.",
+          "Distinguir acciones puntuales, control persistente y estado.",
+          "Verificar resultado por activo y respetar recuperación.",
+          "Separar revocación de sesiones y remediación de credenciales."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "El texto exige comprobar el resultado individual.",
+          "La lectura diferencia cuarentena puntual y control persistente.",
+          "El apartado niega ese efecto.",
+          "El texto separa estado, contención y cambio de credenciales.",
+          "La lectura conserva límites y mecanismos propios de revocación."
+        ],
+        "evidence": [
+          "| `Isolate device` | Equipo incorporado comprometido: restringe su red y mantiene el canal con MDE | `Release from isolation` |",
+          "| `Contain device` | Dispositivo no administrado sospechoso: los endpoints compatibles incorporados a MDE bloquean su comunicación con él | `Release from containment` |",
+          "- Los tres días son el timeout de entrega de la acción: si el equipo sigue desconectado, no la recibe. No significa que la cuarentena dure tres días. Comprobar `Success`, `Failed` y `Pending` por dispositivo. Restaurar exige haber confirmado que el archivo es legítimo. [Learn: archivos](https://learn.microsoft.com/en-us/defender-endpoint/respond-file-alerts).",
+          "- `Dismiss risk` (descartar) y remediar no son equivalentes: descartar cambia el estado del riesgo, pero no neutraliza credenciales robadas. [Learn: remediar riesgos](https://learn.microsoft.com/en-us/entra/id-protection/howto-identity-protection-remediate-unblock).",
+          "- Deshabilitar y revocar tampoco son equivalentes: bloquear la cuenta impide obtener nuevo acceso; revocar refresh tokens no garantiza que todos los access tokens y sesiones de aplicaciones terminen inmediatamente. CAE acelera la invalidación en aplicaciones compatibles; las sesiones propias de una aplicación requieren su mecanismo de revocación. En identidades híbridas, actuar también sobre el origen de Active Directory. [Learn: revocar acceso](https://learn.microsoft.com/en-us/entra/identity/users/users-revoke-access).",
+          "- `Hard delete` no significa siempre irrecuperable: con `single-item recovery` o una conservación aplicable, un administrador puede restaurarlo. Aparte de eso, la ubicación decide si el mensaje admite una acción de remediación desde `Explorer`: correo on-premises/externo, `failed`/`dropped` o ya `hard-deleted` no cuentan como accionables del buzón cloud.",
+          "Aplicar la corrección al recurso y verificarla antes de dar la alerta por atendida. **Cambiar su estado no ejecuta la remediación.** [Learn: responder en MDC](https://learn.microsoft.com/en-us/azure/defender-for-cloud/manage-respond-alerts)."
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-11-respuesta-y-remediacion/2-live-response-para-remediar-1",
+      "introduction": "Trabaja los conceptos de «2 · Live response para remediar» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Relacionar comandos live response con su efecto.",
+        "Confirmar resultado en Command log.",
+        "No equiparar cancelar en portal y detener en agente."
+      ],
+      "summary": [
+        "Relacionar comandos live response con su efecto.",
+        "Confirmar resultado en Command log.",
+        "No equiparar cancelar en portal y detener en agente."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "match",
+          "prompt": "Relaciona comando y uso de respuesta.",
+          "explanation": "Copiar un archivo no equivale a ejecutarlo; revertir depende de compatibilidad y no es una garantía universal.",
+          "objective": "Elegir comando por efecto requerido.",
+          "difficulty": "intermedia",
+          "id": "v25-61-comandos",
+          "evidence": [
+            "| `run` | Ejecuta un script previamente cargado en la library |",
+            "| `putfile` | Copia al equipo un archivo de la library |",
+            "| `remediate` | Elimina un archivo/entrada de registro/tarea; detiene procesos o servicios y elimina su ejecutable según el tipo |",
+            "| `undo` | Revierte una remediación compatible; depende del sistema operativo |"
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "run"
+            },
+            {
+              "id": "r1",
+              "label": "putfile"
+            },
+            {
+              "id": "r2",
+              "label": "remediate"
+            },
+            {
+              "id": "r3",
+              "label": "undo"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "Ejecutar script previamente cargado en library",
+              "why": "Copiar un archivo no equivale a ejecutarlo; revertir depende de compatibilidad y no es una garantía universal."
+            },
+            {
+              "id": "p1",
+              "text": "Copiar al equipo un archivo de library",
+              "why": "Copiar un archivo no equivale a ejecutarlo; revertir depende de compatibilidad y no es una garantía universal."
+            },
+            {
+              "id": "p2",
+              "text": "Eliminar/detener objetos según el tipo",
+              "why": "Copiar un archivo no equivale a ejecutarlo; revertir depende de compatibilidad y no es una garantía universal."
+            },
+            {
+              "id": "p3",
+              "text": "Revertir una remediación compatible según el sistema",
+              "why": "Copiar un archivo no equivale a ejecutarlo; revertir depende de compatibilidad y no es una garantía universal."
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1",
+            "p2",
+            "p3"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Se pulsa Ctrl+C en el portal durante una operación live response. ¿Qué debe evitar suponerse?",
+          "explanation": "La cancelación en la interfaz no garantiza parar el trabajo remoto; el estado real debe verificarse.",
+          "objective": "Interpretar cancelación distribuida.",
+          "difficulty": "intermedia",
+          "id": "v25-61-cancelar",
+          "evidence": [
+            "Límites: una sesión por dispositivo, cinco por usuario y 50 simultáneas en el servicio; cierre tras 30 minutos de inactividad. Comandos: 10 minutos, excepto `getfile`, `findfile` y `run`, con 30. `Ctrl+C` cancela en el portal, pero no garantiza detener la operación en el agente. [Learn: Live response](https://learn.microsoft.com/en-us/defender-endpoint/live-response)."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Que el portal permite cancelar la operación visible.",
+              "why": "Esa es precisamente la acción descrita para Ctrl+C."
+            },
+            {
+              "id": "o1",
+              "text": "Que la operación quedó necesariamente detenida en el agente.",
+              "why": "La cancelación en la interfaz no garantiza parar el trabajo remoto; el estado real debe verificarse."
+            },
+            {
+              "id": "o2",
+              "text": "Que debe comprobarse el resultado real.",
+              "why": "El apartado indica revisar Command log."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Tras ejecutar remediate, ¿dónde indica el ejemplo comprobar el resultado?",
+          "explanation": "La ejecución remota requiere evidencia del resultado, no solo de que se envió una orden.",
+          "objective": "Verificar resultado de una acción remota.",
+          "difficulty": "intermedia",
+          "id": "v25-61-confirmar",
+          "evidence": [
+            "Ejemplo: `remediate file <ruta> -auto` ejecuta automáticamente el paso previo necesario. Revisar `Command log` para confirmar resultado."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Solo en el título actualizado del incidente.",
+              "why": "El título no es el registro de resultado del comando."
+            },
+            {
+              "id": "o1",
+              "text": "Command log.",
+              "why": "La ejecución remota requiere evidencia del resultado, no solo de que se envió una orden."
+            },
+            {
+              "id": "o2",
+              "text": "Solo en que la consola aceptó el texto del comando.",
+              "why": "Aceptar la orden no demuestra éxito de ejecución."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [],
+      "audit": {
+        "mainConcepts": [
+          "Relacionar comandos live response con su efecto.",
+          "Confirmar resultado en Command log.",
+          "No equiparar cancelar en portal y detener en agente."
+        ],
+        "understanding": [
+          "Relacionar comandos live response con su efecto.",
+          "Confirmar resultado en Command log.",
+          "No equiparar cancelar en portal y detener en agente."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Relacionar comandos live response con su efecto.",
+          "Confirmar resultado en Command log.",
+          "No equiparar cancelar en portal y detener en agente."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "Esa es precisamente la acción descrita para Ctrl+C.",
+          "El apartado indica revisar Command log.",
+          "El título no es el registro de resultado del comando.",
+          "Aceptar la orden no demuestra éxito de ejecución."
+        ],
+        "evidence": [
+          "| `run` | Ejecuta un script previamente cargado en la library |",
+          "| `putfile` | Copia al equipo un archivo de la library |",
+          "| `remediate` | Elimina un archivo/entrada de registro/tarea; detiene procesos o servicios y elimina su ejecutable según el tipo |",
+          "| `undo` | Revierte una remediación compatible; depende del sistema operativo |",
+          "Límites: una sesión por dispositivo, cinco por usuario y 50 simultáneas en el servicio; cierre tras 30 minutos de inactividad. Comandos: 10 minutos, excepto `getfile`, `findfile` y `run`, con 30. `Ctrl+C` cancela en el portal, pero no garantiza detener la operación en el agente. [Learn: Live response](https://learn.microsoft.com/en-us/defender-endpoint/live-response).",
+          "Ejemplo: `remediate file <ruta> -auto` ejecuta automáticamente el paso previo necesario. Revisar `Command log` para confirmar resultado."
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-12-automatizacion/12-automatizacion-1",
+      "introduction": "Trabaja los conceptos de «12 · Automatización» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Definir trigger, alcance y pasos automáticos.",
+        "Distinguir respuesta automática y aprobaciones.",
+        "Cerrar el ciclo con comprobación y seguimiento."
+      ],
+      "summary": [
+        "Definir trigger, alcance y pasos automáticos.",
+        "Distinguir respuesta automática y aprobaciones.",
+        "Cerrar el ciclo con comprobación y seguimiento."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "¿Qué tres decisiones forman la definición de automatizar del apartado?",
+          "explanation": "Automatizar expresa un proceso condicionado y acotado, no repetición indiscriminada.",
+          "objective": "Definir una automatización con límites operativos.",
+          "difficulty": "intermedia",
+          "id": "v25-64-alcance",
+          "evidence": [
+            "Automatizar es definir qué inicia una respuesta, sobre qué alcance actúa y qué pasos ejecuta sin repetirlos manualmente. Puede investigar, contener, enriquecer, actualizar incidentes o notificar; no se limita a ataques que la organización ya haya visto."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Qué inicia la respuesta, sobre qué alcance actúa y qué pasos ejecuta.",
+              "why": "Automatizar expresa un proceso condicionado y acotado, no repetición indiscriminada."
+            },
+            {
+              "id": "o1",
+              "text": "Solo elegir una severidad sin condiciones ni acciones.",
+              "why": "La definición incluye inicio, alcance y pasos."
+            },
+            {
+              "id": "o2",
+              "text": "Solo repetir siempre el último comando manual en cualquier activo.",
+              "why": "El alcance y las condiciones impiden esa generalización."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "¿Se limita la automatización descrita a ataques que la organización ya haya visto?",
+          "explanation": "El proceso puede responder a señales/cambios y condiciones, no solo copiar respuestas históricas idénticas.",
+          "objective": "Reconocer el ámbito de automatización.",
+          "difficulty": "intermedia",
+          "id": "v25-64-ataques-nuevos",
+          "evidence": [
+            "Automatizar es definir qué inicia una respuesta, sobre qué alcance actúa y qué pasos ejecuta sin repetirlos manualmente. Puede investigar, contener, enriquecer, actualizar incidentes o notificar; no se limita a ataques que la organización ya haya visto."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Sí; solo repite remediaciones manuales ya aprobadas una vez.",
+              "why": "El texto incluye más finalidades y aprobación como posible parte del flujo."
+            },
+            {
+              "id": "o1",
+              "text": "No; puede investigar, contener, enriquecer, actualizar o notificar sin esa restricción.",
+              "why": "El proceso puede responder a señales/cambios y condiciones, no solo copiar respuestas históricas idénticas."
+            },
+            {
+              "id": "o2",
+              "text": "Sí; necesita siempre un incidente idéntico ya cerrado.",
+              "why": "La introducción niega que se limite a ataques vistos."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "El flujo automático ya ejecutó una acción. ¿Qué aparece después en el recorrido?",
+          "explanation": "Una automatización sigue necesitando verificación operativa; disparar, ejecutar y completar con éxito son estados distintos.",
+          "objective": "Cerrar el ciclo de ejecución con verificación.",
+          "difficulty": "intermedia",
+          "id": "v25-64-ciclo",
+          "evidence": [
+            "comprobar resultado → notificar → seguimiento en # 11"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Omitir el alcance porque la ejecución fue automática.",
+              "why": "Las condiciones y el alcance se comprueban antes y no se anulan por automatizar."
+            },
+            {
+              "id": "o1",
+              "text": "Comprobar resultado, notificar y dar seguimiento.",
+              "why": "Una automatización sigue necesitando verificación operativa; disparar, ejecutar y completar con éxito son estados distintos."
+            },
+            {
+              "id": "o2",
+              "text": "Declarar éxito por haberse disparado el trigger.",
+              "why": "El trigger inicia el flujo, no certifica sus resultados."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [],
+      "audit": {
+        "mainConcepts": [
+          "Definir trigger, alcance y pasos automáticos.",
+          "Distinguir respuesta automática y aprobaciones.",
+          "Cerrar el ciclo con comprobación y seguimiento."
+        ],
+        "understanding": [
+          "Definir trigger, alcance y pasos automáticos.",
+          "Distinguir respuesta automática y aprobaciones.",
+          "Cerrar el ciclo con comprobación y seguimiento."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Definir trigger, alcance y pasos automáticos.",
+          "Distinguir respuesta automática y aprobaciones.",
+          "Cerrar el ciclo con comprobación y seguimiento."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "La definición incluye inicio, alcance y pasos.",
+          "El alcance y las condiciones impiden esa generalización.",
+          "El texto incluye más finalidades y aprobación como posible parte del flujo.",
+          "La introducción niega que se limite a ataques vistos.",
+          "Las condiciones y el alcance se comprueban antes y no se anulan por automatizar."
+        ],
+        "evidence": [
+          "Automatizar es definir qué inicia una respuesta, sobre qué alcance actúa y qué pasos ejecuta sin repetirlos manualmente. Puede investigar, contener, enriquecer, actualizar incidentes o notificar; no se limita a ataques que la organización ya haya visto.",
+          "Automatizar es definir qué inicia una respuesta, sobre qué alcance actúa y qué pasos ejecuta sin repetirlos manualmente. Puede investigar, contener, enriquecer, actualizar incidentes o notificar; no se limita a ataques que la organización ya haya visto.",
+          "comprobar resultado → notificar → seguimiento en # 11"
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-12-automatizacion/1-automatizacion-nativa-de-defender-1",
+      "introduction": "Trabaja los conceptos de «1 · Automatización nativa de Defender» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Separar reevaluación ZAP, AIR y attack disruption.",
+        "Distinguir aprobación MDO y configuración MDE.",
+        "No extrapolar niveles de AIR a contención de ataques."
+      ],
+      "summary": [
+        "Separar reevaluación ZAP, AIR y attack disruption.",
+        "Distinguir aprobación MDO y configuración MDE.",
+        "No extrapolar niveles de AIR a contención de ataques."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "Según el apartado, ¿qué distingue ZAP para spam de ZAP para malware/phishing?",
+          "explanation": "El veredicto y las policies aplicables determinan el alcance de la reevaluación posterior a la entrega.",
+          "objective": "Interpretar condiciones de una remediación post-entrega.",
+          "difficulty": "intermedia",
+          "id": "v25-65-zap-lectura",
+          "evidence": [
+            "`Zero-hour auto purge` vuelve a evaluar correo ya entregado y actúa si resulta malicioso. En correo revisa las últimas 48 horas, conforme al veredicto y las políticas aplicables; funciona en buzones cloud, no en buzones locales. Distinción de examen: para spam solo actúa sobre mensajes no leídos; para malware, phishing y high confidence phishing actúa sobre leídos y no leídos. No necesita que el SOC apruebe una remediación AIR."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Todo ZAP espera aprobación de remediación AIR del SOC.",
+              "why": "El texto niega esa necesidad de aprobación AIR."
+            },
+            {
+              "id": "o1",
+              "text": "Para spam actúa sobre no leídos; para malware/phishing también sobre leídos.",
+              "why": "El veredicto y las policies aplicables determinan el alcance de la reevaluación posterior a la entrega."
+            },
+            {
+              "id": "o2",
+              "text": "Todos los veredictos solo actúan antes de entregar.",
+              "why": "ZAP reevalúa correo ya entregado."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Quieres configurar remediación automática AIR de MDO. ¿Qué superficie de aprobación corresponde al texto?",
+          "explanation": "Compartir el nombre AIR no significa compartir controles de aprobación entre productos.",
+          "objective": "Elegir configuración de aprobación por producto.",
+          "difficulty": "intermedia",
+          "id": "v25-65-mdo-aprobacion",
+          "evidence": [
+            "MDO Plan 2: la remediación de AIR requiere aprobación por defecto. En `Settings > Email & collaboration > MDO automation settings` se puede autorizar `Soft delete` automático para clusters de archivos similares, URL similares o varios atributos comunes. Los clusters no seleccionados y los de más de 10.000 mensajes quedan pendientes. No se gobierna mediante device groups de MDE."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Siempre el automation level del device group MDE.",
+              "why": "El apartado separa explícitamente el gobierno de MDO."
+            },
+            {
+              "id": "o1",
+              "text": "Solo una regla Allow de indicadores de ficheros.",
+              "why": "Ese control no configura la aprobación de remediación de correo."
+            },
+            {
+              "id": "o2",
+              "text": "MDO automation settings de Email & collaboration, no device groups de MDE.",
+              "why": "Compartir el nombre AIR no significa compartir controles de aprobación entre productos."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "¿Qué diferencia a Automatic attack disruption de un playbook escrito por el SOC?",
+          "explanation": "La respuesta nativa administrada tiene acciones y requisitos propios; no es una definición SOAR personalizada.",
+          "objective": "Distinguir respuesta nativa y orquestación propia.",
+          "difficulty": "intermedia",
+          "id": "v25-65-disruption",
+          "evidence": [
+            "Automatic attack disruption es una función que, cuando detecta señales de mucha confianza de que hay un ataque en curso, actúa sola: aísla o corta el acceso de lo que está comprometido. No es un playbook que alguien escribe para cada caso, es lógica ya armada por Microsoft. El analista solo puede ajustar requisitos y excepciones, no redactar la respuesta."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Es lógica Microsoft que contiene señales de ataque de alta confianza; el analista ajusta requisitos/excepciones.",
+              "why": "La respuesta nativa administrada tiene acciones y requisitos propios; no es una definición SOAR personalizada."
+            },
+            {
+              "id": "o1",
+              "text": "El analista redacta su algoritmo como una Logic App por cada caso.",
+              "why": "El texto niega que sea un playbook de autoría por caso."
+            },
+            {
+              "id": "o2",
+              "text": "Solo produce un resumen y nunca puede actuar.",
+              "why": "La función descrita aísla o corta acceso automáticamente."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Un device group MDE está en Semi. ¿Qué advertencia da el apartado sobre attack disruption?",
+          "explanation": "No deben trasladarse reglas de aprobación de un mecanismo a otro por compartir la palabra automatización.",
+          "objective": "Evitar extrapolar aprobaciones entre mecanismos.",
+          "difficulty": "intermedia",
+          "id": "v25-65-semi-disruption",
+          "evidence": [
+            "Un detalle importante: si `MDE` está configurado en nivel `Semi` (automatización semi-automática, que normalmente pide aprobación antes de actuar), eso no aplica acá, attack disruption puede contener el dispositivo igual, sin pedir aprobación previa. Y si a un device group se le puso la etiqueta `No automated response`, ese grupo queda afuera, no lo toca."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Toda contención de attack disruption queda siempre esperando aprobación Semi.",
+              "why": "El párrafo indica que esa condición no se aplica igual."
+            },
+            {
+              "id": "o1",
+              "text": "Semi equivale por definición a No automated response.",
+              "why": "El texto distingue ambos niveles y sus efectos."
+            },
+            {
+              "id": "o2",
+              "text": "Puede contener sin esa aprobación previa; Semi no se traslada automáticamente a ese mecanismo.",
+              "why": "No deben trasladarse reglas de aprobación de un mecanismo a otro por compartir la palabra automatización."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [
+        "La transición de AIR MDE desde septiembre de 2026 y su tabla de niveles históricos requieren revisión adicional; las preguntas no afirman que siga disponible como experiencia separada. Predictive shielding preview no se evalúa."
+      ],
+      "audit": {
+        "mainConcepts": [
+          "Separar reevaluación ZAP, AIR y attack disruption.",
+          "Distinguir aprobación MDO y configuración MDE.",
+          "No extrapolar niveles de AIR a contención de ataques."
+        ],
+        "understanding": [
+          "Separar reevaluación ZAP, AIR y attack disruption.",
+          "Distinguir aprobación MDO y configuración MDE.",
+          "No extrapolar niveles de AIR a contención de ataques."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Separar reevaluación ZAP, AIR y attack disruption.",
+          "Distinguir aprobación MDO y configuración MDE.",
+          "No extrapolar niveles de AIR a contención de ataques."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "El texto niega esa necesidad de aprobación AIR.",
+          "ZAP reevalúa correo ya entregado.",
+          "El apartado separa explícitamente el gobierno de MDO.",
+          "Ese control no configura la aprobación de remediación de correo.",
+          "El texto niega que sea un playbook de autoría por caso."
+        ],
+        "evidence": [
+          "`Zero-hour auto purge` vuelve a evaluar correo ya entregado y actúa si resulta malicioso. En correo revisa las últimas 48 horas, conforme al veredicto y las políticas aplicables; funciona en buzones cloud, no en buzones locales. Distinción de examen: para spam solo actúa sobre mensajes no leídos; para malware, phishing y high confidence phishing actúa sobre leídos y no leídos. No necesita que el SOC apruebe una remediación AIR.",
+          "MDO Plan 2: la remediación de AIR requiere aprobación por defecto. En `Settings > Email & collaboration > MDO automation settings` se puede autorizar `Soft delete` automático para clusters de archivos similares, URL similares o varios atributos comunes. Los clusters no seleccionados y los de más de 10.000 mensajes quedan pendientes. No se gobierna mediante device groups de MDE.",
+          "Automatic attack disruption es una función que, cuando detecta señales de mucha confianza de que hay un ataque en curso, actúa sola: aísla o corta el acceso de lo que está comprometido. No es un playbook que alguien escribe para cada caso, es lógica ya armada por Microsoft. El analista solo puede ajustar requisitos y excepciones, no redactar la respuesta.",
+          "Un detalle importante: si `MDE` está configurado en nivel `Semi` (automatización semi-automática, que normalmente pide aprobación antes de actuar), eso no aplica acá, attack disruption puede contener el dispositivo igual, sin pedir aprobación previa. Y si a un device group se le puso la etiqueta `No automated response`, ese grupo queda afuera, no lo toca."
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-12-automatizacion/2-reglas-de-automatizacion-de-sentinel-1",
+      "introduction": "Trabaja los conceptos de «2 · Reglas de automatización de Sentinel» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Separar automatización de detección.",
+        "Interpretar orden, cambios y prevención de bucles.",
+        "Ubicar dependencias dentro de un workflow largo."
+      ],
+      "summary": [
+        "Separar automatización de detección.",
+        "Interpretar orden, cambios y prevención de bucles.",
+        "Ubicar dependencias dentro de un workflow largo."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "Una automation rule cambia propietario y ejecuta playbook al crearse un incidente. ¿Qué no hace por sí misma?",
+          "explanation": "La regla organiza respuesta después de detectar; no sustituye la lógica que produjo la alerta.",
+          "objective": "Separar productor de señal y organizador de respuesta.",
+          "difficulty": "intermedia",
+          "id": "v25-66-no-detecta",
+          "evidence": [
+            "Una `automation rule` es la capa que organiza la respuesta después de que algo ya fue detectado por una regla analítica (`Scheduled`, `NRT`, etc.): define trigger (cuándo se dispara, por ejemplo al crearse un incidente), condiciones y acciones (cambiar propietario, estado o severidad, agregar etiquetas o tareas, ejecutar un playbook), sin detectar nada por sí misma. El trigger estándar de alerta cubre reglas `Scheduled`, `NRT` y `Microsoft security`; no cubre directamente alertas XDR"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Reaccionar a cambios según el trigger configurado.",
+              "why": "El apartado incluye triggers de creación y actualización."
+            },
+            {
+              "id": "o1",
+              "text": "Detectar la amenaza con una consulta analítica.",
+              "why": "La regla organiza respuesta después de detectar; no sustituye la lógica que produjo la alerta."
+            },
+            {
+              "id": "o2",
+              "text": "Evaluar condiciones y actuar tras el trigger.",
+              "why": "Ese es el papel de la automation rule."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Dos reglas del mismo trigger tienen números de orden distintos. ¿Qué comportamiento describe el apartado?",
+          "explanation": "El número influye en la composición de cambios; un empate no establece una prioridad determinista.",
+          "objective": "Razonar sobre composición de automatizaciones.",
+          "difficulty": "intermedia",
+          "id": "v25-66-orden",
+          "evidence": [
+            "Las `automation rules` de un mismo trigger corren en orden ascendente por número, y cada regla ve los cambios que dejó la anterior; si dos quedan empatadas en el mismo número, no hay garantía de cuál corre primero. `Updated by` sirve para evitar bucles, marcando quién hizo el último cambio y permitiendo cortar si fue la propia regla. Una regla con fecha de expiración se desactiva sola al llegar esa fecha. Y si el playbook que dispara la regla tarda más de dos minutos, la regla sigue de largo sin esperarlo, por eso cualquier paso que dependa de que el playbook termine debe ir dentro del propio playbook, no como acción separada después (Automation Rule → Playbook largo → dentro del playbook haces A → esperar → B → C)"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Empatar el número garantiza ejecutar antes la más antigua.",
+              "why": "El apartado niega garantía de orden en empate."
+            },
+            {
+              "id": "o1",
+              "text": "Corren en orden ascendente y cada una ve los cambios de la anterior.",
+              "why": "El número influye en la composición de cambios; un empate no establece una prioridad determinista."
+            },
+            {
+              "id": "o2",
+              "text": "Todas ven siempre un snapshot inmutable previo a cualquier regla.",
+              "why": "El texto dice que ven cambios anteriores."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Una regla reacciona a cambios que ella misma produce y vuelve a dispararse. ¿Qué campo propone el texto para cortarlo?",
+          "explanation": "Identificar quién hizo el último cambio permite evitar reaccionar de nuevo al cambio de la propia regla.",
+          "objective": "Diseñar prevención de bucles de automatización.",
+          "difficulty": "intermedia",
+          "id": "v25-66-bucle",
+          "evidence": [
+            "Las `automation rules` de un mismo trigger corren en orden ascendente por número, y cada regla ve los cambios que dejó la anterior; si dos quedan empatadas en el mismo número, no hay garantía de cuál corre primero. `Updated by` sirve para evitar bucles, marcando quién hizo el último cambio y permitiendo cortar si fue la propia regla. Una regla con fecha de expiración se desactiva sola al llegar esa fecha. Y si el playbook que dispara la regla tarda más de dos minutos, la regla sigue de largo sin esperarlo, por eso cualquier paso que dependa de que el playbook termine debe ir dentro del propio playbook, no como acción separada después (Automation Rule → Playbook largo → dentro del playbook haces A → esperar → B → C)"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Updated by.",
+              "why": "Identificar quién hizo el último cambio permite evitar reaccionar de nuevo al cambio de la propia regla."
+            },
+            {
+              "id": "o1",
+              "text": "Solo repetir el mismo número de prioridad en todas.",
+              "why": "Empatar prioridades no distingue el autor del cambio."
+            },
+            {
+              "id": "o2",
+              "text": "Solo ampliar la fecha de expiración indefinidamente.",
+              "why": "Expiración controla cuándo se desactiva, no identifica cambios propios."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Un playbook tarda más de dos minutos y el paso B depende de que termine A. ¿Dónde deben quedar esos pasos según el ejemplo?",
+          "explanation": "Orden de disparo y finalización de un workflow asíncrono no son equivalentes; la dependencia debe expresarse dentro del workflow.",
+          "objective": "Ubicar dependencias de ejecución asíncrona.",
+          "difficulty": "intermedia",
+          "id": "v25-66-dependencia",
+          "evidence": [
+            "Las `automation rules` de un mismo trigger corren en orden ascendente por número, y cada regla ve los cambios que dejó la anterior; si dos quedan empatadas en el mismo número, no hay garantía de cuál corre primero. `Updated by` sirve para evitar bucles, marcando quién hizo el último cambio y permitiendo cortar si fue la propia regla. Una regla con fecha de expiración se desactiva sola al llegar esa fecha. Y si el playbook que dispara la regla tarda más de dos minutos, la regla sigue de largo sin esperarlo, por eso cualquier paso que dependa de que el playbook termine debe ir dentro del propio playbook, no como acción separada después (Automation Rule → Playbook largo → dentro del playbook haces A → esperar → B → C)"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Dentro del propio playbook, con su secuencia/espera.",
+              "why": "Orden de disparo y finalización de un workflow asíncrono no son equivalentes; la dependencia debe expresarse dentro del workflow."
+            },
+            {
+              "id": "o1",
+              "text": "Como acción separada posterior en la automation rule asumiendo que espera siempre.",
+              "why": "La regla puede continuar sin esperar al playbook largo."
+            },
+            {
+              "id": "o2",
+              "text": "En dos reglas con el mismo número para garantizar sincronización.",
+              "why": "El empate no garantiza orden y no resuelve la espera."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [
+        "Simple Flows y límites de Enhanced Alert Trigger son extensiones cambiantes; no se evalúan como equivalentes al trigger estándar."
+      ],
+      "audit": {
+        "mainConcepts": [
+          "Separar automatización de detección.",
+          "Interpretar orden, cambios y prevención de bucles.",
+          "Ubicar dependencias dentro de un workflow largo."
+        ],
+        "understanding": [
+          "Separar automatización de detección.",
+          "Interpretar orden, cambios y prevención de bucles.",
+          "Ubicar dependencias dentro de un workflow largo."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Separar automatización de detección.",
+          "Interpretar orden, cambios y prevención de bucles.",
+          "Ubicar dependencias dentro de un workflow largo."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "El apartado incluye triggers de creación y actualización.",
+          "Ese es el papel de la automation rule.",
+          "El apartado niega garantía de orden en empate.",
+          "El texto dice que ven cambios anteriores.",
+          "Empatar prioridades no distingue el autor del cambio."
+        ],
+        "evidence": [
+          "Una `automation rule` es la capa que organiza la respuesta después de que algo ya fue detectado por una regla analítica (`Scheduled`, `NRT`, etc.): define trigger (cuándo se dispara, por ejemplo al crearse un incidente), condiciones y acciones (cambiar propietario, estado o severidad, agregar etiquetas o tareas, ejecutar un playbook), sin detectar nada por sí misma. El trigger estándar de alerta cubre reglas `Scheduled`, `NRT` y `Microsoft security`; no cubre directamente alertas XDR",
+          "Las `automation rules` de un mismo trigger corren en orden ascendente por número, y cada regla ve los cambios que dejó la anterior; si dos quedan empatadas en el mismo número, no hay garantía de cuál corre primero. `Updated by` sirve para evitar bucles, marcando quién hizo el último cambio y permitiendo cortar si fue la propia regla. Una regla con fecha de expiración se desactiva sola al llegar esa fecha. Y si el playbook que dispara la regla tarda más de dos minutos, la regla sigue de largo sin esperarlo, por eso cualquier paso que dependa de que el playbook termine debe ir dentro del propio playbook, no como acción separada después (Automation Rule → Playbook largo → dentro del playbook haces A → esperar → B → C)",
+          "Las `automation rules` de un mismo trigger corren en orden ascendente por número, y cada regla ve los cambios que dejó la anterior; si dos quedan empatadas en el mismo número, no hay garantía de cuál corre primero. `Updated by` sirve para evitar bucles, marcando quién hizo el último cambio y permitiendo cortar si fue la propia regla. Una regla con fecha de expiración se desactiva sola al llegar esa fecha. Y si el playbook que dispara la regla tarda más de dos minutos, la regla sigue de largo sin esperarlo, por eso cualquier paso que dependa de que el playbook termine debe ir dentro del propio playbook, no como acción separada después (Automation Rule → Playbook largo → dentro del playbook haces A → esperar → B → C)",
+          "Las `automation rules` de un mismo trigger corren en orden ascendente por número, y cada regla ve los cambios que dejó la anterior; si dos quedan empatadas en el mismo número, no hay garantía de cuál corre primero. `Updated by` sirve para evitar bucles, marcando quién hizo el último cambio y permitiendo cortar si fue la propia regla. Una regla con fecha de expiración se desactiva sola al llegar esa fecha. Y si el playbook que dispara la regla tarda más de dos minutos, la regla sigue de largo sin esperarlo, por eso cualquier paso que dependa de que el playbook termine debe ir dentro del propio playbook, no como acción separada después (Automation Rule → Playbook largo → dentro del playbook haces A → esperar → B → C)"
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-12-automatizacion/3-playbooks-y-orquestacion-1",
+      "introduction": "Trabaja los conceptos de «3 · Playbooks y orquestación» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Reconocer playbook como recurso Logic App.",
+        "Elegir trigger y contexto de entrada compatibles.",
+        "Validar conexiones, ejecución y autorización antes de automatizar."
+      ],
+      "summary": [
+        "Reconocer playbook como recurso Logic App.",
+        "Elegir trigger y contexto de entrada compatibles.",
+        "Validar conexiones, ejecución y autorización antes de automatizar.",
+        "Separar despliegue de definición y ejecución del proceso."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "order",
+          "prompt": "Ordena el procedimiento tal como aparece en los apuntes.",
+          "explanation": "El procedimiento prueba el flujo y sus conexiones antes de asociarlo a una respuesta automática; desplegar la plantilla no autoriza todas las conexiones.",
+          "objective": "Reconstruir un despliegue con prueba previa.",
+          "difficulty": "intermedia",
+          "id": "v25-67-procedimiento",
+          "evidence": [
+            "1. Crear el playbook desde `Automation > Playbooks`, usando una plantilla disponible o un workflow propio.",
+            "2. Elegir el trigger compatible con el objeto que recibirá; para el flujo habitual de incidentes, usar `Microsoft Sentinel incident`.",
+            "3. Configurar conexiones y acciones; una plantilla desplegada necesita sus conexiones autorizadas.",
+            "4. Probarlo manualmente y revisar su ejecución.",
+            "5. Asociarlo a la automation rule y conceder a Sentinel permiso para ejecutarlo."
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "Crear playbook desde plantilla o workflow propio",
+              "why": "El procedimiento prueba el flujo y sus conexiones antes de asociarlo a una respuesta automática; desplegar la plantilla no autoriza todas las conexiones."
+            },
+            {
+              "id": "p1",
+              "text": "Elegir trigger compatible con el objeto de entrada",
+              "why": "El procedimiento prueba el flujo y sus conexiones antes de asociarlo a una respuesta automática; desplegar la plantilla no autoriza todas las conexiones."
+            },
+            {
+              "id": "p2",
+              "text": "Configurar y autorizar conexiones/acciones",
+              "why": "El procedimiento prueba el flujo y sus conexiones antes de asociarlo a una respuesta automática; desplegar la plantilla no autoriza todas las conexiones."
+            },
+            {
+              "id": "p3",
+              "text": "Probar manualmente y revisar ejecución",
+              "why": "El procedimiento prueba el flujo y sus conexiones antes de asociarlo a una respuesta automática; desplegar la plantilla no autoriza todas las conexiones."
+            },
+            {
+              "id": "p4",
+              "text": "Asociar automation rule y conceder ejecución a Sentinel",
+              "why": "El procedimiento prueba el flujo y sus conexiones antes de asociarlo a una respuesta automática; desplegar la plantilla no autoriza todas las conexiones."
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1",
+            "p2",
+            "p3",
+            "p4"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "¿Qué relación establece el texto entre un playbook tradicional y Azure Logic Apps?",
+          "explanation": "El nombre playbook describe el uso de un recurso de automatización genérico; no crea otro motor separado.",
+          "objective": "Entender el recurso que ejecuta la orquestación.",
+          "difficulty": "intermedia",
+          "id": "v25-67-mismo-recurso",
+          "evidence": [
+            "Un `playbook` de `Azure Logic Apps` ejecuta un proceso con conectores, condiciones y acciones: enriquecer una IP, abrir un ticket, pedir aprobación o responder sobre un activo. No es una capa montada \"encima\" de `Azure Logic Apps`, como sí lo es `Microsoft Sentinel` sobre un `Log Analytics workspace`: un `playbook` es literalmente un recurso de `Azure Logic Apps`. `Azure Logic Apps` es un servicio genérico de automatización de Azure, usado para cualquier proceso, no solo de seguridad; cuando Sentinel lo conecta a una `automation rule` para responder a un incidente, a ese mismo recurso se lo llama \"playbook\". No hay dos capas separadas ahí: es el mismo recurso de Azure, con un nombre funcional distinto según el contexto en el que se usa."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Solo es un archivo KQL sin workflow ni conectores.",
+              "why": "La definición incluye conectores, condiciones y acciones."
+            },
+            {
+              "id": "o1",
+              "text": "Es el mismo recurso Logic App con un nombre funcional en el contexto de respuesta.",
+              "why": "El nombre playbook describe el uso de un recurso de automatización genérico; no crea otro motor separado."
+            },
+            {
+              "id": "o2",
+              "text": "El playbook es una segunda capa de almacenamiento sobre Logic Apps.",
+              "why": "El apartado niega dos capas separadas."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Un playbook arrancó desde una entidad suelta y necesita actualizar un incidente relacionado. ¿Qué identificador exige el apartado?",
+          "explanation": "El trigger determina contexto y esquema; partir de entidad no entrega automáticamente todo el contexto de incidente.",
+          "objective": "Resolver contexto de un workflow basado en entidad.",
+          "difficulty": "intermedia",
+          "id": "v25-67-contexto-entidad",
+          "evidence": [
+            "Cuando un playbook arranca desde un incidente, tiene acceso directo a las alertas y entidades de ese incidente. Si arranca desde una entidad suelta (por ejemplo, clickeando \"`Run playbook`\" sobre un dispositivo puntual), es un flujo manual centrado en ese activo, sin todo el contexto del incidente alrededor. Si en cambio el playbook necesita actualizar un incidente desde otro contexto (por ejemplo, uno que arrancó por una entidad y quiere tocar el incidente relacionado), necesita el `Incident ARM ID` para identificar cuál."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "El título libre del incidente basta siempre como identificador.",
+              "why": "El texto pide un identificador de recurso, no un nombre mutable."
+            },
+            {
+              "id": "o1",
+              "text": "El id de cualquier device group sustituye el incidente de destino.",
+              "why": "Un grupo de dispositivos no identifica qué incidente actualizar."
+            },
+            {
+              "id": "o2",
+              "text": "Incident ARM ID.",
+              "why": "El trigger determina contexto y esquema; partir de entidad no entrega automáticamente todo el contexto de incidente."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "La corrida del playbook arrancó. ¿Qué impide declararla exitosa solo por ese inicio?",
+          "explanation": "El éxito del proceso debe comprobarse paso a paso y en los destinos, no inferirse del trigger.",
+          "objective": "Verificar ejecución completa de una orquestación.",
+          "difficulty": "intermedia",
+          "id": "v25-67-run-detail",
+          "evidence": [
+            "Si un playbook no aparece para elegir o falla al correr, la checklist de causas es: que el trigger sea compatible, que esté seleccionada la suscripción correcta, que Sentinel tenga permisos para ejecutarlo, que las conexiones estén autenticadas, y que tenga acceso al recurso destino. Ojo con esto: que la ejecución haya arrancado NO significa que todas sus acciones internas hayan terminado bien, hay que revisar el detalle de la corrida. La forma vieja de disparar automatización desde una alerta, `Alert Automation (Classic)`, se retiró en marzo de 2026 — si hay enlaces viejos apuntando a eso, hay que reemplazarlos por `automation rules`."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Sus acciones internas pueden fallar; hay que revisar el detalle de ejecución.",
+              "why": "El éxito del proceso debe comprobarse paso a paso y en los destinos, no inferirse del trigger."
+            },
+            {
+              "id": "o1",
+              "text": "Arrancar garantiza que todos los conectores están autenticados para siempre.",
+              "why": "El texto exige revisar conexiones y acciones."
+            },
+            {
+              "id": "o2",
+              "text": "El estado del trigger reemplaza todo resultado del destino.",
+              "why": "Disparar no prueba que la operación sobre el destino haya terminado bien."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Sentinel Repositories despliega una definición desde Git. ¿Qué diferencia debe conservarse?",
+          "explanation": "CI/CD gobierna la definición; el workflow se ejecuta cuando ocurre su trigger y se cumplen condiciones.",
+          "objective": "Distinguir ciclo de despliegue y ejecución operativa.",
+          "difficulty": "intermedia",
+          "id": "v25-67-repositorio",
+          "evidence": [
+            "`Sentinel Repositories` conecta GitHub o Azure DevOps para desplegar contenido mediante CI/CD, incluidos automation rules y playbooks. El repositorio pasa a ser la fuente de verdad: un despliegue puede sobrescribir cambios del portal. Memoriza la diferencia entre desplegar la definición y ejecutarla cuando ocurre el trigger. [Learn: Repositories](https://learn.microsoft.com/en-us/azure/sentinel/ci-cd-custom-content)."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Los cambios del portal siempre prevalecen sobre cualquier despliegue.",
+              "why": "El texto advierte que el repositorio es fuente de verdad y puede sobrescribirlos."
+            },
+            {
+              "id": "o1",
+              "text": "Desplegar la definición no es ejecutarla; además puede sobrescribir cambios del portal.",
+              "why": "CI/CD gobierna la definición; el workflow se ejecuta cuando ocurre su trigger y se cumplen condiciones."
+            },
+            {
+              "id": "o2",
+              "text": "Cada commit ejecuta necesariamente el playbook sobre todos los incidentes.",
+              "why": "El despliegue de contenido y el trigger de ejecución son distintos."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [],
+      "audit": {
+        "mainConcepts": [
+          "Reconocer playbook como recurso Logic App.",
+          "Elegir trigger y contexto de entrada compatibles.",
+          "Validar conexiones, ejecución y autorización antes de automatizar.",
+          "Separar despliegue de definición y ejecución del proceso."
+        ],
+        "understanding": [
+          "Reconocer playbook como recurso Logic App.",
+          "Elegir trigger y contexto de entrada compatibles.",
+          "Validar conexiones, ejecución y autorización antes de automatizar."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Reconocer playbook como recurso Logic App.",
+          "Elegir trigger y contexto de entrada compatibles.",
+          "Validar conexiones, ejecución y autorización antes de automatizar.",
+          "Separar despliegue de definición y ejecución del proceso."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "La definición incluye conectores, condiciones y acciones.",
+          "El apartado niega dos capas separadas.",
+          "El texto pide un identificador de recurso, no un nombre mutable.",
+          "Un grupo de dispositivos no identifica qué incidente actualizar.",
+          "El texto exige revisar conexiones y acciones."
+        ],
+        "evidence": [
+          "1. Crear el playbook desde `Automation > Playbooks`, usando una plantilla disponible o un workflow propio.",
+          "2. Elegir el trigger compatible con el objeto que recibirá; para el flujo habitual de incidentes, usar `Microsoft Sentinel incident`.",
+          "3. Configurar conexiones y acciones; una plantilla desplegada necesita sus conexiones autorizadas.",
+          "4. Probarlo manualmente y revisar su ejecución.",
+          "5. Asociarlo a la automation rule y conceder a Sentinel permiso para ejecutarlo.",
+          "Un `playbook` de `Azure Logic Apps` ejecuta un proceso con conectores, condiciones y acciones: enriquecer una IP, abrir un ticket, pedir aprobación o responder sobre un activo. No es una capa montada \"encima\" de `Azure Logic Apps`, como sí lo es `Microsoft Sentinel` sobre un `Log Analytics workspace`: un `playbook` es literalmente un recurso de `Azure Logic Apps`. `Azure Logic Apps` es un servicio genérico de automatización de Azure, usado para cualquier proceso, no solo de seguridad; cuando Sentinel lo conecta a una `automation rule` para responder a un incidente, a ese mismo recurso se lo llama \"playbook\". No hay dos capas separadas ahí: es el mismo recurso de Azure, con un nombre funcional distinto según el contexto en el que se usa.",
+          "Cuando un playbook arranca desde un incidente, tiene acceso directo a las alertas y entidades de ese incidente. Si arranca desde una entidad suelta (por ejemplo, clickeando \"`Run playbook`\" sobre un dispositivo puntual), es un flujo manual centrado en ese activo, sin todo el contexto del incidente alrededor. Si en cambio el playbook necesita actualizar un incidente desde otro contexto (por ejemplo, uno que arrancó por una entidad y quiere tocar el incidente relacionado), necesita el `Incident ARM ID` para identificar cuál.",
+          "Si un playbook no aparece para elegir o falla al correr, la checklist de causas es: que el trigger sea compatible, que esté seleccionada la suscripción correcta, que Sentinel tenga permisos para ejecutarlo, que las conexiones estén autenticadas, y que tenga acceso al recurso destino. Ojo con esto: que la ejecución haya arrancado NO significa que todas sus acciones internas hayan terminado bien, hay que revisar el detalle de la corrida. La forma vieja de disparar automatización desde una alerta, `Alert Automation (Classic)`, se retiró en marzo de 2026 — si hay enlaces viejos apuntando a eso, hay que reemplazarlos por `automation rules`.",
+          "`Sentinel Repositories` conecta GitHub o Azure DevOps para desplegar contenido mediante CI/CD, incluidos automation rules y playbooks. El repositorio pasa a ser la fuente de verdad: un despliegue puede sobrescribir cambios del portal. Memoriza la diferencia entre desplegar la definición y ejecutarla cuando ocurre el trigger. [Learn: Repositories](https://learn.microsoft.com/en-us/azure/sentinel/ci-cd-custom-content)."
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    }
+  ]
+}

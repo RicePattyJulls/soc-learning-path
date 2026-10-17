@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R04-L07",
+  "title": "Expresiones, multivalor y patrones",
+  "revision": "0b0197d9a856f7a12135b5d6",
+  "sourceVersion": "d2c1d176a7450c5d9764d6e069f30856c9576b91730beb22855378000b164feb",
+  "sanitizedHash": "d2c1d176a7450c5d9764d6e069f30856c9576b91730beb22855378000b164feb",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R04_R05/R04_SPL_AVANZADO/SP-R04-L07.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Usar rex, mvexpand, eval con supuestos explícitos",
+  "preamble": "# SP-R04-L07 — Expresiones, multivalor y patrones\n\n**Región:** SP-R04 · **Prioridad:** P0/P1 SOC · **Estado:** borrador educativo para revisión · **SPL real:** no ejecutado.  \n**ID curricular intacto:** `SP-R04-L07` · **Resultado de aprendizaje:** Usar rex, mvexpand, eval con supuestos explícitos  \n**Prerrequisitos:** R03 completada · **Producto:** Splunk Enterprise/Cloud con SPL clásico según versión y permisos; CIM exige configuración pertinente.\n\n",
+  "sections": [
+    {
+      "id": "SP-R04-L07-S01",
+      "title": "1. Pregunta esencial",
+      "markdown": "## 1. Pregunta esencial\n\nMuchos logs llegan como texto y listas: una parte del trabajo del analista consiste en extraer campos, aplicar condiciones y manejar valores multivalor sin inflar artificialmente los eventos. `rex` extrae datos por patrón, `eval` transforma campos y `mvexpand` multiplica filas por cada valor de un campo multivalor; contar filas después de expandir no mide necesariamente eventos originales.\n\n**Objetivo verificable:** Usar rex, mvexpand, eval con supuestos explícitos.\n\n",
+      "line": 7,
+      "endLine": 11
+    },
+    {
+      "id": "SP-R04-L07-S02",
+      "title": "2. Modelo mental y conceptos",
+      "markdown": "## 2. Modelo mental y conceptos\n\n1. `rex field=_raw \"user=(?<extraido>[^ ]+)\"` usa grupo con nombre: valida el formato y escapes contra ejemplos reales.\n2. `eval` permite construir flags y tipos derivados; documenta qué significan las cadenas originales y cómo trata null.\n3. `makemv delim=\",\" roles | mvexpand roles` sólo tiene sentido si roles contiene una lista separada de esa forma; mvexpand incrementa el número de filas.\n4. Si el campo no está presente o el patrón cambia, clasifica el evento como no parseado y revisa cobertura en lugar de asumir un valor normal.\n\n",
+      "line": 13,
+      "endLine": 18
+    },
+    {
+      "id": "SP-R04-L07-S03",
+      "title": "3. Procedimiento guiado",
+      "markdown": "## 3. Procedimiento guiado\n\n1. Examina una muestra de `_raw` y redacta una expresión que capture únicamente user.\n2. Prueba mentalmente contra ejemplos que no contienen `user=` o con espacios; describe fallos esperados.\n3. Imagina roles=admin,operator: mvexpand genera dos filas para un único evento.\n4. Cuenta identificadores originales distintos cuando tu métrica sea “eventos” y no “roles observados”.\n\n",
+      "line": 20,
+      "endLine": 25
+    },
+    {
+      "id": "SP-R04-L07-S04",
+      "title": "4. SPL ilustrativo — no ejecutado",
+      "markdown": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_LAB sourcetype=SOURCETYPE_LAB earliest=-24h\n| rex field=_raw \"user=(?<usuario_extraido>[^ ]+)\"\n| eval identidad=coalesce(user, usuario_extraido)\n| table _time identidad _raw\n```\n\n**Comparación con otro patrón sobre el mismo objetivo:**\n\n```spl\nindex=INDICE_LAB sourcetype=SOURCETYPE_LAB earliest=-24h\n| makemv delim=\",\" roles\n| mvexpand roles\n| stats count AS filas_expandidas BY roles\n```\n\n**Interpretación, condiciones y alcance:** Segundo ejemplo presupone roles como texto CSV y en ese índice; no ejecutes sobre producción sin conocer el esquema. Para uso profesional, controla cardinalidad y coste de memoria de mvexpand.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n",
+      "line": 27,
+      "endLine": 47
+    },
+    {
+      "id": "SP-R04-L07-S05",
+      "title": "5. Caso SOC",
+      "markdown": "## 5. Caso SOC\n\nUn evento dice roles=admin,operator. Tras mvexpand hay dos resultados: ¿cuántos eventos fuente hay?\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 49,
+      "endLine": 54
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R04-L07-Q01",
+      "lessonId": "SP-R04-L07",
+      "prompt": "Un evento tiene tres roles multivalor. ¿Cuántas filas produce mvexpand roles?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S06",
+        "SPLUNK_LECCIONES_R04_R05:S07"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R04-L07-Q01-O-1d9ce9312a41",
+          "text": "Una, porque mvexpand solo cambia la presentación del campo"
+        },
+        {
+          "id": "SP-R04-L07-Q01-O-65fcf730a231",
+          "text": "Cuatro, al sumar una fila original a las tres expandidas"
+        },
+        {
+          "id": "SP-R04-L07-Q01-O-8c1fa99b2b1d",
+          "text": "Tres"
+        },
+        {
+          "id": "SP-R04-L07-Q01-O-d9aa190db50a",
+          "text": "Dos, porque el primer valor permanece en el evento fuente"
+        }
+      ],
+      "solution": "SP-R04-L07-Q01-O-8c1fa99b2b1d",
+      "explanation": "mvexpand crea una fila por valor del campo multivalor.",
+      "anchors": [
+        {
+          "file": "R04_SPL_AVANZADO/SP-R04-L07.md",
+          "sourceHash": "d2c1d176a7450c5d9764d6e069f30856c9576b91730beb22855378000b164feb",
+          "line": 13,
+          "endLine": 18,
+          "quote": "## 2. Modelo mental y conceptos\n\n1. `rex field=_raw \"user=(?<extraido>[^ ]+)\"` usa grupo con nombre: valida el formato y escapes contra ejemplos reales.\n2. `eval` permite construir flags y tipos derivados; documenta qué significan las cadenas originales y cómo trata null.\n3. `makemv delim=\",\" roles | mvexpand roles` sólo tiene sentido si roles contiene una lista separada de esa forma; mvexpand incrementa el número de filas.\n4. Si el campo no está presente o el patrón cambia, clasifica el evento como no parseado y revisa cobertura en lugar de asumir un valor normal.\n\n"
+        },
+        {
+          "file": "R04_SPL_AVANZADO/SP-R04-L07.md",
+          "sourceHash": "d2c1d176a7450c5d9764d6e069f30856c9576b91730beb22855378000b164feb",
+          "line": 27,
+          "endLine": 47,
+          "quote": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_LAB sourcetype=SOURCETYPE_LAB earliest=-24h\n| rex field=_raw \"user=(?<usuario_extraido>[^ ]+)\"\n| eval identidad=coalesce(user, usuario_extraido)\n| table _time identidad _raw\n```\n\n**Comparación con otro patrón sobre el mismo objetivo:**\n\n```spl\nindex=INDICE_LAB sourcetype=SOURCETYPE_LAB earliest=-24h\n| makemv delim=\",\" roles\n| mvexpand roles\n| stats count AS filas_expandidas BY roles\n```\n\n**Interpretación, condiciones y alcance:** Segundo ejemplo presupone roles como texto CSV y en ese índice; no ejecutes sobre producción sin conocer el esquema. Para uso profesional, controla cardinalidad y coste de memoria de mvexpand.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R04-L07-Q02",
+      "lessonId": "SP-R04-L07",
+      "prompt": "¿Qué hace rex por defecto?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S06",
+        "SPLUNK_LECCIONES_R04_R05:S07"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R04-L07-Q02-O-5bcc77ede535",
+          "text": "Configura una extracción persistente para futuras búsquedas"
+        },
+        {
+          "id": "SP-R04-L07-Q02-O-c63d6e0b1de2",
+          "text": "Extrae campos al buscar"
+        },
+        {
+          "id": "SP-R04-L07-Q02-O-6d33ce97a0ad",
+          "text": "Filtra eventos completos que no coinciden sin crear campos"
+        },
+        {
+          "id": "SP-R04-L07-Q02-O-aead181e0ee7",
+          "text": "Reescribe el formato del evento en el índice al capturar grupos"
+        }
+      ],
+      "solution": "SP-R04-L07-Q02-O-c63d6e0b1de2",
+      "explanation": "rex realiza extracción en el pipeline, no reindexación.",
+      "anchors": [
+        {
+          "file": "R04_SPL_AVANZADO/SP-R04-L07.md",
+          "sourceHash": "d2c1d176a7450c5d9764d6e069f30856c9576b91730beb22855378000b164feb",
+          "line": 13,
+          "endLine": 18,
+          "quote": "## 2. Modelo mental y conceptos\n\n1. `rex field=_raw \"user=(?<extraido>[^ ]+)\"` usa grupo con nombre: valida el formato y escapes contra ejemplos reales.\n2. `eval` permite construir flags y tipos derivados; documenta qué significan las cadenas originales y cómo trata null.\n3. `makemv delim=\",\" roles | mvexpand roles` sólo tiene sentido si roles contiene una lista separada de esa forma; mvexpand incrementa el número de filas.\n4. Si el campo no está presente o el patrón cambia, clasifica el evento como no parseado y revisa cobertura en lugar de asumir un valor normal.\n\n"
+        },
+        {
+          "file": "R04_SPL_AVANZADO/SP-R04-L07.md",
+          "sourceHash": "d2c1d176a7450c5d9764d6e069f30856c9576b91730beb22855378000b164feb",
+          "line": 27,
+          "endLine": 47,
+          "quote": "## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_LAB sourcetype=SOURCETYPE_LAB earliest=-24h\n| rex field=_raw \"user=(?<usuario_extraido>[^ ]+)\"\n| eval identidad=coalesce(user, usuario_extraido)\n| table _time identidad _raw\n```\n\n**Comparación con otro patrón sobre el mismo objetivo:**\n\n```spl\nindex=INDICE_LAB sourcetype=SOURCETYPE_LAB earliest=-24h\n| makemv delim=\",\" roles\n| mvexpand roles\n| stats count AS filas_expandidas BY roles\n```\n\n**Interpretación, condiciones y alcance:** Segundo ejemplo presupone roles como texto CSV y en ese índice; no ejecutes sobre producción sin conocer el esquema. Para uso profesional, controla cardinalidad y coste de memoria de mvexpand.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R04-L07-P01",
+      "lessonId": "SP-R04-L07",
+      "prompt": "Propón extracción de user para `src=203.0.113.9 user=alice action=failure`; explica qué pasa si falta user y cómo preservarías event_id antes de mvexpand.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R04_R05:S06",
+        "SPLUNK_LECCIONES_R04_R05:S07"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Identifica fuentes, campos, ventana y supuestos",
+        "Aplica el método al escenario y explica cifras o semántica",
+        "Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante",
+        "Presenta una respuesta reproducible sin ejecutar cambios en sistemas"
+      ],
+      "referenceAnswer": "Un evento fuente genera dos filas tras expandir roles. Regex `user=(?<usuario_extraido>[^ ]+)` captura alice; si falta user no debe inventar identidad. Mantener un identificador original para comparar cardinalidad antes/después."
+    }
+  ],
+  "solutionsMarkdown": "## 7. Solucionario con razonamiento\n\n- **SP-R04-L07-Q01: C** — mvexpand crea una fila por valor del campo multivalor.\n\n- **SP-R04-L07-Q02: B** — rex realiza extracción en el pipeline, no reindexación.\n\n- **SP-R04-L07-P01:** Un evento fuente genera dos filas tras expandir roles. Regex `user=(?<usuario_extraido>[^ ]+)` captura alice; si falta user no debe inventar identidad. Mantener un identificador original para comparar cardinalidad antes/después.\n\n**Guía de retroalimentación formativa:** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Solucionario razonado\n\n**Q01 → B.** Tres. mvexpand crea una fila por valor del campo multivalor.\n\n**Q02 → B.** Extrae campos al buscar. rex realiza extracción en el pipeline, no reindexación.\n\n**P01 → Solución orientativa:** Un evento fuente genera dos filas tras expandir roles. Regex `user=(?<usuario_extraido>[^ ]+)` captura alice; si falta user no debe inventar identidad. Mantener un identificador original para comparar cardinalidad antes/después.\n\n**Rúbrica (0–4):** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas. Superar un test escrito no equivale por sí solo a dominar investigación SOC.\n\n",
+  "referencesMarkdown": "## 9. Fuentes y trazabilidad\n\n- **Origen curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`; título y objetivo preservados.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` (no reescrita).\n- **Puente de conceptos SC-200:** Cap. 13 (parse/extract/mv-expand) y cap. 04 (ingesta). Véase `../../01_FUENTE_ORIGINAL/SC-200.md` (sin trasladar esquemas literalmente).\n- **[S06] rex (SPL clásico):** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.0/search-commands/rex\n- **[S07] mvexpand (SPL clásico):** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.4/search-commands/mvexpand\n\n**Estatus de evidencia:** documentación del producto + diseño educativo + cálculos offline sobre fixtures (cuando se indica). No se ha verificado ejecución/compatibilidad específica en Splunk del usuario; revisar con la versión real antes de usar en producción.\n",
+  "originalMarkdown": "# SP-R04-L07 — Expresiones, multivalor y patrones\n\n**Región:** SP-R04 · **Prioridad:** P0/P1 SOC · **Estado:** borrador educativo para revisión · **SPL real:** no ejecutado.  \n**ID curricular intacto:** `SP-R04-L07` · **Resultado de aprendizaje:** Usar rex, mvexpand, eval con supuestos explícitos  \n**Prerrequisitos:** R03 completada · **Producto:** Splunk Enterprise/Cloud con SPL clásico según versión y permisos; CIM exige configuración pertinente.\n\n## 1. Pregunta esencial\n\nMuchos logs llegan como texto y listas: una parte del trabajo del analista consiste en extraer campos, aplicar condiciones y manejar valores multivalor sin inflar artificialmente los eventos. `rex` extrae datos por patrón, `eval` transforma campos y `mvexpand` multiplica filas por cada valor de un campo multivalor; contar filas después de expandir no mide necesariamente eventos originales.\n\n**Objetivo verificable:** Usar rex, mvexpand, eval con supuestos explícitos.\n\n## 2. Modelo mental y conceptos\n\n1. `rex field=_raw \"user=(?<extraido>[^ ]+)\"` usa grupo con nombre: valida el formato y escapes contra ejemplos reales.\n2. `eval` permite construir flags y tipos derivados; documenta qué significan las cadenas originales y cómo trata null.\n3. `makemv delim=\",\" roles | mvexpand roles` sólo tiene sentido si roles contiene una lista separada de esa forma; mvexpand incrementa el número de filas.\n4. Si el campo no está presente o el patrón cambia, clasifica el evento como no parseado y revisa cobertura en lugar de asumir un valor normal.\n\n## 3. Procedimiento guiado\n\n1. Examina una muestra de `_raw` y redacta una expresión que capture únicamente user.\n2. Prueba mentalmente contra ejemplos que no contienen `user=` o con espacios; describe fallos esperados.\n3. Imagina roles=admin,operator: mvexpand genera dos filas para un único evento.\n4. Cuenta identificadores originales distintos cuando tu métrica sea “eventos” y no “roles observados”.\n\n## 4. SPL ilustrativo — no ejecutado\n\n```spl\nindex=INDICE_LAB sourcetype=SOURCETYPE_LAB earliest=-24h\n| rex field=_raw \"user=(?<usuario_extraido>[^ ]+)\"\n| eval identidad=coalesce(user, usuario_extraido)\n| table _time identidad _raw\n```\n\n**Comparación con otro patrón sobre el mismo objetivo:**\n\n```spl\nindex=INDICE_LAB sourcetype=SOURCETYPE_LAB earliest=-24h\n| makemv delim=\",\" roles\n| mvexpand roles\n| stats count AS filas_expandidas BY roles\n```\n\n**Interpretación, condiciones y alcance:** Segundo ejemplo presupone roles como texto CSV y en ese índice; no ejecutes sobre producción sin conocer el esquema. Para uso profesional, controla cardinalidad y coste de memoria de mvexpand.\n\n**Nota de seguridad:** `INDICE_*`, `SOURCETYPE_*` y nombres de lookups son marcadores pedagógicos. No están instalados ni descubiertos en tu laboratorio. Los SPL de este bloque son búsquedas de lectura, no indicaciones para modificar índices, apps, permisos o configuraciones.\n\n## 5. Caso SOC\n\nUn evento dice roles=admin,operator. Tras mvexpand hay dos resultados: ¿cuántos eventos fuente hay?\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 6. Actividades\n\n### SP-R04-L07-Q01 — Opción múltiple\n\nUn evento tiene tres roles multivalor. ¿Cuántas filas produce mvexpand roles?\n\nA. Una, porque mvexpand solo cambia la presentación del campo\nB. Cuatro, al sumar una fila original a las tres expandidas\nC. Tres\nD. Dos, porque el primer valor permanece en el evento fuente\n\n### SP-R04-L07-Q02 — Opción múltiple\n\n¿Qué hace rex por defecto?\n\nA. Configura una extracción persistente para futuras búsquedas\nB. Extrae campos al buscar\nC. Filtra eventos completos que no coinciden sin crear campos\nD. Reescribe el formato del evento en el índice al capturar grupos\n\n### SP-R04-L07-P01 — Práctica abierta formativa\n\nPropón extracción de user para `src=203.0.113.9 user=alice action=failure`; explica qué pasa si falta user y cómo preservarías event_id antes de mvexpand.\n\n## 7. Solucionario con razonamiento\n\n- **SP-R04-L07-Q01: C** — mvexpand crea una fila por valor del campo multivalor.\n\n- **SP-R04-L07-Q02: B** — rex realiza extracción en el pipeline, no reindexación.\n\n- **SP-R04-L07-P01:** Un evento fuente genera dos filas tras expandir roles. Regex `user=(?<usuario_extraido>[^ ]+)` captura alice; si falta user no debe inventar identidad. Mantener un identificador original para comparar cardinalidad antes/después.\n\n**Guía de retroalimentación formativa:** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 8. Solucionario razonado\n\n**Q01 → B.** Tres. mvexpand crea una fila por valor del campo multivalor.\n\n**Q02 → B.** Extrae campos al buscar. rex realiza extracción en el pipeline, no reindexación.\n\n**P01 → Solución orientativa:** Un evento fuente genera dos filas tras expandir roles. Regex `user=(?<usuario_extraido>[^ ]+)` captura alice; si falta user no debe inventar identidad. Mantener un identificador original para comparar cardinalidad antes/después.\n\n**Rúbrica (0–4):** Identifica fuentes, campos, ventana y supuestos; Aplica el método al escenario y explica cifras o semántica; Distingue hechos de hipótesis y limitaciones; reconoce al menos una validación faltante; Presenta una respuesta reproducible sin ejecutar cambios en sistemas. Superar un test escrito no equivale por sí solo a dominar investigación SOC.\n\n## 9. Fuentes y trazabilidad\n\n- **Origen curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`; título y objetivo preservados.\n- **Investigación previa:** `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` (no reescrita).\n- **Puente de conceptos SC-200:** Cap. 13 (parse/extract/mv-expand) y cap. 04 (ingesta). Véase `../../01_FUENTE_ORIGINAL/SC-200.md` (sin trasladar esquemas literalmente).\n- **[S06] rex (SPL clásico):** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.0/search-commands/rex\n- **[S07] mvexpand (SPL clásico):** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.4/search-commands/mvexpand\n\n**Estatus de evidencia:** documentación del producto + diseño educativo + cálculos offline sobre fixtures (cuando se indica). No se ha verificado ejecución/compatibilidad específica en Splunk del usuario; revisar con la versión real antes de usar en producción.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "S06",
+      "key": "SPLUNK_LECCIONES_R04_R05:S06",
+      "url": "https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.0/search-commands/rex"
+    },
+    {
+      "id": "S07",
+      "key": "SPLUNK_LECCIONES_R04_R05:S07",
+      "url": "https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.4/search-commands/mvexpand"
+    }
+  ]
+}

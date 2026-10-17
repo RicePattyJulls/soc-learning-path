@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R10-L04",
+  "title": "Buckets, índice y retención",
+  "revision": "8b74523f429b377f95eb53ea",
+  "sourceVersion": "d2086f3d225ce949feb29565b24a9aa8aaa28fbf325627506e0b9a4ca1fe2dca",
+  "sanitizedHash": "d2086f3d225ce949feb29565b24a9aa8aaa28fbf325627506e0b9a4ca1fe2dca",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R10_R11/R10_ADMINISTRACION/SP-R10-L04.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Comprender hot/warm/cold/frozen, límites de espacio",
+  "preamble": "# SP-R10-L04 — Buckets, índice y retención\n\n**Región:** SP-R10 · **Producto:** Splunk Enterprise/Cloud (donde se indique) o SOAR Cloud explícito. · **Estado:** borrador documental / requiere revisión humana. · **SPL/CLI/API:** ilustrativo, NO ejecutado.\n\n**Resultado curricular:** Comprender hot/warm/cold/frozen, límites de espacio\n\n**Prerrequisitos:** R01–R05; revisar R06–R07 para impacto SOC\n\n",
+  "sections": [
+    {
+      "id": "SP-R10-L04-S01",
+      "title": "1. Explicación razonada",
+      "markdown": "## 1. Explicación razonada\n\nUn índice Splunk organiza sus eventos en buckets. En un ciclo habitual, los buckets avanzan de hot a warm, cold y frozen; según política, frozen supone archivado externo o eliminación. `frozenTimePeriodInSecs` NO es una promesa de que toda la información quede consultable exactamente ese número de días. La antigüedad del bucket y las limitaciones de espacio, como `maxTotalDataSizeMB`, pueden adelantar la congelación frente al plazo temporal; la política depende de settings y modalidad (por ejemplo, almacenamiento remoto).\n\nEl dimensionamiento requiere datos diarios medios y picos, retención objetivo, overhead de índices, replicación, arquitectura, crecimiento, backups y restricciones de contrato. El ejemplo `datos_por_día × días` es una **aproximación educativa de capacidad**, no un simulador del tamaño real en disco ni del comportamiento exacto de buckets. Si se destinan 160 GiB de capacidad aparente a 12 GiB/día, la división da 13,33 días equivalentes *en la simplificación*. No se puede concluir que Splunk ofrecerá necesariamente 13,33 días en todos los índices.\n\nEl impacto SOC es directo: si buscas 30 días pero tu historial es inferior, la ausencia de eventos anteriores indica **laguna de cobertura**, no inocencia. Documenta explícitamente qué consultas todavía son posibles y qué evidencias deben preservarse conforme a la política de datos.\n\n",
+      "line": 9,
+      "endLine": 15
+    },
+    {
+      "id": "SP-R10-L04-S02",
+      "title": "2. Conceptos clave",
+      "markdown": "## 2. Conceptos clave\n\n1. Hot/warm/cold/frozen: ciclo del bucket\n2. Tiempo y tamaño son límites distintos\n3. Frozen puede borrar o archivar según la política\n4. Capacidad simplificada no modela compresión/replicación/buckets\n5. Retención efectiva condiciona búsquedas y cadena de custodia\n\n",
+      "line": 17,
+      "endLine": 23
+    },
+    {
+      "id": "SP-R10-L04-S03",
+      "title": "3. Procedimiento de estudio y verificación",
+      "markdown": "## 3. Procedimiento de estudio y verificación\n\n1. Lee objetivo de retención, ingesta media y capacidad asignada del fixture.\n2. Calcula `capacidad / GiB_diario` como límite orientativo, no real.\n3. Compara días equivalentes con retención objetivo y marca riesgo.\n4. Documenta que buckets y políticas pueden acortar o alterar el resultado.\n5. Propón alerta de consumo y plan de preservación autorizado.\n\n",
+      "line": 25,
+      "endLine": 31
+    },
+    {
+      "id": "SP-R10-L04-S04",
+      "title": "4. SPL conceptual — lectura de una fuente ya descubierta",
+      "markdown": "## 4. SPL conceptual — lectura de una fuente ya descubierta\n\n```text\nindex=IDX_SYS_METRICS sourcetype=ST_STORAGE_METRICS earliest=-24h latest=now\n| stats latest(storage_gib) AS usado_latest max(storage_gib) AS pico BY index_name\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n",
+      "line": 33,
+      "endLine": 40
+    },
+    {
+      "id": "SP-R10-L04-S05",
+      "title": "5. Situación profesional",
+      "markdown": "## 5. Situación profesional\n\nUn índice de práctica tiene 12 GiB/día, 160 GiB disponibles y objetivo de 30 días. 160/12≈13,33 días equivalentes; no es una garantía de retención, y el plan incumple el objetivo bajo ese supuesto.\n\n## 6. Errores comunes\n\n1. Tratar frozen como siempre accesible para Search\n2. Afirmar retención exacta usando solo media de GiB/día\n3. No distinguir política temporal y límite de espacio\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 42,
+      "endLine": 53
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R10-L04-Q01",
+      "lessonId": "SP-R10-L04",
+      "prompt": "¿Qué puede provocar paso a frozen antes del objetivo temporal?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D04"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R10-L04-Q01-O-c2dfae9e373f",
+          "text": "Reducir el número de columnas presentadas con table"
+        },
+        {
+          "id": "SP-R10-L04-Q01-O-a7dbeccf920d",
+          "text": "Cambiar un sourcetype en el texto de una consulta"
+        },
+        {
+          "id": "SP-R10-L04-Q01-O-8bf7db0e95ee",
+          "text": "El límite de tamaño del índice puede provocar congelación antes del plazo temporal previsto"
+        },
+        {
+          "id": "SP-R10-L04-Q01-O-5c0cdd6b4fd7",
+          "text": "La frecuencia de las búsquedas del analista por sí sola"
+        }
+      ],
+      "solution": "SP-R10-L04-Q01-O-8bf7db0e95ee",
+      "explanation": "El límite de tamaño puede actuar antes del plazo cronológico.",
+      "anchors": [
+        {
+          "file": "R10_ADMINISTRACION/SP-R10-L04.md",
+          "sourceHash": "d2086f3d225ce949feb29565b24a9aa8aaa28fbf325627506e0b9a4ca1fe2dca",
+          "line": 17,
+          "endLine": 23,
+          "quote": "## 2. Conceptos clave\n\n1. Hot/warm/cold/frozen: ciclo del bucket\n2. Tiempo y tamaño son límites distintos\n3. Frozen puede borrar o archivar según la política\n4. Capacidad simplificada no modela compresión/replicación/buckets\n5. Retención efectiva condiciona búsquedas y cadena de custodia\n\n"
+        },
+        {
+          "file": "R10_ADMINISTRACION/SP-R10-L04.md",
+          "sourceHash": "d2086f3d225ce949feb29565b24a9aa8aaa28fbf325627506e0b9a4ca1fe2dca",
+          "line": 33,
+          "endLine": 40,
+          "quote": "## 4. SPL conceptual — lectura de una fuente ya descubierta\n\n```text\nindex=IDX_SYS_METRICS sourcetype=ST_STORAGE_METRICS earliest=-24h latest=now\n| stats latest(storage_gib) AS usado_latest max(storage_gib) AS pico BY index_name\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R10-L04-Q02",
+      "lessonId": "SP-R10-L04",
+      "prompt": "¿Qué significa «capacidad/ingesta = 13 días» en un fixture?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D04"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R10-L04-Q02-O-ab0f27f2dd1f",
+          "text": "La edad del evento más antiguo del índice medida por Splunk"
+        },
+        {
+          "id": "SP-R10-L04-Q02-O-c757d86c60d9",
+          "text": "Estimación de capacidad bajo un modelo simplificado"
+        },
+        {
+          "id": "SP-R10-L04-Q02-O-0e46ba745b39",
+          "text": "Garantía de que todos los eventos duran exactamente trece días"
+        },
+        {
+          "id": "SP-R10-L04-Q02-O-64436c022af2",
+          "text": "El plazo de frozen independiente de tamaño, compresión o replicación"
+        }
+      ],
+      "solution": "SP-R10-L04-Q02-O-c757d86c60d9",
+      "explanation": "El cálculo aproxima la capacidad, pero no modela rotación completa, compresión ni replicación.",
+      "anchors": [
+        {
+          "file": "R10_ADMINISTRACION/SP-R10-L04.md",
+          "sourceHash": "d2086f3d225ce949feb29565b24a9aa8aaa28fbf325627506e0b9a4ca1fe2dca",
+          "line": 17,
+          "endLine": 23,
+          "quote": "## 2. Conceptos clave\n\n1. Hot/warm/cold/frozen: ciclo del bucket\n2. Tiempo y tamaño son límites distintos\n3. Frozen puede borrar o archivar según la política\n4. Capacidad simplificada no modela compresión/replicación/buckets\n5. Retención efectiva condiciona búsquedas y cadena de custodia\n\n"
+        },
+        {
+          "file": "R10_ADMINISTRACION/SP-R10-L04.md",
+          "sourceHash": "d2086f3d225ce949feb29565b24a9aa8aaa28fbf325627506e0b9a4ca1fe2dca",
+          "line": 33,
+          "endLine": 40,
+          "quote": "## 4. SPL conceptual — lectura de una fuente ya descubierta\n\n```text\nindex=IDX_SYS_METRICS sourcetype=ST_STORAGE_METRICS earliest=-24h latest=now\n| stats latest(storage_gib) AS usado_latest max(storage_gib) AS pico BY index_name\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R10-L04-P01",
+      "lessonId": "SP-R10-L04",
+      "prompt": "Calcula el riesgo de retención para los índices de `retention_plan.csv` y prioriza mitigaciones.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R10_R11:D04"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Define fuente, producto, versión y límites del contexto",
+        "Resuelve el objetivo con un procedimiento replicable y no destructivo",
+        "Identifica error, caso benigno y riesgo operacional",
+        "Documenta permisos, aprobación y evidencia para revisión humana"
+      ],
+      "referenceAnswer": "Calcular `estimated_days=capacity_gib/daily_gib`; comparar con target_days; verificar archivado. Distinguir estimación y retención comprobada, mencionar dependencia de buckets, arquitectura y costes."
+    }
+  ],
+  "solutionsMarkdown": "## 8. Solucionario con razonamiento\n\n- **SP-R10-L04-Q01: C** — El límite de tamaño puede actuar antes del plazo cronológico.\n\n- **SP-R10-L04-Q02: B** — El cálculo aproxima la capacidad, pero no modela rotación completa, compresión ni replicación.\n\n- **SP-R10-L04-P01:** Calcular `estimated_days=capacity_gib/daily_gib`; comparar con target_days; verificar archivado. Distinguir estimación y retención comprobada, mencionar dependencia de buckets, arquitectura y costes.\n\n**Guía de retroalimentación formativa:** Define fuente, producto, versión y límites del contexto; Resuelve el objetivo con un procedimiento replicable y no destructivo; Identifica error, caso benigno y riesgo operacional; Documenta permisos, aprobación y evidencia para revisión humana.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 9. Fuentes, procedencia y limitaciones\n\n- **D04:** Splunk Enterprise 10.2 — indexes.conf — https://help.splunk.com/en/splunk-enterprise/administer/admin-manual/10.2/configuration-file-reference/10.2.4-configuration-file-reference/indexes.conf\n\n- **Puente SC-200:** Capítulo 05: almacenamiento, retención, costes y cobertura. Es correspondencia pedagógica, no equivalencia exacta de producto.\n- **Fuente del ID y resultado:** `SPLUNK_MASTER_RESEARCH/03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`.\n- **[DOC]:** fundamentos documentados en fuentes oficiales; no equivale a prueba de todos los supuestos.\n- **[OFFLINE]:** solo verificaciones Python sobre fixtures sintéticos.\n- **[NO EJECUTADO]:** no se ha abierto Splunk, ni SOAR, ni REST, ni se han aplicado configuraciones.\n- **[REVISIÓN]:** verificación humana del texto, respuestas, versiones y supuestos antes de integrar en React.\n",
+  "originalMarkdown": "# SP-R10-L04 — Buckets, índice y retención\n\n**Región:** SP-R10 · **Producto:** Splunk Enterprise/Cloud (donde se indique) o SOAR Cloud explícito. · **Estado:** borrador documental / requiere revisión humana. · **SPL/CLI/API:** ilustrativo, NO ejecutado.\n\n**Resultado curricular:** Comprender hot/warm/cold/frozen, límites de espacio\n\n**Prerrequisitos:** R01–R05; revisar R06–R07 para impacto SOC\n\n## 1. Explicación razonada\n\nUn índice Splunk organiza sus eventos en buckets. En un ciclo habitual, los buckets avanzan de hot a warm, cold y frozen; según política, frozen supone archivado externo o eliminación. `frozenTimePeriodInSecs` NO es una promesa de que toda la información quede consultable exactamente ese número de días. La antigüedad del bucket y las limitaciones de espacio, como `maxTotalDataSizeMB`, pueden adelantar la congelación frente al plazo temporal; la política depende de settings y modalidad (por ejemplo, almacenamiento remoto).\n\nEl dimensionamiento requiere datos diarios medios y picos, retención objetivo, overhead de índices, replicación, arquitectura, crecimiento, backups y restricciones de contrato. El ejemplo `datos_por_día × días` es una **aproximación educativa de capacidad**, no un simulador del tamaño real en disco ni del comportamiento exacto de buckets. Si se destinan 160 GiB de capacidad aparente a 12 GiB/día, la división da 13,33 días equivalentes *en la simplificación*. No se puede concluir que Splunk ofrecerá necesariamente 13,33 días en todos los índices.\n\nEl impacto SOC es directo: si buscas 30 días pero tu historial es inferior, la ausencia de eventos anteriores indica **laguna de cobertura**, no inocencia. Documenta explícitamente qué consultas todavía son posibles y qué evidencias deben preservarse conforme a la política de datos.\n\n## 2. Conceptos clave\n\n1. Hot/warm/cold/frozen: ciclo del bucket\n2. Tiempo y tamaño son límites distintos\n3. Frozen puede borrar o archivar según la política\n4. Capacidad simplificada no modela compresión/replicación/buckets\n5. Retención efectiva condiciona búsquedas y cadena de custodia\n\n## 3. Procedimiento de estudio y verificación\n\n1. Lee objetivo de retención, ingesta media y capacidad asignada del fixture.\n2. Calcula `capacidad / GiB_diario` como límite orientativo, no real.\n3. Compara días equivalentes con retención objetivo y marca riesgo.\n4. Documenta que buckets y políticas pueden acortar o alterar el resultado.\n5. Propón alerta de consumo y plan de preservación autorizado.\n\n## 4. SPL conceptual — lectura de una fuente ya descubierta\n\n```text\nindex=IDX_SYS_METRICS sourcetype=ST_STORAGE_METRICS earliest=-24h latest=now\n| stats latest(storage_gib) AS usado_latest max(storage_gib) AS pico BY index_name\n```\n\n**Alcance:** los nombres `IDX_*`, `ST_*`, dominios `example.test`, IDs y métricas de CSV son didácticos; no corresponden a una instancia verificada. Comandos de lectura solo se usarían en entorno autorizado; el paquete no los ejecuta.\n\n## 5. Situación profesional\n\nUn índice de práctica tiene 12 GiB/día, 160 GiB disponibles y objetivo de 30 días. 160/12≈13,33 días equivalentes; no es una garantía de retención, y el plan incumple el objetivo bajo ese supuesto.\n\n## 6. Errores comunes\n\n1. Tratar frozen como siempre accesible para Search\n2. Afirmar retención exacta usando solo media de GiB/día\n3. No distinguir política temporal y límite de espacio\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R10-L04-Q01 — Opción múltiple\n\n¿Qué puede provocar paso a frozen antes del objetivo temporal?\n\nA. Reducir el número de columnas presentadas con table\nB. Cambiar un sourcetype en el texto de una consulta\nC. El límite de tamaño del índice puede provocar congelación antes del plazo temporal previsto\nD. La frecuencia de las búsquedas del analista por sí sola\n\n### SP-R10-L04-Q02 — Opción múltiple\n\n¿Qué significa «capacidad/ingesta = 13 días» en un fixture?\n\nA. La edad del evento más antiguo del índice medida por Splunk\nB. Estimación de capacidad bajo un modelo simplificado\nC. Garantía de que todos los eventos duran exactamente trece días\nD. El plazo de frozen independiente de tamaño, compresión o replicación\n\n### SP-R10-L04-P01 — Práctica abierta formativa\n\nCalcula el riesgo de retención para los índices de `retention_plan.csv` y prioriza mitigaciones.\n\n## 8. Solucionario con razonamiento\n\n- **SP-R10-L04-Q01: C** — El límite de tamaño puede actuar antes del plazo cronológico.\n\n- **SP-R10-L04-Q02: B** — El cálculo aproxima la capacidad, pero no modela rotación completa, compresión ni replicación.\n\n- **SP-R10-L04-P01:** Calcular `estimated_days=capacity_gib/daily_gib`; comparar con target_days; verificar archivado. Distinguir estimación y retención comprobada, mencionar dependencia de buckets, arquitectura y costes.\n\n**Guía de retroalimentación formativa:** Define fuente, producto, versión y límites del contexto; Resuelve el objetivo con un procedimiento replicable y no destructivo; Identifica error, caso benigno y riesgo operacional; Documenta permisos, aprobación y evidencia para revisión humana.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 9. Fuentes, procedencia y limitaciones\n\n- **D04:** Splunk Enterprise 10.2 — indexes.conf — https://help.splunk.com/en/splunk-enterprise/administer/admin-manual/10.2/configuration-file-reference/10.2.4-configuration-file-reference/indexes.conf\n\n- **Puente SC-200:** Capítulo 05: almacenamiento, retención, costes y cobertura. Es correspondencia pedagógica, no equivalencia exacta de producto.\n- **Fuente del ID y resultado:** `SPLUNK_MASTER_RESEARCH/03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json`.\n- **[DOC]:** fundamentos documentados en fuentes oficiales; no equivale a prueba de todos los supuestos.\n- **[OFFLINE]:** solo verificaciones Python sobre fixtures sintéticos.\n- **[NO EJECUTADO]:** no se ha abierto Splunk, ni SOAR, ni REST, ni se han aplicado configuraciones.\n- **[REVISIÓN]:** verificación humana del texto, respuestas, versiones y supuestos antes de integrar en React.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D04",
+      "key": "SPLUNK_LECCIONES_R10_R11:D04",
+      "url": "https://help.splunk.com/en/splunk-enterprise/administer/admin-manual/10.2/configuration-file-reference/10.2.4-configuration-file-reference/indexes.conf"
+    }
+  ]
+}

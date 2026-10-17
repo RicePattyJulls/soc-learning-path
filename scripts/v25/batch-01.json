@@ -1,0 +1,1138 @@
+{
+  "batch": "01",
+  "lessons": [
+    {
+      "lessonId": "documento/apertura-del-documento-1",
+      "introduction": "Trabaja los conceptos de «Apertura del documento» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Distinguir telemetría, alerta, incidente y respuesta.",
+        "Separar remediación nativa y orquestación de Sentinel.",
+        "Interpretar exposición y rutas de ataque."
+      ],
+      "summary": [
+        "Distinguir telemetría, alerta, incidente y respuesta.",
+        "Separar remediación nativa y orquestación de Sentinel.",
+        "Interpretar exposición y rutas de ataque."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "Un evento satisface una condición KQL y se identifica una entidad. Según el flujo inicial, ¿qué se produce antes de la correlación?",
+          "explanation": "El match conduce a una alerta; la correlación agrupa alertas en un incidente. No confundir detectar con remediar.",
+          "objective": "Situar la alerta dentro del ciclo SOC.",
+          "difficulty": "intermedia",
+          "id": "v25-01-cadena",
+          "evidence": [
+            "└──▶ Telemetría/logs → Custom Detection / Analytics Rule (adicionales) → KQL evalúa condición → match → identifica entidades (Entity Mapping en Analytics Rule) → alerta → correlación automática → incidente → respuesta"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Una alerta.",
+              "why": "El match conduce a una alerta; la correlación agrupa alertas en un incidente. No confundir detectar con remediar."
+            },
+            {
+              "id": "o1",
+              "text": "Una remediación ya verificada.",
+              "why": "La remediación aparece después de la respuesta."
+            },
+            {
+              "id": "o2",
+              "text": "Una ruta de ataque de Exposure Management.",
+              "why": "El flujo descrito genera alertas, no un mapa de exposición."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "practice",
+          "type": "match",
+          "prompt": "Relaciona la pregunta de exposición con su concepto.",
+          "explanation": "Impacto potencial, puntos de convergencia y objetivos finales responden a preguntas distintas.",
+          "objective": "Interpretar el propósito de las vistas de exposición.",
+          "difficulty": "intermedia",
+          "id": "v25-01-exposicion",
+          "evidence": [
+            "| Blast radius         | Muestra hasta dónde podría propagarse un compromiso desde una entidad.                             |",
+            "| Choke points         | Puntos clave por los que pasan varias rutas de ataque.                                             |",
+            "| Targets              | Activos importantes que podrían ser objetivo final del ataque.                                     |"
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "¿Hasta dónde se propagaría el compromiso?"
+            },
+            {
+              "id": "r1",
+              "label": "¿Dónde convergen varias rutas?"
+            },
+            {
+              "id": "r2",
+              "label": "¿Qué activos podrían ser el objetivo final?"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "Blast radius"
+            },
+            {
+              "id": "p1",
+              "text": "Choke points"
+            },
+            {
+              "id": "p2",
+              "text": "Targets"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1",
+            "p2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Has ejecutado una acción desde un playbook de Sentinel. ¿Qué suposición sobre Action Center debes evitar?",
+          "explanation": "El aviso reserva el registro de remediaciones nativas a Defender XDR; las acciones de Sentinel/Playbooks no necesariamente aparecen allí.",
+          "objective": "Evitar generalizar la cobertura de Action Center.",
+          "difficulty": "intermedia",
+          "id": "v25-01-registro",
+          "evidence": [
+            "> Las remediaciones nativas de Defender XDR terminan registradas en Action Center. Las acciones de Sentinel/Playbooks no necesariamente aparecen ahí."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Distinguir remediación de detección.",
+              "why": "El flujo separa esas fases; distinguirlas es coherente."
+            },
+            {
+              "id": "o1",
+              "text": "Suponer que necesariamente aparecerá allí.",
+              "why": "El aviso reserva el registro de remediaciones nativas a Defender XDR; las acciones de Sentinel/Playbooks no necesariamente aparecen allí."
+            },
+            {
+              "id": "o2",
+              "text": "Revisar también la ejecución del playbook.",
+              "why": "El texto no asegura que todas las acciones de Sentinel aparezcan en Action Center."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "¿Qué describe Predictive shielding en la tabla inicial?",
+          "explanation": "La protección anticipa el posible siguiente objetivo; no exige que el activo ya esté comprometido.",
+          "objective": "Distinguir protección anticipada de análisis retrospectivo.",
+          "difficulty": "intermedia",
+          "id": "v25-01-shielding",
+          "evidence": [
+            "| Predictive shielding | Protege lo que probablemente sea el próximo blanco, aunque ese activo todavía no esté comprometido |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Medir únicamente privilegios de identidades.",
+              "why": "Ese ámbito se asocia a Identity Explorer/ISPM, no a esta capacidad."
+            },
+            {
+              "id": "o1",
+              "text": "Proteger el probable próximo blanco aunque aún no esté comprometido.",
+              "why": "La protección anticipa el posible siguiente objetivo; no exige que el activo ya esté comprometido."
+            },
+            {
+              "id": "o2",
+              "text": "Mostrar solo acciones ya ejecutadas.",
+              "why": "La tabla describe protección anticipada, no un historial de remediación."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [],
+      "audit": {
+        "mainConcepts": [
+          "Distinguir telemetría, alerta, incidente y respuesta.",
+          "Separar remediación nativa y orquestación de Sentinel.",
+          "Interpretar exposición y rutas de ataque."
+        ],
+        "understanding": [
+          "Distinguir telemetría, alerta, incidente y respuesta.",
+          "Separar remediación nativa y orquestación de Sentinel.",
+          "Interpretar exposición y rutas de ataque."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Distinguir telemetría, alerta, incidente y respuesta.",
+          "Separar remediación nativa y orquestación de Sentinel.",
+          "Interpretar exposición y rutas de ataque."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "La remediación aparece después de la respuesta.",
+          "El flujo descrito genera alertas, no un mapa de exposición.",
+          "El flujo separa esas fases; distinguirlas es coherente.",
+          "El texto no asegura que todas las acciones de Sentinel aparezcan en Action Center.",
+          "Ese ámbito se asocia a Identity Explorer/ISPM, no a esta capacidad."
+        ],
+        "evidence": [
+          "└──▶ Telemetría/logs → Custom Detection / Analytics Rule (adicionales) → KQL evalúa condición → match → identifica entidades (Entity Mapping en Analytics Rule) → alerta → correlación automática → incidente → respuesta",
+          "| Blast radius         | Muestra hasta dónde podría propagarse un compromiso desde una entidad.                             |",
+          "| Choke points         | Puntos clave por los que pasan varias rutas de ataque.                                             |",
+          "| Targets              | Activos importantes que podrían ser objetivo final del ataque.                                     |",
+          "> Las remediaciones nativas de Defender XDR terminan registradas en Action Center. Las acciones de Sentinel/Playbooks no necesariamente aparecen ahí.",
+          "| Predictive shielding | Protege lo que probablemente sea el próximo blanco, aunque ese activo todavía no esté comprometido |"
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-1-licencia-y-onboarding/por-usuario-1",
+      "introduction": "Trabaja los conceptos de «Por usuario» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Separar licencia de clientes, servidores y fuentes cloud.",
+        "Distinguir P1/P2 sin equiparar todas las familias.",
+        "Comprobar incorporación técnica y fuentes conectadas."
+      ],
+      "summary": [
+        "Separar licencia de clientes, servidores y fuentes cloud.",
+        "Distinguir P1/P2 sin equiparar todas las familias.",
+        "Comprobar incorporación técnica y fuentes conectadas."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "Una organización tiene usuarios con MDE P2 y quiere cubrir servidores. ¿Qué debe revisar?",
+          "explanation": "Los apuntes separan dispositivos cliente licenciados por usuario de servidores, que requieren sus opciones de licencia.",
+          "objective": "Aplicar el límite de cobertura de MDE.",
+          "difficulty": "intermedia",
+          "id": "v25-03-servidor",
+          "evidence": [
+            "| Servidores     | Las licencias de usuario P1/P2 no cubren servidores. Se usa `Microsoft Defender for Servers` Plan 1 o Plan 2, `Microsoft Defender for Endpoint Server` o, para organizaciones elegibles, `Microsoft Defender for Business servers`                                                                       |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Únicamente los presets Standard y Strict.",
+              "why": "Son presets del ámbito de correo, no licencias de servidor."
+            },
+            {
+              "id": "o1",
+              "text": "La licencia específica de servidor; las de usuario P1/P2 no los cubren.",
+              "why": "Los apuntes separan dispositivos cliente licenciados por usuario de servidores, que requieren sus opciones de licencia."
+            },
+            {
+              "id": "o2",
+              "text": "Solo que cada usuario no exceda cinco dispositivos.",
+              "why": "El límite de clientes no convierte servidores en dispositivos cubiertos por la licencia de usuario."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "MDCA no requiere agente. ¿Qué falta para obtener datos de una aplicación SaaS según el apartado?",
+          "explanation": "El servicio no requiere agente, pero cada fuente debe conectarse; Shadow IT emplea además logs de firewall o proxy.",
+          "objective": "Separar servicio cloud de conexión de datos.",
+          "difficulty": "intermedia",
+          "id": "v25-03-mdca-fuentes",
+          "evidence": [
+            "| Onboarding     | El servicio no requiere agente, pero cada fuente de datos sí debe conectarse: aplicaciones SaaS mediante conectores API y Shadow IT mediante logs del firewall o proxy. Las aplicaciones de Microsoft Entra se incorporan automáticamente a Conditional Access App Control (`P1`) |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Conectar la fuente mediante su conector API.",
+              "why": "El servicio no requiere agente, pero cada fuente debe conectarse; Shadow IT emplea además logs de firewall o proxy."
+            },
+            {
+              "id": "o1",
+              "text": "Esperar que la ausencia de agente conecte todas las fuentes.",
+              "why": "No requerir agente no equivale a conectar fuentes automáticamente."
+            },
+            {
+              "id": "o2",
+              "text": "Instalar un sensor MDI en la aplicación SaaS.",
+              "why": "Los sensores MDI se relacionan con Active Directory, no con este conector."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "match",
+          "prompt": "Relaciona cada necesidad con la capa que la incluye en estos apuntes.",
+          "explanation": "Plan 2 incluye Plan 1 y añade investigación; la capa básica de correo ya existe en los buzones cloud.",
+          "objective": "Elegir la capa de protección de correo por capacidad.",
+          "difficulty": "intermedia",
+          "id": "v25-03-correo-planes",
+          "evidence": [
+            "| MDO free (EOP baseline) | Incluido en todo buzón cloud, sin licencia MDO. Cubre: Connection filtering, Anti-malware, Anti-spam (inbound/outbound), Anti-phishing básico (anti-spoofing, spoof intelligence), ZAP (para malware, spam y phishing — no para Teams), Tenant Allow/Block List, Quarantine, Mail flow rules. Es la capa que procesa el correo antes de que exista cualquier licencia MDO                                                                          |",
+            "| `Plan 1`                | Prevención y detección: `Safe Links`, `Safe Attachments`, protección anti-phishing y suplantación, `Real-time detections`, página de entidad de correo y protección para SharePoint, OneDrive y Teams. Disponible como standalone, en `Microsoft 365 Business Premium` y, desde el 1 de julio de 2026, también en `Microsoft 365 E3`. `Microsoft 365 E5` no lo trae como Plan 1: incluye directamente `Plan 2`, que ya incorpora estas capacidades |",
+            "| `Plan 2`                | Incluye todo lo de `Plan 1` y añade `Threat Explorer`, `Threat Trackers`, `Campaigns`, `Automated Investigation and Response (AIR)`, `Attack simulation training`, alertas prioritarias y `Advanced Hunting`. Disponible en `Microsoft 365 E5/A5/G5`, `Microsoft Defender Suite` o como standalone                                                                                                                                                 |"
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "Safe Links y Safe Attachments"
+            },
+            {
+              "id": "r1",
+              "label": "Threat Explorer y AIR"
+            },
+            {
+              "id": "r2",
+              "label": "Filtrado básico de correo cloud sin licencia MDO"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "MDO Plan 1, también incluido en Plan 2"
+            },
+            {
+              "id": "p1",
+              "text": "MDO Plan 2"
+            },
+            {
+              "id": "p2",
+              "text": "EOP baseline"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1",
+            "p2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Necesitas observar actividad de datos en endpoints con Endpoint DLP. ¿Qué requisito distingue el texto de las funciones cloud de Purview?",
+          "explanation": "El requisito de dispositivo no se generaliza a Audit/eDiscovery cloud. La incorporación existente en MDE puede cubrir la aparición del equipo en Purview.",
+          "objective": "Distinguir requisitos cloud y de dispositivo.",
+          "difficulty": "intermedia",
+          "id": "v25-03-purview-endpoint",
+          "evidence": [
+            "| Dispositivos   | Endpoint DLP y los indicadores de dispositivo de IRM requieren device onboarding en Purview para observar actividad en endpoints (`purview.microsoft.com > Settings > Device onboarding > Devices`). Si el dispositivo ya está onboarded en MDE, aparecerá en Purview automáticamente. DLP controla lo que hace el usuario con los datos en ese dispositivo; IRM además correlaciona esa actividad con usuario, riesgo y señales cloud, por lo que puede seguir funcionando parcialmente aunque no uses señales del dispositivo. |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Device onboarding; si ya está en MDE aparecerá automáticamente en Purview.",
+              "why": "El requisito de dispositivo no se generaliza a Audit/eDiscovery cloud. La incorporación existente en MDE puede cubrir la aparición del equipo en Purview."
+            },
+            {
+              "id": "o1",
+              "text": "Ninguna incorporación porque Audit no exige agente.",
+              "why": "Audit cloud y Endpoint DLP tienen requisitos distintos."
+            },
+            {
+              "id": "o2",
+              "text": "Basta con un case de eDiscovery abierto.",
+              "why": "Un case organiza investigación; no incorpora el dispositivo."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Entra ID genera detecciones disponibles según licencia. ¿Qué sigue requiriendo configuración para remediar riesgo?",
+          "explanation": "Detección automática no implica política de remediación ya configurada.",
+          "objective": "Separar generación de detecciones y aplicación de políticas.",
+          "difficulty": "intermedia",
+          "id": "v25-03-entra-politicas",
+          "evidence": [
+            "| Onboarding     | No requiere `onboarding` ni agente: Entra ID ya forma parte del tenant y las detecciones de riesgo disponibles según la licencia se generan automáticamente. Lo que sí debes configurar son las políticas de `user risk` y `sign-in risk` para aplicar remediación, normalmente desde `entra.microsoft.com` > `Protection` > `Conditional Access` > `Policies`.                   |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Un sensor MDI obligatorio en cada usuario cloud.",
+              "why": "El apartado niega onboarding/agente de Entra y separa sus políticas."
+            },
+            {
+              "id": "o1",
+              "text": "Un nuevo workspace por cada detección.",
+              "why": "El texto no relaciona la remediación de riesgo con crear workspaces."
+            },
+            {
+              "id": "o2",
+              "text": "Las políticas de user risk y sign-in risk.",
+              "why": "Detección automática no implica política de remediación ya configurada."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [
+        "No se evalúan fechas de licencias ni condiciones preview del sensor MDI: requieren comprobar vigencia. La frase Workload ID Premium del origen es ambigua y queda excluida de las respuestas."
+      ],
+      "audit": {
+        "mainConcepts": [
+          "Separar licencia de clientes, servidores y fuentes cloud.",
+          "Distinguir P1/P2 sin equiparar todas las familias.",
+          "Comprobar incorporación técnica y fuentes conectadas."
+        ],
+        "understanding": [
+          "Separar licencia de clientes, servidores y fuentes cloud.",
+          "Distinguir P1/P2 sin equiparar todas las familias.",
+          "Comprobar incorporación técnica y fuentes conectadas."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Separar licencia de clientes, servidores y fuentes cloud.",
+          "Distinguir P1/P2 sin equiparar todas las familias.",
+          "Comprobar incorporación técnica y fuentes conectadas."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "Son presets del ámbito de correo, no licencias de servidor.",
+          "El límite de clientes no convierte servidores en dispositivos cubiertos por la licencia de usuario.",
+          "No requerir agente no equivale a conectar fuentes automáticamente.",
+          "Los sensores MDI se relacionan con Active Directory, no con este conector.",
+          "Audit cloud y Endpoint DLP tienen requisitos distintos."
+        ],
+        "evidence": [
+          "| Servidores     | Las licencias de usuario P1/P2 no cubren servidores. Se usa `Microsoft Defender for Servers` Plan 1 o Plan 2, `Microsoft Defender for Endpoint Server` o, para organizaciones elegibles, `Microsoft Defender for Business servers`                                                                       |",
+          "| Onboarding     | El servicio no requiere agente, pero cada fuente de datos sí debe conectarse: aplicaciones SaaS mediante conectores API y Shadow IT mediante logs del firewall o proxy. Las aplicaciones de Microsoft Entra se incorporan automáticamente a Conditional Access App Control (`P1`) |",
+          "| MDO free (EOP baseline) | Incluido en todo buzón cloud, sin licencia MDO. Cubre: Connection filtering, Anti-malware, Anti-spam (inbound/outbound), Anti-phishing básico (anti-spoofing, spoof intelligence), ZAP (para malware, spam y phishing — no para Teams), Tenant Allow/Block List, Quarantine, Mail flow rules. Es la capa que procesa el correo antes de que exista cualquier licencia MDO                                                                          |",
+          "| `Plan 1`                | Prevención y detección: `Safe Links`, `Safe Attachments`, protección anti-phishing y suplantación, `Real-time detections`, página de entidad de correo y protección para SharePoint, OneDrive y Teams. Disponible como standalone, en `Microsoft 365 Business Premium` y, desde el 1 de julio de 2026, también en `Microsoft 365 E3`. `Microsoft 365 E5` no lo trae como Plan 1: incluye directamente `Plan 2`, que ya incorpora estas capacidades |",
+          "| `Plan 2`                | Incluye todo lo de `Plan 1` y añade `Threat Explorer`, `Threat Trackers`, `Campaigns`, `Automated Investigation and Response (AIR)`, `Attack simulation training`, alertas prioritarias y `Advanced Hunting`. Disponible en `Microsoft 365 E5/A5/G5`, `Microsoft Defender Suite` o como standalone                                                                                                                                                 |",
+          "| Dispositivos   | Endpoint DLP y los indicadores de dispositivo de IRM requieren device onboarding en Purview para observar actividad en endpoints (`purview.microsoft.com > Settings > Device onboarding > Devices`). Si el dispositivo ya está onboarded en MDE, aparecerá en Purview automáticamente. DLP controla lo que hace el usuario con los datos en ese dispositivo; IRM además correlaciona esa actividad con usuario, riesgo y señales cloud, por lo que puede seguir funcionando parcialmente aunque no uses señales del dispositivo. |",
+          "| Onboarding     | No requiere `onboarding` ni agente: Entra ID ya forma parte del tenant y las detecciones de riesgo disponibles según la licencia se generan automáticamente. Lo que sí debes configurar son las políticas de `user risk` y `sign-in risk` para aplicar remediación, normalmente desde `entra.microsoft.com` > `Protection` > `Conditional Access` > `Policies`.                   |"
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-1-licencia-y-onboarding/por-recurso-1",
+      "introduction": "Trabaja los conceptos de «Por recurso» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Relacionar CSPM con postura y CWPP con workloads.",
+        "Respetar alcance de P1/P2 exclusivo de Servers.",
+        "Distinguir activación de planes e incorporación de recursos."
+      ],
+      "summary": [
+        "Relacionar CSPM con postura y CWPP con workloads.",
+        "Respetar alcance de P1/P2 exclusivo de Servers.",
+        "Distinguir activación de planes e incorporación de recursos."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "match",
+          "prompt": "Elige el plan por el activo o la finalidad de la tabla.",
+          "explanation": "Los planes se eligen por finalidad y recurso protegido; postura no equivale a protección de un workload concreto.",
+          "objective": "Relacionar planes con su superficie protegida.",
+          "difficulty": "intermedia",
+          "id": "v25-04-planes",
+          "evidence": [
+            "| `Defender CSPM`                        | Postura avanzada: gobernanza, cumplimiento normativo, `cloud security explorer`, `Agentless VM vulnerability scanning`,`attack path analysis`, `Data Security Posture Management (DSPM)` y `AI Security Posture Management (AI SPM)`. Es el plan de pago; `Foundational CSPM` es su contraparte gratuita                                                                                                                            |",
+            "| `Defender for Storage`                 | Cuentas de almacenamiento: malware, amenazas propias del almacenamiento, fuga de datos sensibles y abuso de tokens `Shared Access Signature (SAS)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |",
+            "| `Defender for Containers`              | Clústeres y workloads de Kubernetes en Azure, híbridos y en otras nubes: postura, vulnerabilidades y amenazas en tiempo de ejecución                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |"
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "Postura avanzada y análisis de rutas de ataque"
+            },
+            {
+              "id": "r1",
+              "label": "Amenazas sobre almacenamiento y abuso SAS"
+            },
+            {
+              "id": "r2",
+              "label": "Workloads Kubernetes y amenazas en ejecución"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "Defender CSPM"
+            },
+            {
+              "id": "p1",
+              "text": "Defender for Storage"
+            },
+            {
+              "id": "p2",
+              "text": "Defender for Containers"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1",
+            "p2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Un compañero propone elegir P2 para cualquier plan de Defender for Cloud. ¿Qué corrección respeta el documento?",
+          "explanation": "No trasladar la denominación de Servers a Storage, Containers u otros planes descritos como on/off.",
+          "objective": "Evitar extrapolar niveles entre familias.",
+          "difficulty": "intermedia",
+          "id": "v25-04-p1p2",
+          "evidence": [
+            "> `P1` y `P2` aplican solo a `Defender for Servers`. `Storage`, `Containers`, `Databases`, `App Service`, etc, son plan único (on/off), sin split P1/P2."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "La división P1/P2 citada corresponde a Defender for Servers.",
+              "why": "No trasladar la denominación de Servers a Storage, Containers u otros planes descritos como on/off."
+            },
+            {
+              "id": "o1",
+              "text": "Todos los planes comparten siempre el mismo P1/P2.",
+              "why": "El texto distingue planes únicos de Servers."
+            },
+            {
+              "id": "o2",
+              "text": "Defender CSPM es el nombre de Servers P2.",
+              "why": "Postura avanzada y protección de servidores son planes distintos."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Quieres extender la cobertura completa a servidores fuera de Azure. ¿Qué vía recomiendan los apuntes?",
+          "explanation": "Arc es la vía preferida descrita; el documento también recoge una vía con MDE y limitaciones, por lo que no se afirma que sea la única posible.",
+          "objective": "Reconocer vía recomendada y limitaciones de incorporación.",
+          "difficulty": "intermedia",
+          "id": "v25-04-arc",
+          "evidence": [
+            "| `Defender for Servers` Plan 1 y Plan 2 | Servidores Windows y Linux en Azure, híbridos y en AWS y GCP. `P1` se activa por suscripción o por recurso individual; `P2` solo por suscripción. Ambos planes, sin embargo, se pueden excluir o deshabilitar a nivel de recurso por igual. Las máquinas fuera de Azure se conectan preferentemente vía `Azure Arc` para acceder al set completo de funciones, aunque también pueden onboardearse con el agente de `Defender for Endpoint` sin Arc — en ese caso `P2` pierde funciones extra (file integrity monitoring, JIT, network map, etc.) y queda reducido a `P1` + vulnerability management premium. El onboarding puede tardar hasta 24 horas independientemente del Plan |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Conectarlos preferentemente mediante Azure Arc.",
+              "why": "Arc es la vía preferida descrita; el documento también recoge una vía con MDE y limitaciones, por lo que no se afirma que sea la única posible."
+            },
+            {
+              "id": "o1",
+              "text": "Asignar únicamente una licencia de usuario a cada servidor.",
+              "why": "El apartado licencia por recursos, no por usuarios."
+            },
+            {
+              "id": "o2",
+              "text": "Suponer que todo P2 ofrece las mismas funciones sin Arc.",
+              "why": "La tabla advierte pérdidas de funciones extra en el camino MDE sin Arc."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [
+        "Las fechas de activación de Foundational CSPM y de Defender for DNS no se convierten en respuestas atemporales."
+      ],
+      "audit": {
+        "mainConcepts": [
+          "Relacionar CSPM con postura y CWPP con workloads.",
+          "Respetar alcance de P1/P2 exclusivo de Servers.",
+          "Distinguir activación de planes e incorporación de recursos."
+        ],
+        "understanding": [
+          "Relacionar CSPM con postura y CWPP con workloads.",
+          "Respetar alcance de P1/P2 exclusivo de Servers.",
+          "Distinguir activación de planes e incorporación de recursos."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Relacionar CSPM con postura y CWPP con workloads.",
+          "Respetar alcance de P1/P2 exclusivo de Servers.",
+          "Distinguir activación de planes e incorporación de recursos."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "El texto distingue planes únicos de Servers.",
+          "Postura avanzada y protección de servidores son planes distintos.",
+          "El apartado licencia por recursos, no por usuarios.",
+          "La tabla advierte pérdidas de funciones extra en el camino MDE sin Arc."
+        ],
+        "evidence": [
+          "| `Defender CSPM`                        | Postura avanzada: gobernanza, cumplimiento normativo, `cloud security explorer`, `Agentless VM vulnerability scanning`,`attack path analysis`, `Data Security Posture Management (DSPM)` y `AI Security Posture Management (AI SPM)`. Es el plan de pago; `Foundational CSPM` es su contraparte gratuita                                                                                                                            |",
+          "| `Defender for Storage`                 | Cuentas de almacenamiento: malware, amenazas propias del almacenamiento, fuga de datos sensibles y abuso de tokens `Shared Access Signature (SAS)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |",
+          "| `Defender for Containers`              | Clústeres y workloads de Kubernetes en Azure, híbridos y en otras nubes: postura, vulnerabilidades y amenazas en tiempo de ejecución                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |",
+          "> `P1` y `P2` aplican solo a `Defender for Servers`. `Storage`, `Containers`, `Databases`, `App Service`, etc, son plan único (on/off), sin split P1/P2.",
+          "| `Defender for Servers` Plan 1 y Plan 2 | Servidores Windows y Linux en Azure, híbridos y en AWS y GCP. `P1` se activa por suscripción o por recurso individual; `P2` solo por suscripción. Ambos planes, sin embargo, se pueden excluir o deshabilitar a nivel de recurso por igual. Las máquinas fuera de Azure se conectan preferentemente vía `Azure Arc` para acceder al set completo de funciones, aunque también pueden onboardearse con el agente de `Defender for Endpoint` sin Arc — en ese caso `P2` pierde funciones extra (file integrity monitoring, JIT, network map, etc.) y queda reducido a `P1` + vulnerability management premium. El onboarding puede tardar hasta 24 horas independientemente del Plan |"
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-1-licencia-y-onboarding/por-consumo-1",
+      "introduction": "Trabaja los conceptos de «Por consumo» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Separar los tres onboardings de Sentinel.",
+        "Distinguir instancia de workspace y experiencia unificada.",
+        "Relacionar arquitectura con residencia y permisos."
+      ],
+      "summary": [
+        "Separar los tres onboardings de Sentinel.",
+        "Distinguir instancia de workspace y experiencia unificada.",
+        "Relacionar arquitectura con residencia y permisos."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "Un workspace aún no tiene Sentinel habilitado. ¿Puede empezarse directamente por conectarlo al portal de Defender según el requisito citado?",
+          "explanation": "Habilitar Sentinel sobre el workspace y conectarlo al portal son pasos dependientes pero distintos.",
+          "objective": "Reconocer el prerrequisito de la experiencia unificada.",
+          "difficulty": "intermedia",
+          "id": "v25-05-secuencia",
+          "evidence": [
+            "| Requisito   | Requiere que el workspace ya tenga `Microsoft Sentinel` habilitado (onboarding 1 previo). Clientes nuevos posteriores al `01/07/2025` suelen quedar onboardeados automáticamente a este paso.                                                                                                                                                                                                  |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Primero hay que crear un workspace de Copilot.",
+              "why": "El workspace de Copilot es otra superficie y no ese requisito."
+            },
+            {
+              "id": "o1",
+              "text": "Primero debe habilitarse Sentinel en ese workspace.",
+              "why": "Habilitar Sentinel sobre el workspace y conectarlo al portal son pasos dependientes pero distintos."
+            },
+            {
+              "id": "o2",
+              "text": "Sí, conectar al portal sustituye el onboarding 1.",
+              "why": "El onboarding 2 exige explícitamente el primero."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Se desconecta un workspace del portal de Defender. ¿Qué permanece activo según el apartado?",
+          "explanation": "El offboarding 2 es reversible de forma independiente y no deshace la habilitación de Sentinel del primer paso.",
+          "objective": "Distinguir offboarding del portal y del servicio.",
+          "difficulty": "intermedia",
+          "id": "v25-05-desconectar",
+          "evidence": [
+            "| Offboarding | Es reversible de forma independiente: `Settings > Microsoft Sentinel > Workspaces > Disconnect workspace` desconecta solo del Defender portal, sin afectar el Sentinel habilitado en el workspace (onboarding 1 sigue activo).                                                                                                                                                                 |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Sentinel habilitado en el workspace.",
+              "why": "El offboarding 2 es reversible de forma independiente y no deshace la habilitación de Sentinel del primer paso."
+            },
+            {
+              "id": "o1",
+              "text": "Se elimina el workspace de Log Analytics.",
+              "why": "Desconectar la experiencia no elimina el recurso."
+            },
+            {
+              "id": "o2",
+              "text": "Se mezclan sus datos con los del primario.",
+              "why": "La desconexión no fusiona datos; las instancias son independientes."
+            }
+          ],
+          "solution": [
+            "o0"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "La gobernanza exige mantener el dato en cada región. ¿Qué arquitectura recoge la tabla?",
+          "explanation": "La separación regional aporta granularidad pero exige desplegar analíticas/workbooks en cada workspace y no fusiona su correlación.",
+          "objective": "Elegir arquitectura por residencia sin ocultar compromisos.",
+          "difficulty": "intermedia",
+          "id": "v25-05-residencia",
+          "evidence": [
+            "| Un workspace por región en un tenant | Hay requisitos de residencia del dato, o interesan retención, acceso y facturación granulares por región | Hay que desplegar analíticas y workbooks en cada workspace, y la correlación de incidentes sigue siendo por workspace |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Un workspace de Copilot para reemplazar los de Sentinel.",
+              "why": "Los entornos de Copilot no sustituyen el almacenamiento Sentinel."
+            },
+            {
+              "id": "o1",
+              "text": "Un workspace por región dentro del tenant.",
+              "why": "La separación regional aporta granularidad pero exige desplegar analíticas/workbooks en cada workspace y no fusiona su correlación."
+            },
+            {
+              "id": "o2",
+              "text": "Siempre un único workspace sin considerar residencia.",
+              "why": "La tabla excluye esa opción cuando la gobernanza obliga a mantener el dato en una región."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "¿Qué condición del workspace exige el onboarding del Sentinel data lake descrito?",
+          "explanation": "El lake depende del onboarding previo al portal y añade sus propios requisitos de suscripción/resource group.",
+          "objective": "Situar el data lake en la secuencia de incorporación.",
+          "difficulty": "intermedia",
+          "id": "v25-05-lake-previo",
+          "evidence": [
+            "| Requisito  | Requiere tener el workspace de `Sentinel` ya conectado al `Defender portal` como `Primary` SIEM workspace (onboarding 2 previo), más una suscripción de Azure y un resource group de esa suscripción para facturar el lake. Es onboarding único por tenant (one-time setup) e incluye habilitar `Graph`. |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Ser cualquier workspace secundario sin conexión al portal.",
+              "why": "El requisito indica Primary y onboarding 2 previo."
+            },
+            {
+              "id": "o1",
+              "text": "Tener únicamente un permiso Copilot contributor.",
+              "why": "El requisito trata de Sentinel y facturación Azure, no de ese rol de Copilot."
+            },
+            {
+              "id": "o2",
+              "text": "Estar conectado al portal de Defender como workspace SIEM primario.",
+              "why": "El lake depende del onboarding previo al portal y añade sus propios requisitos de suscripción/resource group."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [
+        "No se evalúan fechas de retirada de portales, licencias E7 ni plazos de borrado/restauración del lake sin verificación adicional."
+      ],
+      "audit": {
+        "mainConcepts": [
+          "Separar los tres onboardings de Sentinel.",
+          "Distinguir instancia de workspace y experiencia unificada.",
+          "Relacionar arquitectura con residencia y permisos."
+        ],
+        "understanding": [
+          "Separar los tres onboardings de Sentinel.",
+          "Distinguir instancia de workspace y experiencia unificada.",
+          "Relacionar arquitectura con residencia y permisos."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Separar los tres onboardings de Sentinel.",
+          "Distinguir instancia de workspace y experiencia unificada.",
+          "Relacionar arquitectura con residencia y permisos."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "El workspace de Copilot es otra superficie y no ese requisito.",
+          "El onboarding 2 exige explícitamente el primero.",
+          "Desconectar la experiencia no elimina el recurso.",
+          "La desconexión no fusiona datos; las instancias son independientes.",
+          "Los entornos de Copilot no sustituyen el almacenamiento Sentinel."
+        ],
+        "evidence": [
+          "| Requisito   | Requiere que el workspace ya tenga `Microsoft Sentinel` habilitado (onboarding 1 previo). Clientes nuevos posteriores al `01/07/2025` suelen quedar onboardeados automáticamente a este paso.                                                                                                                                                                                                  |",
+          "| Offboarding | Es reversible de forma independiente: `Settings > Microsoft Sentinel > Workspaces > Disconnect workspace` desconecta solo del Defender portal, sin afectar el Sentinel habilitado en el workspace (onboarding 1 sigue activo).                                                                                                                                                                 |",
+          "| Un workspace por región en un tenant | Hay requisitos de residencia del dato, o interesan retención, acceso y facturación granulares por región | Hay que desplegar analíticas y workbooks en cada workspace, y la correlación de incidentes sigue siendo por workspace |",
+          "| Requisito  | Requiere tener el workspace de `Sentinel` ya conectado al `Defender portal` como `Primary` SIEM workspace (onboarding 2 previo), más una suscripción de Azure y un resource group de esa suscripción para facturar el lake. Es onboarding único por tenant (one-time setup) e incluye habilitar `Graph`. |"
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-2-permisos-y-rbac/2-permisos-y-rbac-1",
+      "introduction": "Trabaja los conceptos de «2 · Permisos y RBAC» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Separar capacidad licenciada y autorización de una identidad."
+      ],
+      "summary": [
+        "Separar capacidad licenciada y autorización de una identidad."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "Una identidad tiene un rol adecuado pero el producto carece de la licencia requerida. ¿Qué resuelve ese rol?",
+          "explanation": "Licencia y permiso son requisitos distintos: el rol no habilita capacidades licenciadas.",
+          "objective": "Separar autorización y habilitación.",
+          "difficulty": "intermedia",
+          "id": "v25-06-dos-ejes",
+          "evidence": [
+            "> La licencia habilita el servicio; el permiso autoriza a una identidad para verlo, configurarlo o actuar. Son ejes independientes: una licencia no concede privilegios y un rol no sustituye los requisitos de licencia del producto."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Sustituye los requisitos de licencia por ser un rol.",
+              "why": "El texto afirma expresamente que el rol no los sustituye."
+            },
+            {
+              "id": "o1",
+              "text": "Impide por definición cualquier lectura del servicio.",
+              "why": "El párrafo no dice que tener un rol impida leer; separa los dos ejes."
+            },
+            {
+              "id": "o2",
+              "text": "Autoriza acciones; no sustituye la licencia del producto.",
+              "why": "Licencia y permiso son requisitos distintos: el rol no habilita capacidades licenciadas."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "¿A qué se refiere el permiso en la distinción inicial de RBAC?",
+          "explanation": "La autorización se aplica a una identidad y a sus acciones; la habilitación del servicio pertenece al otro eje.",
+          "objective": "Identificar el sujeto y objeto de autorización.",
+          "difficulty": "intermedia",
+          "id": "v25-06-identidad",
+          "evidence": [
+            "> La licencia habilita el servicio; el permiso autoriza a una identidad para verlo, configurarlo o actuar. Son ejes independientes: una licencia no concede privilegios y un rol no sustituye los requisitos de licencia del producto."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Al derecho de uso que habilita el servicio.",
+              "why": "Ese es el eje de la licencia."
+            },
+            {
+              "id": "o1",
+              "text": "Al tiempo que permanece un registro almacenado.",
+              "why": "Eso describe retención, no autorización."
+            },
+            {
+              "id": "o2",
+              "text": "A autorizar a una identidad para ver, configurar o actuar.",
+              "why": "La autorización se aplica a una identidad y a sus acciones; la habilitación del servicio pertenece al otro eje."
+            }
+          ],
+          "solution": [
+            "o2"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "true-false",
+          "prompt": "Comprar una licencia concede por sí solo los privilegios necesarios a cualquier analista.",
+          "solution": [
+            "false"
+          ],
+          "explanation": "El párrafo niega que la licencia conceda privilegios; hay que comprobar la autorización de la identidad.",
+          "objective": "Detectar una inferencia indebida de privilegios.",
+          "difficulty": "basica",
+          "id": "v25-06-licencia-privilegios",
+          "evidence": [
+            "> La licencia habilita el servicio; el permiso autoriza a una identidad para verlo, configurarlo o actuar. Son ejes independientes: una licencia no concede privilegios y un rol no sustituye los requisitos de licencia del producto."
+          ],
+          "options": [
+            {
+              "id": "true",
+              "text": "Verdadero",
+              "why": "El párrafo niega que la licencia conceda privilegios; hay que comprobar la autorización de la identidad."
+            },
+            {
+              "id": "false",
+              "text": "Falso",
+              "why": "El párrafo niega que la licencia conceda privilegios; hay que comprobar la autorización de la identidad."
+            }
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [
+        "Lectura introductoria de un párrafo: se evalúa solo la distinción conceptual, no roles concretos."
+      ],
+      "audit": {
+        "mainConcepts": [
+          "Separar capacidad licenciada y autorización de una identidad."
+        ],
+        "understanding": [
+          "Separar capacidad licenciada y autorización de una identidad."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Separar capacidad licenciada y autorización de una identidad."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "El texto afirma expresamente que el rol no los sustituye.",
+          "El párrafo no dice que tener un rol impida leer; separa los dos ejes.",
+          "Ese es el eje de la licencia.",
+          "Eso describe retención, no autorización.",
+          "El párrafo niega que la licencia conceda privilegios; hay que comprobar la autorización de la identidad."
+        ],
+        "evidence": [
+          "> La licencia habilita el servicio; el permiso autoriza a una identidad para verlo, configurarlo o actuar. Son ejes independientes: una licencia no concede privilegios y un rol no sustituye los requisitos de licencia del producto.",
+          "> La licencia habilita el servicio; el permiso autoriza a una identidad para verlo, configurarlo o actuar. Son ejes independientes: una licencia no concede privilegios y un rol no sustituye los requisitos de licencia del producto.",
+          "> La licencia habilita el servicio; el permiso autoriza a una identidad para verlo, configurarlo o actuar. Son ejes independientes: una licencia no concede privilegios y un rol no sustituye los requisitos de licencia del producto."
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    },
+    {
+      "lessonId": "capitulo-2-permisos-y-rbac/2-azure-rbac-para-microsoft-sentinel-1",
+      "introduction": "Trabaja los conceptos de «2 · Azure RBAC para Microsoft Sentinel» usando las condiciones y ejemplos de tus apuntes. Distingue el objetivo, sus requisitos y los errores que cambiarían su significado.",
+      "goals": [
+        "Distinguir consulta, administración de incidentes y edición de recursos.",
+        "Separar permisos de analista y cuenta de servicio.",
+        "Revisar recursos que viven fuera del workspace."
+      ],
+      "summary": [
+        "Distinguir consulta, administración de incidentes y edición de recursos.",
+        "Separar permisos de analista y cuenta de servicio.",
+        "Revisar recursos que viven fuera del workspace."
+      ],
+      "questions": [
+        {
+          "phase": "practice",
+          "type": "choice",
+          "prompt": "Un analista debe administrar incidentes sin necesitar crear analytics rules. ¿Qué rol Sentinel mínimo recoge la progresión de la tabla?",
+          "explanation": "Responder amplía Reader para administrar incidentes; Contributor añade creación y edición de recursos.",
+          "objective": "Aplicar mínimo privilegio en incidentes.",
+          "difficulty": "intermedia",
+          "id": "v25-08-incidentes",
+          "evidence": [
+            "| `Microsoft Sentinel Responder`              | Todo Reader, más administrar incidentes                                                                                                                                                                                                                                                                          |"
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Microsoft Sentinel Automation Contributor.",
+              "why": "Está destinado a la identidad de servicio que ejecuta playbooks."
+            },
+            {
+              "id": "o1",
+              "text": "Microsoft Sentinel Responder.",
+              "why": "Responder amplía Reader para administrar incidentes; Contributor añade creación y edición de recursos."
+            },
+            {
+              "id": "o2",
+              "text": "Microsoft Sentinel Reader.",
+              "why": "Reader permite ver; Responder añade administrar incidentes."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "¿A quién se asigna normalmente Microsoft Sentinel Automation Contributor para que Sentinel ejecute un playbook?",
+          "explanation": "El permiso de ejecución de la cuenta de servicio es independiente del permiso del analista que configura o abre el incidente.",
+          "objective": "Distinguir identidad ejecutora y operador.",
+          "difficulty": "intermedia",
+          "id": "v25-08-automatizacion",
+          "evidence": [
+            "Los playbooks son recursos de Azure Logic Apps y no pertenecen al workspace. Para adjuntarlos a una regla se usa `Microsoft Sentinel Contributor`; para que Sentinel los ejecute, su service account recibe `Microsoft Sentinel Automation Contributor` sobre el resource group donde reside el playbook."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Al conector para sustituir cualquier permiso de datos.",
+              "why": "El rol se relaciona con ejecución del playbook, no con cualquier conector."
+            },
+            {
+              "id": "o1",
+              "text": "A la identidad de servicio de Sentinel en el resource group del playbook.",
+              "why": "El permiso de ejecución de la cuenta de servicio es independiente del permiso del analista que configura o abre el incidente."
+            },
+            {
+              "id": "o2",
+              "text": "Al usuario por el mero hecho de leer el incidente.",
+              "why": "El apartado separa permisos humanos y cuenta de servicio."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "choice",
+          "prompt": "Asignaste roles solo sobre el workspace y el playbook no queda cubierto. ¿Qué explicación da el apartado?",
+          "explanation": "Se recomienda el resource group para alcanzar recursos relacionados; asignar solo al workspace obliga a mantener permisos aparte.",
+          "objective": "Reconocer límites del scope del workspace.",
+          "difficulty": "intermedia",
+          "id": "v25-08-scope",
+          "evidence": [
+            "Los playbooks son recursos de Azure Logic Apps y no pertenecen al workspace. Para adjuntarlos a una regla se usa `Microsoft Sentinel Contributor`; para que Sentinel los ejecute, su service account recibe `Microsoft Sentinel Automation Contributor` sobre el resource group donde reside el playbook.",
+            "Microsoft recomienda asignar los roles de Sentinel al resource group que contiene el workspace. Así alcanzan el workspace, el recurso `SecurityInsights` y los recursos relacionados. Si se asignan solo al workspace, hay que mantener por separado los permisos sobre `SecurityInsights`, playbooks y demás recursos externos."
+          ],
+          "options": [
+            {
+              "id": "o0",
+              "text": "Reader incluye edición de todos los recursos Azure relacionados.",
+              "why": "Reader no concede esa edición; además hay scopes externos."
+            },
+            {
+              "id": "o1",
+              "text": "Los playbooks son recursos Logic Apps externos al workspace y necesitan sus propios permisos.",
+              "why": "Se recomienda el resource group para alcanzar recursos relacionados; asignar solo al workspace obliga a mantener permisos aparte."
+            },
+            {
+              "id": "o2",
+              "text": "Los playbooks siempre son tablas del workspace.",
+              "why": "El texto los identifica como recursos Logic Apps."
+            }
+          ],
+          "solution": [
+            "o1"
+          ]
+        },
+        {
+          "phase": "assessment",
+          "type": "match",
+          "prompt": "Relaciona la tarea con el rol auxiliar descrito.",
+          "explanation": "Consultar datos, gestionar recopilación y editar el recurso Logic App son permisos sobre superficies diferentes.",
+          "objective": "Elegir el rol auxiliar por su recurso.",
+          "difficulty": "intermedia",
+          "id": "v25-08-auxiliares",
+          "evidence": [
+            "| `Log Analytics Reader`      | Consulta los datos del workspace y permite ver su configuración (Ejecutar KQL), pero no administra Sentinel ni las shared keys |",
+            "| `Monitoring Contributor`    | Crea y administra `DCR`, `DCE` y asociaciones de recopilación en el scope asignado                                             |",
+            "| `Logic App Contributor`     | Crea, modifica y ejecuta las Logic Apps usadas como playbooks                                                                  |"
+          ],
+          "rows": [
+            {
+              "id": "r0",
+              "label": "Consultar datos y configuración del workspace sin administrar Sentinel"
+            },
+            {
+              "id": "r1",
+              "label": "Crear DCR/DCE y asociaciones"
+            },
+            {
+              "id": "r2",
+              "label": "Crear o modificar Logic Apps"
+            }
+          ],
+          "options": [
+            {
+              "id": "p0",
+              "text": "Log Analytics Reader"
+            },
+            {
+              "id": "p1",
+              "text": "Monitoring Contributor"
+            },
+            {
+              "id": "p2",
+              "text": "Logic App Contributor"
+            }
+          ],
+          "solution": [
+            "p0",
+            "p1",
+            "p2"
+          ]
+        }
+      ],
+      "blocked": false,
+      "limitations": [],
+      "audit": {
+        "mainConcepts": [
+          "Distinguir consulta, administración de incidentes y edición de recursos.",
+          "Separar permisos de analista y cuenta de servicio.",
+          "Revisar recursos que viven fuera del workspace."
+        ],
+        "understanding": [
+          "Distinguir consulta, administración de incidentes y edición de recursos.",
+          "Separar permisos de analista y cuenta de servicio.",
+          "Revisar recursos que viven fuera del workspace."
+        ],
+        "procedures": "Solo los procedimientos explícitos del apartado; las actividades no añaden pasos operativos.",
+        "terminology": [
+          "Distinguir consulta, administración de incidentes y edición de recursos.",
+          "Separar permisos de analista y cuenta de servicio.",
+          "Revisar recursos que viven fuera del workspace."
+        ],
+        "relationships": "Contrastar alcance, requisitos y finalidad mediante las actividades justificadas.",
+        "commonErrors": [
+          "Está destinado a la identidad de servicio que ejecuta playbooks.",
+          "Reader permite ver; Responder añade administrar incidentes.",
+          "El rol se relaciona con ejecución del playbook, no con cualquier conector.",
+          "El apartado separa permisos humanos y cuenta de servicio.",
+          "Reader no concede esa edición; además hay scopes externos."
+        ],
+        "evidence": [
+          "| `Microsoft Sentinel Responder`              | Todo Reader, más administrar incidentes                                                                                                                                                                                                                                                                          |",
+          "Los playbooks son recursos de Azure Logic Apps y no pertenecen al workspace. Para adjuntarlos a una regla se usa `Microsoft Sentinel Contributor`; para que Sentinel los ejecute, su service account recibe `Microsoft Sentinel Automation Contributor` sobre el resource group donde reside el playbook.",
+          "Los playbooks son recursos de Azure Logic Apps y no pertenecen al workspace. Para adjuntarlos a una regla se usa `Microsoft Sentinel Contributor`; para que Sentinel los ejecute, su service account recibe `Microsoft Sentinel Automation Contributor` sobre el resource group donde reside el playbook.",
+          "Microsoft recomienda asignar los roles de Sentinel al resource group que contiene el workspace. Así alcanzan el workspace, el recurso `SecurityInsights` y los recursos relacionados. Si se asignan solo al workspace, hay que mantener por separado los permisos sobre `SecurityInsights`, playbooks y demás recursos externos.",
+          "| `Log Analytics Reader`      | Consulta los datos del workspace y permite ver su configuración (Ejecutar KQL), pero no administra Sentinel ni las shared keys |",
+          "| `Monitoring Contributor`    | Crea y administra `DCR`, `DCE` y asociaciones de recopilación en el scope asignado                                             |",
+          "| `Logic App Contributor`     | Crea, modifica y ejecuta las Logic Apps usadas como playbooks                                                                  |"
+        ]
+      },
+      "review": {
+        "technical": "AGENTE_CONTRA_FUENTE_LOCAL",
+        "human": false,
+        "independent": false,
+        "scope": "Respuestas y distractores contrastados con SC-200.md; sin comprobación de vigencia externa."
+      }
+    }
+  ]
+}

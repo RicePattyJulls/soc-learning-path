@@ -1,0 +1,200 @@
+{
+  "schemaVersion": 1,
+  "courseId": "splunk",
+  "id": "SP-R08-L07",
+  "title": "MITRE y cobertura",
+  "revision": "322a6e1da16fba33df6b1284",
+  "sourceVersion": "c64169061a51e80ec8e29105c65a91ea13ad0c2c6256d43f44869532e71e9144",
+  "sanitizedHash": "c64169061a51e80ec8e29105c65a91ea13ad0c2c6256d43f44869532e71e9144",
+  "sourceFile": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R08_R09/R08_THREAT_HUNTING/SP-R08-L07.md",
+  "editorialRevision": "2026-10-16-r1",
+  "humanReview": "pending_independent_review",
+  "splunkExecuted": false,
+  "practicalStatus": "not_assessed",
+  "objective": "Mantener hipótesis, fuentes necesarias, detección, límites",
+  "preamble": "# SP-R08-L07 — MITRE y cobertura\n\n**Región:** SP-R08 · **Estado:** borrador editorial para revisión · **SPL:** ilustrativo NO ejecutado.\n\n**Resultado de aprendizaje curricular:** Mantener hipótesis, fuentes necesarias, detección, límites.\n\n**Prerrequisitos:** R01–R07 según tema; R08 para agrupación/escalado R09. **Producto:** plataforma Splunk para SPL genérico; funciones ES 8.7/SOAR solo cuando se indiquen.\n\n",
+  "sections": [
+    {
+      "id": "SP-R08-L07-S01",
+      "title": "1. Explicación técnica",
+      "markdown": "## 1. Explicación técnica\n\nMITRE ATT&CK proporciona un lenguaje compartido para describir tácticas y técnicas, no un certificado de detección. Anotar una búsqueda como T1558.003 o T1003.006 no demuestra que cubra la técnica. Una cobertura útil define **conducta observable**, fuente requerida, campos disponibles, condición de detección, pruebas positivas y negativas y limitaciones.\n\nConstruye una matriz: hipótesis → técnica ATT&CK → telemetría → analítica SPL → validación → confianza → propietario → próxima revisión. Por ejemplo, 4769 más diversidad de servicios puede observar un patrón compatible con Kerberoasting, pero no observará el cracking offline ni todos los escenarios sin RC4. Un 4662 sin SACL puede ser ausencia de visibilidad.\n\nPrioriza fuentes fiables antes de comprar complejidad. No conviertas un mapa ATT&CK cubierto en un porcentaje de detección real si no hay técnica de medición y datos validados. Separa «tenemos regla», «funciona en fixture» y «ha detectado un emulador autorizado en entorno propio».\n\n",
+      "line": 9,
+      "endLine": 15
+    },
+    {
+      "id": "SP-R08-L07-S02",
+      "title": "2. Conceptos que debes distinguir",
+      "markdown": "## 2. Conceptos que debes distinguir\n\n1. Cobertura analítica diferente de cobertura efectiva de técnica\n2. Requisito de fuentes explícitas y pruebas negativas\n3. Matriz ATT&CK con nivel de evidencia y propietario\n4. No extrapolar de synthetic fixtures a producción\n\n",
+      "line": 17,
+      "endLine": 22
+    },
+    {
+      "id": "SP-R08-L07-S03",
+      "title": "3. Procedimiento reproducible y seguro",
+      "markdown": "## 3. Procedimiento reproducible y seguro\n\n1. Selecciona técnica y objetivo defensivo.\n2. Enumera datos requeridos y sus puntos ciegos.\n3. Redacta condiciones y controles benignos.\n4. Diseña fixture sintético positivo/negativo y valida.\n5. Registra estado documental vs práctico de la cobertura.\n\n",
+      "line": 24,
+      "endLine": 30
+    },
+    {
+      "id": "SP-R08-L07-S04",
+      "title": "4. SPL ilustrativo (solo lectura; no probado)",
+      "markdown": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4769\n| stats count AS eventos BY host\n| sort - eventos\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n",
+      "line": 32,
+      "endLine": 40
+    },
+    {
+      "id": "SP-R08-L07-S05",
+      "title": "5. Escenario SOC",
+      "markdown": "## 5. Escenario SOC\n\nLa búsqueda de conteo tiene cobertura de eventos TGS, pero no es automáticamente una detección de Kerberoasting; falta normalización, contexto y validación de umbrales.\n\n## 6. Errores frecuentes\n\n1. Marcar técnica como cubierta al pegar SPL de Internet\n2. Ignorar versiones y campos reales\n3. Mezclar pruebas unitarias con ejercicios de emulación sin permiso\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n",
+      "line": 42,
+      "endLine": 53
+    }
+  ],
+  "questions": [
+    {
+      "id": "SP-R08-L07-Q01",
+      "lessonId": "SP-R08-L07",
+      "prompt": "¿Qué mide una fila de cobertura bien formulada?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D01",
+        "SPLUNK_LECCIONES_R08_R09:D02",
+        "SPLUNK_LECCIONES_R08_R09:D03"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R08-L07-Q01-O-031927badff0",
+          "text": "La proporción de dashboards que incluyen eventos de la familia"
+        },
+        {
+          "id": "SP-R08-L07-Q01-O-26e0a02f0f17",
+          "text": "El número de fuentes ingeridas sin comprobar qué conducta permiten observar"
+        },
+        {
+          "id": "SP-R08-L07-Q01-O-0e3a1adf9da9",
+          "text": "La cantidad de reglas etiquetadas con la técnica sin sus requisitos"
+        },
+        {
+          "id": "SP-R08-L07-Q01-O-d4233bffdfea",
+          "text": "Hipótesis, fuentes, pruebas y limitaciones"
+        }
+      ],
+      "solution": "SP-R08-L07-Q01-O-d4233bffdfea",
+      "explanation": "La cobertura exige requisitos verificables y una evidencia.",
+      "anchors": [
+        {
+          "file": "R08_THREAT_HUNTING/SP-R08-L07.md",
+          "sourceHash": "c64169061a51e80ec8e29105c65a91ea13ad0c2c6256d43f44869532e71e9144",
+          "line": 17,
+          "endLine": 22,
+          "quote": "## 2. Conceptos que debes distinguir\n\n1. Cobertura analítica diferente de cobertura efectiva de técnica\n2. Requisito de fuentes explícitas y pruebas negativas\n3. Matriz ATT&CK con nivel de evidencia y propietario\n4. No extrapolar de synthetic fixtures a producción\n\n"
+        },
+        {
+          "file": "R08_THREAT_HUNTING/SP-R08-L07.md",
+          "sourceHash": "c64169061a51e80ec8e29105c65a91ea13ad0c2c6256d43f44869532e71e9144",
+          "line": 32,
+          "endLine": 40,
+          "quote": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4769\n| stats count AS eventos BY host\n| sort - eventos\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n"
+        }
+      ]
+    },
+    {
+      "id": "SP-R08-L07-Q02",
+      "lessonId": "SP-R08-L07",
+      "prompt": "¿Qué estado corresponde a una consulta solo contrastada documentalmente?",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D01",
+        "SPLUNK_LECCIONES_R08_R09:D02",
+        "SPLUNK_LECCIONES_R08_R09:D03"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "choice",
+      "autoGradable": true,
+      "options": [
+        {
+          "id": "SP-R08-L07-Q02-O-4739314b4bde",
+          "text": "Cobertura empírica de la técnica si el ejemplo tiene una salida esperada"
+        },
+        {
+          "id": "SP-R08-L07-Q02-O-1e253b8ccf2d",
+          "text": "Diseño/documentación, sin ejecución real"
+        },
+        {
+          "id": "SP-R08-L07-Q02-O-9c2bf1b4b0e5",
+          "text": "Consulta probada contra el parser SPL de la instancia"
+        },
+        {
+          "id": "SP-R08-L07-Q02-O-5488b7fef989",
+          "text": "Analítica validada operacionalmente al incluir una referencia del fabricante"
+        }
+      ],
+      "solution": "SP-R08-L07-Q02-O-1e253b8ccf2d",
+      "explanation": "La revisión documental no equivale a ejecutar la analítica.",
+      "anchors": [
+        {
+          "file": "R08_THREAT_HUNTING/SP-R08-L07.md",
+          "sourceHash": "c64169061a51e80ec8e29105c65a91ea13ad0c2c6256d43f44869532e71e9144",
+          "line": 17,
+          "endLine": 22,
+          "quote": "## 2. Conceptos que debes distinguir\n\n1. Cobertura analítica diferente de cobertura efectiva de técnica\n2. Requisito de fuentes explícitas y pruebas negativas\n3. Matriz ATT&CK con nivel de evidencia y propietario\n4. No extrapolar de synthetic fixtures a producción\n\n"
+        },
+        {
+          "file": "R08_THREAT_HUNTING/SP-R08-L07.md",
+          "sourceHash": "c64169061a51e80ec8e29105c65a91ea13ad0c2c6256d43f44869532e71e9144",
+          "line": 32,
+          "endLine": 40,
+          "quote": "## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4769\n| stats count AS eventos BY host\n| sort - eventos\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n"
+        }
+      ]
+    }
+  ],
+  "formative": [
+    {
+      "id": "SP-R08-L07-P01",
+      "lessonId": "SP-R08-L07",
+      "prompt": "Elabora matriz ATT&CK para T1558.003, T1003.006 y T1110.003 con datos y fallos previsibles.",
+      "sourceRefs": [
+        "SPLUNK_LECCIONES_R08_R09:D01",
+        "SPLUNK_LECCIONES_R08_R09:D02",
+        "SPLUNK_LECCIONES_R08_R09:D03"
+      ],
+      "humanReview": "pending_independent_review",
+      "type": "formative",
+      "autoGradable": false,
+      "rubric": [
+        "Distingue fuente, campos y alcance de la pregunta",
+        "Diseña un método reproducible sin inferencia abusiva",
+        "Separa señales, hipótesis, contraejemplos y ausencia de datos",
+        "Comunica siguiente paso seguro y evidencia para otro analista"
+      ],
+      "referenceAnswer": "T1558.003: 4769 + baseline; no observa cracking offline. T1003.006: auditoría 4662/SACL y red RPC; faltan eventos si no hay SACL. T1110.003: logs IdP/DC + diversidad usuarios por origen; evasión low-and-slow y NAT."
+    }
+  ],
+  "solutionsMarkdown": "## 8. Solucionario con razonamiento\n\n- **SP-R08-L07-Q01: D** — La cobertura exige requisitos verificables y una evidencia.\n\n- **SP-R08-L07-Q02: B** — La revisión documental no equivale a ejecutar la analítica.\n\n- **SP-R08-L07-P01:** T1558.003: 4769 + baseline; no observa cracking offline. T1003.006: auditoría 4662/SACL y red RPC; faltan eventos si no hay SACL. T1110.003: logs IdP/DC + diversidad usuarios por origen; evasión low-and-slow y NAT.\n\n**Guía de retroalimentación formativa:** Distingue fuente, campos y alcance de la pregunta; Diseña un método reproducible sin inferencia abusiva; Separa señales, hipótesis, contraejemplos y ausencia de datos; Comunica siguiente paso seguro y evidencia para otro analista.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n",
+  "referencesMarkdown": "## 9. Fuentes verificables y conexiones\n\n- **D01:** MITRE ATT&CK — Kerberoasting (T1558.003) — https://attack.mitre.org/techniques/T1558/003/\n- **D02:** MITRE ATT&CK — DCSync (T1003.006) — https://attack.mitre.org/techniques/T1003/006/\n- **D03:** MITRE ATT&CK — Password Spraying (T1110.003) — https://attack.mitre.org/techniques/T1110/003/\n\n- **Puente SC-200:** Capítulos 07 y 10 (detección y hunting). La comparación es conceptual, no una equivalencia producto a producto.\n- **Fuente curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` en la carpeta padre `SPLUNK_MASTER_RESEARCH`.\n- **Calidad:** [DOC] referencias externas consultables; [DISEÑO] escenario y actividad originales; [OFFLINE] solo cálculos de fixture; [NO PROBADO] SPL no ejecutado en Splunk. La revisión técnica independiente queda pendiente.\n",
+  "originalMarkdown": "# SP-R08-L07 — MITRE y cobertura\n\n**Región:** SP-R08 · **Estado:** borrador editorial para revisión · **SPL:** ilustrativo NO ejecutado.\n\n**Resultado de aprendizaje curricular:** Mantener hipótesis, fuentes necesarias, detección, límites.\n\n**Prerrequisitos:** R01–R07 según tema; R08 para agrupación/escalado R09. **Producto:** plataforma Splunk para SPL genérico; funciones ES 8.7/SOAR solo cuando se indiquen.\n\n## 1. Explicación técnica\n\nMITRE ATT&CK proporciona un lenguaje compartido para describir tácticas y técnicas, no un certificado de detección. Anotar una búsqueda como T1558.003 o T1003.006 no demuestra que cubra la técnica. Una cobertura útil define **conducta observable**, fuente requerida, campos disponibles, condición de detección, pruebas positivas y negativas y limitaciones.\n\nConstruye una matriz: hipótesis → técnica ATT&CK → telemetría → analítica SPL → validación → confianza → propietario → próxima revisión. Por ejemplo, 4769 más diversidad de servicios puede observar un patrón compatible con Kerberoasting, pero no observará el cracking offline ni todos los escenarios sin RC4. Un 4662 sin SACL puede ser ausencia de visibilidad.\n\nPrioriza fuentes fiables antes de comprar complejidad. No conviertas un mapa ATT&CK cubierto en un porcentaje de detección real si no hay técnica de medición y datos validados. Separa «tenemos regla», «funciona en fixture» y «ha detectado un emulador autorizado en entorno propio».\n\n## 2. Conceptos que debes distinguir\n\n1. Cobertura analítica diferente de cobertura efectiva de técnica\n2. Requisito de fuentes explícitas y pruebas negativas\n3. Matriz ATT&CK con nivel de evidencia y propietario\n4. No extrapolar de synthetic fixtures a producción\n\n## 3. Procedimiento reproducible y seguro\n\n1. Selecciona técnica y objetivo defensivo.\n2. Enumera datos requeridos y sus puntos ciegos.\n3. Redacta condiciones y controles benignos.\n4. Diseña fixture sintético positivo/negativo y valida.\n5. Registra estado documental vs práctico de la cobertura.\n\n## 4. SPL ilustrativo (solo lectura; no probado)\n\n```spl\nindex=IDX_WINDOWS sourcetype=ST_WINSEC EventCode=4769\n| stats count AS eventos BY host\n| sort - eventos\n```\n\n**Importante:** IDX_* y ST_* son marcadores; incluso un SPL con sintaxis plausible depende de índices, extracción de campos y zona horaria de la instancia real. `operation_kind` y los campos de CSV son normalizaciones didácticas, no esquema Windows/ES garantizado. Los comandos no se han ejecutado en Splunk.\n\n## 5. Escenario SOC\n\nLa búsqueda de conteo tiene cobertura de eventos TGS, pero no es automáticamente una detección de Kerberoasting; falta normalización, contexto y validación de umbrales.\n\n## 6. Errores frecuentes\n\n1. Marcar técnica como cubierta al pegar SPL de Internet\n2. Ignorar versiones y campos reales\n3. Mezclar pruebas unitarias con ejercicios de emulación sin permiso\n\n\n**Contrato de fixture:** [Columnas, mapeos y UTC](../VALIDACION/DATASETS.json). Los periodos relativos de ejemplos generales son estructurales; solo atribuir cifras a un CSV con su rango, población y snapshot explícitos. El modelo offline no configura Splunk ni recrea _indextime.\n\n## 7. Actividades\n\n### SP-R08-L07-Q01 — Opción múltiple\n\n¿Qué mide una fila de cobertura bien formulada?\n\nA. La proporción de dashboards que incluyen eventos de la familia\nB. El número de fuentes ingeridas sin comprobar qué conducta permiten observar\nC. La cantidad de reglas etiquetadas con la técnica sin sus requisitos\nD. Hipótesis, fuentes, pruebas y limitaciones\n\n### SP-R08-L07-Q02 — Opción múltiple\n\n¿Qué estado corresponde a una consulta solo contrastada documentalmente?\n\nA. Cobertura empírica de la técnica si el ejemplo tiene una salida esperada\nB. Diseño/documentación, sin ejecución real\nC. Consulta probada contra el parser SPL de la instancia\nD. Analítica validada operacionalmente al incluir una referencia del fabricante\n\n### SP-R08-L07-P01 — Práctica abierta formativa\n\nElabora matriz ATT&CK para T1558.003, T1003.006 y T1110.003 con datos y fallos previsibles.\n\n## 8. Solucionario con razonamiento\n\n- **SP-R08-L07-Q01: D** — La cobertura exige requisitos verificables y una evidencia.\n\n- **SP-R08-L07-Q02: B** — La revisión documental no equivale a ejecutar la analítica.\n\n- **SP-R08-L07-P01:** T1558.003: 4769 + baseline; no observa cracking offline. T1003.006: auditoría 4662/SACL y red RPC; faltan eventos si no hay SACL. T1110.003: logs IdP/DC + diversidad usuarios por origen; evasión low-and-slow y NAT.\n\n**Guía de retroalimentación formativa:** Distingue fuente, campos y alcance de la pregunta; Diseña un método reproducible sin inferencia abusiva; Separa señales, hipótesis, contraejemplos y ausencia de datos; Comunica siguiente paso seguro y evidencia para otro analista.\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## 9. Fuentes verificables y conexiones\n\n- **D01:** MITRE ATT&CK — Kerberoasting (T1558.003) — https://attack.mitre.org/techniques/T1558/003/\n- **D02:** MITRE ATT&CK — DCSync (T1003.006) — https://attack.mitre.org/techniques/T1003/006/\n- **D03:** MITRE ATT&CK — Password Spraying (T1110.003) — https://attack.mitre.org/techniques/T1110/003/\n\n- **Puente SC-200:** Capítulos 07 y 10 (detección y hunting). La comparación es conceptual, no una equivalencia producto a producto.\n- **Fuente curricular:** `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` en la carpeta padre `SPLUNK_MASTER_RESEARCH`.\n- **Calidad:** [DOC] referencias externas consultables; [DISEÑO] escenario y actividad originales; [OFFLINE] solo cálculos de fixture; [NO PROBADO] SPL no ejecutado en Splunk. La revisión técnica independiente queda pendiente.\n",
+  "reconstruction": {
+    "verified": true,
+    "sections": 9,
+    "redactions": []
+  },
+  "references": [
+    {
+      "id": "D01",
+      "key": "SPLUNK_LECCIONES_R08_R09:D01",
+      "url": "https://attack.mitre.org/techniques/T1558/003/"
+    },
+    {
+      "id": "D02",
+      "key": "SPLUNK_LECCIONES_R08_R09:D02",
+      "url": "https://attack.mitre.org/techniques/T1003/006/"
+    },
+    {
+      "id": "D03",
+      "key": "SPLUNK_LECCIONES_R08_R09:D03",
+      "url": "https://attack.mitre.org/techniques/T1110/003/"
+    }
+  ]
+}

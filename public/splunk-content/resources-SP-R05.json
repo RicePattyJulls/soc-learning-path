@@ -1,0 +1,175 @@
+{
+  "courseId": "splunk",
+  "regionId": "SP-R05",
+  "lab": "# LAB05-A — Validar mapeos de Authentication CIM\n\n**Región:** R05 · **Estado:** mapeo conceptual/offline. **No instala** un TA ni crea tags en Splunk.\n\n## Datos\n\n`auth_raw.csv` simula seis registros: 3 Windows login (4625, 4624 y 4625 sin IP), 2 Linux login (failed, accepted), y un Windows 4688 de proceso que NO debe incluirse en Authentication.\n\n## Actividades\n\n1. Propón user = Account_Name (Windows) o linux_user (Linux) cuando representen realmente la identidad que inicia sesión.\n2. Propón src = Source_Network_Address (Windows) o src_ip (Linux), sin inventar una dirección donde no se registró.\n3. Alinea action=success/failure con EventCode 4624/4625 y mensajes accepted/failed, verificando contexto de autenticación.\n4. Excluye `r6` (Windows EventCode 4688) de Authentication; justifica por qué no basta con que contenga Account_Name.\n5. Audita cobertura sobre **cinco** logins: 5/5 con identidad, 4/5 con IP, 5/5 con acción interpretable en el fixture. Separa calidad de los campos de validez del tag CIM.\n6. Diseña un esquema de eventtypes/tags y una checklist de verificación de los constraints reales.\n\n## SPL conceptual de lectura\n\n```spl\nindex=INDICE_AUTH sourcetype=SOURCETYPE_AUTH tag=authentication earliest=-24h\n| eval falta_user=if(isnull(user) OR len(trim(user))=0,1,0)\n| eval falta_src=if(isnull(src) OR len(trim(src))=0,1,0)\n| stats count AS eventos sum(falta_user) AS sin_user sum(falta_src) AS sin_src BY sourcetype\n```\n\n**No se ejecuta automáticamente:** el add-on, eventtypes, tags y fuente del laboratorio NO están comprobados.\n\n## Resultado de referencia\n\nTotal de 6 eventos, 5 login, 1 no login, 1 login sin IP, 0 login sin user, 0 login sin action interpretable para este fixture. Son estadísticas de datos inventados, NO métricas de tu laboratorio.\n\nRúbrica /4: clasificación correcta, mapeos no inventados, auditoría con denominador, limitaciones por fuente.\n\n\n# LAB05-B — ¿Qué se pierde con summariesonly=true?\n\n**Región:** R05 · **Estado:** simulación de cobertura, no benchmark ni consulta ejecutada.\n\n## Datos\n\n`acceleration_coverage.csv` contiene tres ventanas: 09:00 (9 eventos resumidos de 9), 09:15 (0/4 resumidos), 09:30 (3/6 resumidos). No representa un modelo realmente acelerado.\n\n## Reto\n\n1. Calcula eventos fuente totales, incluidos en el resumen y no incluidos.\n2. Explica qué respondería conceptualmente una consulta restringida a summaries de esos datos.\n3. Justifica por qué una detección con resumen parcial puede infracontar.\n4. Diseña qué comprobarías en una instancia real: modelo activo, aceleración, summaries, rango, índices, roles, restricciones, Job Inspector, diferencias por cambio de modelos.\n5. Diferencia `tstats` sobre campos indexados y `tstats ... FROM datamodel=...`.\n\n## SPL ilustrativo condicionado al modelo\n\n```spl\n| tstats summariesonly=true count AS eventos FROM datamodel=Authentication.Authentication BY Authentication.action\n```\n\nEl nombre de dataset/constraints debe verificarse en la versión real; un resultado vacío no demuestra ausencia de ataques. No activar aceleración sin autorización.\n\n## Solución\n\nSuma: `9+4+6=19` eventos fuente; `9+0+3=12` resumidos; **7 no resumidos**. El CSV no mide latencia ni confirma disponibilidad del modelo en Splunk.\n\nRúbrica /4: cifras correctas; riesgo de falsos negativos; límites/condiciones; plan seguro de verificación.\n",
+  "datasets": {
+    "schema_version": "1.0",
+    "revision": "2026-10-16-r1",
+    "package": "SPLUNK_LECCIONES_R04_R05",
+    "scope": "synthetic_csv_contract_offline_only",
+    "splunk_execution": false,
+    "datasets": [
+      {
+        "file": "PRACTICAS/fixtures/acceleration_coverage.csv",
+        "sha256": "942ec1b1fd891fdeb21a527170811cd13303133da7cb8fdae4fe75d6e103a3f0",
+        "row_count": 3,
+        "columns": [
+          "bucket_utc",
+          "raw_count",
+          "summarized_count",
+          "status"
+        ],
+        "row_id": "bucket_utc",
+        "field_mapping_for_design": {
+          "bucket_utc": "bucket_utc",
+          "raw_count": "raw_count",
+          "summarized_count": "summarized_count",
+          "status": "status"
+        },
+        "timezone": "UTC where a time/date column exists",
+        "time_bounds": "[start,end)",
+        "snapshot_cutoff": "synthetic_index_time < cutoff",
+        "mapping_executed_in_splunk": false
+      },
+      {
+        "file": "PRACTICAS/fixtures/asset_inventory.csv",
+        "sha256": "e8eda8f74908d0ee5b61813db5049760404d883618b94264bf5acccb3c85383b",
+        "row_count": 2,
+        "columns": [
+          "src",
+          "asset_name",
+          "owner",
+          "category",
+          "updated_at"
+        ],
+        "row_id": null,
+        "field_mapping_for_design": {
+          "src": "src",
+          "asset_name": "asset_name",
+          "owner": "owner",
+          "category": "category",
+          "updated_at": "updated_at"
+        },
+        "timezone": "UTC where a time/date column exists",
+        "time_bounds": "[start,end)",
+        "snapshot_cutoff": "synthetic_index_time < cutoff",
+        "mapping_executed_in_splunk": false
+      },
+      {
+        "file": "PRACTICAS/fixtures/auth_events.csv",
+        "sha256": "2f47af58b58747379fa72ccac847bcdb873ade6a561bc90d806b6bd4c5198eea",
+        "row_count": 12,
+        "columns": [
+          "event_id",
+          "_time",
+          "src",
+          "user",
+          "action",
+          "source_system",
+          "host"
+        ],
+        "row_id": "event_id",
+        "field_mapping_for_design": {
+          "event_id": "event_id",
+          "_time": "_time",
+          "src": "src",
+          "user": "user",
+          "action": "action",
+          "source_system": "source_system",
+          "host": "host"
+        },
+        "timezone": "UTC where a time/date column exists",
+        "time_bounds": "[start,end)",
+        "snapshot_cutoff": "synthetic_index_time < cutoff",
+        "mapping_executed_in_splunk": false
+      },
+      {
+        "file": "PRACTICAS/fixtures/auth_raw.csv",
+        "sha256": "386a49fa0ce1c1cf36ac336e8c65724a396332fe60c33879074a31968cee1db4",
+        "row_count": 6,
+        "columns": [
+          "event_id",
+          "_time",
+          "source_type",
+          "event_kind",
+          "EventCode",
+          "Account_Name",
+          "Source_Network_Address",
+          "linux_user",
+          "src_ip",
+          "result"
+        ],
+        "row_id": "event_id",
+        "field_mapping_for_design": {
+          "event_id": "event_id",
+          "_time": "_time",
+          "source_type": "source_type",
+          "event_kind": "event_kind",
+          "EventCode": "EventCode",
+          "Account_Name": "Account_Name",
+          "Source_Network_Address": "Source_Network_Address",
+          "linux_user": "linux_user",
+          "src_ip": "src_ip",
+          "result": "result"
+        },
+        "timezone": "UTC where a time/date column exists",
+        "time_bounds": "[start,end)",
+        "snapshot_cutoff": "synthetic_index_time < cutoff",
+        "mapping_executed_in_splunk": false
+      }
+    ],
+    "notes": [
+      "Cada dataset conserva su escenario; una IP coincidente no une escenarios.",
+      "Las asignaciones son diseño; no instalan extracciones, inputs ni lookups.",
+      "_time en el modelo offline es epoch sintético; no es metadata creada en una instancia.",
+      "fixture_index_epoch nunca sustituye al metadato _indextime real.",
+      "TI: inicio inclusivo y expiración exclusiva a medianoche UTC; referencia 2026-10-16T12:00:00Z.",
+      "ServiceName sintético no certifica un SPN nativo; operation_kind no es campo nativo 4662."
+    ]
+  },
+  "fixtures": [
+    {
+      "file": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R04_R05/PRACTICAS/fixtures/acceleration_coverage.csv",
+      "sha256": "942ec1b1fd891fdeb21a527170811cd13303133da7cb8fdae4fe75d6e103a3f0",
+      "text": "bucket_utc,raw_count,summarized_count,status\r\n2026-10-16T09:00:00Z,9,9,ready\r\n2026-10-16T09:15:00Z,4,0,not_summarized\r\n2026-10-16T09:30:00Z,6,3,partial\r\n",
+      "synthetic": true,
+      "rowCount": 3
+    },
+    {
+      "file": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R04_R05/PRACTICAS/fixtures/asset_inventory.csv",
+      "sha256": "e8eda8f74908d0ee5b61813db5049760404d883618b94264bf5acccb3c85383b",
+      "text": "src,asset_name,owner,category,updated_at\r\n198.51.100.5,backups-vpn,IT,shared_vpn,2026-10-01\r\n203.0.113.9,corporate-egress,NetOps,shared_proxy,2026-10-01\r\n",
+      "synthetic": true,
+      "rowCount": 2
+    },
+    {
+      "file": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R04_R05/PRACTICAS/fixtures/auth_events.csv",
+      "sha256": "2f47af58b58747379fa72ccac847bcdb873ade6a561bc90d806b6bd4c5198eea",
+      "text": "event_id,_time,src,user,action,source_system,host\r\nauth1,2026-10-16T09:01:00Z,203.0.113.9,alice,failure,WIN,DC01\r\nauth2,2026-10-16T09:02:00Z,203.0.113.9,bob,failure,WIN,DC01\r\nauth3,2026-10-16T09:03:00Z,203.0.113.9,alice,failure,WIN,DC01\r\nauth4,2026-10-16T09:04:00Z,203.0.113.9,carol,failure,LINUX,SSH01\r\nauth5,2026-10-16T09:05:00Z,203.0.113.9,dave,failure,WIN,DC01\r\nauth6,2026-10-16T09:06:00Z,203.0.113.9,erin,failure,LINUX,SSH01\r\nauth7,2026-10-16T09:10:00Z,203.0.113.9,,failure,WIN,DC01\r\nauth8,2026-10-16T09:11:00Z,203.0.113.9,alice,success,WIN,DC01\r\nauth9,2026-10-16T09:08:00Z,198.51.100.5,svc_backup,failure,WIN,DC01\r\nauth10,2026-10-16T09:09:00Z,198.51.100.5,svc_backup,success,WIN,DC01\r\nauth11,2026-10-16T09:16:00Z,203.0.113.9,frank,failure,WIN,DC01\r\nauth12,2026-10-16T09:17:00Z,203.0.113.9,bob,failure,WIN,DC01\r\n",
+      "synthetic": true,
+      "rowCount": 12
+    },
+    {
+      "file": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R04_R05/PRACTICAS/fixtures/auth_raw.csv",
+      "sha256": "386a49fa0ce1c1cf36ac336e8c65724a396332fe60c33879074a31968cee1db4",
+      "text": "event_id,_time,source_type,event_kind,EventCode,Account_Name,Source_Network_Address,linux_user,src_ip,result\r\nr1,2026-10-16T09:01:00Z,WIN,login,4625,alice,203.0.113.9,,,failure\r\nr2,2026-10-16T09:02:00Z,WIN,login,4624,bob,198.51.100.5,,,success\r\nr3,2026-10-16T09:03:00Z,LINUX,login,,,,carol,198.51.100.8,failed\r\nr4,2026-10-16T09:04:00Z,LINUX,login,,,,dave,198.51.100.8,accepted\r\nr5,2026-10-16T09:05:00Z,WIN,login,4625,erin,,,,failure\r\nr6,2026-10-16T09:06:00Z,WIN,process,4688,alice,203.0.113.9,,,other\r\n",
+      "synthetic": true,
+      "rowCount": 6
+    }
+  ],
+  "documents": [
+    {
+      "file": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R04_R05/ACTIVIDADES/RUBRICA.md",
+      "markdown": "# Evaluación teórica y retroalimentación formativa\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\n## Teoría\n\nLas MCQ son candidatas a evaluación teórica: necesitan revisión humana independiente y asignación de fases antes del piloto. Para N preguntas, se requieren ceil(0,8 × N) aciertos. Dos preguntas exigen dos aciertos; esto no acredita práctica.\n\n## Prácticas abiertas\n\nCada P01 conserva sus criterios específicos en el banco y la lección. Se usan para autoexplicación y feedback humano, sin coincidencia literal, nota automática, desbloqueo o XP por una supuesta calificación práctica.\n\nSeparar observaciones, hipótesis, cobertura y siguiente paso autorizado. Una atribución sin evidencia necesita corrección, no un porcentaje automático de dominio.\n\n## Incertidumbre y estado\n\nNo coincidencia de regla no implica benignidad. TP/FP/FN/TN requieren verdad de referencia; suspicious_unconfirmed e inconclusive no acreditan ataque. Una prueba CSV solo comprueba cálculos offline, nunca sintaxis SPL o producto real.\n"
+    },
+    {
+      "file": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R04_R05/ACTIVIDADES/SOLUCIONARIO.md",
+      "markdown": "# Solucionario editorial sincronizado — SPLUNK_LECCIONES_R04_R05\n\n**Política educativa aprobada:** teoría autocorregible con umbral del 80 %; práctica abierta formativa, sin calificación automática ni premio de dominio práctico. Aprobar teoría no acredita dominio práctico de Splunk. La revisión humana independiente del contenido y la ejecución real siguen pendientes.\n\nRespuestas orientativas; sin ejecución de Splunk/ES/SOAR.\n\n## SP-R04-L01-Q01\n\n**A — eventstats**. eventstats adjunta una métrica a filas originales. stats las transforma en filas agregadas.\n\n## SP-R04-L01-Q02\n\n**D — No equivale a contar todos los eventos; hay que inspeccionar nulos**. El número de eventos y la cardinalidad de un campo pueden divergir por valores ausentes.\n\n## SP-R04-L01-P01\n\n`stats count dc(user) BY src` resume; `eventstats count BY src` preserva filas. Con el filtro de fallos y la fixture: 203.0.113.9 tiene 9 fallos totales en todo el dataset (7 de 09:00 a 09:14 y 2 de 09:15 a 09:29); para 09:00 específicamente 7 fallos / 5 usuarios. Sin filtro, se incluyen éxitos en los totales.\n\n## SP-R04-L02-Q01\n\n**B — El conteo acumulado hasta cada fila, siguiendo el orden que recibe streamstats en ese pipeline**. El cálculo se emite progresivamente en el orden del pipeline.\n\n## SP-R04-L02-Q02\n\n**D — Verificar el orden temporal y la semántica de _time, y resolver empates con un criterio estable**. Sin orden temporal, el acumulado no responde a la hipótesis cronológica.\n\n## SP-R04-L02-P01\n\nLa secuencia para 203.0.113.9 en el primer bucket es 1,2,3,4,5,6,7. Al sexto evento el acumulado es 6. El orden de entrada controla la respuesta.\n\n## SP-R04-L03-Q01\n\n**A — Agrupación en bloques temporales discretos**. bin asigna cada timestamp a un bloque; no realiza agregación por sí solo.\n\n## SP-R04-L03-Q02\n\n**B — Bins distintos con alineación estándar de 15m**. Cruzan la frontera de 09:15 pese a estar separados por dos segundos.\n\n## SP-R04-L03-P01\n\nPara la IP 203.0.113.9: bucket 09:00, 7 fallos y 5 usuarios; bucket 09:15, 2 fallos y 2 usuarios. Sólo 09:00 cumple `cuentas>=5`. Variación válida: ventanas solapadas/rolling con coste y semántica documentados.\n\n## SP-R04-L04-Q01\n\n**A — dc cuenta valores distintos presentes; count sin argumento cuenta los eventos recuperados del grupo**. La cardinalidad no equivale al volumen de eventos.\n\n## SP-R04-L04-Q02\n\n**C — Una discrepancia semántica de campos de fuentes diferentes**. Coalesce ayuda con valores faltantes pero no garantiza equivalencia de significado.\n\n## SP-R04-L04-P01\n\nEn los datos completos: 9 fallos desde 203.0.113.9, 6 identidades distintas no vacías (alice,bob,carol,dave,erin,frank), 1 usuario vacío. En el primer bucket: 7 fallos, 5 identidades, 1 vacío. Evita mezclar ambos ámbitos.\n\n## SP-R04-L05-Q01\n\n**D — Agrupar con stats por la entidad común, si ambos tipos de eventos ya están en el flujo normalizado**. stats agrupa sin abrir una subbúsqueda.\n\n## SP-R04-L05-Q02\n\n**C — Correlación potencial que requiere análisis**. La asociación estadística no prueba causalidad ni atribución.\n\n## SP-R04-L05-P01\n\nLa búsqueda de ejemplo usa `count(eval(...))` por user/src. Ambigüedades: IP NAT/VPN, identidad compartida, errores de reloj y eventos duplicados. Requiere comprobar orden de eventos y ventana de investigación.\n\n## SP-R04-L06-Q01\n\n**B — Un conjunto secundario incompleto puede reducir las coincidencias aunque la lógica aparente sea correcta**. Los límites pueden afectar al conjunto consultado y, por tanto, a la cobertura.\n\n## SP-R04-L06-Q02\n\n**A — Job Inspector**. Job Inspector permite analizar comportamiento y recursos de search jobs.\n\n## SP-R04-L06-P01\n\nComprobar ventana/índices/roles, expansión/truncamiento de subsearch, número de filas, semántica de claves y Job Inspector (etapas/coste). Ensayar agregación con stats sobre los mismos datos; no reclamar mejora cuantitativa sin medir.\n\n## SP-R04-L07-Q01\n\n**C — Tres**. mvexpand crea una fila por valor del campo multivalor.\n\n## SP-R04-L07-Q02\n\n**B — Extrae campos al buscar**. rex realiza extracción en el pipeline, no reindexación.\n\n## SP-R04-L07-P01\n\nUn evento fuente genera dos filas tras expandir roles. Regex `user=(?<usuario_extraido>[^ ]+)` captura alice; si falta user no debe inventar identidad. Mantener un identificador original para comparar cardinalidad antes/después.\n\n## SP-R04-L08-Q01\n\n**D — Patrón sospechoso pendiente de contexto**. Los hechos permiten sospecha y solicitud de contexto, no atribución.\n\n## SP-R04-L08-Q02\n\n**C — SPL, fuente, ventana y condiciones**. Sin trazabilidad de consulta y fuentes no se puede revisar el resultado.\n\n## SP-R04-L08-P01\n\nEvidencia: 09:01–09:10 7 fallos, 5 usuarios distintos desde 203.0.113.9; éxito de alice 09:11. Interpretación: patrón compatible con spraying pero también NAT/prueba legítima. Pendientes: origen real, reputación/propiedad, baseline, resultado de autenticación en fuentes independientes, cobertura. No hay prueba de compromiso.\n\n## SP-R05-L01-Q01\n\n**B — Un nombre alternativo del campo en búsqueda; el alias no inventa su valor ni demuestra su significado**. Un alias no transforma los eventos almacenados ni demuestra semántica.\n\n## SP-R05-L01-Q02\n\n**A — Mantenerlo fuera de Authentication: el 4688 del ejercicio es creación de proceso, no inicio de sesión**. 4688 es creación de proceso; no cumple por sí mismo el propósito de Authentication.\n\n## SP-R05-L01-P01\n\nWindows 4624→success y 4625→failure cuando representan logon; Linux accepted→success y failed→failure si el mensaje realmente es de autenticación; 4688 no entra en Authentication. Los eventos sin IP quedan con src ausente y bandera de calidad.\n\n## SP-R05-L02-Q01\n\n**A — Contexto del activo que debe contrastarse con la vigencia y calidad del inventario, sin cierre automático**. Es una fuente auxiliar que necesita verificación.\n\n## SP-R05-L02-Q02\n\n**D — Evitar reemplazar campos de salida ya presentes en los eventos que se enriquecen mediante lookup**. OUTPUTNEW se usa para no reemplazar valores ya existentes en los campos de salida.\n\n## SP-R05-L02-P01\n\nNo se cierra automáticamente: puede haber múltiples usuarios detrás. Registrar identidad del proxy, propietarios, zona horaria y logs del proxy si existen; cotejar con ventanas y conexiones individuales.\n\n## SP-R05-L03-Q01\n\n**C — Unificar significado de campos y datasets para búsquedas comparables, sin fabricar datos de la fuente**. El CIM define un esquema semántico consumible por búsquedas y modelos.\n\n## SP-R05-L03-Q02\n\n**D — source es metadato de origen del dato; src puede ser IP/host origen del evento**. Los nombres tienen significados distintos.\n\n## SP-R05-L03-P01\n\nLos eventos Windows 4624/4625 y Linux accepted/failed pueden entrar si hay mapeo y tags correctos; 4688 no es autenticación. El src vacío no se fabrica: queda como brecha observable de calidad.\n\n## SP-R05-L04-Q01\n\n**C — Una jerarquía de datasets y restricciones de búsqueda que determina qué eventos forman parte del modelo**. Los datasets y sus restricciones componen el modelo.\n\n## SP-R05-L04-Q02\n\n**A — Tags, constraints, campos y permisos**. La presencia en un índice no implica pertenencia automática al dataset.\n\n## SP-R05-L04-P01\n\nCausas posibles: tags ausentes, campo action incorrecto, permissions/app context, constraints adicionales, parsing de timestamps, índices/roles o fuentes fuera de periodo. Verificar antes de atribuir fallo al producto.\n\n## SP-R05-L05-Q01\n\n**A — Cobertura de datos y corrección semántica por fuente**. Los datos deben estar presentes y representar conceptos correctos.\n\n## SP-R05-L05-Q02\n\n**B — No: representa otro tipo de evento**. El tipo de evento define su inclusión; un nombre de campo no basta.\n\n## SP-R05-L05-P01\n\nEl conjunto tiene 6 filas: cinco eventos etiquetados login (Windows dos éxitos/fallos + Linux accepted/failed + Windows sin IP), uno proceso 4688 excluido. De los cinco login, 4 tienen IP no vacía, 5 identidad, 5 acción reconocible. Estos valores se comprueban con Python; no garantizan compatibilidad real con CIM.\n\n## SP-R05-L06-Q01\n\n**B — Puede omitir datos no incluidos en summaries**. Ese modo limita el ámbito a resúmenes existentes.\n\n## SP-R05-L06-Q02\n\n**D — Campos indexados o datos de modelos acelerados según sintaxis**. tstats se apoya en estructuras de indexación y resúmenes del modelo.\n\n## SP-R05-L06-P01\n\nraw_count=19; summarized_count=12; faltan 7 del resumen. La simulación no permite inferir causa real de backfill ni rendimiento; sería incorrecto concluir que no existieron los 7 eventos.\n\n## SP-R05-L07-Q01\n\n**B — Compatibilidad real de fuentes/campos y caso de uso**. Sin un esquema fiable se acelera una representación potencialmente incorrecta.\n\n## SP-R05-L07-Q02\n\n**C — Semántica de pérdida de cobertura simulada**. La simulación valida cálculos conceptuales, no tiempos de Splunk.\n\n## SP-R05-L07-P01\n\nPrimero auditar normalización y datos; luego establecer consultas de referencia y medir coste; sólo después valorar aceleración y su capacidad/ventanas; revisar impacto y regresiones bajo autorización. No afirmar ahorro de CPU sin métrica real.\n\n"
+    },
+    {
+      "file": "SPLUNK_MASTER_RESEARCH/SPLUNK_LECCIONES_R04_R05/VALIDACION/FUENTES_Y_LIMITES.md",
+      "markdown": "# Fuentes oficiales y límites de evidencia\n\n**Consulta documental:** 2026-10-16. Publicaciones en el portal oficial de Splunk, versión indicada por cada URL. Los productos y las versiones del laboratorio local no fueron inspeccionados.\n\n## Bibliografía por ID\n\n- **S01 — Estadísticas: stats, eventstats, streamstats:** https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.0/calculate-statistics/use-the-stats-command-and-functions\n- **S02 — streamstats (SPL clásico):** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.0/search-commands/streamstats\n- **S03 — bin y ventanas discretas:** https://help.splunk.com/en/splunk-enterprise/search/spl-search-reference/10.0/search-commands/bin\n- **S04 — join y límites documentados:** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.6/search-commands/join\n- **S05 — Job Inspector:** https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.0/manage-jobs/manage-search-jobs\n- **S06 — rex (SPL clásico):** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.0/search-commands/rex\n- **S07 — mvexpand (SPL clásico):** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.4/search-commands/mvexpand\n- **S08 — Authentication CIM: campos y tags:** https://help.splunk.com/en/splunk-enterprise/common-information-model/6.0/data-models/authentication\n- **S09 — CIM referencia: restricciones, tags y campos:** https://help.splunk.com/en/splunk-enterprise/common-information-model/8.7/data-models/how-to-use-the-cim-data-model-reference-tables\n- **S10 — Validación CIM:** https://help.splunk.com/en/splunk-enterprise/common-information-model/6.3/using-the-common-information-model/use-the-cim-to-validate-your-data\n- **S11 — tstats (SPL clásico):** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.2/search-commands/tstats\n- **S12 — Aceleración de data models:** https://help.splunk.com/en/splunk-enterprise/manage-knowledge-objects/knowledge-management-manual/9.1/use-data-summaries-to-accelerate-searches/accelerate-data-models\n- **S13 — Lookups: definiciones y operaciones:** https://help.splunk.com/en/splunk-enterprise/manage-knowledge-objects/knowledge-management-manual/10.4/use-lookups-in-splunk-web/about-lookups\n- **S14 — lookup clásico, OUTPUT y OUTPUTNEW:** https://help.splunk.com/en/splunk-cloud-platform/search/search-reference/10.6/search-commands/lookup\n- **S15 — Data models (comando y estructura):** https://help.splunk.com/en/splunk-enterprise/spl-search-reference/10.0/search-commands/datamodel\n- **S16 — Search job inspector avanzado:** https://help.splunk.com/en/splunk-enterprise/search/search-manual/10.2/manage-jobs/view-search-job-properties\n- **S17 — CIM Add-on: compatibilidad/versiones:** https://help.splunk.com/en/data-management/common-information-model/6.3/introduction/release-notes-for-the-splunk-common-information-model-add-on\n\n## Precauciones que cambian el resultado\n\n- **SPL clásico vs SPL2:** en este bloque predomina SPL clásico. No asumir que las variantes de SPL2 comparten la misma sintaxis en todos los despliegues.\n- **Lab sin ejecutar:** no se conoce índice, sourcetype, extractores, permisos ni CIM instalado; los SPL ilustrativos no cuentan como consultas probadas.\n- **Calendario:** fixtures fechadas 2026-10-16, por lo que `earliest=-24h` solo es un ejemplo estructural. Usar periodos correctos antes de probar en una instancia autorizada.\n- **Seguridad:** no hay `outputlookup`, `collect`, `delete`, `map`, `script`, endpoints externos ni cambios de configuración. Abrir el CSV con Python es offline.\n- **CIM:** los archivos de documentación de versiones CIM distintas pueden variar en datasets/campos. Revalidar against install/version/allowlist.\n- **Resumen acelerado:** cifras 19/12/7 son de un fixture, no medición de Splunk ni estimación del rendimiento real.\n- **LAB04-A corregido:** la fuente previa tenía tres fallos/dos usuarios pero umbral cinco. Este paquete separa esos antecedentes de la nueva fixture de siete fallos/cinco usuarios.\n\n## Trazabilidad al corpus local\n\n- `../../02_INVESTIGACION/SPLUNK_MASTER_RESEARCH_FASE3_R04_R11.md` — diseño y advertencias de R04/R05.\n- `../../03_CURRICULO/SPLUNK_CURRICULO_R01_R11.json` — 15 ID/títulos/resultados originales.\n- `../../01_FUENTE_ORIGINAL/SC-200.md` — capítulos 04/05/06/07/08/09/10/13 como puentes temáticos, no equivalencias de producto.\n\n## Revisión aún necesaria\n\nQA técnica de preguntas y SPL por un humano, prueba de portabilidad en Splunk de versión conocida, prueba de consultas reales con datos autorizados, accesibilidad y adaptación del contrato de actividades antes de React.\n"
+    }
+  ],
+  "note": "Material editorial existente, sintético y documental. Revisión humana independiente pendiente. Sin ejecución SPL, ingesta, envíos HTTP ni acciones SOAR. Los CSV conservan su namespace y escenario; sus campos son contratos de diseño, no extracciones instaladas."
+}
