@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-20-L02",
+  "title": "SYSVOL/DFSR y cuentas críticas",
+  "sourceHash": "1c624312305050efbaa369d23c8f5e511904e93caf89f4944c9a31c1f6851290",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-20-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nOrdenar la recuperación de SYSVOL y de las cuentas críticas tras una restauración.\n\nPrerrequisitos: `WAD-20-L01` (Recuperación forestal en aislamiento).\n\n## 2. Comprende el mecanismo\n\nDespués de restaurar un controlador no basta con que el directorio responda. Hay dos piezas que suelen quedar desalineadas y que deciden si el dominio vuelve a comportarse como uno solo: el contenido compartido de **SYSVOL** y el estado de las **cuentas críticas**.\n\n**SYSVOL** es el recurso compartido del dominio donde viven los archivos de las directivas de grupo. No forma parte de la base del directorio, así que se replica aparte: en los sistemas actuales lo hace el **servicio de replicación de archivos (DFSR)**. Cuando se restaura un controlador desde una copia, su SYSVOL puede quedar como una copia antigua frente a otros miembros que conservan datos más nuevos o viciados.\n\nAhí aparece la decisión clave: la restauración **no autoritativa** deja que el contenido más reciente de los demás gane; la restauración **autoritativa** declara que el SYSVOL del controlador restaurado es la referencia y que los demás deben reproducirlo. Tras una recuperación forestal se busca precisamente esto: que el contenido bueno del controlador restaurado prevalezca y los demás se alineen.\n\nLa otra pieza son las **cuentas críticas**. La más citada es la cuenta `krbtgt`, que firma los tickets de concesión de tickets del dominio. Si el incidente permitió a un atacante obtener su secreto, los tickets emitidos antes del incidente podrían seguir siendo válidos para él. Restablecer esa cuenta —siguiendo el procedimiento recomendado, en los pasos que marca la guía— invalida esos tickets y reduce la vigencia de lo comprometido.\n\nEl restablecimiento de cuentas no se hace a ciegas: se acompaña de una **limpieza** del directorio. La limpieza retira metadatos de controladores que ya no se van a recuperar, revisa las pertenencias de los grupos privilegiados y confirma que no quedan objetos residuales que reintroduzcan el estado antiguo.\n\nLa regla que cierra la lección: **primero se convergen SYSVOL y las cuentas críticas; solo después se puede dar el dominio por recuperado**. Todo se practica sobre `ad.lab.test` y se habla de credenciales y secretos sin escribir sus valores.\n\n### Vocabulario de apoyo\n\n- **SYSVOL**: recurso compartido del dominio que aloja los archivos de las directivas de grupo.\n- **DFSR**: servicio de replicación de archivos que sincroniza el contenido de SYSVOL entre controladores.\n- **Restauración autoritativa**: modo que declara el contenido de un controlador como referencia frente a los demás.\n- **krbtgt**: cuenta del dominio que firma los tickets de concesión de tickets; su secreto es crítico.\n- **Limpieza (cleanup)**: retirada de metadatos y objetos residuales tras la recuperación.\n- **Convergencia**: estado en que todos los controladores comparten el mismo contenido replicado.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-20-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: tras restaurar un controlador de `ad.lab.test`, SYSVOL no converge y se sabe que el incidente pudo exponer el secreto de la cuenta `krbtgt` antes de la copia.\n\nEl orden razonado es atacar primero la replicación de archivos: como el controlador restaurado trae el contenido de la copia confiable, se marca su SYSVOL como autoritativo para que los demás controladores lo reproduzcan y no al revés. En paralelo se planifica el restablecimiento de la cuenta `krbtgt` para invalidar los tickets emitidos antes del incidente, y se cierra con una limpieza que retira metadatos de controladores descartados y revisa los grupos privilegiados. La conclusión acota lo observable —«SYSVOL converge y los tickets anteriores dejan de ser válidos»— y reconoce su límite: la limpieza y el restablecimiento reducen el riesgo, pero no prueban por sí solos que no quede ningún acceso obtenido durante el incidente.\n\n"
+    },
+    {
+      "id": "WAD-20-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Verificar la convergencia de SYSVOL y el restablecimiento de cuentas críticas evita declarar recuperado un dominio aún vulnerable.\n- Red Team autorizado: Entender qué tickets siguen vivos tras un incidente explica por qué la rotación del secreto crítico es prioritaria.\n- Evidencia de la etapa: Estado de la replicación de SYSVOL, decisión autoritativa y registro del restablecimiento y la limpieza.\n- Criterio de dominio: SYSVOL converge y las cuentas críticas se restablecen con limpieza antes de cerrar la recuperación.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB15](../../05_RECURSOS/LABORATORIOS/WAD-LAB15.md)\n- [Guía de laboratorio WAD-LAB21](../../05_RECURSOS/LABORATORIOS/WAD-LAB21.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **DFSRSYSVOL**: [Authoritative synchronization of DFSR-replicated SYSVOL](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-authoritative-recovery-sysvol). Cómo forzar la sincronización autoritativa del contenido.\n- **KRBTGT**: [Reset the krbtgt password](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-reset-the-krbtgt-password). Restablecimiento de la cuenta que firma los tickets.\n- **FORESTCLEANUP**: [Forest recovery cleanup](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-cleanup). Limpieza de metadatos y objetos residuales al cerrar la recuperación.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-20-L02-P01",
+    "prompt": "En `ad.lab.test` SYSVOL no converge tras restaurar un controlador y el incidente pudo exponer el secreto de una cuenta crítica. Ordena la recuperación de SYSVOL y de las cuentas críticas, e indica qué comprobarías antes de dar el dominio por recuperado.",
+    "markdown": "## 4. Práctica individual\n\nEn `ad.lab.test` SYSVOL no converge tras restaurar un controlador y el incidente pudo exponer el secreto de una cuenta crítica. Ordena la recuperación de SYSVOL y de las cuentas críticas, e indica qué comprobarías antes de dar el dominio por recuperado.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber restablecido cuentas reales.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-20-L02-Q01",
+      "prompt": "Tras restaurar un controlador de `ad.lab.test`, SYSVOL no converge porque otros controladores conservan datos anteriores. ¿Qué procedimiento corresponde?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Copiar las directivas a mano en cada controlador y omitir la replicación"
+        },
+        {
+          "id": "B",
+          "text": "Eliminar el recurso compartido SYSVOL del controlador restaurado para forzar su recreación"
+        },
+        {
+          "id": "C",
+          "text": "Marcar el SYSVOL del controlador restaurado como autoritativo para que su contenido prevalezca y los demás lo repliquen"
+        },
+        {
+          "id": "D",
+          "text": "Deshabilitar DFSR en todos los controladores y dejarlo así de forma permanente"
+        }
+      ]
+    },
+    {
+      "id": "WAD-20-L02-Q02",
+      "prompt": "¿Por qué se restablece una cuenta crítica como `krbtgt` después de una recuperación?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Para cambiar el nombre del dominio recuperado"
+        },
+        {
+          "id": "B",
+          "text": "Para invalidar los tickets emitidos antes del incidente y reducir la vigencia de credenciales comprometidas"
+        },
+        {
+          "id": "C",
+          "text": "Para eliminar la necesidad de reintegrar el bosque a la red"
+        },
+        {
+          "id": "D",
+          "text": "Para deshabilitar la replicación entre controladores"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB15](../../05_RECURSOS/LABORATORIOS/WAD-LAB15.md)\n- [Guía de laboratorio WAD-LAB21](../../05_RECURSOS/LABORATORIOS/WAD-LAB21.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **DFSRSYSVOL**: [Authoritative synchronization of DFSR-replicated SYSVOL](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-authoritative-recovery-sysvol). Cómo forzar la sincronización autoritativa del contenido.\n- **KRBTGT**: [Reset the krbtgt password](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-reset-the-krbtgt-password). Restablecimiento de la cuenta que firma los tickets.\n- **FORESTCLEANUP**: [Forest recovery cleanup](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-cleanup). Limpieza de metadatos y objetos residuales al cerrar la recuperación.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "87c11eb7a7a8ad385cd477ac"
+}

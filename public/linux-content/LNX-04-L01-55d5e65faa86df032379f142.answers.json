@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-04-L01",
+  "sourceHash": "3eab3a98edb825b172472df3a463e587ec597279043470d202731b2b74709c19",
+  "questions": [
+    {
+      "id": "LNX-04-L01-Q01",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Los bits del propietario, porque el UID del proceso coincide con el del fichero».\n\nEl kernel compara primero el UID del proceso con el propietario y, si coinciden, aplica ese trío y no sigue evaluando. No usa los bits de otros ni los de grupo, y la coincidencia de UID no impide abrir el fichero."
+    },
+    {
+      "id": "LNX-04-L01-Q02",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Falta conocer la identidad real y efectiva del proceso y su pertenencia a grupos».\n\nEl modo solo describe los tres tríos; el acceso efectivo depende de qué trío aplica el kernel según la identidad del proceso y sus grupos, y del orden con cortocircuito. El verificador de contraseña o el sistema de ficheros no determinan qué trío se usa."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "El proceso y el fichero comparten propietario, y el kernel evalúa **primero** el trío del propietario: al coincidir el UID, aplica ese trío (`rw-`) y **se detiene** sin llegar a mirar el grupo. El trío de grupo (`r--`) no se suma ni se usa como alternativa; los tríos no son opciones permisivas acumulables, sino un orden con cortocircuito.\n\nEl dato que falta para confirmar el acceso efectivo es la **identidad real y efectiva** del proceso y su pertenencia a grupos, junto al propietario y grupo del fichero. Con solo el modo `-rw-r-----` y el nombre del grupo no se puede fijar qué trío aplica, porque una coincidencia distinta de UID o de GID cambiaría el resultado.\n\nLímite: incluso con la identidad, estarías describiendo la configuración declarada y la decisión de autorización, no una lectura observada ni el resultado de un acceso real.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Ubica la decisión en el primer trío que coincide (propietario), no en el grupo."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Explica que el kernel usa un solo trío y se detiene al coincidir el UID."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Pide identidad real y efectiva y pertenencias a grupos como dato confirmatorio."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Reconoce que el modo por sí solo no describe el acceso efectivo."
+      }
+    ]
+  },
+  "revision": "55d5e65faa86df032379f142"
+}

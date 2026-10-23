@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-04-L03",
+  "sourceHash": "ad6b1c4b26d5826d11b88d769a3bc6933002ac86fe9349620fa50e04f4945819",
+  "questions": [
+    {
+      "id": "LNX-04-L03-Q01",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Que hubo una elevación con una identidad y un comando concretos, registrada para auditoría».\n\nToda elevación deja rastro de quién ejecutó qué y con qué identidad, y ese registro es la evidencia auditable. No modifica permisos de forma permanente, sí cambia la identidad efectiva y no almacena la contraseña del usuario en el sistema."
+    },
+    {
+      "id": "LNX-04-L03-Q02",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Conceder solo las capacidades estrictamente necesarias para esa tarea».\n\nEl mínimo privilegio busca acotar la delegación al comando, al usuario destino más débil y a lo imprescindible, reduciendo la superficie de riesgo. Conceder todo de una vez, evitar toda contraseña o centralizar en una cuenta compartida aumentan el privilegio en lugar de limitarlo."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "La conclusión puede no sostenerse porque lo que se delega no es la intención aparente del programa, sino **todo lo que el programa sabe hacer**. Muchos paginadores permiten abrir una shell o ejecutar un comando desde dentro, de modo que un «lector de registros» pasa a ser una vía para actuar con la identidad administrativa. A eso se suman dos factores de riesgo: el comodín en la ruta y la ausencia de contraseña, que elimina la barrera que PAM habría aportado.\n\nRevisaría la **regla literal** de `sudoers` (comando exacto, usuario destino, comodines y si exige contraseña), el comportamiento del binario y sus escapes —por ejemplo, si permite lanzar otros comandos— y el **registro** de lo ejecutado, que dice qué se permitió y qué se hizo.\n\nLímite: sin leer la política literal, sin comprobar los escapes del programa y sin mirar el registro, no puedes certificar que la delegación sea segura; a lo sumo, que la intención parecía razonable.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Reconoce que se delega todo lo que el programa sabe hacer, no su uso previsto."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Señala el comodín en la ruta y la ausencia de contraseña como factores de riesgo."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Propone revisar la regla literal, los escapes del binario y el registro de ejecución."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Reconoce que la intención razonable no certifica seguridad."
+      }
+    ]
+  },
+  "revision": "9698804a6dbabb141e1e61cf"
+}

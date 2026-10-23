@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-30-L02",
+  "title": "Kubernetes: políticas y pruebas significativas",
+  "sourceHash": "65dc80274a88c759e25350fee288e59f014af44c36a76b24c9ecfe9332be295d",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-30-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nEvaluar la política de seguridad efectiva de un clúster de Kubernetes y diseñar pruebas positivas y negativas que demuestren control, en lugar de aceptar una declaración del manifiesto.\n\nPrerrequisitos: `LNX-30-L01` (Riesgos y auditoría defensiva).\n\n## 2. Comprende el mecanismo\n\nKubernetes separa lo que se **declara** de lo que el clúster **admite** y de lo que el runtime **ejecuta**. Un manifiesto con `runAsNonRoot: true` describe una intención; el pod solo existe si el mecanismo de admisión lo acepta y, además, la imagen debe permitir ejecutar con ese UID. Cuando esas tres capas no coinciden, la política parece aplicada y no lo está.\n\nLos **Pod Security Standards** definen tres niveles acumulativos. `Privileged` no restringe; `Baseline` impide las configuraciones más peligrosas; `Restricted` añade condiciones estrictas de ejecución, como no correr como root, `allowPrivilegeEscalation: false`, un perfil de seccomp adecuado y la eliminación de capabilities salvo excepciones enumeradas. El estándar describe el qué; el **enforcement** depende de un mecanismo de admisión, como Pod Security Admission, configurado por namespace y por modo.\n\nEl **modo** de aplicación cambia por completo la conclusión. Un namespace puede estar en modo de advertencia o de auditoría y registrar incumplimientos sin bloquear nada. También puede tener **exenciones** por usuario, runtime o nombre de pod. Leer la etiqueta del namespace sin leer el modo y las exenciones produce la falsa impresión de que la política bloquea.\n\n`securityContext` traduce la política al pod y al contenedor: identidad de ejecución, escalada de privilegios, sistema de archivos de solo lectura, perfil seccomp y conjunto de capabilities. Cada campo tiene dependencias. `runAsNonRoot` sin un UID compatible con la imagen provoca que el pod no arranque; `readOnlyRootFilesystem` exige volúmenes para lo que la aplicación escribe; `drop: [\"ALL\"]` puede romper un binario que necesita una capability concreta. Una política correcta se prueba con la aplicación real, no solo con un manifiesto de ejemplo.\n\nUna **prueba significativa** tiene dos mitades. La positiva demuestra que el workload legítimo sigue funcionando con la política aplicada. La negativa demuestra que una configuración prohibida es rechazada o queda registrada, según el modo. Sin la mitad negativa, solo se comprobó que algo funciona; no que el control discrimine. La prueba debe indicar el namespace, la versión, el mecanismo de admisión y el resultado observado, no una captura sin contexto.\n\nLa **observabilidad** completa el cuadro. El audit del API y los eventos de admisión muestran qué se intentó y qué se rechazó; Falco y otras fuentes de runtime muestran qué ocurrió dentro del contenedor. Los logs del host no sustituyen los eventos del plano de control, y un rechazo de admisión no prueba que el nodo esté libre de configuraciones heredadas. Los **límites de recursos** con cgroups v2 también forman parte de la política efectiva, porque un pod sin límites afecta a sus vecinos.\n\nLa regla de la lección: política declarada, admisión efectiva, pod real y prueba negativa. El límite: demostrar que un pod no conforme fue rechazado en un namespace concreto no certifica el clúster entero ni cubre la seguridad del host o de la red.\n\n### Vocabulario de apoyo\n\n- **Pod Security Standards**: niveles `Privileged`, `Baseline` y `Restricted` que describen configuraciones admitidas.\n- **Pod Security Admission**: mecanismo de admisión que aplica esos niveles por namespace y por modo.\n- **Modo de enforcement**: `enforce` bloquea, mientras que `audit` y `warn` solo registran o advierten.\n- **securityContext**: bloque del manifiesto que fija identidad, privilegios, seccomp y capabilities del pod o contenedor.\n- **Exención**: regla que excluye ciertos usuarios, namespaces o pods de la política de admisión.\n- **allowPrivilegeEscalation**: campo que impide ganar privilegios adicionales durante la ejecución.\n- **Prueba negativa**: intento controlado de una configuración prohibida que debe ser rechazado o registrado.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-30-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un equipo afirma que su clúster aplica `Restricted` porque todos sus manifiestos declaran `runAsNonRoot: true` y `allowPrivilegeEscalation: false`. La etiqueta del namespace indica el nivel `restricted`, pero el modo de enforcement es `warn` y existe una exención para el namespace de integración. La única prueba registrada consiste en desplegar un pod conforme, que arranca correctamente.\n\nLa prueba no demuestra lo que el equipo cree. Que un pod conforme arranque es la mitad positiva del ensayo: confirma compatibilidad, no capacidad de discriminación. En modo `warn`, un pod no conforme se admitiría con una advertencia, y la exención deja fuera precisamente el espacio donde suelen convivir configuraciones heredadas. La etiqueta del namespace describe una intención, no el comportamiento efectivo.\n\nLa lectura correcta exige tres comprobaciones: el modo y las exenciones del namespace, el pod realmente admitido con su `securityContext` efectivo y una prueba negativa en un namespace de laboratorio. También conviene revisar el audit del API para ver el rechazo o la advertencia. El límite: incluso con esas comprobaciones, la conclusión se refiere a ese namespace y a esa versión; no se extiende al resto del clúster ni a la seguridad del nodo.\n\n"
+    },
+    {
+      "id": "LNX-30-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Verificar modo, exenciones y eventos de admisión antes de aceptar que una política está aplicada.\n- Red Team autorizado: Diseñar pruebas negativas en namespaces de laboratorio, con autorización y sin afectar workloads ajenos.\n- Evidencia de la etapa: Etiqueta y modo del namespace, `securityContext` efectivo, resultado de la admisión y eventos del API.\n- Criterio de dominio: Distingue política declarada de control demostrado y exige siempre la prueba negativa.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB40](../../05_RECURSOS/LABORATORIOS/LNX-LAB40.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F127**: [MITRE ATT&CK Data Sources (deprecated)](https://attack.mitre.org/datasources/). Qué puede afirmarse con cada fuente y sus límites.\n- **F130**: [Docker seccomp profiles](https://docs.docker.com/engine/security/seccomp/). Base del perfil seccomp que el runtime aplica al contenedor.\n- **F131**: [Kubernetes Pod Security Standards](https://kubernetes.io/docs/concepts/security/pod-security-standards/). Niveles `Privileged`, `Baseline` y `Restricted` y sus condiciones.\n- **F132**: [Falco official project](https://github.com/falcosecurity/falco). Detección de comportamiento en runtime dentro del contenedor.\n- **F134**: [Linux Kernel: cgroup v2](https://docs.kernel.org/admin-guide/cgroup-v2.html). Contabilidad y límites de recursos del pod.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-30-L02-P01",
+    "prompt": "Un equipo afirma que su clúster aplica Pod Security Standards `Restricted` porque los manifiestos declaran `runAsNonRoot` y `allowPrivilegeEscalation: false`. Explica cómo comprobarías la política efectiva, qué prueba positiva y negativa diseñarías y cuál es el límite de tu conclusión.",
+    "markdown": "## 4. Práctica individual\n\nUn equipo afirma que su clúster aplica Pod Security Standards `Restricted` porque los manifiestos declaran `runAsNonRoot` y `allowPrivilegeEscalation: false`. Explica cómo comprobarías la política efectiva, qué prueba positiva y negativa diseñarías y cuál es el límite de tu conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber operado un clúster ni haber ejecutado pruebas de admisión reales.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-30-L02-Q01",
+      "prompt": "¿Qué demuestra realmente una prueba que solo despliega un pod conforme a la política?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que la política bloquea los workloads no conformes"
+        },
+        {
+          "id": "B",
+          "text": "Que el runtime aplica seccomp en todos los nodos"
+        },
+        {
+          "id": "C",
+          "text": "Que el plano de control audita todas las peticiones"
+        },
+        {
+          "id": "D",
+          "text": "Que ese pod fue admitido; no demuestra que un pod no conforme sea rechazado"
+        }
+      ]
+    },
+    {
+      "id": "LNX-30-L02-Q02",
+      "prompt": "¿Qué nivel de Pod Security Standards exige, entre otras condiciones, ejecutar sin root, `allowPrivilegeEscalation: false`, seccomp y eliminar capabilities salvo excepciones?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Restricted"
+        },
+        {
+          "id": "B",
+          "text": "Privileged"
+        },
+        {
+          "id": "C",
+          "text": "Baseline"
+        },
+        {
+          "id": "D",
+          "text": "Audit"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB40](../../05_RECURSOS/LABORATORIOS/LNX-LAB40.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F127**: [MITRE ATT&CK Data Sources (deprecated)](https://attack.mitre.org/datasources/). Qué puede afirmarse con cada fuente y sus límites.\n- **F130**: [Docker seccomp profiles](https://docs.docker.com/engine/security/seccomp/). Base del perfil seccomp que el runtime aplica al contenedor.\n- **F131**: [Kubernetes Pod Security Standards](https://kubernetes.io/docs/concepts/security/pod-security-standards/). Niveles `Privileged`, `Baseline` y `Restricted` y sus condiciones.\n- **F132**: [Falco official project](https://github.com/falcosecurity/falco). Detección de comportamiento en runtime dentro del contenedor.\n- **F134**: [Linux Kernel: cgroup v2](https://docs.kernel.org/admin-guide/cgroup-v2.html). Contabilidad y límites de recursos del pod.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "690824835822d1d077c48697"
+}

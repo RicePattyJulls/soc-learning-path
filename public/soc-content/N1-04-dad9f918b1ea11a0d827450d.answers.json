@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 1,
+  "courseId": "soc",
+  "id": "N1-04",
+  "sourceHash": "2d07df6ed40dfc0fb88fab5fec23dcfb528f0395e5b0a383ab81e0b9bfd73a24",
+  "revision": "dad9f918b1ea11a0d827450d",
+  "hipotesis": [
+    "Phishing de credenciales con enlace a clon de portal corporativo.",
+    "Mensaje de proveedor legítimo con dominio inusual o plataforma externalizada.",
+    "Spoofing o suplantación del remitente visible.",
+    "Correo con enlace que redirige a dominio legítimo comprometido o cadena de redirección."
+  ],
+  "pasos": [
+    {
+      "fase": "0. Proteger a la persona y evidencia",
+      "accion": "Pedir que no pulse el enlace, no reenvíe fuera del canal de reporte y no introduzca credenciales. Solicitar el reporte mediante botón de phishing o adjunto .eml/.msg aprobado preservando cabeceras."
+    },
+    {
+      "fase": "1. Trazabilidad del correo",
+      "accion": "Registrar NetworkMessageId / InternetMessageId, remitente visible y sobre SMTP, destinatario, asunto, fecha, autenticación SPF/DKIM/DMARC (teniendo en cuenta alineación) y resultado de filtrado."
+    },
+    {
+      "fase": "2. Analizar URL sin visitarla",
+      "accion": "Revisar URL, dominio, redirecciones, antigüedad y reputación con herramientas seguras; extraer y analizar en sandbox aprobada si corresponde. Nunca abrir el enlace con navegador personal/corporativo del analista."
+    },
+    {
+      "fase": "3. Buscar alcance y clics",
+      "accion": "Buscar otros destinatarios del mismo mensaje o similares; analizar eventos de Safe Links, proxy, DNS y endpoints, sabiendo que la ausencia de evento de clic no prueba que nadie lo hiciera si la cobertura no es completa."
+    },
+    {
+      "fase": "4. Responder y comunicar",
+      "accion": "Si se confirma phishing, solicitar purga/quarantine masiva, bloqueo de URL/dominio/IOC conforme al playbook, informar a usuarios afectados y escalar si hubo clic, envío de credenciales, descarga o ejecución."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "Cabeceras y autenticación",
+      "lectura": "Remitente visible, Return-Path, Received, SPF/DKIM/DMARC y alineación; SPF/DKIM pass no garantiza benignidad."
+    },
+    {
+      "dato": "NetworkMessageId, InternetMessageId",
+      "lectura": "Correlacionan mensaje entre tablas de correo (IDs distintos con propósitos distintos)."
+    },
+    {
+      "dato": "EmailUrlInfo.Url / UrlDomain",
+      "lectura": "Qué direcciones estaban presentes; no demuestra que se visitaran."
+    },
+    {
+      "dato": "UrlClickEvents.AccountUpn + Timestamp + ActionType",
+      "lectura": "Evidencia disponible de interacción bajo cobertura de Safe Links."
+    },
+    {
+      "dato": "RecipientEmailAddress + DeliveryLocation",
+      "lectura": "Distribución y localización del mensaje para tratamiento masivo."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Defender XDR: buscar mensaje y enlace",
+      "entorno": "Defender XDR Advanced Hunting + Defender for Office 365",
+      "consulta": "let remitente = \"nominas@ejemplo.example\";\nEmailEvents\n| where Timestamp > ago(7d)\n| where SenderFromAddress =~ remitente\n| project Timestamp, NetworkMessageId, RecipientEmailAddress,\n          SenderFromAddress, Subject, DeliveryAction, DeliveryLocation,\n          ThreatTypes\n| join kind=leftouter (\n    EmailUrlInfo\n    | project NetworkMessageId, Url, UrlDomain\n  ) on NetworkMessageId\n| order by Timestamp desc",
+      "interpretacion": "Identifica destinatarios, estado de entrega y URLs observadas.",
+      "limitaciones": "Requiere Defender for Office 365; múltiples URLs producen más de una fila por mensaje. El remitente del ejemplo es ficticio."
+    },
+    {
+      "nombre": "Defender XDR: comprobar clics registrados",
+      "entorno": "Defender XDR Advanced Hunting + Safe Links / UrlClickEvents",
+      "consulta": "let mensaje = \"SUSTITUIR_POR_NETWORK_MESSAGE_ID\";\nUrlClickEvents\n| where Timestamp > ago(7d)\n| where NetworkMessageId == mensaje\n| project Timestamp, AccountUpn, Url, ActionType, IsClickedThrough,\n          ThreatTypes, IPAddress\n| order by Timestamp asc",
+      "interpretacion": "Revisar clic permitido/bloqueado y usuarios que interactuaron.",
+      "limitaciones": "Sin Safe Links, con determinadas rutas o sin cobertura completa, un resultado vacío no demuestra cero clics; contrastar con proxy/DNS/endpoint."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk CIM Email: distribución de campaña",
+      "entorno": "Splunk con mail gateway normalizado a CIM Email",
+      "consulta": "tag=email earliest=-7d src_user=\"nominas@ejemplo.example\"\n| stats count AS mensajes values(subject) AS asuntos\n        values(recipient) AS destinatarios\n        values(url) AS urls BY src_user message_id\n| sort - mensajes",
+      "interpretacion": "Localiza correos del remitente y destinatarios, aprovechando mapeo CIM.",
+      "limitaciones": "Campos url o message_id pueden no mapearse en todos los dispositivos; ampliar con asunto, Return-Path y encabezados."
+    },
+    {
+      "nombre": "Splunk CIM Email: receptores y volumen",
+      "entorno": "Splunk CIM Email; subject como campo extraído",
+      "consulta": "tag=email earliest=-48h subject=\"*actualización*nomina*\"\n| stats count AS mensajes values(src_user) AS remitentes\n        values(message_id) AS ids BY recipient\n| sort - mensajes",
+      "interpretacion": "Expone posible distribución de mensaje similar.",
+      "limitaciones": "La coincidencia por asunto no equivale a IOC robusto; depende de idioma, codificación y normalización; usar filtros de dominio/URL cuando exista."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Flujo de correo",
+      "proposito": "Recopilar original conservando cabeceras por la herramienta oficial de reporte y analizar URLs en entorno seguro, no en sesión de producción.",
+      "comando": "# No ejecutar curl ni abrir URL sospechosa desde la estación de análisis."
+    }
+  ],
+  "contencion": "El correo sin clic conocido no exige aislar el endpoint automáticamente. Ante phishing confirmado, activar bloqueo/purga coordinada de mensajes y IOC. Si existen clics o introducción de credenciales, activar playbook de compromiso de identidad, revocación de sesiones y búsqueda de actividad posterior; requerirá verificación del alcance.",
+  "escalation": [
+    "Usuario hizo clic y proporcionó credenciales o aprobó MFA inesperada.",
+    "URL sirvió descarga o ejecución de contenido.",
+    "Campaña extensa contra numerosos usuarios o cuentas de alto privilegio.",
+    "Indicios de cuentas comprometidas o reenvío de correo malicioso desde interno."
+  ],
+  "falsos_positivos": [
+    "Plataforma de nóminas externalizada real.",
+    "Enlace de seguimiento/marketing poco familiar.",
+    "Ejercicio interno de phishing debidamente autorizado."
+  ],
+  "errores": [
+    "Abrir el enlace “para comprobarlo” en el navegador personal.",
+    "Asumir que “no hice clic” o ausencia de UrlClickEvents garantiza ausencia de riesgo.",
+    "Reenviar el mensaje a compañeros para preguntar si lo reconocen.",
+    "Bloquear todo el dominio sin evaluar servicios empresariales compartidos."
+  ],
+  "perspectiva_red_team": "El phishing puede utilizar remitentes parecidos, dominios recién creados, servicios legítimos comprometidos y redirecciones. El objetivo habitual es inducir un clic, acceso a credenciales o ejecución de payload; la detección debe seguir la cadena completa.",
+  "respuesta_entrevista": "Pediría al empleado no interactuar y que use el canal de reporte para conservar el mensaje original. Revisaría cabeceras, autenticación de correo y URL sin visitarla directamente; después buscaría destinatarios adicionales y posibles clics o descargas en las fuentes disponibles. Si se confirma phishing, pediría la purga y bloqueo aprobados; con evidencia de interacción o credenciales comprometidas, escalaría para respuesta sobre identidad/endpoints. Documentaría el alcance y los límites de visibilidad.",
+  "criterios_evaluacion": [
+    "Preservar mensaje y proteger a usuario/analista.",
+    "Buscar alcance organizativo.",
+    "Distinguir URL presente de URL visitada.",
+    "Escalar ante credenciales, ejecución o campaña extensa."
+  ],
+  "mitre": [
+    "T1566.002"
+  ],
+  "fuentes": [
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-emailevents-table",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-emailurlinfo-table",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-urlclickevents-table",
+    "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.1/data-models/email"
+  ]
+}

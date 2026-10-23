@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-25-L01",
+  "title": "Grupos de gestión y orden",
+  "sourceHash": "2611870bef686efa5c1e795f0cf526ecd89ab651564b6b0b653822d5b3c3fa55",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-25-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nReconstruir la pila PAM por grupos de gestión y orden de control, y explicar qué decide cada grupo antes de tocar una política.\n\nPrerrequisitos: `LNX-24-L03` (DAC/ACL/umask y rutas de acceso).\n\n## 2. Comprende el mecanismo\n\n**PAM** no es un único control: es una interfaz por la que una aplicación consulta módulos agrupados por tipo de decisión. Leer una política PAM sin separar esos grupos es como leer un formulario sin mirar los encabezados: aparecen líneas, pero no se sabe qué pregunta responde cada una.\n\nEl grupo **`auth`** verifica identidad o credenciales. Decide si la persona es quien dice ser, mediante contraseña, segundo factor o un servicio externo. El grupo **`account`** autoriza el uso de la cuenta en ese momento: vigencia, expiración, horario o restricciones. Una autenticación correcta puede terminar en denegación de `account`, y ese es un síntoma distinto de «contraseña incorrecta».\n\nEl grupo **`password`** administra el cambio de token. No comprueba una contraseña para iniciar sesión: gestiona cómo se actualiza. Confundirlo con `auth` lleva a diagnosticar un cambio de clave como si fuera un fallo de acceso. El grupo **`session`** abre y cierra recursos de la sesión: registro, límites, montajes. Puede ejecutar acciones al inicio y al final, y por eso también es superficie de observación.\n\nEl **orden** importa tanto como el grupo. Las líneas se evalúan de arriba abajo y los **control flags** cambian el resultado. `required` registra el fallo pero continúa; `requisite` detiene la pila en el acto; `sufficient` puede devolver éxito si no hay fallos previos de tipo `required`; `optional` condiciona su efecto. `include` y `substack` insertan lógica de otro fichero, de modo que la política efectiva no cabe en una sola pantalla.\n\nLa sintaxis extendida añade otra capa. Formas como `[success=1 default=bad]` saltan líneas según el resultado del módulo. Sin leer el salto, una línea aislada parece innocua o peligrosa y no lo es. El error típico de auditoría es citar una línea y omitir el flujo que la rodea.\n\nTambién hay una jerarquía de configuración: `pam.conf` puede establecer valores por servicio, y los ficheros de `/etc/pam.d` suelen tener precedencia sobre los del proveedor. Una política puede parecer ausente porque vive en otra ruta, o parecer activa porque se leyó el fichero equivocado. Verificar la ruta efectiva es parte del diagnóstico, no un detalle.\n\nLa regla de la lección: nombra el grupo, el control y el orden antes de interpretar una línea. El límite: la lectura de la pila describe la intención configurada; no demuestra que el servicio la invoque, ni que el módulo esté disponible, ni que la decisión final coincida con la esperada.\n\n### Vocabulario de apoyo\n\n- **PAM**: interfaz de autenticación modular usada por aplicaciones que la integran.\n- **Grupo de gestión**: `auth`, `account`, `password` o `session`; cada uno responde a una pregunta distinta.\n- **Control flag**: palabra que define cómo afecta el resultado de un módulo a la pila.\n- **`requisite`**: control que detiene la evaluación ante un fallo.\n- **`sufficient`**: control que puede conceder éxito si no hay fallos `required` previos.\n- **`substack`**: inclusión de otra pila con su propio ámbito de evaluación.\n- **Sintaxis extendida**: forma `[success=N default=bad]` que altera el flujo de la pila.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-25-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en una VM de laboratorio, una cuenta inicia sesión por SSH con contraseña correcta y recibe un mensaje de acceso denegado. El analista lee la línea `auth sufficient pam_unix.so` del servicio, concluye que la autenticación falla y propone reemplazarla. Tras el cambio, el síntoma persiste.\n\nEl diagnóstico se fijó en el grupo equivocado. Si la contraseña fue aceptada, `auth` hizo su parte; la denegación posterior puede venir de `account`, por expiración, horario o una regla del servicio. Cambiar la línea de `auth` no toca la causa y añade riesgo de bloqueo. Tampoco se comprobó el orden: un `sufficient` no concede éxito si antes hubo un fallo `required`, y una línea citada fuera de contexto no describe el flujo.\n\nLa lectura correcta separa los cuatro grupos, reconstruye el orden con sus controles e identifica en qué grupo se produjo la negativa. Solo después se decide si hace falta un cambio y con qué plan de rescate. El límite: sin el registro del servicio y sin una sesión de prueba, la atribución al grupo `account` es una hipótesis razonable, no una certeza.\n\n"
+    },
+    {
+      "id": "LNX-25-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Distinguir en los registros si la negativa ocurrió en autenticación, autorización de cuenta o sesión.\n- Red Team autorizado: Revisar en solo lectura qué grupos invoca un servicio y qué controles los condicionan.\n- Evidencia de la etapa: Pila por servicio, grupo, control, orden y ruta efectiva del fichero.\n- Criterio de dominio: Localiza el grupo que decide y no atribuye toda negativa a la contraseña.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB32](../../05_RECURSOS/LABORATORIOS/LNX-LAB32.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F101**: [Linux-PAM pam.d(5)](https://man7.org/linux/man-pages/man5/pam.d.5.html). Sintaxis, grupos de gestión, control flags e includes.\n- **F105**: [Linux-PAM pam.conf(5)](https://man7.org/linux/man-pages/man5/pam.conf.5.html). Precedencia entre configuración por servicio y valores del proveedor.\n- **F02**: [GNU Bash Reference Manual](https://www.gnu.org/software/bash/manual/bash.html). Lectura y filtrado de ficheros de configuración sin alterarlos.\n- **F103**: [sudoers(5)](https://man7.org/linux/man-pages/man5/sudoers.5.html). Delegación que se apoya en la identidad ya autenticada.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-25-L01-P01",
+    "prompt": "En una VM de laboratorio, una cuenta inicia sesión por SSH con contraseña correcta y recibe un mensaje de acceso denegado. El analista lee la línea `auth sufficient pam_unix.so` del servicio, concluye que la autenticación falla y propone reemplazarla; el síntoma persiste. Explica qué grupo de gestión decide cada parte del acceso, cómo usarías el orden y los control flags para localizar la negativa y cuál es el límite de tu conclusión.",
+    "markdown": "## 4. Práctica individual\n\nEn una VM de laboratorio, una cuenta inicia sesión por SSH con contraseña correcta y recibe un mensaje de acceso denegado. El analista lee la línea `auth sufficient pam_unix.so` del servicio, concluye que la autenticación falla y propone reemplazarla; el síntoma persiste. Explica qué grupo de gestión decide cada parte del acceso, cómo usarías el orden y los control flags para localizar la negativa y cuál es el límite de tu conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber editado una política PAM ni haber probado un acceso real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-25-L01-Q01",
+      "prompt": "Una cuenta se autentica con contraseña correcta y aun así se le deniega la sesión. ¿Qué grupo de PAM es el candidato más directo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "`account`, porque autoriza el uso de la cuenta en ese momento"
+        },
+        {
+          "id": "B",
+          "text": "`password`, porque gestiona la actualización del token"
+        },
+        {
+          "id": "C",
+          "text": "`session`, porque es el único que puede denegar después de `auth`"
+        },
+        {
+          "id": "D",
+          "text": "`auth`, porque toda denegación posterior es un fallo de credencial"
+        }
+      ]
+    },
+    {
+      "id": "LNX-25-L01-Q02",
+      "prompt": "¿Qué diferencia hay entre `required` y `requisite` en una pila PAM?",
+      "options": [
+        {
+          "id": "A",
+          "text": "`required` detiene la pila y `requisite` solo registra el fallo"
+        },
+        {
+          "id": "B",
+          "text": "Ambos son sinónimos y solo cambian de nombre"
+        },
+        {
+          "id": "C",
+          "text": "`requisite` solo se aplica al grupo `session` y `required` al grupo `auth`"
+        },
+        {
+          "id": "D",
+          "text": "`required` registra el fallo y continúa; `requisite` detiene la evaluación en el acto"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB32](../../05_RECURSOS/LABORATORIOS/LNX-LAB32.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F101**: [Linux-PAM pam.d(5)](https://man7.org/linux/man-pages/man5/pam.d.5.html). Sintaxis, grupos de gestión, control flags e includes.\n- **F105**: [Linux-PAM pam.conf(5)](https://man7.org/linux/man-pages/man5/pam.conf.5.html). Precedencia entre configuración por servicio y valores del proveedor.\n- **F02**: [GNU Bash Reference Manual](https://www.gnu.org/software/bash/manual/bash.html). Lectura y filtrado de ficheros de configuración sin alterarlos.\n- **F103**: [sudoers(5)](https://man7.org/linux/man-pages/man5/sudoers.5.html). Delegación que se apoya en la identidad ya autenticada.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "d9a2b7c7bb20a53b443067df"
+}

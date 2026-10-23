@@ -1,0 +1,39 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-16-L01",
+  "sourceHash": "27dc2c467c10ccc2cc274016999022885ec843960ab82b578f7f2e8b0e4201b9",
+  "questions": [
+    {
+      "id": "WAD-16-L01-Q01",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Emitir y firmar certificados, actuando como raíz de confianza de la cadena».\n\nLa CA emite y firma certificados y, con esa firma, sostiene la cadena de confianza. No guarda contraseñas, no descifra el tráfico de la red y no sustituye al controlador de dominio en la autenticación."
+    },
+    {
+      "id": "WAD-16-L01-Q02",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «El propósito para el que el certificado fue emitido y puede usarse legítimamente».\n\nEl EKU declara el uso previsto del certificado. La fecha de revocación, la clave privada y una validez universal no corresponden a lo que esa extensión indica."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "Primero se reconstruye la cadena de confianza: se identifica el certificado, la CA emisora `CA-Lab` y la raíz que la firma, y se comprueba que cada firma enlaza con el eslabón anterior hasta una raíz de confianza. Después se lee la extensión EKU para fijar el propósito: el certificado es válido para el uso que declara y no para otro, aunque su fecha esté vigente. Para situar el ciclo de vida se revisan las fechas y el estado —vigente, caducado o revocado según la lista que publica la CA—. La conclusión es que solo es confiable para el propósito de su EKU y mientras su estado lo permita. El límite: el análisis describe este certificado y no acredita que toda la PKI esté sana ni por qué se revocó.",
+    "rubric": [
+      {
+        "criterion": "Cadena de confianza",
+        "evidence": "Reconstruye la cadena desde el certificado hasta una CA raíz de confianza."
+      },
+      {
+        "criterion": "Uso por EKU",
+        "evidence": "Relaciona el EKU con el uso concreto y lo acota a ese propósito."
+      },
+      {
+        "criterion": "Ciclo de vida",
+        "evidence": "Distingue vigencia de revocación y sitúa el certificado en su ciclo de vida."
+      },
+      {
+        "criterion": "Límite reconocido",
+        "evidence": "Admite que la conclusión no se generaliza a toda la PKI."
+      }
+    ]
+  },
+  "revision": "4a079e741489e64ab45385cc"
+}

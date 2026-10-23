@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-12-L02",
+  "title": "Filtros y RSOP/gpresult",
+  "sourceHash": "1aee8ec0cfb19475608965efb6f61da12a6b9a3e1a37d73ab223e5991dc3f142",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-12-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDeterminar la política resultante de una identidad con filtrado y resultados de política.\n\nPrerrequisitos: `WAD-12-L01` (GPO scope, orden y herencia).\n\n## 2. Comprende el mecanismo\n\nEl **filtrado de seguridad** responde a una pregunta distinta de la del vínculo. El **vínculo** dice en qué parte del directorio se aplica una GPO; el filtrado dice a qué cuentas de esa parte se aplica. Por defecto alcanza a los equipos y usuarios autenticados que están dentro del alcance; al filtrar, esa lista se sustituye por grupos o cuentas concretas.\n\nEl filtro se evalúa con el token de la identidad. Si la cuenta no está incluida —ni directamente ni por pertenencia a un grupo incluido— la GPO no se aplica, aunque el vínculo la alcance. Un filtro mal puesto explica por sí solo dos síntomas frecuentes: «la directiva no llega» y «la directiva llega a quien no debía».\n\nAdemás del filtrado por identidad existen los **filtros WMI**, que condicionan la aplicación según características del equipo —por ejemplo, su sistema operativo o su memoria— consultadas al procesar la directiva. Un filtro WMI no mira a la persona: mira al equipo.\n\nPara saber qué recibe de verdad una identidad se usan las herramientas de resultados de política:\n\n- `gpresult` informa en el equipo qué GPO se aplicaron, cuáles se rechazaron y de qué GPO proviene cada ajuste.\n- La vista de **política resultante (RSOP)** presenta ese mismo resultado ordenado por configuración de equipo y de usuario.\n\nLa distinción clave vuelve a ser la de la lección anterior, ahora en sentido contrario: no basta con que un ajuste esté configurado en una GPO; hay que comprobar si aparece en el **resultado efectivo** de esa identidad concreta. Si dos GPO definen el mismo ajuste, el resultado muestra cuál ganó y con qué precedencia.\n\nLeer el resultado también tiene límites. Un informe de resultados de política describe lo que el equipo procesó en ese momento y con ese contexto: no es una predicción universal, no cubre a otras identidades y no sustituye la comprobación del vínculo cuando algo no aparece.\n\n### Vocabulario de apoyo\n\n- **Filtrado de seguridad**: restricción de una GPO a determinadas cuentas o grupos.\n- **Política resultante (RSOP)**: conjunto de ajustes que una identidad recibe tras el procesamiento.\n- **GPO (objeto de directiva de grupo)**: conjunto de directivas con nombre propio que se vincula en el directorio.\n- **Vínculo (link)**: asociación entre una GPO y un sitio, un dominio o una OU.\n- **Orden de vínculo**: secuencia en que se procesan los vínculos; lo procesado más tarde gana.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-12-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: una GPO con un ajuste de seguridad se vinculó a la OU `Puestos` y debía aplicarse solo a los equipos del grupo `GRP-Aula`. Al revisar, dos equipos de ese grupo no lo reciben y un equipo de otra área sí.\n\nEl caso tiene dos mitades y conviene no mezclarlas. Los equipos que no reciben el ajuste están dentro del alcance del **vínculo**, de modo que la razón hay que buscarla en el **filtrado de seguridad** —no están incluidos en el token, o lo están por una vía que no se consideró— o en un **filtro WMI** que no se cumple en ellos. El equipo de otra área sí lo recibe porque, además de estar en el vínculo, pertenece al grupo del filtro. La evidencia es la **política resultante** de un equipo de cada caso, mostrando qué GPO se aplicaron y de dónde viene cada ajuste. La conclusión acota lo observado —«el filtro decide la aplicación dentro del alcance»— y reconoce el límite: sin el informe de resultados de esos equipos, la explicación es una hipótesis razonable, no un hecho comprobado.\n\n"
+    },
+    {
+      "id": "WAD-12-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Distinguir lo configurado de lo efectivo evita dar por cubierto un equipo que no recibe la directiva.\n- Red Team autorizado: Conocer filtros y resultados de política permite describir con precisión qué se aplica en un host autorizado.\n- Evidencia de la etapa: Informe de resultados de política por identidad, con el origen de cada ajuste.\n- Criterio de dominio: La política se aplica solo a las identidades esperadas.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB06](../../05_RECURSOS/LABORATORIOS/WAD-LAB06.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **GPRESULT**: [gpresult](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/gpresult). Resultado de política aplicado y rechazado en un equipo.\n- **GPOPREC**: [Group Policy processing and precedence](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-r2-and-2012/dn581922(v=ws.11)). Cómo se resuelve la precedencia entre GPO.\n- **GPO**: [Group Policy overview](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-r2-and-2012/hh831791(v=ws.11)). Qué es una GPO y a qué contenedores se vincula.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-12-L02-P01",
+    "prompt": "Un equipo de laboratorio recibe una GPO con filtrado de seguridad y un filtro WMI, y otro equipo de la misma OU no la recibe. Describe cómo determinarías la política resultante de cada equipo con `gpresult` y qué datos registrarías para explicar la diferencia.",
+    "markdown": "## 4. Práctica individual\n\nUn equipo de laboratorio recibe una GPO con filtrado de seguridad y un filtro WMI, y otro equipo de la misma OU no la recibe. Describe cómo determinarías la política resultante de cada equipo con `gpresult` y qué datos registrarías para explicar la diferencia.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber ejecutado consultas de política en un sistema real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-12-L02-Q01",
+      "prompt": "Una GPO con filtrado de seguridad que incluye solo al grupo `GRP-Aula` está vinculada a una OU con más equipos. ¿A qué identidades alcanza la directiva?",
+      "options": [
+        {
+          "id": "A",
+          "text": "A todos los equipos de la OU sin excepción"
+        },
+        {
+          "id": "B",
+          "text": "A todos los equipos del dominio"
+        },
+        {
+          "id": "C",
+          "text": "A ninguna identidad, porque el filtrado anula el vínculo"
+        },
+        {
+          "id": "D",
+          "text": "Solo a las identidades incluidas en el filtro que además estén dentro del alcance del vínculo"
+        }
+      ]
+    },
+    {
+      "id": "WAD-12-L02-Q02",
+      "prompt": "Al revisar la política resultante de un equipo, un ajuste aparece bajo la configuración de usuario y otro bajo la de equipo. ¿Qué aporta esa vista frente a leer la GPO?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Cambia el ajuste para que se aplique antes"
+        },
+        {
+          "id": "B",
+          "text": "Muestra el resultado efectivo y el origen de cada ajuste en esa identidad concreta"
+        },
+        {
+          "id": "C",
+          "text": "Sustituye la necesidad de comprobar el vínculo"
+        },
+        {
+          "id": "D",
+          "text": "Elimina los filtros WMI aplicados al equipo"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB06](../../05_RECURSOS/LABORATORIOS/WAD-LAB06.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **GPRESULT**: [gpresult](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/gpresult). Resultado de política aplicado y rechazado en un equipo.\n- **GPOPREC**: [Group Policy processing and precedence](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-r2-and-2012/dn581922(v=ws.11)). Cómo se resuelve la precedencia entre GPO.\n- **GPO**: [Group Policy overview](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-r2-and-2012/hh831791(v=ws.11)). Qué es una GPO y a qué contenedores se vincula.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "6bc955743f3892814b2e2e3b"
+}

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M08-L04",
+  "title": "Errores de puertos y documentación",
+  "sourceHash": "e5a73dd03d752a40756184ca84455da1743e340cbe98ca9f2bfe70ea2b65ad4f",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M08-L04-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nInterpretar contadores con intervalos y contexto de puerto.\n\nPrerrequisitos: [RED-M08-L03](../RED-E02/RED-M08-L03.md).\n\n## 2. Comprende el mecanismo\n\nContadores acumulativos requieren comparar diferencias durante intervalos conocidos. Un total alto puede corresponder a meses sin incidentes recientes. Errores CRC, descartes por cola, cambios de enlace y saturación no son métricas equivalentes. Registra velocidad, dúplex, óptica/cobre, potencia cuando aplique y función del puerto. Un hipervisor o AP puede concentrar muchos clientes y no debe documentarse como un único usuario por tener una MAC de gestión. Evita poner a cero contadores sin preservar el estado anterior.\n\n### Vocabulario de apoyo\n\n- **Tabla MAC**: Relación aprendida entre direcciones MAC, puertos y VLAN para conmutar tramas.\n- **LLDP/CDP**: Protocolos que anuncian información de vecinos del enlace; CDP corresponde a Cisco.\n- **Contador acumulativo**: Total desde su inicio o reinicio; para medir actividad reciente se comparan muestras.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M08-L04-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> p8: descartes totales=10000; muestra 1 a 10:00=10000; muestra 2 a 10:05=10000; sin errores nuevos.\n\nEl total no creció en el intervalo. No permite atribuir el incidente actual a descartes recientes en ese puerto.\n\n"
+    },
+    {
+      "id": "RED-M08-L04-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Ubicar punto de captura y equipo probable.\n- Red Team autorizado: Inventario de activos dentro de alcance.\n- Evidencia del módulo: Plano de puertos, MAC y rutas L2.\n- Criterio del módulo: Mapa consistente con evidencias L2.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L04](../../05_RECURSOS/LABORATORIOS/RED-L04.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **BRIDGE**: [Ethernet Bridging](https://docs.kernel.org/networking/bridge.html). Learning, forwarding, VLAN y controles de bridge; kAPI no se presenta como estable.\n- **PHY**: [Troubleshoot Switch Port and Interface Problems](https://www.cisco.com/c/en/us/support/docs/switches/catalyst-6500-series-switches/12027-53.html). Dúplex, CRC, contadores y diagnóstico de interfaces; procedimientos dependientes de familia.\n- **POE**: [Troubleshoot Power over Ethernet on Catalyst 9000](https://www.cisco.com/c/en/us/support/docs/switches/catalyst-9200-series-switches/215636-troubleshooting-power-over-ethernet-poe.html). Demanda de potencia, presupuesto y diagnóstico PoE.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M08-L04-P01",
+    "prompt": "El contador pasa de 10000 a 13000 en 60 s. Calcula la tasa y especifica dos datos que faltan para medir impacto.",
+    "markdown": "## 4. Práctica individual\n\nEl contador pasa de 10000 a 13000 en 60 s. Calcula la tasa y especifica dos datos que faltan para medir impacto.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M08-L04-Q01",
+      "prompt": "¿Qué se necesita para calcular una tasa?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Un solo total acumulado y la velocidad nominal del puerto"
+        },
+        {
+          "id": "B",
+          "text": "Diferencia del contador y duración del intervalo"
+        },
+        {
+          "id": "C",
+          "text": "Solo la duración del incidente, sin muestras del contador"
+        },
+        {
+          "id": "D",
+          "text": "Dos contadores de interfaces distintas sin hora de muestra"
+        }
+      ]
+    },
+    {
+      "id": "RED-M08-L04-Q02",
+      "prompt": "¿Qué concluyes de las dos muestras iguales?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El puerto está físicamente desconectado"
+        },
+        {
+          "id": "B",
+          "text": "No hubo incremento observado de ese contador entre muestras"
+        },
+        {
+          "id": "C",
+          "text": "El servidor no puede fallar"
+        },
+        {
+          "id": "D",
+          "text": "Nunca hubo descartes en el equipo"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L04](../../05_RECURSOS/LABORATORIOS/RED-L04.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **BRIDGE**: [Ethernet Bridging](https://docs.kernel.org/networking/bridge.html). Learning, forwarding, VLAN y controles de bridge; kAPI no se presenta como estable.\n- **PHY**: [Troubleshoot Switch Port and Interface Problems](https://www.cisco.com/c/en/us/support/docs/switches/catalyst-6500-series-switches/12027-53.html). Dúplex, CRC, contadores y diagnóstico de interfaces; procedimientos dependientes de familia.\n- **POE**: [Troubleshoot Power over Ethernet on Catalyst 9000](https://www.cisco.com/c/en/us/support/docs/switches/catalyst-9200-series-switches/215636-troubleshooting-power-over-ethernet-poe.html). Demanda de potencia, presupuesto y diagnóstico PoE.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "bfd89e881ae559b31a1d832f"
+}

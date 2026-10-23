@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-08-L02",
+  "sourceHash": "97e4f33e072dd4c3428bef762a117eb2fcec2bca77c2cad550fb13c1b19c9435",
+  "questions": [
+    {
+      "id": "LNX-08-L02-Q01",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Que la unidad tiene enlaces de habilitación para el próximo arranque, no que esté ejecutándose ahora».\n\n`enabled` describe la habilitación para un disparo futuro, no la actividad presente. No implica que el servicio esté activo, ni que no pueda detenerse, ni que se haya ejecutado alguna vez."
+    },
+    {
+      "id": "LNX-08-L02-Q02",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Si systemd pudo localizar e interpretar la definición de la unidad».\n\n`LoadState` indica si el gestor pudo localizar e interpretar la definición. La actividad actual corresponde a ActiveState/SubState, la habilitación a UnitFileState y el número de fallos a otro contador distinto."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "No hay contradicción porque cada estado responde a una pregunta distinta. `UnitFileState=enabled` responde a «¿está preparada para un disparo futuro?»: existen los enlaces de habilitación. `ActiveState=inactive` responde a «¿está corriendo ahora?»: en este momento no hay proceso. Añadiría `LoadState` para confirmar que la definición se leyó y revisaría sockets, timers o dependencias para saber si puede activarse sin estar habilitada.\n\nEl límite es que estos campos son una **instantánea**: no explican por qué está inactiva ni si volverá a activarse por otra vía.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Asocia cada estado a su pregunta (habilitación, actividad, definición)."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Explica que `enabled` e `inactive` no se contradicen."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Propone revisar vías de activación (socket, timer, dependencia)."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Reconoce que el estado es una instantánea sin historia ni causa."
+      }
+    ]
+  },
+  "revision": "9514df8e88363ce660d14a79"
+}

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M27-L03",
+  "title": "IDS/IPS firmas y anomalías",
+  "sourceHash": "01e57010c34b9552bc74681ebc5a13ee42bd006fb7046ab92ca726b90832d8b2",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M27-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nSeparar alerta IDS y prevención IPS con evidencia de acción.\n\nPrerrequisitos: [RED-M27-L02](../RED-E05/RED-M27-L02.md).\n\n## 2. Comprende el mecanismo\n\nUn IDS observa y alerta; un IPS puede aplicar prevención cuando está en el camino y configurado para ello. Una firma coincide con un patrón bajo un contexto, no prueba automáticamente explotación o impacto. Modos de despliegue, reglas, bypass y acciones efectivas cambian la conclusión. Registros como EVE de Suricata incluyen tipos y campos que dependen del evento y configuración; no interpretar toda alerta como un drop. Verifica tráfico permitido/denegado y el servicio antes de atribuir prevención.\n\n### Vocabulario de apoyo\n\n- **IPFIX y plantilla**: Exportación de información de flujos y esquema de campos válido en un contexto de observación.\n- **IDS, IPS y NDR**: Detección, prevención y análisis de comportamientos de red, con funciones dependientes del despliegue.\n- **Muestreo**: Selección de parte de las observaciones; requiere declarar método y límites de estimación.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M27-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso docente: sensor pasivo genera alert; servidor registra petición procesada; no existe acción drop en el control.\n\nLa evidencia muestra detección, no bloqueo. Que el mensaje tenga alta prioridad no convierte al sensor fuera de banda en un control preventivo.\n\n"
+    },
+    {
+      "id": "RED-M27-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Construir evidencia multi-sensor.\n- Red Team autorizado: Probar alerta bajo tráfico controlado.\n- Evidencia del módulo: Tabla de eventos, sesgos y corroboración necesaria.\n- Criterio del módulo: No confunde una alerta con incidente probado.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L14](../../05_RECURSOS/LABORATORIOS/RED-L14.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC7011**: [RFC 7011: IP Flow Information Export Protocol](https://www.rfc-editor.org/rfc/rfc7011.html). Plantillas, dominios de observación y exportación de flujos.\n- **ZEEK-CONN**: [conn.log](https://docs.zeek.org/en/current/reference/logs/conn.html). Registros de conexión y límites; los fixtures del curso usan otro esquema declarado.\n- **SURICATA**: [EVE JSON Output](https://docs.suricata.io/en/latest/output/eve/eve-json-output.html). Tipos de evento y acciones; documentación latest consultada, no imagen elegida para ejecutar.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M27-L03-P01",
+    "prompt": "Tras poner un control inline, la alerta indica drop pero el servicio devuelve respuesta. ¿Qué contraste falta?",
+    "markdown": "## 4. Práctica individual\n\nTras poner un control inline, la alerta indica drop pero el servicio devuelve respuesta. ¿Qué contraste falta?\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M27-L03-Q01",
+      "prompt": "¿Qué distingue un IPS operativo de un IDS pasivo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "No necesita reglas"
+        },
+        {
+          "id": "B",
+          "text": "Puede aplicar prevención en el camino según configuración"
+        },
+        {
+          "id": "C",
+          "text": "Toda alerta siempre confirma compromiso"
+        },
+        {
+          "id": "D",
+          "text": "Siempre descifra TLS"
+        }
+      ]
+    },
+    {
+      "id": "RED-M27-L03-Q02",
+      "prompt": "¿Qué demuestran los datos del caso?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Detección sin bloqueo demostrado"
+        },
+        {
+          "id": "B",
+          "text": "Bloqueo de toda petición"
+        },
+        {
+          "id": "C",
+          "text": "Explotación confirmada"
+        },
+        {
+          "id": "D",
+          "text": "Ausencia de actividad en el servidor"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L14](../../05_RECURSOS/LABORATORIOS/RED-L14.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC7011**: [RFC 7011: IP Flow Information Export Protocol](https://www.rfc-editor.org/rfc/rfc7011.html). Plantillas, dominios de observación y exportación de flujos.\n- **ZEEK-CONN**: [conn.log](https://docs.zeek.org/en/current/reference/logs/conn.html). Registros de conexión y límites; los fixtures del curso usan otro esquema declarado.\n- **SURICATA**: [EVE JSON Output](https://docs.suricata.io/en/latest/output/eve/eve-json-output.html). Tipos de evento y acciones; documentación latest consultada, no imagen elegida para ejecutar.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "aef683f036bd4dfa9b82f3d3"
+}

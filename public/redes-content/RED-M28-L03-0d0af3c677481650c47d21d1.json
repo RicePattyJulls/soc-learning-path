@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M28-L03",
+  "title": "SMB/Kerberos visibles",
+  "sourceHash": "91f47b9f475fd7661c1e5c51aad8f0dea0a5e4cec4e70fa6186d4300899a1e86",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M28-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nInterpretar señales SMB/Kerberos sin equiparar red e identidad.\n\nPrerrequisitos: [RED-M28-L02](../RED-E05/RED-M28-L02.md).\n\n## 2. Comprende el mecanismo\n\nEl puerto y patrón de un protocolo pueden orientar investigación, pero no equivalen a un evento de autenticación del directorio. Kerberos protege partes de sus intercambios y SMB puede tener firma o cifrado; la visibilidad depende de configuración y punto. Para corroborar actividad de identidad, relaciona eventos del DC o endpoint con tiempos, servicios y activos. Un evento 4769 trata una solicitud de ticket de servicio según su semántica; no es idéntico a un flujo a un puerto ni prueba que el ticket se usara con éxito.\n\n### Vocabulario de apoyo\n\n- **Stream y request ID**: Conversación en un archivo analizado e identificador de petición en un contexto de aplicación.\n- **Offload**: Trabajo delegado a la interfaz de red que puede completarse después del punto de captura local.\n- **DC y ticket de servicio**: Controlador de dominio y credencial Kerberos para un servicio; no equivalen a autorización final del recurso.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M28-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso docente: tráfico hacia Kerberos, un evento 4769 de solicitud de ticket de servicio con Status=0x0 (éxito) y un flujo SMB posterior; no hay registro del resultado del acceso al recurso.\n\nEl resultado de éxito respalda la emisión del ticket en este caso; el ID 4769 sin su resultado también puede representar un fallo. Ni ticket ni flujo SMB prueban por sí solos que el recurso aceptara la operación. Corroborar autorización y resultado en el recurso antes de afirmar éxito.\n\n"
+    },
+    {
+      "id": "RED-M28-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Análisis en profundidad de sesión sospechosa.\n- Red Team autorizado: Confirmar visibilidad de ensayo mínimo.\n- Evidencia del módulo: Flujos reconstruidos, hechos y límites de visibilidad.\n- Criterio del módulo: Localiza evidencia favorable y contraria.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L15](../../05_RECURSOS/LABORATORIOS/RED-L15.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **WIRESHARK**: [Wireshark User’s Guide](https://www.wireshark.org/docs/wsug_html_chunked/). Filtros, captura, streams, metadatos y límites de observación.\n- **CHECKSUM**: [Checksums](https://www.wireshark.org/docs/wsug_html_chunked/ChAdvChecksums.html). Artefactos de checksum y offload.\n- **RFC4120**: [RFC 4120: Kerberos Network Authentication Service V5](https://www.rfc-editor.org/rfc/rfc4120.html). Tickets, tiempo y separación de autenticación y acceso al recurso.\n- **EV4769**: [4769: A Kerberos service ticket was requested](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4769). Solicitud de ticket y resultado; nota de actualización de evento desde enero 2025.\n- **SMB**: [SMB Security Enhancements](https://learn.microsoft.com/en-us/windows-server/storage/file-server/smb-security). Diferencia entre firma y cifrado; condiciones por versión.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M28-L03-P01",
+    "prompt": "El recurso registra denegación de permisos. ¿Cómo debe cambiar el informe de la secuencia?",
+    "markdown": "## 4. Práctica individual\n\nEl recurso registra denegación de permisos. ¿Cómo debe cambiar el informe de la secuencia?\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M28-L03-Q01",
+      "prompt": "¿Qué no demuestra emitir un ticket por sí solo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Una etapa del proceso de autenticación"
+        },
+        {
+          "id": "B",
+          "text": "Necesidad de analizar su contexto"
+        },
+        {
+          "id": "C",
+          "text": "Acceso exitoso al recurso final"
+        },
+        {
+          "id": "D",
+          "text": "Una actividad de ticket según el evento"
+        }
+      ]
+    },
+    {
+      "id": "RED-M28-L03-Q02",
+      "prompt": "¿Qué estado falta confirmar en el caso?",
+      "options": [
+        {
+          "id": "A",
+          "text": "La existencia del flujo observado"
+        },
+        {
+          "id": "B",
+          "text": "El orden propuesto de la hipótesis"
+        },
+        {
+          "id": "C",
+          "text": "Resultado del acceso al recurso"
+        },
+        {
+          "id": "D",
+          "text": "La presencia del registro de ticket"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L15](../../05_RECURSOS/LABORATORIOS/RED-L15.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **WIRESHARK**: [Wireshark User’s Guide](https://www.wireshark.org/docs/wsug_html_chunked/). Filtros, captura, streams, metadatos y límites de observación.\n- **CHECKSUM**: [Checksums](https://www.wireshark.org/docs/wsug_html_chunked/ChAdvChecksums.html). Artefactos de checksum y offload.\n- **RFC4120**: [RFC 4120: Kerberos Network Authentication Service V5](https://www.rfc-editor.org/rfc/rfc4120.html). Tickets, tiempo y separación de autenticación y acceso al recurso.\n- **EV4769**: [4769: A Kerberos service ticket was requested](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4769). Solicitud de ticket y resultado; nota de actualización de evento desde enero 2025.\n- **SMB**: [SMB Security Enhancements](https://learn.microsoft.com/en-us/windows-server/storage/file-server/smb-security). Diferencia entre firma y cifrado; condiciones por versión.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "0d0af3c677481650c47d21d1"
+}

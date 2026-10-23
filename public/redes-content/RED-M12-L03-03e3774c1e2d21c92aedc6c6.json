@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M12-L03",
+  "title": "Longest-prefix match y AD",
+  "sourceHash": "011e0d9f75654ee27f886d83cd488a779f5729f334d67318baab307316bbdbbe",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M12-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nSeparar selección de rutas y búsqueda por prefijo más largo.\n\nPrerrequisitos: [RED-M12-L02](../RED-E03/RED-M12-L02.md).\n\n## 2. Comprende el mecanismo\n\nLos protocolos proponen rutas; preferencia administrativa y métricas contribuyen a elegir qué rutas se instalan para un prefijo, con reglas de implementación. El forwarding compara las rutas instaladas mediante longest-prefix match: gana la coincidencia más específica. No compares primero la distancia administrativa de un /8 y un /24 como si fueran candidatos al mismo prefijo. Las métricas de protocolos diferentes tampoco tienen una escala universal. Políticas, VRF o encaminamiento basado en política pueden cambiar el contexto de búsqueda.\n\n### Vocabulario de apoyo\n\n- **RIB y FIB**: Tabla de decisiones de routing y estado utilizado para reenviar paquetes, respectivamente.\n- **Next hop y LPM**: Siguiente salto y selección del prefijo coincidente más largo entre rutas instaladas.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M12-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> FIB docente: 0.0.0.0/0→A; 192.0.2.0/24→B; 192.0.2.128/25→C. Destino 192.0.2.130.\n\nEl /25 coincide y es más específico que /24 y /0; se elige C. La distancia de las rutas menos específicas no altera esa comparación de forwarding.\n\n"
+    },
+    {
+      "id": "RED-M12-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Interpretar caminos aparentes en flows.\n- Red Team autorizado: Delimitar rutas por las que pasa el tráfico del ensayo.\n- Evidencia del módulo: Tablas, traceroute lab y justificación de selección.\n- Criterio del módulo: Determina ida y retorno en IPv4/IPv6.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L06](../../05_RECURSOS/LABORATORIOS/RED-L06.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **FRR-STATIC**: [STATIC](https://docs.frrouting.org/en/latest/static.html). Rutas estáticas y siguiente salto.\n- **RFC4632**: [RFC 4632: Classless Inter-domain Routing](https://www.rfc-editor.org/rfc/rfc4632.html). Prefijos y agregación IPv4.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M12-L03-P01",
+    "prompt": "Decide la salida para 192.0.2.20 y explica por qué no usa C.",
+    "markdown": "## 4. Práctica individual\n\nDecide la salida para 192.0.2.20 y explica por qué no usa C.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M12-L03-Q01",
+      "prompt": "¿Qué se compara en longest-prefix match?",
+      "options": [
+        {
+          "id": "A",
+          "text": "La longitud de los prefijos instalados que coinciden con el destino"
+        },
+        {
+          "id": "B",
+          "text": "La métrica numéricamente menor entre protocolos sin convertir su significado"
+        },
+        {
+          "id": "C",
+          "text": "La menor distancia administrativa entre todos los prefijos, aunque sean distintos"
+        },
+        {
+          "id": "D",
+          "text": "El orden textual de todas las rutas, sin comprobar pertenencia del destino"
+        }
+      ]
+    },
+    {
+      "id": "RED-M12-L03-Q02",
+      "prompt": "¿Cuál es la salida de .130?",
+      "options": [
+        {
+          "id": "A",
+          "text": "B porque /24 es menor número"
+        },
+        {
+          "id": "B",
+          "text": "A siempre por ser default"
+        },
+        {
+          "id": "C",
+          "text": "Todos los routers a la vez necesariamente"
+        },
+        {
+          "id": "D",
+          "text": "C por el /25"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L06](../../05_RECURSOS/LABORATORIOS/RED-L06.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **FRR-STATIC**: [STATIC](https://docs.frrouting.org/en/latest/static.html). Rutas estáticas y siguiente salto.\n- **RFC4632**: [RFC 4632: Classless Inter-domain Routing](https://www.rfc-editor.org/rfc/rfc4632.html). Prefijos y agregación IPv4.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "03e3774c1e2d21c92aedc6c6"
+}

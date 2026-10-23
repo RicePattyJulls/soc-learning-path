@@ -1,0 +1,39 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-16-L03",
+  "sourceHash": "f6078b631b5dc2bb233121ed8e7a774f83c5054ba8f36ed2d83b191bb6c4b76c",
+  "questions": [
+    {
+      "id": "WAD-16-L03-Q01",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Que la validación de revocación depende de alcanzar ese punto y su disponibilidad es un requisito operativo».\n\nLa comprobación de revocación consulta la CRL publicada en el CDP, así que su disponibilidad forma parte de la validación. El certificado no se vuelve válido por defecto, la CA no reemite de oficio y la revocación no desaparece por un fallo de red."
+    },
+    {
+      "id": "WAD-16-L03-Q02",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Respaldar la CA con su clave y su base de datos, y custodiar la copia de forma controlada».\n\nLa continuidad de una CA se apoya en respaldar su clave y su base de datos y custodiar esa copia. Publicar la clave, deshabilitar la revocación o duplicar la CA en el mismo equipo no protegen la confianza ni la recuperación."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "Publicar la CRL en un CDP y anunciar la cadena con la AIA introduce dos dependencias para quien valida: necesita alcanzar el punto de distribución para confirmar que el certificado no está revocado y los certificados de la cadena para reconstruirla. Si esos puntos no son alcanzables, la comprobación de revocación falla y una validación correcta puede convertirse en un error. El plan de continuidad debe cubrir esa disponibilidad —CRL publicada, fresca y alcanzable— y la propia CA: respaldarla con su clave y su base de datos, custodiar la copia y prever la migración a otro equipo sin romper la cadena. El límite: el plan describe cómo sostener esta PKI de laboratorio y no garantiza por sí solo que todos los validadores alcancen los puntos publicados.",
+    "rubric": [
+      {
+        "criterion": "Dependencias CRL/AIA",
+        "evidence": "Identifica CDP y AIA como dependencias de la validación."
+      },
+      {
+        "criterion": "Disponibilidad y validación",
+        "evidence": "Relaciona la disponibilidad de la CRL con el resultado de la validación."
+      },
+      {
+        "criterion": "Continuidad de la CA",
+        "evidence": "Propone respaldo con clave y base de datos, custodiado, y migración."
+      },
+      {
+        "criterion": "Límite reconocido",
+        "evidence": "Admite que no asegura el alcance desde todos los validadores."
+      }
+    ]
+  },
+  "revision": "2e8dfb497ad6a35916c2e457"
+}

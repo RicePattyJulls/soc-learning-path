@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M10-L02",
+  "title": "Root bridge y convergencia",
+  "sourceHash": "bfc4c0a788706ef99ad5d69497c0da19d55476fa1f82e0d5e27c0ebea41e2606",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M10-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nPredecir elección del root y límites de una reconvergencia.\n\nPrerrequisitos: [RED-M10-L01](../RED-E02/RED-M10-L01.md).\n\n## 2. Comprende el mecanismo\n\nLa elección del root considera el identificador de bridge, donde prioridad e identificadores adicionales según variante preceden a la MAC como desempate. No depende directamente de que un switch tenga más CPU o puertos. Costes y desempates de puerto determinan caminos hacia el root. Una modificación planificada debe revisar root esperado por instancia y efectos sobre uplinks. Medir convergencia exige observar la recuperación del servicio: que el control declare un nuevo rol no prueba que la aplicación ya esté operativa.\n\n### Vocabulario de apoyo\n\n- **STP, root y BPDU**: Protocolo para evitar bucles L2, puente de referencia y mensajes usados por ese control.\n- **LACP**: Protocolo que negocia qué enlaces pertenecen a una agregación.\n- **Convergencia**: Adaptación del estado de red tras un cambio; la recuperación de servicio también debe medirse.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M10-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Instancia docente: A prioridad 4096; B prioridad 32768; resto de parámetros comparables. A es candidato preferido.\n\nLa prioridad menor favorece A en la comparación del identificador. No es una decisión basada en velocidad de CPU.\n\n"
+    },
+    {
+      "id": "RED-M10-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Reconocer pérdida/duplicación por convergencia.\n- Red Team autorizado: Ensayar controles solo en switches simulados.\n- Evidencia del módulo: Estados de puerto, cambios y pruebas de recuperación.\n- Criterio del módulo: Restaurar la topología y justificar árbol activo.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L04](../../05_RECURSOS/LABORATORIOS/RED-L04.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **STP**: [Understand Rapid Spanning Tree Protocol](https://www.cisco.com/c/en/us/support/docs/lan-switching/spanning-tree-protocol/24062-146.html). Roles, estados y comparación de convergencia RSTP.\n- **BRIDGE**: [Ethernet Bridging](https://docs.kernel.org/networking/bridge.html). Learning, forwarding, VLAN y controles de bridge; kAPI no se presenta como estable.\n- **BONDING**: [Linux Ethernet Bonding Driver HOWTO](https://docs.kernel.org/networking/bonding.html). Agregación y modos de reparto; verificar soporte por implementación.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M10-L02-P01",
+    "prompt": "Se desconecta un uplink y la aplicación tarda 4 s en recuperarse. ¿Qué mediciones separarías?",
+    "markdown": "## 4. Práctica individual\n\nSe desconecta un uplink y la aplicación tarda 4 s en recuperarse. ¿Qué mediciones separarías?\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M10-L02-Q01",
+      "prompt": "¿Qué candidato se prefiere con los datos del ejemplo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "B por tener número mayor"
+        },
+        {
+          "id": "B",
+          "text": "A con prioridad 4096"
+        },
+        {
+          "id": "C",
+          "text": "El de CPU más rápida necesariamente"
+        },
+        {
+          "id": "D",
+          "text": "El que responde primero a DNS"
+        }
+      ]
+    },
+    {
+      "id": "RED-M10-L02-Q02",
+      "prompt": "¿Qué valida mejor la recuperación percibida?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Un contador histórico sin intervalo"
+        },
+        {
+          "id": "B",
+          "text": "Un intercambio de aplicación además del estado de control"
+        },
+        {
+          "id": "C",
+          "text": "Ver un LED encendido"
+        },
+        {
+          "id": "D",
+          "text": "Solo cambiar el nombre del root"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L04](../../05_RECURSOS/LABORATORIOS/RED-L04.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **STP**: [Understand Rapid Spanning Tree Protocol](https://www.cisco.com/c/en/us/support/docs/lan-switching/spanning-tree-protocol/24062-146.html). Roles, estados y comparación de convergencia RSTP.\n- **BRIDGE**: [Ethernet Bridging](https://docs.kernel.org/networking/bridge.html). Learning, forwarding, VLAN y controles de bridge; kAPI no se presenta como estable.\n- **BONDING**: [Linux Ethernet Bonding Driver HOWTO](https://docs.kernel.org/networking/bonding.html). Agregación y modos de reparto; verificar soporte por implementación.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "f03fb5657a8cf586336f51a2"
+}

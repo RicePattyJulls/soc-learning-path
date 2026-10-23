@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-28-L01",
+  "sourceHash": "eb2ce20ea939b4536ed67dfa248ccae9b72c8b938aa695e414036491e7dad9ca",
+  "questions": [
+    {
+      "id": "LNX-28-L01-Q01",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Filtra las entradas del booteo anterior, si el journal aún lo conserva».\n\n`-b -1` selecciona el arranque previo y depende de que el almacén lo conserve. No reinicia journald, no limita por tiempo y no cambia la zona horaria."
+    },
+    {
+      "id": "LNX-28-L01-Q02",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Nada sobre días: fija un techo de espacio que puede agotarse en horas según la tasa de eventos».\n\n`SystemMaxUse` acota bytes, no tiempo. Un host ruidoso llena el límite en horas, y el rate limit puede descartar entradas además del recorte por espacio."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "Primero se enumeran los booteos disponibles con `journalctl --list-boots` y se elige el que corresponde al incidente; sin ese paso, los tres bloques pueden pertenecer a arranques distintos y la línea de tiempo es inventada. Después se fija una ventana UTC con `--since` y `--until`, se filtra por unidad y se usa `-o json` para leer campos concretos: `_BOOT_ID`, `_SYSTEMD_UNIT`, `_PID`, `_UID` y `SYSLOG_IDENTIFIER`. Los campos con prefijo `_` los añade journald; los que envía la aplicación son declaraciones del emisor y no una verificación del sistema.\n\nSobre retención, `Storage=volatile` mantiene el journal en memoria: al reiniciar se pierde. Con unas 40 000 entradas por hora y un techo de 200 MB, la historia disponible se mide en horas, no en días. `SystemMaxUse` es un límite de espacio y el rate limit puede descartar entradas antes de llegar a él.\n\nLímite: la consulta corregida describe lo conservado en esa ventana. Un hueco puede venir de rate limit, rotación, reinicio o ausencia de emisión, y distinguirlo exige comparar con otra capa de telemetría.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Fija booteo y ventana UTC antes de interpretar entradas."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Distingue campos añadidos por journald de campos declarados por la aplicación."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Estima retención con tasa de eventos y límite de espacio, no con días supuestos."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Reconoce que un hueco no prueba ausencia de actividad."
+      }
+    ]
+  },
+  "revision": "b7c9f94b3b0112f01a0b61cd"
+}

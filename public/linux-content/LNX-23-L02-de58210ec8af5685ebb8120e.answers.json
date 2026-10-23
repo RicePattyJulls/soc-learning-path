@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-23-L02",
+  "sourceHash": "3b4ec4a723789f4eb6ddfa5021886cd2051d18422599c1d9927a01b7b64d35da",
+  "questions": [
+    {
+      "id": "LNX-23-L02-Q01",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Que siguen rutas de resolución distintas: `getent` usa la resolución del sistema (NSS) y `dig` consulta DNS con su propia lógica».\n\n`getent` sigue la resolución del sistema y `dig` consulta DNS directamente, por lo que pueden diferir. No implica que el DNS esté caído, que el nombre no exista ni que el kernel haya cambiado de familia."
+    },
+    {
+      "id": "LNX-23-L02-Q02",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Revisar `ip route get` hacia la dirección elegida y el handshake TCP (SYN, SYN-ACK, RST) antes de atribuir el fallo a TLS o al certificado».\n\nPrimero se descartan ruta y transporte; solo después se atribuye el fallo a TLS o al certificado. Reiniciar el DNS, cambiar de resolver o desactivar IPv6 no separan las capas."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "Resolver un nombre no equivale a poder conectar. La resolución devolvió una dirección **IPv6** de documentación, pero hay que comprobar la familia realmente elegida, la ruta hacia ella con `ip route get` y el estado del handshake TCP (SYN, SYN-ACK, RST) antes de atribuir el fallo a TLS o al certificado.\n\nEl orden de comprobación es: resolución (comparando `getent ahosts` con `dig` y revisando NSS), elección de familia, ruta, transporte y, por último, TLS. En doble pila, que IPv4 funcione y IPv6 no puede deberse a un registro AAAA, una ruta, un anuncio de router o un filtro solo IPv6; no se apaga IPv6 a ciegas.\n\nLímite: desde el host no se ve toda la ruta; un proxy o un filtro intermedio puede cambiar la correspondencia entre nombre, dirección y resultado.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Distingue resolución de conectividad."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Compara `getent ahosts` con `dig` y revisa NSS."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Usa `ip route get` y observa el handshake TCP antes de mirar TLS."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Trata IPv6 y doble pila sin desactivarlas a ciegas, y declara el límite."
+      }
+    ]
+  },
+  "revision": "de58210ec8af5685ebb8120e"
+}

@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-21-L01",
+  "sourceHash": "f2793fb865d32e2314ba356a57a047cefad485d62b90aff684e6d4cf11f646ad",
+  "questions": [
+    {
+      "id": "LNX-21-L01-Q01",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «El cliente abre un socket local en el puerto 8080 y el bastión establece la conexión final a 192.0.2.30:80 a través del canal cifrado».\n\nEn el reenvío local, el cliente publica el puerto 8080 en escucha y el bastión abre la conexión final al destino. No es el bastión quien escucha en 8080, ni se redirige el puerto 22, ni el tráfico final viaja sin cifrar desde el cliente."
+    },
+    {
+      "id": "LNX-21-L01-Q02",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Restringe el reenvío gestionado por `sshd`, pero no impide que un usuario con shell ejecute su propio software de reenvío».\n\nDesactivar `AllowTcpForwarding` limita los reenvíos que gestiona `sshd`, pero OpenSSH advierte que un usuario con shell puede ejecutar su propio software de reenvío. No impide las conexiones entrantes, no cambia la clave del canal y no borra los sockets locales."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "El reenvío local crea **dos sockets**: un puerto 8080 en escucha en la estación local, que es el punto de entrada del túnel, y una conexión saliente al bastión por el puerto 22, que es el canal cifrado. La conexión al destino `192.0.2.30:80` no la abre la estación, sino `sshd` dentro del bastión, a petición del canal.\n\nCada observador ve una parte distinta. El sensor intermedio solo ve el flujo cifrado hacia el puerto 22 y no puede ver el destino final ni el contenido, porque viajan dentro del canal. El bastión, en cambio, ve la autenticación, el reenvío solicitado y la conexión que él mismo abre al servicio interno.\n\nLímite: desde una sola observación no se describe todo el recorrido; sin el registro del bastión, el destino final queda fuera de la vista y el contenido está cifrado.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Distingue el socket en escucha local de la conexión final al destino."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Sitúa la apertura de la conexión al destino final en el bastión."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Explica qué ve y qué no ve cada punto de observación."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Declara el límite de la conclusión al faltar el registro del bastión."
+      }
+    ]
+  },
+  "revision": "605a1da87ddc16b83ed4d2c1"
+}

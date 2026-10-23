@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-07-L01",
+  "title": "Auditoría local y eventos",
+  "sourceHash": "793af41ebd623ac9199ffa5ed57db236a66c837cf96738283c3322651a01802c",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-07-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDiseñar una auditoría local mínima y leer sus eventos sin concluir de más.\n\nPrerrequisitos: `WAD-03-L03` (ACE, DACL, SACL e integridad) y `WAD-06-L03` (diagnóstico por hipótesis).\n\n## 2. Comprende el mecanismo\n\nAuditar es decidir **qué se registra** antes de que ocurra, porque no se puede registrar hacia atrás. La política de auditoría se organiza por **categorías** con dos variantes por cada una: **éxito** y **fallo**.\n\n- Registrar **éxitos** sirve para reconstruir actividad legítima.\n- Registrar **fallos** sirve para detectar intentos rechazados.\n- Registrar **todo** produce ruido; y el ruido es un fallo de diseño, porque esconde lo relevante.\n\nDel mecanismo ya visto en la etapa de archivos queda la regla que se repite aquí en su forma general: el objeto aporta la **selección** (qué vigilar) y la política aporta la **habilitación** (qué se guarda). Si falta una de las dos, no hay evento.\n\nLeer eventos exige mirar campos concretos y no el texto completo: **fecha y hora en UTC**, identificador del evento, cuenta implicada y origen. La hora local engaña cuando se correlacionan equipos en zonas distintas.\n\nY queda el punto más importante, que es el criterio de dominio de la etapa: **la ausencia de evento no equivale a ausencia de actividad**. Puede no haber evento porque la categoría no estaba habilitada, porque el objeto no la seleccionaba o porque el registro ya rotó. El **tamaño del registro** y su política de sobrescritura determinan cuánto pasado se conserva; un registro pequeño pierde evidencia precisamente cuando más se necesita.\n\n### Vocabulario de apoyo\n\n- **Política de auditoría**: categorías habilitadas para registro.\n- **Auditar éxito / fallo**: registrar accesos concedidos o rechazados.\n- **Evento**: registro individual con hora, origen y cuenta.\n- **Rotación**: sobrescritura de los eventos más antiguos al llenarse.\n- **Retención**: periodo que el registro conserva.\n- **Correlación**: relacionar eventos de varios equipos por hora y cuenta.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-07-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: se esperaba ver en el registro un intento de acceso denegado a una carpeta sensible y no hay ningún evento. El equipo concluye que nadie lo intentó.\n\nLa conclusión es precipitada. Se comprueba la **habilitación** de la categoría para **fallos** y resulta estar apagada: el objeto tenía su selección, pero el sistema no guardaba nada de esa categoría. Al habilitarla y repetir un intento controlado, el evento aparece con su hora y su cuenta. La conclusión acota la zona —«faltaba la habilitación, no la actividad»— y deja explícito el límite: el periodo anterior no se puede reconstruir.\n\n"
+    },
+    {
+      "id": "WAD-07-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Antes de afirmar que «no hubo actividad», comprobar que la categoría estaba habilitada y que el registro conserva el periodo.\n- Red Team autorizado: Conocer qué se audita orienta las pruebas dentro del alcance; nunca se desactiva auditoría fuera de un laboratorio autorizado.\n- Evidencia de la etapa: Evento de prueba con hora en UTC, cuenta y origen, más el estado de la política.\n- Criterio de dominio: No confunde ausencia de evento con ausencia de actividad.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB04](../../05_RECURSOS/LABORATORIOS/WAD-LAB04.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **AUDIT**: [Advanced security audit policy settings](https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/advanced-security-audit-policy-settings). Categorías y subcategorías de auditoría.\n- **AUDITPOL**: [auditpol](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/auditpol). Consulta y configuración de la política.\n- **GETWINEVENT**: [Get-WinEvent](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.diagnostics/get-winevent). Lectura filtrada de eventos.\n- **WEVTUTIL**: [wevtutil](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/wevtutil). Consulta y configuración de registros de eventos.\n- **LOGSIZE**: [Eventlog key](https://learn.microsoft.com/en-us/windows/win32/eventlog/eventlog-key). Tamaño máximo y comportamiento de retención del registro.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-07-L01-P01",
+    "prompt": "Diseña la auditoría mínima de una carpeta sensible de un host de laboratorio: qué categoría habilitarías, si registrarías éxitos, fallos o ambos, y por qué. Describe después cómo demostrarías con evidencia que un acceso denegado quedó registrado, qué campos del evento usarías, cómo evitarías perder los eventos y qué no podrías afirmar con los datos que tengas.",
+    "markdown": "## 4. Práctica individual\n\nDiseña la **auditoría mínima** de una carpeta sensible de un host de laboratorio: qué categoría habilitarías, si registrarías éxitos, fallos o ambos, y por qué. Describe después cómo **demostrarías con evidencia** que un acceso denegado quedó registrado, qué campos del evento usarías, cómo **evitarías perder** los eventos y qué no podrías afirmar con los datos que tengas.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado auditoría en un sistema real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-07-L01-Q01",
+      "prompt": "¿Qué ocurre si la política de auditoría no está habilitada para una categoría?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Los eventos de esa categoría se guardan igualmente"
+        },
+        {
+          "id": "B",
+          "text": "Aunque el objeto tenga su selección configurada, la acción no queda registrada"
+        },
+        {
+          "id": "C",
+          "text": "El objeto afectado se elimina automáticamente"
+        },
+        {
+          "id": "D",
+          "text": "El equipo se reinicia para aplicar el cambio"
+        }
+      ]
+    },
+    {
+      "id": "WAD-07-L01-Q02",
+      "prompt": "¿Qué riesgo tiene un registro de seguridad demasiado pequeño?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Ninguno, el tamaño no influye en la evidencia"
+        },
+        {
+          "id": "B",
+          "text": "Que al llenarse sobrescriba eventos y se pierda evidencia de periodos anteriores"
+        },
+        {
+          "id": "C",
+          "text": "Que reduzca la velocidad del disco"
+        },
+        {
+          "id": "D",
+          "text": "Que desactive la política de auditoría"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB04](../../05_RECURSOS/LABORATORIOS/WAD-LAB04.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **AUDIT**: [Advanced security audit policy settings](https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/advanced-security-audit-policy-settings). Categorías y subcategorías de auditoría.\n- **AUDITPOL**: [auditpol](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/auditpol). Consulta y configuración de la política.\n- **GETWINEVENT**: [Get-WinEvent](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.diagnostics/get-winevent). Lectura filtrada de eventos.\n- **WEVTUTIL**: [wevtutil](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/wevtutil). Consulta y configuración de registros de eventos.\n- **LOGSIZE**: [Eventlog key](https://learn.microsoft.com/en-us/windows/win32/eventlog/eventlog-key). Tamaño máximo y comportamiento de retención del registro.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "9624b89b572c09a6a993646c"
+}

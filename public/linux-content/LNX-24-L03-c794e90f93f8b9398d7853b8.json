@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-24-L03",
+  "title": "DAC/ACL/umask y rutas de acceso",
+  "sourceHash": "330fe9e610a1cfe592eece303d81d9f54e3ff6a9086c12a448a8e523d7f01ad9",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-24-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nExplicar por qué un acceso se concede o se deniega combinando modo, travesía de directorios, grupo, ACL con máscara y umask.\n\nPrerrequisitos: `LNX-24-L02` (SUID/SGID, sudoers y capabilities).\n\n## 2. Comprende el mecanismo\n\nEl control de acceso discrecional (**DAC**) decide con varios datos a la vez. El modo del archivo es el más visible y el que más se cita, pero rara vez es suficiente para explicar un resultado. Un `600` dentro de un directorio `700` es inaccesible para terceros no por el modo del archivo, sino por la **travesía**.\n\nLa travesía es la primera condición. Para llegar a un objeto hay que atravesar cada directorio del camino, y el bit `x` es el que permite hacerlo. Un directorio sin `x` corta el acceso aunque el archivo final tenga `777`. Por eso `namei -l` es una herramienta de diagnóstico y no un adorno: muestra el recorrido completo con propietario y modo de cada componente.\n\nLa segunda condición es la **pertenencia**. El kernel elige una sola clase —propietario, grupo o resto— y aplica sus bits; no suma permisos de varias clases. Si el proceso no es el propietario pero comparte grupo, se evalúan los bits de grupo y se ignoran los de propietario. Y la pertenencia se resuelve con los grupos suplementarios del proceso, no solo con el GID primario.\n\nLa tercera es la **ACL**. Una entrada extendida añade permisos por usuario o por grupo sin cambiar el modo visible. `ls -l` marca el `+` y `getfacl` muestra las entradas. La pieza que más se olvida es la **máscara**: limita el máximo efectivo de todas las entradas nombradas y del grupo propietario. Una entrada `user:analista:rw-` con máscara `---` no concede nada, y `getfacl` lo señala con `#effective:---`. Leer la entrada nominal sin la máscara produce conclusiones falsas.\n\nLa cuarta es la **umask**. No revoca permisos existentes: resta permisos a los que se solicitan al crear un archivo o directorio. Una umask `077` hace que un `open` con `0666` produzca `0600`. Cambiar la umask no altera lo ya creado, y por eso «puse la umask restrictiva» no explica un archivo antiguo con permisos amplios.\n\nEstas capas se combinan con controles que no son DAC: capabilities, MAC, montajes y sandbox de servicios. Un acceso denegado con modo y ACL correctos puede deberse a SELinux, AppArmor o a `ProtectHome` en la unidad. La pregunta útil no es «qué permiso tiene el archivo», sino «qué control evaluó qué, en qué orden y con qué resultado».\n\nLa regla de la lección: reconstruye el camino y la clase antes de concluir. El límite: un cálculo de permisos sobre metadatos predice el resultado esperado, no sustituye una prueba positiva y otra negativa con la identidad real.\n\n### Vocabulario de apoyo\n\n- **DAC**: control de acceso basado en propietario, grupo y permisos del objeto.\n- **Travesía**: permiso `x` necesario en cada directorio del camino.\n- **ACL**: lista de permisos por usuario o grupo añadida al modo tradicional.\n- **Máscara ACL**: límite efectivo de las entradas nombradas y del grupo propietario.\n- **umask**: resta de permisos aplicada en el momento de crear un objeto.\n- **Grupo suplementario**: grupo adicional del proceso que amplía la pertenencia evaluada.\n- **Clase de permiso**: propietario, grupo o resto; el kernel aplica una sola.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-24-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un archivo muestra `-rw-r-----+`, propietario `analista`, grupo `soc`. Una segunda cuenta, `labpeer`, pertenece al grupo `soc` y no consigue leerlo. El informe concluye que el modo de grupo está mal y propone `chmod 640`. Tras el cambio, la lectura sigue fallando.\n\nEl diagnóstico se apoya en un solo dato. El `+` indica ACL extendida, y la entrada de grupo nominal puede estar limitada por una **máscara** restrictiva: con `#effective:---`, los bits `r--` del grupo no se aplican. Además, el acceso exige travesía por todos los directorios del camino; si uno de ellos carece de `x` para `labpeer`, el modo del archivo es irrelevante. Cambiar `chmod` no corrige ninguna de las dos causas.\n\nLa lectura correcta recorre `namei -l` para el camino, `getfacl` para la ACL y la máscara, y `id` para confirmar los grupos suplementarios de la identidad. Solo entonces se decide si el problema es travesía, máscara, clase o un control no DAC. El límite: sin una prueba negativa con la identidad real, la explicación sigue siendo una hipótesis; y si hay MAC o sandbox, el cálculo DAC puede ser correcto y el acceso seguir denegado.\n\n"
+    },
+    {
+      "id": "LNX-24-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Reconstruir camino, clase y máscara antes de afirmar que un acceso indebido fue posible.\n- Red Team autorizado: Documentar exposición de permisos en árboles propios con prueba positiva y negativa.\n- Evidencia de la etapa: Salida de `namei`, `stat`, `getfacl` e `id`, con la conclusión por sujeto.\n- Criterio de dominio: Explica el resultado por la capa que lo produjo y no por el modo del archivo aislado.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB31](../../05_RECURSOS/LABORATORIOS/LNX-LAB31.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F104**: [ACL(5)](https://man7.org/linux/man-pages/man5/acl.5.html). Entradas extendidas, máscara efectiva y relación con el modo.\n- **F03**: [Linux credentials(7)](https://man7.org/linux/man-pages/man7/credentials.7.html). Identidades y grupos que participan en la comprobación.\n- **F02**: [GNU Bash Reference Manual](https://www.gnu.org/software/bash/manual/bash.html). Construcción de rutas y comprobaciones sin ambigüedad de quoting.\n- **F110**: [systemd.exec(5)](https://man7.org/linux/man-pages/man5/systemd.exec.5.html). `ProtectHome`, `ProtectSystem` y rutas de escritura que condicionan el acceso.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-24-L03-P01",
+    "prompt": "Un archivo muestra `-rw-r-----+`, propietario `analista` y grupo `soc`. La cuenta `labpeer`, que pertenece al grupo `soc`, no consigue leerlo. El informe concluye que el modo de grupo está mal, propone `chmod 640` y la lectura sigue fallando. Explica qué datos revisarías en el camino y en la ACL, por qué el cambio de modo no resolvió el caso y cuál es el límite de tu conclusión.",
+    "markdown": "## 4. Práctica individual\n\nUn archivo muestra `-rw-r-----+`, propietario `analista` y grupo `soc`. La cuenta `labpeer`, que pertenece al grupo `soc`, no consigue leerlo. El informe concluye que el modo de grupo está mal, propone `chmod 640` y la lectura sigue fallando. Explica qué datos revisarías en el camino y en la ACL, por qué el cambio de modo no resolvió el caso y cuál es el límite de tu conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber modificado permisos ni haber probado accesos reales.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-24-L03-Q01",
+      "prompt": "Un archivo tiene modo `600` y su directorio padre `700`, ambos del mismo propietario. ¿Por qué otra cuenta no puede leerlo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Porque el modo `600` del archivo impide la lectura a cualquier otra identidad, sin importar el directorio"
+        },
+        {
+          "id": "B",
+          "text": "Porque la umask del sistema se aplica retroactivamente a los archivos existentes"
+        },
+        {
+          "id": "C",
+          "text": "Porque falta el permiso de travesía en el directorio padre y, además, el modo del archivo no concede lectura al resto"
+        },
+        {
+          "id": "D",
+          "text": "Porque el bit SGID del directorio anula la lectura de los archivos contenidos"
+        }
+      ]
+    },
+    {
+      "id": "LNX-24-L03-Q02",
+      "prompt": "¿Qué hace la máscara de una ACL extendida?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Duplica los permisos del propietario en todas las entradas"
+        },
+        {
+          "id": "B",
+          "text": "Limita el permiso efectivo de las entradas nombradas y del grupo propietario"
+        },
+        {
+          "id": "C",
+          "text": "Convierte la ACL en una regla de MAC aplicada por el kernel"
+        },
+        {
+          "id": "D",
+          "text": "Restablece la umask original del proceso que creó el archivo"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB31](../../05_RECURSOS/LABORATORIOS/LNX-LAB31.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F104**: [ACL(5)](https://man7.org/linux/man-pages/man5/acl.5.html). Entradas extendidas, máscara efectiva y relación con el modo.\n- **F03**: [Linux credentials(7)](https://man7.org/linux/man-pages/man7/credentials.7.html). Identidades y grupos que participan en la comprobación.\n- **F02**: [GNU Bash Reference Manual](https://www.gnu.org/software/bash/manual/bash.html). Construcción de rutas y comprobaciones sin ambigüedad de quoting.\n- **F110**: [systemd.exec(5)](https://man7.org/linux/man-pages/man5/systemd.exec.5.html). `ProtectHome`, `ProtectSystem` y rutas de escritura que condicionan el acceso.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "c794e90f93f8b9398d7853b8"
+}

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-27-L02",
+  "title": "Acción controlada→evento→respuesta",
+  "sourceHash": "796487d087b1653aa3743121f772935f1e3032dc3bc1f92258e4620697c8a01e",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-27-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nEncadenar una acción controlada, su evento y una respuesta demostrable.\n\nPrerrequisitos: `WAD-27-L01` (Hipótesis y falsos positivos).\n\n## 2. Comprende el mecanismo\n\nEl equipo púrpura avanza en cadena. Una **acción controlada** es una prueba inocua que se ejecuta en la ventana autorizada. Su **evento** es el registro nativo que esa acción produce. La **respuesta** es la reacción defensiva que demuestra que alguien vio el evento y actuó. Las tres piezas se sostienen juntas o no valen nada.\n\nEl ciclo de respuesta a incidentes ordena ese trabajo: preparar, detectar y analizar, contener, erradicar y recuperar, y por último aprender del caso. Esta lección se centra en la parte que se puede probar en el laboratorio: de la acción al evento y del evento a la respuesta.\n\nLa acción debe ser reversible y estar autorizada antes de empezar. Se documenta qué se ejecuta, sobre qué identidad y qué objeto, a qué hora empieza y termina, y cuál es la **condición de parada** que obliga a detenerse. Sin esos datos, la acción deja de ser medible y pasa a ser improvisación.\n\nEl evento se localiza en el registro con herramientas nativas: se consulta el canal filtrando por identificador, hora e identidad, y se conserva el **hecho registrado** sin interpretarlo todavía. Un evento bien recogido trae su origen y su marca de tiempo; eso es lo que lo vuelve reproducible.\n\nLa respuesta es **demostrable** cuando se apoya en ese evento. Queda escrito qué se observó, con qué hora y qué identidad, y qué se hizo a continuación. Una respuesta genérica, que no cita el evento que la motivó, no es evidencia: es una opinión con formato de informe.\n\nQueda un límite. La cadena demuestra que ese control vio esa acción: no demuestra que toda acción parecida se detecte. Y hay escenarios —como un ataque de **ransomware**— en los que responder no basta y la copia apartada se convierte en el único testigo de lo ocurrido. La regla que cierra la lección: **acción controlada, evento observable y respuesta trazable**.\n\n### Vocabulario de apoyo\n\n- **Acción controlada**: prueba acotada que se ejecuta en la ventana autorizada para observar su efecto.\n- **Prueba inocua**: comprobación acotada, reversible y sin efectos destructivos.\n- **Ventana controlada**: periodo acordado en el que se autoriza ejecutar una prueba o un cambio.\n- **Condición de parada**: hecho que obliga a detener la prueba y pedir autorización antes de continuar.\n- **Hecho registrado**: dato que consta en el registro, sin interpretación añadida.\n- **Contención**: limitar el alcance del problema mientras se prepara la corrección.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-27-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test`, una prueba acotada solicita un ticket de servicio para una identidad de laboratorio. El registro del controlador documenta la solicitud con su hora y su identidad.\n\nEl primer paso es localizar el evento en el canal del controlador y fijarlo como hecho registrado: identificador, hora e identidad, sin añadir interpretación. El segundo es analizarlo con cuidado: una solicitud de ticket de servicio, por sí sola, no prueba abuso alguno, porque también aparece en el funcionamiento normal del dominio. El tercero es la respuesta: se documenta qué se observó y se comprueba si la identidad solicitante es la esperada en esa ventana; a partir de ahí se decide una contención acotada y reversible en el laboratorio. La conclusión acota lo demostrado —«la cadena acción-evento-respuesta quedó registrada y es reproducible»— y reconoce su límite: el evento prueba que la solicitud ocurrió, no que hubo un compromiso, y la respuesta demuestra que el control vio esta acción, no que cubra todas las variantes.\n\n"
+    },
+    {
+      "id": "WAD-27-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Encadenar acción, evento y respuesta convierte una sospecha en un caso trazable con hora e identidad.\n- Red Team autorizado: Ejecutar acciones reversibles en ventana autorizada permite probar la detección sin salirse del alcance.\n- Evidencia de la etapa: Acción documentada, evento localizado con hora e identidad y respuesta registrada que lo cita.\n- Criterio de dominio: Cada eslabón se apoya en el anterior y el resultado se puede reproducir.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB19](../../05_RECURSOS/LABORATORIOS/WAD-LAB19.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **NIST80061**: [Incident Response Recommendations (NIST SP 800-61r2)](https://csrc.nist.gov/pubs/sp/800/61/r2/final). Ciclo de respuesta que ordena preparar, detectar, contener y aprender.\n- **RANSOMWARE**: [StopRansomware Guide (CISA)](https://www.cisa.gov/stopransomware/ransomware-guide). Escenario en el que responder no basta y la copia apartada es el único testigo.\n- **GETWINEVENT**: [Get-WinEvent](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.diagnostics/get-winevent). Consulta de eventos por canal, identificador, hora e identidad.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-27-L02-P01",
+    "prompt": "En `ad.lab.test` ejecutas una acción controlada y reversible sobre una identidad de prueba. Describe el evento que debería producir, cómo lo localizas y qué respuesta defensiva aplicas para cerrar la cadena.",
+    "markdown": "## 4. Práctica individual\n\nEn `ad.lab.test` ejecutas una acción controlada y reversible sobre una identidad de prueba. Describe el evento que debería producir, cómo lo localizas y qué respuesta defensiva aplicas para cerrar la cadena.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber respondido a un incidente real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-27-L02-Q01",
+      "prompt": "Al encadenar una acción controlada con su detección, ¿qué orden describe el trabajo del equipo púrpura?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Responder primero, ejecutar después la acción y buscar el evento al final"
+        },
+        {
+          "id": "B",
+          "text": "Ejecutar la acción, borrar los eventos y confiar en la memoria del analista"
+        },
+        {
+          "id": "C",
+          "text": "Formular la hipótesis, ejecutar una acción controlada y reversible, localizar el evento que produce y aplicar una respuesta registrada"
+        },
+        {
+          "id": "D",
+          "text": "Ejecutar la acción sin autorización ni registro y revisar el efecto cuando convenga"
+        }
+      ]
+    },
+    {
+      "id": "WAD-27-L02-Q02",
+      "prompt": "¿Qué hace demostrable la respuesta ante un evento dentro de esta cadena?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que se apoya en el evento observado con su hora y su identidad y en la acción que lo produjo, de modo que puede reproducirse"
+        },
+        {
+          "id": "B",
+          "text": "Que se redacta sin citar el evento ni la hora"
+        },
+        {
+          "id": "C",
+          "text": "Que se decide por intuición y se aplica a la vez a todo el dominio"
+        },
+        {
+          "id": "D",
+          "text": "Que elimina el registro de eventos para evitar falsos positivos"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB19](../../05_RECURSOS/LABORATORIOS/WAD-LAB19.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **NIST80061**: [Incident Response Recommendations (NIST SP 800-61r2)](https://csrc.nist.gov/pubs/sp/800/61/r2/final). Ciclo de respuesta que ordena preparar, detectar, contener y aprender.\n- **RANSOMWARE**: [StopRansomware Guide (CISA)](https://www.cisa.gov/stopransomware/ransomware-guide). Escenario en el que responder no basta y la copia apartada es el único testigo.\n- **GETWINEVENT**: [Get-WinEvent](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.diagnostics/get-winevent). Consulta de eventos por canal, identificador, hora e identidad.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "8e9ec6a7882c70ac72cf2efa"
+}

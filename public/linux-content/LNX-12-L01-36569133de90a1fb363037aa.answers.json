@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-12-L01",
+  "sourceHash": "13cdab905c2e54b8856c0e7870782b86a78ace58573ef4640ec6e884386e6f0a",
+  "questions": [
+    {
+      "id": "LNX-12-L01-Q01",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Porque la renumeración, el hotplug y el multipath pueden cambiar qué unidad responde a ese nombre».\n\nEl nombre de dispositivo refleja un orden de descubrimiento que puede variar entre arranques y tras conectar hardware. No codifica capacidad ni permanencia, y el kernel sí puede reutilizar nombres."
+    },
+    {
+      "id": "LNX-12-L01-Q02",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Una relación de capas encadenables y variables que debe observarse en cada host».\n\nLas capas existen y se encadenan, pero qué combinación aparece depende del host: puede haber o no particiones, mapeadores o mapeadores anidados. No es una pila fija ni se reduce al sistema de archivos."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "La ambigüedad está en la capa de identificación del dispositivo: el nombre `/dev/sda` es una asignación del momento, no una identidad estable, y la renumeración o el hotplug pueden hacer que la misma ruta apunte a otra unidad. Para resolverla usaría selectores persistentes (`UUID=`, `PARTUUID=` o una ruta de `/dev/disk/by-id/`) y los compararía con un registro previo del volumen esperado.\n\nLímite: sin esos selectores ni una línea base, solo puedo afirmar que la ruta cambió, no que la unidad o su contenido hayan sido reemplazados; describiría el síntoma, no la causa.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Sitúa la ambigüedad en la identificación del dispositivo, no en el contenido."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Propone selectores persistentes (`UUID=`, `by-id`) como dato decisivo."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Compara la observación actual con un registro previo."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Reconoce que sin ese dato solo describe un cambio de ruta, no de datos."
+      }
+    ]
+  },
+  "revision": "36569133de90a1fb363037aa"
+}

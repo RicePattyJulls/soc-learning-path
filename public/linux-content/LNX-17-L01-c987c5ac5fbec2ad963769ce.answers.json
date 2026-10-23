@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-17-L01",
+  "sourceHash": "3652d750226a732171c5b76d76af09ea790db49358d0b881c39d491eb1e037d7",
+  "questions": [
+    {
+      "id": "LNX-17-L01-Q01",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Preservar evidencia y confirmar una copia preincidente antes de restaurar».\n\nEl runbook antepone preservar y confirmar la copia correcta antes de restaurar. Un `check` no cierra el incidente, restaurar el snapshot más reciente puede reactivar el estado dañado y reparar antes de preservar destruye rastros."
+    },
+    {
+      "id": "LNX-17-L01-Q02",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Porque puede contener ya la corrupción o los artefactos implantados».\n\nEl snapshot más reciente puede haberse tomado después de la manipulación y arrastrar el mismo estado dañado. No es necesariamente el más antiguo, restic sí conserva metadatos y los snapshots sí se cifran."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "Formatear y restaurar encima destruye el **estado previo** —metadatos, montajes, marcas temporales y archivos— que permitiría entender el incidente. Se incumple la regla de **preservar antes de cambiar** y la de **confirmar una copia preincidente**: el snapshot más reciente puede contener ya la corrupción o los artefactos implantados, y restaurarlo podría reactivar el mismo estado dañado.\n\nLímite: sin preservar, confirmar la versión correcta y restaurar en aislamiento, el sistema puede volver a operar sin que se comprenda qué ocurrió ni se haya validado el resultado.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Sitúa la preservación como primer paso, antes de cualquier cambio."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Exige confirmar que la copia es preincidente."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Recomienda restaurar en un entorno aislado y validar antes de producción."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Reconoce que un restore prematuro puede borrar evidencia o reactivar el incidente."
+      }
+    ]
+  },
+  "revision": "c987c5ac5fbec2ad963769ce"
+}

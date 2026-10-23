@@ -1,0 +1,39 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-06-L01",
+  "sourceHash": "9d8e2220457ab65a73ce64ab96655f9f93714c9c99386a0c8594d8ab13290683",
+  "questions": [
+    {
+      "id": "WAD-06-L01-Q01",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Que el recurso responde por su dirección y no por su nombre».\n\nSi la dirección funciona, la red y el servicio responden; lo que falla es la traducción del nombre."
+    },
+    {
+      "id": "WAD-06-L01-Q02",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Interfaz y direccionamiento, ruta, resolución de nombres y, por último, puerto y servicio».\n\nCada capa depende de la anterior; recorrerlas en orden localiza el fallo sin cambios innecesarios."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "El contraste «dirección sí, nombre no» aísla la capa de resolución de nombres: hay interfaz, hay ruta y el puerto responde, pero el nombre no se traduce. El diagnóstico va en orden: comprobar el direccionamiento del cliente, la ruta hacia el destino, después la resolución —configuración del servidor de nombres y caché— y solo al final el puerto y el servicio. No se toca el firewall porque la prueba por dirección demuestra que el tráfico llega y que el filtro no es el obstáculo; cambiarlo añadiría superficie sin resolver la causa. Como evidencia se registran la respuesta por dirección, el resultado de la consulta de nombres y la configuración del cliente, con hora en UTC; cambiaría de hipótesis si el destino dejase de responder también por dirección, lo que devolvería el problema a las capas de red.",
+    "rubric": [
+      {
+        "criterion": "Capa aislada",
+        "evidence": "Identifica la capa de resolución de nombres como la que falla."
+      },
+      {
+        "criterion": "Orden de pruebas",
+        "evidence": "Ordena las comprobaciones por capas dependientes."
+      },
+      {
+        "criterion": "No tocar el firewall",
+        "evidence": "Justifica por qué no corresponde tocar el firewall."
+      },
+      {
+        "criterion": "Cambio de hipótesis",
+        "evidence": "Incluye la observación que haría cambiar de hipótesis."
+      }
+    ]
+  },
+  "revision": "83834d33140893fc31ce6f45"
+}

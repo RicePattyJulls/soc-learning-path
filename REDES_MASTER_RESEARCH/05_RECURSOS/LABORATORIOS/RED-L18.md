@@ -1,0 +1,83 @@
+# RED-L18 — Automatización de inventario, YANG/APIs y rollback
+
+**Guía de diseño de laboratorio: no ejecutada ni técnicamente validada.**
+
+## Objetivo y previos
+
+Demostrar de forma reproducible automatización de inventario, yang/apis y rollback en un entorno docente controlado.
+
+Módulos: RED-M36, RED-M37, RED-M38, RED-M39. Previos del diseño: RED-M05, RED-M07, RED-M12, RED-M16, RED-M19, RED-M21, RED-M22, RED-M25, RED-M26, RED-M27.
+
+- Analizar logs/redes mediante scripts probados y versionados
+- Diseñar tareas de inventario/configuración con API y modelo de datos
+- Planear cambios reproducibles y recuperación ante fallos
+- Encontrar causa raíz con hipótesis y métricas de red
+
+## Topología y preparación
+
+Repositorio local → dispositivo FRR/endpoint de prueba → verificador de estado → snapshot
+
+Direccionamiento del diseño: Mgmt 10.60.170.0/24; router .1; controlador de automatización .10
+
+Registrar host/hipervisor, versiones exactas e imágenes/sha256 autorizadas; respaldar configuraciones, plan de direccionamiento y prueba de aislamiento; no distribuir credenciales reales.
+
+Namespaces/redes virtuales sin bridge al LAN real, sin salida a Internet por defecto; dirección 10.60.0.0/16 y 2001:db8::/32 reservadas para topología didáctica (las subredes concretas se asignan por laboratorio).
+
+Autorización expresa del propietario del entorno; exclusivamente nodos propios, ventana docente y objetivos inventariados; parar ante pérdida de aislamiento, indisponibilidad inesperada o tráfico ajeno.
+
+Herramientas candidatas de la investigación: Python, Git, Ansible opcional, FRR, API/YANG docs. Seleccionar plataforma y versión compatibles antes de ejecutar; esta guía no distribuye imágenes ni acredita soporte. Alternativa de análisis: Versión segmentada y offline: material sintético claramente marcado, razonamiento + validaciones menores en entorno ligero
+
+## Tareas
+
+- Leer JSON/YAML y mantener Git con pruebas unitarias
+- Calcular diff, cambio idempotente y validación de pre/post
+- Demostrar rollback tras pérdida esperada de conectividad
+- Comparar API soportada frente a ejemplo de NETCONF/RESTCONF en simulador o dataset
+
+## Pruebas positivas
+
+- Dos ejecuciones consecutivas producen mismo estado final (idempotencia)
+
+## Controles negativos y fallos para ensayar
+
+- Fallo de cambio activa rollback y restaura baseline
+
+- Configuración inválida
+- Falta permisos
+- Esquema YANG ausente en plataforma elegida
+
+## Evidencias y evaluación
+
+- Topología numerada y tabla de interfaces/direcciones
+- Configuración inicial/final o captura de resultados y comandos usados
+- Resultado de prueba positiva y control negativo
+- Diagnóstico causal más limitaciones y evidencia contradictoria
+- Manifest de versiones, UTC, hashes SHA-256 de ficheros y rúbrica
+
+Todas las pruebas positivas pasan, el control negativo confirma el límite previsto, y el estudiante explica el mecanismo y el origen de los datos; ninguna infracción del aislamiento.
+
+No presentar como ejecución real la resolución de una ficha documental. Evaluar dominio práctico solo con observaciones de la práctica correspondiente y revisión adecuada.
+
+## Restauración
+
+Guardar artefactos y checksum; restaurar snapshot/config inicial; eliminar identidades/tokens de prueba y sesiones/recursos temporales; comprobar ausencia de conexiones hacia LAN externo.
+
+## Referencias
+
+- [ipaddress — IPv4/IPv6 manipulation library](https://docs.python.org/3/library/ipaddress.html)
+- [json — JSON encoder and decoder](https://docs.python.org/3/library/json.html)
+- [RFC 8259: JavaScript Object Notation Data Interchange Format](https://www.rfc-editor.org/rfc/rfc8259.html)
+- [YAML specification 1.2.2](https://yaml.org/spec/1.2.2/)
+- [git diff](https://git-scm.com/docs/git-diff)
+- [RFC 9110: HTTP Semantics](https://www.rfc-editor.org/rfc/rfc9110.html)
+- [RFC 6241: Network Configuration Protocol NETCONF](https://www.rfc-editor.org/rfc/rfc6241.html)
+- [RFC 7950: The YANG 1.1 Data Modeling Language](https://www.rfc-editor.org/rfc/rfc7950.html)
+- [RFC 8040: RESTCONF Protocol](https://www.rfc-editor.org/rfc/rfc8040.html)
+- [Ansible Network Examples](https://docs.ansible.com/projects/ansible/latest/network/user_guide/network_best_practices_2.5.html)
+- [SP 800-61 Rev. 3](https://csrc.nist.gov/pubs/sp/800/61/r3/final)
+- [Wireshark User’s Guide](https://www.wireshark.org/docs/wsug_html_chunked/)
+- [RFC 4594: Configuration Guidelines for DiffServ Service Classes](https://www.rfc-editor.org/rfc/rfc4594.html)
+
+## Procedencia
+
+Adaptación de la ficha RED-L18 de T5 conservada en investigación. Estimación original: 18 h, incluidas en el recorrido total, no medidas en una ejecución.

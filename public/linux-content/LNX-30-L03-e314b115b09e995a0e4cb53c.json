@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-30-L03",
+  "title": "Abuso de configuración (sin escape)",
+  "sourceHash": "595c2d8f338b92a0bd085655c13deb150f21e8129f24b89718ca4bb91a766618",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-30-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nReconocer y documentar el abuso de configuración de contenedores sin ejecutar escapes, separando la exposición observada del compromiso demostrado.\n\nPrerrequisitos: `LNX-30-L02` (Kubernetes: políticas y pruebas significativas).\n\n## 2. Comprende el mecanismo\n\nEl **abuso de configuración** no requiere una vulnerabilidad nueva. Ocurre cuando una capacidad legítima del runtime queda disponible más allá de lo necesario o de lo aprobado: un contenedor privilegiado que debía ser temporal, un montaje de escritura sobre datos del host, un conjunto de capabilities excesivo, un socket de daemon expuesto, un perfil seccomp o LSM desactivado o un secreto inyectado en el entorno de un workload inmutable.\n\nEstos patrones comparten una propiedad: el poder ya está en la configuración. No hace falta explotar nada para describir el riesgo; basta leer el estado efectivo y contrastarlo con el propósito declarado. Por eso el trabajo defensivo consiste en **inspeccionar, comparar y documentar**, no en demostrar una salida del contenedor. Un escape real queda fuera del alcance de esta etapa y, en la mayoría de los programas, fuera de cualquier autorización razonable.\n\nHay que separar dos afirmaciones que suenan parecidas. Una **exposición** describe una capacidad potencial verificada: el contenedor tiene `Privileged: true`, el montaje permite escritura, la variable contiene un token sintético. Un **compromiso** exige evidencia de que esa capacidad se usó para producir un efecto observado dentro del alcance autorizado. La primera se documenta con la configuración; el segundo requiere eventos, artefactos y una cadena de evidencia. Confundirlos infla el hallazgo y destruye la credibilidad del informe.\n\nLa **evidencia mínima** de un abuso de configuración incluye el nombre del contenedor o pod, la configuración relevante, la fecha y hora UTC, el propietario, el ticket o la ventana de aprobación, y la comparación con la línea base. El cambio se describe por su efecto: qué ruta del host queda expuesta, qué capability se conserva, qué identidad ejecuta el proceso. Un listado de campos sin propietario ni propósito no permite decidir nada.\n\nLa **respuesta** también es graduada. Si el contenedor sigue activo fuera de su ventana, se documenta y se propone contener o retirar con aprobación, preservando la evidencia antes de destruir el estado. Si hay un secreto sintético expuesto, se documenta la exposición y se coordina su rotación. La remediación típica combina retirar privilegios, eliminar capabilities, usar un usuario no root, montar solo lo necesario, activar seccomp y LSM, y sustituir el socket por una integración acotada.\n\nLa **detección** cierra el ciclo. Los eventos del runtime, las alertas de comportamiento como las de Falco, los cambios de configuración y el audit del plano de control permiten ver creación de contenedores privilegiados, ejecuciones inesperadas y montajes anómalos. Una alerta sin contexto se convierte en ruido; el mismo evento, con propietario y ticket, se convierte en una decisión.\n\nLa regla de la lección: el abuso de configuración se demuestra leyendo la configuración efectiva, no provocando un escape. El límite: la exposición observada no prueba explotación, y la ausencia de alertas no prueba que la configuración sea segura.\n\n### Vocabulario de apoyo\n\n- **Abuso de configuración**: uso de una capacidad del runtime más allá de lo necesario o de lo aprobado, sin explotar una vulnerabilidad nueva.\n- **Exposición**: capacidad potencial verificada en la configuración, todavía sin efecto observado.\n- **Compromiso**: efecto producido y evidenciado dentro del alcance autorizado.\n- **Línea base**: configuración de referencia contra la que se compara el estado actual.\n- **Contención**: acción que limita el alcance sin destruir la evidencia necesaria.\n- **Remediación**: cambio que elimina o reduce la causa de la exposición.\n- **Retest negativo**: comprobación de que la configuración insegura ya no se admite.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-30-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un contenedor de depuración llamado `debug-lab`, aprobado «temporalmente» hace tres meses, sigue en ejecución. La inspección muestra `Privileged: true`, un montaje de escritura de `/srv/datos` del host, `hostPID: true` y una variable de entorno con un token sintético. No hay eventos de ejecución anómalos asociados.\n\nLo que se puede afirmar es una exposición grave y sostenida: el contenedor conserva capacidades que exceden su propósito, alcanza datos del host y mantiene un secreto en el entorno. También se puede afirmar que la ventana de aprobación expiró y que no consta propietario activo. Lo que no se puede afirmar es que alguien haya usado esas capacidades: no hay evidencia de efecto, y la configuración por sí sola no la produce.\n\nLa respuesta correcta es documental y coordinada: registrar la configuración, la fecha, el ticket vencido y el alcance del montaje; preservar la evidencia; proponer la retirada del contenedor con aprobación; rotar el token sintético; y verificar después que un contenedor con esa configuración ya no se admite. El límite: el hallazgo demuestra un fallo de gobierno y de mínimo privilegio, no un escape ni una intrusión.\n\n"
+    },
+    {
+      "id": "LNX-30-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Convertir eventos de runtime y cambios de configuración en hallazgos con propietario, ventana y alcance declarado.\n- Red Team autorizado: Documentar la exposición con evidencia de configuración; no ejecutar escapes ni ampliar el impacto.\n- Evidencia de la etapa: Configuración efectiva, fecha UTC, ticket o ventana, propietario, línea base y comparación.\n- Criterio de dominio: Nombra la capacidad, su alcance y su causa sin convertirla en un compromiso no demostrado.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB40](../../05_RECURSOS/LABORATORIOS/LNX-LAB40.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F121**: [NIST SP 800-61 Rev.3 (2025)](https://csrc.nist.gov/pubs/sp/800/61/r3/final). Fases de respuesta, contención y recuperación proporcionadas.\n- **F128**: [Docker Engine security](https://docs.docker.com/engine/security/). Riesgo del socket, del daemon y de los montajes del host.\n- **F129**: [Docker rootless mode](https://docs.docker.com/engine/security/rootless/). Comparación del alcance entre daemon rootful y rootless.\n- **F132**: [Falco official project](https://github.com/falcosecurity/falco). Detección de comportamiento anómalo en runtime.\n- **F139**: [Docker inspect](https://docs.docker.com/reference/cli/docker/inspect/). Lectura de privilegios, montajes y entorno del contenedor.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-30-L03-P01",
+    "prompt": "Encuentras un contenedor de depuración aprobado «temporalmente» hace tres meses que sigue ejecutándose con `Privileged: true`, montajes del host y una variable de entorno con un token sintético. Explica cómo documentarías el abuso de configuración, qué evidencia reunirías y por qué no puedes afirmar que hubo un escape.",
+    "markdown": "## 4. Práctica individual\n\nEncuentras un contenedor de depuración aprobado «temporalmente» hace tres meses que sigue ejecutándose con `Privileged: true`, montajes del host y una variable de entorno con un token sintético. Explica cómo documentarías el abuso de configuración, qué evidencia reunirías y por qué no puedes afirmar que hubo un escape.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber inspeccionado un contenedor real ni haber ejecutado un escape.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-30-L03-Q01",
+      "prompt": "¿Qué distingue una exposición de configuración de un compromiso demostrado?",
+      "options": [
+        {
+          "id": "A",
+          "text": "La exposición describe una capacidad potencial verificada en la configuración; el compromiso exige evidencia de un efecto observado dentro del alcance autorizado"
+        },
+        {
+          "id": "B",
+          "text": "Son sinónimos: cualquier contenedor privilegiado prueba un compromiso"
+        },
+        {
+          "id": "C",
+          "text": "La exposición solo existe si la imagen contiene malware conocido"
+        },
+        {
+          "id": "D",
+          "text": "El compromiso se demuestra con la etiqueta y el digest de la imagen"
+        }
+      ]
+    },
+    {
+      "id": "LNX-30-L03-Q02",
+      "prompt": "Un contenedor privilegiado de laboratorio sigue activo meses después de su ventana aprobada. ¿Cuál es la primera acción defensiva coherente?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Ejecutar un escape para medir el impacto real sobre el host"
+        },
+        {
+          "id": "B",
+          "text": "Montar el socket del daemon para inspeccionar desde dentro del contenedor"
+        },
+        {
+          "id": "C",
+          "text": "Borrar los logs del contenedor para reducir el ruido de la investigación"
+        },
+        {
+          "id": "D",
+          "text": "Documentar configuración, propietario y ticket; contener o retirar el contenedor con aprobación y preservar evidencia"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB40](../../05_RECURSOS/LABORATORIOS/LNX-LAB40.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F121**: [NIST SP 800-61 Rev.3 (2025)](https://csrc.nist.gov/pubs/sp/800/61/r3/final). Fases de respuesta, contención y recuperación proporcionadas.\n- **F128**: [Docker Engine security](https://docs.docker.com/engine/security/). Riesgo del socket, del daemon y de los montajes del host.\n- **F129**: [Docker rootless mode](https://docs.docker.com/engine/security/rootless/). Comparación del alcance entre daemon rootful y rootless.\n- **F132**: [Falco official project](https://github.com/falcosecurity/falco). Detección de comportamiento anómalo en runtime.\n- **F139**: [Docker inspect](https://docs.docker.com/reference/cli/docker/inspect/). Lectura de privilegios, montajes y entorno del contenedor.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "e314b115b09e995a0e4cb53c"
+}

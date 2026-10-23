@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-25-L02",
+  "sourceHash": "3b8fcbdc30dedc22221005a97d68eec9a2f71f3367a87be7e19917d814933ef0",
+  "questions": [
+    {
+      "id": "LNX-25-L02-Q01",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Ejecuta un comando externo y puede ampliar la superficie si ese comando o sus argumentos son modificables».\n\n`pam_exec` invoca un programa durante la pila, de modo que su ruta, permisos y argumentos pasan a formar parte de la superficie de autenticación. No sustituye a `pam_unix` por diseño, no se limita a `password` y no impide el segundo factor."
+    },
+    {
+      "id": "LNX-25-L02-Q02",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Snapshot probado, copia y hash del fichero, consola fuera de banda, cuenta de prueba, validación, rollback y comparación de telemetría».\n\nEl cambio de PAM puede bloquear todo acceso, por lo que exige copia, vía de rescate, prueba controlada y reversión. Editar sin copia, avisar después o desactivar la contraseña aumentan el riesgo en lugar de reducirlo."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "La línea con `pam_exec.so` es un hallazgo que se documenta, no una autoría que se afirme. Hay que registrar ruta del script, propietario, permisos, grupo con escritura, argumentos, versión y presencia de opciones sensibles como `expose_authtok`; después, comprobar si esa línea pertenece a la **ruta efectiva** del servicio y quién puede modificarla. Un script escribible por un grupo amplio, invocado durante la autenticación, amplía la superficie aunque su propósito sea legítimo.\n\nEl cambio se planifica fuera de producción: snapshot probado, copia y hash del fichero, consola fuera de banda, cuenta de prueba, validación sintáctica, prueba de fallo y de éxito, rollback versionado y comparación de telemetría. Borrar la línea en horario laboral sin copia puede romper el acceso y destruir la evidencia del estado previo.\n\nLímite: sin historial de cambios ni ticket, la intención del script queda sin determinar; la auditoría describe configuración y riesgo, no confirma compromiso ni autoría.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Documenta ruta, propietario, permisos y argumentos del comando invocado."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Distingue hallazgo configurado de persistencia maliciosa demostrada."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Comprueba la ruta efectiva y la precedencia de la configuración."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Propone cambio con rescate, prueba y rollback antes de tocar el host."
+      }
+    ]
+  },
+  "revision": "60c8610918e972d400b68c3b"
+}

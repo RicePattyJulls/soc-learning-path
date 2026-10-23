@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-17-L02",
+  "title": "Manifiesto verificable: hashes y metadatos",
+  "sourceHash": "792a32e7a577ee6a248976661f2f14a34824625777128b50a1ba3abd615a8f31",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-17-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nConstruir y leer un manifiesto de hashes y metadatos reconociendo qué acredita un hash y qué requiere la verificación de estado.\n\nPrerrequisitos: `LNX-17-L01` (Runbook de recuperación controlada).\n\n## 2. Comprende el mecanismo\n\nUn **manifiesto verificable** es un listado que permite comprobar si un conjunto de datos coincide con un estado de referencia. Su pieza más visible es el **hash**: un resumen criptográfico del contenido. Su pieza más olvidada son los **metadatos**: propietario, grupo, modo, ACL y atributos extendidos. Sin las dos, el manifiesto cuenta media historia.\n\nEmpecemos por lo que un hash **sí** acredita. Un SHA-256 calculado sobre el contenido de un archivo resume esos bytes: si el hash coincide con el de referencia, el contenido medido es el mismo. Es una prueba de coincidencia de contenido, muy útil para detectar alteraciones y para comprobar una restauración. Es preciso en lo que mide y silencioso en lo que no mide.\n\nLo que un hash **no** acredita es igual de importante. No dice **quién** modificó el archivo, ni con qué identidad; no dice nada sobre ACL o xattrs; no demuestra que el sistema no estuviera comprometido al calcularlo. Tampoco prueba que el contenido sea veraz respecto de un hecho histórico: solo que coincide con la referencia que le diste. Un hash compara un estado contra otro, no emite un juicio de origen.\n\nDe ahí el detalle que más se pasa por alto: el hash del **contenido** puede coincidir y el estado **diferir**. Un archivo restaurado con los mismos bytes y otros permisos, u otros xattrs, no deja de ser una discrepancia relevante. Por eso el manifiesto útil añade metadatos: UID/GID, modo, y las ACL y atributos extendidos cuando el sistema de archivos los soporta.\n\nHay un matiz de medición que ayuda a no sobreinterpretar. Un archivo que cambia **mientras** se calcula su hash puede producir un hash de un estado intermedio. Y un listado de hashes con nombres de archivo puede tener ambigüedades si los nombres contienen saltos de línea o bytes especiales, salvo que se use un formato robusto y un parseo compatible. El manifiesto es tan fiable como su procedimiento de construcción.\n\nExiste además una técnica de integridad **por archivo** distinta de un respaldo: la verificación criptográfica de contenido de solo lectura, que permite comprobar que un archivo no cambió respecto de un valor fijado previamente. Aporta integridad del archivo, no conserva copias ni resuelve la disponibilidad. Conviene no confundirla con un backup: una firma de integridad y una copia recuperable responden a preguntas diferentes.\n\nAntes de concluir, declara qué mide el manifiesto: contenido, estado o ambos. El límite: un conjunto de hashes correctos no sustituye la comprobación de metadatos ni la prueba de que la aplicación funciona tras restaurar.\n\n### Vocabulario de apoyo\n\n- **Manifiesto**: listado de hashes y metadatos para comprobar un estado de referencia.\n- **Hash criptográfico**: resumen del contenido; detecta cambios en los bytes medidos.\n- **Metadatos**: propietario, grupo, modo, ACL y atributos extendidos asociados al archivo.\n- **xattr**: atributo extendido; puede diferir aunque el contenido coincida.\n- **Estado intermedio**: hash de un archivo que cambió durante su cálculo.\n- **Integridad por archivo**: verificación criptográfica de que un archivo no cambió, distinta de un respaldo.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-17-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un equipo restaura un directorio desde una copia y comprueba que todos los hashes SHA-256 coinciden con el manifiesto original. Concluye que la restauración es correcta y que nada cambió. Días después, un servicio falla porque un archivo tiene otros permisos.\n\nLa conclusión era parcial. Los hashes demuestran que el **contenido** coincide, y eso es valioso. Pero el fallo apareció en el **estado**: los permisos del archivo restaurado no eran los del original. El manifiesto, al medir solo contenido, no podía detectarlo.\n\nRazonar así separa «los bytes son iguales» de «el estado es equivalente». El manifiesto útil habría incluido modo, propietario y, si aplicaba, ACL y xattrs. El límite de la conclusión: con hashes solos no puedes afirmar que el estado se conservó, y sin probar el funcionamiento de la aplicación tampoco puedes afirmar que la restauración es completa.\n\n"
+    },
+    {
+      "id": "LNX-17-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Acompañar los hashes con metadatos y contexto, sin atribuir autoría a partir de una coincidencia.\n- Red Team autorizado: Distinguir integridad por archivo de recuperabilidad y de control de acceso.\n- Evidencia de la etapa: Manifiesto de contenido y de metadatos, con procedimiento de cálculo registrado.\n- Criterio de dominio: Declara qué mide un manifiesto y qué queda fuera de su conclusión.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB19](../../05_RECURSOS/LABORATORIOS/LNX-LAB19.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F45**: [Linux `stat(2)` y semántica de metadatos](https://man7.org/linux/man-pages/man2/stat.2.html). Qué metadatos forman parte del estado del archivo.\n- **F46**: [GNU coreutils, manual `stat`](https://www.gnu.org/software/coreutils/manual/html_node/stat-invocation.html). Consulta de UID/GID, modo y tiempos para un manifiesto.\n- **F65**: [MITRE ATT&CK, T1565.001 Stored Data Manipulation](https://attack.mitre.org/techniques/T1565/001/). Manipulación de datos almacenados que un manifiesto ayuda a detectar.\n- **F70**: [kernel Linux: fs-verity](https://docs.kernel.org/filesystems/fsverity.html). Integridad por archivo, distinta de un respaldo.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-17-L02-P01",
+    "prompt": "Un equipo restaura un directorio, ve que los hashes SHA-256 coinciden con el manifiesto y concluye que la restauración es correcta, aunque después falla un servicio por permisos distintos. Explica qué acredita el hash, qué falta en el manifiesto y cuál es el límite de la conclusión.",
+    "markdown": "## 4. Práctica individual\n\nUn equipo restaura un directorio, ve que los hashes SHA-256 coinciden con el manifiesto y concluye que la restauración es correcta, aunque después falla un servicio por permisos distintos. Explica qué acredita el hash, qué falta en el manifiesto y cuál es el límite de la conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber calculado ni verificado manifiestos reales.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-17-L02-Q01",
+      "prompt": "¿Qué acredita un hash SHA-256 del contenido de un archivo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que el contenido medido coincide byte a byte; no acredita autoría ni ACL"
+        },
+        {
+          "id": "B",
+          "text": "Que el archivo no fue modificado por un usuario concreto"
+        },
+        {
+          "id": "C",
+          "text": "Que los permisos y xattrs son los originales"
+        },
+        {
+          "id": "D",
+          "text": "Que el sistema no estaba comprometido al calcularlo"
+        }
+      ]
+    },
+    {
+      "id": "LNX-17-L02-Q02",
+      "prompt": "¿Qué complementa un manifiesto de hashes para una restauración útil?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Un listado de snapshots sin identificar versiones"
+        },
+        {
+          "id": "B",
+          "text": "Metadatos (UID/GID, modo, ACL/xattrs) y comparación del comportamiento de la aplicación"
+        },
+        {
+          "id": "C",
+          "text": "La fecha de creación del repositorio"
+        },
+        {
+          "id": "D",
+          "text": "El tamaño total del archivo de hashes"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB19](../../05_RECURSOS/LABORATORIOS/LNX-LAB19.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F45**: [Linux `stat(2)` y semántica de metadatos](https://man7.org/linux/man-pages/man2/stat.2.html). Qué metadatos forman parte del estado del archivo.\n- **F46**: [GNU coreutils, manual `stat`](https://www.gnu.org/software/coreutils/manual/html_node/stat-invocation.html). Consulta de UID/GID, modo y tiempos para un manifiesto.\n- **F65**: [MITRE ATT&CK, T1565.001 Stored Data Manipulation](https://attack.mitre.org/techniques/T1565/001/). Manipulación de datos almacenados que un manifiesto ayuda a detectar.\n- **F70**: [kernel Linux: fs-verity](https://docs.kernel.org/filesystems/fsverity.html). Integridad por archivo, distinta de un respaldo.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "7fbbc8c39717885d6eac7f5f"
+}

@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-32-L01",
+  "sourceHash": "59b012f46708516b3a2068743aaa4524b14352141698cbc5a72b8cc1d036ab4f",
+  "questions": [
+    {
+      "id": "LNX-32-L01-Q01",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Que el proceso se ejecuta como root dentro del contenedor, con un riesgo que depende de capabilities, montajes y user namespace».\n\nUn `Config.User` vacío no impide ejecutar procesos ni activa un usuario sin privilegios por sí solo. El riesgo efectivo se pondera con las capabilities, los montajes y el aislamiento del namespace de usuario."
+    },
+    {
+      "id": "LNX-32-L01-Q02",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Contrastar la configuración efectiva con la línea base y el propósito, con propietario, fecha y evidencia».\n\nUna etiqueta o una ausencia de alertas no sostiene un hallazgo. La comparación documentada con el propósito y la línea base permite afirmar qué capacidad excede lo necesario y con qué alcance."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "La documentación parte del inventario y de la configuración efectiva: nombre, imagen y digest verificado, propietario, ticket y fecha. `Config.User` vacío indica que el proceso corre como root dentro del contenedor; la capability añadida amplía la superficie; seccomp sin confinar reduce el filtrado de syscalls; el montaje de escritura conecta el contenedor con datos del host; y la ausencia de límite expone al host a un consumo descontrolado. Cada dato se registra con su fuente y se compara con la línea base y el propósito declarado.\n\nEl riesgo se describe como combinación, no como una casilla aislada: usuario root interno, capability innecesaria, filtro desactivado, escritura sobre el host y recurso sin acotar. La remediación mínima propone usuario no root, retirar la capability, aplicar el perfil seccomp por defecto, reducir el montaje y fijar un límite de memoria; el retest debe comprobar que la aplicación funciona y que la configuración ya no se admite.\n\nLímite: la inspección pasiva demuestra una exposición de configuración. No se ha ejecutado un escape ni se ha observado un efecto sobre el host, así que no se puede afirmar un compromiso.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Reúne inventario, procedencia y configuración efectiva con propietario y fecha UTC."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Interpreta usuario vacío, capabilities, seccomp, montajes y límites de forma relacionada."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Distingue exposición verificada de compromiso demostrado."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Propone remediación mínima y un retest que preserve la función legítima."
+      }
+    ]
+  },
+  "revision": "995350b9baf735b39b0480e1"
+}

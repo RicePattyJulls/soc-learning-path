@@ -1,0 +1,188 @@
+{
+  "id": "N1-09",
+  "nivel": "N1",
+  "bloque": "Redes y tráfico sospechoso",
+  "titulo": "Miles de consultas DNS a subdominios aparentemente aleatorios",
+  "pregunta": "Un equipo comienza a generar miles de consultas DNS a subdominios aparentemente aleatorios. ¿Qué hipótesis considerarías?",
+  "escenario": "En 15 minutos PC-FIN-04 genera miles de consultas a nombres largos y únicos bajo un aparente dominio externo: <cadena>.ejemplo.test. El resolvedor registra muchos NXDOMAIN y consultas TXT; un producto SaaS también ha sido actualizado esa mañana. El dominio y nombres son ilustrativos y no deben consultarse como indicadores reales.",
+  "objetivo": "Plantear y contrastar DGA, DNS tunneling, beaconing, misconfiguración y telemetría legítima de CDN/SaaS, preservando evidencias y determinando si hay comunicación C2 o fuga de datos, sin tratar todas las cadenas largas como ataque.",
+  "hipotesis": [
+    "Algoritmo de generación de dominios (DGA): nombres dinámicos, muchos fallos NXDOMAIN y diferentes dominios raíz.",
+    "DNS tunneling/exfiltración: subdominios largos, únicos, con cadenas que podrían codificar datos y consultas repetidas a una zona controlada por el atacante.",
+    "Beaconing DNS: consultas periódicas a un dominio de control; puede existir tanto con pocos nombres como con nombres variables.",
+    "CDN, analítica, telemetría o tracking legítimos: subdominios de alta cardinalidad e identificadores efímeros.",
+    "Sufijo de búsqueda DNS mal configurado, malware no relacionado, caché expirada o software que reintenta nombres inexistentes.",
+    "Resolvedor compartido o falta de IP original en el servidor DNS que hace aparecer un solo origen con tráfico de muchos clientes."
+  ],
+  "pasos": [
+    {
+      "fase": "0. Precisar fuente y cardinalidad",
+      "accion": "Distinguir consultas de respuestas, campos de origen real, DNS interno/externo, si se guardan subdominios completos y volumen basal del usuario/segmento."
+    },
+    {
+      "fase": "1. Construir serie temporal",
+      "accion": "Agrupar por equipo, tiempo, dominio raíz, tipo A/AAAA/TXT/CNAME, respuesta NXDOMAIN/NOERROR y cantidad de nombres únicos. Comparar antes/después del update SaaS."
+    },
+    {
+      "fase": "2. Separar patrones DGA/túnel",
+      "accion": "DGA suele explorar múltiples dominios candidatos; tunneling a menudo utiliza muchísimos subdominios únicos bajo una zona, aunque ambos pueden variar. Medir longitud, diversidad y distribución de caracteres es apoyo, no prueba criptográfica."
+    },
+    {
+      "fase": "3. Analizar registros TXT y resultado",
+      "accion": "Investigar TXT inusuales, respuestas o tamaño de las consultas cuando exista telemetría; TXT no significa exfiltración por sí solo. Las etiquetas DNS tienen límites técnicos y algunos productos legítimos usan identificadores largos."
+    },
+    {
+      "fase": "4. Resolver atribución de endpoint",
+      "accion": "Correlacionar SrcIpAddr con DHCP/DNS resolver; buscar proceso que origina consultas mediante EDR, Sysmon DNS (evento 22) si está habilitado o telemetría de navegador. Evitar atribuir a la IP del resolvedor sin comprobarla."
+    },
+    {
+      "fase": "5. Revisar reputación y propiedad",
+      "accion": "Evaluar dominio registrado, edad/certificado/hosting cuando sea aplicable, actividad histórica en la organización y pertenencia a proveedor legítimo. No visitar dominios sospechosos desde un puesto normal."
+    },
+    {
+      "fase": "6. Buscar conexiones relacionadas",
+      "accion": "Relacionar DNS con conexiones posteriores hacia IP resueltas, procesos/scripts, persistencia, archivos o cargas de datos. DNS por DoH puede no aparecer en logs de resolvedor tradicional."
+    },
+    {
+      "fase": "7. Evaluar gravedad y escalar",
+      "accion": "Ante posible exfiltración, patrón con proceso desconocido, consultas a dominios de ataque o actividad en varios equipos, escalar a N2/IR con evidencias. Valorar bloqueo DNS controlado/aislamiento según procedimiento."
+    },
+    {
+      "fase": "8. Fijar conclusión",
+      "accion": "Distinguir indicador estadístico, sospecha fundada y compromiso confirmado; documentar muestra de consultas, medidas, fuente de datos y límites de visibilidad."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "DnsQuery y cantidad de subdominios",
+      "lectura": "Número de FQDN únicos y concentración por dominio base; revisar TLD multicapa (.co.uk) con librería Public Suffix List antes de atribución."
+    },
+    {
+      "dato": "SrcIpAddr / src",
+      "lectura": "Cliente originador real o resolvedor intermediario según punto de captura; requiere NAT/DHCP."
+    },
+    {
+      "dato": "NXDOMAIN / ResponseCodeName",
+      "lectura": "Muchos dominios inexistentes pueden sugerir DGA o fallos de configuración. Revisar respuestas además de consultas."
+    },
+    {
+      "dato": "Tipo de registro (TXT, A, AAAA)",
+      "lectura": "TXT puede transportar información, pero su sola presencia es normal para SPF, DKIM, validaciones, etc."
+    },
+    {
+      "dato": "Longitud/entropía/periodicidad",
+      "lectura": "Apoyo al triaje; nombres aleatorios en CDN/SaaS y hash internos crean falsos positivos."
+    },
+    {
+      "dato": "Proceso EDR / Sysmon DNS ID 22",
+      "lectura": "Relaciona una consulta con programa/usuario si se recopila esa telemetría."
+    },
+    {
+      "dato": "Conexiones posteriores",
+      "lectura": "Distinguir resolución fallida, resolución exitosa y comunicación hacia destino relacionado."
+    },
+    {
+      "dato": "Cifrado DNS y cobertura",
+      "lectura": "DoH/DoT pueden eludir la visibilidad del resolvedor tradicional; la ausencia de consultas en él no niega tráfico DNS externo."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Sentinel ASIM: nombres largos y únicos por origen",
+      "entorno": "Microsoft Sentinel / Log Analytics — parser unificador _Im_Dns (fuentes DNS configuradas)",
+      "consulta": "_Im_Dns\n| where TimeGenerated > ago(1h)\n| where isnotempty(DnsQuery) and isnotempty(SrcIpAddr)\n| extend Q=tolower(DnsQuery), Largo=strlen(DnsQuery)\n| extend BaseAprox=extract(@\"([^.]+\\.[^.]+)\\.?$\", 1, Q)\n| summarize Consultas=count(), NombresUnicos=dcount(Q),\n            LongitudMedia=round(avg(Largo),1),\n            Largos=countif(Largo >= 65),\n            Muestra=make_set(Q,5)\n    by SrcIpAddr, BaseAprox, bin(TimeGenerated,10m)\n| where Consultas >= 100 and NombresUnicos >= 80\n| order by NombresUnicos desc",
+      "interpretacion": "Agrupa alta frecuencia y variedad de nombres por origen y dominio base estimado. Útil para investigar patrones compatibles con túnel DNS y telemetría legítima.",
+      "limitaciones": "BaseAprox = últimas dos etiquetas: ES UNA APROXIMACIÓN INCORRECTA para co.uk y otros sufijos públicos; integrar Public Suffix List en producción. SrcIpAddr puede ser un resolvedor. Ajustar umbrales a baseline; el texto largo solo es señal."
+    },
+    {
+      "nombre": "Sentinel ASIM: NXDOMAIN y tipos de consulta",
+      "entorno": "Microsoft Sentinel / Log Analytics — _Im_Dns con ResponseCodeName (según parser/fuente)",
+      "consulta": "_Im_Dns\n| where TimeGenerated > ago(1h)\n| where isnotempty(SrcIpAddr)\n| summarize Eventos=count(), NX=countif(ResponseCodeName =~ \"NXDOMAIN\"),\n            TXT=countif(DnsQueryTypeName =~ \"TXT\"),\n            Nombres=dcount(DnsQuery), Muestra=make_set(DnsQuery, 5)\n    by SrcIpAddr, bin(TimeGenerated,15m)\n| extend PorcNX=round(100.0*NX/iff(Eventos == 0, 1, Eventos),1)\n| where Eventos >= 100 and (PorcNX >= 70 or TXT >= 50)\n| order by Eventos desc",
+      "interpretacion": "Resalta orígenes con alta tasa de respuestas NXDOMAIN o volumen TXT; validar si el esquema registra respuestas completas.",
+      "limitaciones": "Dependiendo del parser ResponseCodeName/DnsQueryTypeName pueden faltar o representarse distinto; proporción sobre eventos no necesariamente sobre consultas únicas. NXDOMAIN depende de que la fuente informe respuesta."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk CIM DNS: alto volumen de consultas únicas",
+      "entorno": "Splunk con CIM Network Resolution (DNS); tags y campos normalizados",
+      "consulta": "tag=network tag=resolution tag=dns earliest=-1h\n| where isnotnull(query) AND isnotnull(src)\n| eval q=lower(query), largo=len(query)\n| eval base_aprox=replace(q,\"^.*?([^.]+\\.[^.]+)\\.?$\",\"\\1\")\n| bin _time span=10m\n| stats count as Consultas dc(q) as NombresUnicos\n        avg(largo) as LongitudMedia count(eval(largo>=65)) as Largos\n        values(record_type) as Tipos by src base_aprox _time\n| where Consultas>=100 AND NombresUnicos>=80\n| eval LongitudMedia=round(LongitudMedia,1)\n| sort - NombresUnicos",
+      "interpretacion": "Marca un origen con muchos FQDN diferentes y largos. El agrupamiento del dominio raíz es aproximado y se debe contrastar.",
+      "limitaciones": "Las etiquetas y campos requieren la app CIM y TA correctamente mapeados. Un resolvedor o registros de consultas+respuestas duplicados sesga métricas. Calcular eTLD+1 de modo robusto fuera de esta aproximación."
+    },
+    {
+      "nombre": "Splunk CIM DNS: ratio de NXDOMAIN y consultas TXT",
+      "entorno": "Splunk CIM Network Resolution (DNS); reply_code puede estar ausente en eventos tipo Query",
+      "consulta": "tag=network tag=resolution tag=dns earliest=-1h\n| where isnotnull(src)\n| bin _time span=15m\n| stats count as Eventos\n        count(eval(match(lower(reply_code),\"^(nxdomain|non-existent domain)$\"))) as NX\n        count(eval(upper(record_type)==\"TXT\")) as TXT\n        dc(query) as Nombres by src _time\n| eval PorcNX=round(100*NX/max(Eventos,1),1)\n| where Eventos>=100 AND (PorcNX>=70 OR TXT>=50)\n| sort - Eventos",
+      "interpretacion": "Permite comparar fallos NXDOMAIN y consultas TXT en ventanas; correlacionar con destinos y procesos.",
+      "limitaciones": "Los reply_code del CIM varían (NXDomain / Non-Existent Domain) y pueden venir solo en respuestas; agrupar eventos mixtos altera el denominador. También pueden llegar respuestas sin query."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Windows — caché DNS local",
+      "proposito": "Ver entradas de resolución presentes en memoria; NO refleja consultas históricas completas.",
+      "comando": "Get-DnsClientCache | Select-Object Entry,RecordName,RecordType,Status"
+    },
+    {
+      "entorno": "Windows — Sysmon si ya habilitado",
+      "proposito": "Consultar fuente operativa existente, sin instalar sensores durante un incidente sin cambio aprobado.",
+      "comando": "Get-WinEvent -FilterHashtable @{LogName=\"Microsoft-Windows-Sysmon/Operational\";Id=22;StartTime=(Get-Date).AddHours(-1)} -ErrorAction SilentlyContinue | Select-Object -First 20"
+    },
+    {
+      "entorno": "Linux — resolvedor",
+      "proposito": "Identificar configuración DNS y fuentes de logs; sin activar depuración de forma disruptiva.",
+      "comando": "resolvectl status"
+    },
+    {
+      "entorno": "Operación SOC — validación segura",
+      "proposito": "Evitar resolver o navegar activamente los dominios desconocidos desde un puesto corporativo.",
+      "comando": "(Acción documental: pivotar sobre logs existentes y fuentes de inteligencia aprobadas.)"
+    }
+  ],
+  "contencion": "N1 documenta y eleva cuando la evidencia sustenta C2 o posible exfiltración. El bloqueo selectivo de un FQDN/zona en resolvedor corporativo puede contener parte del tráfico, pero debe analizar dependencias y resolutores alternativos/DoH. Si el proceso sigue activo o hay riesgo de fuga, solicitar aislamiento de endpoint/egreso por IR. No alterar registros DNS ni visitar dominios sospechosos desde equipos de trabajo normales.",
+  "escalation": [
+    "Subdominios largos, únicos y periódicos bajo un dominio no aprobado más proceso sospechoso.",
+    "Bytes o contenido indicativo de fuga en telemetría autorizada, consultas TXT inusuales junto con otras evidencias.",
+    "Muchos NXDOMAIN en numerosos dominios sin explicación operativa y posterior C2 exitoso.",
+    "Múltiples equipos o datos sensibles afectados.",
+    "No hay visibilidad de cliente real por DNS recursivo y activo de alto valor está implicado."
+  ],
+  "falsos_positivos": [
+    "Servicios CDN o SaaS con IDs aleatorios en subdominios.",
+    "Validaciones de correo SPF/DKIM/DMARC y otros TXT legítimos.",
+    "Errores de configuración DNS/sufijos de búsqueda y reintentos.",
+    "Telemetría de navegadores, resolutores compartidos o software de inventario."
+  ],
+  "errores": [
+    "Etiquetar cualquier subdominio largo o TXT como exfiltración.",
+    "Contar consultas y respuestas como si todas fuesen solicitudes únicas.",
+    "Aplicar extracción de “dominio base” de dos etiquetas a todos los TLD sin PSL.",
+    "Atribuir IP del resolvedor corporativo al endpoint sin verificar su origen.",
+    "Omitir DoH/DoT y concluir que DNS no ocurrió al no verlo en un servidor."
+  ],
+  "perspectiva_red_team": "DNS puede actuar como transporte de mando y control, y en algunos casos de datos, aprovechando que suele permitirse. DGA y tunneling no son equivalentes: uno ayuda a localizar dominios dinámicos; el otro encapsula información en consultas o respuestas, aunque pueden coexistir. Buscar longitud, cardinalidad, NXDOMAIN, registros TXT y continuidad temporal sirve para formular hipótesis; confirmar demanda correlacionar proceso, consultas, respuestas y conducta posterior. ATT&CK T1071.004 solo procede si la evidencia apunta a abuso de DNS como C2.",
+  "respuesta_entrevista": "Primero verificaría si veo consultas reales y si la IP de origen corresponde al endpoint o a un resolver. Mediría volumen de FQDN únicos, longitud, tipos y proporción de NXDOMAIN por dominio y por intervalo. Consideraría DGA, tunneling, beaconing y explicaciones legítimas como CDN, SaaS o una configuración rota. Correlacionaría con proceso EDR/Sysmon y conexiones posteriores. Una cantidad alta de subdominios no confirma exfiltración. Si existen indicadores coherentes y activo sensible, escalaría a N2/IR para decidir bloqueo DNS o aislamiento autorizado y preservación de pruebas.",
+  "criterios_evaluacion": [
+    "Diferencia DGA, tunneling y beaconing.",
+    "Valora respuesta NXDOMAIN y TXT con límites de normalización.",
+    "Reconoce impacto de resolver compartido/DoH.",
+    "No basa veredicto solo en longitud/entropía.",
+    "Conecta DNS con ejecución y flujos de red."
+  ],
+  "mitre": [
+    "T1071.004",
+    "T1568.002"
+  ],
+  "fuentes": [
+    "https://learn.microsoft.com/en-us/azure/sentinel/normalization-about-parsers",
+    "https://learn.microsoft.com/en-us/azure/sentinel/normalization-schema-dns",
+    "https://help.splunk.com/en/data-management/common-information-model/6.3/data-models/network-resolution-dns",
+    "https://attack.mitre.org/techniques/T1071/004/"
+  ],
+  "procedencia": {
+    "lote": "tanda-02",
+    "archivo": "SOC-RESPONSES_TANDA-02_N1-06_a_N1-10.json",
+    "fechaRevision": "2026-10-18"
+  }
+}

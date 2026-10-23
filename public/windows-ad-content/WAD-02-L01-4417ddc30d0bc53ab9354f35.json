@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-02-L01",
+  "title": "User mode/kernel mode y procesos",
+  "sourceHash": "e2312e911d27fdf0567687cbf93b4d0df17d8462278268184e389fc41ca31d8c",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-02-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDistinguir qué se ejecuta en modo usuario y qué en modo kernel, y describir un árbol de procesos separando lo que se observa de lo que se infiere.\n\nPrerrequisitos: haber aprobado la etapa `WAD-01` (se libera al completar `WAD-01-L03`).\n\n## 2. Comprende el mecanismo\n\nWindows separa el código que puede dañar el sistema del que no. El **kernel** (núcleo) y sus **controladores** se ejecutan en **modo kernel**, con acceso privilegiado al hardware y a la memoria del sistema. Las aplicaciones se ejecutan en **modo usuario**, con acceso limitado: para tocar disco, red o cualquier recurso le piden el trabajo al kernel mediante llamadas controladas. Esa frontera es la razón por la que un programa «normal» no puede escribir directamente en la memoria del kernel.\n\nUn **proceso** es un programa en ejecución con su propio espacio de memoria y, al menos, un **hilo** que se ejecuta. Un proceso puede crear hilos y también otros procesos (procesos hijo). Cada proceso tiene un **PID** que es único en un instante, pero que se **reutiliza** con el tiempo: el mismo número puede pertenecer a procesos distintos en momentos distintos.\n\nLos servicios del sistema se ejecutan en una sesión aislada (**sesión 0**), separada de las sesiones de usuario. Por eso un proceso de scripting visible en una sesión de usuario y otro en la sesión 0 no son «lo mismo» aunque compartan nombre de imagen.\n\nMuchos servicios comparten un proceso anfitrión. `svchost.exe` no es «un servicio»: es un contenedor que hospeda **varios** servicios agrupados (`svchost.exe -k <grupo>`). Dos consecuencias prácticas:\n\n- El PID de un servicio pertenece al **anfitrión**, no al servicio concreto.\n- Un nombre familiar **no** prueba legitimidad: un contenedor legítimo puede hospedar un servicio añadido.\n\nAl reconstruir un **árbol de procesos**, conviene separar datos de conclusiones:\n\n- **Se observa**: nombre de imagen, ruta, PID, cuenta que lo ejecuta, hora de inicio, firma del binario y línea de comandos cuando esté disponible.\n- **Se infiere**: para qué sirve, quién lo lanzó y si es legítimo.\n\nEl proceso padre es una **pista**, no una prueba: entre la creación y la observación pueden pasar segundos, y si el padre terminó —o su PID se reutilizó— la relación puede quedar incompleta o confundirse. Una **firma válida** indica integridad y procedencia del binario; no demuestra que la operación concreta sea legítima.\n\n### Vocabulario de apoyo\n\n- **Modo kernel**: modo de ejecución con acceso privilegiado al hardware y a la memoria del sistema.\n- **Modo usuario**: modo de ejecución sin acceso directo al hardware; solicita recursos al kernel mediante llamadas controladas.\n- **Proceso**: programa en ejecución con su propio espacio de memoria.\n- **Hilo (thread)**: unidad de ejecución dentro de un proceso.\n- **PID**: identificador de proceso; único en un instante, no en el tiempo.\n- **Sesión 0**: espacio aislado donde se ejecutan los servicios del sistema.\n- **Handle**: referencia controlada a un objeto del kernel (archivo, clave, proceso).\n- **Árbol de procesos**: relación observada entre procesos y sus procesos padre.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizarlas antes de resolver.\n\n"
+    },
+    {
+      "id": "WAD-02-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en un host de laboratorio aparece `svchost.exe` con un proceso hijo `powershell.exe`, y el equipo de guardia pregunta si el equipo está comprometido.\n\nEl nombre no decide nada. `svchost.exe` es un anfitrión de servicios legítimo; que un proceso de scripting aparezca como hijo puede ser administración, un agente de gestión o una ejecución no deseada. Antes de opinar se **registran** datos: línea de comandos, cuenta (¿sesión 0 o usuario?), hora de inicio, firma del binario, PID del padre y si ese padre sigue vivo. La conclusión honesta acota la **zona** —«hay un proceso de scripting en la sesión 0 lanzado por un servicio»— y propone la **siguiente comprobación** (correlacionar con los eventos del servicio, revisar la tarea o el punto de arranque), sin declarar un veredicto que los datos aún no sostienen.\n\n"
+    },
+    {
+      "id": "WAD-02-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Al triage de un host, registrar árbol, cuenta, sesión y hora antes de valorar una amenaza; el nombre del proceso no es evidencia.\n- Red Team autorizado: Distinguir una técnica permitida de una no autorizada; analizar procesos solo en un laboratorio aislado y con alcance definido.\n- Evidencia de la etapa: Árbol proceso-servicio con PID, cuenta, sesión, hora y ruta observados.\n- Criterio de dominio: Separa observación de inferencia y reconoce los límites del PID y del nombre del proceso.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB01](../../05_RECURSOS/LABORATORIOS/WAD-LAB01.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **PROC**: [Processes and Threads](https://learn.microsoft.com/en-us/windows/win32/procthread/processes-and-threads). Procesos, hilos y su ciclo de vida.\n- **F12**: [Process Explorer](https://learn.microsoft.com/en-us/sysinternals/downloads/process-explorer). Relación entre procesos, cuentas, handles y módulos.\n- **SVC**: [Services](https://learn.microsoft.com/en-us/windows/win32/services/services). Service Control Manager y ciclo de vida de los servicios.\n- **CIM**: [Get-CimInstance](https://learn.microsoft.com/en-us/powershell/module/cimcmdlets/get-ciminstance). Consulta de clases como Win32_Process.\n- **GETPROC**: [Get-Process](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-process). Consulta de los procesos en ejecución.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-02-L01-P01",
+    "prompt": "Un árbol de procesos muestra un proceso desconocido cuyo proceso padre ya no existe, y el PID del padre coincide con un proceso que terminó hace una hora. Explica por qué el PID del padre no identifica de forma fiable al creador y qué cuatro datos registrarías para describir el árbol con evidencia.",
+    "markdown": "## 4. Práctica individual\n\nUn árbol de procesos muestra un proceso desconocido cuyo proceso padre ya no existe, y el PID del padre coincide con un proceso que terminó hace una hora. Explica por qué el PID del padre no identifica de forma fiable al creador y qué **cuatro** datos registrarías para describir el árbol con evidencia.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber ejecutado ni analizado un host real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-02-L01-Q01",
+      "prompt": "¿Qué diferencia al modo usuario del modo kernel?",
+      "options": [
+        {
+          "id": "A",
+          "text": "En modo usuario se tiene acceso total al hardware y el kernel solo gestiona la red"
+        },
+        {
+          "id": "B",
+          "text": "El kernel ejecuta código con acceso privilegiado al hardware y el modo usuario solicita recursos mediante llamadas controladas"
+        },
+        {
+          "id": "C",
+          "text": "Son intercambiables según la edición de Windows instalada"
+        },
+        {
+          "id": "D",
+          "text": "El modo usuario solo existe en Windows Server"
+        }
+      ]
+    },
+    {
+      "id": "WAD-02-L01-Q02",
+      "prompt": "¿Qué demuestra que un proceso se llame `svchost.exe`?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que el binario es necesariamente legítimo"
+        },
+        {
+          "id": "B",
+          "text": "Que el sistema está correctamente parcheado"
+        },
+        {
+          "id": "C",
+          "text": "Que es un proceso anfitrión que puede hospedar varios servicios; el nombre por sí solo no prueba legitimidad ni intención"
+        },
+        {
+          "id": "D",
+          "text": "Que el proceso se ejecuta en modo kernel"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB01](../../05_RECURSOS/LABORATORIOS/WAD-LAB01.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **PROC**: [Processes and Threads](https://learn.microsoft.com/en-us/windows/win32/procthread/processes-and-threads). Procesos, hilos y su ciclo de vida.\n- **F12**: [Process Explorer](https://learn.microsoft.com/en-us/sysinternals/downloads/process-explorer). Relación entre procesos, cuentas, handles y módulos.\n- **SVC**: [Services](https://learn.microsoft.com/en-us/windows/win32/services/services). Service Control Manager y ciclo de vida de los servicios.\n- **CIM**: [Get-CimInstance](https://learn.microsoft.com/en-us/powershell/module/cimcmdlets/get-ciminstance). Consulta de clases como Win32_Process.\n- **GETPROC**: [Get-Process](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-process). Consulta de los procesos en ejecución.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "4417ddc30d0bc53ab9354f35"
+}

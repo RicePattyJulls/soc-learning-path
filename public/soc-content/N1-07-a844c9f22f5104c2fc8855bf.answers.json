@@ -1,0 +1,172 @@
+{
+  "schemaVersion": 1,
+  "courseId": "soc",
+  "id": "N1-07",
+  "sourceHash": "45276f9cf28948e773cd6f4ac0a5266e4bed456dc0b4d994ac29f71b21059a92",
+  "revision": "a844c9f22f5104c2fc8855bf",
+  "hipotesis": [
+    "Reverse shell: proceso local inicia conexión saliente al sistema controlado por otro actor y redirige entrada/salida de un intérprete de comandos.",
+    "Prueba de laboratorio o herramienta autorizada que casualmente emplea 4444.",
+    "Aplicación empresarial que escucha o conecta por un puerto propio no estándar.",
+    "Reconocimiento o prueba fallida: se ven SYN/denegaciones, no una sesión interactiva establecida.",
+    "Túnel o servicio C2 que utiliza 4444, pero sin shell interactiva demostrada."
+  ],
+  "pasos": [
+    {
+      "fase": "0. Verificar dirección y estado",
+      "accion": "Distinguir destino 4444 (saliente) de puerto local 4444 (escucha). Verificar `allowed/blocked`, conexión establecida frente a intentos y TCP frente a UDP."
+    },
+    {
+      "fase": "1. Identificar origen",
+      "accion": "Localizar hostname/IP real tras NAT, usuario, severidad del activo, hora y sesión de usuario. Si el evento es de proxy/firewall, correlacionar con endpoint."
+    },
+    {
+      "fase": "2. Correlacionar proceso",
+      "accion": "En Defender XDR buscar `DeviceNetworkEvents` con RemotePort=4444; recopilar `InitiatingProcessFileName`, PID, ruta, cmdline, padre y hash. El nombre `nc.exe` no prueba por sí solo ejecución maliciosa."
+    },
+    {
+      "fase": "3. Reconstruir árbol de ejecución",
+      "accion": "Buscar creación de proceso cerca de la conexión (por DeviceId, tiempo y PID/creation time), particularmente intérpretes `cmd.exe`, `powershell.exe`, `bash`, `sh`, o scripts inusuales iniciados por Office/web server; un shell interactivo puede estar vinculado a otro proceso."
+    },
+    {
+      "fase": "4. Identificar servicio remoto",
+      "accion": "Validar destino, dominio asociado, reputación, propietario, exposición y si está autorizado para pruebas. La IP sola no identifica intención ni contenido."
+    },
+    {
+      "fase": "5. Analizar comportamiento de sesión",
+      "accion": "Revisar duración, ida/vuelta de bytes y procesos posteriores. El flujo de datos bidireccional prolongado puede ser compatible con terminal remota, pero también con apps legítimas. Contenido TLS quizá no sea visible."
+    },
+    {
+      "fase": "6. Comparar con laboratorio y cambios",
+      "accion": "Consultar mantenimiento, operaciones de Red Team, aprobación de ejercicios y activos específicos, sin asumir que toda coincidencia es actividad de pruebas."
+    },
+    {
+      "fase": "7. Escalar cuando hay cadena sólida",
+      "accion": "Si conexión de equipo no autorizado + proceso sospechoso + actividad interactiva/ejecución anómala, escalar a IR. Contención aprobada desde EDR/firewall; preservar evidencias."
+    },
+    {
+      "fase": "8. Registrar certeza",
+      "accion": "Clasificar como benigno, sospechoso o confirmado según evidencia; detallar hechos e hipótesis pendientes."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "RemotePort vs LocalPort",
+      "lectura": "`RemotePort=4444` es destino TCP remoto; `LocalPort=4444` sería un servicio local/escucha. No confundir."
+    },
+    {
+      "dato": "Acción y handshake",
+      "lectura": "Un firewall que bloquea SYN no prueba que haya existido shell ni sesión establecida."
+    },
+    {
+      "dato": "InitiatingProcess* en MDE",
+      "lectura": "Atribuye originador y cmdline del proceso que inició la conexión."
+    },
+    {
+      "dato": "DeviceProcessEvents",
+      "lectura": "Proceso hijo/padre, hora y usuario; correlacionar por DeviceId + PID/instante evitando falsos enlaces cuando se reutiliza PID."
+    },
+    {
+      "dato": "Volumen/duración/dirección",
+      "lectura": "Compatible o incompatible con intercambio interactivo; no permite leer contenido cifrado."
+    },
+    {
+      "dato": "Autorización de pentest o job",
+      "lectura": "Permite diferenciar pruebas de seguridad aprobadas de actividad no autorizada."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Defender XDR: conexiones salientes al destino 4444",
+      "entorno": "Microsoft Defender XDR Advanced Hunting — DeviceNetworkEvents",
+      "consulta": "DeviceNetworkEvents\n| where Timestamp > ago(24h)\n| where RemotePort == 4444\n| project Timestamp, DeviceName, DeviceId, LocalIP, LocalPort,\n          RemoteIP, RemotePort, Protocol, ActionType,\n          InitiatingProcessFileName, InitiatingProcessId,\n          InitiatingProcessCreationTime, InitiatingProcessCommandLine,\n          InitiatingProcessParentFileName, InitiatingProcessAccountName\n| order by Timestamp desc",
+      "interpretacion": "Permite saber quién inicia una conexión a puerto remoto 4444 y qué proceso aparece asociado a ese evento.",
+      "limitaciones": "No captura todos los SYN del firewall ni prueba sesión establecida o reverse shell; `ActionType` debe interpretarse según el portal. Si el puerto 4444 es local, consulta `LocalPort` y otra perspectiva de red."
+    },
+    {
+      "nombre": "Defender XDR: procesos creados cerca del hallazgo",
+      "entorno": "Microsoft Defender XDR Advanced Hunting — DeviceProcessEvents; sustituir dispositivo y tiempo",
+      "consulta": "let Inicio = datetime(2026-10-18T02:50:00Z);\nlet Fin = datetime(2026-10-18T03:30:00Z);\nDeviceProcessEvents\n| where Timestamp between (Inicio .. Fin)\n| where DeviceName =~ \"PC-VENTAS-07\"\n| project Timestamp, DeviceName, AccountName, FileName,\n          ProcessCommandLine, ProcessId, ProcessCreationTime,\n          InitiatingProcessFileName, InitiatingProcessCommandLine,\n          InitiatingProcessId, SHA1\n| order by Timestamp asc",
+      "interpretacion": "Reconstruye ejecución antes y después del tráfico. Examina intérpretes, padres inusuales, scripts y herramientas autorizadas.",
+      "limitaciones": "Consulta temporal amplia; correlación estricta necesita DeviceId, PID y hora de creación. El filtro por hora/hostname no prueba relación causal."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk CIM: destino TCP/4444",
+      "entorno": "Splunk con CIM Network Traffic; adaptar origen e interpretación de acciones",
+      "consulta": "| tstats count as Eventos min(_time) as Primera max(_time) as Ultima\n    from datamodel=Network_Traffic.All_Traffic\n    where All_Traffic.dest_port=4444\n    by All_Traffic.src All_Traffic.dest All_Traffic.action All_Traffic.transport\n| rename All_Traffic.* AS *\n| convert ctime(Primera) ctime(Ultima)\n| sort - Eventos",
+      "interpretacion": "Resume equipos que se comunican hacia puerto 4444 y si el firewall permitió, bloqueó o registró el flujo.",
+      "limitaciones": "El campo transport puede no estar poblado o variar con el add-on; validar mapeo CIM. No equiparar `count` con sesiones únicas."
+    },
+    {
+      "nombre": "Splunk CIM: localizar nuevos destinos o equipos afectados",
+      "entorno": "Splunk con CIM Network Traffic",
+      "consulta": "| tstats count as Eventos dc(All_Traffic.src) as EquiposOrigen\n    from datamodel=Network_Traffic.All_Traffic\n    where All_Traffic.dest_port=4444\n    by All_Traffic.dest _time span=1h\n| rename All_Traffic.* AS *\n| where EquiposOrigen >= 2\n| sort - EquiposOrigen",
+      "interpretacion": "Busca concentraciones del mismo destino usadas por varias estaciones. Puede indicar infraestructura compartida o prueba autorizada.",
+      "limitaciones": "Un solo host infectado no aparecerá por el umbral `>=2`. Revisar también historial de un único activo."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Linux — conexiones activas",
+      "proposito": "Mostrar todas las conexiones con procesos y puertos numéricos.",
+      "comando": "sudo ss -tunap"
+    },
+    {
+      "entorno": "Linux — puerto remoto 4444",
+      "proposito": "Ver procesos locales asociados a conexiones TCP con puerto remoto 4444; lsof requiere permisos.",
+      "comando": "sudo lsof -nP -iTCP@198.51.100.77:4444"
+    },
+    {
+      "entorno": "Windows PowerShell — puerto remoto",
+      "proposito": "Localizar conexión y el PID responsable en Windows.",
+      "comando": "Get-NetTCPConnection -RemotePort 4444 -ErrorAction SilentlyContinue | Select-Object LocalAddress,LocalPort,RemoteAddress,RemotePort,State,OwningProcess"
+    },
+    {
+      "entorno": "Windows PowerShell — PID concreto",
+      "proposito": "Relacionar PID a proceso, verificando su vida útil; sustituir 1234.",
+      "comando": "Get-CimInstance Win32_Process -Filter \"ProcessId=1234\" | Select-Object ProcessId,ParentProcessId,Name,CommandLine,ExecutablePath"
+    }
+  ],
+  "contencion": "Si solo existe una conexión al puerto 4444 sin otras evidencias, se investiga y documenta, no se aísla masivamente. Si se prueba actividad interactiva no autorizada o proceso malicioso, elevar prioridad, solicitar aislamiento EDR, bloqueo de destino si procede, controles sobre cuentas y preservación. Bloquear 4444 no impide que C2 use 443 u otro puerto.",
+  "escalation": [
+    "Proceso no autorizado con comunicaciones permitidas y actividad sospechosa posterior.",
+    "Conexión desde equipo sensible más ejecución de shell/herramienta remota no esperada.",
+    "Evidencia de entrada/salida controlada, persistencia o robo de credenciales.",
+    "Destino repetido en varios endpoints sin justificación.",
+    "Confirmación de actividad fuera de la ventana de ejercicio autorizado."
+  ],
+  "falsos_positivos": [
+    "Laboratorio de pentest o pruebas Red Team aprobadas.",
+    "Aplicación propietaria en puerto no estándar.",
+    "Sondas de monitorización o pruebas de conectividad.",
+    "Intentos bloqueados sin establecimiento TCP."
+  ],
+  "errores": [
+    "Afirmar que 4444 siempre es Metasploit o una reverse shell.",
+    "Confundir puerto local con puerto remoto.",
+    "Tratar un SYN denegado como terminal interactiva activa.",
+    "Unir procesos por PID sin controlar reutilización y tiempo de creación.",
+    "Matar a ciegas un proceso o bloquear redes sin evaluar impacto."
+  ],
+  "perspectiva_red_team": "Una reverse shell requiere que la víctima origine una conexión y que exista redirección/interacción con un proceso de comandos. El puerto elegido es arbitrario: 4444 es frecuente en laboratorios, pero no constituye firma exclusiva; un atacante también puede utilizar 443. La defensa necesita correlación de proceso, eventos de ejecución y dirección del flujo. Si solo vemos el puerto, solo hay indicio de comunicación a un servicio no estándar, no una técnica confirmada.",
+  "respuesta_entrevista": "No confirmaría una reverse shell por ver TCP/4444. Primero revisaría si el destino o el puerto local es 4444, si el firewall permitió la conexión y su duración. Correlacionaría el evento con DeviceNetworkEvents para conocer el proceso iniciador y con DeviceProcessEvents para estudiar padres, hijos y comandos ejecutados. Consultaría cambios y ejercicios Red Team autorizados. Si la cadena evidencia una shell no autorizada o persistencia, escalaría a IR y solicitaría contención aprobada. En el informe distinguiría hechos, hipótesis y nivel de confianza.",
+  "criterios_evaluacion": [
+    "No confunde puertos con pruebas de TTP.",
+    "Distingue LocalPort/RemotePort, allow/block y estado real.",
+    "Hace correlación proceso/red/tiempo.",
+    "Incluye control de falsos positivos del Red Team autorizado.",
+    "Considera contención y evidencia con criterio de impacto."
+  ],
+  "mitre": [
+    "T1571",
+    "T1071.001"
+  ],
+  "fuentes": [
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-devicenetworkevents-table",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-deviceprocessevents-table",
+    "https://help.splunk.com/en/splunk-cloud-platform/common-information-model/6.1/data-models/network-traffic",
+    "https://attack.mitre.org/techniques/T1571/"
+  ]
+}

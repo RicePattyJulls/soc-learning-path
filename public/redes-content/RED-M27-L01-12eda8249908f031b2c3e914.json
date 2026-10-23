@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M27-L01",
+  "title": "5-tupla y plantillas IPFIX",
+  "sourceHash": "ddbefa2583fae28a2c444935eae9645d06970db0e3198fc7f09d2c4bfd05afa0",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M27-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nInterpretar un flujo y sus requisitos de plantilla.\n\nPrerrequisitos: [RED-M17-L04](../RED-E03/RED-M17-L04.md), [RED-M21-L04](../RED-E04/RED-M21-L04.md), [RED-M26-L04](../RED-E05/RED-M26-L04.md).\n\n## 2. Comprende el mecanismo\n\nLa 5-tupla combina IP origen/destino, puertos origen/destino y protocolo de transporte cuando son aplicables. Un registro de flujo resume observaciones y no equivale a una sesión de aplicación completa. En IPFIX las plantillas describen campos; el colector debe interpretarlas en el contexto del exportador y dominio de observación. Recibir datos sin la plantilla adecuada puede impedir decodificar correctamente. Contadores y tiempos representan lo observado según expiración, muestreo y política, no el contenido de todos los paquetes.\n\n### Vocabulario de apoyo\n\n- **IPFIX y plantilla**: Exportación de información de flujos y esquema de campos válido en un contexto de observación.\n- **IDS, IPS y NDR**: Detección, prevención y análisis de comportamientos de red, con funciones dependientes del despliegue.\n- **Muestreo**: Selección de parte de las observaciones; requiere declarar método y límites de estimación.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M27-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Registro sintético: TCP 192.0.2.10:51000→198.51.100.20:443, bytes=2000; collector no tiene plantilla T256 del exportador A.\n\nLa tupla docente es interpretable porque se declara explícitamente aquí; un bloque IPFIX real sin su plantilla no debe decodificarse adivinando offsets.\n\n"
+    },
+    {
+      "id": "RED-M27-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Construir evidencia multi-sensor.\n- Red Team autorizado: Probar alerta bajo tráfico controlado.\n- Evidencia del módulo: Tabla de eventos, sesgos y corroboración necesaria.\n- Criterio del módulo: No confunde una alerta con incidente probado.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L14](../../05_RECURSOS/LABORATORIOS/RED-L14.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC7011**: [RFC 7011: IP Flow Information Export Protocol](https://www.rfc-editor.org/rfc/rfc7011.html). Plantillas, dominios de observación y exportación de flujos.\n- **ZEEK-CONN**: [conn.log](https://docs.zeek.org/en/current/reference/logs/conn.html). Registros de conexión y límites; los fixtures del curso usan otro esquema declarado.\n- **SURICATA**: [EVE JSON Output](https://docs.suricata.io/en/latest/output/eve/eve-json-output.html). Tipos de evento y acciones; documentación latest consultada, no imagen elegida para ejecutar.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M27-L01-P01",
+    "prompt": "Dos exportadores usan template ID 256 con campos diferentes. ¿Qué clave de contexto conservarías?",
+    "markdown": "## 4. Práctica individual\n\nDos exportadores usan template ID 256 con campos diferentes. ¿Qué clave de contexto conservarías?\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M27-L01-Q01",
+      "prompt": "¿Qué no contiene necesariamente un flujo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Un período de observación"
+        },
+        {
+          "id": "B",
+          "text": "Direcciones observadas"
+        },
+        {
+          "id": "C",
+          "text": "Contadores según el exportador"
+        },
+        {
+          "id": "D",
+          "text": "El payload completo de los paquetes"
+        }
+      ]
+    },
+    {
+      "id": "RED-M27-L01-Q02",
+      "prompt": "¿Por qué no basta template ID 256?",
+      "options": [
+        {
+          "id": "A",
+          "text": "IPFIX no tiene campos"
+        },
+        {
+          "id": "B",
+          "text": "Su significado depende del contexto del exportador y observación"
+        },
+        {
+          "id": "C",
+          "text": "El puerto 256 autentica al colector"
+        },
+        {
+          "id": "D",
+          "text": "Todas las plantillas siempre son idénticas"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L14](../../05_RECURSOS/LABORATORIOS/RED-L14.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC7011**: [RFC 7011: IP Flow Information Export Protocol](https://www.rfc-editor.org/rfc/rfc7011.html). Plantillas, dominios de observación y exportación de flujos.\n- **ZEEK-CONN**: [conn.log](https://docs.zeek.org/en/current/reference/logs/conn.html). Registros de conexión y límites; los fixtures del curso usan otro esquema declarado.\n- **SURICATA**: [EVE JSON Output](https://docs.suricata.io/en/latest/output/eve/eve-json-output.html). Tipos de evento y acciones; documentación latest consultada, no imagen elegida para ejecutar.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "12eda8249908f031b2c3e914"
+}

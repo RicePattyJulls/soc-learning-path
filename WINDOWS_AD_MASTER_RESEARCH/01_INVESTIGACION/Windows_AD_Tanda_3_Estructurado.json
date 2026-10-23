@@ -1,0 +1,1462 @@
+{
+  "schema_version": "3.0",
+  "tipo": "investigacion_documental_y_diseno_curricular",
+  "titulo": "Windows + Active Directory — Tanda 3: Red Team autorizado + SOC nativo",
+  "idioma": "es",
+  "fecha_corte": "2026-10-18",
+  "tanda": 3,
+  "total_tandas_previstas": 4,
+  "fuente_requisitos": "adwin(1).txt",
+  "documentos_previos": [
+    "Windows_AD_Tanda_1_Investigacion.md",
+    "Windows_AD_Tanda_2_Investigacion.md"
+  ],
+  "investigacion_documental": true,
+  "laboratorios_ejecutados": false,
+  "validacion_empirica": false,
+  "auditoria_155_apuntes": false,
+  "siem_duplicado": false,
+  "alcance": [
+    "Red Team autorizado: reconocimiento, permisos, rutas a privilegio, delegación, certificados, movimiento lateral conceptual, retest",
+    "SOC: Windows/AD audit policy, eventos de origen, Sysmon, PowerShell Logging, WEF, preservación e investigación"
+  ],
+  "exclusiones": [
+    "Explotación de objetivos reales",
+    "Extracción de credenciales reales",
+    "Automatización de movimiento lateral en terceros",
+    "Evasión o persistencia sin permiso",
+    "Desarrollo de KQL/SPL/reglas de SIEM",
+    "Cambio/instalación de software en el equipo del usuario"
+  ],
+  "sistemas_referencia": [
+    "Windows Server 2025",
+    "Windows 11",
+    "Windows PowerShell 5.1",
+    "PowerShell 7.x",
+    "Sysmon v15.22 (documentación 2026-09-10)"
+  ],
+  "nivel_certeza": [
+    "inventario",
+    "indicio",
+    "condicion_explotable_demostrada",
+    "acceso_validado_en_laboratorio",
+    "impacto_confirmado"
+  ],
+  "modelo_roe": {
+    "elementos": [
+      "autorización escrita",
+      "scope_id",
+      "hosts y cuentas sintéticas",
+      "ventana",
+      "límites",
+      "condición de parada",
+      "evidencias y privacidad",
+      "snapshot/backup",
+      "rollback y retest"
+    ],
+    "niveles": [
+      "N0 lectura offline",
+      "N1 consultas solo lectura lab",
+      "N2 verificación no invasiva",
+      "N3 cambios reversibles en señuelo",
+      "N4 emulación sensible sólo entorno desechable y autorización ampliada"
+    ]
+  },
+  "laboratorios": [
+    {
+      "id": "RT-L01",
+      "objetivo": "Definir ROE, inventario y grafo de alcance",
+      "evidencia_minima": "Scope + hostlist + plan de parada",
+      "criterio_aprobacion": "100% activos dentro de alcance",
+      "riesgo_y_control": "Solo docs",
+      "estado": "diseñado_no_ejecutado",
+      "escenario": "dominio_lab_aislado",
+      "recursos_costos": "pendiente_verificacion",
+      "prueba_positiva": true,
+      "prueba_negativa": true,
+      "restauracion_obligatoria": true,
+      "fuentes_ids": [
+        "R01",
+        "R02",
+        "R20"
+      ]
+    },
+    {
+      "id": "RT-L02",
+      "objetivo": "Inventario seguro AD de OU sintética",
+      "evidencia_minima": "Objetos/grupos/SPN con datos falsos",
+      "criterio_aprobacion": "Resultados trazables, sin credenciales",
+      "riesgo_y_control": "N1, bajo volumen",
+      "estado": "diseñado_no_ejecutado",
+      "escenario": "dominio_lab_aislado",
+      "recursos_costos": "pendiente_verificacion",
+      "prueba_positiva": true,
+      "prueba_negativa": true,
+      "restauracion_obligatoria": true,
+      "fuentes_ids": [
+        "R01",
+        "R02",
+        "R20"
+      ]
+    },
+    {
+      "id": "RT-L03",
+      "objetivo": "Auditoría de ACL y propietario sobre señuelos",
+      "evidencia_minima": "DACL heredada/explicación de derecho",
+      "criterio_aprobacion": "Distinguir `Read` de `WriteDacl`",
+      "riesgo_y_control": "N1/2",
+      "estado": "diseñado_no_ejecutado",
+      "escenario": "dominio_lab_aislado",
+      "recursos_costos": "pendiente_verificacion",
+      "prueba_positiva": true,
+      "prueba_negativa": true,
+      "restauracion_obligatoria": true,
+      "fuentes_ids": [
+        "R01",
+        "R02",
+        "R20"
+      ]
+    },
+    {
+      "id": "RT-L04",
+      "objetivo": "Cuenta de servicio con privilegios excesivos",
+      "evidencia_minima": "Comparación antes/después",
+      "criterio_aprobacion": "Servicio funcional y menos derechos",
+      "riesgo_y_control": "Datos sintéticos",
+      "estado": "diseñado_no_ejecutado",
+      "escenario": "dominio_lab_aislado",
+      "recursos_costos": "pendiente_verificacion",
+      "prueba_positiva": true,
+      "prueba_negativa": true,
+      "restauracion_obligatoria": true,
+      "fuentes_ids": [
+        "R01",
+        "R02",
+        "R20"
+      ]
+    },
+    {
+      "id": "RT-L05",
+      "objetivo": "Validación GPO de mensaje inocuo",
+      "evidencia_minima": "Backup GPO, gpresult, logs, rollback",
+      "criterio_aprobacion": "Cambios solo en OU de prueba",
+      "riesgo_y_control": "N3, snapshot",
+      "estado": "diseñado_no_ejecutado",
+      "escenario": "dominio_lab_aislado",
+      "recursos_costos": "pendiente_verificacion",
+      "prueba_positiva": true,
+      "prueba_negativa": true,
+      "restauracion_obligatoria": true,
+      "fuentes_ids": [
+        "R01",
+        "R02",
+        "R20"
+      ]
+    },
+    {
+      "id": "RT-L06",
+      "objetivo": "Revisión de delegación/trust",
+      "evidencia_minima": "Matriz de riesgos sin explotación",
+      "criterio_aprobacion": "Preconditions documentadas",
+      "riesgo_y_control": "N1/2",
+      "estado": "diseñado_no_ejecutado",
+      "escenario": "dominio_lab_aislado",
+      "recursos_costos": "pendiente_verificacion",
+      "prueba_positiva": true,
+      "prueba_negativa": true,
+      "restauracion_obligatoria": true,
+      "fuentes_ids": [
+        "R01",
+        "R02",
+        "R20"
+      ]
+    },
+    {
+      "id": "SOC-L01",
+      "objetivo": "4624, 4625, 4672 entre hosts del lab",
+      "evidencia_minima": "EVTX + cronología correlacionada",
+      "criterio_aprobacion": "Identificar origen/destino sin confundirlos",
+      "riesgo_y_control": "Datos sintéticos",
+      "estado": "diseñado_no_ejecutado",
+      "escenario": "dominio_lab_aislado",
+      "recursos_costos": "pendiente_verificacion",
+      "prueba_positiva": true,
+      "prueba_negativa": true,
+      "restauracion_obligatoria": true,
+      "fuentes_ids": [
+        "R01",
+        "R03",
+        "R18"
+      ]
+    },
+    {
+      "id": "SOC-L02",
+      "objetivo": "4688 + línea de comandos sensible",
+      "evidencia_minima": "Política antes/después + 4688 sin secreto",
+      "criterio_aprobacion": "Explicar prerequisito y privacidad",
+      "riesgo_y_control": "No usar secretos",
+      "estado": "diseñado_no_ejecutado",
+      "escenario": "dominio_lab_aislado",
+      "recursos_costos": "pendiente_verificacion",
+      "prueba_positiva": true,
+      "prueba_negativa": true,
+      "restauracion_obligatoria": true,
+      "fuentes_ids": [
+        "R01",
+        "R03",
+        "R18"
+      ]
+    },
+    {
+      "id": "SOC-L03",
+      "objetivo": "4768/4769 de autenticación legítima",
+      "evidencia_minima": "Ticket/DC/servicio + baseline",
+      "criterio_aprobacion": "Rechazar falso positivo de Kerberoasting",
+      "riesgo_y_control": "Sin cracking",
+      "estado": "diseñado_no_ejecutado",
+      "escenario": "dominio_lab_aislado",
+      "recursos_costos": "pendiente_verificacion",
+      "prueba_positiva": true,
+      "prueba_negativa": true,
+      "restauracion_obligatoria": true,
+      "fuentes_ids": [
+        "R01",
+        "R03",
+        "R18"
+      ]
+    },
+    {
+      "id": "SOC-L04",
+      "objetivo": "5136/4662 con SACL focalizada",
+      "evidencia_minima": "GPO auditoría + SACL + eventos",
+      "criterio_aprobacion": "Demostrar cuándo NO se genera",
+      "riesgo_y_control": "N3 reversible",
+      "estado": "diseñado_no_ejecutado",
+      "escenario": "dominio_lab_aislado",
+      "recursos_costos": "pendiente_verificacion",
+      "prueba_positiva": true,
+      "prueba_negativa": true,
+      "restauracion_obligatoria": true,
+      "fuentes_ids": [
+        "R01",
+        "R03",
+        "R18"
+      ]
+    },
+    {
+      "id": "SOC-L05",
+      "objetivo": "Sysmon: proceso, DNS y archivo señuelo",
+      "evidencia_minima": "Event IDs 1/11/22 si configurados",
+      "criterio_aprobacion": "Verificar filtros y fuentes",
+      "riesgo_y_control": "Instalar solo tras autorización futura",
+      "estado": "diseñado_no_ejecutado",
+      "escenario": "dominio_lab_aislado",
+      "recursos_costos": "pendiente_verificacion",
+      "prueba_positiva": true,
+      "prueba_negativa": true,
+      "restauracion_obligatoria": true,
+      "fuentes_ids": [
+        "R01",
+        "R03",
+        "R18"
+      ]
+    },
+    {
+      "id": "SOC-L06",
+      "objetivo": "PowerShell 5.1/7 logging comparativo",
+      "evidencia_minima": "Logs de acciones de solo lectura",
+      "criterio_aprobacion": "Distinguir canales y campos",
+      "riesgo_y_control": "Contenido inocuo",
+      "estado": "diseñado_no_ejecutado",
+      "escenario": "dominio_lab_aislado",
+      "recursos_costos": "pendiente_verificacion",
+      "prueba_positiva": true,
+      "prueba_negativa": true,
+      "restauracion_obligatoria": true,
+      "fuentes_ids": [
+        "R01",
+        "R03",
+        "R18"
+      ]
+    },
+    {
+      "id": "SOC-L07",
+      "objetivo": "WEF ida/vuelta de evento sintético",
+      "evidencia_minima": "Evento origen y `ForwardedEvents`",
+      "criterio_aprobacion": "Coincidencia de host/ID y latencia",
+      "riesgo_y_control": "Red privada",
+      "estado": "diseñado_no_ejecutado",
+      "escenario": "dominio_lab_aislado",
+      "recursos_costos": "pendiente_verificacion",
+      "prueba_positiva": true,
+      "prueba_negativa": true,
+      "restauracion_obligatoria": true,
+      "fuentes_ids": [
+        "R01",
+        "R03",
+        "R18"
+      ]
+    },
+    {
+      "id": "SOC-L08",
+      "objetivo": "Control de alta/baja de grupo sintético",
+      "evidencia_minima": "Eventos 4728/4732/4756 pertinentes",
+      "criterio_aprobacion": "Identificar tipo real de grupo",
+      "riesgo_y_control": "Rollback",
+      "estado": "diseñado_no_ejecutado",
+      "escenario": "dominio_lab_aislado",
+      "recursos_costos": "pendiente_verificacion",
+      "prueba_positiva": true,
+      "prueba_negativa": true,
+      "restauracion_obligatoria": true,
+      "fuentes_ids": [
+        "R01",
+        "R03",
+        "R18"
+      ]
+    },
+    {
+      "id": "PT-L01",
+      "objetivo": "Simulación coordinada GPO + SOC",
+      "evidencia_minima": "ROE, acción, logs, corrección y retest",
+      "criterio_aprobacion": "Prueba positiva y negativa",
+      "riesgo_y_control": "N3 exclusivamente lab",
+      "estado": "diseñado_no_ejecutado",
+      "escenario": "dominio_lab_aislado",
+      "recursos_costos": "pendiente_verificacion",
+      "prueba_positiva": true,
+      "prueba_negativa": true,
+      "restauracion_obligatoria": true,
+      "fuentes_ids": [
+        "R01",
+        "R02",
+        "R20"
+      ]
+    },
+    {
+      "id": "PT-L02",
+      "objetivo": "Auditoría de CA/solicitud ficticia",
+      "evidencia_minima": "4886–4888 + permisos + rollback",
+      "criterio_aprobacion": "Emisión solo para sujeto permitido",
+      "riesgo_y_control": "CA opcional, coste pendiente",
+      "estado": "diseñado_no_ejecutado",
+      "escenario": "dominio_lab_aislado",
+      "recursos_costos": "pendiente_verificacion",
+      "prueba_positiva": true,
+      "prueba_negativa": true,
+      "restauracion_obligatoria": true,
+      "fuentes_ids": [
+        "R01",
+        "R02",
+        "R20"
+      ]
+    }
+  ],
+  "etapas_provisionales": [
+    {
+      "id": "RT-01",
+      "titulo": "ROE, límites y reporte",
+      "prerrequisitos_texto": "WIN básico, AD básico",
+      "resultado_dominio": "ROE y hallazgo trazable",
+      "laboratorios_ids": [
+        "RT-L01"
+      ],
+      "dificultad": "a_concretar_en_tanda4",
+      "tiempo_est_horas": null,
+      "estado": "propuesto",
+      "evaluacion": {
+        "criterio_dominio": "ROE y hallazgo trazable",
+        "evidencia_obligatoria": true,
+        "prueba_negativa_recomendada": true
+      }
+    },
+    {
+      "id": "RT-02",
+      "titulo": "Descubrimiento autorizado de identidad",
+      "prerrequisitos_texto": "AD arquitectura/LDAP/grupos",
+      "resultado_dominio": "Inventario y aristas de grafo",
+      "laboratorios_ids": [
+        "RT-L02"
+      ],
+      "dificultad": "a_concretar_en_tanda4",
+      "tiempo_est_horas": null,
+      "estado": "propuesto",
+      "evaluacion": {
+        "criterio_dominio": "Inventario y aristas de grafo",
+        "evidencia_obligatoria": true,
+        "prueba_negativa_recomendada": true
+      }
+    },
+    {
+      "id": "RT-03",
+      "titulo": "Permisos efectivos y caminos de control",
+      "prerrequisitos_texto": "AD ACL/GPO/Tier0",
+      "resultado_dominio": "Describir prerequisito y riesgo sin exagerar",
+      "laboratorios_ids": [
+        "RT-L03",
+        "RT-L05"
+      ],
+      "dificultad": "a_concretar_en_tanda4",
+      "tiempo_est_horas": null,
+      "estado": "propuesto",
+      "evaluacion": {
+        "criterio_dominio": "Describir prerequisito y riesgo sin exagerar",
+        "evidencia_obligatoria": true,
+        "prueba_negativa_recomendada": true
+      }
+    },
+    {
+      "id": "RT-04",
+      "titulo": "Exposición Kerberos/NTLM y servicios",
+      "prerrequisitos_texto": "AD Kerberos/NTLM/SPN",
+      "resultado_dominio": "Identificar postura y controles",
+      "laboratorios_ids": [
+        "RT-L04",
+        "SOC-L03"
+      ],
+      "dificultad": "a_concretar_en_tanda4",
+      "tiempo_est_horas": null,
+      "estado": "propuesto",
+      "evaluacion": {
+        "criterio_dominio": "Identificar postura y controles",
+        "evidencia_obligatoria": true,
+        "prueba_negativa_recomendada": true
+      }
+    },
+    {
+      "id": "RT-05",
+      "titulo": "Delegaciones, trusts y cuentas sensibles",
+      "prerrequisitos_texto": "AD delegación/trust/Tier0",
+      "resultado_dominio": "Matriz de condiciones y alcance",
+      "laboratorios_ids": [
+        "RT-L06"
+      ],
+      "dificultad": "a_concretar_en_tanda4",
+      "tiempo_est_horas": null,
+      "estado": "propuesto",
+      "evaluacion": {
+        "criterio_dominio": "Matriz de condiciones y alcance",
+        "evidencia_obligatoria": true,
+        "prueba_negativa_recomendada": true
+      }
+    },
+    {
+      "id": "RT-06",
+      "titulo": "AD CS desde evaluación segura",
+      "prerrequisitos_texto": "AD AD CS/PKI",
+      "resultado_dominio": "Auditar CA/plantilla con identidades ficticias",
+      "laboratorios_ids": [
+        "PT-L02"
+      ],
+      "dificultad": "a_concretar_en_tanda4",
+      "tiempo_est_horas": null,
+      "estado": "propuesto",
+      "evaluacion": {
+        "criterio_dominio": "Auditar CA/plantilla con identidades ficticias",
+        "evidencia_obligatoria": true,
+        "prueba_negativa_recomendada": true
+      }
+    },
+    {
+      "id": "RT-07",
+      "titulo": "Movimiento remoto y control operacional",
+      "prerrequisitos_texto": "WIN red/servicios, AD auth",
+      "resultado_dominio": "Mapa de permisos y restricciones",
+      "laboratorios_ids": [
+        "SOC-L01",
+        "PT-L01"
+      ],
+      "dificultad": "a_concretar_en_tanda4",
+      "tiempo_est_horas": null,
+      "estado": "propuesto",
+      "evaluacion": {
+        "criterio_dominio": "Mapa de permisos y restricciones",
+        "evidencia_obligatoria": true,
+        "prueba_negativa_recomendada": true
+      }
+    },
+    {
+      "id": "RT-08",
+      "titulo": "Evidencia, remediación, retest",
+      "prerrequisitos_texto": "RT-01 a RT-07",
+      "resultado_dominio": "Informe con prueba negativa y positiva",
+      "laboratorios_ids": [
+        "PT-L01"
+      ],
+      "dificultad": "a_concretar_en_tanda4",
+      "tiempo_est_horas": null,
+      "estado": "propuesto",
+      "evaluacion": {
+        "criterio_dominio": "Informe con prueba negativa y positiva",
+        "evidencia_obligatoria": true,
+        "prueba_negativa_recomendada": true
+      }
+    },
+    {
+      "id": "SOC-01",
+      "titulo": "Dónde nace la evidencia Windows/AD",
+      "prerrequisitos_texto": "WIN procesos/eventos, AD roles",
+      "resultado_dominio": "Matriz canal/host/condición",
+      "laboratorios_ids": [
+        "SOC-L01"
+      ],
+      "dificultad": "a_concretar_en_tanda4",
+      "tiempo_est_horas": null,
+      "estado": "propuesto",
+      "evaluacion": {
+        "criterio_dominio": "Matriz canal/host/condición",
+        "evidencia_obligatoria": true,
+        "prueba_negativa_recomendada": true
+      }
+    },
+    {
+      "id": "SOC-02",
+      "titulo": "Auditoría avanzada y SACL",
+      "prerrequisitos_texto": "SOC-01, AD ACL",
+      "resultado_dominio": "Demostrar cobertura y ausencia explicable",
+      "laboratorios_ids": [
+        "SOC-L04"
+      ],
+      "dificultad": "a_concretar_en_tanda4",
+      "tiempo_est_horas": null,
+      "estado": "propuesto",
+      "evaluacion": {
+        "criterio_dominio": "Demostrar cobertura y ausencia explicable",
+        "evidencia_obligatoria": true,
+        "prueba_negativa_recomendada": true
+      }
+    },
+    {
+      "id": "SOC-03",
+      "titulo": "Identidades y autenticación Windows/AD",
+      "prerrequisitos_texto": "SOC-01, AD Kerberos/NTLM",
+      "resultado_dominio": "Trazar 4624↔4769 con límites",
+      "laboratorios_ids": [
+        "SOC-L01",
+        "SOC-L03"
+      ],
+      "dificultad": "a_concretar_en_tanda4",
+      "tiempo_est_horas": null,
+      "estado": "propuesto",
+      "evaluacion": {
+        "criterio_dominio": "Trazar 4624↔4769 con límites",
+        "evidencia_obligatoria": true,
+        "prueba_negativa_recomendada": true
+      }
+    },
+    {
+      "id": "SOC-04",
+      "titulo": "Procesos, PowerShell y persistencia administrativa",
+      "prerrequisitos_texto": "SOC-01, WIN servicios/PowerShell",
+      "resultado_dominio": "Comparar 4688/4104/Sysmon",
+      "laboratorios_ids": [
+        "SOC-L02",
+        "SOC-L06"
+      ],
+      "dificultad": "a_concretar_en_tanda4",
+      "tiempo_est_horas": null,
+      "estado": "propuesto",
+      "evaluacion": {
+        "criterio_dominio": "Comparar 4688/4104/Sysmon",
+        "evidencia_obligatoria": true,
+        "prueba_negativa_recomendada": true
+      }
+    },
+    {
+      "id": "SOC-05",
+      "titulo": "Sysmon y validación de sensor",
+      "prerrequisitos_texto": "SOC-04",
+      "resultado_dominio": "Determinar eventos activados/filtrados",
+      "laboratorios_ids": [
+        "SOC-L05"
+      ],
+      "dificultad": "a_concretar_en_tanda4",
+      "tiempo_est_horas": null,
+      "estado": "propuesto",
+      "evaluacion": {
+        "criterio_dominio": "Determinar eventos activados/filtrados",
+        "evidencia_obligatoria": true,
+        "prueba_negativa_recomendada": true
+      }
+    },
+    {
+      "id": "SOC-06",
+      "titulo": "WEF, UTC, retención y preservación",
+      "prerrequisitos_texto": "SOC-01, WIN red",
+      "resultado_dominio": "Export controlado y prueba extremo a extremo",
+      "laboratorios_ids": [
+        "SOC-L07"
+      ],
+      "dificultad": "a_concretar_en_tanda4",
+      "tiempo_est_horas": null,
+      "estado": "propuesto",
+      "evaluacion": {
+        "criterio_dominio": "Export controlado y prueba extremo a extremo",
+        "evidencia_obligatoria": true,
+        "prueba_negativa_recomendada": true
+      }
+    },
+    {
+      "id": "SOC-07",
+      "titulo": "Detección contextual y falsos positivos",
+      "prerrequisitos_texto": "SOC-02 a SOC-06",
+      "resultado_dominio": "Resolver 8 hipótesis con confianza graduada",
+      "laboratorios_ids": [
+        "SOC-L08"
+      ],
+      "dificultad": "a_concretar_en_tanda4",
+      "tiempo_est_horas": null,
+      "estado": "propuesto",
+      "evaluacion": {
+        "criterio_dominio": "Resolver 8 hipótesis con confianza graduada",
+        "evidencia_obligatoria": true,
+        "prueba_negativa_recomendada": true
+      }
+    },
+    {
+      "id": "SOC-08",
+      "titulo": "Coordinación respuesta y Purple Team",
+      "prerrequisitos_texto": "RT-08, SOC-07",
+      "resultado_dominio": "Causa, contención proporcional, remediación y retest",
+      "laboratorios_ids": [
+        "PT-L01",
+        "PT-L02"
+      ],
+      "dificultad": "a_concretar_en_tanda4",
+      "tiempo_est_horas": null,
+      "estado": "propuesto",
+      "evaluacion": {
+        "criterio_dominio": "Causa, contención proporcional, remediación y retest",
+        "evidencia_obligatoria": true,
+        "prueba_negativa_recomendada": true
+      }
+    }
+  ],
+  "matriz_eventos": [
+    {
+      "evento_id": "4624",
+      "fuente_canal": "Destino / Security",
+      "evidencia": "Sesión de logon exitosa, tipo y autenticación",
+      "prerrequisito_y_limite": "No identifica solo uso malicioso"
+    },
+    {
+      "evento_id": "4625",
+      "fuente_canal": "Destino / Security",
+      "evidencia": "Logon fallido",
+      "prerrequisito_y_limite": "Puede ser error normal/servicio"
+    },
+    {
+      "evento_id": "4648",
+      "fuente_canal": "Host que usa credenciales explícitas / Security",
+      "evidencia": "Intento de logon con credenciales explícitas",
+      "prerrequisito_y_limite": "No equivale a robo ni éxito remoto"
+    },
+    {
+      "evento_id": "4672",
+      "fuente_canal": "Host de logon / Security",
+      "evidencia": "Privilegios especiales asignados",
+      "prerrequisito_y_limite": "SYSTEM y admins legítimos generan ruido"
+    },
+    {
+      "evento_id": "4688",
+      "fuente_canal": "Equipo que ejecuta / Security",
+      "evidencia": "Nuevo proceso",
+      "prerrequisito_y_limite": "Command line vacía sin política adicional"
+    },
+    {
+      "evento_id": "4689",
+      "fuente_canal": "Equipo que ejecuta / Security",
+      "evidencia": "Terminación de proceso",
+      "prerrequisito_y_limite": "Subcategoría y actividad condicionan volumen"
+    },
+    {
+      "evento_id": "4697",
+      "fuente_canal": "Equipo destino / Security",
+      "evidencia": "Instalación de servicio",
+      "prerrequisito_y_limite": "Depende de Audit Security System Extension"
+    },
+    {
+      "evento_id": "7045",
+      "fuente_canal": "Equipo destino / System",
+      "evidencia": "Servicio instalado",
+      "prerrequisito_y_limite": "SCM; contexto y autor requieren otros eventos"
+    },
+    {
+      "evento_id": "4698/4702",
+      "fuente_canal": "Equipo destino / Security",
+      "evidencia": "Tarea creada/actualizada",
+      "prerrequisito_y_limite": "Requiere auditoría/cobertura relevante"
+    },
+    {
+      "evento_id": "4768",
+      "fuente_canal": "KDC/DC / Security",
+      "evidencia": "TGT solicitado",
+      "prerrequisito_y_limite": "No equivale a AS-REP roasting"
+    },
+    {
+      "evento_id": "4771",
+      "fuente_canal": "KDC/DC / Security",
+      "evidencia": "Preautenticación Kerberos fallida",
+      "prerrequisito_y_limite": "Errores de contraseña/tiempo habituales"
+    },
+    {
+      "evento_id": "4769",
+      "fuente_canal": "KDC/DC / Security",
+      "evidencia": "TGS solicitado",
+      "prerrequisito_y_limite": "No equivale a Kerberoasting"
+    },
+    {
+      "evento_id": "4770",
+      "fuente_canal": "KDC/DC / Security",
+      "evidencia": "TGS renovado",
+      "prerrequisito_y_limite": "Depende de auditoría"
+    },
+    {
+      "evento_id": "4776",
+      "fuente_canal": "Equipo que valida credenciales NTLM, típicamente DC para cuentas de dominio / Security",
+      "evidencia": "Validación NTLM",
+      "prerrequisito_y_limite": "No identifica por sí solo al servicio de destino"
+    },
+    {
+      "evento_id": "4720/4726",
+      "fuente_canal": "DC / Security",
+      "evidencia": "Usuario dominio creado/eliminado",
+      "prerrequisito_y_limite": "Corrección de identidad y autorización requerida"
+    },
+    {
+      "evento_id": "4722/4725",
+      "fuente_canal": "DC / Security",
+      "evidencia": "Cuenta habilitada/deshabilitada",
+      "prerrequisito_y_limite": "Procesos legítimos de IAM"
+    },
+    {
+      "evento_id": "4728/4729",
+      "fuente_canal": "DC / Security",
+      "evidencia": "Cambio de miembro grupo global",
+      "prerrequisito_y_limite": "Grupos de otros alcances tienen IDs diferentes"
+    },
+    {
+      "evento_id": "4732/4733",
+      "fuente_canal": "Equipo apropiado / Security",
+      "evidencia": "Cambio de miembro grupo local/domain-local",
+      "prerrequisito_y_limite": "Contextualizar grupo y host/DC"
+    },
+    {
+      "evento_id": "4756/4757",
+      "fuente_canal": "DC / Security",
+      "evidencia": "Cambio de miembro grupo universal",
+      "prerrequisito_y_limite": "Depende de política de gestión de grupos"
+    },
+    {
+      "evento_id": "4742",
+      "fuente_canal": "DC / Security",
+      "evidencia": "Cambio de cuenta de equipo",
+      "prerrequisito_y_limite": "Puede ser automatización normal"
+    },
+    {
+      "evento_id": "4739",
+      "fuente_canal": "DC / Security",
+      "evidencia": "Cambio de política de dominio",
+      "prerrequisito_y_limite": "Contextualizar política, autor y change ticket"
+    },
+    {
+      "evento_id": "5136",
+      "fuente_canal": "DC / Security",
+      "evidencia": "Modificación objeto AD",
+      "prerrequisito_y_limite": "Requiere Advanced Audit Directory Service Changes + SACL aplicable"
+    },
+    {
+      "evento_id": "5137/5139/5141",
+      "fuente_canal": "DC / Security",
+      "evidencia": "Crear/mover/borrar objeto AD",
+      "prerrequisito_y_limite": "SACL y subcategoría; no cubre todos los detalles"
+    },
+    {
+      "evento_id": "4662",
+      "fuente_canal": "DC / Security",
+      "evidencia": "Operación sobre objeto AD",
+      "prerrequisito_y_limite": "Requiere SACL + Audit Directory Service Access; gran volumen"
+    },
+    {
+      "evento_id": "5140/5145",
+      "fuente_canal": "Servidor de recursos / Security",
+      "evidencia": "Acceso/chequeo detallado a recurso compartido",
+      "prerrequisito_y_limite": "Subcategorías distintas, configuraciones y ruido"
+    },
+    {
+      "evento_id": "4719",
+      "fuente_canal": "Host / Security",
+      "evidencia": "Cambios de política de auditoría",
+      "prerrequisito_y_limite": "No indica por sí solo intención maliciosa"
+    },
+    {
+      "evento_id": "1102",
+      "fuente_canal": "Host / Security",
+      "evidencia": "Borrado del registro Security",
+      "prerrequisito_y_limite": "Requiere investigar causa; pérdida de evidencia"
+    },
+    {
+      "evento_id": "4882/4885",
+      "fuente_canal": "Servidor CA / Security",
+      "evidencia": "Permisos CA / filtro auditoría cambiado",
+      "prerrequisito_y_limite": "Auditoría CA + SO, cambios administrativos posibles"
+    },
+    {
+      "evento_id": "4886/4887/4888",
+      "fuente_canal": "Servidor CA / Security",
+      "evidencia": "Solicitud / emisión / denegación de certificado",
+      "prerrequisito_y_limite": "Actividad normal PKI; correlacionar solicitud/plantilla"
+    },
+    {
+      "evento_id": "Sysmon 1",
+      "fuente_canal": "Host instrumentado / Sysmon Operational",
+      "evidencia": "Proceso, command line, ProcessGuid",
+      "prerrequisito_y_limite": "Instalación y regla de inclusión/configuración"
+    },
+    {
+      "evento_id": "Sysmon 3",
+      "fuente_canal": "Host instrumentado / Sysmon Operational",
+      "evidencia": "Conexión de red asociada al proceso",
+      "prerrequisito_y_limite": "No habilitado necesariamente; volumen/ruido"
+    },
+    {
+      "evento_id": "Sysmon 10",
+      "fuente_canal": "Host instrumentado / Sysmon Operational",
+      "evidencia": "Acceso de proceso a otro proceso",
+      "prerrequisito_y_limite": "No prueba extracción de secretos"
+    },
+    {
+      "evento_id": "Sysmon 11",
+      "fuente_canal": "Host instrumentado / Sysmon Operational",
+      "evidencia": "Creación de archivo",
+      "prerrequisito_y_limite": "No contiene necesariamente archivo completo"
+    },
+    {
+      "evento_id": "Sysmon 12–14",
+      "fuente_canal": "Host instrumentado / Sysmon Operational",
+      "evidencia": "Cambios de registro",
+      "prerrequisito_y_limite": "Reglas específicas; no todo cambio se registra"
+    },
+    {
+      "evento_id": "Sysmon 22",
+      "fuente_canal": "Host instrumentado / Sysmon Operational",
+      "evidencia": "Consulta DNS",
+      "prerrequisito_y_limite": "No equivale a conexión establecida"
+    },
+    {
+      "evento_id": "PowerShell 4104",
+      "fuente_canal": "Motor/canal correspondiente / PowerShell Operational",
+      "evidencia": "Contenido de script block",
+      "prerrequisito_y_limite": "Política/versión; contenido sensible posible"
+    }
+  ],
+  "matriz_attack": [
+    {
+      "attack": "T1558.003 Kerberoasting",
+      "condicion": "SPN, secreto/cifrado, solicitudes TGS",
+      "observables_posibles": "4769 + inventario SPN y baseline",
+      "conclusion_no_justificada": "Que se rompió contraseña"
+    },
+    {
+      "attack": "T1558.004 AS-REP Roasting",
+      "condicion": "Cuentas sin preautenticación",
+      "observables_posibles": "4768 con campos pertinentes",
+      "conclusion_no_justificada": "Que cualquier TGT es anómalo"
+    },
+    {
+      "attack": "T1003.006 DCSync",
+      "condicion": "Derechos de replicación y acceso RPC",
+      "observables_posibles": "4662 focalizado, red y DC autorizado",
+      "conclusion_no_justificada": "Que todo 4662 es replicación abusiva"
+    },
+    {
+      "attack": "T1484.001 GPO Modification",
+      "condicion": "Permiso modificar GPO/link; alcance",
+      "observables_posibles": "5136 + SYSVOL/GP/Operational",
+      "conclusion_no_justificada": "Que GPO se aplicó a host"
+    },
+    {
+      "attack": "T1021.001 RDP",
+      "condicion": "Logon derecho/red/host/identidad",
+      "observables_posibles": "4624 tipo 10; RDP Operational",
+      "conclusion_no_justificada": "Que todo soporte remoto es lateral malicioso"
+    },
+    {
+      "attack": "T1021.002 SMB/Admin Shares",
+      "condicion": "Cuenta con derechos y SMB permitido",
+      "observables_posibles": "4624 tipo 3, 5140/5145, Sysmon3",
+      "conclusion_no_justificada": "Que el acceso fue para ejecutar malware"
+    },
+    {
+      "attack": "T1021.006 WinRM",
+      "condicion": "Acceso remoto configurado",
+      "observables_posibles": "WinRM, PowerShell, 4688/1",
+      "conclusion_no_justificada": "Que `winrm` implica intrusión"
+    },
+    {
+      "attack": "T1053.005 Scheduled Task",
+      "condicion": "Permiso de crear tareas",
+      "observables_posibles": "4698/4702 y TaskScheduler",
+      "conclusion_no_justificada": "Que la tarea es persistencia adversaria"
+    },
+    {
+      "attack": "T1543.003 Windows Service",
+      "condicion": "Permiso de instalar servicio",
+      "observables_posibles": "4697/7045 y ejecución de binario",
+      "conclusion_no_justificada": "Que el servicio es malicioso"
+    }
+  ],
+  "hipotesis_soc": [
+    {
+      "id": "H1",
+      "nombre": "Privilegiado por acceso remoto",
+      "pruebas": [
+        "evidencia técnica",
+        "hipótesis alternativa",
+        "control aplicable",
+        "cobertura verificada"
+      ],
+      "requiere_correlacion": true
+    },
+    {
+      "id": "H2",
+      "nombre": "TGS inusuales",
+      "pruebas": [
+        "evidencia técnica",
+        "hipótesis alternativa",
+        "control aplicable",
+        "cobertura verificada"
+      ],
+      "requiere_correlacion": true
+    },
+    {
+      "id": "H3",
+      "nombre": "Membresía grupo privilegiado",
+      "pruebas": [
+        "evidencia técnica",
+        "hipótesis alternativa",
+        "control aplicable",
+        "cobertura verificada"
+      ],
+      "requiere_correlacion": true
+    },
+    {
+      "id": "H4",
+      "nombre": "Cambios GPO",
+      "pruebas": [
+        "evidencia técnica",
+        "hipótesis alternativa",
+        "control aplicable",
+        "cobertura verificada"
+      ],
+      "requiere_correlacion": true
+    },
+    {
+      "id": "H5",
+      "nombre": "Acceso a derechos replicación",
+      "pruebas": [
+        "evidencia técnica",
+        "hipótesis alternativa",
+        "control aplicable",
+        "cobertura verificada"
+      ],
+      "requiere_correlacion": true
+    },
+    {
+      "id": "H6",
+      "nombre": "Emisión certificados",
+      "pruebas": [
+        "evidencia técnica",
+        "hipótesis alternativa",
+        "control aplicable",
+        "cobertura verificada"
+      ],
+      "requiere_correlacion": true
+    },
+    {
+      "id": "H7",
+      "nombre": "Alta servicios/tareas",
+      "pruebas": [
+        "evidencia técnica",
+        "hipótesis alternativa",
+        "control aplicable",
+        "cobertura verificada"
+      ],
+      "requiere_correlacion": true
+    },
+    {
+      "id": "H8",
+      "nombre": "Pérdida de visibilidad",
+      "pruebas": [
+        "evidencia técnica",
+        "hipótesis alternativa",
+        "control aplicable",
+        "cobertura verificada"
+      ],
+      "requiere_correlacion": true
+    }
+  ],
+  "rubrica_generica": {
+    "alcance_roe": 15,
+    "modelo_tecnico": 20,
+    "evidencia_procedencia": 25,
+    "analisis_limites": 20,
+    "remediacion_retest": 20,
+    "aprobacion_sugerida": 80,
+    "requisito_obligatorio": "No violación de alcance"
+  },
+  "secciones_investigacion": [
+    {
+      "numero": 0,
+      "titulo": "Hallazgos y decisiones centrales",
+      "markdown": "1. El Red Team no debe enseñarse como una lista de herramientas; cada técnica requiere **precondición, ruta de acceso, control que la permitiría, evidencia esperable, impacto mínimo y remediación verificable**. [R01, R02, R20]\n2. **Visibilidad no equivale a detección**. Un evento puede registrarse sin haberse configurado su recolección, sin contextualización y sin indicar actividad maliciosa. No convertir un Event ID en un veredicto. [R03–R09]\n3. **El host que produce un evento importa**: 4768/4769 se generan principalmente en el KDC/DC, mientras 4624 se registra en el sistema de destino. Las fuentes deben relacionarse mediante identidad, equipo, sesión y tiempo. [R04, R05, R11, R12]\n4. La auditoría **5136 y 4662 depende también de SACL**, además de las subcategorías correspondientes. Su ausencia no demuestra inexistencia de cambios/accesos. [R03, R08, R09]\n5. **4688 no garantiza command line**: la opción adicional para incluirla debe estar habilitada, implica exposición de argumentos sensibles y necesita protección de accesos al log. [R06, R07]\n6. **Sysmon no es un SIEM ni un detector autónomo**. Es un servicio/controlador que escribe telemetría; su cobertura depende de instalación, versión, reglas de configuración y capacidad del registro. [R13, R14]\n7. **AD CS es una vía de identidad**. Auditar plantillas, permisos, solicitudes y emisión, sin confundir evento 4887 con compromiso ni asumir que el filtro de CA por sí solo produce todos los eventos. [R15]\n8. **Kerberoasting, DCSync y abuso de GPO** describen riesgos distintos; cada uno exige condiciones particulares. No usar 4769, 4662 o 5136 como “detección definitiva” sin contexto. [R20–R23]\n9. **Versiones actuales importan**: Windows 11 24H2+/Server 2025 endurecen por defecto firma SMB; los ejercicios deben comparar la postura real de los equipos del laboratorio, no dar por hecho que carecen de firma. [R24]\n10. Una evaluación sólida termina con **corrección, verificación negativa y positiva y trazabilidad documental**; la demostración ofensiva no sustituye el trabajo de administración/defensa. [R01, R02]\n\n**Decisión curricular:** un único mundo Windows + AD; itinerario común de fundamentos, con prácticas diferenciadas por rol que convergen en ejercicios conjuntos Purple Team. Se propone empezar por análisis *de permisos y configuraciones*, usar escenarios reversibles para validar hipótesis y estudiar la telemetría al mismo tiempo que el comportamiento que la genera."
+    },
+    {
+      "numero": 1,
+      "titulo": "Modelo operativo y autorización",
+      "markdown": "### 1.1. Reglas de actuación (ROE)\n\nCada ejercicio debe documentar: `scope_id`, responsable/autorizante, entorno, FQDN/hosts/segmentos **de laboratorio**, identidades sintéticas, ventana horaria, propósitos, pruebas permitidas/prohibidas, límites de volumen, forma de custodiar evidencias, contacto de emergencia, condición de parada, restauración y criterio de éxito. Una prueba sobre un activo no nombrado se considera **fuera de alcance**, aunque técnicamente sea alcanzable.\n\n| Nivel | Tipo de actividad | Requisito mínimo | Lo que NO demuestra |\n|---|---|---|---|\n| N0 | Revisión documental/offline | Inventario y fuentes | Estado real del dominio |\n| N1 | Consultas de solo lectura sobre lab | Acceso explícitamente autorizado, bajo volumen | Explotabilidad de una ACL |\n| N2 | Validación sin cambios de configuraciones | Evidencia de permisos y rutas, confirmación por admin | Impacto real materializado |\n| N3 | Modificación reversible de un objeto señuelo | Aprobación específica, snapshot/backup, rollback | Que el mismo camino funcionaría en producción |\n| N4 | Emulación avanzada sensible (credenciales/replicación/etc.) | Laboratorio desechable, datos falsos, aprobación ampliada | Legitimidad de repetirlo en terceros |\n\n**Prohibiciones de la ruta central:** phishing a personas, extracción de secretos reales, dumping de LSASS o NTDS de terceros, persistencia no consentida, modificación de GPO que impacte hosts no autorizados, exfiltración de información, técnicas destructivas o evasión de controles reales. La investigación documenta riesgos y condiciones, no convierte esas prácticas en requisitos para principiantes.\n\n### 1.2. Escala de certeza de hallazgos\n\n- **Inventario:** existe un objeto o configuración observable. Ej.: cuenta con SPN.\n- **Indicio:** hay una propiedad potencialmente riesgosa; falta contexto. Ej.: permiso delegado de escritura.\n- **Condición explotable demostrada:** todos los requisitos de una ruta concreta existen en la configuración analizada.\n- **Acceso validado en laboratorio:** una acción de mínima repercusión demuestra el permiso o efecto sobre objeto sintético.\n- **Impacto confirmado:** la consecuencia de negocio o control Tier 0 se demuestra con evidencia aceptable y aprobada.\n\nNo elevar un hallazgo de “indicio” a “compromiso” por una sola herramienta, puntuación o gráfico. Si faltan identidades efectivas, ACL heredadas, requisitos de autenticación o visibilidad sobre hosts, indicar **incertidumbre**.\n\n### 1.3. Evidencia y retest\n\nFicha mínima: `finding_id`, control, activo, precondición, identidad de prueba, permisos efectivos, procedimiento reproducible de lectura, línea temporal UTC, captura o export EVTX/JSON redactado, limitaciones, severidad razonada, dueño de remediación, resultado del retest y medidas de restauración. Los artefactos sensibles permanecen en el laboratorio y se borran según ROE."
+    },
+    {
+      "numero": 2,
+      "titulo": "Modelo de amenaza: rutas de control y autenticación",
+      "markdown": "La seguridad real de AD se mide por **control efectivo sobre objetos y credenciales**, no solo por membresía explícita de Domain Admins. Es especialmente importante conocer quién puede cambiar GPO enlazadas, grupos privilegiados, cuentas de servicio, permisos de replicación, plantillas y CA, delegaciones Kerberos, servidores donde inician sesión cuentas de alto privilegio y sistemas que administran DC. [R01, R02, R16]\n\n**Grafo conceptual:** identidad → pertenencia a grupo → ACE explícita/heredada → permiso efectivo → objeto/control → posible efecto → evidencia de uso → recurso de destino. Cada arista debe contener: fuente, alcance, condición, vigencia, fecha, nivel de confianza y vía de remediación. Una relación de *lectura* o proximidad a un objeto no constituye automáticamente una escalada de privilegios.\n\n| Superficie | Pregunta Red Team | Pregunta SOC | Administración/hardening |\n|---|---|---|---|\n| Grupo privilegiado | ¿Qué identidad controla el grupo, directa o indirectamente? | ¿Quién añadió miembro y desde dónde? | Revisar miembros/delegación, separar cuentas |\n| GPO | ¿Quién puede editar/linkar y sobre qué equipos se aplica? | ¿Cambió AD y SYSVOL? ¿Hay cambio autorizado? | Delegar por mínimo privilegio; backups |\n| Cuenta servicio/SPN | ¿Tiene privilegios excesivos y secreto gestionado? | ¿Su patrón de TGS difiere de la línea base? | gMSA cuando corresponda, AES, mínimos permisos |\n| Trust/delegación | ¿Qué identidades y servicios son delegables? | ¿Qué autenticación/tráfico observado sustenta la hipótesis? | Autenticación selectiva/alcance, cuentas sensibles |\n| DC/replicación | ¿Quién tiene control/replication rights? | ¿La operación corresponde a DC conocido? | Proteger Tier 0, auditoría focalizada |\n| CA/plantilla AD CS | ¿Quién puede inscribir, gestionar plantillas o CA? | ¿Hubo solicitud, aprobación, cambio de permisos? | Separar roles, plantillas, aprobación y auditoría |"
+    },
+    {
+      "numero": 3,
+      "titulo": "Reconocimiento y enumeración de solo lectura",
+      "markdown": "### 3.1. Orden metodológico recomendado\n\n1. Confirmar identidad y autorización de laboratorio; nunca partir de “hay conectividad, entonces hay permiso”.\n2. Descubrir **contexto de dominio**: bosque, dominio, DC, sitios, subredes, DNS, trusts y niveles funcionales. Usar lo investigado en la tanda 2.\n3. Inventariar **principales**: usuarios, equipos, grupos y anidamiento; no exportar atributos de secretos ni datos personales.\n4. Mapear **cuentas de servicio y SPN** (existencia, tipo, antigüedad de contraseña, pertenencias, sin extraer material autenticador).\n5. Inspeccionar **ACL/ACE y propietarios** de objetos expresamente dentro del laboratorio, distinguiendo `GenericAll`, `GenericWrite`, `WriteDacl`, `WriteOwner`, derechos extendidos y herencia/denegaciones.\n6. Identificar **control sobre GPO**, delegación, cuentas sensibles, certificados y rutas hacia Tier 0.\n7. Contrastar con una cuenta de **bajo privilegio** y otra de **administración del lab**, si ROE lo permite, sin modificar nada.\n8. Generar un grafo de hipótesis y una lista de incertidumbres que requieren validación.\n\n### 3.2. Consultas inocuas propuestas (solo laboratorio)\n\n```powershell\n# Ejecutar con RSAT/ActiveDirectory y credenciales autorizadas.\nGet-ADDomain | Select-Object DNSRoot, DomainMode, PDCEmulator\nGet-ADForest | Select-Object Name, ForestMode, RootDomain\nGet-ADDomainController -Filter * | Select-Object HostName, Site, IsGlobalCatalog\nGet-ADGroup -Filter * -SearchBase 'OU=Lab,DC=lab,DC=example' |\n  Select-Object Name, DistinguishedName\nGet-ADUser -Filter * -SearchBase 'OU=Lab,DC=lab,DC=example' -Properties ServicePrincipalName | Select-Object SamAccountName, ServicePrincipalName\n```\n\n**Atención:** Reemplazar `OU=Lab,DC=lab,DC=example` con una OU **sintética existente**. **No ejecutados**.\n\n```powershell\n# Solo lectura: derechos sobre una OU de laboratorio, con proveedor AD: disponible.\n(Get-Acl 'AD:\\OU=Lab,DC=lab,DC=example').Access |\n  Select-Object IdentityReference,ActiveDirectoryRights,AccessControlType,IsInherited\n```\n\n**Criterios de calidad:** documentar si el proveedor `AD:` está montado, si hay permisos de lectura para el usuario y qué ACE aplican realmente a la clase/objeto y nivel de herencia. Una ACE aislada no permite afirmar capacidad de administrar un DC.\n\n### 3.3. Grafos y herramientas\n\nLos visualizadores de caminos de privilegios (por ejemplo, herramientas de análisis de relaciones de AD) son **instrumentos de hipótesis**, no certificadores automáticos de explotabilidad. Exigir fecha de captura, alcance, política de recogida, cardinalidad y tratamiento de los datos. Un grafo desactualizado puede mostrar relaciones antiguas o deducidas. En producción, cualquier colección debe pactarse y limitarse a los sistemas autorizados; en la ruta central se puede trabajar con un grafo generado a partir de **objetos sintéticos**."
+    },
+    {
+      "numero": 4,
+      "titulo": "Credenciales, Kerberos, NTLM y delegación: contexto ofensivo/defensivo",
+      "markdown": "### 4.1. Kerberoasting (ATT&CK T1558.003)\n\n**Mecanismo conceptual:** un principal autenticado puede solicitar TGS para un SPN; la seguridad de la contraseña de la cuenta de servicio, cifrado y configuración contribuyen al riesgo de ataque offline. **Un SPN no es una vulnerabilidad**. La mera emisión de 4769 no prueba Kerberoasting: ocurre en operaciones normales de Kerberos. [R11, R20]\n\n- **Condiciones:** servicio con SPN, autenticación funcional, cuenta asociada y propiedades concretas del ticket; exposición depende de claves/secreto/cifrado y controles de autenticación.\n- **Validación no invasiva:** inventariar SPN, privilegios, gMSA, política criptográfica y uso legítimo; no descargar tickets ni intentar recuperar contraseñas.\n- **SOC:** 4769 en KDC/DC; agrupar por identidad solicitante, SPN, cliente, etype y volumen contextual, cambios de patrón, excepciones legítimas. Campo de etype y semántica exactos dependen de versión/parches y deben validarse con el XML real.\n- **Prevención:** secretos largos/gestionados (gMSA si viable), mínimo privilegio de servicios, tipos de cifrado modernos y retiro de RC4 donde se haya validado compatibilidad. [R20, R25]\n\n### 4.2. AS-REP roasting (ATT&CK T1558.004)\n\nAsociado a cuentas donde la preautenticación Kerberos está deshabilitada. No enseñar que “4768 exitoso = ataque” ni que todas las cuentas sin preautenticación sean igualmente explotables. Validación central: revisar atributo/capacidad de preautenticación y corregir excepciones documentadas. La detección debe interpretar campo de preautenticación y contexto de 4768, no asumir el comportamiento genérico de todos los DC. [R10, R26]\n\n### 4.3. NTLM y relay\n\nNTLM sigue existiendo por compatibilidad; analizar **dónde**, **por qué** y **con qué controles** se usa. La exposición a relay depende de que los servicios destino acepten el flujo, del estado de firma/protecciones específicas y de la posición del actor; no equivale a “NTLM habilitado = relay explotable”. Windows 11 24H2 y Windows Server 2025 introdujeron **firma SMB requerida por defecto**, con implicaciones para laboratorios de tutoriales antiguos. [R24, R27]\n\n**SOC:** 4624 (Authentication Package), 4776 en validación NTLM cuando proceda, actividad SMB/LDAP según telemetría disponible y controles; correlacionar hosts. No afirmar que todo 4624 tipo 3 sea un ataque lateral.\n\n### 4.4. Delegación Kerberos\n\nDistinguir **unconstrained**, **constrained** y **resource-based constrained delegation (RBCD)**; quién configura la relación y qué principal puede usarla. El hecho de que exista delegación no implica automáticamente compromiso. Cuentas críticas deberían estar protegidas contra delegación si los requisitos funcionales lo permiten; probar compatibilidad antes de endurecer. [R17, R25]\n\n### 4.5. DCSync / abuso de replicación (T1003.006)\n\nUn actor con derechos pertinentes puede abusar de interfaces de replicación para obtener material sensible; esa es la razón para vigilar **derechos de replicación**, identidades con acceso, red origen y operaciones de directorio. **No se propone ejecutar DCSync ni extraer hashes** en esta tanda. En lugar de ello, el estudiante evalúa permisos delegados y sujeta un supuesto camino de ataque a revisión. [R21, R09]\n\n**SOC:** 4662 con SACL y derechos relevantes puede contribuir a la investigación, pero también recoge usos legítimos y no aporta por sí solo certeza de DCSync. El tráfico RPC/DC y la identidad solicitante aumentan contexto. Comparar con máquinas DC autorizadas y procesos de replicación esperados.\n\n### 4.6. LSASS, SAM, Credential Guard y cuentas protegidas\n\nLa extracción de secretos desde memoria o bases locales es una amenaza conocida, pero el **recorrido central no exige extraer credenciales**. Enseñar límites de privilegios, PPL/LSA Protection, Credential Guard, Protected Users y efectos operativos; verificar controles y eventos de acceso a procesos con agentes adecuados, sin interpretar un acceso a LSASS como prueba automática de robo. Microsoft documenta restricciones importantes de **Protected Users** (NTLM, DES/RC4, delegación, tickets), que pueden romper servicios si se despliega sin planificación. [R19, R25]"
+    },
+    {
+      "numero": 5,
+      "titulo": "Movimiento lateral y abuso administrativo: análisis sin comprometer hosts",
+      "markdown": "**Superficies:** RDP, SMB/ADMIN$, WinRM/PowerShell Remoting, WMI/DCOM, RPC, administración remota de servicios, tareas programadas y uso legítimo de credenciales. El objetivo es evaluar si un principal puede acceder, desde qué origen y con qué control, no desplegar cargas ni automatizar desplazamientos. [R22]\n\n| Canal | Validación segura (lab) | Evidencia origen/destino | Riesgo de confusión |\n|---|---|---|---|\n| RDP | Sesión aprobada entre VMs sintéticas | 4624 tipo 10 destino, logs TerminalServices; 4778/4779 según contexto | Acceso de TI legítimo |\n| SMB | Consultar recursos de prueba sin copiar datos sensibles | 4624 tipo 3 destino, 5140/5145 si auditoría habilitada; Sysmon 3 si configurado | Acceso a archivos normal |\n| WinRM | Comando de inventario remoto de solo lectura | PowerShell/Operational, WinRM/Operational, 4688/1 según ejecución | Gestión de configuración |\n| WMI | Consulta `Win32_OperatingSystem` autorizada | WMI-Activity/Operational y contexto de procesos; campos varían | Inventario empresarial |\n| Servicio | Revisar servicio ficticio, sin instalar persistencia | System 7045 y/o Security 4697 si condiciones lo permiten | Instalaciones normales de software |\n| Tarea | Inventario de tarea programada de lab | Security 4698/4702 si auditoría correspondiente; TaskScheduler/Operational | Orquestadores internos |\n\n**Patrones útiles:** identidad privilegiada en host no habitual; acceso remoto seguido de modificación de servicio/GPO; accesos a sistemas Tier 0 desde estación no autorizada. Estos patrones requieren baseline y autorización, no listas rígidas de nombres de herramientas.\n\n**Cierre de hardening:** segmentación de administración, restricciones de logon privilegiado, cuentas separadas, LAPS, MFA donde sea compatible, minimización de SMB/RDP/WinRM y control de hosts administrativos. [R01, R02, R24]"
+    },
+    {
+      "numero": 6,
+      "titulo": "GPO, ACL y AD CS: rutas hacia control de dominio",
+      "markdown": "### 6.1. Delegación, herencia y GPO\n\nUna cuenta puede ser capaz de **editar GPO** o modificar enlaces con efectos sobre una OU; deben verificarse permisos de objeto, alcance del enlace, filtros y procesamiento de políticas. Distinguir GPC en AD y GPT en SYSVOL; registrar cambios a ambos si la instrumentación lo permite. **Un 5136 en una GPO no implica necesariamente que su contenido de SYSVOL haya cambiado; ni un cambio en SYSVOL garantiza que toda la GPO se aplique al equipo destino.** [R08, R23]\n\nPráctica propuesta: una GPO `GPO-LAB-AVISO` enlazada a una OU de VMs descartables; cambio inocuo explícitamente aprobado (por ejemplo, mensaje informativo), observación del efecto, reversión por GPMC y comprobación con `gpresult`. Nunca modificar las Default Domain Policy/Default Domain Controllers Policy para demostraciones genéricas.\n\n### 6.2. AD CS y PKI\n\nSuperficies a estudiar: configuración de CA, emisión y aprobación, publicación de plantillas, permisos de solicitud/inscripción, EKU, SAN, autorizaciones de inscripción en nombre de otros, asignación de certificados a identidades y protección de claves de CA. La enumeración de plantillas expuestas **no equivale** a emitir un certificado para un tercero. Los patrones conocidos de misconfiguración de AD CS se enseñan como **clases de controles a auditar**, no como un catálogo de explotación automatizada. [R15]\n\n**Registro:** 4886 solicitud, 4887 emisión, 4888 denegación, 4882 permisos CA, 4885 filtro de auditoría, 4890/4892 cambios de administración/propiedades; el artículo oficial advierte que hay que configurar tanto auditoría del SO como el filtro de auditoría CA. Asegurar volumen de Security y preservación. [R15]\n\n**Verificación:** solicitud sintética autorizada → observar 4886/4887 o 4888 según política; confirmar plantilla, solicitante, número de solicitud y certificado en caso válido; revocación de certificado de laboratorio si se aprobó; comprobar que se impide una solicitud no autorizada. No usar cuentas o datos reales."
+    },
+    {
+      "numero": 7,
+      "titulo": "SOC: modelo de evidencia y límites de la telemetría",
+      "markdown": "### 7.1. Cadena de observabilidad\n\n**Acción → proveedor ETW/subsistema → configuración de auditoría/sensor → canal local → espacio/retención → exportación o reenvío → normalización → investigación**. Una pérdida en cualquiera de estas etapas puede producir ausencia de evidencia. Configurar un SIEM no habilita retrospectivamente Windows Auditing ni recupera eventos sobrescritos. [R03, R04, R13, R14, R18]\n\n**Puntos de control antes de interpretar un evento:**\n\n1. ¿En qué **host** ocurre esta actividad? ¿DC, CA, servidor de aplicación o cliente?\n2. ¿Cuál es el proveedor y canal, además del Event ID?\n3. ¿Qué subcategoría de auditoría y qué SACL/sensor aplica?\n4. ¿Se generó realmente y hubo espacio/tiempo para preservarlo?\n5. ¿Qué identidad, SID, LogonId, ProcessGuid, EventRecordID, RequestID o SPN permiten correlación?\n6. ¿Están sincronizados los relojes y correctamente representado UTC?\n7. ¿Qué hipótesis legítima compite con la maliciosa?\n8. ¿Cuál es la conclusión mínima sustentada, y qué otra evidencia falta?\n\n### 7.2. Inventario de canales nativos\n\n- **Security:** logon, auditoría avanzada, cuentas/grupos, directorio, GPO/AD CS con configuración adecuada.\n- **System:** servicios (p.ej. SCM 7045), controladores y problemas del host.\n- **Application:** aplicación y servicios específicos; no garantiza hechos de autenticación.\n- **Directory Service (DC):** salud del servicio de directorio, replicación, diagnósticos específicos.\n- **DNS Server (DC o servidor DNS):** eventos operativos según rol y canal; consulta DNS requiere telemetría configurada, no suponer cobertura completa.\n- **Microsoft-Windows-GroupPolicy/Operational:** aplicación/procesamiento de GPO.\n- **Microsoft-Windows-PowerShell/Operational** y canales de **PowerShellCore/Operational**, según motor/versión.\n- **Microsoft-Windows-WinRM/Operational**, **WMI-Activity/Operational**, **TaskScheduler/Operational**.\n- **Microsoft-Windows-Sysmon/Operational:** solo donde Sysmon está presente y configurado.\n- **ForwardedEvents:** eventos reenviados al colector WEF, con datos de origen preservados más metadatos de reenvío. [R13, R14, R18]"
+    },
+    {
+      "numero": 8,
+      "titulo": "Matriz de eventos Windows/AD y precauciones",
+      "markdown": "La siguiente matriz describe **posibles evidencias**, no una garantía universal de generación. Se deben comprobar políticas, canales, formato XML y versión de cada equipo. [R03–R15]\n\n| Evento | Ubicación/Canal | Qué aporta | Condición y límite principal |\n|---|---|---|---|\n| 4624 | Destino / Security | Sesión de logon exitosa, tipo y autenticación | No identifica solo uso malicioso |\n| 4625 | Destino / Security | Logon fallido | Puede ser error normal/servicio |\n| 4648 | Host que usa credenciales explícitas / Security | Intento de logon con credenciales explícitas | No equivale a robo ni éxito remoto |\n| 4672 | Host de logon / Security | Privilegios especiales asignados | SYSTEM y admins legítimos generan ruido |\n| 4688 | Equipo que ejecuta / Security | Nuevo proceso | Command line vacía sin política adicional |\n| 4689 | Equipo que ejecuta / Security | Terminación de proceso | Subcategoría y actividad condicionan volumen |\n| 4697 | Equipo destino / Security | Instalación de servicio | Depende de Audit Security System Extension |\n| 7045 | Equipo destino / System | Servicio instalado | SCM; contexto y autor requieren otros eventos |\n| 4698/4702 | Equipo destino / Security | Tarea creada/actualizada | Requiere auditoría/cobertura relevante |\n| 4768 | KDC/DC / Security | TGT solicitado | No equivale a AS-REP roasting |\n| 4771 | KDC/DC / Security | Preautenticación Kerberos fallida | Errores de contraseña/tiempo habituales |\n| 4769 | KDC/DC / Security | TGS solicitado | No equivale a Kerberoasting |\n| 4770 | KDC/DC / Security | TGS renovado | Depende de auditoría |\n| 4776 | Equipo que valida credenciales NTLM, típicamente DC para cuentas de dominio / Security | Validación NTLM | No identifica por sí solo al servicio de destino |\n| 4720/4726 | DC / Security | Usuario dominio creado/eliminado | Corrección de identidad y autorización requerida |\n| 4722/4725 | DC / Security | Cuenta habilitada/deshabilitada | Procesos legítimos de IAM |\n| 4728/4729 | DC / Security | Cambio de miembro grupo global | Grupos de otros alcances tienen IDs diferentes |\n| 4732/4733 | Equipo apropiado / Security | Cambio de miembro grupo local/domain-local | Contextualizar grupo y host/DC |\n| 4756/4757 | DC / Security | Cambio de miembro grupo universal | Depende de política de gestión de grupos |\n| 4742 | DC / Security | Cambio de cuenta de equipo | Puede ser automatización normal |\n| 4739 | DC / Security | Cambio de política de dominio | Contextualizar política, autor y change ticket |\n| 5136 | DC / Security | Modificación objeto AD | Requiere Advanced Audit Directory Service Changes + SACL aplicable |\n| 5137/5139/5141 | DC / Security | Crear/mover/borrar objeto AD | SACL y subcategoría; no cubre todos los detalles |\n| 4662 | DC / Security | Operación sobre objeto AD | Requiere SACL + Audit Directory Service Access; gran volumen |\n| 5140/5145 | Servidor de recursos / Security | Acceso/chequeo detallado a recurso compartido | Subcategorías distintas, configuraciones y ruido |\n| 4719 | Host / Security | Cambios de política de auditoría | No indica por sí solo intención maliciosa |\n| 1102 | Host / Security | Borrado del registro Security | Requiere investigar causa; pérdida de evidencia |\n| 4882/4885 | Servidor CA / Security | Permisos CA / filtro auditoría cambiado | Auditoría CA + SO, cambios administrativos posibles |\n| 4886/4887/4888 | Servidor CA / Security | Solicitud / emisión / denegación de certificado | Actividad normal PKI; correlacionar solicitud/plantilla |\n| Sysmon 1 | Host instrumentado / Sysmon Operational | Proceso, command line, ProcessGuid | Instalación y regla de inclusión/configuración |\n| Sysmon 3 | Host instrumentado / Sysmon Operational | Conexión de red asociada al proceso | No habilitado necesariamente; volumen/ruido |\n| Sysmon 10 | Host instrumentado / Sysmon Operational | Acceso de proceso a otro proceso | No prueba extracción de secretos |\n| Sysmon 11 | Host instrumentado / Sysmon Operational | Creación de archivo | No contiene necesariamente archivo completo |\n| Sysmon 12–14 | Host instrumentado / Sysmon Operational | Cambios de registro | Reglas específicas; no todo cambio se registra |\n| Sysmon 22 | Host instrumentado / Sysmon Operational | Consulta DNS | No equivale a conexión establecida |\n| PowerShell 4104 | Motor/canal correspondiente / PowerShell Operational | Contenido de script block | Política/versión; contenido sensible posible |\n\n### 8.1. Correlación: ejemplos de interpretación incorrecta\n\n- `4769 + etype 0x17 = atacante`: **incorrecto**. Es un factor posible para una hipótesis, no atribución. Ver baseline, servicio, cuenta, políticas actuales y versión de evento. [R11, R20]\n- `4662 = DCSync`: **incorrecto**. Puede corresponder a muchas operaciones sobre objetos, cuando hay SACL. Evaluar derechos, objeto, sujeto, origen y condición de replicación. [R09, R21]\n- `5136 = GPO alterada y desplegada`: **incompleto**. Puede ser otro objeto/atributo; revisar GPC, GPT, versiones, scope y eventos de aplicación. [R08, R23]\n- `4624 tipo 3 = movimiento lateral`: **incorrecto**. SMB, tareas de red y servicios normales también producen ese tipo. [R05]\n- `4688 sin argumentos = no se ejecutó comando sospechoso`: **incorrecto** si no estaba habilitado el registro de línea de comandos. [R06, R07]\n- `Sysmon 3 ausente = no hubo conexión`: **incorrecto** si el tipo está deshabilitado o filtrado. [R13]\n- `Sysmon 10 sobre LSASS = dump exitoso`: **incorrecto**. El evento describe acceso al proceso bajo reglas; se necesita evidencia adicional. [R13]\n- `4887 = certificado fraudulento`: **incorrecto**. Una emisión normal debe producir el evento cuando se cumplen requisitos de auditoría. [R15]"
+    },
+    {
+      "numero": 9,
+      "titulo": "Auditoría avanzada y habilitación segura",
+      "markdown": "### 9.1. Política efectiva versus intención GPO\n\n`Advanced Audit Policy Configuration` se subdivide por eventos funcionales. Verificar estado **efectivo** con `auditpol /get /category:*`; no asumir que GPO diseñada = GPO aplicada. Identificar GPO ganadora, subcategorías en DC vs clientes, coexistencia de auditoría clásica/avanzada y opciones para forzar precedencia de subcategorías. [R03, R28]\n\n```powershell\n# Consultas de solo lectura, propuestas y no ejecutadas.\nauditpol /get /category:*\nGet-WinEvent -ListLog Security | Select-Object LogName,IsEnabled,MaximumSizeInBytes,RecordCount\nGet-WinEvent -ListLog 'Microsoft-Windows-PowerShell/Operational' |\n  Select-Object LogName,IsEnabled,MaximumSizeInBytes,RecordCount\nGet-WinEvent -LogName Security -MaxEvents 5 |\n  Select-Object TimeCreated,Id,ProviderName,MachineName,RecordId\n```\n\nEl acceso a Security requiere derechos adecuados; realizar la lectura con una cuenta cuyo privilegio esté aprobado y documentado. Los nombres de subcategorías varían con el idioma del sistema: preferir identificadores/GUI o enumeración local antes que scripts frágiles.\n\n**Diseño de auditoría:** 1) objetivos de observación; 2) eventos y hosts; 3) subcategorías; 4) SACL de objetos sensibles; 5) volumen/retención; 6) prueba positiva; 7) prueba negativa; 8) restauración; 9) monitoreo continuo de cobertura.\n\n### 9.2. SACL y auditoría de cambios de directorio\n\n5136 se genera en DC si la subcategoría `Directory Service Changes` y la SACL aplicable coinciden. 4662 necesita `Directory Service Access` y SACL pertinente. Configurar SACL indiscriminadas sobre todo el dominio causa alto volumen y puede dificultar operar la investigación. Empezar por objeto señuelo/OU de laboratorio y cuentas autorizadas; no usar el grupo Domain Admins como “señuelo” en entornos reales. [R08, R09]\n\n### 9.3. Retención, pérdida y privacidad\n\nLa `MaximumSizeInBytes` y modo de retención local afectan cuánto sobrevive; WEF puede tener retrasos o interrupciones. Los eventos de líneas de comando y script blocks pueden contener contraseñas, tokens, rutas de usuarios o información empresarial. Definir permisos de lectura, cifrado, eliminación/mascarado y periodo de conservación según normativa del entorno. No exportar el evento completo a repositorios públicos sin revisión. [R07, R12, R18]"
+    },
+    {
+      "numero": 10,
+      "titulo": "PowerShell Logging: motores, alcance y sensibilidad",
+      "markdown": "| Opción | Qué observa | Precaución |\n|---|---|---|\n| Script Block Logging | Script blocks procesados (p.ej. 4104 para Windows PowerShell clásico) | Puede registrar secretos usados por scripts; protección y retención |\n| Module Logging | Invocación/pipeline en módulos definidos | Sujeto a configuración específica y ruido |\n| Transcription | Entrada/salida de sesión donde sea compatible/configurado | Datos personales, rutas, manejo del archivo de salida |\n| Protected Event Logging | Protección criptográfica de contenido compatible | Gestión de certificados y recuperación de clave privada |\n\n**Diferencia de motores:** Windows PowerShell 5.1 y PowerShell 7 tienen documentación y rutas de política/canales que pueden diferir; **no usar los mismos supuestos para cualquier `pwsh.exe`**. Microsoft recomienda Protected Event Logging cuando se habilita Script Block Logging fuera de diagnósticos; probar visibilidad local y la versión del motor. [R12, R29]\n\n**Escenario seguro:** ejecutar un script administrativo de solo lectura en una VM de laboratorio, registrar marca temporal y contenido sintético (`Get-Process`/`Get-Service`), localizar 4104 cuando corresponde y comprobar que la colección preserve proveedor/canal/hora, sin secretos."
+    },
+    {
+      "numero": 11,
+      "titulo": "Sysmon: capacidades, cobertura y diseño de filtros",
+      "markdown": "Sysmon (Sysinternals) es **telemetría endpoint**, no un motor de prevención ni prueba automática de malware. Su versión y esquema evolucionan: la documentación oficial consultada describe Sysmon **v15.22 publicado el 10/09/2026** y un conjunto de Event IDs que debe cotejarse con la versión instalada. [R13, R14]\n\n**Matriz de diseño de sensorización:**\n\n- **1 ProcessCreate**: procesos, padre, ruta, hash, ProcessGuid. Verificar campos emitidos y regla.\n- **3 NetworkConnect**: atribuir conexiones a procesos, pero su volumen suele exigir selección; una ausencia no niega tráfico.\n- **7 ImageLoad**: gran volumen; seleccionar casos cuando aporte investigación real.\n- **10 ProcessAccess**: relaciones de acceso entre procesos; no equivale a volcado de memoria.\n- **11 FileCreate**: archivos creados; no necesariamente contenidos ni todas las escrituras.\n- **12/13/14 RegistryEvent**: cambios de registro definidos por filtros.\n- **19/20/21 WmiEvent**: artefactos relacionados con filtros/consumidores WMI.\n- **22 DnsQuery**: resolución de nombre atribuible al proceso; no asegura salida a Internet.\n- **16**: cambio de configuración Sysmon, contextualizar autorizaciones.\n\n**Verificación necesaria por evento:** versión/schema, regla include/exclude, volumen real, CPU/almacenamiento, canal y retención, campo de identidad, presencia del evento en `Microsoft-Windows-Sysmon/Operational`, export y comparación con acción de prueba. Preferir el esquema oficial; no desplegar configuraciones comunitarias desconocidas en producción sin revisión. [R13, R14]\n\n**Instrumentación separada de la generación de acciones:** los laboratorios pueden medir acciones administrativas inocuas: creación de archivo señuelo, consulta DNS ficticia, apertura de una herramienta aprobada. No se necesita malware real para demostrar cobertura básica."
+    },
+    {
+      "numero": 12,
+      "titulo": "WEF/WEC y conservación de evidencia",
+      "markdown": "**Windows Event Forwarding** usa la infraestructura Windows Event Collector y permite suscripciones iniciadas por el origen o por el colector. Un servidor collector puede recibir eventos y almacenarlos en su registro de eventos. La información original se conserva junto con metadatos añadidos, según la documentación oficial. [R18]\n\n| Modalidad | Ventaja | Condición / límite |\n|---|---|---|\n| Source-initiated | Escala cuando muchos clientes conocen al collector vía configuración de GPO | Confirmar WinRM/política, ACL del Security log, DNS, TLS/seguridad |\n| Collector-initiated | Listado explícito de hosts cuando el conjunto es pequeño | Mantenimiento del inventario y conectividad |\n\n**Puntos de comprobación:** collector habilitado; suscripción válida; origen conectado; evento sintético visible primero en origen y luego en destino; `Computer` de origen conservado; diferencia temporal de recepción; cola, pérdida y límite de volumen. El colector **no habilita** por sí solo las auditorías del host ni evita que el origen sobrescriba su log. [R18, R15]\n\n```powershell\n# En laboratorio, como comprobaciones documentales; no ejecutadas.\nwecutil es                  # Enumera suscripciones, desde colector.\nwecutil gr LabSubscription  # Estado de ejecución si existe esa suscripción.\nwevtutil gl Security        # Propiedades del registro local.\n# Exportar SOLO datos sintéticos con autorización:\nwevtutil epl Security C:\\LabEvidence\\security-lab.evtx\n```\n\nEl último ejemplo necesita permisos, espacio, destino autorizado y revisión de privacidad; **no recomienda exportar el log Security de equipos reales a archivos sin control**.\n\n**Cadena de custodia en el laboratorio:** conservar `source_hostname`, UTC, zona/hora local, fuente, RecordId, hash SHA-256 del EVTX exportado, identidad de operador y resumen de acciones. El RecordId es secuencial **dentro de un registro**, no una clave global. Comprobar sincronización de reloj y posible overwrite/clearing."
+    },
+    {
+      "numero": 13,
+      "titulo": "Hipótesis de investigación SOC por escenario",
+      "markdown": "### H1. Inicio remoto de sesión de cuenta privilegiada\n\n**Pregunta:** ¿un usuario de Tier 0 accedió desde equipo permitido al host previsto? Fuentes: 4624 en destino, 4648 en origen si disponible, 4672, RDP/WinRM/SMB, proceso relacionado. Hipótesis legítimas: mantenimiento, soporte o tarea automatizada. **Conclusión válida:** sesión y contexto observados; no atribuir “movimiento lateral malicioso” sin evidencia de objetivo, identidad y autorización.\n\n### H2. Solicitudes Kerberos inusuales\n\n**Pregunta:** ¿un principal solicitó muchos TGS para SPN no habituales o con tipos de cifrado inesperados? Fuente: 4769 del DC, inventario de cuentas/servicios, baseline de procesos/solicitantes. **Falsos positivos:** aplicaciones empresariales que autentican a muchos servicios, cambios de despliegue y uso heredado de RC4. No afirmar que se recuperó contraseña. [R11, R20]\n\n### H3. Modificación de grupo privilegiado\n\n**Pregunta:** ¿quién añadió o quitó quién, en qué grupo y con qué ticket? Fuentes: 4728/4732/4756 según alcance; `Subject`, `Member`, `Target`, atributos del grupo y posible 4624. **Conclusión:** cambio observable, no compromiso automático. Validar pertenencia final y operaciones previstas. [R03]\n\n### H4. Cambio de GPO con alcance sensible\n\n**Pregunta:** ¿se modificó AD GPC, SYSVOL GPT o el enlace GPO? Fuentes: 5136 si SACL habilitada, cambios de archivos SYSVOL cuando exista auditoría, GPMC/versión/replicación y GroupPolicy/Operational en cliente. **Conclusión:** distinguir edición de aplicación y observar propagación. [R08, R23]\n\n### H5. Replicación sensible o acceso a objeto crítico\n\n**Pregunta:** ¿una identidad no/DC operó sobre objetos con derechos especiales de replicación? Fuentes: 4662 filtrado por tipo y GUID, inventario de delegaciones, otros logs RPC/host si existen. **Límite:** la auditoría puede no estar configurada y un 4662 no demuestra extracción de hashes. [R09, R21]\n\n### H6. Emisión de certificado inesperado\n\n**Pregunta:** ¿una solicitud autorizada se emitió bajo plantilla y para sujeto correctos? Fuentes: CA 4886/4887/4888, auditoría de plantillas y permisos, registro CA, validación de cadena. **Límite:** la emisión puede ser legítima; control de identidad requiere configuración completa. [R15]\n\n### H7. Persistencia administrativa mal etiquetada\n\n**Pregunta:** ¿se instaló un servicio o creó una tarea sin cambio aprobado? Fuentes: System 7045/Security 4697, TaskScheduler y proceso creador. **Límite:** actualización de software, agentes y mantenimiento pueden coincidir con la señal. [R03, R06]\n\n### H8. Pérdida de visibilidad\n\n**Pregunta:** ¿una caída de eventos refleja menor actividad o fallo de sensores/colección? Fuentes: 1102, 4719, estado Sysmon, canal de Windows Event Log, heartbeat del origen y WEF. **Límite:** comprobar fallos técnicos, reinicios y cambios administrativos antes de inferir sabotaje. [R13, R18]"
+    },
+    {
+      "numero": 14,
+      "titulo": "Respuesta y recuperación inmediata en Windows/AD",
+      "markdown": "**Orden conceptual de tratamiento de incidentes:** confirmar severidad e identidad del activo → recoger evidencia volátil y configuración antes de interferir → delimitar alcance e impacto → coordinar contención autorizada → erradicar causa → restaurar servicio/identidades desde estado confiable → validar telemetría → documentar lecciones y retest. La **Tanda 4** profundizará backup, forest recovery y ejercicios integradores.\n\n- Un PID sospechoso no debe matarse ciegamente: riesgo de interrumpir servicio y destruir evidencia. Primero proceso, árbol, firma, ruta, usuario, conexiones, handles y función del host; después contención según severidad.\n- Bloquear una IP o puerto **puede ser insuficiente** ante abuso de cuentas legítimas, conexiones ya establecidas o cambio de infraestructura. Aislamiento y revocación de acceso requieren valorar servicios críticos.\n- En DC: no aplicar acciones destructivas ni restablecer cuentas Tier 0 sin un plan de crisis/identidad, comunicaciones y rollback. Los cambios pueden replicarse.\n- En CA: no apagar/revocar certificados a ciegas; evaluar dependencia de servicios y recuperación de PKI.\n- Para cualquier evidencia: registrar quién recogió, cuándo, cómo, hash, almacenamiento y límites."
+    },
+    {
+      "numero": 15,
+      "titulo": "Casos de estudio integrados (sin ejecutar ataques)",
+      "markdown": "### Caso A — SPN de cuenta de servicio sobredimensionada\n\n**Inventario**: servicio sintético `svc-demo` con SPN y membresía excesiva. **Red Team**: evalúa si tiene permisos que amplían impacto; no requiere obtener tickets ni secreto. **SOC**: observa patrón habitual 4769 y comprueba si la cobertura permitiría distinguir anomalías. **Blue**: migra a cuenta gestionada apropiada o endurece secreto/cifrado, elimina membresía sobrante. **Retest**: acceso funcional del servicio, privilegios reducidos y registro de operaciones benignas. **Falsos positivos**: TGS normal.\n\n### Caso B — Delegación incorrecta de GPO en OU de prueba\n\n**Inventario**: una identidad no privilegiada tiene permiso de edición de una GPO `GPO-LAB-AVISO`. **Red Team**: demuestra solamente capacidad de leer/permisos; si se autoriza, modifica un ajuste informativo reversible en OU señuelo. **SOC**: 5136 sujeto a SACL, cambio de GPT/SYSVOL con auditoría local y resultado de política en VM. **Blue**: restringe permisos y verifica bloqueo de modificación por la identidad. **Retest**: administrador legítimo conserva capacidad; identidad de prueba recibe denegación.\n\n### Caso C — Uso de RDP a un servidor de laboratorio\n\n**Inventario**: dos cuentas autorizadas y una estación no autorizada; Windows Firewall permite RDP solo a segmento admin. **Red Team**: verifica acceso de cuenta permitida desde admin host, rechazos previstos desde estación fuera de segmento; sin obtención de credenciales. **SOC**: 4624 tipo 10 destino y logs de TerminalServices, correlación origen/usuario. **Blue**: refuerza restricciones y baseline. **Retest**: administración legítima funciona; intento fuera de política permanece bloqueado.\n\n### Caso D — Solicitud de certificado de identidad sintética\n\n**Inventario**: plantilla `LAB-USER` y grupos de inscripción. **Red Team**: compara permisos/enrollment para solicitante legítimo y no autorizado, sin suplantar cuentas. **SOC**: comprueba CA 4886/4887/4888 en condición adecuada. **Blue**: corrige autorización y realiza revisión de EKU/SAN/mapear identidad. **Retest**: solicitud permitida funciona; la no autorizada queda bloqueada; logs completos."
+    },
+    {
+      "numero": 16,
+      "titulo": "Laboratorios diseñados — Tanda 3 (no ejecutados)",
+      "markdown": "**Topología de referencia**: `DC01` Windows Server 2025 (AD DS/DNS), `WIN11-01` Windows 11, `SRV01` Server 2025, `COL01` WEC opcional, `CA01` Server 2025 AD CS opcional. Red privada de hipervisor aislada del entorno doméstico/empresarial. Dominio ilustrativo `lab.example`; usuarios `ana.lab`, `auditor.lab`, `ops.lab`, `svc-demo` sintéticos. No compartir bridge corporativo ni usar identidades reales. **Costes/licencias y consumo final: pendientes de comprobar según hipervisor, hardware y licencias de evaluación**; no se han probado en este entorno.\n\n| ID | Objetivo | Evidencia mínima | Criterio de aprobación | Riesgo/control |\n|---|---|---|---|---|\n| RT-L01 | Definir ROE, inventario y grafo de alcance | Scope + hostlist + plan de parada | 100% activos dentro de alcance | Solo docs |\n| RT-L02 | Inventario seguro AD de OU sintética | Objetos/grupos/SPN con datos falsos | Resultados trazables, sin credenciales | N1, bajo volumen |\n| RT-L03 | Auditoría de ACL y propietario sobre señuelos | DACL heredada/explicación de derecho | Distinguir `Read` de `WriteDacl` | N1/2 |\n| RT-L04 | Cuenta de servicio con privilegios excesivos | Comparación antes/después | Servicio funcional y menos derechos | Datos sintéticos |\n| RT-L05 | Validación GPO de mensaje inocuo | Backup GPO, gpresult, logs, rollback | Cambios solo en OU de prueba | N3, snapshot |\n| RT-L06 | Revisión de delegación/trust | Matriz de riesgos sin explotación | Preconditions documentadas | N1/2 |\n| SOC-L01 | 4624, 4625, 4672 entre hosts del lab | EVTX + cronología correlacionada | Identificar origen/destino sin confundirlos | Datos sintéticos |\n| SOC-L02 | 4688 + línea de comandos sensible | Política antes/después + 4688 sin secreto | Explicar prerequisito y privacidad | No usar secretos |\n| SOC-L03 | 4768/4769 de autenticación legítima | Ticket/DC/servicio + baseline | Rechazar falso positivo de Kerberoasting | Sin cracking |\n| SOC-L04 | 5136/4662 con SACL focalizada | GPO auditoría + SACL + eventos | Demostrar cuándo NO se genera | N3 reversible |\n| SOC-L05 | Sysmon: proceso, DNS y archivo señuelo | Event IDs 1/11/22 si configurados | Verificar filtros y fuentes | Instalar solo tras autorización futura |\n| SOC-L06 | PowerShell 5.1/7 logging comparativo | Logs de acciones de solo lectura | Distinguir canales y campos | Contenido inocuo |\n| SOC-L07 | WEF ida/vuelta de evento sintético | Evento origen y `ForwardedEvents` | Coincidencia de host/ID y latencia | Red privada |\n| SOC-L08 | Control de alta/baja de grupo sintético | Eventos 4728/4732/4756 pertinentes | Identificar tipo real de grupo | Rollback |\n| PT-L01 | Simulación coordinada GPO + SOC | ROE, acción, logs, corrección y retest | Prueba positiva y negativa | N3 exclusivamente lab |\n| PT-L02 | Auditoría de CA/solicitud ficticia | 4886–4888 + permisos + rollback | Emisión solo para sujeto permitido | CA opcional, coste pendiente |\n\n**Plantilla obligatoria por laboratorio:** ID, objetivo, nivel, prerrequisitos, topología/versión, componentes/licencias, preparación, técnica controlada, datos de prueba, telemetría esperada y condicionada, evidencia/tiempos UTC, pruebas positiva/negativa, rúbrica, restauración, limitaciones y fuentes. Estos diseños son **borradores**; la Tanda 4 tendrá el catálogo final detallado con recursos, rubricas completas y estimaciones revisables.\n\n### 16.1. Ejemplo de rúbrica base (100 puntos)\n\n- Alcance/ROE y reversibilidad: **15**.\n- Modelo técnico de prerrequisitos y controles: **20**.\n- Evidencias fiables y procedencia: **25**.\n- Interpretación con hipótesis alternativas, falsos positivos y lagunas: **20**.\n- Remediación y retest positivo/negativo: **20**.\n\n**Umbrales sugeridos para diseño, no reglas oficiales:** aprobar ≥80/100 **y** aprobar obligatoriamente alcance/seguridad; un ejercicio fuera de alcance se invalida independientemente de la puntuación."
+    },
+    {
+      "numero": 17,
+      "titulo": "Etapas provisionales, competencias y dependencia",
+      "markdown": "Las etapas son **propuesta de diseño**; el número definitivo se decidirá en la Tanda 4 al unificar Windows+AD y eliminar duplicidades. `WIN-*` y `AD-*` aluden a etapas provisionales de tandas anteriores; se resolverán IDs estables en la integración final.\n\n| ID | Etapa | Prerrequisitos mínimos | Resultado verificable | Prácticas |\n|---|---|---|---|---|\n| RT-01 | ROE, límites y reporte | WIN básico, AD básico | ROE y hallazgo trazable | RT-L01 |\n| RT-02 | Descubrimiento autorizado de identidad | AD arquitectura/LDAP/grupos | Inventario y aristas de grafo | RT-L02 |\n| RT-03 | Permisos efectivos y caminos de control | AD ACL/GPO/Tier0 | Describir prerequisito y riesgo sin exagerar | RT-L03, RT-L05 |\n| RT-04 | Exposición Kerberos/NTLM y servicios | AD Kerberos/NTLM/SPN | Identificar postura y controles | RT-L04, SOC-L03 |\n| RT-05 | Delegaciones, trusts y cuentas sensibles | AD delegación/trust/Tier0 | Matriz de condiciones y alcance | RT-L06 |\n| RT-06 | AD CS desde evaluación segura | AD AD CS/PKI | Auditar CA/plantilla con identidades ficticias | PT-L02 |\n| RT-07 | Movimiento remoto y control operacional | WIN red/servicios, AD auth | Mapa de permisos y restricciones | SOC-L01, PT-L01 |\n| RT-08 | Evidencia, remediación, retest | RT-01 a RT-07 | Informe con prueba negativa y positiva | PT-L01 |\n| SOC-01 | Dónde nace la evidencia Windows/AD | WIN procesos/eventos, AD roles | Matriz canal/host/condición | SOC-L01 |\n| SOC-02 | Auditoría avanzada y SACL | SOC-01, AD ACL | Demostrar cobertura y ausencia explicable | SOC-L04 |\n| SOC-03 | Identidades y autenticación Windows/AD | SOC-01, AD Kerberos/NTLM | Trazar 4624↔4769 con límites | SOC-L01, SOC-L03 |\n| SOC-04 | Procesos, PowerShell y persistencia administrativa | SOC-01, WIN servicios/PowerShell | Comparar 4688/4104/Sysmon | SOC-L02, SOC-L06 |\n| SOC-05 | Sysmon y validación de sensor | SOC-04 | Determinar eventos activados/filtrados | SOC-L05 |\n| SOC-06 | WEF, UTC, retención y preservación | SOC-01, WIN red | Export controlado y prueba extremo a extremo | SOC-L07 |\n| SOC-07 | Detección contextual y falsos positivos | SOC-02 a SOC-06 | Resolver 8 hipótesis con confianza graduada | SOC-L08 |\n| SOC-08 | Coordinación respuesta y Purple Team | RT-08, SOC-07 | Causa, contención proporcional, remediación y retest | PT-L01, PT-L02 |\n\n**Regla pedagógica:** ninguna etapa de Red Team se considera dominada solo por “conocer el nombre de una técnica”; ninguna etapa SOC se aprueba por memorizar un Event ID. Cada desbloqueo requiere explicar una configuración real, el contexto observacional y la acción correctiva apropiada."
+    },
+    {
+      "numero": 18,
+      "titulo": "Matriz ATT&CK ↔ control ↔ evidencia (no reglas de SIEM)",
+      "markdown": "| Técnica MITRE | Condición principal a analizar | Observables posibles | No concluye automáticamente |\n|---|---|---|---|\n| T1558.003 Kerberoasting | SPN, secreto/cifrado, solicitudes TGS | 4769 + inventario SPN y baseline | Que se rompió contraseña |\n| T1558.004 AS-REP Roasting | Cuentas sin preautenticación | 4768 con campos pertinentes | Que cualquier TGT es anómalo |\n| T1003.006 DCSync | Derechos de replicación y acceso RPC | 4662 focalizado, red y DC autorizado | Que todo 4662 es replicación abusiva |\n| T1484.001 GPO Modification | Permiso modificar GPO/link; alcance | 5136 + SYSVOL/GP/Operational | Que GPO se aplicó a host |\n| T1021.001 RDP | Logon derecho/red/host/identidad | 4624 tipo 10; RDP Operational | Que todo soporte remoto es lateral malicioso |\n| T1021.002 SMB/Admin Shares | Cuenta con derechos y SMB permitido | 4624 tipo 3, 5140/5145, Sysmon3 | Que el acceso fue para ejecutar malware |\n| T1021.006 WinRM | Acceso remoto configurado | WinRM, PowerShell, 4688/1 | Que `winrm` implica intrusión |\n| T1053.005 Scheduled Task | Permiso de crear tareas | 4698/4702 y TaskScheduler | Que la tarea es persistencia adversaria |\n| T1543.003 Windows Service | Permiso de instalar servicio | 4697/7045 y ejecución de binario | Que el servicio es malicioso |\n\nLos enlaces ATT&CK sirven de **taxonomía de comportamientos** y no sustituyen la documentación de Microsoft sobre condiciones de emisión de eventos. Algunas capacidades y tácticas ATT&CK cambian; registrar fecha de consulta y versión al implementar. [R20–R23, R30]"
+    },
+    {
+      "numero": 19,
+      "titulo": "Auditoría crítica de esta tanda",
+      "markdown": "| Riesgo de diseño | Hallazgo crítico | Tratamiento |\n|---|---|---|\n| Dependencia excesiva de Event IDs | Event ID sin host/canal/política no demuestra cobertura | Requerir matriz de prerrequisitos por evento |\n| Falsa certeza en Kerberoasting | 4769 es tráfico Kerberos normal en DC | Baseline y control preventivo además de indicadores |\n| Falsa certeza DCSync | 4662 tiene usos generales y SACL | Correlacionar derechos/host/RPC/identidad |\n| Confundir GPC/GPT | Evento de AD no mide automáticamente SYSVOL ni aplicación GPO | Validar ambas capas y `gpresult` |\n| Exposición de datos por logging | Command line/4104 puede recoger secretos | Gobernanza de logs y datos sintéticos |\n| Configuración de Sysmon genérica | Exceso de eventos o omisiones por filtros | Baseline y pruebas de inclusión/exclusión |\n| Tutoriales antiguos de SMB | Supuestos de firma desactivada pueden no aplicar a Server 2025 | Verificar configuración real por versión |\n| CA audit a medias | Ajustar `AuditFilter` no garantiza eventos si falta auditoría SO | Validar extremo a extremo en CA |\n| Modelo de ataque sin retest | Hallazgo sin corrección reproducible | Prueba positiva + negativa obligatoria |\n| Duplicación de mundos SOC | Repetir KQL/SPL/Sentinel/Splunk distrae del origen | Solo telemetría nativa y enlaces cruzados |\n\n### 19.1. Limitaciones expresas de la investigación\n\n- **Sin validación de ejecución:** no se han observado eventos ni medido rendimiento, compatibilidad ni coste de un laboratorio real.\n- **Sin auditoría de notas privadas:** este prompt corto no entrega los 155 ficheros Markdown; los archivos existentes del usuario no se han leído ni contrastado individualmente.\n- **Sin matriz completa CVE/exploit:** se requiere inventario de versiones y permisos, y no corresponde a este entregable elaborar cadenas de explotación destructivas.\n- **Sin licencias/costes cerrados:** las licencias de laboratorio/evaluación y requisitos mínimos dependerán de edición y programas vigentes.\n- **Sin promesas de eventos universales:** algunos eventos dependen de políticas, versiones, sensores, SACL y funciones de rol; cada lab exigirá prueba de generación.\n- **Sin inferir funcionalidades de productos SIEM:** análisis en origen; no se diseñaron reglas de Sentinel/Splunk."
+    },
+    {
+      "numero": 20,
+      "titulo": "Tanda 4: insumos que quedan preparados",
+      "markdown": "Integrar laboratorios de recuperación de System State, restauración de objetos/AD, backup SYSVOL, CA, cambio de DC/FSMO, contención de dominio y restauración con verificación. Unificar dependencias Windows↔AD↔Red Team↔SOC. Crear tabla final de lecciones con criterios de dominio, rangos de tiempo estimados, recursos por topología y costes verificados, rúbricas completas, diagnóstico inicial y misión integradora. El diseño debe distinguir `propuesto` de `ejecutado` y `validado`."
+    },
+    {
+      "numero": 21,
+      "titulo": "Bibliografía verificada y trazabilidad",
+      "markdown": "**Consulta documental:** 2026-10-18. Las URL están asociadas a artículos/documentación accesibles durante esta investigación. Las fechas de publicación se indican solo cuando resultaron visibles y verificables; otras quedan `fecha de publicación no comprobada`. Las fuentes de Microsoft sustentan semántica y condiciones de telemetría; MITRE sustenta taxonomía/posibles comportamientos, no confirma por sí solo una implementación. **Confianza alta** para el alcance del documento oficial y **media** para inferencias pedagógicas o matrices de hipótesis pendientes de prueba."
+    }
+  ],
+  "fuentes": [
+    {
+      "id": "R01",
+      "organizacion": "Microsoft",
+      "titulo": "Best practices for securing Active Directory",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/best-practices-for-securing-active-directory",
+      "afirmaciones_respaldadas": "Hardening y monitorización de AD; activos privilegiados",
+      "fecha_consulta": "2026-10-18",
+      "fecha_publicacion": null,
+      "confianza": "alta_para_su_alcance"
+    },
+    {
+      "id": "R02",
+      "organizacion": "Microsoft",
+      "titulo": "Implementing Least-Privilege Administrative Models",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/implementing-least-privilege-administrative-models",
+      "afirmaciones_respaldadas": "Permisos, RBAC, cuentas administrativas y privilegios",
+      "fecha_consulta": "2026-10-18",
+      "fecha_publicacion": null,
+      "confianza": "alta_para_su_alcance"
+    },
+    {
+      "id": "R03",
+      "organizacion": "Microsoft",
+      "titulo": "Advanced Audit Policy Configuration settings",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/advanced-audit-policy-configuration",
+      "afirmaciones_respaldadas": "Eventos y subcategorías de auditoría",
+      "fecha_consulta": "2026-10-18",
+      "fecha_publicacion": null,
+      "confianza": "alta_para_su_alcance"
+    },
+    {
+      "id": "R04",
+      "organizacion": "Microsoft",
+      "titulo": "Audit logon events",
+      "url": "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/basic-audit-logon-events",
+      "afirmaciones_respaldadas": "Tipos de logon y eventos generales",
+      "fecha_consulta": "2026-10-18",
+      "fecha_publicacion": null,
+      "confianza": "alta_para_su_alcance"
+    },
+    {
+      "id": "R05",
+      "organizacion": "Microsoft",
+      "titulo": "4624(S): An account was successfully logged on",
+      "url": "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4624",
+      "afirmaciones_respaldadas": "Origen de emisión, campos y tipos de logon",
+      "fecha_consulta": "2026-10-18",
+      "fecha_publicacion": null,
+      "confianza": "alta_para_su_alcance"
+    },
+    {
+      "id": "R06",
+      "organizacion": "Microsoft",
+      "titulo": "4688(S): A new process has been created",
+      "url": "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4688",
+      "afirmaciones_respaldadas": "Proceso y requisitos de command line",
+      "fecha_consulta": "2026-10-18",
+      "fecha_publicacion": null,
+      "confianza": "alta_para_su_alcance"
+    },
+    {
+      "id": "R07",
+      "organizacion": "Microsoft",
+      "titulo": "ADMX_AuditSettings Policy CSP",
+      "url": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-admx-auditsettings",
+      "afirmaciones_respaldadas": "Argumentos de procesos en claro y privacidad",
+      "fecha_consulta": "2026-10-18",
+      "fecha_publicacion": null,
+      "confianza": "alta_para_su_alcance"
+    },
+    {
+      "id": "R08",
+      "organizacion": "Microsoft",
+      "titulo": "Audit Directory Service Changes",
+      "url": "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-directory-service-changes",
+      "afirmaciones_respaldadas": "SACL y eventos 5136-5141",
+      "fecha_consulta": "2026-10-18",
+      "fecha_publicacion": null,
+      "confianza": "alta_para_su_alcance"
+    },
+    {
+      "id": "R09",
+      "organizacion": "Microsoft",
+      "titulo": "4662(S,F): An operation was performed on an object",
+      "url": "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4662",
+      "afirmaciones_respaldadas": "Operaciones AD y SACL; limitaciones",
+      "fecha_consulta": "2026-10-18",
+      "fecha_publicacion": null,
+      "confianza": "alta_para_su_alcance"
+    },
+    {
+      "id": "R10",
+      "organizacion": "Microsoft",
+      "titulo": "Audit Kerberos Authentication Service",
+      "url": "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-kerberos-authentication-service",
+      "afirmaciones_respaldadas": "4768, 4771 y 4772 en KDC",
+      "fecha_consulta": "2026-10-18",
+      "fecha_publicacion": null,
+      "confianza": "alta_para_su_alcance"
+    },
+    {
+      "id": "R11",
+      "organizacion": "Microsoft",
+      "titulo": "Audit Kerberos Service Ticket Operations",
+      "url": "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-kerberos-service-ticket-operations",
+      "afirmaciones_respaldadas": "4769/4770/4773 y volumen DC",
+      "fecha_consulta": "2026-10-18",
+      "fecha_publicacion": null,
+      "confianza": "alta_para_su_alcance"
+    },
+    {
+      "id": "R12",
+      "organizacion": "Microsoft",
+      "titulo": "about_Logging (Windows PowerShell 5.1)",
+      "url": "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_logging?view=powershell-5.1",
+      "afirmaciones_respaldadas": "Script Block Logging 4104 y Protected Event Logging",
+      "fecha_consulta": "2026-10-18",
+      "fecha_publicacion": null,
+      "confianza": "alta_para_su_alcance"
+    },
+    {
+      "id": "R13",
+      "organizacion": "Microsoft Sysinternals",
+      "titulo": "Sysmon v15.22 (10-09-2026)",
+      "url": "https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon",
+      "afirmaciones_respaldadas": "Funciones, instalación, controles y Event IDs",
+      "fecha_consulta": "2026-10-18",
+      "fecha_publicacion": "2026-09-10",
+      "confianza": "alta_para_su_alcance"
+    },
+    {
+      "id": "R14",
+      "organizacion": "Microsoft",
+      "titulo": "Sysmon events",
+      "url": "https://learn.microsoft.com/en-us/windows/security/operating-system-security/sysmon/sysmon-events",
+      "afirmaciones_respaldadas": "Semántica eventos Sysmon y correlación",
+      "fecha_consulta": "2026-10-18",
+      "fecha_publicacion": null,
+      "confianza": "alta_para_su_alcance"
+    },
+    {
+      "id": "R15",
+      "organizacion": "Microsoft",
+      "titulo": "Secure, delegate, and audit certification authority administration",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/secure-delegate-audit-certification-authority",
+      "afirmaciones_respaldadas": "CA audit-filter + auditoría Windows; 4882, 4885, 4886–4888",
+      "fecha_consulta": "2026-10-18",
+      "fecha_publicacion": null,
+      "confianza": "alta_para_su_alcance"
+    },
+    {
+      "id": "R16",
+      "organizacion": "Microsoft",
+      "titulo": "Appendix B: Privileged Accounts and Groups",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/appendix-b--privileged-accounts-and-groups-in-active-directory",
+      "afirmaciones_respaldadas": "Privilegios y grupos protegidos",
+      "fecha_consulta": "2026-10-18",
+      "fecha_publicacion": null,
+      "confianza": "alta_para_su_alcance"
+    },
+    {
+      "id": "R17",
+      "organizacion": "Microsoft",
+      "titulo": "Accounts security posture assessment — Defender for Identity",
+      "url": "https://learn.microsoft.com/en-us/defender-for-identity/security-posture-assessments/accounts",
+      "afirmaciones_respaldadas": "Riesgos de delegación y cuentas privilegiadas; solo referencia de postura",
+      "fecha_consulta": "2026-10-18",
+      "fecha_publicacion": null,
+      "confianza": "alta_para_su_alcance"
+    },
+    {
+      "id": "R18",
+      "organizacion": "Microsoft",
+      "titulo": "Windows Event Collector",
+      "url": "https://learn.microsoft.com/en-us/windows/win32/wec/windows-event-collector",
+      "afirmaciones_respaldadas": "WEF/WEC, suscripciones y conservación",
+      "fecha_consulta": "2026-10-18",
+      "fecha_publicacion": null,
+      "confianza": "alta_para_su_alcance"
+    },
+    {
+      "id": "R19",
+      "organizacion": "Microsoft",
+      "titulo": "Configuring Additional LSA Protection",
+      "url": "https://learn.microsoft.com/en-us/windows-server/security/credentials-protection-and-management/configuring-additional-lsa-protection",
+      "afirmaciones_respaldadas": "LSASS protección y controles",
+      "fecha_consulta": "2026-10-18",
+      "fecha_publicacion": null,
+      "confianza": "alta_para_su_alcance"
+    },
+    {
+      "id": "R20",
+      "organizacion": "MITRE ATT&CK",
+      "titulo": "T1558.003 Kerberoasting",
+      "url": "https://attack.mitre.org/techniques/T1558/003/",
+      "afirmaciones_respaldadas": "Contexto ofensivo y mitigaciones, no prueba de detección",
+      "fecha_consulta": "2026-10-18",
+      "fecha_publicacion": null,
+      "confianza": "alta_para_su_alcance"
+    },
+    {
+      "id": "R21",
+      "organizacion": "MITRE ATT&CK",
+      "titulo": "T1003.006 DCSync",
+      "url": "https://attack.mitre.org/techniques/T1003/006/",
+      "afirmaciones_respaldadas": "Condiciones de abuso de replicación",
+      "fecha_consulta": "2026-10-18",
+      "fecha_publicacion": null,
+      "confianza": "alta_para_su_alcance"
+    },
+    {
+      "id": "R22",
+      "organizacion": "MITRE ATT&CK",
+      "titulo": "T1021.002 SMB/Windows Admin Shares",
+      "url": "https://attack.mitre.org/techniques/T1021/002/",
+      "afirmaciones_respaldadas": "Servicios remotos y movimiento lateral",
+      "fecha_consulta": "2026-10-18",
+      "fecha_publicacion": null,
+      "confianza": "alta_para_su_alcance"
+    },
+    {
+      "id": "R23",
+      "organizacion": "MITRE ATT&CK",
+      "titulo": "T1484.001 Group Policy Modification",
+      "url": "https://attack.mitre.org/techniques/T1484/001/",
+      "afirmaciones_respaldadas": "Riesgo de permisos GPO y aplicación a equipos",
+      "fecha_consulta": "2026-10-18",
+      "fecha_publicacion": null,
+      "confianza": "alta_para_su_alcance"
+    },
+    {
+      "id": "R24",
+      "organizacion": "Microsoft",
+      "titulo": "SMB security hardening",
+      "url": "https://learn.microsoft.com/en-us/windows-server/storage/file-server/smb-security-hardening",
+      "afirmaciones_respaldadas": "Firma SMB predeterminada Windows 11 24H2+/Server 2025",
+      "fecha_consulta": "2026-10-18",
+      "fecha_publicacion": null,
+      "confianza": "alta_para_su_alcance"
+    },
+    {
+      "id": "R25",
+      "organizacion": "Microsoft",
+      "titulo": "Protected Users security group",
+      "url": "https://learn.microsoft.com/en-us/windows-server/security/credentials-protection-and-management/protected-users-security-group",
+      "afirmaciones_respaldadas": "Protecciones y limitaciones funcionales",
+      "fecha_consulta": "2026-10-18",
+      "fecha_publicacion": null,
+      "confianza": "alta_para_su_alcance"
+    },
+    {
+      "id": "R26",
+      "organizacion": "MITRE ATT&CK",
+      "titulo": "T1558.004 AS-REP Roasting",
+      "url": "https://attack.mitre.org/techniques/T1558/004/",
+      "afirmaciones_respaldadas": "Preautenticación y protección contra cracking offline",
+      "fecha_consulta": "2026-10-18",
+      "fecha_publicacion": null,
+      "confianza": "alta_para_su_alcance"
+    },
+    {
+      "id": "R27",
+      "organizacion": "Microsoft",
+      "titulo": "Kerberos authentication overview",
+      "url": "https://learn.microsoft.com/en-us/windows-server/security/kerberos/kerberos-authentication-overview",
+      "afirmaciones_respaldadas": "KDC, TGT/TGS y delegación",
+      "fecha_consulta": "2026-10-18",
+      "fecha_publicacion": null,
+      "confianza": "alta_para_su_alcance"
+    },
+    {
+      "id": "R28",
+      "organizacion": "Microsoft",
+      "titulo": "auditpol get",
+      "url": "https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/auditpol-get",
+      "afirmaciones_respaldadas": "Inspección de política efectiva",
+      "fecha_consulta": "2026-10-18",
+      "fecha_publicacion": null,
+      "confianza": "alta_para_su_alcance"
+    },
+    {
+      "id": "R29",
+      "organizacion": "Microsoft",
+      "titulo": "about_Logging_Windows (PowerShell 7.6)",
+      "url": "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_logging_windows?view=powershell-7.6",
+      "afirmaciones_respaldadas": "Diferencias de motores, proveedores y políticas",
+      "fecha_consulta": "2026-10-18",
+      "fecha_publicacion": null,
+      "confianza": "alta_para_su_alcance"
+    },
+    {
+      "id": "R30",
+      "organizacion": "MITRE ATT&CK",
+      "titulo": "Enterprise tactics",
+      "url": "https://attack.mitre.org/tactics/enterprise/",
+      "afirmaciones_respaldadas": "Taxonomía de tácticas; versión vigente consultada",
+      "fecha_consulta": "2026-10-18",
+      "fecha_publicacion": null,
+      "confianza": "alta_para_su_alcance"
+    },
+    {
+      "id": "R32",
+      "organizacion": "Microsoft",
+      "titulo": "wevtutil",
+      "url": "https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/wevtutil",
+      "afirmaciones_respaldadas": "Inspección, exportación y propiedades del log",
+      "fecha_consulta": "2026-10-18",
+      "fecha_publicacion": null,
+      "confianza": "alta_para_su_alcance"
+    },
+    {
+      "id": "R33",
+      "organizacion": "Microsoft",
+      "titulo": "Audit Security Group Management",
+      "url": "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/audit-security-group-management",
+      "afirmaciones_respaldadas": "4728/4732/4756 y alcance de grupos",
+      "fecha_consulta": "2026-10-18",
+      "fecha_publicacion": null,
+      "confianza": "alta_para_su_alcance"
+    }
+  ],
+  "limites": [
+    "No validación de eventos en VM",
+    "No costes/licencias confirmados",
+    "No acceso a 155 Markdown",
+    "Versiones y configuración concretas requieren pruebas",
+    "Matriz ATT&CK y recomendaciones no implican funcionamiento comprobado"
+  ],
+  "siguiente_tanda": {
+    "numero": 4,
+    "temas": [
+      "recuperacion",
+      "laboratorios integradores",
+      "diseno_curricular_final",
+      "grafo_dependencias",
+      "rubricas",
+      "horas_costos_estimados"
+    ],
+    "estado": "pendiente"
+  },
+  "estado": "DOCUMENTAL_NO_EJECUTADO"
+}

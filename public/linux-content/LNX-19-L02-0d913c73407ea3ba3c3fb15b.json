@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-19-L02",
+  "title": "UDP, ICMP y dual stack",
+  "sourceHash": "e6831096b1413bffcf181c57e9d2313bec74045b0db430e9a5e86c50feab18f0",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-19-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nExplicar UDP, ICMP e ICMPv6 y las consecuencias de un filtrado que ignore el dual stack.\n\nPrerrequisitos: `LNX-19-L01` (TCP y estados de conexión).\n\n## 2. Comprende el mecanismo\n\nNo todo el tráfico es TCP. **UDP** no mantiene el estado de conexión de TCP: un `ss -uanp` no prueba que no haya habido flujos previos ni que no los haya después. DNS, QUIC y otros protocolos pueden usar UDP, de modo que parte de la actividad de red no aparece como una «sesión TCP».\n\n**ICMP** no es tráfico prescindible. Mensajes como *fragmentation needed* o *Packet Too Big* participan en el descubrimiento de la MTU de ruta (PMTUD); bloquearlos a ciegas rompe conectividad. Un `ping` fallido no implica que TCP/443 sea inalcanzable: el host puede ignorar el eco sin dejar de servir aplicaciones.\n\nEn IPv6, la autoconfiguración y el descubrimiento de vecinos (NDP) usan ICMPv6. Filtrar todo ICMPv6 puede dejar segmentos inoperativos. Una política que solo contempla `ip saddr` (IPv4) deja pasar el mismo servicio por IPv6.\n\n**Dual stack** significa que un host puede tener IPv4 e IPv6 a la vez. La consecuencia práctica es que hay que revisar ambas familias: `getent ahosts`, `ip -6 route` y pruebas `curl -4`/`-6` antes de afirmar que un servicio está o no accesible. Declarar «aislado» mirando solo IPv4 es un error frecuente.\n\nLa MTU también cambia la lectura. Túneles y VPN reducen el MTU efectivo y dependen de PMTUD. Una transferencia que se estanca puede ser un problema de MTU, no de autenticación ni de firewall.\n\nLa regla es usar rangos de documentación para los ejemplos IPv6 (`2001:db8::/32`) y no concluir sobre aislamiento mirando una sola familia. El límite: desde un solo host no ves el camino completo ni la política de los intermediarios.\n\n### Vocabulario de apoyo\n\n- **UDP**: transporte sin conexión ni acuses, a diferencia de TCP.\n- **ICMP / ICMPv6**: protocolos de control y error; participan en PMTUD y NDP.\n- **PMTUD**: descubrimiento de la MTU de ruta mediante mensajes de error.\n- **Dual stack**: coexistencia de IPv4 e IPv6 en el mismo host.\n- **NDP**: descubrimiento de vecinos IPv6 basado en ICMPv6.\n- **MTU**: tamaño máximo de unidad de transmisión en un enlace.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-19-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un host resuelve un nombre a una dirección IPv4 y a una IPv6 (en `2001:db8::/32`); un `ping` a la IPv6 falla y el analista concluye que «el firewall bloquea todo el tráfico IPv6», aunque por IPv4 todo funciona.\n\nHay varias hipótesis antes de esa conclusión. Un fallo de `ping` solo prueba que no hubo respuesta al eco ICMPv6: el host o un intermediario puede ignorarlo sin bloquear TCP. Puede faltar una ruta IPv6, o el mensaje de error puede no volver. También puede ocurrir que parte del IPv6 funcione y solo se haya probado un extremo.\n\nLa lectura correcta comprueba `getent ahosts`, `ip -6 route`, un `curl -6` al servicio y la política de la cadena `inet` o `ip6`. El límite de la conclusión: desde un solo host no puedes afirmar qué bloquea un intermediario; se necesitan pruebas desde ambos extremos y dentro del alcance autorizado.\n\n"
+    },
+    {
+      "id": "LNX-19-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: No concluir aislamiento mirando solo IPv4; revisar ambas familias y el ICMP asociado.\n- Red Team autorizado: Probar puertos permitidos y denegados por familia dentro del alcance del laboratorio.\n- Evidencia de la etapa: Comparación `curl -4`/`-6`, rutas IPv6 y política que contemple ambas familias.\n- Criterio de dominio: Diferencia un fallo de eco ICMP de un bloqueo de servicio y justifica con pruebas cruzadas.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB22](../../05_RECURSOS/LABORATORIOS/LNX-LAB22.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F98**: [RFC 8200 — IPv6](https://www.rfc-editor.org/rfc/rfc8200). Base del protocolo IPv6 y su relación con ICMPv6.\n- **F97**: [RFC 3849 — IPv6 documentación](https://www.rfc-editor.org/rfc/rfc3849). Prefijo `2001:db8::/32` para ejemplos sin datos reales.\n- **F81**: [IP sysctl — Linux kernel](https://docs.kernel.org/networking/ip-sysctl.html). Parámetros por familia que afectan al comportamiento del host.\n- **F100**: [tcp(7) — man7](https://man7.org/linux/man-pages/man7/tcp.7.html). Contraste entre transporte orientado a conexión y sin conexión.\n- **F79**: [tcpdump(8) — manual](https://man7.org/linux/man-pages/man8/tcpdump.8.html). Captura controlada para distinguir ICMP de tráfico de aplicación.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-19-L02-P01",
+    "prompt": "Un host resuelve un nombre a una dirección IPv4 y a una IPv6; un `ping` a la IPv6 falla y se concluye que «el firewall bloquea todo el tráfico IPv6», aunque por IPv4 todo funciona. Explica qué hipótesis competidoras existen y cuál es el límite de la conclusión.",
+    "markdown": "## 4. Práctica individual\n\nUn host resuelve un nombre a una dirección IPv4 y a una IPv6; un `ping` a la IPv6 falla y se concluye que «el firewall bloquea todo el tráfico IPv6», aunque por IPv4 todo funciona. Explica qué hipótesis competidoras existen y cuál es el límite de la conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber modificado reglas de firewall ni haber ejecutado diagnósticos sobre redes reales.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-19-L02-Q01",
+      "prompt": "Un `ping` a una dirección IPv6 falla, pero el servicio por TCP/443 en esa misma dirección responde. ¿Qué lectura es correcta?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El firewall bloquea todo el tráfico IPv6"
+        },
+        {
+          "id": "B",
+          "text": "La dirección IPv6 es necesariamente falsa"
+        },
+        {
+          "id": "C",
+          "text": "TCP/443 no puede funcionar sobre IPv6"
+        },
+        {
+          "id": "D",
+          "text": "El host o el camino pueden estar ignorando el eco ICMP sin bloquear TCP; un fallo de `ping` no prueba inaccesibilidad del servicio"
+        }
+      ]
+    },
+    {
+      "id": "LNX-19-L02-Q02",
+      "prompt": "¿Por qué bloquear todo ICMP/ICMPv6 de forma indiscriminada es un problema?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Porque rompe PMTUD y funciones de IPv6 como NDP, degradando la conectividad"
+        },
+        {
+          "id": "B",
+          "text": "Porque aumenta el tamaño de la tabla de rutas"
+        },
+        {
+          "id": "C",
+          "text": "Porque desactiva TCP automáticamente"
+        },
+        {
+          "id": "D",
+          "text": "Porque convierte IPv4 en IPv6"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB22](../../05_RECURSOS/LABORATORIOS/LNX-LAB22.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F98**: [RFC 8200 — IPv6](https://www.rfc-editor.org/rfc/rfc8200). Base del protocolo IPv6 y su relación con ICMPv6.\n- **F97**: [RFC 3849 — IPv6 documentación](https://www.rfc-editor.org/rfc/rfc3849). Prefijo `2001:db8::/32` para ejemplos sin datos reales.\n- **F81**: [IP sysctl — Linux kernel](https://docs.kernel.org/networking/ip-sysctl.html). Parámetros por familia que afectan al comportamiento del host.\n- **F100**: [tcp(7) — man7](https://man7.org/linux/man-pages/man7/tcp.7.html). Contraste entre transporte orientado a conexión y sin conexión.\n- **F79**: [tcpdump(8) — manual](https://man7.org/linux/man-pages/man8/tcpdump.8.html). Captura controlada para distinguir ICMP de tráfico de aplicación.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "0d913c73407ea3ba3c3fb15b"
+}

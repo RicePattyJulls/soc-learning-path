@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-13-L01",
+  "title": "Topología y vectores de replicación",
+  "sourceHash": "8a30b12d9e52946c9099548d3e23cbc2b2b93f1d7445fb1e9a3cf754fccc3a91",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-13-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nExplicar cómo se replica el directorio entre controladores y qué determina la topología, sin modificar la configuración.\n\nPrerrequisitos: `WAD-09-L03` (comprobaciones cliente/DC) y `WAD-12-L03` (SYSVOL, políticas y cambio inocuo).\n\n## 2. Comprende el mecanismo\n\nActive Directory no vive en un solo servidor: cada controlador de dominio (DC) mantiene una copia del directorio y los cambios se propagan entre ellos. A ese intercambio de cambios se le llama **replicación**. Un DC no publica sus novedades «a todos» sin criterio: las envía según una **topología** de conexiones que el propio directorio calcula y mantiene.\n\nEl directorio organiza los equipos en **sitios**. Un sitio representa una ubicación con buena conectividad interna —por ejemplo, una oficina con su propia red local— y agrupa controladores que pueden hablar entre sí sin coste apreciable. Dentro de un sitio, las réplicas se sincronizan con frecuencia y baja latencia.\n\nEntre sitios, en cambio, la replicación se programa: se agrupa en franjas horarias, se comprime y viaja por **vínculos de sitio** que se definen con un coste y una programación. Nadie mantiene la lista de conexiones a mano salvo que haga falta: el **conocimiento de la topología (KCC)**, un proceso que corre en cada DC, calcula solo las rutas más eficientes y las revisa periódicamente.\n\nLas **particiones** son la unidad de esa replicación. Cada partición —esquema, configuración, dominio y las de aplicación— se replica por separado, y no todos los cambios van a los mismos destinos: unos se replican dentro del dominio y otros entre todos los DC del bosque.\n\nDe aquí salen los tres vectores que conviene tener presentes: **quién** replica (las conexiones entre DC), **qué** se replica (la partición afectada) y **cuándo** lo hace (la programación del vínculo). Un síntoma de replicación casi siempre se explica por uno de esos tres vectores, no por «el directorio entero».\n\nLa regla de esta lección es de observación: para entender la topología se lee y se describe, sin modificarla. Cambiar conexiones, sitios o programaciones altera el camino de los datos y es una operación que exige motivo y evidencia, no una forma de «ver qué pasa».\n\n### Vocabulario de apoyo\n\n- **Replicación**: intercambio de cambios del directorio entre controladores de dominio.\n- **Sitio**: agrupación de equipos con buena conectividad interna que define cómo y cuándo se replica entre ubicaciones.\n- **Vínculo de sitio**: conexión definida entre dos sitios, con un coste y una programación.\n- **Conocimiento de la topología (KCC)**: proceso que calcula y mantiene las conexiones de replicación.\n- **Partición de directorio**: porción de datos que se replica como una unidad.\n- **Vector de replicación**: cada uno de los planos de la replicación, es decir quién, qué y cuándo.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-13-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test` hay dos controladores, `DC01` y `DC02`, en el mismo sitio. Se observa que un cambio hecho horas antes en `DC01` todavía no aparece en `DC02`, pero solo en algunos objetos.\n\nLa coincidencia de sitio y la demora parcial apuntan a una relación concreta, no al directorio entero: si todas las particiones fallaran, dos controladores del mismo sitio no tardarían «horas» en coincidir. Lo prudente es describir primero qué vector falla —la conexión entre `DC01` y `DC02`, la partición afectada o la programación— sin tocar la topología. La conclusión acota lo observable —«hay una demora acotada a esa relación o a esa partición»— y reconoce un límite: sin los informes de estado de replicación no se puede afirmar la causa ni descartar otras conexiones.\n\n"
+    },
+    {
+      "id": "WAD-13-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Distinguir los vectores de replicación evita atribuir a un objeto un cambio que llegó por el camino de otro controlador.\n- Red Team autorizado: Describir la topología en modo lectura permite entender la superficie de un dominio sin alterarla.\n- Evidencia de la etapa: Descripción del sitio, las conexiones y la partición que sostiene cada conclusión.\n- Criterio de dominio: La topología se lee y se describe sin modificarla.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB08](../../05_RECURSOS/LABORATORIOS/WAD-LAB08.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **REPLCON**: [Active Directory replication concepts](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/get-started/replication/active-directory-replication-concepts). Qué se replica, entre qué controladores y por qué caminos.\n- **SITEDESIGN**: [Creating a site design](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/creating-a-site-design). Cómo se diseñan los sitios y los vínculos que definen la topología.\n- **REPLPWSH**: [Introduction to Active Directory replication and topology management with Windows PowerShell](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/powershell/introduction-to-active-directory-replication-and-topology-management-using-windows-powershell--level-100-). Cómo se describe y administra la topología desde la consola.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-13-L01-P01",
+    "prompt": "En `ad.lab.test`, `DC01` y `DC02` están en el mismo sitio. Explica cómo se replican los cambios entre ellos, qué determina la topología que siguen y qué datos describirías sin modificar ninguna configuración.",
+    "markdown": "## 4. Práctica individual\n\nEn `ad.lab.test`, `DC01` y `DC02` están en el mismo sitio. Explica cómo se replican los cambios entre ellos, qué determina la topología que siguen y qué datos describirías sin modificar ninguna configuración.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber modificado la topología de replicación en un sistema real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-13-L01-Q01",
+      "prompt": "¿Qué determina qué controladores de dominio replican entre sí y en qué momento lo hacen?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El tamaño de la base de datos de cada controlador"
+        },
+        {
+          "id": "B",
+          "text": "El número de usuarios con sesión abierta en cada controlador"
+        },
+        {
+          "id": "C",
+          "text": "Los sitios, los vínculos entre sitios y el conocimiento de la topología que calcula el directorio"
+        },
+        {
+          "id": "D",
+          "text": "El nombre del sitio principal y su descripción"
+        }
+      ]
+    },
+    {
+      "id": "WAD-13-L01-Q02",
+      "prompt": "En un dominio con dos controladores en el mismo sitio, uno de ellos deja de recibir los cambios recientes del otro. ¿Cuál es la lectura más prudente antes de tocar la configuración?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Reunir evidencia de los vectores y del estado de replicación, y localizar el fallo antes de cambiar la topología"
+        },
+        {
+          "id": "B",
+          "text": "Recrear la topología desde cero para forzar la réplica"
+        },
+        {
+          "id": "C",
+          "text": "Eliminar los objetos sospechosos para que se regeneren"
+        },
+        {
+          "id": "D",
+          "text": "Deshabilitar la replicación hasta nuevo aviso"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB08](../../05_RECURSOS/LABORATORIOS/WAD-LAB08.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **REPLCON**: [Active Directory replication concepts](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/get-started/replication/active-directory-replication-concepts). Qué se replica, entre qué controladores y por qué caminos.\n- **SITEDESIGN**: [Creating a site design](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/creating-a-site-design). Cómo se diseñan los sitios y los vínculos que definen la topología.\n- **REPLPWSH**: [Introduction to Active Directory replication and topology management with Windows PowerShell](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/powershell/introduction-to-active-directory-replication-and-topology-management-using-windows-powershell--level-100-). Cómo se describe y administra la topología desde la consola.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "ec4e3991ecdd81ee6fa4c73e"
+}

@@ -1,0 +1,39 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-20-L02",
+  "sourceHash": "1c624312305050efbaa369d23c8f5e511904e93caf89f4944c9a31c1f6851290",
+  "questions": [
+    {
+      "id": "WAD-20-L02-Q01",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Marcar el SYSVOL del controlador restaurado como autoritativo para que su contenido prevalezca y los demás lo repliquen».\n\nCon SYSVOL replicado por DFSR, el contenido de la copia confiable debe imponerse marcándolo como autoritativo. Copiar a mano, borrar el recurso o deshabilitar la replicación no alinean los controladores y reintroducen datos antiguos o inconsistentes."
+    },
+    {
+      "id": "WAD-20-L02-Q02",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Para invalidar los tickets emitidos antes del incidente y reducir la vigencia de credenciales comprometidas».\n\nLa cuenta `krbtgt` firma los tickets del dominio; restablecerla invalida los emitidos antes del incidente y acorta la vigencia de lo comprometido. No cambia el nombre del dominio, no sustituye la reintegración ni afecta a la replicación entre controladores."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "Como el controlador restaurado trae el contenido de la copia confiable, SYSVOL se recupera en sentido autoritativo: se marca su contenido como referencia para que los demás controladores lo repliquen y no se imponga la copia antigua. En paralelo se restablece la cuenta crítica `krbtgt` para invalidar los tickets emitidos antes del incidente y reducir la vigencia de lo comprometido. El cierre incluye una limpieza que retira metadatos de controladores descartados y revisa los grupos privilegiados. Se comprueba que SYSVOL converge al mismo contenido y que los tickets anteriores ya no son aceptados. Límite: restablecer y limpiar reducen el riesgo, pero no demuestran que no quede ningún acceso obtenido durante el incidente.",
+    "rubric": [
+      {
+        "criterion": "SYSVOL autoritativo",
+        "evidence": "Declara el SYSVOL del controlador restaurado como autoritativo y lo justifica."
+      },
+      {
+        "criterion": "Cuenta crítica",
+        "evidence": "Restablece `krbtgt` para invalidar los tickets emitidos antes del incidente."
+      },
+      {
+        "criterion": "Limpieza",
+        "evidence": "Retira metadatos de controladores descartados y revisa los grupos privilegiados."
+      },
+      {
+        "criterion": "Límite reconocido",
+        "evidence": "Acota el alcance del restablecimiento y no afirma eliminar todo acceso previo."
+      }
+    ]
+  },
+  "revision": "87c11eb7a7a8ad385cd477ac"
+}

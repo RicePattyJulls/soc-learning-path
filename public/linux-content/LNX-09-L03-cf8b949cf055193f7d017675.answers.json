@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-09-L03",
+  "sourceHash": "137ceb560af52e19b35367fce9122e68d2811853d9b53265f87e61cf2cccac09",
+  "questions": [
+    {
+      "id": "LNX-09-L03-Q01",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «El archivo en disco y la definición cargada pueden diferir hasta un `daemon-reload`».\n\nHasta recargar, el archivo en disco y la definición cargada pueden divergir. El gestor no aplica los cambios sin acción, el archivo no se ignora hasta el reinicio del equipo y la discrepancia temporal es posible."
+    },
+    {
+      "id": "LNX-09-L03-Q02",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Que la definición en disco cambió respecto a la cargada y requiere `daemon-reload`».\n\nLa señal de recarga pendiente indica que la definición en disco cambió respecto a la cargada y hace falta `daemon-reload`. No obliga a reiniciar ahora, no es enmascaramiento ni se refiere a la habilitación de arranque."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "El orden correcto es: validar el drop-in, **recargar** el gestor para que cargue la composición nueva y, dentro de la ventana aprobada, **reiniciar** la unidad para que el proceso adopte esa definición. Reiniciar antes de recargar puede dejar al proceso partiendo de la definición anterior.\n\nLa desincronización entre disco y gestor se detecta con la señal de recarga pendiente que la propia consulta de la unidad expone. Además, la **precedencia** puede explicar el resultado: otro fragmento con mayor prioridad puede sobrescribir la directiva, de modo que el valor efectivo no sea el esperado aunque el archivo esté bien escrito.",
+    "rubric": [
+      {
+        "criterion": "Ordena correctamente",
+        "evidence": "validar, recargar el gestor y luego reiniciar."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Explica que recargar no reinicia servicios por sí solo."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Propone detectar la desincronización con la señal de recarga pendiente."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Reconoce que la precedencia puede sobrescribir la directiva esperada."
+      }
+    ]
+  },
+  "revision": "cf8b949cf055193f7d017675"
+}

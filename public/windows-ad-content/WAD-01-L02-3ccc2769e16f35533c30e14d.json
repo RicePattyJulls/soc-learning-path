@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-01-L02",
+  "title": "UEFI, BCD, arranque y servicios base",
+  "sourceHash": "ba008d0042d67eac5365b3f2258cfc49a4051385fefc7b4de20cd8b9c9a1072f",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-01-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nReconstruir la cadena de arranque de un host Windows y explicar qué parte se observa y qué parte se infiere.\n\nPrerrequisitos: `WAD-01-L01` (ediciones y ciclo de vida).\n\n## 2. Comprende el mecanismo\n\nEl arranque de Windows se puede modelar como una **cadena**: firmware **UEFI** (o BIOS en equipos antiguos) → gestor de arranque → **cargador de Windows** → kernel y controladores necesarios → procesos de sistema → subsistemas, servicios e inicio de sesión. La secuencia exacta depende del modo de arranque, la versión y la configuración. Lo importante es entender que cada eslabón **confía** en el anterior; si uno se altera, el efecto aparece más arriba.\n\nTres ideas que suelen confundirse:\n\n- **UEFI y Secure Boot**: verifican la confianza de los componentes de arranque. No reemplazan el parcheo del sistema ni garantizan que todo lo posterior sea seguro.\n- **TPM y BitLocker**: protegen claves y volumen, sobre todo frente a extracción fuera de línea. Pueden exigir procedimientos de recuperación documentados; una clave de recuperación deja de ser «una más» y pasa a ser material sensible.\n- **Kernel y controladores**: son componentes de alta confianza. Un controlador defectuoso puede provocar pantallazos o afectar red y almacenamiento. Un binario firmado **no** prueba que la operación concreta sea legítima.\n\nLa configuración de arranque se guarda en un almacén denominado **BCD** (Boot Configuration Data), administrable con `bcdedit`. No se edita a la ligera: un cambio mal aplicado deja el equipo sin arrancar. En operación segura, primero se **lee** el estado y se documenta.\n\nUna vez arrancado el kernel, aparecen procesos de sistema. Conviene reconocerlos sin convertirlos en reglas por nombre: `System`, `smss.exe`, `csrss.exe`, `wininit.exe`, `services.exe` (Service Control Manager), `svchost.exe`, `winlogon.exe` y `lsass.exe`. La lista y sus relaciones **varían** con la compilación y los servicios instalados. Además, no todos los registros de eventos existen desde el primer instante del arranque: hay telemetría que solo empieza cuando el servicio correspondiente está activo.\n\n### Vocabulario de apoyo\n\n- **UEFI**: firmware moderno que inicializa el hardware y arranca el sistema.\n- **Secure Boot**: función de UEFI que valida firmas de los componentes de arranque.\n- **BCD**: almacén de configuración de arranque de Windows.\n- **Kernel**: núcleo del sistema que gestiona memoria, procesos y controladores.\n- **Controlador (driver)**: software en modo kernel que comunica el sistema con el hardware.\n- **Sesión 0**: espacio donde se ejecutan los servicios, separado de las sesiones de usuario.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar la lista completa de procesos antes de resolver.\n\n"
+    },
+    {
+      "id": "WAD-01-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un host no arranca tras un cambio de configuración. El equipo informa que «el firmware arrancó» pero Windows no llega al escritorio.\n\nLa cadena se lee de abajo hacia arriba. Que el firmware haya arrancado acota el problema a los eslabones posteriores: gestor/cargador de arranque, BCD, controladores o el propio sistema. Lo que **no** podemos afirmar es la causa exacta solo con ese dato: podría ser el cargador, una entrada del BCD mal formada o un controlador. La conclusión honesta nombra la **zona** del problema y la **siguiente comprobación** (leer el BCD, revisar el cargador), no una causa inventada.\n\n"
+    },
+    {
+      "id": "WAD-01-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Precisar qué parte de la secuencia está observada y qué parte es inferencia al reconstruir un arranque.\n- Red Team autorizado: Evaluar exposición de arranque o almacenamiento solo en laboratorio, sin alterar firmware de equipos de terceros.\n- Evidencia de la etapa: Esquema de arranque del host + estado leído del BCD + lista de procesos de sistema observados.\n- Criterio de dominio: Distingue firmware, cargador, kernel y servicios sin confundir un binario firmado con una garantía de seguridad.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB01](../../05_RECURSOS/LABORATORIOS/WAD-LAB01.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **UEFI**: [Windows and UEFI / Secure Boot](https://learn.microsoft.com/en-us/windows-hardware/design/device-experiences/oem-secure-boot). Confianza en componentes de arranque; no sustituye el parcheo.\n- **BCD**: [bcdedit](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/bcdedit). Lectura y edición del almacén de configuración de arranque; cambio de alto impacto.\n- **BOOT**: [Boot and UEFI](https://learn.microsoft.com/en-us/windows-hardware/drivers/bringup/boot-and-uefi). Cadena de arranque y fases del firmware al sistema operativo.\n- **SVC**: [Services](https://learn.microsoft.com/en-us/windows/win32/services/services). Service Control Manager y ciclo de vida de los servicios.\n- **F12**: [Process Explorer](https://learn.microsoft.com/en-us/sysinternals/downloads/process-explorer). Relación entre procesos, cuentas, handles y módulos.\n- **F16**: [Credential Guard](https://learn.microsoft.com/en-us/windows/security/identity-protection/credential-guard/). Protección de credenciales y límites; su función es crítica en el arranque.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-01-L02-P01",
+    "prompt": "Un host arranca correctamente, pero el registro de un servicio aparece vacío las primeras horas del día. Explica por qué eso no demuestra que el servicio estuviera apagado, y qué comprobarías antes de afirmarlo.",
+    "markdown": "## 4. Práctica individual\n\nUn host arranca correctamente, pero el registro de un servicio aparece vacío las primeras horas del día. Explica por qué eso **no** demuestra que el servicio estuviera apagado, y qué comprobarías antes de afirmarlo.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber reparado el arranque de un equipo real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-01-L02-Q01",
+      "prompt": "¿Cuál es el orden correcto de la cadena de arranque (de abajo hacia arriba)?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Kernel → firmware UEFI → gestor de arranque → procesos de sistema"
+        },
+        {
+          "id": "B",
+          "text": "Firmware UEFI → gestor de arranque → cargador de Windows → kernel y controladores"
+        },
+        {
+          "id": "C",
+          "text": "Procesos de sistema → kernel → firmware UEFI → cargador"
+        },
+        {
+          "id": "D",
+          "text": "Gestor de arranque → firmware UEFI → kernel → BCD"
+        }
+      ]
+    },
+    {
+      "id": "WAD-01-L02-Q02",
+      "prompt": "¿Qué significa que un controlador esté firmado?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que la operación que realiza el controlador es necesariamente legítima"
+        },
+        {
+          "id": "B",
+          "text": "Que el sistema no necesita parchearse"
+        },
+        {
+          "id": "C",
+          "text": "Que el binario tiene una firma válida, lo que no prueba que su uso concreto sea legítimo"
+        },
+        {
+          "id": "D",
+          "text": "Que BitLocker queda desactivado"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB01](../../05_RECURSOS/LABORATORIOS/WAD-LAB01.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **UEFI**: [Windows and UEFI / Secure Boot](https://learn.microsoft.com/en-us/windows-hardware/design/device-experiences/oem-secure-boot). Confianza en componentes de arranque; no sustituye el parcheo.\n- **BCD**: [bcdedit](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/bcdedit). Lectura y edición del almacén de configuración de arranque; cambio de alto impacto.\n- **BOOT**: [Boot and UEFI](https://learn.microsoft.com/en-us/windows-hardware/drivers/bringup/boot-and-uefi). Cadena de arranque y fases del firmware al sistema operativo.\n- **SVC**: [Services](https://learn.microsoft.com/en-us/windows/win32/services/services). Service Control Manager y ciclo de vida de los servicios.\n- **F12**: [Process Explorer](https://learn.microsoft.com/en-us/sysinternals/downloads/process-explorer). Relación entre procesos, cuentas, handles y módulos.\n- **F16**: [Credential Guard](https://learn.microsoft.com/en-us/windows/security/identity-protection/credential-guard/). Protección de credenciales y límites; su función es crítica en el arranque.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "3ccc2769e16f35533c30e14d"
+}

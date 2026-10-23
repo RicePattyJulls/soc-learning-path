@@ -1,0 +1,39 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-18-L01",
+  "sourceHash": "ec0c128d24c4eddcb457cc10c261a6426421a400cab8c4e2b0a91fd5b2e201d5",
+  "questions": [
+    {
+      "id": "WAD-18-L01-Q01",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Identificar los servicios y dependencias críticas de la identidad y ordenar su impacto antes de elegir cómo respaldarlos».\n\nLa continuidad empieza por el mapa de dependencias: qué se cae y cuánto duele cada minuto de caída. Comprar almacenamiento sin analizar dependencias, restaurar un controlador a modo de prueba o documentar objetos por orden alfabético no identifican el impacto ni permiten priorizar."
+    },
+    {
+      "id": "WAD-18-L01-Q02",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Ordenar las dependencias por el impacto de su caída: sin DNS o sin directorio se detiene la autenticación y con ella el resto».\n\nDNS y el directorio sostienen la autenticación y, con ella, casi todo lo demás; por eso se priorizan primero. Suponer que solo importa el objeto del dominio, priorizar el servicio menos usado o tratar todo como igual de crítico ignora el efecto real de cada caída."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "El análisis parte de fijar el impacto de cada dependencia de la identidad. Lo primero es el directorio, porque sin él no hay inicio de sesión, autorización ni tickets, y con ello se detienen los servicios que dependen de la autenticación. A continuación DNS, porque sin resolución de nombres los clientes no localizan a un controlador y el propio directorio no se anuncia. Después SYSVOL, que distribuye las directivas de grupo: su ausencia no impide iniciar sesión, pero deja los equipos con configuración parcial. Junto a lo anterior se anotan las dependencias de confianza —cuentas de recuperación, su custodia y quién puede usarlas—, porque un incidente puede haber alterado grupos o credenciales y una restauración a ciegas reintroduciría el problema. El orden se justifica por el efecto de la caída. El límite: el orden es una hipótesis de trabajo hasta confirmar el alcance real del incidente y el estado de cada copia.",
+    "rubric": [
+      {
+        "criterion": "Dependencias enumeradas",
+        "evidence": "Nombra el directorio, DNS y SYSVOL con sus GPO como dependencias críticas."
+      },
+      {
+        "criterion": "Orden por impacto",
+        "evidence": "Justifica la prioridad por el efecto de la caída y no por antigüedad ni tamaño."
+      },
+      {
+        "criterion": "Dependencias de confianza",
+        "evidence": "Incluye credenciales de recuperación, su custodia y quién puede usarlas."
+      },
+      {
+        "criterion": "Límite reconocido",
+        "evidence": "Admite que priorizar sin confirmar el alcance del incidente es provisional."
+      }
+    ]
+  },
+  "revision": "85e58b08ffe981a2a8237b09"
+}

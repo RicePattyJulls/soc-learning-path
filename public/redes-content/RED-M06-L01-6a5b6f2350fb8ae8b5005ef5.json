@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M06-L01",
+  "title": "HTTP/HTTPS y TLS",
+  "sourceHash": "a561be685e3c112fd6fd3ad2e1827b2299542a8d29b62a5151dc45bbd7399f47",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M06-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nSeparar semántica HTTP, protección TLS y éxito de aplicación.\n\nPrerrequisitos: [RED-M04-L04](../RED-E01/RED-M04-L04.md), [RED-M05-L04](../RED-E01/RED-M05-L04.md).\n\n## 2. Comprende el mecanismo\n\nHTTP define métodos, recursos y respuestas. HTTPS protege su intercambio mediante TLS; la negociación debe considerar identidad del servidor y confianza, no solo presencia de cifrado. TLS 1.3 cambia qué mensajes son visibles frente a versiones anteriores; no se debe prometer observar todos los certificados en cualquier captura pasiva. HTTP/2 puede multiplexar streams y HTTP/3 funciona sobre QUIC, habitualmente UDP: filtrar solo TCP/443 no cubre toda la navegación moderna. Un código de estado informa sobre una petición, no sobre la integridad de todo el servicio.\n\n### Vocabulario de apoyo\n\n- **TLS**: Protocolo de protección del intercambio que incluye negociación y autenticación según configuración.\n- **SSH y RDP**: Protocolos utilizados para acceso y administración remota.\n- **SMB, LDAP y Kerberos**: Servicios de recursos compartidos, directorio y autenticación mediante tickets, respectivamente.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M06-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso docente: DNS correcto; TCP establecido; cliente rechaza certificado por nombre distinto al solicitado.\n\nHay conectividad de transporte, pero falla la comprobación de identidad del servidor. Desactivar validación ocultaría el problema y debilitaría la seguridad.\n\n"
+    },
+    {
+      "id": "RED-M06-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Comprender contexto de conexiones en investigación.\n- Red Team autorizado: Reconocer servicios expuestos sin explotarlos.\n- Evidencia del módulo: Diagrama de dependencias y hechos/hipótesis etiquetados.\n- Criterio del módulo: Distingue negociación visible de contenido inaccesible.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L03](../../05_RECURSOS/LABORATORIOS/RED-L03.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC8446**: [RFC 8446: Transport Layer Security Protocol Version 1.3](https://www.rfc-editor.org/rfc/rfc8446.html). Protección TLS y límites de observación pasiva.\n- **RFC9110**: [RFC 9110: HTTP Semantics](https://www.rfc-editor.org/rfc/rfc9110.html). Métodos, respuestas y significado de 202/403.\n- **RFC4253**: [RFC 4253: The Secure Shell Transport Layer Protocol](https://www.rfc-editor.org/rfc/rfc4253.html). Transporte SSH y autenticación del servidor; no recomendación de suites históricas.\n- **RFC4120**: [RFC 4120: Kerberos Network Authentication Service V5](https://www.rfc-editor.org/rfc/rfc4120.html). Tickets, tiempo y separación de autenticación y acceso al recurso.\n- **SMB**: [SMB Security Enhancements](https://learn.microsoft.com/en-us/windows-server/storage/file-server/smb-security). Diferencia entre firma y cifrado; condiciones por versión.\n- **RFC9000**: [RFC 9000: QUIC: A UDP-Based Multiplexed and Secure Transport](https://www.rfc-editor.org/rfc/rfc9000.html). Transporte sobre UDP y límites de inferir fiabilidad desde UDP solo.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M06-L01-P01",
+    "prompt": "El mismo nombre funciona en un cliente y falla por certificado en otro. Propón evidencia que discrimine configuración de confianza y conectividad.",
+    "markdown": "## 4. Práctica individual\n\nEl mismo nombre funciona en un cliente y falla por certificado en otro. Propón evidencia que discrimine configuración de confianza y conectividad.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M06-L01-Q01",
+      "prompt": "¿Qué comprueba el nombre del certificado?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El ancho de banda del enlace"
+        },
+        {
+          "id": "B",
+          "text": "La MAC del gateway"
+        },
+        {
+          "id": "C",
+          "text": "Su correspondencia con la identidad de servidor solicitada"
+        },
+        {
+          "id": "D",
+          "text": "La contraseña del usuario"
+        }
+      ]
+    },
+    {
+      "id": "RED-M06-L01-Q02",
+      "prompt": "¿Qué tráfico puede quedar fuera al capturar solo TCP/443?",
+      "options": [
+        {
+          "id": "A",
+          "text": "ARP incluido en TCP"
+        },
+        {
+          "id": "B",
+          "text": "HTTP/3 sobre QUIC/UDP"
+        },
+        {
+          "id": "C",
+          "text": "Todo HTTP/1.1 sobre TCP"
+        },
+        {
+          "id": "D",
+          "text": "Las ventanas de recepción TCP"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L03](../../05_RECURSOS/LABORATORIOS/RED-L03.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC8446**: [RFC 8446: Transport Layer Security Protocol Version 1.3](https://www.rfc-editor.org/rfc/rfc8446.html). Protección TLS y límites de observación pasiva.\n- **RFC9110**: [RFC 9110: HTTP Semantics](https://www.rfc-editor.org/rfc/rfc9110.html). Métodos, respuestas y significado de 202/403.\n- **RFC4253**: [RFC 4253: The Secure Shell Transport Layer Protocol](https://www.rfc-editor.org/rfc/rfc4253.html). Transporte SSH y autenticación del servidor; no recomendación de suites históricas.\n- **RFC4120**: [RFC 4120: Kerberos Network Authentication Service V5](https://www.rfc-editor.org/rfc/rfc4120.html). Tickets, tiempo y separación de autenticación y acceso al recurso.\n- **SMB**: [SMB Security Enhancements](https://learn.microsoft.com/en-us/windows-server/storage/file-server/smb-security). Diferencia entre firma y cifrado; condiciones por versión.\n- **RFC9000**: [RFC 9000: QUIC: A UDP-Based Multiplexed and Secure Transport](https://www.rfc-editor.org/rfc/rfc9000.html). Transporte sobre UDP y límites de inferir fiabilidad desde UDP solo.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "6a5b6f2350fb8ae8b5005ef5"
+}

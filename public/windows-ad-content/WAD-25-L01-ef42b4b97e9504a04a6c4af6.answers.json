@@ -1,0 +1,39 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-25-L01",
+  "sourceHash": "35decc5240af5cabc161b8f6aa1dacdd413d43be1f62d031bb44550833499261",
+  "questions": [
+    {
+      "id": "WAD-25-L01-Q01",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «El evento registra un hecho de identidad; interpretar si es esperado exige contrastarlo con el contexto y el resto de eventos».\n\nUn inicio de sesión correcto es un hecho con hora, identidad y origen, y su significado depende del contexto, no de la hora sola. Un evento aislado no demuestra malicia, el dato sí es útil y el nombre de la cuenta no identifica por sí mismo a una persona."
+    },
+    {
+      "id": "WAD-25-L01-Q02",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «El hecho registrado con su hora, el tipo de inicio de sesión, el origen y la identidad, junto con el contexto de otros eventos relacionados».\n\nReconstruir exige el hecho completo —hora, tipo de sesión, origen e identidad— y los eventos vecinos que lo enmarcan. Solo el nombre, una impresión personal o una lista de cuentas sin relación con el evento no permiten acotar la interpretación."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "Primero se separan los hechos registrados: dos intentos fallidos con la cuenta de servicio a las 03:07 y 03:08 desde WKS01, y un inicio de sesión correcto de la misma cuenta a las 03:12 en SRV02, cada uno con su hora, identidad y origen. La interpretación «acceso no autorizado» no se deriva de ellos, porque el mismo patrón aparece cuando una tarea reintenta tras un fallo de credencial o de hora. Para dar contexto se añade el tipo de inicio de sesión, si WKS01 es el equipo de una tarea de mantenimiento y qué otros eventos comparten esa ventana, y se comprueba que la política de auditoría estuviera habilitada, pues una categoría apagada produce silencios que no equivalen a ausencia. El límite: hasta confirmar la tarea legítima y reunir el resto de la línea de tiempo, lo único demostrado es que hubo dos fallos y un acierto desde un mismo origen.",
+    "rubric": [
+      {
+        "criterion": "Hecho frente a interpretación",
+        "evidence": "Separa los eventos registrados de la conclusión y no parte de una idea de malicia."
+      },
+      {
+        "criterion": "Contexto reunido",
+        "evidence": "Añade eventos vecinos en el tiempo, la identidad y el origen del acceso."
+      },
+      {
+        "criterion": "Evidencia registrada",
+        "evidence": "Anota hora en UTC, identidad y origen, y comprueba la cobertura de la política de auditoría."
+      },
+      {
+        "criterion": "Límite reconocido",
+        "evidence": "Declara que sin confirmar la hipótesis lo observado es un patrón, no una intrusión demostrada."
+      }
+    ]
+  },
+  "revision": "ef42b4b97e9504a04a6c4af6"
+}

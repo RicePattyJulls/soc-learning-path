@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-23-L03",
+  "sourceHash": "0a72f4db9f1b916d3b89f0813315034aac363673c15423e009e02c4355d819c2",
+  "questions": [
+    {
+      "id": "LNX-23-L03-Q01",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Confirmar ruta y origen desde el cliente, comprobar el listener en el servidor, revisar reglas y NAT en orden de flujo, y examinar los registros de autenticación».\n\nEl orden sigue el flujo: cliente, listener, política y registros. Cambiar el firewall primero, reiniciar el servicio sin mirar o borrar claves del servidor no diagnostican y pueden romper el acceso."
+    },
+    {
+      "id": "LNX-23-L03-Q02",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Contrastando varias fuentes, probando casos positivos y negativos, y repitiendo la prueba tras el cambio para confirmar el efecto».\n\nEl cierre exige correlación y retest con casos positivos y negativos. Un contador que baja, apagar IPv6 o borrar `crontab` no demuestran que el caso esté resuelto ni que el cambio surta efecto."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "Cada síntoma se aborda con su propio orden. Para SSH: confirmar **ruta y origen** desde el cliente, comprobar el **listener** en el servidor, revisar reglas, zonas y NAT en orden de flujo, y examinar los **registros de autenticación**; una denegación TCP no es un fallo de contraseña. Cambiar el firewall antes de saber si el problema era de listener o de autenticación confunde el diagnóstico y puede cortar el acceso.\n\nPara el DNS: comparar rutas de resolución, identificar la dirección elegida, consultar `ip route get`, ver el handshake TCP y solo después revisar TLS. Para el egreso: revisar todas las familias, hooks, cadenas y gestores, la cadena de salida y si los contadores cambian. La correlación cruza socket y proceso, registros de SSH, consultas DNS y decisiones de la política; ninguna fuente concluye por sí sola, y el cierre exige **retest** con casos positivos y negativos tras el cambio.\n\nLímite: un caso resuelto en un host de laboratorio no garantiza el mismo resultado con otros gestores, NAT o cloud; hay que documentar supuestos y condiciones.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Aplica un orden por capas a cada síntoma."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Distingue denegación TCP de fallo de autenticación."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Correlaciona varias fuentes antes de concluir."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Cierra con pruebas positivas y negativas y retest, y declara el límite."
+      }
+    ]
+  },
+  "revision": "019fba309e5825dff6eac0a3"
+}

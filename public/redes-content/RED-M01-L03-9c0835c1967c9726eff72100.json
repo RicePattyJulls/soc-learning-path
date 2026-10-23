@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M01-L03",
+  "title": "Encapsulación y Ethernet",
+  "sourceHash": "071b0a208d315075aae9c0da66ef001de1e8221836f2fa5a4e6c8fa41ffcfcda",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M01-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nSeguir la encapsulación y separar direcciones de enlace y de red.\n\nPrerrequisitos: [RED-M01-L02](../RED-E01/RED-M01-L02.md).\n\n## 2. Comprende el mecanismo\n\nLa aplicación produce datos que el transporte encapsula; IP añade direcciones de red y Ethernet direcciones del siguiente salto local. Para enviar a otra subred, un host normalmente usa la MAC de su gateway, no la MAC del servidor remoto. Cada router retira la cabecera de enlace recibida y construye otra para su enlace de salida. Las direcciones IP pueden conservarse durante el encaminamiento sin NAT, mientras cambia el TTL. ARP resuelve vecinos IPv4 del enlace; Neighbor Discovery cumple funciones de vecindad en IPv6.\n\n### Vocabulario de apoyo\n\n- **Host**: Equipo conectado que origina o recibe comunicaciones.\n- **Gateway**: Router que el host utiliza como siguiente salto hacia otras redes.\n- **IP y MAC**: IP identifica un extremo en el encaminamiento; MAC se utiliza en el enlace local.\n- **DNS y HTTP**: DNS consulta información de nombres; HTTP intercambia peticiones y respuestas de aplicación.\n- **Puerto y servicio**: El puerto identifica un extremo de transporte; el servicio es la función ofrecida por una aplicación.\n- **CRC y PoE**: CRC permite detectar corrupción en tramas; PoE suministra energía por un enlace Ethernet compatible.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M01-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Host 192.0.2.10/24; gateway 192.0.2.1; servidor 198.51.100.20; MAC gateway=02:00:00:00:00:01; sin NAT.\n\nEl paquete IP mantiene destino 198.51.100.20 y sale en una trama destinada a la MAC del gateway. La MAC remota no es necesaria para el primer salto.\n\n"
+    },
+    {
+      "id": "RED-M01-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Identificar causas de desconexión.\n- Red Team autorizado: Distinguir exposición de conectividad real.\n- Evidencia del módulo: Diagrama, síntomas, pruebas y causa raíz.\n- Criterio del módulo: Identifica correctamente capa, evidencia y corrección.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L01](../../05_RECURSOS/LABORATORIOS/RED-L01.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC1122**: [RFC 1122: Requirements for Internet Hosts — Communication Layers](https://www.rfc-editor.org/rfc/rfc1122.html). Funciones de comunicación y separación de capas; no equivalencia rígida entre modelos.\n- **BRIDGE**: [Ethernet Bridging](https://docs.kernel.org/networking/bridge.html). Learning, forwarding, VLAN y controles de bridge; kAPI no se presenta como estable.\n- **PHY**: [Troubleshoot Switch Port and Interface Problems](https://www.cisco.com/c/en/us/support/docs/switches/catalyst-6500-series-switches/12027-53.html). Dúplex, CRC, contadores y diagnóstico de interfaces; procedimientos dependientes de familia.\n- **POE**: [Troubleshoot Power over Ethernet on Catalyst 9000](https://www.cisco.com/c/en/us/support/docs/switches/catalyst-9200-series-switches/215636-troubleshooting-power-over-ethernet-poe.html). Demanda de potencia, presupuesto y diagnóstico PoE.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M01-L03-P01",
+    "prompt": "Si el destino cambia a 192.0.2.30 y ambos hosts comparten enlace, determina qué dirección resolver y qué cambia.",
+    "markdown": "## 4. Práctica individual\n\nSi el destino cambia a 192.0.2.30 y ambos hosts comparten enlace, determina qué dirección resolver y qué cambia.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M01-L03-Q01",
+      "prompt": "¿Qué MAC usa el primer salto remoto del ejemplo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "La del servidor remoto necesariamente"
+        },
+        {
+          "id": "B",
+          "text": "La del gateway local"
+        },
+        {
+          "id": "C",
+          "text": "La MAC de todos los routers"
+        },
+        {
+          "id": "D",
+          "text": "La del resolver DNS"
+        }
+      ]
+    },
+    {
+      "id": "RED-M01-L03-Q02",
+      "prompt": "¿Qué cambia normalmente en cada salto encaminado?",
+      "options": [
+        {
+          "id": "A",
+          "text": "La identidad del usuario"
+        },
+        {
+          "id": "B",
+          "text": "El contenido HTTP necesariamente"
+        },
+        {
+          "id": "C",
+          "text": "El puerto TCP de origen siempre"
+        },
+        {
+          "id": "D",
+          "text": "La cabecera de enlace"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L01](../../05_RECURSOS/LABORATORIOS/RED-L01.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC1122**: [RFC 1122: Requirements for Internet Hosts — Communication Layers](https://www.rfc-editor.org/rfc/rfc1122.html). Funciones de comunicación y separación de capas; no equivalencia rígida entre modelos.\n- **BRIDGE**: [Ethernet Bridging](https://docs.kernel.org/networking/bridge.html). Learning, forwarding, VLAN y controles de bridge; kAPI no se presenta como estable.\n- **PHY**: [Troubleshoot Switch Port and Interface Problems](https://www.cisco.com/c/en/us/support/docs/switches/catalyst-6500-series-switches/12027-53.html). Dúplex, CRC, contadores y diagnóstico de interfaces; procedimientos dependientes de familia.\n- **POE**: [Troubleshoot Power over Ethernet on Catalyst 9000](https://www.cisco.com/c/en/us/support/docs/switches/catalyst-9200-series-switches/215636-troubleshooting-power-over-ethernet-poe.html). Demanda de potencia, presupuesto y diagnóstico PoE.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "9c0835c1967c9726eff72100"
+}

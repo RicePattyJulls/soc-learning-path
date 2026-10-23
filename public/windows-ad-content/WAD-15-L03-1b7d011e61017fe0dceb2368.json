@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-15-L03",
+  "title": "Windows LAPS/DSRM y custodia",
+  "sourceHash": "cc0ccb0766b07994df071cbf0ad199f88b6a6ee2cd08d8cd968f9c6c3ecd8633",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-15-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDiseñar la custodia de la contraseña DSRM con Windows LAPS y demostrar una recuperación segura.\n\nPrerrequisitos: `WAD-15-L02` (Control delegación y rutas administrativas).\n\n## 2. Comprende el mecanismo\n\nCada controlador de dominio guarda una contraseña local con la que iniciar en **Modo de restauración de servicios de directorio (DSRM)**. Esa contraseña permite arrancar el controlador para reparar el directorio sin que este esté en servicio, así que es una credencial de recuperación de Tier 0 y no una contraseña de uso diario.\n\nEl problema de custodia es clásico: si la contraseña no se guarda en ningún sitio, no hay recuperación cuando hace falta; si se guarda donde todos la alcanzan, se convierte en una vía permanente hacia el directorio. La solución intermedia —dejarla en un archivo compartido «por si acaso»— combina los dos defectos.\n\n**Windows LAPS (solución local de contraseñas de administrador)** cambia el esquema. Administra la contraseña de la cuenta de administrador local de un equipo, la **rota** con periodicidad y la **custodia** en un directorio bajo permisos definidos. En el caso del controlador de dominio, permite gestionar la misma contraseña de recuperación DSRM, de modo que no sea fija ni esté fuera del directorio.\n\nLa custodia se apoya en dos ideas. La primera es la **rotación**: la contraseña cambia sola, así que una copia filtrada deja de servir. La segunda es la **lectura autorizada**: solo las identidades con permiso explícito pueden recuperar el valor custodiado, y esa lectura queda sujeta a auditoría.\n\nEl diseño de la custodia se decide con preguntas concretas: en qué directorio se guarda, quién puede leerla, con qué periodicidad rota y cómo se registra cada recuperación. Responderlas es diseñar, no improvisar. Cuanto más estrecha sea la lista de quien puede leerla, más útil resulta el registro de esas lecturas.\n\nLa **recuperación segura** sigue un ciclo ordenado. Se autoriza a una identidad concreta, se recupera el valor por el mecanismo previsto, se usa en el controlador durante una ventana de mantenimiento, se **rota** después de usarla y se confirma que el controlador vuelve al servicio normal. El registro de quién recuperó, cuándo y para qué es parte de la recuperación, no un añadido.\n\nDos apoyos cierran el diseño. Las cuentas de administración de Tier 0, incluida la de recuperación, se benefician de controles como el grupo **Usuarios protegidos**, que limita los mecanismos con los que una credencial puede capturarse. Y la lectura del valor se audita, para poder atribuir su uso.\n\nEl límite de esta lección es el de cualquier custodia: garantiza que el valor está guardado y quién puede leerlo, pero no impide que una identidad autorizada lo use mal. Eso solo lo acota el registro y su revisión. Todo el contenido de la etapa es sintético y de laboratorio; en ningún caso se escribe el valor de una contraseña.\n\n### Vocabulario de apoyo\n\n- **DSRM (Modo de restauración de servicios de directorio)**: modo de arranque del controlador para reparar el directorio sin que esté en servicio.\n- **Contraseña de recuperación DSRM**: credencial local de un controlador que permite iniciar en DSRM; su valor no se documenta.\n- **Windows LAPS**: componente que administra, rota y custodia la contraseña de administrador local de un equipo.\n- **Rotación**: renovación periódica de una credencial para reducir la vigencia de una copia filtrada.\n- **Lectura autorizada**: recuperación del valor custodiado solo por identidades con permiso explícito.\n- **Usuarios protegidos**: grupo que aplica controles adicionales a las cuentas de administración.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Con esta lección cierras la etapa de Tier 0 y cuentas privilegiadas.\n\n"
+    },
+    {
+      "id": "WAD-15-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test` la contraseña de recuperación DSRM del controlador `DC01` se anotó hace años en un archivo compartido de la OU `Servidores`, legible por todo el equipo. Nadie recuerda cuándo se estableció ni si sigue vigente.\n\nEl problema es de custodia, no de longitud. Una contraseña estática y legible por todo el equipo no rota y no tiene lectura autorizada, así que cualquiera puede usarla y ninguna copia caduca. El diseño correcto pasa a Windows LAPS: custodia en el directorio, permiso de lectura explícito, rotación periódica y auditoría de cada recuperación. Con eso, la recuperación se autoriza, se usa en una ventana de mantenimiento y se rota al terminar. La conclusión acota lo observable —«la exposición es de custodia y debe migrarse al mecanismo administrado»— y reconoce un límite: que el archivo antiguo se haya borrado o no, no confirma por sí solo quién lo leyó en el pasado; para eso haría falta un registro que en este caso no existe.\n\n"
+    },
+    {
+      "id": "WAD-15-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Saber quién puede leer una credencial de recuperación y cuándo la leyó permite acotar el uso indebido.\n- Red Team autorizado: Reconocer una custodia débil de una credencial de Tier 0 describe un riesgo sin necesidad de explotarlo.\n- Evidencia de la etapa: Diseño de custodia, registro de la recuperación autorizada y confirmación de la rotación posterior.\n- Criterio de dominio: La credencial de recuperación se custodia, se rota y solo la lee quien está autorizado.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB09](../../05_RECURSOS/LABORATORIOS/WAD-LAB09.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **LAPSOVER**: [Windows LAPS overview](https://learn.microsoft.com/en-us/windows-server/identity/laps/laps-overview). Qué resuelve Windows LAPS y qué administra.\n- **LAPSCON**: [Windows LAPS architecture](https://learn.microsoft.com/en-us/windows-server/identity/laps/laps-concepts). Cómo se organiza la rotación, la custodia y la lectura autorizada.\n- **LAPSAD**: [Windows LAPS and Windows Server Active Directory](https://learn.microsoft.com/en-us/windows-server/identity/laps/laps-scenarios-windows-server-active-directory). Custodia de contraseñas locales y de la de recuperación en el directorio.\n- **PROTECTED**: [Protected Users security group](https://learn.microsoft.com/en-us/windows-server/security/credentials-protection-and-management/protected-users-security-group). Controles adicionales para las cuentas de administración.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-15-L03-P01",
+    "prompt": "Diseña en `ad.lab.test` la custodia de la contraseña de recuperación DSRM del controlador `DC01` con Windows LAPS: indica dónde se guarda, quién puede leerla, con qué periodicidad rota y cómo demuestras una recuperación segura de principio a fin.",
+    "markdown": "## 4. Práctica individual\n\nDiseña en `ad.lab.test` la custodia de la contraseña de recuperación DSRM del controlador `DC01` con Windows LAPS: indica dónde se guarda, quién puede leerla, con qué periodicidad rota y cómo demuestras una recuperación segura de principio a fin.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber ejecutado una recuperación en un controlador real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-15-L03-Q01",
+      "prompt": "¿Para qué sirve la contraseña de recuperación DSRM de un controlador y cómo la custodia Windows LAPS?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Para iniciar el controlador en modo de restauración y reparar el directorio, y LAPS la custodia en el directorio con permiso de lectura y rotación"
+        },
+        {
+          "id": "B",
+          "text": "Para el inicio de sesión diario de las cuentas de usuario del dominio"
+        },
+        {
+          "id": "C",
+          "text": "Como clave de recuperación de los equipos cliente unidos al dominio"
+        },
+        {
+          "id": "D",
+          "text": "Como credencial de servicio que los equipos leen en cada arranque"
+        }
+      ]
+    },
+    {
+      "id": "WAD-15-L03-Q02",
+      "prompt": "Tras usar la contraseña de recuperación DSRM para una recuperación autorizada, ¿cuál es el cierre correcto?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Dejarla sin cambios para que la próxima recuperación sea más rápida"
+        },
+        {
+          "id": "B",
+          "text": "Compartirla con todo el equipo para que cualquiera pueda usarla"
+        },
+        {
+          "id": "C",
+          "text": "Rotarla, registrar quién la recuperó y cuándo, y confirmar que el controlador vuelve al servicio normal"
+        },
+        {
+          "id": "D",
+          "text": "Guardarla en un archivo accesible del puesto de administración"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB09](../../05_RECURSOS/LABORATORIOS/WAD-LAB09.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **LAPSOVER**: [Windows LAPS overview](https://learn.microsoft.com/en-us/windows-server/identity/laps/laps-overview). Qué resuelve Windows LAPS y qué administra.\n- **LAPSCON**: [Windows LAPS architecture](https://learn.microsoft.com/en-us/windows-server/identity/laps/laps-concepts). Cómo se organiza la rotación, la custodia y la lectura autorizada.\n- **LAPSAD**: [Windows LAPS and Windows Server Active Directory](https://learn.microsoft.com/en-us/windows-server/identity/laps/laps-scenarios-windows-server-active-directory). Custodia de contraseñas locales y de la de recuperación en el directorio.\n- **PROTECTED**: [Protected Users security group](https://learn.microsoft.com/en-us/windows-server/security/credentials-protection-and-management/protected-users-security-group). Controles adicionales para las cuentas de administración.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "1b7d011e61017fe0dceb2368"
+}

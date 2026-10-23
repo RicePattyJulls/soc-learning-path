@@ -1,0 +1,184 @@
+{
+  "id": "N1-12",
+  "nivel": "N1",
+  "bloque": "Windows, Linux y Active Directory",
+  "titulo": "Cuenta de Active Directory bloqueada repetidamente",
+  "pregunta": "Un empleado reporta que su cuenta de Active Directory se bloquea continuamente. ¿Cómo investigarías la causa?",
+  "escenario": "La usuaria ana.martin informa de seis bloqueos entre las 09:10 y 10:05. El Service Desk ya desbloqueó dos veces la cuenta, pero vuelve a bloquearse. Trabaja con portátil corporativo, teléfono con correo, sesión RDP ocasional y una aplicación legacy. En los DC aparece Security 4740, pero aún no se ha identificado dónde se guardó una contraseña antigua.",
+  "objetivo": "Encontrar la fuente que provoca el bloqueo sin introducir un ciclo de desbloqueos, diferenciar credenciales guardadas y servicios frente a abuso malicioso, evaluar impacto y corregir con el equipo dueño.",
+  "hipotesis": [
+    "Credenciales antiguas guardadas en teléfono, Outlook, VPN, cliente RDP, share o aplicación legacy.",
+    "Servicio, cuenta de aplicación, tarea programada o pool web corriendo con credenciales obsoletas.",
+    "Un atacante prueba repetidamente la cuenta; potencial guessing y denial-of-service de identidad.",
+    "Cuenta similar usada por distintos usuarios, problema de sincronización de contraseñas o identidad federada.",
+    "Varios controladores de dominio registran parte de la historia; CallerComputerName es vacío, genérico o ambiguo."
+  ],
+  "pasos": [
+    {
+      "fase": "0. Confirmar impacto y frecuencia",
+      "accion": "Recuperar hora exacta, SID y nombre canónico, número de bloqueos, si es cuenta privilegiada y si existe interrupción de operaciones o dependencia crítica."
+    },
+    {
+      "fase": "1. Revisar eventos 4740",
+      "accion": "Buscar en controladores de dominio que procesaron el bloqueo: TargetUserName, TargetSid, CallerComputerName, Computer y TimeGenerated. El host que muestra el 4740 no tiene por qué ser el host origen de los intentos."
+    },
+    {
+      "fase": "2. Verificar políticas y directorio",
+      "accion": "Con apoyo IAM revisar duración del bloqueo, umbral, si hay DCs fuera de sincronización y datos de cuenta. Evitar modificar la política global como respuesta improvisada."
+    },
+    {
+      "fase": "3. Buscar intentos previos",
+      "accion": "Correlacionar 4625 en equipos miembros/DC, 4771 si Kerberos pre-auth falla y 4776 si NTLM (según despliegue). Separar event_id de origen; los eventos no se generan todos en el mismo equipo."
+    },
+    {
+      "fase": "4. Identificar fuente real",
+      "accion": "Resolver CallerComputerName a activo actual en inventario/DNS/DHCP; comprobar IP, propietario y aplicaciones. Si CallerComputerName está ausente, apoyarse en logs del gateway/VPN/aplicación y telemetría de autenticación."
+    },
+    {
+      "fase": "5. Diferenciar error de credenciales y abuso",
+      "accion": "Si el mismo proceso/host falla inmediatamente después del unlock, sospechar contraseña guardada. Muchos orígenes no confiables, usuarios afectados y errores de autenticación progresivos elevan hipótesis de ataque."
+    },
+    {
+      "fase": "6. Corregir causa de raíz",
+      "accion": "Coordinar actualización de credenciales en cliente/servicio o revocación si compromiso; planificar cambio de contraseña de forma segura con IAM, especialmente en cuentas de servicio."
+    },
+    {
+      "fase": "7. Verificar control y seguridad",
+      "accion": "Tras medida aprobada, comprobar que no haya más 4740 ni nuevos fallos durante varias ventanas, que aplicaciones sigan operativas y que accesos sospechosos se contengan."
+    },
+    {
+      "fase": "8. Cerrar y documentar",
+      "accion": "Registrar fuente, host, servicio, credencial sustituida por el propietario, últimos 4740/4625, posible atacante, responsables, validación y acciones preventivas; no registrar secretos."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "4740 TargetUserName / TargetSid",
+      "lectura": "Identifica cuenta bloqueada (no confundir con SubjectUserName, que puede ser SYSTEM)."
+    },
+    {
+      "dato": "4740 CallerComputerName",
+      "lectura": "Pista del equipo que emitió la solicitud que desembocó en bloqueo; puede estar en blanco, representar intermediario o no resolver el origen definitivo."
+    },
+    {
+      "dato": "4625 / 4771 / 4776",
+      "lectura": "Logon fallido en miembro/DC, Kerberos preauth fallida y validación NTLM respectivamente, cuando se auditan."
+    },
+    {
+      "dato": "Orden de eventos por DC y UTC",
+      "lectura": "Distingue secuencia real de duplicados/desfase de reloj y permite relacionar desbloqueos con nuevos fallos."
+    },
+    {
+      "dato": "Inventario: teléfono, servicios, tareas, shares, RDP",
+      "lectura": "Identifica aplicaciones y activos que almacenan credenciales; no asumir que CallerComputerName identifica un humano."
+    },
+    {
+      "dato": "SID, objeto AD y privilegios",
+      "lectura": "Asegura que la identidad analizada es la correcta y prioriza cuentas de alto impacto."
+    },
+    {
+      "dato": "Validación posterior",
+      "lectura": "Ausencia de bloqueos más funcionamiento del servicio y revisión de ataques asociados; ausencia de un 4740 en un DC no garantiza que todos estén limpios."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Sentinel WindowsEvent: bloqueos 4740 por usuario y equipo llamante",
+      "entorno": "WindowsEvent: eventos Security de los DC habilitados con auditoría de administración de cuentas",
+      "consulta": "WindowsEvent\n| where TimeGenerated > ago(24h) and EventID == 4740\n| extend Cuenta=tostring(EventData.TargetUserName),\n         SID=tostring(EventData.TargetSid),\n         Caller=tostring(EventData.CallerComputerName)\n| where Cuenta =~ \"ana.martin\"  // Usuario de ejemplo; sustituir\n| project TimeGenerated, DC=Computer, Cuenta, SID, Caller, EventID, EventRecordId\n| order by TimeGenerated asc",
+      "interpretacion": "Construye línea temporal de bloqueos en los DC e identifica CallerComputerName para investigar.",
+      "limitaciones": "CallerComputerName puede ser vacío/intermediario; 4740 no revela aplicación que envió la contraseña incorrecta."
+    },
+    {
+      "nombre": "Sentinel WindowsEvent: fallos 4625 próximos a la cuenta",
+      "entorno": "WindowsEvent en DC, equipos miembros, RDS y/o aplicación; eventos 4625 ingestados",
+      "consulta": "WindowsEvent\n| where TimeGenerated > ago(24h) and EventID == 4625\n| extend Cuenta=tostring(EventData.TargetUserName),\n         IP=tostring(EventData.IpAddress),\n         Estacion=tostring(EventData.WorkstationName),\n         Tipo=tostring(EventData.LogonType),\n         Status=tostring(EventData.Status), SubStatus=tostring(EventData.SubStatus)\n| where Cuenta =~ \"ana.martin\"\n| summarize Fallos=count(), Primer=min(TimeGenerated), Ultimo=max(TimeGenerated),\n            Motivos=make_set(strcat(Status,\"/\",SubStatus), 12),\n            Tipos=make_set(Tipo, 10)\n    by Computer, IP, Estacion, bin(TimeGenerated, 15m)\n| order by Primer asc",
+      "interpretacion": "Localiza equipos fuente/destino y códigos de error cercanos al bloqueo.",
+      "limitaciones": "No todos los fallos de Kerberos/NTLM producen 4625 en el DC. Complementar con 4771/4776 cuando sean relevantes."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk Windows raw: línea temporal de 4740",
+      "entorno": "Índice ilustrativo windows con EventCode extraído y XML Security en DCs",
+      "consulta": "index=windows earliest=-24h (sourcetype=\"XmlWinEventLog:Security\" OR sourcetype=\"WinEventLog:Security\") EventCode=4740\n| eval Cuenta=coalesce(TargetUserName, Account_Name), Caller=coalesce(CallerComputerName, Caller_Computer_Name)\n| search Cuenta=\"ana.martin\"\n| table _time host Cuenta Caller TargetSid SubjectUserName\n| sort 0 _time",
+      "interpretacion": "Muestra qué DC registró el bloqueo y el CallerComputerName informado.",
+      "limitaciones": "Las extracciones dependen del TA. Account_Name podría estar multivaluado o incluir Subject; verificar que se refiere al objetivo."
+    },
+    {
+      "nombre": "Splunk CIM Authentication: fallos de la cuenta",
+      "entorno": "Modelo CIM Authentication; action=failure correctamente mapeado; abarca apps y sistemas que se hayan integrado",
+      "consulta": "| tstats count as Fallos min(_time) as Primer max(_time) as Ultimo\n  from datamodel=Authentication.Authentication\n  where Authentication.action=\"failure\" Authentication.user=\"ana.martin\" earliest=-24h\n  by Authentication.src Authentication.dest Authentication.app _time span=15m\n| rename Authentication.* AS *\n| sort 0 Primer",
+      "interpretacion": "Compara fuentes y destinos de logins fallidos, incluso si origen no es Windows.",
+      "limitaciones": "Un mismo usuario puede tener formatos DOMINIO\\usuario/UPN distintos; normalizar o adaptar filtro antes de concluir que faltan eventos."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Windows — revisar 4740 en DC autorizado",
+      "proposito": "Ejecutar por rol delegado o administración; consulta lectura, no desbloquea la cuenta.",
+      "comando": "Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4740; StartTime=(Get-Date).AddDays(-1)} | Select-Object TimeCreated, MachineName, Message -First 30"
+    },
+    {
+      "entorno": "Windows — estado de cuenta AD (si existe RSAT y permisos)",
+      "proposito": "No recupera credenciales, permite comprobar estado y contexto.",
+      "comando": "Get-ADUser -Identity 'ana.martin' -Properties LockedOut,LastBadPasswordAttempt,BadPwdCount | Select-Object SamAccountName,LockedOut,LastBadPasswordAttempt,BadPwdCount"
+    },
+    {
+      "entorno": "Windows — tareas y procesos de la máquina identificada",
+      "proposito": "Consulta sólo lectura; confirmar propietario antes de tocar tareas.",
+      "comando": "Get-ScheduledTask | Select-Object TaskName,TaskPath,State,Actions,Principal"
+    },
+    {
+      "entorno": "Windows — sesiones de credenciales",
+      "proposito": "Lista destinos de credenciales guardadas; no obtiene contraseñas.",
+      "comando": "cmdkey /list"
+    }
+  ],
+  "contencion": "Evitar ciclos de desbloqueo sin corregir causa; pueden agravar el problema y ocultar un ataque. No reiniciar todos los DC ni cambiar contraseñas de cuentas de servicio sin coordinación. Si hay ataque activo o actividad privilegiada, elevar a IAM/IR para bloqueo de origen legítimamente identificado, políticas de riesgo y revocación autorizada de credenciales/sesiones. Documentar las medidas y verificar que el acceso empresarial funciona.",
+  "escalation": [
+    "Bloqueos simultáneos de múltiples usuarios o de administradores/servicios críticos.",
+    "Los intentos proceden de IP/hosts no inventariados o de varias ubicaciones inexplicables.",
+    "Existen éxitos anómalos correlacionados, movimientos laterales o señales adicionales de compromiso.",
+    "La misma fuente sigue atacando tras la corrección de credenciales.",
+    "Hay continuidad de negocio afectada, potencial DoS o repetición pese a acciones del Service Desk."
+  ],
+  "falsos_positivos": [
+    "Cliente de correo móvil conserva contraseña anterior.",
+    "Conexión RDP guardada, drive de red reconectado o credencial de Office antigua.",
+    "Servicio Windows o aplicación IIS utilizando identidad desactualizada.",
+    "Herramienta de backup o agente de monitorización con contraseña antigua.",
+    "Nombre de equipo de 4740 asociado a un gateway, no a estación atacante."
+  ],
+  "errores": [
+    "Desbloquear repetidamente sin localizar origen.",
+    "Tratar SubjectUserName del 4740 como la cuenta víctima.",
+    "Buscar 4740 solo en el PC del empleado y no en DCs.",
+    "Decidir que CallerComputerName es fuente irrefutable del ataque.",
+    "Rotar una cuenta de servicio sin inventariar dependencias y dueño.",
+    "Asegurar que no hay ataque solo porque el usuario cambió su contraseña."
+  ],
+  "perspectiva_red_team": "Un adversario puede causar bloqueos con contraseñas erróneas para degradar el servicio o encubrir intentos de acceso. La observación defensiva compara el patrón de usuarios/fuentes y el motivo de los fallos con los dispositivos y procesos del usuario. MITRE T1110 se usa como posibilidad a contrastar; el bloqueo repetido por sí solo no demuestra fuerza bruta.",
+  "respuesta_entrevista": "Buscaría eventos 4740 en los controladores de dominio, identificando TargetUserName, SID, CallerComputerName y hora. A continuación correlacionaría 4625, 4771 y 4776 según el método de autenticación y revisar credenciales guardadas en teléfono, VPN, RDP, servicios y tareas. Distinguiría si es el mismo host fallando tras cada desbloqueo o varios orígenes no autorizados. Coordinaría con IAM la solución de raíz y solo después comprobaría que cesan los bloqueos y que los servicios funcionan.",
+  "criterios_evaluacion": [
+    "Conoce evento 4740 y sus principales campos.",
+    "Sabe dónde buscarlo: DCs; no asume que CallerComputerName sea IP final.",
+    "Relaciona Kerberos, NTLM, contraseñas guardadas y servicios.",
+    "No propone desbloqueos repetitivos ni rotaciones destructivas.",
+    "Verifica solución, escalado y evidencia."
+  ],
+  "mitre": [
+    "T1110",
+    "T1078"
+  ],
+  "fuentes": [
+    "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4740",
+    "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4625",
+    "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.1/data-models/authentication"
+  ],
+  "procedencia": {
+    "lote": "tanda-03",
+    "archivo": "SOC-RESPONSES_TANDA-03_N1-11_a_N1-15.json",
+    "fechaRevision": "2026-10-18"
+  }
+}

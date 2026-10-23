@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-07-L02",
+  "sourceHash": "0e2f7e579c82c2ca79f61b17f449d7a14ea1c92c1394afb3b0b239c4e954240c",
+  "questions": [
+    {
+      "id": "LNX-07-L02-Q01",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Leer `cat /proc/cmdline` para ver los parámetros actuales del kernel».\n\nLeer `/proc/cmdline` es una consulta de solo lectura. `update-grub`, `dracut -f` y `grub-install` pueden alterar la próxima entrada de arranque y no forman parte del reconocimiento."
+    },
+    {
+      "id": "LNX-07-L02-Q02",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Que se solicitó un selector de raíz, que hay que contrastar con el montaje real».\n\n`root=UUID=…` indica la raíz **solicitada**. Solo el montaje efectivo confirma lo conseguido; el parámetro por sí solo no prueba un montaje exitoso, ni la ausencia de initramfs, ni que el dispositivo esté cifrado."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "Son lecturas de solo lectura: los parámetros del kernel en `/proc/cmdline`, la raíz realmente montada y, si procede, la identidad de PID 1. `root=UUID=…` demuestra **qué se solicitó** al kernel; el montaje efectivo demuestra **qué se obtuvo**. Contrastar ambos datos describe la diferencia.\n\nRegenerar el cargador o la imagen inicial no es reconocimiento: puede cambiar la próxima entrada de arranque y debe reservarse para una ventana aprobada con respaldo. El límite es que, aunque coincidan el selector y el montaje, eso no demuestra que el contenido del dispositivo sea confiable.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Distingue lecturas de solo lectura de operaciones que mutan el arranque."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Usa `root=` como selector solicitado y lo contrasta con el montaje efectivo."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Rechaza regenerar cargador o initramfs como parte del reconocimiento."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Reconoce que la coincidencia no prueba integridad del contenido."
+      }
+    ]
+  },
+  "revision": "58c469cae202ea6fc9cacba2"
+}

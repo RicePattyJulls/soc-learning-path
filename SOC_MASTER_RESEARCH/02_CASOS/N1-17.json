@@ -1,0 +1,186 @@
+{
+  "id": "N1-17",
+  "nivel": "N1",
+  "bloque": "Procedimientos SOC y gestión de incidentes",
+  "titulo": "Un administrador pide cerrar una alerta: verificar, no obedecer a ciegas",
+  "pregunta": "Un administrador solicita cerrar una alerta porque asegura que la actividad es legítima. ¿Qué harías antes de cerrarla?",
+  "escenario": "Son las 11:42. Una detección indica ejecución de PowerShell con privilegios elevados en el servidor de ficheros FS-01. El administrador de turno escribe «Soy yo, cierra la alerta» y aporta un cambio abierto de mantenimiento, pero no el ID exacto del procedimiento ejecutado. El host contiene documentos internos y el script hizo una conexión HTTPS externa.",
+  "objetivo": "Verificar identidad, autorización, correspondencia técnico-temporal y consecuencias de la actividad antes de clasificar como benigno; conservar una pista auditable sin tratar la autoridad del solicitante como evidencia suficiente.",
+  "hipotesis": [
+    "Mantenimiento real debidamente autorizado y limitado al servidor indicado.",
+    "Herramienta legítima usada de forma inesperada (dual use) por un administrador.",
+    "Cuenta del administrador comprometida: el atacante intenta influir en el cierre.",
+    "Cambio autorizado que se ejecutó fuera del alcance/hora o con binario no previsto.",
+    "Conexión de actualización/telemetría del script versus envío externo no autorizado.",
+    "La persona solicitante tiene permisos de infraestructura, pero no autoridad para aceptar riesgo SOC."
+  ],
+  "pasos": [
+    {
+      "fase": "0. Mantener la alerta en estado investigable",
+      "accion": "No suprimir, cerrar ni cambiar a falso positivo por petición informal. Registrar ticket y hora de solicitud."
+    },
+    {
+      "fase": "1. Autenticar la identidad por canal confiable",
+      "accion": "Comprobar quién solicita cierre y su relación con la intervención (ticketing corporativo, callback a contacto verificado); una dirección de correo o chat no basta si existe posible compromiso."
+    },
+    {
+      "fase": "2. Revisar el cambio autorizado",
+      "accion": "Validar identificador, ventana aprobada, sistemas, cuentas, comandos o herramientas permitidas y responsable; distinguir cambio aprobado de descripción genérica."
+    },
+    {
+      "fase": "3. Correlacionar actividad observada",
+      "accion": "Comprobar PID, proceso padre, comando, usuario, token, hash/ruta/firma, tiempo, destino de red, volumen y origen de sesión. Atribución a cuenta no confirma qué humano pulsó Enter."
+    },
+    {
+      "fase": "4. Contrastar proceso y consecuencias",
+      "accion": "Si el script administra backups esperados, contrastar logs de backup y destino permitido; si descarga o envía datos fuera de alcance, investigar antes de cerrar."
+    },
+    {
+      "fase": "5. Revisar otros indicadores",
+      "accion": "Buscar mismo IOC/comando/host en otras máquinas, anomalías de autenticación, errores del EDR o ejecuciones fuera de ventana."
+    },
+    {
+      "fase": "6. Tomar decisión basada en política",
+      "accion": "Con evidencia consistente: resolver como actividad benigna/esperada conforme a taxonomía del SOC. Si existen discrepancias, pedir revisión N2/IR y mantener caso abierto."
+    },
+    {
+      "fase": "7. Preservar trazabilidad",
+      "accion": "Documentar quién pidió el cierre, cómo se validó, ticket/cambio y evidencias técnicas vinculadas a esa ejecución, no solo «admin confirmó»."
+    },
+    {
+      "fase": "8. Afinar la detección sin agujeros",
+      "accion": "Si genera ruido frecuente, proponer excepción muy concreta con aprobación, duración y reevaluación; no excluir globalmente PowerShell o el servidor."
+    },
+    {
+      "fase": "9. Informar y vigilar",
+      "accion": "Comunicar el resultado y monitorizar recurrencia; evitar que la validación puntual se reutilice como autorización perpetua."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "Solicitud verificada y rol de autorizador",
+      "lectura": "Identidad fiable y facultad de aceptar riesgo; rol TI no implica permiso para resolver incidente de seguridad."
+    },
+    {
+      "dato": "ID del cambio, alcance y ventana",
+      "lectura": "Necesarios para contrastar la ejecución concreta, no únicamente la existencia de algún mantenimiento."
+    },
+    {
+      "dato": "Proceso, padre, CommandLine, hash y firma",
+      "lectura": "Permiten diferenciar herramienta autorizada de invocación anómala o hijacking."
+    },
+    {
+      "dato": "Timestamp UTC, hostname y User SID",
+      "lectura": "Evitan confundir una ejecución parecida en otro activo o momento."
+    },
+    {
+      "dato": "Conexiones HTTPS salientes",
+      "lectura": "Requieren destino, origen, reputación y propósito; HTTPS por sí solo no da legitimidad."
+    },
+    {
+      "dato": "Logs de autenticación y elevación",
+      "lectura": "Ayudan a confirmar patrón esperado; credenciales robadas mantienen nombre de cuenta legítimo."
+    },
+    {
+      "dato": "Ticket SOC, decisión y aprobador",
+      "lectura": "Soportan auditoría, reversión de clasificación y mejoras de detección."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Defender XDR Advanced Hunting: PowerShell observado en FS-01",
+      "entorno": "DeviceProcessEvents en Defender XDR con cobertura MDE del servidor. Sustituir el nombre de equipo, ampliar ventana si hay retención.",
+      "consulta": "DeviceProcessEvents\n| where Timestamp > ago(24h)\n| where DeviceName startswith \"FS-01\"\n| where FileName in~ (\"powershell.exe\", \"pwsh.exe\")\n| project Timestamp, DeviceName, AccountName, FileName, ProcessCommandLine,\n          InitiatingProcessFileName, InitiatingProcessCommandLine,\n          SHA1, ProcessId, InitiatingProcessId\n| order by Timestamp desc",
+      "interpretacion": "Correlaciona ejecutable, cuenta, origen padre y comando con el cambio aprobado.",
+      "limitaciones": "No interpreta seguridad del script ni autentica persona física. MDE puede truncar línea de comandos o no registrar todo."
+    },
+    {
+      "nombre": "Defender XDR Advanced Hunting: conexiones que iniciaron PowerShell",
+      "entorno": "DeviceNetworkEvents en Defender XDR; ajuste FS-01 y período; las conexiones registradas tienen contexto del proceso iniciador.",
+      "consulta": "DeviceNetworkEvents\n| where Timestamp > ago(24h)\n| where DeviceName startswith \"FS-01\"\n| where InitiatingProcessFileName in~ (\"powershell.exe\", \"pwsh.exe\")\n| project Timestamp, DeviceName, InitiatingProcessFileName,\n          InitiatingProcessCommandLine, RemoteIP, RemotePort, RemoteUrl,\n          Protocol, ActionType\n| order by Timestamp desc",
+      "interpretacion": "Muestra destinos que requieren cotejo con lista permitida para el mantenimiento.",
+      "limitaciones": "La existencia de un evento de conexión no garantiza que hubo transferencia ni cuantifica bytes; consultar proxy/firewall para volumen y decisiones efectivas."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk CIM Endpoint: procesos PowerShell y padres en FS-01",
+      "entorno": "CIM Endpoint.Processes normalizado desde Sysmon, EDR o Security 4688; campos de usuario pueden estar ausentes.",
+      "consulta": "| tstats count min(_time) as primero max(_time) as ultimo\n  from datamodel=Endpoint.Processes\n  where earliest=-24h latest=now Endpoint.Processes.dest=\"FS-01\"\n  by Endpoint.Processes.process_name Endpoint.Processes.parent_process_name\n     Endpoint.Processes.user Endpoint.Processes.process\n| rename Endpoint.Processes.* as *\n| search process_name=\"powershell.exe\" OR process_name=\"pwsh.exe\"\n| convert ctime(primero) ctime(ultimo)\n| sort - ultimo",
+      "interpretacion": "Agrupa invocaciones para compararlas con script, ventana y cuenta documentados.",
+      "limitaciones": "Las búsquedas sobre línea de comandos muy largas pueden estar truncadas. Ajustar dest al FQDN usado por el TA."
+    },
+    {
+      "nombre": "Splunk CIM Network Traffic: salidas del servidor durante el cambio",
+      "entorno": "CIM Network_Traffic.All_Traffic con src del servidor. Este flujo no liga por sí solo conexiones con un PID.",
+      "consulta": "| tstats count sum(All_Traffic.bytes_out) as BytesSalida\n  from datamodel=Network_Traffic.All_Traffic\n  where earliest=-24h latest=now All_Traffic.src=\"10.60.20.15\"\n  by All_Traffic.dest All_Traffic.dest_port All_Traffic.action\n| rename All_Traffic.* as *\n| sort - BytesSalida",
+      "interpretacion": "Destaca destinos y volumen que deben coincidir con finalidad del cambio.",
+      "limitaciones": "La IP 10.60.20.15 es ficticia; bytes_out depende del sentido/normalización y algunos firewalls no aportan bytes."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Windows — revisar registro PowerShell",
+      "proposito": "Log operacional Windows PowerShell presente solo si la auditoría correspondiente está habilitada; no sustituye Script Block Logging.",
+      "comando": "Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-PowerShell/Operational'; StartTime=(Get-Date).AddHours(-24)} -MaxEvents 60 | Select-Object TimeCreated, Id, Message"
+    },
+    {
+      "entorno": "Windows — filtrar procesos creados",
+      "proposito": "Necesita evento 4688 habilitado y ejecutarse en el equipo donde se grabó la ejecución.",
+      "comando": "Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4688; StartTime=(Get-Date).AddHours(-24)} -MaxEvents 70 | Select-Object TimeCreated, Message"
+    },
+    {
+      "entorno": "Linux — alternativa de validación de ejecutable",
+      "proposito": "Si el servidor investigado fuera Linux, comprobar ruta del proceso sin alterarlo; solo aplicable a sistema autorizado.",
+      "comando": "ps -eo user,pid,ppid,lstart,args --sort=-lstart | head -35"
+    }
+  ],
+  "contencion": "En N1, no cerrar solo por estatus de quien solicita y no aplicar una exclusión amplia. Si se verifica uso de credenciales comprometidas, comandos ajenos al cambio o salida de datos, elevar a IR para contención con aprobaciones; evitar avisar al posible atacante a través de un canal sospechoso.",
+  "escalation": [
+    "La cuenta del administrador presenta inicios de sesión o MFA anómalos.",
+    "Ejecución fuera de ventana, ruta/hash diferente, padre inesperado o destino de red desconocido.",
+    "La persona solicitante no demuestra autorización o el equipo del cambio niega haberlo programado.",
+    "Actividad se extiende a hosts no incluidos o hay indicios de exfiltración/persistencia.",
+    "Duda significativa de suplantación de identidad o presión por desactivar controles de seguridad."
+  ],
+  "falsos_positivos": [
+    "Actualización de sistema mediante PowerShell en ventana autorizada.",
+    "EDR o administrador de configuración ejecutando scripts firmados.",
+    "PowerShell usado por un agente de backup o inventario.",
+    "Conexion HTTPS a repositorio corporativo legítimo.",
+    "Regla que compara rutas sin normalizar System32/SysWOW64 o alias del binario."
+  ],
+  "errores": [
+    "Cerrar por obediencia a «soy administrador».",
+    "No cotejar alcance de cambio y ventana exacta.",
+    "Suponer que usuario autenticado = operador humano legítimo.",
+    "Olvidar investigar conexiones externas y cadena de procesos.",
+    "Introducir exclusión global que silencie futuras señales reales.",
+    "Eliminar evidencia y no dejar referencia a la autorización de cierre."
+  ],
+  "perspectiva_red_team": "Una identidad privilegiada legítima puede ser abusada para ejecutar herramientas administrativas (living-off-the-land) y para dar apariencia de actividad esperada. Defenderse implica comprobar el vínculo entre identidad, cambio aprobado, ejecución real y efectos observados, sin ofrecer al presunto atacante un canal para presionar el cierre.",
+  "respuesta_entrevista": "No cerraría la alerta únicamente por la petición. Confirmaría identidad por canal confiable, validaría el cambio aprobado —horario, hosts, usuario y comandos— y contrastaría procesos, autenticación y conexiones reales. Si coincide y no hay evidencias contradictorias, documentaría el cierre según taxonomía; si difiere o hay riesgo de compromiso, mantendría abierto y escalaría.",
+  "criterios_evaluacion": [
+    "Verifica identidad y autoridad del solicitante por canal confiable.",
+    "Cruza ticket de cambio con evidencias técnicas y ventana.",
+    "Reconoce riesgos de cuentas comprometidas y herramientas dual-use.",
+    "Documenta decisión, aprobador y evidencias.",
+    "Evita excepciones permanentes y cierre basado solo en reputación."
+  ],
+  "mitre": [
+    "T1078 (abuso de cuentas válidas, como hipótesis)",
+    "T1059.001 (PowerShell, si actividad evidencia ejecución)"
+  ],
+  "fuentes": [
+    "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-deviceprocessevents-table",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-devicenetworkevents-table",
+    "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.4/data-models/endpoint",
+    "https://help.splunk.com/en/splunk-cloud-platform/common-information-model/6.1/data-models/network-traffic"
+  ],
+  "procedencia": {
+    "lote": "tanda-04",
+    "archivo": "SOC-RESPONSES_TANDA-04_N1-16_a_N1-20.json",
+    "fechaRevision": "2026-10-18"
+  }
+}

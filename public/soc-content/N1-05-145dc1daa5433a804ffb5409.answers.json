@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "courseId": "soc",
+  "id": "N1-05",
+  "sourceHash": "95175236e6d4abcb8504544b0c4e7130886543c61d7542d66796c7f1e1aa161c",
+  "revision": "145dc1daa5433a804ffb5409",
+  "hipotesis": [
+    "Incidente real que provoca múltiples alertas correlacionadas en la misma cadena de ataque.",
+    "Tormenta por regla mal calibrada, duplicación o cambio de ingesta.",
+    "Actividad legítima como parcheo, escaneo autorizado o despliegue.",
+    "Ataques paralelos independientes que compiten por atención."
+  ],
+  "pasos": [
+    {
+      "fase": "0. Seguridad inmediata",
+      "accion": "Identificar alertas de impacto en curso: ransomware propagándose, exfiltración confirmada, cuentas privilegiadas comprometidas, controlador de dominio y sistemas vitales. Activar procedimiento crítico y segunda línea si aplica."
+    },
+    {
+      "fase": "1. Crear grupos",
+      "accion": "Correlacionar por host, usuario, IP, hash, regla y ventanas de tiempo. Separar 300 señales de un único incidente de múltiples incidentes reales; deduplicar sin eliminar la traza original."
+    },
+    {
+      "fase": "2. Puntuar riesgo",
+      "accion": "Aplicar una matriz: impacto del activo, evidencia de explotación/éxito, confianza de detección, actividad en curso, exposición, criticidad de datos y controles activos. Severidad del proveedor es solo un componente."
+    },
+    {
+      "fase": "3. Asignar y escalar",
+      "accion": "Abrir incidentes enlazados, asignar propietarios, distribuir cola entre analistas y activar guardia N2/IR si hay actividad crítica o desborde operacional; registrar tiempos de SLA."
+    },
+    {
+      "fase": "4. Gestionar ruido",
+      "accion": "Revisar duplicados y salud del pipeline; solicitar ajuste temporal autorizado de reglas ruidosas si procede, sin deshabilitar visibilidad crítica. Comunicar estado a líder de turno."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "Severity + confianza y producto",
+      "lectura": "Severidad no equivale automáticamente a prioridad operativa."
+    },
+    {
+      "dato": "CompromisedEntity / host / usuario",
+      "lectura": "Permite agrupar múltiples señales de un mismo activo."
+    },
+    {
+      "dato": "Regla + ventana + SystemAlertId",
+      "lectura": "Sirve para detectar duplicaciones y alert storm."
+    },
+    {
+      "dato": "Inventario/CMDB + sensibilidad de datos",
+      "lectura": "Permite ajustar prioridad según valor y rol del activo."
+    },
+    {
+      "dato": "Telemetría de continuación",
+      "lectura": "Indica ataque activo (cifrado, exfiltración, lateralidad), no solo intento bloqueado."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Sentinel / Log Analytics: volumen por severidad y fuente",
+      "entorno": "Microsoft Sentinel — SecurityAlert; alertas de productos conectados",
+      "consulta": "SecurityAlert\n| where TimeGenerated > ago(15m)\n| extend prioridad=case(AlertSeverity == \"High\", 3,\n                        AlertSeverity == \"Medium\", 2,\n                        AlertSeverity == \"Low\", 1, 0)\n| summarize Alertas=count(), Activos=dcount(CompromisedEntity),\n            Ejemplos=make_set(AlertName, 5)\n    by AlertSeverity, ProductName, prioridad\n| order by prioridad desc, Alertas desc",
+      "interpretacion": "Primer panorama de qué fuente y severidad produce más alertas. Verificar cobertura de SecurityAlert, que no es lo mismo que listar todos los incidentes.",
+      "limitaciones": "La clasificación de severidad está normalizada por fuente/analítica; no se infiere impacto del negocio ni identidad de incidentes."
+    },
+    {
+      "nombre": "Sentinel: agrupar picos repetidos por activo y regla",
+      "entorno": "Microsoft Sentinel — SecurityAlert",
+      "consulta": "SecurityAlert\n| where TimeGenerated > ago(30m)\n| summarize Eventos=count(), Primer=min(TimeGenerated),\n            Ultimo=max(TimeGenerated), IDs=dcount(SystemAlertId)\n    by CompromisedEntity, AlertName, AlertSeverity\n| where Eventos >= 3\n| order by Eventos desc",
+      "interpretacion": "Da candidatos a consolidación. Duplicados de misma alerta o eventos distintos requieren comprobación individual; correlacionar con CMDB y técnicas relacionadas.",
+      "limitaciones": "CompromisedEntity puede venir vacío y SystemAlertId no sirve como ID del incidente general. El umbral 3 es solo didáctico."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk CIM Alerts: panorama por severidad",
+      "entorno": "Splunk con alertas normalizadas a CIM Alerts (tag=alert)",
+      "consulta": "tag=alert earliest=-15m\n| stats count AS alertas dc(dest) AS activos\n        values(signature) AS reglas BY severity app\n| eval prioridad=case(severity=\"critical\",4,\n                      severity=\"high\",3,\n                      severity=\"medium\",2,\n                      severity=\"low\",1,true(),0)\n| sort - prioridad - alertas",
+      "interpretacion": "Priorizar señales críticas y agrupar por producto.",
+      "limitaciones": "El tag alert y campos CIM deben estar poblados; los episodios/notables de Splunk ES pueden residir en fuentes con campos específicos."
+    },
+    {
+      "nombre": "Splunk CIM Alerts: candidatos a agrupación",
+      "entorno": "Splunk con CIM Alerts",
+      "consulta": "tag=alert earliest=-30m\n| stats count AS alertas values(severity) AS niveles\n        min(_time) AS primera max(_time) AS ultima\n  BY dest signature\n| where alertas>=3\n| sort - alertas",
+      "interpretacion": "Alertas que comparten activo y firma pueden ser repetitivas o representar actividad persistente.",
+      "limitaciones": "Correlacionar también usuario/IP/tiempo; agrupar no significa descartar evidencia."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Operaciones SOC",
+      "proposito": "Ejemplo de matriz de riesgo conceptual para discusión del equipo, no un algoritmo aprobado ni una fórmula universal.",
+      "comando": "# Prioridad ≈ impacto del activo + ataque en curso + confianza + alcance - contención efectiva\n# Ajustar a SLAs, casos de uso y apetito de riesgo de la organización."
+    }
+  ],
+  "contencion": "No ejecutar bloqueos masivos basados solo en cantidad. Para actividad crítica confirmada solicitar contención específica bajo playbook (host, cuenta o salida de red). Para ruido o defectos de regla, abrir tarea de ingeniería con evidencia y aprobación; mantener trazabilidad y compensar alertas suprimidas con monitoreo alternativo.",
+  "escalation": [
+    "Exfiltración/cifrado/propagación en curso.",
+    "Cuentas privilegiadas o activos de misión crítica con indicios fuertes.",
+    "300 alertas superan capacidad del turno o incumplen SLA.",
+    "Múltiples equipos comprometidos o correlación entre productos."
+  ],
+  "falsos_positivos": [
+    "Reglas duplicadas tras despliegue.",
+    "Herramientas autorizadas de evaluación.",
+    "Fallos de parser/ingesta o alerta reiterativa de firewall que ya bloqueó la acción."
+  ],
+  "errores": [
+    "Tratar 300 alertas como 300 incidentes.",
+    "Ordenar solo por High/Medium sin impacto ni evidencia de explotación.",
+    "Silenciar reglas críticas para “limpiar el dashboard”.",
+    "Intentar resolver todo en solitario y no llamar N2/IR."
+  ],
+  "perspectiva_red_team": "Un ataque puede generar múltiples detecciones en cadena, y el volumen de eventos legítimos o maliciosos puede ocultar señales decisivas. La correlación temporal y por entidades ayuda a reconocer una campaña frente al ruido.",
+  "respuesta_entrevista": "Primero localizaría actividad con impacto en curso y activos críticos, no solo alertas de mayor severidad. Correlacionaría por entidad, técnica, regla y ventana para distinguir duplicados de incidentes distintos. Aplicaría criticidad, confianza, alcance y estado de contención; abriría incidentes con responsables y escalaría a N2/IR si hay exfiltración, ransomware o una cola que excede nuestra capacidad. Ajustaría ruido únicamente mediante el proceso de cambios autorizado.",
+  "criterios_evaluacion": [
+    "Prioridad por riesgo, no volumen o severidad a secas.",
+    "Correlacionar y deduplicar sin perder evidencia.",
+    "Escalar por capacidad y SLAs.",
+    "No desactivar detecciones sin control."
+  ],
+  "mitre": [],
+  "fuentes": [
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/securityalert",
+    "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.1/data-models/alerts"
+  ]
+}

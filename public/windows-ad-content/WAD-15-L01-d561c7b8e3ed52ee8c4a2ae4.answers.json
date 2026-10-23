@@ -1,0 +1,39 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-15-L01",
+  "sourceHash": "b015fb49d3ad671e38cb359b0783518708a3918b29c4f258b6d4cd48c2d67236",
+  "questions": [
+    {
+      "id": "WAD-15-L01-Q01",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Son el plano de control: Active Directory, sus controladores de dominio y las cuentas capaces de administrarlos».\n\nTier 0 es el nivel que administra a todos los demás, así que lo componen el directorio, sus controladores y las identidades capaces de gobernarlos. Los puestos y las cuentas de usuario final son Tier 2, los servidores de aplicaciones son Tier 1, y autenticarse contra el dominio no convierte a una identidad en Tier 0."
+    },
+    {
+      "id": "WAD-15-L01-Q02",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «La credencial Tier 0 queda expuesta en un sistema Tier 2 y se rompe la separación de identidades».\n\nUsar una cuenta que administra el directorio en un puesto coloca una credencial del plano de control donde puede capturarse. La red interna, el nivel de actualización o la comodidad de la tarea no cambian el nivel de la credencial ni reducen su exposición."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "La cuenta de `Administradores del dominio` que se usa a diario en un equipo `Win11` es Tier 0 usada en Tier 2: puede administrar el directorio y su credencial aparece en un puesto. La cuenta que administra solo los servidores de la OU `Servidores` es Tier 1, porque opera sobre sistemas que dan servicio sin controlar el directorio. La cuenta de ayuda a usuarios finales es Tier 2. El cambio es separar los usos: una cuenta Tier 0 exclusiva para el directorio, usada solo desde un equipo dedicado; una cuenta Tier 1 distinta para los servidores; y la cuenta de ayuda limitada a las tareas de soporte sin permisos sobre niveles superiores. La evidencia es la tabla de identidades con su nivel y el registro de sistemas donde aparece cada una. El límite: la tabla describe el uso previsto, y confirmar que no hay otros usos exige revisar inicios de sesión y permisos efectivos.",
+    "rubric": [
+      {
+        "criterion": "Clasificación por nivel",
+        "evidence": "Ubica cada cuenta en su nivel según lo que puede administrar, no por su nombre."
+      },
+      {
+        "criterion": "Ruptura detectada",
+        "evidence": "Señala que una credencial Tier 0 en un equipo Tier 2 rompe la separación."
+      },
+      {
+        "criterion": "Propuesta de separación",
+        "evidence": "Propone cuentas separadas por nivel y un equipo dedicado para el directorio."
+      },
+      {
+        "criterion": "Límite reconocido",
+        "evidence": "Admite que el diseño no demuestra por sí solo la ausencia de otros usos."
+      }
+    ]
+  },
+  "revision": "d561c7b8e3ed52ee8c4a2ae4"
+}

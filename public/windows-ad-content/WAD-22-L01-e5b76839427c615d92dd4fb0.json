@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-22-L01",
+  "title": "ACL/delegación y rutas posibles",
+  "sourceHash": "3fa4400218aac6b062f68dfefe45448b738da39dd309a3d3da642d76f5b6fbb5",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-22-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nTrazar rutas de control a partir de ACL y delegación, separando lo posible de lo probado.\n\nPrerrequisitos: `WAD-14-L03` (Mapa de rutas de control), `WAD-16-L03` (CRL/AIA y continuidad PKI) y `WAD-21-L03` (Calidad de evidencia y minimización).\n\n## 2. Comprende el mecanismo\n\nUna **ACL** del directorio no dice qué ha ocurrido: dice qué está permitido. Esa diferencia es el corazón de esta etapa. Al leer un objeto encontramos una lista de entradas —**ACE**— donde cada una empareja una identidad con un permiso y un efecto. Trazar **rutas de control** consiste en encadenar esas entradas hasta ver si una identidad podría alcanzar algo que no debería.\n\nCuando una identidad puede escribir en un objeto, la frontera se vuelve difusa. Escribir en un atributo descriptivo no es lo mismo que escribir en la pertenencia de un grupo: lo primero casi siempre es inocuo; lo segundo puede cambiar lo que esa identidad podrá hacer después. Por eso se distingue el **permiso excesivo** del **permiso necesario**: la pregunta no es si la ACE existe, sino qué habilita.\n\nLa **delegación** es el caso legítimo de esa idea. Delegar es conceder una tarea concreta sobre un conjunto concreto de objetos, con el permiso mínimo. Una delegación sana se revisa en una consola como **ADAC** o con una consulta del descriptor de seguridad mediante **ACL**; una delegación excesiva concede más de lo que la tarea pedía y suele pasar inadvertida porque nadie la revisó después de crearla.\n\nEl **acceso efectivo** combina token, DACL y herencia. Una ACE heredada de un contenedor superior pesa igual que una explícita, y una ACE denegada puede anular una concedida. Por eso una captura aislada de permisos no basta: hay que ver el objeto, su contenedor superior y la identidad concreta que se evalúa.\n\nAquí aparece la distinción que ordena toda la etapa. Un **riesgo teórico** es una configuración que permitiría algo. Una **condición explotable** es esa misma configuración con todos los eslabones de la ruta ya comprobados. Un **acceso probado** exige, además, evidencia de una operación realizada y verificada dentro del alcance autorizado. Subir de un nivel al siguiente cuesta trabajo, no entusiasmo.\n\nEn el laboratorio `ad.lab.test` se practica con ACL sintéticas y consultas de solo lectura. La regla que cierra la lección: **una ruta se documenta como posible hasta que se demuestra; nunca se informa como conseguida por el hecho de existir**.\n\n### Vocabulario de apoyo\n\n- **ACE**: entrada de una ACL que empareja identidad, permiso y efecto.\n- **DACL**: lista que concede o deniega el acceso a un objeto.\n- **Delegación**: concesión de una tarea concreta sobre un conjunto concreto de objetos, con el permiso mínimo necesario.\n- **Acceso efectivo**: resultado combinado de token, DACL, permisos de recurso e integridad.\n- **Permisos excesivos**: concesión más amplia que la necesaria para la función.\n- **Ruta administrativa**: camino de accesos y pertenencias por el que una identidad alcanza un control.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-22-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test`, una consulta de solo lectura muestra que un grupo de soporte conserva permiso de escritura sobre la pertenencia de un grupo de administración delegada ubicado en una unidad organizativa. Nadie ha usado ese permiso.\n\nLa lectura correcta empieza por describir la cadena, no por dramatizarla: el grupo de soporte puede modificar la pertenencia y, si esa pertenencia alimenta una administración delegada, la escritura encadena hacia un control mayor. La evidencia útil es la ACE con su identidad, su permiso y su efecto, más la herencia que la sostiene y la identidad concreta sobre la que se evaluaría. Con eso la ruta queda trazada como **condición explotable**, no como riesgo difuso, porque los eslabones de configuración están comprobados. La conclusión acota lo demostrado —«existe una ruta de escritura encadenada»— y reconoce su límite: sin una operación autorizada y verificada, no hay acceso probado; solo una ruta documentada.\n\n"
+    },
+    {
+      "id": "WAD-22-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Distinguir el permiso concedido del acceso ejercido evita abrir incidentes por configuraciones que nadie ha usado.\n- Red Team autorizado: Trazar la ruta y su nivel de certeza demuestra método y respeta las reglas de enfrentamiento escritas.\n- Evidencia de la etapa: ACE con identidad, permiso y efecto, su herencia y la identidad concreta evaluada, sin operar sobre el objeto.\n- Criterio de dominio: La ruta se documenta como posible hasta que una prueba autorizada demuestre el acceso.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB16](../../05_RECURSOS/LABORATORIOS/WAD-LAB16.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **DSACLS**: [Dsacls](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-r2-and-2012/cc771525(v=ws.11)). Lectura de las listas de control de acceso de los objetos del directorio.\n- **GETACL**: [Get-Acl](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.security/get-acl). Consulta del descriptor de seguridad de un objeto.\n- **ADAC**: [Active Directory Administrative Center](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/get-started/adac/active-directory-administrative-center). Consola para revisar la delegación concedida sobre una unidad organizativa.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-22-L01-P01",
+    "prompt": "En el laboratorio `ad.lab.test`, una consulta de solo lectura muestra que un grupo de soporte conserva permiso de escritura sobre la pertenencia de un grupo privilegiado. Traza la ruta de control y explica en qué nivel de la clasificación la sitúas y por qué.",
+    "markdown": "## 4. Práctica individual\n\nEn el laboratorio `ad.lab.test`, una consulta de solo lectura muestra que un grupo de soporte conserva permiso de escritura sobre la pertenencia de un grupo privilegiado. Traza la ruta de control y explica en qué nivel de la clasificación la sitúas y por qué.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber explotado una ruta de control real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-22-L01-Q01",
+      "prompt": "Al revisar la delegación de una unidad organizativa de `ad.lab.test` encuentras una ACE que concede a un grupo permiso de escritura sobre la pertenencia de un grupo privilegiado. ¿Qué afirma correctamente esa observación?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que el grupo ya controla el dominio, porque toda escritura equivale a control total"
+        },
+        {
+          "id": "B",
+          "text": "Que la ACE es irrelevante mientras no aparezca un evento de auditoría asociado"
+        },
+        {
+          "id": "C",
+          "text": "Que conviene eliminar la ACE antes de documentarla, para no dejar el riesgo abierto"
+        },
+        {
+          "id": "D",
+          "text": "Que existe una condición explotable que conviene documentar como ruta posible, sin afirmar por ello un acceso probado"
+        }
+      ]
+    },
+    {
+      "id": "WAD-22-L01-Q02",
+      "prompt": "¿Cómo se distinguen el riesgo teórico, la condición explotable y el acceso probado al trazar una ruta de control?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El riesgo teórico describe lo que la configuración permitiría; la condición explotable exige la ruta con sus eslabones comprobados; el acceso probado exige evidencia de una operación realizada y verificada en el alcance autorizado"
+        },
+        {
+          "id": "B",
+          "text": "Todo riesgo teórico es un acceso probado en cuanto se documenta en un informe"
+        },
+        {
+          "id": "C",
+          "text": "Un acceso probado se declara cuando la herramienta devuelve una ruta, sin más comprobación"
+        },
+        {
+          "id": "D",
+          "text": "La distinción no importa: cualquier permiso de escritura se informa como control total"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB16](../../05_RECURSOS/LABORATORIOS/WAD-LAB16.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **DSACLS**: [Dsacls](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-r2-and-2012/cc771525(v=ws.11)). Lectura de las listas de control de acceso de los objetos del directorio.\n- **GETACL**: [Get-Acl](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.security/get-acl). Consulta del descriptor de seguridad de un objeto.\n- **ADAC**: [Active Directory Administrative Center](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/get-started/adac/active-directory-administrative-center). Consola para revisar la delegación concedida sobre una unidad organizativa.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "e5b76839427c615d92dd4fb0"
+}

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-09-L01",
+  "title": "Instalación y promoción aislada",
+  "sourceHash": "4c4518aeeef2890698805137a254179d9ba2114c21357ec38ee1a0daea1a58c2",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-09-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nPromover un controlador de dominio en una red aislada y registrar la configuración resultante.\n\nPrerrequisitos: `WAD-08-L03` (rol de AD DS frente a Entra ID) y `WAD-05-L03` (idempotencia, logging y recuperación).\n\n## 2. Comprende el mecanismo\n\nUn **controlador de dominio (DC)** es el servidor que aloja el directorio y responde a las autenticaciones del dominio. Convertirlo en DC se hace en dos pasos: primero se instala el rol de AD DS en el servidor y después se **promueve**, creando un bosque nuevo o uniéndose a uno existente. En este laboratorio se crea un **bosque nuevo** dentro de una red virtual cerrada y sin salida a internet: es un entorno sintético y aislado.\n\nEl nombre del dominio se elige antes de promover y no es un detalle cosmético: se convierte en el nombre de la **zona DNS** del dominio. En el laboratorio se usa `ad.lab.test`, un nombre sintético que no corresponde a ninguna organización. Elegir un nombre de una sola etiqueta o improvisarlo obliga después a rehacer la topología, así que se decide primero y se registra después.\n\nLa promoción pide además un **nivel funcional**, que conviene entender antes de fijarlo:\n\n- Determina qué funciones están disponibles en el dominio y qué versiones mínimas se admiten como socias.\n- Elevarlo habilita capacidades nuevas, pero puede impedir la convivencia con sistemas más antiguos.\n- Se elige con una razón, se registra y se documenta: forma parte de la configuración resultante.\n\nEl **rol de DNS** se instala junto con la promoción y el propio DC publica la zona del dominio. Ese DNS no es un complemento opcional: los clientes lo necesitan para encontrar al DC, como se verá en la lección siguiente. En una red aislada el DC apunta a su propia dirección, por ejemplo `192.0.2.10`, y no a un resolutor externo que no conoce la zona.\n\nDurante la promoción se define la **contraseña de recuperación** del directorio, usada en el modo de restauración de servicios de directorio. En este material se menciona su existencia y su custodia, nunca su valor: es un secreto y no se escribe en la documentación.\n\nVerificar la promoción no se limita a que el asistente termine sin errores. Se comprueba que el propio DC resuelve su nombre de dominio, que los servicios del directorio responden y que la configuración anotada coincide con lo aplicado. Esa evidencia demuestra que hay un DC sano, no todavía que otro equipo lo use.\n\n### Vocabulario de apoyo\n\n- **Controlador de dominio (DC)**: servidor que aloja el directorio del dominio y responde a las autenticaciones.\n- **Zona DNS**: parte del espacio de nombres DNS de la que un servidor responde como autoritativo.\n- **Registro SRV**: registro DNS que publica dónde y en qué puerto se ofrece un servicio.\n- **Servicio de hora**: componente que mantiene el reloj de un equipo sincronizado con una referencia.\n- **Cuenta de equipo**: identidad que representa a un equipo dentro del directorio.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-09-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: tras promover un equipo como controlador de dominio en la red aislada, el resultado no queda documentado. No consta el nivel funcional elegido, nadie anotó si el DNS se instaló en el propio DC y el cliente de laboratorio apunta a un resolutor externo. El operador afirma que «el dominio está listo» porque el asistente terminó sin errores.\n\nEl asistente sin errores demuestra que la promoción terminó, no que el dominio sea utilizable. La **configuración resultante** —nombre de dominio `ad.lab.test`, nivel funcional, rol de DNS y custodia de la contraseña de recuperación— es la que permite reproducir el laboratorio y explicar después una falla. Sin ese registro, cualquier problema del cliente se diagnostica a ciegas. La conclusión acota la zona —«se promovió, pero no se registró la configuración»— y reconoce su límite: comprobar el DC por sí mismo no demuestra que un cliente lo resuelva ni que autentique contra él; eso se verifica en las lecciones siguientes.\n\n"
+    },
+    {
+      "id": "WAD-09-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Documentar la configuración del dominio permite explicar por qué un cliente no lo encuentra sin reconstruir la topología desde cero.\n- Red Team autorizado: Conocer el nombre de dominio, el nivel funcional y el DNS del laboratorio delimita qué pruebas autorizadas son reproducibles.\n- Evidencia de la etapa: Registro de la promoción con nombre de dominio, nivel funcional, rol de DNS y custodia del secreto, sin su valor.\n- Criterio de dominio: Se explica la promoción en red aislada y se registra la configuración resultante.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB05](../../05_RECURSOS/LABORATORIOS/WAD-LAB05.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **INSTALLADDS**: [Install Active Directory Domain Services](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/deploy/install-active-directory-domain-services--level-100-). Instalación del rol y promoción del dominio paso a paso.\n- **ADDSOVER**: [Active Directory Domain Services overview](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/get-started/virtual-dc/active-directory-domain-services-overview). Qué es AD DS y qué aporta un controlador de dominio.\n- **FL**: [Active Directory Domain Services functional levels](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/active-directory-functional-levels). Qué habilita y qué limita cada nivel funcional.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-09-L01-P01",
+    "prompt": "Diseña, sin ejecutarla, la promoción de un primer controlador de dominio en una red virtual aislada: justifica el nombre de dominio `ad.lab.test`, la elección del nivel funcional, el papel del DNS en el propio DC, cómo custodias la contraseña de recuperación sin registrar su valor y qué comprobaciones dejas como evidencia.",
+    "markdown": "## 4. Práctica individual\n\nDiseña, sin ejecutarla, la promoción de un primer controlador de dominio en una red virtual aislada: justifica el nombre de dominio `ad.lab.test`, la elección del nivel funcional, el papel del DNS en el propio DC, cómo custodias la contraseña de recuperación sin registrar su valor y qué comprobaciones dejas como evidencia.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber promovido un controlador de dominio real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-09-L01-Q01",
+      "prompt": "¿Por qué el nombre de dominio elegido condiciona la zona DNS que se crea en la promoción?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Porque el nombre de dominio se convierte en el nombre de la zona DNS del dominio"
+        },
+        {
+          "id": "B",
+          "text": "Porque el nombre de dominio sustituye al nombre del equipo servidor"
+        },
+        {
+          "id": "C",
+          "text": "Porque la zona DNS solo se crea si el nivel funcional es el más bajo"
+        },
+        {
+          "id": "D",
+          "text": "Porque el nombre de dominio fija la dirección IP del controlador"
+        }
+      ]
+    },
+    {
+      "id": "WAD-09-L01-Q02",
+      "prompt": "¿Qué debe quedar registrado después de promover el controlador de dominio en el laboratorio aislado?",
+      "options": [
+        {
+          "id": "A",
+          "text": "La contraseña de recuperación con su valor, para poder reutilizarla"
+        },
+        {
+          "id": "B",
+          "text": "Únicamente el nombre del equipo que se promovió"
+        },
+        {
+          "id": "C",
+          "text": "El nombre de dominio, el nivel funcional, el rol de DNS y la custodia de la contraseña de recuperación"
+        },
+        {
+          "id": "D",
+          "text": "Solo la marca de tiempo de la última actualización del sistema"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB05](../../05_RECURSOS/LABORATORIOS/WAD-LAB05.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **INSTALLADDS**: [Install Active Directory Domain Services](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/deploy/install-active-directory-domain-services--level-100-). Instalación del rol y promoción del dominio paso a paso.\n- **ADDSOVER**: [Active Directory Domain Services overview](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/get-started/virtual-dc/active-directory-domain-services-overview). Qué es AD DS y qué aporta un controlador de dominio.\n- **FL**: [Active Directory Domain Services functional levels](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/active-directory-functional-levels). Qué habilita y qué limita cada nivel funcional.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "7b519ea5656b21249a40b246"
+}

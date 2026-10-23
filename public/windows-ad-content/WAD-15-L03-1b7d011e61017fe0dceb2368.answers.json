@@ -1,0 +1,39 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-15-L03",
+  "sourceHash": "cc0ccb0766b07994df071cbf0ad199f88b6a6ee2cd08d8cd968f9c6c3ecd8633",
+  "questions": [
+    {
+      "id": "WAD-15-L03-Q01",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Para iniciar el controlador en modo de restauración y reparar el directorio, y LAPS la custodia en el directorio con permiso de lectura y rotación».\n\nLa contraseña DSRM permite arrancar el controlador para reparar el directorio sin que esté en servicio, y Windows LAPS la guarda en el directorio, restringe su lectura y la rota. No es una credencial de inicio de sesión diario, ni una clave de recuperación de equipos cliente, ni algo que los equipos lean en cada arranque."
+    },
+    {
+      "id": "WAD-15-L03-Q02",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Rotarla, registrar quién la recuperó y cuándo, y confirmar que el controlador vuelve al servicio normal».\n\nTras usar una credencial de recuperación se renueva para que la copia utilizada caduque, se deja registro de la lectura y se comprueba que el controlador queda operativo. Dejarla sin cambios, compartirla o guardarla en un archivo accesible mantiene vigente una credencial de Tier 0 y elimina la trazabilidad."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "El valor custodiado se guarda en el directorio bajo Windows LAPS, no en un archivo compartido: solo una lista explícita y corta de identidades de administración de Tier 0 puede leerlo, sin heredar permiso desde contenedores amplios. La rotación es periódica y programada, de modo que una copia antigua deje de servir, y cada lectura queda auditada con la identidad y el momento. La recuperación segura se demuestra en orden: se autoriza a una identidad concreta, se recupera el valor por el mecanismo previsto, se usa en `DC01` durante una ventana de mantenimiento, se rota la contraseña al terminar y se confirma que el controlador vuelve al servicio normal y que el directorio replica. Los controles de las cuentas de administración, como el grupo Usuarios protegidos, limitan los mecanismos de captura. La evidencia es el registro de la recuperación y la confirmación de la rotación. El límite: la custodia garantiza almacenamiento y autorización de lectura, no el buen uso por una identidad autorizada; y el valor de la contraseña nunca se documenta.",
+    "rubric": [
+      {
+        "criterion": "Custodia y lectura",
+        "evidence": "Define dónde se guarda el valor y con qué permiso de lectura explícito."
+      },
+      {
+        "criterion": "Rotación",
+        "evidence": "Fija una rotación periódica y explica por qué reduce la vigencia de una copia."
+      },
+      {
+        "criterion": "Recuperación demostrada",
+        "evidence": "Describe autorización, uso, rotación y vuelta al servicio del controlador."
+      },
+      {
+        "criterion": "Límite y saneado",
+        "evidence": "Reconoce que la custodia no impide el mal uso y que el valor no se documenta."
+      }
+    ]
+  },
+  "revision": "1b7d011e61017fe0dceb2368"
+}

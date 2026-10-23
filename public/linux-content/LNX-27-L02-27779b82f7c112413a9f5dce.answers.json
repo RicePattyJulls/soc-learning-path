@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-27-L02",
+  "sourceHash": "bd4692f71a23ddf3e48235ee77f0298e0718894401a6e559a078e4994a43fbb3",
+  "questions": [
+    {
+      "id": "LNX-27-L02-Q01",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Alcance con exclusiones, verificación funcional, efecto secundario y reversión».\n\nUn control aplicable nombra dónde se aplica, cómo se comprueba, qué puede romper y cómo se deshace. Una firma comercial, una lista de CVE o subir la severidad no aportan ninguno de esos cuatro datos."
+    },
+    {
+      "id": "LNX-27-L02-Q02",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Falta declarar la ruta de escritura legítima y verificar con una prueba funcional antes de generalizar».\n\nEl arranque correcto no prueba que el servicio pueda operar: el fallo aparece al escribir. La corrección es declarar `ReadWritePaths` y probar el flujo completo, no retirar el control ni desactivar capas de seguridad."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "El control debe reescribirse con cuatro piezas. Alcance: el grupo de laboratorio concreto, con exclusiones justificadas para servicios que escriben fuera de `/var/lib`. Verificación: una prueba funcional que procese un trabajo y una prueba negativa que confirme que una escritura fuera de ruta sigue bloqueada. Efecto secundario: `ProtectSystem=strict` convierte en solo lectura todo el árbol salvo lo declarado, de modo que `ReadWritePaths` debe cubrir exactamente el directorio legítimo. Reversión: retirar el drop-in, recargar la unidad y comprobar el estado anterior.\n\nLa causa del fallo no fue incompatibilidad de Linux, sino un control sin ruta de escritura declarada y sin prueba funcional. El servicio arrancaba porque el arranque no escribía; dejaba de procesar cuando intentaba escribir en su directorio de trabajo.\n\nLímite: la prueba demuestra que este servicio funciona con este sandbox y estas rutas. No autoriza a generalizar el control a otros servicios sin repetir la verificación en cada uno.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Añade alcance con patrones de host y exclusiones justificadas."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Define verificación positiva y negativa, no una revisión genérica."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Declara el efecto secundario concreto sobre escritura o privilegios."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Documenta reversión y propietario antes de aplicar el control."
+      }
+    ]
+  },
+  "revision": "27779b82f7c112413a9f5dce"
+}

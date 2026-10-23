@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M09-L03",
+  "title": "Trunks y propagación",
+  "sourceHash": "4448303789a7157fe4b383f7eefbafd70e7e2f1e9eb3f9aa5a30ed7da2de2eb3",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M09-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nComprobar el recorrido de una VLAN por un trunk.\n\nPrerrequisitos: [RED-M09-L02](../RED-E02/RED-M09-L02.md).\n\n## 2. Comprende el mecanismo\n\nUn trunk transporta varias VLAN según configuración, capacidades y políticas. Su existencia no garantiza que una VLAN concreta esté permitida ni activa de extremo a extremo. Los mecanismos de negociación o propagación de fabricantes no son obligatorios para todos los diseños; definir explícitamente modos y listas evita depender de supuestos. Para diagnosticar, sigue la misma VLAN por cada enlace y comprueba estado de forwarding, etiquetado y registros. Una VLAN puede existir en ambos switches y aun así quedar excluida en el enlace intermedio.\n\n### Vocabulario de apoyo\n\n- **Access y trunk**: Puerto de acceso para una VLAN de datos y enlace que transporta varias VLAN, según configuración.\n- **802.1Q y VLAN nativa**: Etiquetado de VLAN y tratamiento configurado para tráfico sin etiqueta en ciertos trunks.\n- **SVI**: Interfaz de capa 3 asociada a una VLAN para funciones IP.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M09-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Camino docente A—B—C. VLAN30 permitida A-B; enlace B-C permite solo 10,20. Hosts VLAN30 en A y C.\n\nLa lista B-C interrumpe la conectividad de esa VLAN. La existencia de VLAN30 en A y C no supera la exclusión intermedia.\n\n"
+    },
+    {
+      "id": "RED-M09-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Correlacionar VLAN con zonas y rutas.\n- Red Team autorizado: Comprobar de forma mínima el aislamiento entre segmentos.\n- Evidencia del módulo: Matriz VLAN, config/estado y flujos permitidos.\n- Criterio del módulo: Aislamiento y conectividad autorizada comprobados.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L04](../../05_RECURSOS/LABORATORIOS/RED-L04.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **BRIDGE**: [Ethernet Bridging](https://docs.kernel.org/networking/bridge.html). Learning, forwarding, VLAN y controles de bridge; kAPI no se presenta como estable.\n- **STP**: [Understand Rapid Spanning Tree Protocol](https://www.cisco.com/c/en/us/support/docs/lan-switching/spanning-tree-protocol/24062-146.html). Roles, estados y comparación de convergencia RSTP.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M09-L03-P01",
+    "prompt": "VLAN30 ya está permitida en todos los trunks y sigue fallando. Propón dos estados adicionales a revisar.",
+    "markdown": "## 4. Práctica individual\n\nVLAN30 ya está permitida en todos los trunks y sigue fallando. Propón dos estados adicionales a revisar.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M09-L03-Q01",
+      "prompt": "¿Qué debes seguir al diagnosticar un trunk?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Solo la existencia de la VLAN en los dos switches extremos"
+        },
+        {
+          "id": "B",
+          "text": "Solo que los extremos coincidan en la VLAN nativa"
+        },
+        {
+          "id": "C",
+          "text": "Solo que los puertos físicos de todos los enlaces estén up"
+        },
+        {
+          "id": "D",
+          "text": "La misma VLAN a lo largo de todos los enlaces"
+        }
+      ]
+    },
+    {
+      "id": "RED-M09-L03-Q02",
+      "prompt": "¿Dónde está el bloqueo demostrado del ejemplo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "En la lista permitida de B-C"
+        },
+        {
+          "id": "B",
+          "text": "En el DNS público"
+        },
+        {
+          "id": "C",
+          "text": "En la sintaxis del nombre del host"
+        },
+        {
+          "id": "D",
+          "text": "En todos los puertos A-B"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L04](../../05_RECURSOS/LABORATORIOS/RED-L04.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **BRIDGE**: [Ethernet Bridging](https://docs.kernel.org/networking/bridge.html). Learning, forwarding, VLAN y controles de bridge; kAPI no se presenta como estable.\n- **STP**: [Understand Rapid Spanning Tree Protocol](https://www.cisco.com/c/en/us/support/docs/lan-switching/spanning-tree-protocol/24062-146.html). Roles, estados y comparación de convergencia RSTP.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "9d41a0fed8430ba7c2e1b139"
+}

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-01-L03",
+  "title": "Cuatro malentendidos peligrosos",
+  "sourceHash": "1226568e9e777b8ad1b0dfadd04289085be605165ae06d72f9e48d1b03d27469",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-01-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nReconocer cuatro malentendidos frecuentes sobre visibilidad, identidad, lectura y privilegios, y corregirlos con límites explícitos.\n\nPrerrequisitos: `LNX-01-L02` (Componentes y límites de confianza).\n\n## 2. Comprende el mecanismo\n\nLos límites de confianza ya están situados. El paso siguiente es desmontar cuatro frases que suenan razonables y llevan a conclusiones equivocadas. Cada malentendido nace de tomar una parte del sistema por el todo.\n\n**Malentendido 1: «si no lo veo, no existe».** La vista de procesos y de estado es una **instantánea** sujeta a políticas de visibilidad. Que un proceso no aparezca en tu listado significa que no está en tu vista, no que no esté corriendo. La ausencia es un dato sobre tu posición, no una prueba sobre el sistema.\n\n**Malentendido 2: «el comando es el actor».** El mismo comando ejecutado por identidades distintas produce resultados distintos. El actor no es el texto del comando, sino el **proceso con su identidad efectiva**. Atribuir el efecto al comando es confundir la herramienta con quien la usa.\n\n**Malentendido 3: «leer es lo mismo que modificar».** Observar un recurso y alterarlo son **derechos separados** ante el kernel. Poder leer un dato no implica poder cambiarlo, y ver un recurso expuesto no implica poder explotarlo. Mezclarlos convierte una visibilidad en un acceso inexistente.\n\n**Malentendido 4: «root lo puede todo».** Con controles modernos, el privilegio se reparte en **capacidades** y puede acotarse con módulos de control de acceso, contenedores y filtros de llamadas al sistema. Ser `root` amplía mucho el margen, pero no equivale a acceso sin restricciones: hay políticas que limitan incluso a un proceso con máximos privilegios.\n\nEstos cuatro errores comparten una raíz: **generalizar desde una sola observación**. La corrección es siempre la misma: acota qué viste, con qué identidad y bajo qué política. Una conclusión sana declara sus límites; una conclusión peligrosa los oculta.\n\n### Vocabulario de apoyo\n\n- **Instantánea**: vista del estado del sistema en un momento concreto, no un registro continuo.\n- **Identidad efectiva**: credenciales con las que el kernel autoriza a un proceso.\n- **Capacidad**: permiso concreto y separable en el que se divide el privilegio del kernel.\n- **Control de acceso obligatorio (MAC)**: política que restringe incluso a procesos privilegiados.\n- **Filtro de llamadas al sistema**: restricción de las operaciones que un proceso puede solicitar al kernel.\n- **Límite de la conclusión**: condición que acota lo que los datos permiten afirmar.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-01-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en un host de laboratorio, un analista lista procesos, no encuentra el proceso que esperaba y concluye que «el servicio no se está ejecutando». En otra terminal, un compañero con distinta posición sí lo observa consumiendo recursos.\n\nLa conclusión no se sostiene. El listado era una **instantánea** tomada desde una posición concreta, y la visibilidad del proceso depende de la identidad y de la política de observación. La ausencia del proceso en esa vista no probaba su inexistencia: solo describía el alcance de quien miraba.\n\nEl razonamiento correcto registra la posición del observador y la naturaleza momentánea del dato antes de afirmar nada sobre el sistema. El límite de la conclusión: sin una segunda vista y sin conocer la política de visibilidad, lo único defendible es «no aparece en mi listado», nunca «no existe».\n\n"
+    },
+    {
+      "id": "LNX-01-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Rechazar conclusiones basadas en una única vista y exigir la posición del observador como parte de la evidencia.\n- Red Team autorizado: No confundir visibilidad con acceso; documentar qué derecho concreto habilita cada hallazgo.\n- Evidencia de la etapa: Registro de la vista utilizada, su momento, su alcance y la identidad del observador.\n- Criterio de dominio: Corrige cada malentendido nombrando el límite que faltaba en la afirmación original.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB01](../../05_RECURSOS/LABORATORIOS/LNX-LAB01.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F03**: [Linux credentials(7)](https://man7.org/linux/man-pages/man7/credentials.7.html). Identidad efectiva: por qué el comando no es el actor.\n- **F04**: [Linux capabilities(7)](https://man7.org/linux/man-pages/man7/capabilities.7.html). El privilegio repartido en capacidades acotadas.\n- **F10**: [Linux proc(5)](https://man7.org/linux/man-pages/man5/procfs.5.html). Instantánea del estado y límites de visibilidad.\n- **F13**: [Linux signal(7)](https://man7.org/linux/man-pages/man7/signal.7.html). Respuesta de los procesos y límites al observarlos o actuar sobre ellos.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-01-L03-P01",
+    "prompt": "Un compañero te presenta cuatro afirmaciones sobre un host de laboratorio: «si no lo veo, no existe», «el comando es el actor», «leer es lo mismo que modificar» y «root lo puede todo». Elige dos y explica con datos por qué son malentendidos y qué evidencia falta para sostenerlos.",
+    "markdown": "## 4. Práctica individual\n\nUn compañero te presenta cuatro afirmaciones sobre un host de laboratorio: «si no lo veo, no existe», «el comando es el actor», «leer es lo mismo que modificar» y «root lo puede todo». Elige dos y explica con datos por qué son malentendidos y qué evidencia falta para sostenerlos.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber auditado un host real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-01-L03-Q01",
+      "prompt": "Un compañero afirma que un proceso que no aparece en su listado de procesos no puede estar consumiendo recursos. ¿Cuál es la corrección más precisa?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Es correcto: el listado del sistema es exhaustivo y en tiempo real"
+        },
+        {
+          "id": "B",
+          "text": "Si no aparece es que ya terminó y liberó todos sus recursos"
+        },
+        {
+          "id": "C",
+          "text": "La vista es una instantánea sujeta a políticas de visibilidad y la ausencia en un listado no prueba la ausencia del proceso"
+        },
+        {
+          "id": "D",
+          "text": "Los procesos no visibles existen solo en el kernel y nunca consumen CPU"
+        }
+      ]
+    },
+    {
+      "id": "LNX-01-L03-Q02",
+      "prompt": "¿Por qué «es root, así que puede hacer cualquier cosa» es un malentendido en un host con controles modernos?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Porque root es un alias del usuario que inició la sesión y carece de privilegios reales"
+        },
+        {
+          "id": "B",
+          "text": "Porque el kernel ignora a los procesos con UID 0 cuando hay varias sesiones abiertas"
+        },
+        {
+          "id": "C",
+          "text": "Porque root solo puede escribir dentro de su propio directorio personal"
+        },
+        {
+          "id": "D",
+          "text": "Porque el privilegio se reparte en capacidades y puede acotarse con control de acceso, contenedores o filtros de llamadas al sistema"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB01](../../05_RECURSOS/LABORATORIOS/LNX-LAB01.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F03**: [Linux credentials(7)](https://man7.org/linux/man-pages/man7/credentials.7.html). Identidad efectiva: por qué el comando no es el actor.\n- **F04**: [Linux capabilities(7)](https://man7.org/linux/man-pages/man7/capabilities.7.html). El privilegio repartido en capacidades acotadas.\n- **F10**: [Linux proc(5)](https://man7.org/linux/man-pages/man5/procfs.5.html). Instantánea del estado y límites de visibilidad.\n- **F13**: [Linux signal(7)](https://man7.org/linux/man-pages/man7/signal.7.html). Respuesta de los procesos y límites al observarlos o actuar sobre ellos.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "222a371578f214ee8b14f414"
+}

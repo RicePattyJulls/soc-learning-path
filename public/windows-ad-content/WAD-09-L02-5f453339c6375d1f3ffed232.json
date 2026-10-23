@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-09-L02",
+  "title": "DNS SRV, DC Locator y tiempo",
+  "sourceHash": "b4bf369c3eeaa410801d85adb86b8fe33d74f8cb37faf977eeef316dbf228233",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-09-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nExplicar cómo el cliente localiza al DC por DNS y por qué el reloj condiciona la autenticación.\n\nPrerrequisitos: `WAD-09-L01` (instalación y promoción aislada).\n\n## 2. Comprende el mecanismo\n\nUn cliente no adivina dónde está el controlador de dominio: lo busca en **DNS**. Al iniciar sesión, el **Localizador de DC (DC Locator)** consulta los **registros SRV** publicados en la **zona DNS** del dominio, con nombres del estilo `_ldap._tcp.dc._msdcs.ad.lab.test`. El registro responde con el nombre del DC y el puerto donde atiende el servicio, y el cliente lo usa como destino.\n\nDe ahí se sigue una regla que conviene fijar: el DNS del cliente debe apuntar al DC, o a un servidor que resuelva la zona del dominio. Si el cliente usa un resolutor externo que no conoce `ad.lab.test`, podrá resolver nombres de internet y aun así no encontrará el DC. Tener conectividad de red no sustituye a resolver el nombre correcto.\n\nEl Localizador de DC combina esa consulta con el **sitio** del cliente. En una red aislada con un solo DC la elección es directa, pero el mecanismo general es el mismo: el cliente busca el DC más cercano según la topología declarada, y no una dirección fija escrita a mano.\n\nLa autenticación tiene una segunda condición: el **reloj**. Kerberos compara la hora del cliente con la del DC y rechaza la autenticación cuando la diferencia supera una tolerancia de pocos minutos. Por eso el **servicio de hora** se organiza de forma jerárquica: el DC toma la referencia y los equipos del dominio sincronizan con él.\n\nSituaciones que conviene reconocer:\n\n- Un reloj adelantado o atrasado varios minutos produce fallos de inicio de sesión aunque la cuenta y la credencial sean correctas.\n- El problema se confunde con «credencial incorrecta» porque el mensaje de error no siempre es explícito.\n- La comprobación del estado del servicio de hora forma parte del diagnóstico, no es un detalle accesorio.\n\nLocalizar al DC y confiar en su hora son dos requisitos distintos pero encadenados: sin DNS no hay DC, y sin reloj coherente no hay autenticación. Ninguno de los dos se resuelve «probando otra vez la contraseña».\n\n### Vocabulario de apoyo\n\n- **Registro SRV**: registro DNS que publica dónde y en qué puerto se ofrece un servicio.\n- **Localizador de DC (DC Locator)**: componente del cliente que localiza un controlador de dominio consultando DNS.\n- **Zona DNS**: parte del espacio de nombres DNS de la que un servidor responde como autoritativo.\n- **Servicio de hora**: componente que mantiene el reloj de un equipo sincronizado con una referencia.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-09-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un equipo de laboratorio pertenece al dominio pero no puede iniciar sesión con ninguna cuenta. Hay conectividad con el controlador de dominio `192.0.2.10` y el nombre del equipo aparece en el dominio. La configuración de red del cliente apunta como DNS a un resolutor externo que no conoce la zona `ad.lab.test`.\n\nEl fallo está en la resolución, no en la cuenta: el Localizador de DC no puede obtener los **registros SRV** del dominio porque el servidor DNS que consulta no es autoritativo para la zona. La corrección es apuntar el DNS del cliente al DC del laboratorio y volver a comprobar el inicio de sesión. La conclusión acota la zona —«no hay localización de DC porque el DNS no resuelve la zona del dominio»— y reconoce su límite: resolver el nombre no demuestra por sí solo que el reloj sea coherente, así que la hora se verifica aparte, comparando el **servicio de hora** del cliente con el del DC antes de dar el caso por cerrado.\n\n"
+    },
+    {
+      "id": "WAD-09-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Distinguir un fallo de resolución de uno de reloj evita perseguir credenciales cuando el problema es DNS o tiempo.\n- Red Team autorizado: Comprender la localización por SRV ayuda a interpretar el alcance de un cliente mal configurado dentro de la autorización del ejercicio.\n- Evidencia de la etapa: Consulta de los registros SRV del dominio y comparación del estado del servicio de hora entre cliente y DC.\n- Criterio de dominio: Se explica la localización por DNS y la dependencia del reloj con un límite reconocido.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB05](../../05_RECURSOS/LABORATORIOS/WAD-LAB05.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **DNSADDS**: [DNS and AD DS](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/dns-and-ad-ds). Por qué AD DS necesita DNS y cómo publica los registros de servicio.\n- **W32TIME**: [How the Windows Time service works](https://learn.microsoft.com/en-us/windows-server/networking/windows-time-service/how-the-windows-time-service-works). Jerarquía del servicio de hora y su relación con la autenticación.\n- **TIMETOOLS**: [Windows Time service tools and settings](https://learn.microsoft.com/en-us/windows-server/networking/windows-time-service/windows-time-service-tools-and-settings). Herramientas y ajustes para comprobar el estado del reloj.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-09-L02-P01",
+    "prompt": "Explica, con un caso de laboratorio, por qué un cliente que tiene conectividad con la red puede no encontrar al controlador de dominio: qué registro consulta el Localizador de DC en DNS, qué ocurre si el cliente apunta a un servidor DNS que no conoce la zona del dominio y por qué una desviación de reloj de varios minutos rompe la autenticación.",
+    "markdown": "## 4. Práctica individual\n\nExplica, con un caso de laboratorio, por qué un cliente que tiene conectividad con la red puede no encontrar al controlador de dominio: qué registro consulta el Localizador de DC en DNS, qué ocurre si el cliente apunta a un servidor DNS que no conoce la zona del dominio y por qué una desviación de reloj de varios minutos rompe la autenticación.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber diagnosticado un dominio real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-09-L02-Q01",
+      "prompt": "¿Cómo localiza un cliente al controlador de dominio del dominio?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Consultando un archivo de hosts local que enumera los controladores"
+        },
+        {
+          "id": "B",
+          "text": "Consultando en DNS los registros SRV publicados para el dominio"
+        },
+        {
+          "id": "C",
+          "text": "Enviando una consulta por difusión a toda la red local"
+        },
+        {
+          "id": "D",
+          "text": "Leyendo la caché de resolución del propio equipo cliente"
+        }
+      ]
+    },
+    {
+      "id": "WAD-09-L02-Q02",
+      "prompt": "¿Por qué una desviación de reloj de varios minutos impide la autenticación?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Porque cambia la dirección IP del controlador de dominio"
+        },
+        {
+          "id": "B",
+          "text": "Porque invalida la zona DNS del dominio"
+        },
+        {
+          "id": "C",
+          "text": "Porque el equipo deja de pertenecer al dominio"
+        },
+        {
+          "id": "D",
+          "text": "Porque Kerberos rechaza la autenticación cuando la diferencia de hora supera la tolerancia"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB05](../../05_RECURSOS/LABORATORIOS/WAD-LAB05.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **DNSADDS**: [DNS and AD DS](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/dns-and-ad-ds). Por qué AD DS necesita DNS y cómo publica los registros de servicio.\n- **W32TIME**: [How the Windows Time service works](https://learn.microsoft.com/en-us/windows-server/networking/windows-time-service/how-the-windows-time-service-works). Jerarquía del servicio de hora y su relación con la autenticación.\n- **TIMETOOLS**: [Windows Time service tools and settings](https://learn.microsoft.com/en-us/windows-server/networking/windows-time-service/windows-time-service-tools-and-settings). Herramientas y ajustes para comprobar el estado del reloj.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "5f453339c6375d1f3ffed232"
+}

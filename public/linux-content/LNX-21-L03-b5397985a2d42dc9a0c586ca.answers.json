@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-21-L03",
+  "sourceHash": "80b8372f8e2cb16246908280d35690e1f7955be973cab29d1db1c1cb9732bf0b",
+  "questions": [
+    {
+      "id": "LNX-21-L03-Q01",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Autorización, finalidad, intervalo UTC, interfaz o namespace, filtro BPF, snaplen, analista y SHA-256».\n\nLa custodia mínima reúne contexto, alcance e integridad. El nombre, el color del cable o la MAC aislada no describen qué contiene la captura ni permiten reproducirla o verificarla."
+    },
+    {
+      "id": "LNX-21-L03-Q02",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Porque las cabeceras contienen direcciones, puertos y metadatos, y todavía puede quedar parte de la carga».\n\nReducir el snaplen limita la copia de la carga, pero las cabeceras ya exponen direcciones, puertos y metadatos, y parte de la carga puede quedar. No cifra, no duplica el tamaño ni se limita a IPv6."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "Faltan los tres controles de una captura útil. Sin **filtro** BPF se recoge tráfico que no era necesario y ajeno al objetivo; sin **snaplen** ni límite de paquetes, el volumen crece y se copian cargas completas; y sin **metadatos de custodia** no se puede decir cuándo, dónde ni bajo qué filtro se capturó, ni comprobar su integridad.\n\nLa captura correcta se hace en un namespace e interfaz de laboratorio, con un filtro como `host 192.0.2.30 and tcp port 8080`, snaplen acotado, número de paquetes y duración limitados. Se documenta autorización y finalidad, intervalo en UTC, interfaz o namespace, filtro aplicado, snaplen, nombre del analista y el SHA-256 del fichero, y se guarda en un repositorio restringido.\n\nLímite: un PCAP documentado describe una ventana y un punto concretos; no demuestra por sí solo el proceso responsable ni la intención, y no sustituye a una adquisición forense completa.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Identifica la falta de filtro, de límite y de custodia."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Propone un filtro BPF acotado por host o puerto."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Enumera metadatos mínimos, incluido el SHA-256 y el intervalo UTC."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Declara que el PCAP no atribuye el proceso por sí solo."
+      }
+    ]
+  },
+  "revision": "b5397985a2d42dc9a0c586ca"
+}

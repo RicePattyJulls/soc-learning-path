@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-13-L03",
+  "title": "Capacidad lógica: bloques, inodos, descriptores",
+  "sourceHash": "09180dcc7cadc8d2fe1baf9c0ea3790bc92d57b76d5062a476166780b732c429",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-13-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDiscriminar qué recurso se agota —bloques, inodos, cuota o descriptores— con comprobaciones que no mutan el sistema.\n\nPrerrequisitos: `LNX-13-L02` (Inodos, enlaces y tiempos como evidencia).\n\n## 2. Comprende el mecanismo\n\n«Se llenó el disco» describe un síntoma, no un recurso. La capacidad lógica de un sistema de archivos se agota por al menos cuatro vías distintas, y cada una se comprueba de otro modo. Confundirlas lleva a borrar datos sin resolver nada.\n\nLa primera es el **agotamiento de bloques**: no quedan bloques libres para los datos. `df -hT` mide bloques del sistema de archivos, pero hay que recordar que una parte puede estar **reservada** para uso privilegiado, de modo que un usuario normal se queda sin espacio antes de que `df` marque el 100 %.\n\nLa segunda es el **agotamiento de inodos**: hay bloques libres, pero se acabaron las estructuras que describen archivos. Aparece al crear muchísimos ficheros pequeños y se detecta con `df -i`, que solo está disponible cuando la plataforma expone esa métrica. Un `ENOSPC` con espacio libre apunta aquí o a una cuota.\n\nLa tercera es la **cuota**: una política limita el uso de una identidad o grupo por debajo de la capacidad física. El error típico es `EDQUOT`, aunque no siempre se distingue a simple vista; exige consultar la política de cuotas, no borrar archivos.\n\nLa cuarta es el **descriptor abierto**: un proceso puede mantener abierto un archivo ya desvinculado. `unlink` retira el nombre, pero los bloques siguen asignados hasta que se cierra el último descriptor. Localizar estos casos —por ejemplo revisando los descriptores del proceso— explica por qué `df` no baja aunque ya no se vea el archivo en la ruta.\n\nTambién hay factores que distorsionan la medida: **ficheros dispersos** cuyo tamaño lógico supera los bloques asignados, deduplicación o reflinks que comparten bloques y contadores de algunos sistemas de archivos que no equivalen a los de ext4.\n\nEl método correcto es de observación: medir bloques e inodos, revisar la ruta y su montaje, y atribuir el consumo a un proceso o política antes de tocar nada. El límite: sin identificar el recurso agotado, cualquier limpieza es una apuesta, y la medición describe el presente, no cuándo empezó el consumo.\n\n### Vocabulario de apoyo\n\n- **Bloque**: unidad de asignación de datos en el sistema de archivos.\n- **Inodo**: estructura que describe un archivo; su agotamiento produce `ENOSPC` con bloques libres.\n- **Cuota**: límite de uso de espacio o inodos para una identidad o grupo.\n- **Descriptor abierto**: referencia que mantiene asignados los bloques de un archivo ya desvinculado.\n- **Fichero disperso**: archivo con tamaño lógico mayor que los bloques realmente asignados.\n- **Reclaim de espacio**: recuperación de capacidad al cerrar el último descriptor o liberar referencias.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-13-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: escribir un archivo falla con `ENOSPC`, pero `df -h` muestra todavía espacio libre. El analista concluye que el sistema de archivos está corrupto.\n\nLa conclusión no se sostiene. Hay al menos una explicación sencilla antes de suponer corrupción: puede haberse agotado el número de inodos, o existir una cuota que limita la escritura, o un archivo borrado aún abierto que retiene bloques. La comprobación correcta mira `df -i`, la política de cuotas y los procesos con ficheros abiertos, sin mutar el sistema.\n\nEl límite: mientras no se atribuya el error a un recurso concreto, hablar de corrupción es infundado; y aunque se detectara corrupción real, la medición por sí sola no dice cuándo ni por qué se produjo.\n\n"
+    },
+    {
+      "id": "LNX-13-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Distinguir bloques, inodos, cuota y descriptores antes de atribuir un `ENOSPC`.\n- Red Team autorizado: Medir consumo sin destruir datos ni alterar la evidencia del estado actual.\n- Evidencia de la etapa: Mediciones de `df -hT`, `df -i`, montaje implicado y procesos con ficheros abiertos.\n- Criterio de dominio: Nombra el recurso agotado y su comprobación de solo lectura antes de actuar.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB15](../../05_RECURSOS/LABORATORIOS/LNX-LAB15.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F41**: [util-linux lsblk(8)](https://man7.org/linux/man-pages/man8/lsblk.8.html). Inventario de dispositivos y volúmenes que sostienen la capacidad.\n- **F42**: [util-linux findmnt(8)](https://man7.org/linux/man-pages/man8/findmnt.8.html). Qué sistema de archivos y qué montaje explican el límite observado.\n- **F46**: [GNU coreutils, manual stat](https://www.gnu.org/software/coreutils/manual/html_node/stat-invocation.html). Tamaño lógico, bloques asignados y metadatos de capacidad.\n- **F64**: [MITRE ATT&CK, T1485 Data Destruction](https://attack.mitre.org/techniques/T1485/). Consumo o destrucción anómala como hipótesis contextual, no como conclusión por un síntoma.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-13-L03-P01",
+    "prompt": "Escribir un archivo falla con `ENOSPC` mientras `df -h` muestra espacio libre, y concluyes que el sistema de archivos está corrupto. Explica qué recursos pueden haberse agotado, qué comprobaciones harías sin mutar nada y cuál es el límite de tu conclusión.",
+    "markdown": "## 4. Práctica individual\n\nEscribir un archivo falla con `ENOSPC` mientras `df -h` muestra espacio libre, y concluyes que el sistema de archivos está corrupto. Explica qué recursos pueden haberse agotado, qué comprobaciones harías sin mutar nada y cuál es el límite de tu conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber diagnosticado ni reparado almacenamiento real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-13-L03-Q01",
+      "prompt": "Escribir falla con `ENOSPC` pero `df -h` muestra espacio libre. ¿Cuál es la comprobación más directa que distingue el agotamiento de inodos?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Reparar el sistema de archivos con la herramienta de chequeo disponible"
+        },
+        {
+          "id": "B",
+          "text": "Aumentar la cuota de la identidad afectada sin consultarla"
+        },
+        {
+          "id": "C",
+          "text": "Reiniciar el servicio que escribe el archivo"
+        },
+        {
+          "id": "D",
+          "text": "Revisar `df -i` para ver el consumo de inodos frente a su límite"
+        }
+      ]
+    },
+    {
+      "id": "LNX-13-L03-Q02",
+      "prompt": "Un proceso mantiene abierto un archivo ya desvinculado. ¿Qué describe mejor su efecto sobre la capacidad?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El archivo desaparece de inmediato y libera sus bloques al instante"
+        },
+        {
+          "id": "B",
+          "text": "El nombre queda oculto pero el contenido pasa a solo lectura"
+        },
+        {
+          "id": "C",
+          "text": "Los bloques siguen asignados hasta que se cierra el último descriptor"
+        },
+        {
+          "id": "D",
+          "text": "El espacio se duplica por tener nombre y descriptor a la vez"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB15](../../05_RECURSOS/LABORATORIOS/LNX-LAB15.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F41**: [util-linux lsblk(8)](https://man7.org/linux/man-pages/man8/lsblk.8.html). Inventario de dispositivos y volúmenes que sostienen la capacidad.\n- **F42**: [util-linux findmnt(8)](https://man7.org/linux/man-pages/man8/findmnt.8.html). Qué sistema de archivos y qué montaje explican el límite observado.\n- **F46**: [GNU coreutils, manual stat](https://www.gnu.org/software/coreutils/manual/html_node/stat-invocation.html). Tamaño lógico, bloques asignados y metadatos de capacidad.\n- **F64**: [MITRE ATT&CK, T1485 Data Destruction](https://attack.mitre.org/techniques/T1485/). Consumo o destrucción anómala como hipótesis contextual, no como conclusión por un síntoma.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "5a2f45d648db1925deab53a2"
+}

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M06-L02",
+  "title": "Administración SSH/RDP",
+  "sourceHash": "581ca512730677062769389229fc77ffffbeb2fb594a50cf5c855b70dea27c5a",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M06-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDistinguir acceso de red y autenticación en SSH/RDP.\n\nPrerrequisitos: [RED-M06-L01](../RED-E01/RED-M06-L01.md).\n\n## 2. Comprende el mecanismo\n\nSSH y RDP son protocolos de administración con etapas de conexión, negociación y autenticación. Encontrar un puerto abierto no demuestra que un usuario tenga permiso ni que el servidor sea vulnerable. En SSH la verificación de clave del host evita aceptar sin contraste una identidad de servidor distinta. RDP puede incorporar NLA y protecciones que dependen de su configuración. Para diagnosticar, conserva la fase del error y registros de ambos extremos; ni un timeout ni una denegación de credenciales deben resumirse como el mismo fallo de red.\n\n### Vocabulario de apoyo\n\n- **TLS**: Protocolo de protección del intercambio que incluye negociación y autenticación según configuración.\n- **SSH y RDP**: Protocolos utilizados para acceso y administración remota.\n- **SMB, LDAP y Kerberos**: Servicios de recursos compartidos, directorio y autenticación mediante tickets, respectivamente.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M06-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Secuencia docente: TCP/22 establecido; clave del host coincide con inventario; usuario recibe permission denied.\n\nSe alcanzó la autenticación y el servidor respondió. Revisar cuenta, métodos permitidos y autorización es más pertinente que abrir todos los puertos del firewall.\n\n"
+    },
+    {
+      "id": "RED-M06-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Comprender contexto de conexiones en investigación.\n- Red Team autorizado: Reconocer servicios expuestos sin explotarlos.\n- Evidencia del módulo: Diagrama de dependencias y hechos/hipótesis etiquetados.\n- Criterio del módulo: Distingue negociación visible de contenido inaccesible.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L03](../../05_RECURSOS/LABORATORIOS/RED-L03.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC8446**: [RFC 8446: Transport Layer Security Protocol Version 1.3](https://www.rfc-editor.org/rfc/rfc8446.html). Protección TLS y límites de observación pasiva.\n- **RFC9110**: [RFC 9110: HTTP Semantics](https://www.rfc-editor.org/rfc/rfc9110.html). Métodos, respuestas y significado de 202/403.\n- **RFC4253**: [RFC 4253: The Secure Shell Transport Layer Protocol](https://www.rfc-editor.org/rfc/rfc4253.html). Transporte SSH y autenticación del servidor; no recomendación de suites históricas.\n- **RFC4120**: [RFC 4120: Kerberos Network Authentication Service V5](https://www.rfc-editor.org/rfc/rfc4120.html). Tickets, tiempo y separación de autenticación y acceso al recurso.\n- **SMB**: [SMB Security Enhancements](https://learn.microsoft.com/en-us/windows-server/storage/file-server/smb-security). Diferencia entre firma y cifrado; condiciones por versión.\n- **RFC9000**: [RFC 9000: QUIC: A UDP-Based Multiplexed and Secure Transport](https://www.rfc-editor.org/rfc/rfc9000.html). Transporte sobre UDP y límites de inferir fiabilidad desde UDP solo.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M06-L02-P01",
+    "prompt": "SSH informa que la clave del host cambió tras una reinstalación autorizada. ¿Cómo resolver la diferencia?",
+    "markdown": "## 4. Práctica individual\n\nSSH informa que la clave del host cambió tras una reinstalación autorizada. ¿Cómo resolver la diferencia?\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M06-L02-Q01",
+      "prompt": "¿Qué no acredita un puerto SSH abierto?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que un usuario concreto esté autorizado"
+        },
+        {
+          "id": "B",
+          "text": "Que hubo una respuesta de transporte a la prueba"
+        },
+        {
+          "id": "C",
+          "text": "Que el puerto respondió"
+        },
+        {
+          "id": "D",
+          "text": "Que existe alcance hacia ese extremo en ese instante"
+        }
+      ]
+    },
+    {
+      "id": "RED-M06-L02-Q02",
+      "prompt": "¿Qué fase alcanzó el ejemplo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Solo comprobación del cable"
+        },
+        {
+          "id": "B",
+          "text": "Asignación de DHCP obligatoriamente"
+        },
+        {
+          "id": "C",
+          "text": "Ninguna conexión TCP"
+        },
+        {
+          "id": "D",
+          "text": "Autenticación de usuario"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L03](../../05_RECURSOS/LABORATORIOS/RED-L03.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC8446**: [RFC 8446: Transport Layer Security Protocol Version 1.3](https://www.rfc-editor.org/rfc/rfc8446.html). Protección TLS y límites de observación pasiva.\n- **RFC9110**: [RFC 9110: HTTP Semantics](https://www.rfc-editor.org/rfc/rfc9110.html). Métodos, respuestas y significado de 202/403.\n- **RFC4253**: [RFC 4253: The Secure Shell Transport Layer Protocol](https://www.rfc-editor.org/rfc/rfc4253.html). Transporte SSH y autenticación del servidor; no recomendación de suites históricas.\n- **RFC4120**: [RFC 4120: Kerberos Network Authentication Service V5](https://www.rfc-editor.org/rfc/rfc4120.html). Tickets, tiempo y separación de autenticación y acceso al recurso.\n- **SMB**: [SMB Security Enhancements](https://learn.microsoft.com/en-us/windows-server/storage/file-server/smb-security). Diferencia entre firma y cifrado; condiciones por versión.\n- **RFC9000**: [RFC 9000: QUIC: A UDP-Based Multiplexed and Secure Transport](https://www.rfc-editor.org/rfc/rfc9000.html). Transporte sobre UDP y límites de inferir fiabilidad desde UDP solo.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "2db4a851dc81a6d2de1cf8ba"
+}

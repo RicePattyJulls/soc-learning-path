@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 1,
+  "courseId": "soc",
+  "id": "N1-02",
+  "sourceHash": "eb1820e268ac91b614bc8276ea8ca667d6f5390ae6a5dfb497a6b97e3c4a2eeb",
+  "revision": "a268a6a99c0d03831cd91ff0",
+  "hipotesis": [
+    "IP de VPN/proxy/ZTNA empresarial o salida de proveedor cloud.",
+    "Error o desactualización en la base geográfica de IP; ubicación no es prueba definitiva.",
+    "Credenciales comprometidas, adversario usando una sesión válida o aprobación indebida de MFA.",
+    "Inicio legítimo asociado a una aplicación o flujo de autenticación distinto al navegador habitual."
+  ],
+  "pasos": [
+    {
+      "fase": "0. Validar identidad del evento",
+      "accion": "Registrar UPN, Id/CorrelationId, IP, fecha UTC, app/recurso, ResultType, método de autenticación y Conditional Access. Un inicio satisfactorio en Entra implica que se satisfizo el flujo registrado, no necesariamente que el legítimo titular actuara."
+    },
+    {
+      "fase": "1. Contextualizar IP",
+      "accion": "Consultar propietario/ASN, políticas de proxy y VPN/ZTNA, rangos corporativos y reputación. No adjudicar procedencia física a una persona por GeoIP."
+    },
+    {
+      "fase": "2. Comparar comportamiento",
+      "accion": "Revisar otras sesiones del usuario (ventanas antes/después), DeviceDetail (deviceId, navegador, SO), user agent, apps accedidas, método/MFA, riesgo de identidad, patrones imposibles pero también viajes plausibles."
+    },
+    {
+      "fase": "3. Correlacionar actividad posterior",
+      "accion": "Buscar cambios de métodos MFA, registro de nuevo dispositivo, consentimiento OAuth, creación de reglas de correo, archivos descargados, accesos a datos o actividad en endpoints."
+    },
+    {
+      "fase": "4. Confirmación independiente",
+      "accion": "Contactar al usuario por canal conocido y al equipo de red, sin solicitar contraseñas ni códigos MFA. Si no se explica el evento, escalar para contención de sesión y credenciales."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "IPAddress + proveedor/ASN/VPN",
+      "lectura": "Distingue punto de salida de ubicación física; una IP residencial o hosting no basta por sí sola."
+    },
+    {
+      "dato": "ResultType, AppDisplayName y CorrelationId",
+      "lectura": "Permite localizar la operación y qué aplicación recibió el inicio."
+    },
+    {
+      "dato": "AuthenticationRequirement, AuthenticationDetails, ConditionalAccessStatus",
+      "lectura": "Si se requirió MFA y qué ocurrió en cada paso; métodos y logs pueden tener limitaciones."
+    },
+    {
+      "dato": "DeviceDetail, UserAgent, RiskLevelAggregated",
+      "lectura": "Compara el cliente con el histórico; los campos de riesgo requieren licencias y pueden quedar ocultos."
+    },
+    {
+      "dato": "Auditoría posterior",
+      "lectura": "Indicadores de uso malicioso posterior al inicio: ajustes de seguridad, datos accedidos o tokens."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Sentinel: contexto completo de la cuenta",
+      "entorno": "Microsoft Sentinel — SigninLogs",
+      "consulta": "SigninLogs\n| where TimeGenerated > ago(48h)\n| where UserPrincipalName =~ \"bob@empresa.example\"\n| extend Pais=tostring(LocationDetails.countryOrRegion),\n         Ciudad=tostring(LocationDetails.city),\n         SO=tostring(DeviceDetail.operatingSystem),\n         Navegador=tostring(DeviceDetail.browser)\n| project TimeGenerated, UserPrincipalName, IPAddress, Pais, Ciudad,\n          ResultType, AppDisplayName, ConditionalAccessStatus,\n          AuthenticationRequirement, RiskLevelAggregated,\n          SO, Navegador, UserAgent, CorrelationId\n| order by TimeGenerated desc",
+      "interpretacion": "Contrastar IP, dispositivo, MFA y app con historial cercano; el campo país puede ser aproximado.",
+      "limitaciones": "Los campos de riesgo podrían no estar disponibles sin Entra P2; detalle MFA puede estar en AuthenticationDetails (cadena JSON)."
+    },
+    {
+      "nombre": "Sentinel: otras cuentas que usan la misma IP",
+      "entorno": "Microsoft Sentinel — SigninLogs",
+      "consulta": "let ip_a_revisar = \"203.0.113.88\";  // Sustituir por IP real\nSigninLogs\n| where TimeGenerated > ago(24h)\n| where IPAddress == ip_a_revisar\n| summarize Eventos=count(), Exitosos=countif(ResultType == \"0\"),\n            Aplicaciones=make_set(AppDisplayName, 10)\n  by UserPrincipalName\n| order by Eventos desc",
+      "interpretacion": "Si hay varios usuarios, valorar VPN/proxy empresarial o abuso de infraestructura común.",
+      "limitaciones": "203.0.113.88 es IP reservada de ejemplo, no un IOC."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk CIM: historial de sesiones de la cuenta",
+      "entorno": "Splunk CIM Authentication; src como dirección de origen",
+      "consulta": "tag=authentication earliest=-48h user=\"bob@empresa.example\"\n| stats count AS eventos\n        values(action) AS resultados\n        values(app) AS aplicaciones\n        values(user_agent) AS user_agents\n        min(_time) AS primera max(_time) AS ultima\n  BY user src\n| convert ctime(primera) ctime(ultima)\n| sort - eventos",
+      "interpretacion": "Correlacionar orígenes, aplicaciones y desviaciones históricas.",
+      "limitaciones": "La geografía no forma parte obligatoria de CIM Authentication; depende de enrichment."
+    },
+    {
+      "nombre": "Splunk: GeoIP aproximada de éxitos recientes",
+      "entorno": "Splunk CIM Authentication con src como IP pública; iplocation habilitado",
+      "consulta": "tag=authentication earliest=-24h user=\"bob@empresa.example\" action=success\n| iplocation src\n| table _time user src Country City app\n| sort - _time",
+      "interpretacion": "La geolocalización es una pista y no sustituye corroboración de VPN, identidad y dispositivo.",
+      "limitaciones": "iplocation puede no devolver resultados para hostnames o IP internas; calidad variable."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Operaciones",
+      "proposito": "La primera medida es conservar identificadores de la sesión y comprobar la ruta de red; no ejecutar comandos remotos ni solicitar códigos MFA al empleado.",
+      "comando": "# Verificar con el equipo de red los rangos de egress VPN/ZTNA."
+    }
+  ],
+  "contencion": "Ante sospecha razonable de toma de cuenta, activar escalado: revocar sesiones/tokens según plataforma, forzar cambio de credenciales por canal seguro, revisar métodos MFA y restringir temporalmente acceso con controles aprobados. Si hay un impacto alto e indicadores sólidos, actuar con urgencia; si es VPN legítima, documentar el falso positivo y considerar ajuste de detección.",
+  "escalation": [
+    "IP desconocida sin justificación de VPN y dispositivo nuevo.",
+    "MFA inesperada, registro de nuevo método o anomalía de token.",
+    "Cambios o acceso a recursos sensibles después de la sesión.",
+    "Cuenta privilegiada o varios usuarios afectados."
+  ],
+  "falsos_positivos": [
+    "VPN o SASE con salida en otro país.",
+    "Proxies corporativos/CDN en ruta de identidad.",
+    "GeoIP inexacta y uso de aplicaciones móviles."
+  ],
+  "errores": [
+    "Tratar GeoIP como GPS.",
+    "Asumir que MFA activada impide phishing o robo de sesión.",
+    "Concluir compromiso sin comparar dispositivo, app y rutas de red.",
+    "Contactar al usuario usando la sesión o canal sospechoso como único medio."
+  ],
+  "perspectiva_red_team": "El uso de credenciales válidas o de tokens de sesión robados puede originar eventos de autenticación desde infraestructuras distintas. El atacante también puede usar proxies próximos a la víctima para reducir anomalías geográficas.",
+  "respuesta_entrevista": "No concluiría compromiso basándome solo en Rusia. Confirmaría el registro exitoso y sus IDs, identificaría ASN/VPN, compararía IP, dispositivo, aplicación, MFA y riesgo con el histórico del empleado y buscaría actividad posterior. Contactaría al usuario por un canal independiente. Si la sesión no está explicada o hay señales de abuso, escalaría para revocar sesiones y proteger la cuenta bajo el procedimiento autorizado.",
+  "criterios_evaluacion": [
+    "Distinguir GeoIP de ubicación física.",
+    "Revisar MFA/CA y telemetría posterior.",
+    "Confirmación por canal independiente.",
+    "Escalado por evidencia e impacto, no por país en exclusiva."
+  ],
+  "mitre": [
+    "T1078"
+  ],
+  "fuentes": [
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/signinlogs",
+    "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.1/data-models/authentication"
+  ]
+}

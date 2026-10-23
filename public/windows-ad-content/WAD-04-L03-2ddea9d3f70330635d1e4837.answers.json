@@ -1,0 +1,39 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-04-L03",
+  "sourceHash": "81b5946216a54bf3c9ae4758a37a3593ae8d5215ed0253c5f237294d87641578",
+  "questions": [
+    {
+      "id": "WAD-04-L03-Q01",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «La SACL del objeto y la política de auditoría habilitada».\n\nSin los dos elementos no se registra nada: la SACL selecciona qué vigilar y la política decide qué se registra."
+    },
+    {
+      "id": "WAD-04-L03-Q02",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Que la acción puede haber ocurrido aunque no se haya auditado o el registro haya rotado».\n\nLa ausencia de evento solo describe la fuente, no la actividad: hay que comprobar la configuración y la retención antes de concluir."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "La prueba exige dos elementos: la SACL del objeto, configurada para vigilar los fallos de escritura, y la política de auditoría del sistema, habilitada para la categoría de acceso a objetos. Con el intento fallido controlado se genera el evento; como evidencia se registran la hora en UTC, el identificador del evento, la cuenta y el origen, además del objeto afectado. Al terminar se restaura el estado inicial —ACL, SACL y política— y se confirma que coincide con lo anotado antes de empezar. La ausencia de evento no prueba ausencia de actividad: puede faltar la SACL, faltar la política, haber rotado el registro o no haberse producido el acceso en el periodo conservado.",
+    "rubric": [
+      {
+        "criterion": "Dos elementos",
+        "evidence": "Nombra los dos elementos necesarios (SACL y política)."
+      },
+      {
+        "criterion": "Tipo de auditoría",
+        "evidence": "Elige auditar fallos para los intentos denegados."
+      },
+      {
+        "criterion": "Evidencia",
+        "evidence": "Define los campos del evento usados como evidencia, con hora en UTC."
+      },
+      {
+        "criterion": "Restauración y límite",
+        "evidence": "Restaura el estado inicial y explica por qué la ausencia de evento no concluye nada."
+      }
+    ]
+  },
+  "revision": "2ddea9d3f70330635d1e4837"
+}

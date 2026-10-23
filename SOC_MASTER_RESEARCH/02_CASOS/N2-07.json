@@ -1,0 +1,185 @@
+{
+  "id": "N2-07",
+  "nivel": "N2",
+  "bloque": "Active Directory y movimiento lateral",
+  "titulo": "DCSync: solicitudes de replicación y derechos críticos en AD",
+  "pregunta": "Un controlador de dominio registra un incremento inesperado de solicitudes de replicación. ¿Cómo investigarías un posible DCSync?",
+  "escenario": "Durante una ventana de 15 minutos, DC01 muestra acciones de replicación originadas aparentemente desde APP01 (10.60.15.40), un equipo que no es controlador de dominio. Sentinel registra eventos 4662 de acceso a objetos de directorio para un usuario de servicio `svc-backup` y Defender for Identity genera una alerta de posible DCSync. El propietario indica que una herramienta de backup de AD pudo haber sido actualizada recientemente.",
+  "objetivo": "Determinar si se produjo una operación de replicación legítima o no autorizada, quién la originó, si la identidad tenía permisos de replicar secretos y cuál es el radio de impacto, sin equiparar cualquier evento 4662 o tráfico RPC con una extracción de hashes confirmada.",
+  "hipotesis": [
+    "DCSync T1003.006: cuenta no-DC con privilegios de replicación invoca operaciones DRSUAPI para recuperar información sensible del dominio.",
+    "Herramienta autorizada de backup/identidad/sincronización con permisos de replicación y nuevo host origen.",
+    "Cambios legítimos de topología de replicación entre DC después de mantenimiento.",
+    "Evento 4662 de lectura/operación AD sin GUID de replicación: no indica por sí solo DCSync.",
+    "Alerta de sensor MDI con contexto incompleto, latencia de ingesta o IP atribuido a un proxy/NAT/host compartido."
+  ],
+  "pasos": [
+    {
+      "fase": "1 · Priorizar como posible compromiso de dominio",
+      "accion": "Registrar alerta MDI/Defender, DC, identidad, equipo/IP no DC y hora UTC; activar IR e IAM. No esperar al final de un turno porque la posible obtención de credenciales afecta a todo el dominio."
+    },
+    {
+      "fase": "2 · Validar que hay detección y cobertura",
+      "accion": "Comprobar estado de sensores MDI, auditoría Directory Service Access, SACL del objeto de dominio y procedencia de 4662. Sin SACL apropiada no ver 4662 no descarta actividad."
+    },
+    {
+      "fase": "3 · Analizar las operaciones 4662",
+      "accion": "Inspeccionar SubjectUserName, SubjectLogonId, ObjectServer=DS, AccessMask (0x100=Control Access), Properties y GUID de replication extended rights, además de DC. La presencia de esos campos señala derechos invocados, no volumen ni lista de secretos recuperados."
+    },
+    {
+      "fase": "4 · Identificar derechos exactos",
+      "accion": "Buscar DS-Replication-Get-Changes (1131f6aa-9c07-11d1-f79f-00c04fc2dcd2), DS-Replication-Get-Changes-All (1131f6ad-9c07-11d1-f79f-00c04fc2dcd2) y DS-Replication-Get-Changes-In-Filtered-Set (89e95b76-444d-4c62-991a-0facbeda640c). Distinguir derechos de replicación de permisos equivalentes concedidos por membresía/ACL."
+    },
+    {
+      "fase": "5 · Correlacionar red e identidad",
+      "accion": "Resolver origen no-DC a host real, propietario, segmento y procesos. Revisar 4624 en DC y 4776/Kerberos donde aplique, SubjectLogonId por el MISMO DC, y telemetría RPC DRSUAPI de sensores. Puerto 135 solo no prueba DCSync."
+    },
+    {
+      "fase": "6 · Corroborar y explicar cambios",
+      "accion": "Consultar calendario de backup AD, MIM, Entra Connect y replicación autorizada, ticket de cambio, cuentas delegadas y configuración de la herramienta. Establecer si APP01 debería poseer esos derechos."
+    },
+    {
+      "fase": "7 · Acotar exposición",
+      "accion": "Revisar qué cuentas privilegiadas pueden haber estado expuestas, si existió lectura anómala del dominio o uso de credenciales tras el evento; tratar el detalle real de secretos obtenidos como indeterminado hasta disponer de datos suficientes."
+    },
+    {
+      "fase": "8 · Contención de alta criticidad",
+      "accion": "Si hay evidencias suficientes, contener host origen, limitar capacidades de la identidad y revisar/revocar delegaciones de replicación con un plan de continuidad y responsables AD/IR. Evitar reiniciar DC o ejecutar cambios masivos sin estrategia."
+    },
+    {
+      "fase": "9 · Recuperación y lecciones",
+      "accion": "Planificar rotación por fases de secretos potencialmente expuestos y cuentas críticas. Una operación sobre krbtgt requiere procedimiento coordinado de recuperación de dominio, no un doble cambio apresurado por defecto."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "Alerta MDI DCSync + origen/usuario/objeto",
+      "lectura": "Detección de DRS; requiere confirmar entidad y actividad, no solo severidad."
+    },
+    {
+      "dato": "4662 de DC: Properties y AccessMask=0x100",
+      "lectura": "Derechos extendidos de replicación; depende de SACL y auditoría."
+    },
+    {
+      "dato": "SubjectLogonId + 4624 EN EL MISMO DC",
+      "lectura": "Ayuda a enlazar el contexto de inicio de sesión; no reutilizar LogonId entre dispositivos."
+    },
+    {
+      "dato": "GUID de derechos DS-Replication-Get-Changes y -All",
+      "lectura": "Especial atención al acceso a secretos/replicación de dominio; correlacionar ACL efectiva."
+    },
+    {
+      "dato": "Proceso/red del host origen y DRSUAPI",
+      "lectura": "Conecta host y proceso; RPC genérico por sí solo no demuestra replicación maliciosa."
+    },
+    {
+      "dato": "ACL del dominio y CMDB/ticket de cambio",
+      "lectura": "Distingue backup/sincronización legítimos de delegaciones recién concedidas."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Sentinel / SecurityEvent · 4662 con derechos de replicación",
+      "entorno": "Ingerir SecurityEvent 4662 con Audit Directory Service Access, SACL apropiada y columnas Properties, AccessMask, SubjectUserName pobladas. Reemplazar inventario de DC: exclusión aquí solo revisa, no confirma.",
+      "consulta": "SecurityEvent\n| where TimeGenerated > ago(24h) and EventID == 4662\n| extend props=tolower(tostring(Properties)), mask=tolower(tostring(AccessMask))\n| where mask == \"0x100\" and (\n    props contains \"1131f6aa-9c07-11d1-f79f-00c04fc2dcd2\" or\n    props contains \"1131f6ad-9c07-11d1-f79f-00c04fc2dcd2\" or\n    props contains \"89e95b76-444d-4c62-991a-0facbeda640c\")\n| summarize operaciones=count(), primera=min(TimeGenerated), ultima=max(TimeGenerated),\n            derechos=make_set(props, 12), sesiones=make_set(SubjectLogonId, 20)\n  by Computer, SubjectUserName, SubjectUserSid\n| order by operaciones desc",
+      "interpretacion": "Prioriza identidades que invocaron derechos de replicación en el objeto AD auditado.",
+      "limitaciones": "Si `Properties` no contiene GUID en texto o AccessMask tiene representación distinta, habrá falsos negativos. Se usa contains sobre cada GUID para evitar depender de tokenización en búsquedas de GUID. La cuenta DC o de sincronización puede estar autorizada."
+    },
+    {
+      "nombre": "Sentinel / SecurityEvent · sesiones vinculadas a 4662 por DC y LogonId",
+      "entorno": "Mismas SecurityEvent 4662 y 4624. Join por Computer + LogonId en la misma máquina, no por ID global. Ajustar según columnas de 4624 (TargetLogonId/LogonID) en tu conector.",
+      "consulta": "let operaciones = SecurityEvent\n| where TimeGenerated > ago(6h) and EventID == 4662\n| where tolower(tostring(AccessMask)) == \"0x100\"\n| project op_hora=TimeGenerated, DC=Computer, sesion=tostring(SubjectLogonId),\n          actor=SubjectUserName, propiedades=Properties;\nlet sesiones = SecurityEvent\n| where TimeGenerated > ago(8h) and EventID == 4624\n| project login_hora=TimeGenerated, DC=Computer, sesion=tostring(TargetLogonId),\n          origen=IpAddress, logon_tipo=LogonType, auth=AuthenticationPackageName;\noperaciones\n| join kind=leftouter sesiones on DC, sesion\n| where isnull(login_hora) or login_hora <= op_hora\n| project op_hora, DC, actor, propiedades, origen, logon_tipo, auth, login_hora\n| order by op_hora desc",
+      "interpretacion": "Puede revelar desde qué origen y sesión se ejecutaron las operaciones de replicación; investigar relaciones inciertas.",
+      "limitaciones": "TargetLogonId debe estar presente; si el esquema usa otra columna, corregir previamente. LogonId puede reutilizarse tras reinicio; correlación requiere cercanía temporal y unirse por DC."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk Security 4662 · accesos con GUID de replicación",
+      "entorno": "Eventos XML de DC con campos Properties, AccessMask y SubjectUserName extraídos; índice/sourcetype adaptables.",
+      "consulta": "index=wineventlog earliest=-24h (EventCode=4662 OR EventID=4662)\n| eval p=lower(coalesce(Properties,\"\")), mask=lower(coalesce(AccessMask,\"\")),\n       sujeto=coalesce(SubjectUserName,Account_Name,AccountName)\n| where mask=\"0x100\" AND (\n       like(p,\"%1131f6aa-9c07-11d1-f79f-00c04fc2dcd2%\") OR\n       like(p,\"%1131f6ad-9c07-11d1-f79f-00c04fc2dcd2%\") OR\n       like(p,\"%89e95b76-444d-4c62-991a-0facbeda640c%\"))\n| stats count as operaciones min(_time) as primera max(_time) as ultima\n        values(p) as derechos by host sujeto\n| convert ctime(primera) ctime(ultima)\n| sort - operaciones",
+      "interpretacion": "Identifica operaciones 4662 con derechos críticos observadas en los DC.",
+      "limitaciones": "Requiere SACL y extracciones XML; `like` puede ser costoso, limitar ventanas e índice. El evento indica operación de acceso auditada, no extracción de un hash concreto."
+    },
+    {
+      "nombre": "Splunk Windows Security · logons 4624 sobre controlador de dominio",
+      "entorno": "Eventos 4624 de hosts DC con campos TargetLogonId, IpAddress y LogonType. Ajustar DCs por inventario y alias.",
+      "consulta": "index=wineventlog earliest=-4h (EventCode=4624 OR EventID=4624)\n(host=DC01 OR host=DC02)\n| eval identidad=coalesce(TargetUserName,Account_Name,AccountName),\n       origen=coalesce(IpAddress,Source_Network_Address,src_ip),\n       sesion=coalesce(TargetLogonId,Logon_ID)\n| stats count min(_time) as primera max(_time) as ultima\n        values(LogonType) as tipos values(AuthenticationPackageName) as auth\n        by host identidad origen sesion\n| convert ctime(primera) ctime(ultima)\n| sort - ultima",
+      "interpretacion": "Coteja identidad y origen con sesiones 4662. Útil para rastrear host que no debería replicar.",
+      "limitaciones": "Los logons 4624 por sí solos no prueban DCSync; no aplicar join solo por hora o LogonId cruzando hosts."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Windows PowerShell — solo lectura / AD",
+      "proposito": "Verificar si un equipo es controlador de dominio en inventario real.",
+      "comando": "Get-ADDomainController -Filter * | Select-Object HostName,IPv4Address,Site,IsGlobalCatalog"
+    },
+    {
+      "entorno": "Windows PowerShell — solo lectura / DC",
+      "proposito": "Inspeccionar mensajes originales 4662 sin editar SACL ni reglas.",
+      "comando": "Get-WinEvent -ComputerName DC01 -FilterHashtable @{LogName='Security';Id=4662;StartTime=(Get-Date).AddHours(-4)} -MaxEvents 25 |\n  Select-Object TimeCreated,Id,MachineName,Message"
+    },
+    {
+      "entorno": "Windows CMD — solo lectura",
+      "proposito": "Consultar estado resumido de replicación legítima entre DC.",
+      "comando": "repadmin /replsummary"
+    },
+    {
+      "entorno": "Windows PowerShell — solo lectura / AD",
+      "proposito": "Examinar ACL del objeto raíz del dominio (requiere permisos de lectura), bajo procedimiento.",
+      "comando": "$dn = (Get-ADDomain).DistinguishedName\n(Get-Acl -Path \"AD:\\$dn\").Access |\n  Where-Object { $_.ActiveDirectoryRights -match 'ExtendedRight' } |\n  Select-Object IdentityReference,ActiveDirectoryRights,ObjectType,AccessControlType"
+    }
+  ],
+  "contencion": "El potencial impacto afecta credenciales de todo el dominio. Requiere equipo IR y administradores de AD. Si se confirma uso anómalo, contener host no-DC y credenciales implicadas con autorización; evaluar derechos de replicación indebidamente delegados y restaurar mínimo privilegio. La rotación de secretos privilegiados y de krbtgt es una operación planificada: no ejecutar reset de krbtgt, borrar cuentas sincronizadoras o reiniciar DC de manera refleja.",
+  "escalation": [
+    "Alerta DCSync con origen no DC sin razón de negocio.",
+    "4662 + derechos de replicación y cuenta fuera de listado autorizado.",
+    "Privilegios recién delegados o múltiples DC afectados.",
+    "Uso posterior no esperado de cuentas privilegiadas o de servicios.",
+    "Ausencia de auditoría/SACL hace imposible excluir DCSync; solicitar telemetría de red/MDI."
+  ],
+  "falsos_positivos": [
+    "Entra Connect, herramienta de sincronización de directorios o backup de AD autorizado.",
+    "Replicación entre DC normales tras un cambio de topología.",
+    "Prueba de continuidad o migración IAM documentada.",
+    "Servicios que necesitan derechos de replicación pero ejecutan desde IP nueva.",
+    "Registros 4662 generales sin derechos de replicación en Properties."
+  ],
+  "errores": [
+    "Decir que cualquier 4662 es un DCSync.",
+    "Concluir ausencia de DCSync porque no hay 4662 sin comprobar SACL.",
+    "Suponer que 135/TCP o RPC genérico prueba replicación maliciosa.",
+    "Olvidar que los derechos de replicación pueden delegarse a cuentas no admin.",
+    "Correlacionar SubjectLogonId con un login de otro ordenador.",
+    "Ejecutar un reset de krbtgt sin equipo, secuencia ni validación."
+  ],
+  "perspectiva_red_team": "DCSync usa interfaces de replicación que los DC necesitan para operar; el diferenciador no es una herramienta concreta sino la identidad, los derechos de replicación y la procedencia de la solicitud. Un adversario con derechos delegados no tiene que iniciar sesión interactiva en un DC. La defensa se centra en sensores de identidad, monitoreo de ACL, SACL de dominio y restricción de permisos.",
+  "respuesta_entrevista": "Trataría una posible replicación no autorizada como incidente de alto impacto. Confirmaría el contexto de la alerta MDI y buscaría 4662 con AccessMask 0x100 y GUID de derechos de replicación, sabiendo que exige SACL y auditoría. Identificaría cuenta, sesión, DC y host origen, contrastando si es un DC o herramienta autorizada de backup/sync. Si hay evidencia de abuso, escalaría a IR e IAM para contener el origen y retirar delegaciones indebidas, preservando evidencia y planificando rotación de secretos. No asumiría que cada 4662 contiene hashes robados.",
+  "criterios_evaluacion": [
+    "Reconoce T1003.006 y daño potencial de replicar secretos.",
+    "Conoce 4662, SACL y AccessMask 0x100.",
+    "Identifica GUID de DS-Replication-Get-Changes/-All/-In-Filtered-Set.",
+    "Correlaciona host e identidad con alerta MDI y acceso AD.",
+    "No confunde RPC legítimo con DCSync probado.",
+    "Coordina AD/IR y cambios de credenciales de alto riesgo."
+  ],
+  "mitre": [
+    "T1003.006 — DCSync (sospecha)",
+    "T1098 — Account Manipulation (si delegación maliciosa)",
+    "T1078.002 — Domain Accounts (si se acredita uso)"
+  ],
+  "fuentes": [
+    "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4662",
+    "https://learn.microsoft.com/windows/security/threat-protection/auditing/event-4624",
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/securityevent",
+    "https://learn.microsoft.com/en-us/defender-for-identity/alerts-xdr",
+    "https://attack.mitre.org/techniques/T1003/006/",
+    "https://csrc.nist.gov/pubs/sp/800/61/r3/final"
+  ],
+  "procedencia": {
+    "lote": "tanda-06",
+    "archivo": "SOC-RESPONSES_TANDA-06_N2-06_a_N2-10.json",
+    "fechaRevision": "2026-10-18"
+  }
+}

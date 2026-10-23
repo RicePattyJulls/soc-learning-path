@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-08-L01",
+  "title": "Bosque, dominio, OU y particiones",
+  "sourceHash": "0ffb07070b62dfc21ce7c001482fbf0bc3dc5cf026490397281229c50a1a110c",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-08-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDistinguir bosque, dominio, OU y partición de directorio para situar cualquier objeto en su límite administrativo.\n\nPrerrequisitos: `WAD-03-L03` (ACE/DACL/SACL e integridad) y `WAD-06-L03` (diagnóstico por hipótesis).\n\n## 2. Comprende el mecanismo\n\nEn Active Directory Domain Services (AD DS) los objetos no viven «en el directorio» sin más: viven dentro de una estructura de niveles, y cada nivel tiene una consecuencia distinta. Confundirlos produce decisiones que parecen inocentes y rompen cosas reales.\n\nEl **bosque** es el **límite de seguridad**. Todos los dominios de un bosque comparten el mismo esquema, la misma partición de configuración y una relación de confianza automática entre ellos. Dentro de un bosque no hay una frontera de seguridad entre dominios: son límites de replicación y de administración, no muros. Por eso, por diseño, las identidades de un bosque confían en las del mismo bosque.\n\nEl **dominio** es la unidad de **replicación y administración**. Cada dominio tiene su propia partición de directorio, con sus objetos (cuentas, grupos, equipos), y sus propios controladores de dominio que la replican entre sí. También es el ámbito de los objetos de política de grupo ligados al dominio.\n\nLa **unidad organizativa (OU)** es un contenedor dentro de un dominio. Sirve para **organizar, delegar administración y aplicar política**. Lo que no es: una **frontera de seguridad**. Quien administra el dominio puede administrar cualquiera de sus OU por diseño; el aislamiento que una OU parece dar es una convención de delegación, no una garantía.\n\nLas **particiones de directorio** reparten los datos en cuatro almacenes:\n\n- **Partición de esquema**: las definiciones de clases de objeto y atributos; se replica a todo el bosque.\n- **Partición de configuración**: la topología del bosque (sitios, servicios, controladores); se replica a todo el bosque.\n- **Partición de dominio**: los objetos de un dominio; se replica dentro de ese dominio.\n- **Particiones de aplicación**: datos definidos por aplicaciones, con el alcance que decida quien las crea.\n\nLa consecuencia práctica de confundir niveles es directa:\n\n- Mover un objeto **entre dos OU** del mismo dominio solo cambia su contenedor: sigue en el mismo dominio y en la misma partición de dominio.\n- Moverlo **entre dominios** cambia de partición de dominio y de administración; si son bosques distintos, cruza un **límite de seguridad** con sus confianzas.\n- Si el objetivo es **aislar de verdad**, una OU no lo consigue: hay que separar dominios o bosques y decidir qué confianza se establece entre ellos.\n\n### Vocabulario de apoyo\n\n- **Bosque**: conjunto de dominios que comparten esquema y configuración; constituye el límite de seguridad.\n- **Dominio**: unidad de replicación y administración con su propia partición de directorio.\n- **Unidad organizativa (OU)**: contenedor dentro de un dominio para organizar, delegar y aplicar política; no es frontera de seguridad.\n- **Partición de directorio**: almacén lógico de datos del directorio con un alcance de replicación definido.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-08-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: el equipo de una sede ficticia quiere «aislar» a un proveedor externo creando una OU `OU=Externos,DC=ad,DC=lab,DC=test`. En la misma reunión se propone crear un dominio nuevo dentro del mismo bosque «para que quede totalmente aislado de `ad.lab.test`».\n\nLa OU no aporta aislamiento: ordena, permite delegar tareas y aplicar política sobre esos objetos, pero quien administra `ad.lab.test` administra también cualquiera de sus OU por diseño. Crear un dominio nuevo en el mismo bosque cambia la partición de dominio y separa la replicación y la administración, pero **no** crea una frontera de seguridad: ambos dominios comparten esquema, configuración y confianza, así que las identidades del bosque siguen confiando entre sí. El aislamiento con consecuencias reales exigiría un bosque distinto y una confianza explícita que decidiera qué se acepta del otro lado. La conclusión acota el nivel al que pertenece el problema —contenedor, dominio o bosque— y reconoce un límite: aquí solo se leen y describen estas estructuras, no se crean.\n\n"
+    },
+    {
+      "id": "WAD-08-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Situar un objeto en el nivel correcto evita pedir aislamientos imposibles con una OU y explica por qué una identidad del bosque confía en el resto del bosque.\n- Red Team autorizado: Al documentar el alcance de una prueba, distinguir OU de dominio y de bosque cambia qué se está autorizando a tocar.\n- Evidencia de la etapa: Descripción del bosque, sus dominios, las OU observadas y las particiones implicadas.\n- Criterio de dominio: Distingue OU, dominio y bosque con consecuencias reales.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB05](../../05_RECURSOS/LABORATORIOS/WAD-LAB05.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **ADDSOVER**: [Active Directory Domain Services overview](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/get-started/virtual-dc/active-directory-domain-services-overview). Estructura de bosques y dominios, y el papel de cada nivel.\n- **ADDSPLAN**: [AD DS design and planning](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/ad-ds-design-and-planning). Cómo se deciden bosques y dominios en un diseño.\n- **OUDESIGN**: [Creating an organizational unit design](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/creating-an-organizational-unit-design). Uso de OU para delegación y política.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-08-L01-P01",
+    "prompt": "En el dominio ficticio `ad.lab.test`, un área contrata personal externo y pide «aislarlos creando una OU `OU=Externos`» porque creen que así no verán el resto del dominio. Sitúa correctamente el límite: explica qué contiene esa OU, qué no garantiza y qué estructura sí daría un aislamiento real; indica además qué cambia y qué no cambia si un objeto se mueve entre dos OU del mismo dominio.",
+    "markdown": "## 4. Práctica individual\n\nEn el dominio ficticio `ad.lab.test`, un área contrata personal externo y pide «aislarlos creando una OU `OU=Externos`» porque creen que así no verán el resto del dominio. Sitúa correctamente el límite: explica qué contiene esa OU, qué no garantiza y qué estructura sí daría un aislamiento real; indica además qué cambia y qué no cambia si un objeto se mueve entre dos OU del mismo dominio.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber movido objetos ni haber creado OUs en un directorio real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-08-L01-Q01",
+      "prompt": "¿Cuál de estos niveles de Active Directory constituye el límite de seguridad?",
+      "options": [
+        {
+          "id": "A",
+          "text": "La unidad organizativa, porque agrupa los objetos que se quieren separar"
+        },
+        {
+          "id": "B",
+          "text": "El catálogo global, porque conoce todos los dominios del bosque"
+        },
+        {
+          "id": "C",
+          "text": "El bosque, porque todos sus dominios comparten esquema, configuración y confianza"
+        },
+        {
+          "id": "D",
+          "text": "La partición de configuración, porque define la topología del bosque"
+        }
+      ]
+    },
+    {
+      "id": "WAD-08-L01-Q02",
+      "prompt": "Al mover una cuenta de la OU «Soporte» a la OU «Ventas» del mismo dominio, ¿qué cambia realmente?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Solo su contenedor: sigue en el mismo dominio y en la misma partición de dominio"
+        },
+        {
+          "id": "B",
+          "text": "Cambia de partición de dominio y se replica en todos los dominios del bosque"
+        },
+        {
+          "id": "C",
+          "text": "Cambia de bosque y necesita una confianza nueva"
+        },
+        {
+          "id": "D",
+          "text": "Pierde su identidad y se crea un objeto nuevo en el otro contenedor"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB05](../../05_RECURSOS/LABORATORIOS/WAD-LAB05.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **ADDSOVER**: [Active Directory Domain Services overview](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/get-started/virtual-dc/active-directory-domain-services-overview). Estructura de bosques y dominios, y el papel de cada nivel.\n- **ADDSPLAN**: [AD DS design and planning](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/ad-ds-design-and-planning). Cómo se deciden bosques y dominios en un diseño.\n- **OUDESIGN**: [Creating an organizational unit design](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/creating-an-organizational-unit-design). Uso de OU para delegación y política.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "228e47b8efd63f5a8aca6833"
+}

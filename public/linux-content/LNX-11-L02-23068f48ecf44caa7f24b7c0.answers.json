@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-11-L02",
+  "sourceHash": "0a68e269b41108901d794a80482e0edccf0bb57a6b36c1c1c3ecf102b59fbb78",
+  "questions": [
+    {
+      "id": "LNX-11-L02-Q01",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Con `pacman -Qo`, que responde a qué paquete pertenece una ruta en Arch».\n\n`pacman -Qo` consulta la base de pacman y responde a qué paquete pertenece una ruta. Los comandos de otras familias consultan bases distintas, no son universales y no se sustituyen entre sí; en Arch sí se puede conocer el dueño de una ruta."
+    },
+    {
+      "id": "LNX-11-L02-Q02",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Porque puede mezclar bases de datos y binarios de revisiones distintas y romper la consistencia».\n\nSincronizar bases y no actualizar el sistema de forma coherente puede mezclar revisiones distintas y romper la consistencia; el patrón recomendado es una actualización transaccional coherente. No se trata de firmas, reinicios automáticos ni borrado del historial."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "La conclusión no se sostiene porque la **herramienta no corresponde a la familia**: el comando de otra distribución consulta una base distinta y su error describe la ausencia de esa base, no la ausencia de dueño. Para una ruta en Arch la pregunta se responde con `pacman -Qo`, que consulta la base de pacman.\n\nLa elección correcta parte de identificar la distribución —por ejemplo con `/etc/os-release`— y usar el comando de esa familia: `pacman -Qo` en Arch, `dpkg -S` en Debian o `rpm -qf` en RPM. Así, la ausencia de resultado solo se interpreta si la herramienta es la adecuada.\n\nLímite: la respuesta describe la base **local** del host; si esa base fue alterada, el resultado hereda ese límite y exige validación contra una referencia externa de confianza.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Identifica el error como uso de la familia equivocada."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Propone `pacman -Qo` para la propiedad de una ruta en Arch."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Sugiere identificar la distribución antes de elegir el comando."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Reconoce el límite de la base de datos local."
+      }
+    ]
+  },
+  "revision": "23068f48ecf44caa7f24b7c0"
+}

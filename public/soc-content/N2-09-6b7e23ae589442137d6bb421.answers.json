@@ -1,0 +1,171 @@
+{
+  "schemaVersion": 1,
+  "courseId": "soc",
+  "id": "N2-09",
+  "sourceHash": "8971ce7a9ac052c1dfa7071929b84091cd398836d3b3ec58925f9add1481c1cc",
+  "revision": "6b7e23ae589442137d6bb421",
+  "hipotesis": [
+    "Pass-the-Hash T1550.002: acceso a otros equipos autenticándose con material NTLM sin necesidad de conocer contraseña de texto claro.",
+    "Inicio de sesión NTLM legítimo de herramienta corporativa o servicio con credenciales proporcionadas por un usuario o almacén aprobado.",
+    "Cuenta administradora ha sido comprometida mediante contraseña en texto claro, robo de sesión o credenciales delegadas, pero no necesariamente mediante un hash.",
+    "La alerta de identidad posee algoritmos/correlaciones adicionales no representados en un solo Event ID: se debe preservar detalle de evidencia del producto.",
+    "El origen visible podría ser un salto administrativo, proxy o NAT y no la estación donde comenzó el compromiso."
+  ],
+  "pasos": [
+    {
+      "fase": "1 · Preservar el contexto de la detección",
+      "accion": "Abrir incidente XDR/MDI, registrar alert ID, entidad usuario, host origen y destino, timestamps UTC, Confidence/Severity cuando existan, evidencias relacionadas y técnica MITRE. No etiquetar confirmado solo por el título."
+    },
+    {
+      "fase": "2 · Validar acceso real al destino",
+      "accion": "En FS01 correlacionar 4624 LogonType 3 + NTLM (autenticación) con 4672 si privilegios, 5140/5145 SMB, 7045/4697, 4698 y telemetría de procesos. 4776 en DC puede mostrar validación del dominio, no prueba directa del hash utilizado."
+    },
+    {
+      "fase": "3 · Analizar estación origen",
+      "accion": "Revisar EDR de WS-23: procesos, cuentas, acceso a LSASS, alertas de credential dumping, modificaciones de seguridad, conexiones SMB/RPC, inicio de sesión activo y uso de herramientas administrativas. Solo evidencia autorizada; evitar analizar volcados de credenciales fuera de procedimiento."
+    },
+    {
+      "fase": "4 · Diferenciar evidencias fuertes y débiles",
+      "accion": "Pruebas fuertes: alerta correlacionada de abuso de credenciales, process tree anómalo, host fuente incompatible con su cuenta, múltiples hosts alcanzados, acceso privilegiado injustificado y señales de robo de material secreto. Débiles: NTLM, 4624 tipo 3 o 4648 aislados."
+    },
+    {
+      "fase": "5 · Construir línea temporal de identidad",
+      "accion": "Observar dónde y cuándo se usó la identidad antes, durante y después: logons, sesiones administradas, cambios de grupo, acciones de servicios y registros PAM; investigar si se filtró contraseña además de un posible hash."
+    },
+    {
+      "fase": "6 · Validar cambios de administración",
+      "accion": "Contrastar ticket de cambios, jump host y origen real, herramienta firmada y horario de mantenimiento; exigir confirmación independiente para cerrar, no solo «lo hice yo». No exponer a un administrador en un análisis acusatorio sin evidencia."
+    },
+    {
+      "fase": "7 · Contención si riesgo suficiente",
+      "accion": "Seguir playbook para aislamiento del origen sospechoso, restricción de sesiones, eventual restablecimiento de credenciales y búsqueda de extensión; reset de contraseña sin cortar sesiones o eliminar acceso a hash de LSASS no garantiza limpieza."
+    },
+    {
+      "fase": "8 · Cierre y retroalimentación de detección",
+      "accion": "Clasificar confirmado/probable/no concluyente/benigno según evidencia; documentar falsos positivos, brechas EDR y consultas de hunting. Priorizar LAPS, Credential Guard, tiering y bloqueo de logons privilegiados en puestos de usuario."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "Alerta Defender for Identity: alert ID, título, entidades y evidencia",
+      "lectura": "Punto de partida; no sustituye examen de logon y procesos."
+    },
+    {
+      "dato": "DeviceLogonEvents en FS01: LogonType Network, Protocol NTLM, RemoteIP",
+      "lectura": "Aporta contexto de logons del endpoint; revisar ActionType para distinguir éxito y fallo."
+    },
+    {
+      "dato": "4624 tipo 3, 4776 y 4648 (si existen)",
+      "lectura": "4624: sesión red; 4776: NTLM validado; 4648: credenciales explícitas, no necesariamente presente en PtH."
+    },
+    {
+      "dato": "Defender for Endpoint, procesos origen/destino",
+      "lectura": "Procesos no esperados, movimiento lateral, acceso a LSASS y herramientas con indicadores adicionales."
+    },
+    {
+      "dato": "Servicios/tareas remotas y recursos compartidos",
+      "lectura": "Permiten confirmar acciones después de autenticación; importante para impacto."
+    },
+    {
+      "dato": "Fuente autorizada: PAM, cambios, inventario de jump hosts",
+      "lectura": "Explicaciones benignas y trayectoria esperada de administradores."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Defender XDR Advanced Hunting · alertas de identidad por hash",
+      "entorno": "Defender XDR con AlertInfo. Buscar texto/techniques solo sirve como hunting inicial; nombres de títulos localizados y técnicas varían. Filtrar incidentes posteriormente.",
+      "consulta": "AlertInfo\n| where Timestamp > ago(7d)\n| where Title has_any (\"hash\", \"lateral\", \"credential\")\n       or tostring(AttackTechniques) contains \"T1550.002\"\n| project Timestamp, AlertId, Title, Severity, Category, ServiceSource, AttackTechniques\n| order by Timestamp desc",
+      "interpretacion": "Localiza alertas relacionadas y permite pivotar por AlertId a la evidencia del incidente.",
+      "limitaciones": "Títulos localizados, versiones y nombres pueden cambiar. AlertInfo no prueba PtH; correlacionar AlertEvidence y portal. AttackTechniques puede aparecer en otro formato según el producto."
+    },
+    {
+      "nombre": "Defender XDR Advanced Hunting · NTLM en el servidor afectado",
+      "entorno": "MDE habilitado en hosts destino. DeviceLogonEvents contiene AccountName, Protocol, RemoteIP, LogonType (etiquetas) y ActionType.",
+      "consulta": "let equipo = \"FS01\";\nDeviceLogonEvents\n| where Timestamp > ago(24h)\n| where DeviceName startswith strcat(equipo, \".\") or DeviceName =~ equipo\n| where AccountName =~ \"it.admin\" or RemoteIP == \"10.60.10.23\"\n| project Timestamp, DeviceName, AccountDomain, AccountName,\n          RemoteIP, RemoteDeviceName, LogonType, Protocol,\n          ActionType, IsLocalAdmin, LogonId, ReportId\n| order by Timestamp asc",
+      "interpretacion": "Reconstruye el uso de la identidad y protocolos observados en el equipo destino.",
+      "limitaciones": "No asumir que todos los eventos son exitosos: inspeccionar ActionType. No deducir uso de hash vs contraseña desde Protocol=NTLM."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk Windows Security · 4624, 4648 y 4776 para una identidad",
+      "entorno": "Índice con logs DC y endpoints; búsquedas iniciales por cuenta y ventana. Los alias de identidad varían por versión.",
+      "consulta": "index=wineventlog earliest=-24h (EventCode=4624 OR EventCode=4648 OR EventCode=4776 OR EventID=4624 OR EventID=4648 OR EventID=4776)\n| eval cuenta=coalesce(TargetUserName,Account_Name,AccountName),\n       origen=coalesce(IpAddress,Source_Network_Address,Workstation,WorkstationName),\n       metodo=coalesce(AuthenticationPackageName,Authentication_Package)\n| search cuenta=\"it.admin\"\n| table _time host EventCode EventID cuenta origen metodo LogonType TargetLogonId\n| sort _time",
+      "interpretacion": "Muestra secuencia temporal de logons, credenciales explícitas y validaciones NTLM para la cuenta.",
+      "limitaciones": "El 4776 puede usar campos de usuario diferentes; esta búsqueda puede omitirlo. Inspeccionar raws y normalizar. 4648 no es necesario ni suficiente para PtH."
+    },
+    {
+      "nombre": "Splunk CIM Authentication · origen y destinos de la cuenta",
+      "entorno": "Modelo CIM Authentication mapeado y poblado. Evitar afirmar PtH por esta consulta: analiza comportamiento de autenticación.",
+      "consulta": "| tstats count from datamodel=Authentication.Authentication\n  where earliest=-24h latest=now Authentication.user=\"it.admin\"\n  by Authentication.src Authentication.dest Authentication.action\n| rename Authentication.* as *\n| sort - count",
+      "interpretacion": "Consolida entornos y destinos de una identidad, útil para estimar alcance.",
+      "limitaciones": "CIM Authentication no permite saber qué secreto (hash o contraseña) se aportó. Puede mezclar endpoints, servicios cloud o SSO."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Windows PowerShell — solo lectura / endpoint destino",
+      "proposito": "Observar autenticaciones recientes (con permisos y auditoría habilitada).",
+      "comando": "Get-WinEvent -ComputerName FS01 -FilterHashtable @{LogName='Security';Id=4624;StartTime=(Get-Date).AddHours(-4)} -MaxEvents 120 |\n  Select-Object TimeCreated,Message"
+    },
+    {
+      "entorno": "Windows PowerShell — solo lectura / endpoint destino",
+      "proposito": "Revisar creación de servicios en host involucrado.",
+      "comando": "Get-WinEvent -ComputerName FS01 -FilterHashtable @{LogName='System';Id=7045;StartTime=(Get-Date).AddHours(-4)} |\n  Select-Object TimeCreated,Message"
+    },
+    {
+      "entorno": "Windows PowerShell — solo lectura / máquina de análisis",
+      "proposito": "Consultar ID de evento 4648 y contexto, si existe habilitación de auditoría.",
+      "comando": "Get-WinEvent -FilterHashtable @{LogName='Security';Id=4648;StartTime=(Get-Date).AddHours(-4)} -MaxEvents 50 |\n  Select-Object TimeCreated,Message"
+    }
+  ],
+  "contencion": "Si la alerta es corroborada por contexto de ejecución lateral y uso privilegiado inexplicable, aislar estaciones afectadas y restringir credenciales/sesiones según IR. Preservar telemetría y evitar obtener secretos durante un análisis exploratorio. Planificar cambios de contraseña, delegación e invalidación de sesiones según plataforma, sin asegurar que un simple reset invalida todos los tokens ni que elimina persistencia.",
+  "escalation": [
+    "Alerta MDI de alta confianza respaldada por comportamiento no autorizado.",
+    "Cuenta privilegiada desde host incompatible con PAM y salto autorizado.",
+    "Posible robo de credenciales en el origen, acceso a LSASS y múltiples destinos.",
+    "Nueva ejecución remota, creación de servicios/tareas o alteración de identidad.",
+    "No se dispone de evidencia suficiente para atribuir PtH con seguridad; clasificar como sospechoso e investigar."
+  ],
+  "falsos_positivos": [
+    "Administración legítima usando NTLM en entornos sin Kerberos.",
+    "Tareas programadas con credenciales y acceso remoto autorizado.",
+    "Estación jump host compartida o registrada erróneamente.",
+    "Agentes de gestión con fan-out e instalación de servicios.",
+    "Cambio de comportamiento por migración de PAM o infraestructura de red."
+  ],
+  "errores": [
+    "Decir que 4624 tipo 3 + NTLM confirma Pass-the-Hash.",
+    "Confundir hash usado en autenticación NTLM con evidencia observada de robo de hash.",
+    "Exigir 4648 como condición necesaria de PtH.",
+    "Omitir las entidades y el detalle de la propia alerta de identidad.",
+    "Resetear contraseña y declarar erradicación sin revisar origen y sesiones.",
+    "No correlacionar los procesos ni las acciones posteriores en el host destino."
+  ],
+  "perspectiva_red_team": "Pass-the-Hash reutiliza material autenticador NTLM obtenido por distintas vías sin tener que conocer la contraseña en claro. La red y el DC suelen mostrar autenticaciones NTLM ordinarias, de modo que el análisis necesita contexto de identidad, endpoint y anomalías. La defensa reduce la presencia de hashes en estaciones expuestas y la reutilización de cuentas administrativas, además de auditar saltos no autorizados.",
+  "respuesta_entrevista": "Comenzaría conservando el detalle de la alerta de Defender for Identity: usuario, origen, destino, hora y evidencias. Correlacionaría 4624 tipo 3, 4776 y telemetría DeviceLogonEvents; NTLM no confirma PtH. Investigaré árbol de procesos y posibles accesos a LSASS en origen, así como servicios, tareas o SMB en destino. Compararía con PAM y mantenimiento autorizado. Si el conjunto apunta a abuso de credenciales, escalaría y contendría los equipos y sesiones; si falta evidencia, clasificaría la atribución como posible, no confirmada.",
+  "criterios_evaluacion": [
+    "Entiende qué distingue hash reutilizado de contraseña conocida.",
+    "No diagnostica PtH con un solo evento NTLM.",
+    "Conoce 4624/4776/4648 y sus límites.",
+    "Incluye alerta MDI y procesos del origen y destino.",
+    "Busca ejecuciones remotas/alcance y planes de sesión/credenciales.",
+    "Propone controles preventivos como jump hosts, Credential Guard y tiering."
+  ],
+  "mitre": [
+    "T1550.002 — Pass the Hash (hipótesis)",
+    "T1003.001 — LSASS Memory (solo si evidencia de acceso)",
+    "T1021.002 — SMB/Windows Admin Shares (si uso posterior confirmado)"
+  ],
+  "fuentes": [
+    "https://learn.microsoft.com/windows/security/threat-protection/auditing/event-4624",
+    "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4776",
+    "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4648",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-devicelogonevents-table",
+    "https://learn.microsoft.com/en-us/defender-for-identity/alerts-xdr",
+    "https://attack.mitre.org/techniques/T1550/002/",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-alertinfo-table",
+    "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.1/data-models/authentication"
+  ]
+}

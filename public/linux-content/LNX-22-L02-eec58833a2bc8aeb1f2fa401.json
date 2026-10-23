@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-22-L02",
+  "title": "Reglas de muestra en namespace de laboratorio",
+  "sourceHash": "ab18eb22c757942a22dadef465d02aff13a97026426313b86a4f319343a3f8d8",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-22-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nAplicar reglas de muestra de nftables en un namespace de laboratorio aislado, validarlas antes y revertirlas sin tocar el host.\n\nPrerrequisitos: `LNX-22-L01` (Orden y efectos de las reglas).\n\n## 2. Comprende el mecanismo\n\nPracticar nftables con seguridad exige un **entorno aislado**. En lugar de tocar el host, se crean dos **namespaces** de red propios unidos por una **interfaz veth**, sin conexión a ninguna red externa. Solo entonces se aplican reglas, y solo dentro del namespace.\n\nEl flujo de trabajo tiene tres pasos. Primero, preparar el entorno: crear los namespaces y la veth, asignar direcciones de documentación como `192.0.2.1/24` y `192.0.2.2/24`, y comprobar conectividad interna. Segundo, escribir las reglas en un archivo. Tercero, **validar** el archivo con `nft -c -f` **antes** de aplicarlo: la bandera `-c` comprueba la sintaxis sin cargar reglas.\n\nUn ejemplo de reglas deliberadamente acotado a una cadena de entrada, de tipo `filter` en el hook `input` con política `drop`, puede permitir: loopback, conexiones establecidas o relacionadas, ICMP, y una conexión concreta desde `192.0.2.1` al puerto 8080; y descartar el resto con un contador. Es un filtro de laboratorio, no una política completa de doble pila.\n\nHay que leer la semántica. `ct state established,related` describe el estado que sigue **conntrack**, no la legitimidad del tráfico. `policy drop` afecta también a ICMP de prueba si no se permite explícitamente. Y aunque HTTP en el 8080 se acepte, eso no significa que se hayan contemplado todos los protocolos de un host real.\n\nLa **reversión** es la parte que no se debe olvidar. Tras probar, la tabla creada se elimina **solo en el namespace** con `nft delete table`, ejecutado dentro de él. Nunca se usa `nft flush ruleset` en el host para «limpiar»: podría borrar la política de otros gestores y cortar la conectividad. Tampoco se borran namespaces ni interfaces ajenas.\n\nConviene precisar el aislamiento: los namespaces `t4cli` y `t4srv` de la práctica no tienen ruta al resto de la red, de modo que las pruebas no alcanzan sistemas de terceros. Antes de aplicar, se confirma que el namespace existe y está aislado; al terminar, se documenta la reversión.\n\nLa regla es entorno aislado, validación previa y rollback acotado. El límite: que una prueba funcione dentro del namespace no demuestra que la misma política sea correcta o suficiente en un host real con otras cadenas, gestores y servicios.\n\n### Vocabulario de apoyo\n\n- **Namespace de red**: espacio de red aislado con sus propias interfaces y rutas.\n- **Interfaz veth**: par de interfaces virtuales que une dos namespaces.\n- **`nft -c -f`**: comprobación de sintaxis de un archivo de reglas sin aplicarlo.\n- **`counter`**: contador asociado a una regla para medir coincidencias.\n- **Rollback**: revertir un cambio de forma controlada y acotada.\n- **`policy drop`**: decisión por defecto que descarta lo no permitido explícitamente.\n- **Aislamiento**: ausencia de ruta hacia redes externas o de terceros.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-22-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un administrador quiere probar reglas de nftables y las carga directamente en el host de trabajo «porque es más rápido». Antes de escribir la nueva política ejecuta `nft flush ruleset` para «partir de limpio», y momentos después pierde la conectividad del equipo.\n\nEl razonamiento ignora dos reglas básicas. Primero, aplicar reglas delante de una sesión de administración es arriesgado: una política `drop` mal probada puede cortar el acceso. Segundo, `nft flush ruleset` borra el conjunto de tablas del host, incluidas las de otros gestores que persistían la política, y el cambio no es reversible por sí solo.\n\nLa lectura correcta reproduce el experimento en un namespace aislado y propio, valida el archivo con `nft -c -f` antes de cargarlo, prueba dentro del namespace y revierte eliminando solo la tabla creada. El límite: el resultado dentro de un namespace aislado no garantiza el mismo comportamiento en un host real con otras cadenas y gestores.\n\n"
+    },
+    {
+      "id": "LNX-22-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Reproducir políticas en un namespace aislado antes de evaluar su efecto.\n- Red Team autorizado: Probar reglas con contadores dentro del laboratorio y revertirlas de forma acotada.\n- Evidencia de la etapa: Archivo de reglas validado, namespace usado y reversión documentada.\n- Criterio de dominio: Trabaja en entorno aislado, valida antes de aplicar y revierte sin tocar el host.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB24](../../05_RECURSOS/LABORATORIOS/LNX-LAB24.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F86**: [Quick reference — nftables wiki](https://wiki.nftables.org/wiki-nftables/index.php/Quick_reference-nftables_in_10_minutes). Estructura de tablas, cadenas y reglas de muestra.\n- **F90**: [nft(8) — netfilter manual](https://netfilter.org/projects/nftables/manpage.html). Modo de comprobación `-c` y aplicación de archivos.\n- **F74**: [network_namespaces(7) — man7](https://man7.org/linux/man-pages/man7/network_namespaces.7.html). Aislamiento donde se practica la política.\n- **F75**: [ip-netns(8) — iproute2/man7](https://man7.org/linux/man-pages/man8/ip-netns.8.html). Creación, uso y limpieza de namespaces.\n- **F89**: [Sets — nftables wiki](https://wiki.nftables.org/wiki-nftables/index.php/Sets). Listas de direcciones o puertos admisibles en las reglas.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-22-L02-P01",
+    "prompt": "Cargas reglas de nftables directamente en el host de trabajo «porque es más rápido», ejecutas `nft flush ruleset` para partir de limpio y pierdes la conectividad. Explica qué debiste hacer en su lugar, cómo prepararías el entorno y cuál es el límite de la prueba.",
+    "markdown": "## 4. Práctica individual\n\nCargas reglas de nftables directamente en el host de trabajo «porque es más rápido», ejecutas `nft flush ruleset` para partir de limpio y pierdes la conectividad. Explica qué debiste hacer en su lugar, cómo prepararías el entorno y cuál es el límite de la prueba.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber aplicado reglas en un namespace ni haber modificado un firewall real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-22-L02-Q01",
+      "prompt": "¿Qué comprobación debe hacerse antes de aplicar un archivo de reglas nftables?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Reiniciar el host para que el archivo surta efecto"
+        },
+        {
+          "id": "B",
+          "text": "Ejecutar `nft flush ruleset` en el host para dejar todo limpio"
+        },
+        {
+          "id": "C",
+          "text": "Validar la sintaxis con `nft -c -f` sin aplicar, y confirmar que el namespace existe y está aislado"
+        },
+        {
+          "id": "D",
+          "text": "Borrar las tablas de otros gestores de firewall"
+        }
+      ]
+    },
+    {
+      "id": "LNX-22-L02-Q02",
+      "prompt": "¿Cómo se revierte la política aplicada solo en el namespace de laboratorio?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Con `nft flush ruleset` ejecutado en el host principal"
+        },
+        {
+          "id": "B",
+          "text": "Eliminando únicamente la tabla creada con `nft delete table`, ejecutado dentro del namespace"
+        },
+        {
+          "id": "C",
+          "text": "Reiniciando el sistema operativo completo"
+        },
+        {
+          "id": "D",
+          "text": "Borrando todas las interfaces de red del host"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB24](../../05_RECURSOS/LABORATORIOS/LNX-LAB24.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F86**: [Quick reference — nftables wiki](https://wiki.nftables.org/wiki-nftables/index.php/Quick_reference-nftables_in_10_minutes). Estructura de tablas, cadenas y reglas de muestra.\n- **F90**: [nft(8) — netfilter manual](https://netfilter.org/projects/nftables/manpage.html). Modo de comprobación `-c` y aplicación de archivos.\n- **F74**: [network_namespaces(7) — man7](https://man7.org/linux/man-pages/man7/network_namespaces.7.html). Aislamiento donde se practica la política.\n- **F75**: [ip-netns(8) — iproute2/man7](https://man7.org/linux/man-pages/man8/ip-netns.8.html). Creación, uso y limpieza de namespaces.\n- **F89**: [Sets — nftables wiki](https://wiki.nftables.org/wiki-nftables/index.php/Sets). Listas de direcciones o puertos admisibles en las reglas.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "eec58833a2bc8aeb1f2fa401"
+}

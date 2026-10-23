@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-22-L02",
+  "title": "SPN/NTLM/trust con lectura prudente",
+  "sourceHash": "697da8b94c14d5c998a4307a023cc8da903f317f750c6aed191b6db3c22f44d3",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-22-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nLeer SPN, NTLM y confianzas con prudencia, sin inferir acceso por su mera presencia.\n\nPrerrequisitos: `WAD-22-L01` (ACL/delegación y rutas posibles).\n\n## 2. Comprende el mecanismo\n\nHay objetos del directorio que se leen mal por costumbre: un **SPN**, un protocolo heredado y una **confianza**. Los tres describen posibilidades de configuración, y en los tres es fácil saltar de «existe» a «permite» y de «permite» a «ya se usó». Esta lección entrena la lectura intermedia.\n\nUn **SPN** es el nombre que identifica la instancia de un servicio para que Kerberos entregue el ticket correcto. Su presencia es un hecho de configuración, no un acceso. Cuando aparece registrado sobre una cuenta de usuario en lugar de una cuenta de servicio administrada, la observación sube de interés, pero sigue siendo una **condición** que hay que comprobar, no un ticket ya emitido ni un servicio suplantado.\n\n**NTLM** es el mecanismo heredado de desafío-respuesta al que se recurre cuando Kerberos no puede usarse. Que el entorno todavía lo permita es una decisión de compatibilidad; no demuestra por sí misma un uso malicioso ni abre por sí sola un acceso. Registrarlo como riesgo obliga a decir qué condición haría falta —un recurso que degrade a NTLM, una identidad sin restricciones— y no solo que el protocolo está habilitado.\n\nUna **confianza** entre dominios o bosques permite autenticar identidades de uno en el otro. Lo que decide su alcance es el detalle: la **dirección**, la **transitividad**, si aplica **filtrado de SID** y si exige **autenticación selectiva**. Dos entornos con la misma relación nominal pueden comportarse de forma muy distinta según esos controles.\n\nLa prudencia se concreta en no confundir autenticación con autorización. Una confianza habilita que una identidad se autentique; no concede por sí sola permiso sobre un recurso. Del mismo modo, un SPN registrado no entrega el ticket a quien lo lee, y NTLM permitido no autentica a nadie que no tenga credencial.\n\nPor eso la lección vuelve a los tres niveles. La mera presencia de un SPN, de NTLM o de una confianza se documenta como **riesgo teórico** o como **condición explotable**, según lo comprobado; nunca como **acceso probado** sin la evidencia de una operación realizada en `ad.lab.test` y dentro de las reglas de enfrentamiento escritas. La regla que cierra: **describir la condición, no anunciar el botín**.\n\n### Vocabulario de apoyo\n\n- **SPN (nombre de entidad de seguridad de servicio)**: nombre que identifica la instancia de un servicio para que Kerberos le entregue el ticket correcto.\n- **NTLM**: mecanismo de autenticación heredado de desafío-respuesta que se usa cuando Kerberos no está disponible.\n- **Cuenta de servicio**: identidad bajo la que se ejecuta un servicio.\n- **Confianza (trust)**: relación entre dominios o bosques que permite autenticar identidades de uno en el otro.\n- **Dirección de confianza**: sentido en que una confianza permite el acceso (unidireccional o bidireccional).\n- **Filtrado de SID (SID filtering)**: control que descarta los identificadores de seguridad ajenos al dominio de origen.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-22-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test` un inventario de solo lectura encuentra un SPN registrado sobre una cuenta de usuario común, el protocolo NTLM todavía habilitado y una confianza bidireccional con un bosque vecino del laboratorio.\n\nLa tentación es escribir que el entorno está comprometido; el análisis correcto separa los hechos. El SPN sobre una cuenta común es una condición que conviene investigar, porque concentra dos identidades distintas en un mismo objeto y puede afectar a cómo Kerberos emite los tickets. NTLM habilitado es una decisión de compatibilidad que solo importa si algún recurso lo exige en la práctica. La confianza aporta nombre, dirección, transitividad y controles aplicados, y nada de eso autoriza por sí solo el acceso. La conclusión acota lo observado —«hay tres condiciones de configuración que merecen revisión»— y reconoce su límite: sin comprobar el uso real de cada una, no hay acceso probado que informar.\n\n"
+    },
+    {
+      "id": "WAD-22-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Leer SPN, NTLM y confianzas por su condición evita alertas infladas y prioriza lo que sí puede comprobarse.\n- Red Team autorizado: Separar el hallazgo de la explotación mantiene el informe dentro del alcance y de las reglas de enfrentamiento.\n- Evidencia de la etapa: Consulta de solo lectura con el SPN, su cuenta, el estado de NTLM y los atributos de la confianza, con hora.\n- Criterio de dominio: Ningún hallazgo de configuración se informa como acceso sin evidencia de una operación autorizada y verificada.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB16](../../05_RECURSOS/LABORATORIOS/WAD-LAB16.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **SPN**: [Service principal names](https://learn.microsoft.com/en-us/windows/win32/ad/service-principal-names). Qué identifica un SPN, cómo se registra y por qué debe ser único.\n- **NTLM**: [NTLM overview](https://learn.microsoft.com/en-us/windows-server/security/kerberos/ntlm-overview). Funcionamiento del desafío-respuesta y su papel como alternativa heredada.\n- **NTTRUST**: [netdom trust](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/netdom-trust). Consulta de la dirección, la transitividad y los controles de una confianza.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-22-L02-P01",
+    "prompt": "En el inventario de solo lectura de `ad.lab.test` aparecen un SPN registrado sobre una cuenta de usuario, NTLM aún habilitado y una confianza con un bosque vecino. Clasifica cada hallazgo por nivel de certeza y explica qué comprobarías antes de elevar su severidad.",
+    "markdown": "## 4. Práctica individual\n\nEn el inventario de solo lectura de `ad.lab.test` aparecen un SPN registrado sobre una cuenta de usuario, NTLM aún habilitado y una confianza con un bosque vecino. Clasifica cada hallazgo por nivel de certeza y explica qué comprobarías antes de elevar su severidad.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber suplantado un servicio ni atravesado una confianza real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-22-L02-Q01",
+      "prompt": "En `ad.lab.test` encuentras cuentas con SPN registrados y el protocolo NTLM todavía permitido. ¿Cuál es la lectura prudente?",
+      "options": [
+        {
+          "id": "A",
+          "text": "La presencia de esos SPN demuestra que ya se puede suplantar un servicio y obtener un ticket, así que se informa como acceso conseguido"
+        },
+        {
+          "id": "B",
+          "text": "Son indicios de configuración que se documentan y priorizan; su presencia no demuestra por sí sola un acceso ni un ticket emitido"
+        },
+        {
+          "id": "C",
+          "text": "NTLM permite descartar cualquier riesgo de Kerberos y por eso no merece registro"
+        },
+        {
+          "id": "D",
+          "text": "Basta con anotar los nombres de las cuentas sin registrar su contexto"
+        }
+      ]
+    },
+    {
+      "id": "WAD-22-L02-Q02",
+      "prompt": "Una confianza entre `ad.lab.test` y un bosque vecino aparece como bidireccional y transitiva. ¿Qué se concluye correctamente?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que cualquier identidad del bosque vecino ya tiene acceso administrativo a este dominio"
+        },
+        {
+          "id": "B",
+          "text": "Que la confianza permite leer el directorio del otro bosque sin ninguna condición"
+        },
+        {
+          "id": "C",
+          "text": "Que una confianza transitiva anula el filtrado de SID y la autenticación selectiva"
+        },
+        {
+          "id": "D",
+          "text": "Que hay que documentar la dirección, la transitividad y los controles aplicados, porque una confianza habilita la autenticación pero no concede por sí sola autorización"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB16](../../05_RECURSOS/LABORATORIOS/WAD-LAB16.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **SPN**: [Service principal names](https://learn.microsoft.com/en-us/windows/win32/ad/service-principal-names). Qué identifica un SPN, cómo se registra y por qué debe ser único.\n- **NTLM**: [NTLM overview](https://learn.microsoft.com/en-us/windows-server/security/kerberos/ntlm-overview). Funcionamiento del desafío-respuesta y su papel como alternativa heredada.\n- **NTTRUST**: [netdom trust](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/netdom-trust). Consulta de la dirección, la transitividad y los controles de una confianza.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "0dcf3ff76f5a2ce80e794526"
+}

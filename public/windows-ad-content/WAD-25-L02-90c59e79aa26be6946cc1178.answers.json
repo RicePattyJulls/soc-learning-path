@@ -1,0 +1,39 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-25-L02",
+  "sourceHash": "64b5c5e5ed6085c42bd7a84471b2a2afc7d2eaca391f49deadc310f7836b068a",
+  "questions": [
+    {
+      "id": "WAD-25-L02-Q01",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Registrar cada dato con su hora en UTC, su identificador y el equipo observado, de modo que otro analista pueda reconstruir el mismo orden».\n\nUna línea reproducible exige hora en UTC, identificador y equipo, para que el orden no dependa de quien lo leyó. Anotar solo lo que parece inusual, ordenar por descubrimiento o mezclar sin distinguir el origen rompen la reproducibilidad."
+    },
+    {
+      "id": "WAD-25-L02-Q02",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Son hechos observados que se ordenan por su marca de tiempo; su significado depende del contexto y no permiten concluir malicia por sí solos».\n\nUn tipo de inicio automático y una tarea ejecutada son hechos configurables y legítimos por naturaleza; su orden en la línea de tiempo no demuestra intención. Atribuir malicia al tipo de inicio, dar la tarea por compromiso o afirmar persistencia maliciosa sin contexto son saltos que los datos no sostienen."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "Se fijan los hechos con su hora en UTC: la tarea programada se ejecutó a las 02:58, el servicio está en ejecución con tipo de inicio automático y un proceso arrancó en el momento de la tarea. Ordenados por marca de tiempo, la tarea precede al arranque del proceso, mientras que el tipo de inicio automático es una configuración previa e independiente. La consulta de procesos aporta el identificador y la hora de arranque, y se recuerda que el PID se reutiliza, así que solo vale junto a esa hora y al equipo; la de servicios aporta el estado y el tipo de inicio, y la de tareas, el disparador y la última ejecución. Lo que los datos no sostienen es la lectura «algo se instaló para persistir». El límite: la coincidencia ordena los hechos, pero no demuestra intención.",
+    "rubric": [
+      {
+        "criterion": "Orden por marca de tiempo",
+        "evidence": "Coloca los hechos por hora en UTC, no por el orden en que se descubrieron."
+      },
+      {
+        "criterion": "Datos completos",
+        "evidence": "Registra identificador, hora de arranque, estado y tipo de inicio, junto al equipo observado."
+      },
+      {
+        "criterion": "PID acotado",
+        "evidence": "Reconoce que el identificador se reutiliza y solo vale con su hora y su equipo."
+      },
+      {
+        "criterion": "Límite reconocido",
+        "evidence": "Separa la secuencia observada de cualquier conclusión sobre su intención."
+      }
+    ]
+  },
+  "revision": "90c59e79aa26be6946cc1178"
+}

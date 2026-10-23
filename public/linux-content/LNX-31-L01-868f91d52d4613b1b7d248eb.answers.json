@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-31-L01",
+  "sourceHash": "7dea393ec3e691757f06869cc92ccbcdab862facc3de604e32d2d6b352d05527",
+  "questions": [
+    {
+      "id": "LNX-31-L01-Q01",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Que repetir la ejecución deja el sistema y la evidencia en un estado equivalente, sin acumular efectos ni destruir resultados previos».\n\nLa idempotencia se refiere al estado resultante tras varias ejecuciones, no a la duración ni a una única ejecución. `set -euo pipefail` puede ayudar, pero no define la propiedad."
+    },
+    {
+      "id": "LNX-31-L01-Q02",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Porque mejora el control de fallos, pero su semántica depende del contexto y no sustituye pruebas explícitas ni el diseño de errores».\n\nLa opción cambia según condiciones, listas y subshells, y no evita inyección ni crea aislamiento. Por eso se necesitan validación de entradas, pruebas de fallo y códigos de salida explícitos."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "El diseño falla por destruir y truncar evidencia antes de que una persona decida conservarla, por interpretar parámetros con `eval` y por enmascarar el estado de `grep` detrás de `wc -l`. Un script idempotente escribe en un directorio nuevo por ejecución, con `mktemp` y `umask 077`, nombres fechados y un hash final; registra hora UTC, host, identidad, alcance y código de salida; y separa `stdout` del log. Los parámetros se leen en variables y se validan, sin `eval` ni `bash -c` sobre texto importado.\n\nLa repetición debe poder compararse: dos ejecuciones producen dos tomas independientes, no una que borra la anterior. La decisión de conservar o retirar el directorio de salida queda en manos de una persona, no de un `trap` con `rm -rf`.\n\nLímite: el análisis documental demuestra un fallo de diseño, no una pérdida real de evidencia; afirmar idempotencia exige una segunda ejecución controlada y la comparación de sus resultados.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Identifica la destrucción y el truncado de evidencia como fallos distintos."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Propone una ruta de salida por ejecución, permisos restrictivos y hash de la toma."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Sustituye `eval` y el piping que oculta estados por validación explícita y códigos de salida separados."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Declara que la idempotencia se demuestra con una repetición controlada, no con una sola ejecución."
+      }
+    ]
+  },
+  "revision": "868f91d52d4613b1b7d248eb"
+}

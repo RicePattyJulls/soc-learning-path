@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-29-L02",
+  "title": "Primera intervención y registro de evidencia",
+  "sourceHash": "0f343dae5d30f63925ef9bf7aba034f3dc786d2338dac5e03066f9e2114930ec",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-29-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nEjecutar una primera intervención de laboratorio en orden, preservar lo volátil antes de contener y registrar la evidencia con los campos mínimos que permiten revisarla después.\n\nPrerrequisitos: `LNX-29-L01` (Audit: reglas, semántica y pérdida de eventos).\n\n## 2. Comprende el mecanismo\n\nLa primera intervención no empieza con un comando, sino con una decisión: **qué se preserva y qué se contiene**, en qué orden y con qué autorización. El orden importa porque algunas acciones destruyen la evidencia que otras necesitan. Reiniciar un servicio puede borrar conexiones, procesos y temporales; aislar la red puede cortar la única fuente de tráfico que explicaba el caso.\n\nEl primer paso es el **triage**: qué alarma, qué activo, qué impacto actual, quién es el propietario, qué hora UTC y qué capacidad de actuar existe. Sin ese contexto, la intervención se vuelve una colección de comandos sin hipótesis. El triaje no busca culpables: busca decidir si hay daño en curso y qué se puede permitir perder.\n\nEl segundo paso es la **preservación de lo volátil**: conexiones, procesos, descriptores, árbol de procesos, sesiones, temporales y estado de servicios. Es volátil porque desaparece al reiniciar o al terminar el proceso. Se captura con la mínima mutación posible y se anota qué herramienta, qué versión y en qué orden se usó, porque la propia observación modifica el sistema. El tercer paso es la **contención por riesgo**, no por reflejo: si hay exfiltración activa, se controla el egreso sin esperar una colección completa; si el daño es inminente, la mitigación manda sobre la preservación perfecta. Cuando no hay urgencia, se preserva primero. La regla práctica: no se sacrifica evidencia sin una razón de daño concreto y declarado.\n\nEl cuarto paso es la **adquisición de artefactos duraderos**: journal, audit, logs de aplicación, configuración, cambios recientes y herramientas del host. Se evita recoger secretos sin necesidad o autoridad, y se documenta qué se copió y qué se dejó fuera. Una copia sin metadatos de origen es difícil de defender después.\n\nEl **registro de evidencia** tiene campos mínimos: identificador del caso, host y booteo, observador y autorización, hora UTC de inicio y fin, origen del tiempo y desfase conocido, fuente, comando y versión, archivo con tamaño y hash, modo de adquisición, cambios hechos al investigar, transferencias y limitaciones. El hash constata igualdad de bytes comparados; no demuestra autenticidad de la fuente.\n\nLa **cadena de custodia** no es un formulario: es la capacidad de responder quién tocó qué, cuándo y con qué resultado. Un registro incompleto no invalida el análisis técnico, pero impide sostenerlo ante un tercero. En un host comprometido, además, no se presume fiabilidad de binarios, `/proc` ni relojes: se busca captura desde hipervisor, EDR o red cuando esté disponible y autorizado.\n\nLa regla de la lección: contexto, volátil, contención justificada, duradero y registro. El límite: la primera intervención documenta lo observable en esa ventana; no reconstruye por sí sola el alcance completo ni demuestra autoría.\n\n### Vocabulario de apoyo\n\n- **Triage**: valoración inicial de alarma, impacto, activo y capacidad de actuar.\n- **Evidencia volátil**: estado que desaparece al reiniciar o terminar un proceso.\n- **Contención**: acción que limita el daño, con coste declarado sobre la evidencia.\n- **Artefacto duradero**: fichero o registro que sobrevive al reinicio y se puede copiar.\n- **Cadena de custodia**: registro de quién tocó la evidencia, cuándo y con qué resultado.\n- **Hash de evidencia**: huella que constata igualdad de bytes, no autenticidad.\n- **Orden de volatilidad**: criterio que prioriza lo que se pierde antes.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-29-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: se activa una alerta por conexiones salientes sostenidas desde un host de laboratorio hacia `203.0.113.40`. El respondedor reinicia el servicio sospechoso para «limpiar el estado» y después copia el journal. Al revisar, no encuentra el proceso ni la conexión, y el journal solo muestra el reinicio.\n\nEl orden destruyó la evidencia que explicaba la alerta. Reiniciar eliminó procesos, descriptores y conexiones; la copia posterior del journal ya no podía mostrar el estado anterior. La contención existió, pero sin registro del estado previo y sin justificar por qué se eligió esa acción frente a preservar.\n\nLa lectura correcta habría sido: fijar hora UTC y host, capturar árbol de procesos, conexiones y descriptores, revisar la unidad y su cgroup, decidir si el egreso era activo y, si lo era, contener el egreso por perímetro preservando acceso de investigación. Después adquirir journal, audit y configuración, y registrar cada paso con herramienta, versión y hash. El límite: aun con ese orden, la captura en vivo modifica el sistema y no garantiza ver todo lo anterior a la alerta.\n\n"
+    },
+    {
+      "id": "LNX-29-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Documentar hora UTC, host, booteo y limitaciones antes de cerrar cualquier triaje.\n- Red Team autorizado: Registrar las herramientas usadas en la captura y el efecto de la observación sobre el sistema.\n- Evidencia de la etapa: Registro con fuente, comando, versión, tamaño, hash, adquisición y cambios realizados.\n- Criterio de dominio: Ordena preservación y contención según daño declarado, y distingue hash de autenticidad.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB37](../../05_RECURSOS/LABORATORIOS/LNX-LAB37.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F121**: [NIST SP 800-61 Rev.3 (2025)](https://csrc.nist.gov/pubs/sp/800/61/r3/final). Secuencia de respuesta, contención y recuperación.\n- **F122**: [NIST SP 800-92 (log management)](https://csrc.nist.gov/pubs/sp/800/92/final). Preservación y gestión de registros como evidencia.\n- **F118**: [ausearch(8)](https://man7.org/linux/man-pages/man8/ausearch.8.html). Extracción de eventos de audit para el registro.\n- **F114**: [journalctl(1)](https://man7.org/linux/man-pages/man1/journalctl.1.html). Exportación de una ventana del journal con criterios reproducibles.\n- **F127**: [MITRE ATT&CK Data Sources (deprecated)](https://attack.mitre.org/datasources/). Límites de las fuentes al reconstruir actividad.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-29-L02-P01",
+    "prompt": "Se activa una alerta por conexiones salientes sostenidas desde un host de laboratorio hacia `203.0.113.40`; el respondedor reinicia el servicio sospechoso y después copia el journal, y al revisar ya no encuentra el proceso ni la conexión. Explica qué orden habrías seguido, qué habrías preservado y cómo registrarías la evidencia.",
+    "markdown": "## 4. Práctica individual\n\nSe activa una alerta por conexiones salientes sostenidas desde un host de laboratorio hacia `203.0.113.40`; el respondedor reinicia el servicio sospechoso y después copia el journal, y al revisar ya no encuentra el proceso ni la conexión. Explica qué orden habrías seguido, qué habrías preservado y cómo registrarías la evidencia.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber intervenido un host ni haber adquirido evidencia real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-29-L02-Q01",
+      "prompt": "Ante una alerta de exfiltración activa, ¿qué criterio ordena la primera intervención?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Completar toda la colección forense antes de cualquier acción"
+        },
+        {
+          "id": "B",
+          "text": "Reiniciar el host para garantizar un estado limpio"
+        },
+        {
+          "id": "C",
+          "text": "Contener el egreso por el control adecuado y preservar la evidencia mínima que sea viable"
+        },
+        {
+          "id": "D",
+          "text": "Esperar la ventana de cambio del servicio"
+        }
+      ]
+    },
+    {
+      "id": "LNX-29-L02-Q02",
+      "prompt": "¿Qué acredita el hash SHA-256 de un archivo de evidencia?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que la fuente que lo generó es auténtica y no estaba comprometida"
+        },
+        {
+          "id": "B",
+          "text": "Que el contenido es correcto y completo respecto de lo ocurrido"
+        },
+        {
+          "id": "C",
+          "text": "Que la cadena de custodia está cerrada"
+        },
+        {
+          "id": "D",
+          "text": "Que los bytes comparados son iguales entre la copia y el original"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB37](../../05_RECURSOS/LABORATORIOS/LNX-LAB37.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F121**: [NIST SP 800-61 Rev.3 (2025)](https://csrc.nist.gov/pubs/sp/800/61/r3/final). Secuencia de respuesta, contención y recuperación.\n- **F122**: [NIST SP 800-92 (log management)](https://csrc.nist.gov/pubs/sp/800/92/final). Preservación y gestión de registros como evidencia.\n- **F118**: [ausearch(8)](https://man7.org/linux/man-pages/man8/ausearch.8.html). Extracción de eventos de audit para el registro.\n- **F114**: [journalctl(1)](https://man7.org/linux/man-pages/man1/journalctl.1.html). Exportación de una ventana del journal con criterios reproducibles.\n- **F127**: [MITRE ATT&CK Data Sources (deprecated)](https://attack.mitre.org/datasources/). Límites de las fuentes al reconstruir actividad.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "e3905e32a48794646a802e9e"
+}

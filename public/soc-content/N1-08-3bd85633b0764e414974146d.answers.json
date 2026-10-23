@@ -1,0 +1,174 @@
+{
+  "schemaVersion": 1,
+  "courseId": "soc",
+  "id": "N1-08",
+  "sourceHash": "73a00521482c7854643cccbdebddb2fac0af26446abedc07be9e214383b956f2",
+  "revision": "3bd85633b0764e414974146d",
+  "hipotesis": [
+    "Escáner de vulnerabilidades corporativo durante una ventana autorizada, con credenciales y direcciones conocidas.",
+    "Administrador inventariando servicios tras una migración o actualización; puede estar autorizado pero mal comunicado.",
+    "Actor malicioso o host comprometido recorriendo puertos y servicios para movimientos laterales.",
+    "Software de descubrimiento, inventario o configuración que usa sondeos periódicos.",
+    "Alerta IDS sobredimensionada: repetición de reintentos o un falso patrón causado por NAT, load balancer o resolución de IP."
+  ],
+  "pasos": [
+    {
+      "fase": "0. Confirmar calidad y severidad",
+      "accion": "Recuperar el evento IDS exacto, firma, frecuencia y confianza; comprobar SourceIP y DestinationIP antes/después del NAT, zona de red, fechas UTC, protocolos y si hubo tráfico permitido."
+    },
+    {
+      "fase": "1. Clasificar patrón",
+      "accion": "Comparar cantidad de puertos distintos por destino (vertical) y hosts distintos por puerto (horizontal), duración, tasa, orden secuencial o aleatorio y acciones del firewall."
+    },
+    {
+      "fase": "2. Atribuir origen",
+      "accion": "Identificar activo, propietario, usuario/proceso si EDR existe, inventario CMDB, red de scanners y asignación de DHCP en el momento del evento. Una IP actual puede pertenecer a otro host en otra fecha."
+    },
+    {
+      "fase": "3. Confirmar autorización independiente",
+      "accion": "Buscar ticket de cambio, ventana, alcance de redes/hosts y credenciales, responsable de vulnerabilidades y plan aprobado. Validar por canal independiente; el rótulo “scanner” en hostname no garantiza aprobación."
+    },
+    {
+      "fase": "4. Contrastar comportamiento esperado",
+      "accion": "Un escáner aprobado puede alcanzar muchos hosts/puertos, pero su IP, horario y alcance deben coincidir con el cambio. Acceso a DC fuera del alcance, madrugada no prevista o autenticaciones fallidas aumentan sospecha."
+    },
+    {
+      "fase": "5. Buscar actividad adyacente",
+      "accion": "Correlacionar autenticaciones SMB/RDP/WinRM/SSH, intentos contra servicios, detecciones EDR, creación de procesos y modificación de cuentas en la siguiente ventana. Un escaneo puede preceder explotación."
+    },
+    {
+      "fase": "6. Decidir prioridad",
+      "accion": "Si coincide íntegramente con actividad documentada y no hay anomalías, cerrar justificando. Si es no autorizado, host de usuario, activos críticos o se observa explotación, escalar N2/IR."
+    },
+    {
+      "fase": "7. Contención medida",
+      "accion": "Con autorización, limitar tráfico lateral de ese host, aislar mediante EDR si el riesgo lo exige, y evitar un bloqueo general de escaneo que interrumpa la solución de vulnerabilidades legítima."
+    },
+    {
+      "fase": "8. Elaborar cierre",
+      "accion": "Documentar mapa origen→destinos/puertos/acciones, ticket de cambio, responsable, event IDs, controles afectados, decisión y seguimiento."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "Origen/NAT/DHCP",
+      "lectura": "Atribución del activo en el instante del incidente, no solo la IP hoy."
+    },
+    {
+      "dato": "Puertos únicos por destino",
+      "lectura": "Muchos puertos en pocos hosts sugiere escaneo vertical; no confirma intención."
+    },
+    {
+      "dato": "Hosts únicos por puerto",
+      "lectura": "Mismo puerto en múltiples destinos sugiere escaneo horizontal."
+    },
+    {
+      "dato": "Action=allow/deny y flags",
+      "lectura": "Permite diferenciar tráfico permitido, bloqueos o reintentos; no deducir explotación solo de intentos."
+    },
+    {
+      "dato": "Ticket y ventana",
+      "lectura": "Prueba administrativa de autorización y alcance real, no solo explicación oral."
+    },
+    {
+      "dato": "Telemetría EDR/AD",
+      "lectura": "Identifica herramienta que origina el sondeo y posible progresión a autenticación o ejecución."
+    },
+    {
+      "dato": "Contexto de criticidad",
+      "lectura": "Controladores de dominio, respaldos y bases de datos justifican mayor prioridad al investigar."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Sentinel: escaneo vertical, múltiples puertos por destino",
+      "entorno": "Microsoft Sentinel/Log Analytics — CommonSecurityLog (firewalls CEF que mapean IP y puerto)",
+      "consulta": "CommonSecurityLog\n| where TimeGenerated > ago(2h)\n| where isnotempty(SourceIP) and isnotempty(DestinationIP)\n| where DestinationPort between (1 .. 65535)\n| summarize Eventos=count(), Puertos=dcount(DestinationPort),\n            MuestraPuertos=make_set(DestinationPort, 25),\n            Acciones=make_set(DeviceAction, 10)\n    by SourceIP, DestinationIP, bin(TimeGenerated, 5m)\n| where Puertos >= 10\n| order by Puertos desc, Eventos desc",
+      "interpretacion": "Encuentra una fuente que ha tocado numerosos puertos distintos de un destino en cinco minutos. Ajustar umbral por red; comprobar fuente real y si son permitidos o rechazados.",
+      "limitaciones": "CEF depende del appliance/normalización; DestinationPort no poblado implica ausencia de resultados. Contar eventos puede duplicar intentos/reintentos. Umbral >=10 solo ejemplo."
+    },
+    {
+      "nombre": "Sentinel: escaneo horizontal, muchos destinos mismo puerto",
+      "entorno": "Microsoft Sentinel/Log Analytics — CommonSecurityLog",
+      "consulta": "CommonSecurityLog\n| where TimeGenerated > ago(2h)\n| where isnotempty(SourceIP) and isnotempty(DestinationIP)\n| where DestinationPort between (1 .. 65535)\n| summarize Eventos=count(), HostsDestino=dcount(DestinationIP),\n            MuestraDestinos=make_set(DestinationIP, 20),\n            Acciones=make_set(DeviceAction, 10)\n    by SourceIP, DestinationPort, bin(TimeGenerated, 5m)\n| where HostsDestino >= 10\n| order by HostsDestino desc, Eventos desc",
+      "interpretacion": "Identifica intentos a un mismo puerto sobre muchos hosts, p. ej. 445/TCP en la red interna; puede ser scanner o servicio legítimo.",
+      "limitaciones": "La tabla no garantiza que tráfico sea interno ni que se haya completado un handshake. Restringir a rangos propios y comparar con DHCP, CMDB y plan de cambios."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk CIM: escaneo vertical por número de puertos",
+      "entorno": "Splunk CIM Network_Traffic.All_Traffic",
+      "consulta": "| tstats count as Eventos dc(All_Traffic.dest_port) as Puertos\n    from datamodel=Network_Traffic.All_Traffic\n    by All_Traffic.src All_Traffic.dest _time span=5m\n| rename All_Traffic.* AS *\n| where Puertos >= 10\n| sort - Puertos, - Eventos",
+      "interpretacion": "Cuenta puertos de destino distintos de una misma pareja origen/host; ampliar con evento IDS y acciones.",
+      "limitaciones": "Es una regla de cribado; falsos positivos normales en escáneres y poca cobertura si no hay flujos denegados/permitidos completos."
+    },
+    {
+      "nombre": "Splunk CIM: escaneo horizontal por número de hosts",
+      "entorno": "Splunk CIM Network_Traffic.All_Traffic",
+      "consulta": "| tstats count as Eventos dc(All_Traffic.dest) as HostsDestino\n    from datamodel=Network_Traffic.All_Traffic\n    by All_Traffic.src All_Traffic.dest_port _time span=5m\n| rename All_Traffic.* AS *\n| where HostsDestino >= 10\n| sort - HostsDestino, - Eventos",
+      "interpretacion": "Busca origen que contacta múltiples hosts en un puerto concreto y en poco tiempo.",
+      "limitaciones": "Si dest son nombres no normalizados o proxies, el recuento será incorrecto. Confirmar que los campos representan endpoints finales y tráfico comparable."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Windows — proceso/red del origen",
+      "proposito": "Revisar procesos que mantienen conexiones si el equipo sigue activo.",
+      "comando": "Get-NetTCPConnection | Select-Object LocalAddress,LocalPort,RemoteAddress,RemotePort,State,OwningProcess"
+    },
+    {
+      "entorno": "Linux — conexiones y sockets",
+      "proposito": "Observación de actividad actual, sin lanzar escaneos adicionales contra la red.",
+      "comando": "sudo ss -tunap"
+    },
+    {
+      "entorno": "Linux — detalles por PID identificado",
+      "proposito": "Observar ruta y argumentos actuales, sin confundir el proceso presente con el que existía a las 02:00.",
+      "comando": "ps -fp 1234"
+    },
+    {
+      "entorno": "Operación SOC — correlación",
+      "proposito": "Consultar ticket/CMDB/DHCP del momento; evitar improvisar una prueba activa contra los mismos servidores.",
+      "comando": "(Acción documental; no se requiere lanzar nmap para confirmar el evento histórico.)"
+    }
+  ],
+  "contencion": "Una detección IDS aislada se investiga primero. Si el origen es un escáner corporativo aprobado dentro de su alcance, se documenta y se ajusta la detección sin perder visibilidad. Si es un equipo comprometido, se notifica a IR y se evalúa segmentación/bloqueo lateral o aislamiento EDR aprobado. Proteger DC/bases de datos frente a propagación es prioritario sin bloquear indiscriminadamente la red.",
+  "escalation": [
+    "La IP no corresponde al scanner aprobado y no hay cambio documentado.",
+    "Patrón contra controladores de dominio, sistemas de backups o muchos segmentos.",
+    "Evidencia posterior de autenticaciones, ejecución remota o intentos de explotación.",
+    "Origen es una estación de usuario o servidor no diseñado para inventario.",
+    "Hay indicios de múltiples fuentes coordinadas, movimiento lateral o persistencia."
+  ],
+  "falsos_positivos": [
+    "Escaneo de vulnerabilidades programado con ticket formal.",
+    "Inventario de activos/red y monitorización de servicios.",
+    "Mantenimiento de sistemas/migración con sondeo de conectividad.",
+    "Reintentos o agregación de NAT que simulan un escaneo."
+  ],
+  "errores": [
+    "Bloquear un scanner crítico sin verificar autorización.",
+    "Concluir explotación por ver puertos consultados.",
+    "Confundir muchos puertos a un host con mismo puerto a muchos hosts.",
+    "Ignorar NAT/DHCP y la hora de asignación IP.",
+    "Descartar alerta solo porque el hostname parece ser un scanner."
+  ],
+  "perspectiva_red_team": "El reconocimiento interno ayuda a descubrir servicios accesibles y posibles rutas de movimiento lateral. Herramientas legítimas y ofensivas pueden producir patrones similares, de ahí que el control más importante sea la autorización y los eventos posteriores. Una campaña puede ser lenta o distribuida para reducir contadores en 5 minutos; umbrales basados solo en volumen no son suficientes. MITRE T1046 describe el descubrimiento de servicios y no demuestra explotación.",
+  "respuesta_entrevista": "Confirmaría la fuente IDS y mapearía el patrón: puertos distintos por host y hosts distintos por puerto. Identificaría el activo origen usando NAT/DHCP, consultaría el inventario de escáneres y la ventana de cambios. No daría por buena una explicación sin ticket y alcance verificables. Correlacionaría con EDR, autenticaciones y eventuales intentos de explotación. Si es un escaneo legítimo lo documentaría y ajustaría la regla; si es ajeno al alcance autorizado o afecta a infraestructura crítica, escalaría y propondría contención según playbook.",
+  "criterios_evaluacion": [
+    "Distingue escaneo horizontal y vertical.",
+    "Corrobora autorización, ventana y alcance.",
+    "Analiza dirección/acción y atribución tras NAT/DHCP.",
+    "No llama explotación a un mero reconocimiento.",
+    "Considera impacto del aislamiento sobre la operación."
+  ],
+  "mitre": [
+    "T1046"
+  ],
+  "fuentes": [
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/commonsecuritylog",
+    "https://help.splunk.com/en/splunk-cloud-platform/common-information-model/6.1/data-models/network-traffic",
+    "https://attack.mitre.org/techniques/T1046/"
+  ]
+}

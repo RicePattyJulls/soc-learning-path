@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-23-L02",
+  "title": "Prueba inocua y ventanas controladas",
+  "sourceHash": "6dc37b73afa7292f77a4b188832efd7907e7fb0d0009550dab1a3a56c9a0637b",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-23-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDiseñar una prueba inocua y ejecutarla dentro de una ventana controlada.\n\nPrerrequisitos: `WAD-23-L01` (Controles de movimiento remoto autorizado).\n\n## 2. Comprende el mecanismo\n\nValidar un control no consiste en atacar, sino en **comprobar con la mínima perturbación posible** que el control hace lo que debe. La pieza central es la **prueba inocua**: una acción acotada, reversible y observada que no altera datos ni deja persistencia.\n\nUna prueba es **inocua** cuando su efecto se agota al terminar. No cifra, no borra, no mueve datos y no crea servicios, tareas ni cuentas. Si el diseño exige tocar datos reales, la prueba se replantea: un control se puede comprobar observando, no destruyendo.\n\nEl **criterio de parada** fija de antemano cuándo se detiene la prueba: por tiempo, por evento o por cualquier señal fuera de lo previsto. Tenerlo escrito evita improvisar justo cuando algo se desvía.\n\nLa **ventana controlada** es el intervalo acordado en el que la prueba puede ejecutarse, con responsables informados y con capacidad de revertir. Fuera de esa ventana no se prueba, aunque el sistema esté disponible.\n\nLa **observación registrada** es lo que convierte la prueba en evidencia: qué se ejecutó, qué se observó y con qué hora. Una prueba que no se registra no se puede usar para cerrar un hallazgo ni para descartar una regresión.\n\nEl motivo de tanto cuidado es el **riesgo de la prueba destructiva**: alterar datos o dejar un mecanismo activo se parece demasiado al daño real que se quiere prevenir. La disciplina es defender con pruebas que no dañan y que dejan el entorno intacto.\n\nLa regla que cierra la lección: **prueba inocua, acordada y reversible, dentro de la ventana y con criterio de parada**. Todo se practica sobre `ad.lab.test`, un laboratorio aislado con reglas de enfrentamiento escritas.\n\n### Vocabulario de apoyo\n\n- **Prueba inocua**: comprobación que no daña, no altera datos y no deja persistencia.\n- **Ventana controlada**: intervalo acordado y supervisado en el que la prueba puede ejecutarse.\n- **Criterio de parada**: condición fijada de antemano que obliga a detener la prueba.\n- **Reversibilidad**: propiedad de poder volver al estado previo sin consecuencias.\n- **Observación registrada**: anotación con hora de lo ejecutado y lo observado.\n- **Prueba destructiva**: acción que altera o elimina datos; no es aceptable para validar.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-23-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test`, la ventana autorizada dura una hora y el objetivo es comprobar si un control de acceso sobre un recurso compartido se aplica como indica la documentación. La identidad de prueba es de solo lectura y no se permite modificar el contenido del recurso.\n\nEl diseño empieza por fijar lo que se va a observar: si la identidad de prueba es rechazada al intentar una operación de solo lectura no permitida, y si es admitida donde la documentación dice que sí. La acción elegida no crea, modifica ni borra nada del recurso; solo intenta una operación y registra el resultado con hora. El criterio de parada es claro: si aparece cualquier efecto no previsto, la prueba se detiene de inmediato. Al cerrar la ventana, la comprobación de que el recurso sigue intacto confirma que no hubo persistencia. La conclusión acota lo observable —«el control respondió así en la identidad y el momento comprobados»— y reconoce su límite: una sola observación dentro de una ventana no describe el comportamiento del control ante todas las identidades posibles.\n\n"
+    },
+    {
+      "id": "WAD-23-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Reconocer una prueba inocua y acotada ayuda a separarla de una actividad que sí altera el entorno.\n- Red Team autorizado: Diseñar pruebas reversibles y con criterio de parada demuestra control y respeto por la autorización.\n- Evidencia de la etapa: Diseño de la prueba, ventana acordada, criterio de parada y observación registrada con hora.\n- Criterio de dominio: La prueba es inocua, reversible y se detiene según lo acordado, sin dejar persistencia.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB19](../../05_RECURSOS/LABORATORIOS/WAD-LAB19.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **NIST800115**: [Technical Guide to Information Security Testing and Assessment (NIST SP 800-115)](https://csrc.nist.gov/pubs/sp/800/115/final). Marco para planificar pruebas y acordar su alcance y su parada.\n- **ATTACK**: [MITRE ATT&CK](https://attack.mitre.org/). Catálogo de tácticas y técnicas para describir con precisión qué se prueba y qué no.\n- **RANSOMWARE**: [StopRansomware Guide (CISA)](https://www.cisa.gov/stopransomware/ransomware-guide). Por qué una prueba no debe parecerse al daño real que se quiere evitar.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-23-L02-P01",
+    "prompt": "En `ad.lab.test`, quieres verificar un control dentro de la ventana acordada sin alterar datos ni dejar persistencia. Diseña la prueba inocua: qué observas, qué criterio de parada aplicas y cómo demuestras que el control funciona.",
+    "markdown": "## 4. Práctica individual\n\nEn `ad.lab.test`, quieres verificar un control dentro de la ventana acordada sin alterar datos ni dejar persistencia. Diseña la prueba inocua: qué observas, qué criterio de parada aplicas y cómo demuestras que el control funciona.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber ejecutado una prueba real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-23-L02-Q01",
+      "prompt": "¿Qué caracteriza a una prueba de validación inocua y bien diseñada?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Es destructiva, para asegurar que el control bloquea de verdad lo que debe"
+        },
+        {
+          "id": "B",
+          "text": "Se ejecuta sin ventana acordada, para que nadie pueda prepararla de antemano"
+        },
+        {
+          "id": "C",
+          "text": "Se lanza contra sistemas fuera del alcance, para medir mejor su efecto"
+        },
+        {
+          "id": "D",
+          "text": "Es inocua, reversible y acordada, con criterio de parada y observación registrada dentro de una ventana controlada"
+        }
+      ]
+    },
+    {
+      "id": "WAD-23-L02-Q02",
+      "prompt": "Durante la ventana, ¿qué principio debe respetar la prueba para considerarse aceptable?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Debe ser inocua y reversible, sin modificar datos ni dejar persistencia, y detenerse si se cumple el criterio de parada"
+        },
+        {
+          "id": "B",
+          "text": "Basta con que sea rápida, aunque altere datos del entorno"
+        },
+        {
+          "id": "C",
+          "text": "Se puede ignorar el criterio de parada si la prueba avanza bien"
+        },
+        {
+          "id": "D",
+          "text": "Conviene no avisar al responsable de la ventana para que el resultado sea más realista"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB19](../../05_RECURSOS/LABORATORIOS/WAD-LAB19.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **NIST800115**: [Technical Guide to Information Security Testing and Assessment (NIST SP 800-115)](https://csrc.nist.gov/pubs/sp/800/115/final). Marco para planificar pruebas y acordar su alcance y su parada.\n- **ATTACK**: [MITRE ATT&CK](https://attack.mitre.org/). Catálogo de tácticas y técnicas para describir con precisión qué se prueba y qué no.\n- **RANSOMWARE**: [StopRansomware Guide (CISA)](https://www.cisa.gov/stopransomware/ransomware-guide). Por qué una prueba no debe parecerse al daño real que se quiere evitar.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "6d08c8c69a0f136fc7171c96"
+}

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M14-L03",
+  "title": "Políticas, filtros y comunidades",
+  "sourceHash": "714c98598e9d289b14fbb840e1116187c4b010af9c86939d29510b6f3ae18d59",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M14-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDefinir filtros de importación/exportación y comprender comunidades.\n\nPrerrequisitos: [RED-M14-L02](../RED-E03/RED-M14-L02.md).\n\n## 2. Comprende el mecanismo\n\nUna política BGP debe declarar qué prefijos se reciben y anuncian, con longitudes permitidas y origen esperado. Una comunidad etiqueta rutas para decisiones de política, pero no impone una acción por sí sola si nadie la interpreta. Max-prefix limita cantidades; no verifica por sí mismo que cada prefijo sea legítimo. RPKI/ROV valida aspectos del origen frente a autorizaciones publicadas; no demuestra toda la legitimidad del camino ni elimina route leaks. Distingue anuncio accidental, filtrado y estado de validación.\n\n### Vocabulario de apoyo\n\n- **AS y BGP**: Sistema autónomo de routing y protocolo que intercambia alcanzabilidad y atributos entre sistemas.\n- **Local preference y AS_PATH**: Preferencia de política interna y secuencia de AS del camino anunciado.\n- **Comunidad y ROV**: Etiqueta interpretada por políticas y validación del origen mediante autorizaciones RPKI.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M14-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Contrato docente: exportar solo 192.0.2.0/24. Cambio propuesto añade exportación de default y rutas de otro vecino.\n\nLa política excede el contrato e introduce riesgo de fuga. Revisar exportación explícita y prueba negativa antes del cambio.\n\n"
+    },
+    {
+      "id": "RED-M14-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Leer decisiones de camino que afectan visibilidad.\n- Red Team autorizado: Validar filtrado de prefijos en entorno aislado.\n- Evidencia del módulo: RIB, anuncios, políticas y prueba antes/después.\n- Criterio del módulo: No hay anuncios no autorizados; selección explicada.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L07](../../05_RECURSOS/LABORATORIOS/RED-L07.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC4271**: [RFC 4271: Border Gateway Protocol 4](https://www.rfc-editor.org/rfc/rfc4271.html). Sesiones, atributos y distribución de rutas BGP.\n- **FRR-BGP**: [BGP](https://docs.frrouting.org/en/latest/bgp.html). Selección de rutas, políticas, comunidades y operación.\n- **RFC7454**: [RFC 7454: BGP Operations and Security](https://www.rfc-editor.org/rfc/rfc7454.html). Filtrado, límites y operación defensiva BGP.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M14-L03-P01",
+    "prompt": "Se recibe una ruta con comunidad no-export. ¿Qué debes comprobar antes de asegurar que jamás saldrá del AS?",
+    "markdown": "## 4. Práctica individual\n\nSe recibe una ruta con comunidad no-export. ¿Qué debes comprobar antes de asegurar que jamás saldrá del AS?\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M14-L03-Q01",
+      "prompt": "¿Qué no valida max-prefix por sí solo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "La legitimidad de cada prefijo"
+        },
+        {
+          "id": "B",
+          "text": "Que existe un límite de cantidad"
+        },
+        {
+          "id": "C",
+          "text": "El número de prefijos contado"
+        },
+        {
+          "id": "D",
+          "text": "Un posible exceso de entradas"
+        }
+      ]
+    },
+    {
+      "id": "RED-M14-L03-Q02",
+      "prompt": "¿Qué viola la propuesta del ejemplo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Mantener un filtro explícito"
+        },
+        {
+          "id": "B",
+          "text": "Registrar la política de salida"
+        },
+        {
+          "id": "C",
+          "text": "Probar un anuncio permitido"
+        },
+        {
+          "id": "D",
+          "text": "Exportar rutas fuera del prefijo autorizado"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L07](../../05_RECURSOS/LABORATORIOS/RED-L07.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC4271**: [RFC 4271: Border Gateway Protocol 4](https://www.rfc-editor.org/rfc/rfc4271.html). Sesiones, atributos y distribución de rutas BGP.\n- **FRR-BGP**: [BGP](https://docs.frrouting.org/en/latest/bgp.html). Selección de rutas, políticas, comunidades y operación.\n- **RFC7454**: [RFC 7454: BGP Operations and Security](https://www.rfc-editor.org/rfc/rfc7454.html). Filtrado, límites y operación defensiva BGP.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "ef61d70fcc33ae03ce2eb310"
+}

@@ -1,0 +1,39 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-11-L02",
+  "sourceHash": "1a55523e3e3adb2bb8bcf6dc92ae77c2ef844e59b1f7b397a328391cf46249f9",
+  "questions": [
+    {
+      "id": "WAD-11-L02-Q01",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Cuando el cliente accede por dirección IP o el servicio no tiene un SPN resoluble».\n\nKerberos necesita un nombre con el que pedir el ticket de servicio, así que la falta de nombre o de SPN deja a la negociación en el método heredado. Un nombre DNS correcto, un TGT vigente o un SPN registrado apuntan al caso opuesto: son condiciones que habilitan Kerberos."
+    },
+    {
+      "id": "WAD-11-L02-Q02",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Porque un dominio puede seguir usando el método heredado en rutas concretas y eso condiciona el endurecimiento y la visibilidad».\n\nMedir revela qué rutas dependen aún de NTLM, dato necesario para endurecer sin romper servicios y para saber qué autenticaciones se registran de otra forma. NTLM no cifra tickets de servicio, no reemplaza al SPN y no está deshabilitado de forma predeterminada."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "Con nombre de dominio resoluble y SPN registrado lo esperable es Kerberos, porque el cliente puede pedir su ticket de servicio y la credencial no viaja al servicio. El acceso por dirección IP deja al cliente sin nombre con el que pedir el ticket, así que la negociación recurre a NTLM; el servicio sin SPN registrado produce el mismo resultado desde el otro lado, y un equipo fuera del dominio no dispone de centro de distribución de claves al que pedir un TGT. Antes de valorar el uso del método heredado mediría la proporción de tráfico por mecanismo, los equipos de origen, si usan nombre o dirección y si el SPN existe y resuelve, descartando de paso causas de dominio como DNS, hora o replicación. El límite: que una ruta use NTLM es un hecho, y su valoración exige explicar por qué esa ruta no puede usar Kerberos.",
+    "rubric": [
+      {
+        "criterion": "Asignación de mecanismo por caso",
+        "evidence": "Kerberos para el acceso por nombre con SPN; NTLM para la dirección IP y para el servicio sin SPN; método heredado o local para el equipo fuera del dominio."
+      },
+      {
+        "criterion": "Justificación en los requisitos de Kerberos",
+        "evidence": "Relaciona el resultado con la necesidad de nombre resoluble, SPN y disponibilidad del centro de distribución de claves."
+      },
+      {
+        "criterion": "Medición propuesta",
+        "evidence": "Propone medir proporción por mecanismo, origen, uso de nombre o dirección y estado del SPN."
+      },
+      {
+        "criterion": "Límite reconocido",
+        "evidence": "Distingue el hecho observado (mecanismo usado) de su valoración y no convierte el fallback en ataque."
+      }
+    ]
+  },
+  "revision": "79bb0720ac44b9134d8bf953"
+}

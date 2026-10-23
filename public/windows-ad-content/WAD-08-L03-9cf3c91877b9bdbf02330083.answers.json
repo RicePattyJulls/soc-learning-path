@@ -1,0 +1,43 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-08-L03",
+  "sourceHash": "9b844b3047317b96b8d0352055db49f1528d6b2666847386e9d17dbda0bfa6f4",
+  "questions": [
+    {
+      "id": "WAD-08-L03-Q01",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Son servicios de identidad distintos: AD DS vive en el dominio propio y Entra ID es un servicio en la nube con sus propias fronteras de confianza».\n\nCada servicio tiene su propio modelo y sus propios límites, y la sincronización los conecta sin fusionarlos. Equipararlos, suponer que uno hereda las garantías del otro o dar por hecho que los controladores de dominio desaparecen son lecturas que el caso no sostiene."
+    },
+    {
+      "id": "WAD-08-L03-Q02",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Que hay dos límites de confianza conectados por la sincronización y cada uno conserva sus propias reglas».\n\nLa coexistencia híbrida mantiene dos sistemas con reglas propias: el dominio local conserva su bosque y Entra ID sus políticas, así que una decisión en un lado no se hereda en el otro. El bosque no se convierte en una partición del servicio en la nube, ni las confianzas locales desaparecen por sincronizar identidades."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "En el entorno local, AD DS resuelve la identidad contra el dominio `ad.lab.test`, cuyo bosque sigue siendo el límite de seguridad. Entra ID es un servicio de identidad en la nube, con otras fronteras de confianza, y resuelve la autenticación de los servicios que dependen de él. La sincronización conecta ambos sistemas: replica identidades y algunos atributos en una dirección definida, pero no todo atributo viaja ni los directorios se fusionan. Por eso no puede darse por hecho en un lado lo que se configuró en el otro: un bloqueo o una política en la nube no equivale automáticamente a una denegación en local, ni al revés. El límite de confianza sigue existiendo y cada servicio conserva sus reglas, así que ante un acceso hay que decir cuál lo resolvió. El análisis se basa en datos ficticios y no acredita haber administrado identidades reales.",
+    "rubric": [
+      {
+        "criterion": "Dos servicios diferenciados",
+        "evidence": "Describe AD DS en el dominio propio y Entra ID como servicio en la nube, sin equipararlos."
+      },
+      {
+        "criterion": "Alcance de la sincronización",
+        "evidence": "Explica que conecta y replica parcialmente, sin fusionar los directorios."
+      },
+      {
+        "criterion": "Garantías no heredadas",
+        "evidence": "Niega que bloqueos, políticas o condiciones de acceso se trasladen de un límite al otro."
+      },
+      {
+        "criterion": "Atribución del acceso",
+        "evidence": "Concluye que hay que identificar qué servicio resolvió la autenticación."
+      },
+      {
+        "criterion": "Límite reconocido",
+        "evidence": "Señala que la nota se apoya en datos sintéticos y no en una administración real."
+      }
+    ]
+  },
+  "revision": "9cf3c91877b9bdbf02330083"
+}

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-04-L01",
+  "title": "Usuarios, grupos y modo clásico",
+  "sourceHash": "3eab3a98edb825b172472df3a463e587ec597279043470d202731b2b74709c19",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-04-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDistinguir cómo el kernel autoriza por identidad (usuario, grupos y bits clásicos) para leer permisos sin confundir propietario, grupo y otros.\n\nPrerrequisitos: `LNX-03-L03` (Comandos que parecen iguales y no lo son).\n\n## 2. Comprende el mecanismo\n\nCada proceso corre con una **identidad numérica**: un UID real, un UID efectivo, un GID y una lista de grupos suplementarios. El kernel no conoce nombres como `ana` o `soc`; solo maneja números. Los nombres son una comodidad para las personas, y la traducción entre nombres y números es un detalle de los ficheros de cuentas, no del permiso en sí.\n\nLas cuentas se describen en ficheros de texto. `/etc/passwd` lista usuarios con sus UID y GID; `/etc/group` lista grupos y sus miembros; los verificadores de contraseña viven aparte, en `/etc/shadow`, legible solo con privilegios. Leer estos ficheros es **observación documental**: describe la configuración declarada, no lo que un proceso concreto puede hacer ahora.\n\nEl **modo clásico** reparte el acceso en nueve bits, agrupados en tres tríos: propietario, grupo y otros. Cada trío contiene lectura (`r`), escritura (`w`) y ejecución (`x`). Se muestran como una cadena en `ls -l` y también se expresan en **notación octal**, donde cada trío es un dígito entre 0 y 7.\n\nEl kernel decide en un **orden concreto**. Primero compara el UID del proceso con el propietario del fichero: si coinciden, aplica el trío del propietario y **se detiene**. Si no coinciden, comprueba si alguno de los grupos del proceso es el grupo del fichero: si sí, aplica el trío de grupo. Si tampoco, aplica el trío de otros. Nunca se suman los tríos permisivos de varias categorías: se usa **una sola**.\n\nLa cuenta privilegiada rompe esta regla porque el kernel le concede una **capacidad de saltarse la comprobación** de permisos discrecionales, no porque sea «propietaria de todo». Confundir ese atajo con una propiedad del sistema lleva a conclusiones equivocadas sobre el resto de usuarios.\n\nAl crear un fichero, la **`umask`** decide qué permisos no se conceden. Es una decisión de la identidad que crea, no un atributo del fichero ya creado. Por eso dos ficheros con contenido idéntico pueden nacer con modos distintos si los creó la misma cuenta con distinta `umask` o cuentas distintas.\n\n### Vocabulario de apoyo\n\n- **UID**: número que identifica de forma interna a un usuario.\n- **GID**: número que identifica de forma interna a un grupo.\n- **Grupos suplementarios**: grupos adicionales a los que pertenece un usuario.\n- **Propietario**: identidad a la que pertenece un archivo y que puede cambiar sus permisos.\n- **Grupo propietario**: grupo al que se asocian los permisos de grupo de un archivo.\n- **Notación octal**: forma numérica de expresar permisos de lectura, escritura y ejecución.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-04-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un fichero aparece como `-rw-r-----`, propietario `ana` y grupo `soc`. Un proceso corre como `ana` y `ana` pertenece al grupo `soc`. Un analista concluye que el proceso entra «por el grupo», porque el trío de grupo permite leer.\n\nLa conclusión no se sostiene. El proceso y el fichero comparten propietario, y el kernel evalúa **primero** el trío del propietario: al coincidir el UID, aplica ese trío y no llega a mirar el grupo. Como el propietario tiene lectura y escritura, el acceso efectivo es de lectura y escritura, más amplio que el que el grupo concede.\n\nEl error de método es leer los tríos como una lista de alternativas permisivas en vez de como un orden con cortocircuito. Para razonar con precisión hay que ubicar **qué trío gana** y por qué. El límite de la afirmación: con solo el modo `-rw-r-----` y el nombre del grupo no se puede demostrar el acceso efectivo; hace falta la identidad real y efectiva del proceso, incluidas sus pertenencias, porque un trío distinto puede aplicarse según coincida el UID o el GID.\n\n"
+    },
+    {
+      "id": "LNX-04-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Registrar identidad real y efectiva y pertenencias a grupos antes de interpretar un acceso como anomalía.\n- Red Team autorizado: Distinguir entre tener un nombre de usuario y tener realmente un permiso sobre el recurso.\n- Evidencia de la etapa: Ficha con modo en octal, propietario, grupo y grupos del proceso observado.\n- Criterio de dominio: Determina qué trío aplica el kernel y con qué identidad antes de concluir.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB02](../../05_RECURSOS/LABORATORIOS/LNX-LAB02.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F01**: [Filesystem Hierarchy Standard 3.0](https://specifications.freedesktop.org/fhs/latest/). Ubicación convencional de los ficheros de cuentas y configuración.\n- **F03**: [Linux credentials(7)](https://man7.org/linux/man-pages/man7/credentials.7.html). Identidad real y efectiva, UID, GID y grupos suplementarios.\n- **F07**: [Linux passwd(5)](https://man7.org/linux/man-pages/man5/passwd.5.html). Estructura de cuentas de usuario y campos de `/etc/passwd`.\n- **F08**: [Linux shadow(5)](https://man7.org/linux/man-pages/man5/shadow.5.html). Verificadores de contraseña y protección del fichero de cuentas.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-04-L01-P01",
+    "prompt": "En el host de laboratorio un fichero muestra el modo `-rw-r-----`, propietario `ana` y grupo `soc`. Un proceso corre con la identidad de `ana`, que además pertenece al grupo `soc`. Explica qué trío de bits decide el kernel y qué dato necesitas para confirmar el acceso efectivo.",
+    "markdown": "## 4. Práctica individual\n\nEn el host de laboratorio un fichero muestra el modo `-rw-r-----`, propietario `ana` y grupo `soc`. Un proceso corre con la identidad de `ana`, que además pertenece al grupo `soc`. Explica qué trío de bits decide el kernel y qué dato necesitas para confirmar el acceso efectivo.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado usuarios y grupos reales.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-04-L01-Q01",
+      "prompt": "Un proceso con UID 1001 abre un fichero cuyo propietario tiene UID 1001. ¿Qué conjunto de bits aplica el kernel?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Los bits de otros, porque el proceso no es la cuenta privilegiada"
+        },
+        {
+          "id": "B",
+          "text": "Los bits del propietario, porque el UID del proceso coincide con el del fichero"
+        },
+        {
+          "id": "C",
+          "text": "Los bits de grupo, porque el kernel evalúa siempre primero el grupo"
+        },
+        {
+          "id": "D",
+          "text": "Ninguno; la coincidencia de UID impide abrir el fichero"
+        }
+      ]
+    },
+    {
+      "id": "LNX-04-L01-Q02",
+      "prompt": "¿Cuál es el límite de afirmar que un usuario puede leer un fichero observando solo su modo `-rw-r-----`?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Falta conocer la identidad real y efectiva del proceso y su pertenencia a grupos"
+        },
+        {
+          "id": "B",
+          "text": "Ninguno: el modo por sí solo describe el acceso efectivo de cualquier proceso"
+        },
+        {
+          "id": "C",
+          "text": "El modo depende del sistema de ficheros y por eso no aporta información"
+        },
+        {
+          "id": "D",
+          "text": "Se necesita conocer el verificador de contraseña del usuario propietario"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB02](../../05_RECURSOS/LABORATORIOS/LNX-LAB02.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F01**: [Filesystem Hierarchy Standard 3.0](https://specifications.freedesktop.org/fhs/latest/). Ubicación convencional de los ficheros de cuentas y configuración.\n- **F03**: [Linux credentials(7)](https://man7.org/linux/man-pages/man7/credentials.7.html). Identidad real y efectiva, UID, GID y grupos suplementarios.\n- **F07**: [Linux passwd(5)](https://man7.org/linux/man-pages/man5/passwd.5.html). Estructura de cuentas de usuario y campos de `/etc/passwd`.\n- **F08**: [Linux shadow(5)](https://man7.org/linux/man-pages/man5/shadow.5.html). Verificadores de contraseña y protección del fichero de cuentas.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "55d5e65faa86df032379f142"
+}

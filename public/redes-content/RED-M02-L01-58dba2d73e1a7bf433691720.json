@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M02-L01",
+  "title": "Direcciones, máscaras y CIDR",
+  "sourceHash": "18144ae8fda96ad3175c64c14b0a3125f608a22f8747331fff285745545ed575",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M02-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nCalcular red, rango y pertenencia mediante un prefijo IPv4.\n\nPrerrequisitos: [RED-M01-L04](../RED-E01/RED-M01-L04.md).\n\n## 2. Comprende el mecanismo\n\nIPv4 tiene 32 bits. Un prefijo /n fija n bits de red; los restantes distinguen direcciones dentro del bloque. En una subred convencional /26 hay 64 direcciones, normalmente 62 asignables a hosts porque red y broadcast tienen funciones reservadas. No extrapoles esa resta a todos los prefijos: /31 puede emplearse en enlaces punto a punto compatibles y /32 identifica una dirección individual. Las redes privadas RFC 1918 no son rutas públicas globales; una dirección de documentación tampoco debe usarse como objetivo real.\n\n### Vocabulario de apoyo\n\n- **CIDR**: Notación /n que expresa cuántos bits del bloque son prefijo de red.\n- **VLSM**: Asignación de subredes de tamaños distintos dentro de un bloque padre.\n- **Broadcast IPv4**: Dirección para todos los hosts del dominio correspondiente; se reserva en las subredes convencionales del ejercicio.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M02-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Ejercicio sintético: 192.0.2.70/26. Bloques del último octeto: 0, 64, 128, 192.\n\n70 pertenece al bloque 64–127: red 192.0.2.64, broadcast .127 y hosts convencionales .65–.126. El prefijo determina el rango, no una clase histórica A/B/C.\n\n"
+    },
+    {
+      "id": "RED-M02-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Interpretar subredes y saltos de origen.\n- Red Team autorizado: Delimitar rangos autorizados de laboratorio.\n- Evidencia del módulo: Tabla de prefijos, asignación y pruebas de no solapamiento.\n- Criterio del módulo: Cumple capacidad, agregación y ausencia de conflictos.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L01](../../05_RECURSOS/LABORATORIOS/RED-L01.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC4632**: [RFC 4632: Classless Inter-domain Routing](https://www.rfc-editor.org/rfc/rfc4632.html). Prefijos y agregación IPv4.\n- **RFC3021**: [RFC 3021: 31-Bit Prefixes on IPv4 Point-to-Point Links](https://www.rfc-editor.org/rfc/rfc3021.html). Excepción de capacidad para /31 en enlaces apropiados.\n- **PY-IP**: [ipaddress — IPv4/IPv6 manipulation library](https://docs.python.org/3/library/ipaddress.html). Tipos, redes y errores de validación; solo operaciones offline.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M02-L01-P01",
+    "prompt": "Calcula red y broadcast de 192.0.2.130/26 y comprueba si .126 pertenece a esa subred.",
+    "markdown": "## 4. Práctica individual\n\nCalcula red y broadcast de 192.0.2.130/26 y comprueba si .126 pertenece a esa subred.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M02-L01-Q01",
+      "prompt": "¿Cuántas direcciones contiene un /26?",
+      "options": [
+        {
+          "id": "A",
+          "text": "64"
+        },
+        {
+          "id": "B",
+          "text": "26"
+        },
+        {
+          "id": "C",
+          "text": "256"
+        },
+        {
+          "id": "D",
+          "text": "62 en total"
+        }
+      ]
+    },
+    {
+      "id": "RED-M02-L01-Q02",
+      "prompt": "¿Cuál es la red de 192.0.2.70/26?",
+      "options": [
+        {
+          "id": "A",
+          "text": "192.0.2.64/26"
+        },
+        {
+          "id": "B",
+          "text": "192.0.2.0/24"
+        },
+        {
+          "id": "C",
+          "text": "192.0.2.128/26"
+        },
+        {
+          "id": "D",
+          "text": "192.0.2.70/26"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L01](../../05_RECURSOS/LABORATORIOS/RED-L01.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC4632**: [RFC 4632: Classless Inter-domain Routing](https://www.rfc-editor.org/rfc/rfc4632.html). Prefijos y agregación IPv4.\n- **RFC3021**: [RFC 3021: 31-Bit Prefixes on IPv4 Point-to-Point Links](https://www.rfc-editor.org/rfc/rfc3021.html). Excepción de capacidad para /31 en enlaces apropiados.\n- **PY-IP**: [ipaddress — IPv4/IPv6 manipulation library](https://docs.python.org/3/library/ipaddress.html). Tipos, redes y errores de validación; solo operaciones offline.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "58dba2d73e1a7bf433691720"
+}

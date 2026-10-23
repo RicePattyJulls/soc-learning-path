@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M05-L03",
+  "title": "PCAP y metadatos",
+  "sourceHash": "1e6e0ee15817332a9d601a459f237f0d79b7a69ff1b631bbef765795a25b91e7",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M05-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nPreservar un archivo de captura y sus metadatos de adquisición.\n\nPrerrequisitos: [RED-M05-L02](../RED-E01/RED-M05-L02.md).\n\n## 2. Comprende el mecanismo\n\nUn PCAP o PCAPNG contiene paquetes y metadatos según formato y herramientas. Conservar su hash permite detectar cambios de bytes; no demuestra autenticidad del origen, precisión del reloj o captura completa. Registra interfaz, sensor, zona horaria, filtro, snaplen, inicio/fin y pérdidas informadas. Un snaplen pequeño puede truncar payload incluso cuando el paquete se guardó. Trabaja sobre una copia, conserva el original y documenta transformaciones; los datos capturados pueden ser sensibles aunque el ejercicio sea técnico.\n\n### Vocabulario de apoyo\n\n- **PCAP/PCAPNG**: Formatos de almacenamiento de paquetes capturados y metadatos.\n- **SPAN y TAP**: Espejo de tráfico configurado en un equipo y punto de acceso de observación del enlace, con propiedades diferentes.\n- **Snaplen**: Límite de bytes conservados de cada paquete por la captura.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M05-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Ficha docente: sensor=S1; snaplen=96; longitud original=1514; longitud capturada=96; SHA-256 calculado al recibir.\n\nEl archivo puede estar íntegro desde la recepción y contener paquetes truncados. Hash correcto y cobertura completa son propiedades diferentes.\n\n"
+    },
+    {
+      "id": "RED-M05-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Preparar base de investigación PCAP.\n- Red Team autorizado: Comprobar telemetría generada por actividad autorizada.\n- Evidencia del módulo: Archivo origen, hash, filtros y hallazgos observables.\n- Criterio del módulo: Reproduce filtros, conserva original y declara límites.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L03](../../05_RECURSOS/LABORATORIOS/RED-L03.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **WIRESHARK**: [Wireshark User’s Guide](https://www.wireshark.org/docs/wsug_html_chunked/). Filtros, captura, streams, metadatos y límites de observación.\n- **CHECKSUM**: [Checksums](https://www.wireshark.org/docs/wsug_html_chunked/ChAdvChecksums.html). Artefactos de checksum y offload.\n- **RFC8484**: [RFC 8484: DNS Queries over HTTPS](https://www.rfc-editor.org/rfc/rfc8484.html). DNS sobre HTTPS; evita asumir que toda resolución DNS usa UDP/TCP 53.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M05-L03-P01",
+    "prompt": "Otro analista exporta solo un stream a un archivo nuevo. Define la trazabilidad mínima de esa derivación.",
+    "markdown": "## 4. Práctica individual\n\nOtro analista exporta solo un stream a un archivo nuevo. Define la trazabilidad mínima de esa derivación.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M05-L03-Q01",
+      "prompt": "¿Qué acredita un hash coincidente?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que el reloj era exacto"
+        },
+        {
+          "id": "B",
+          "text": "Que coinciden los bytes comparados"
+        },
+        {
+          "id": "C",
+          "text": "Que el origen es auténtico por sí solo"
+        },
+        {
+          "id": "D",
+          "text": "Que todos los paquetes de la red están presentes"
+        }
+      ]
+    },
+    {
+      "id": "RED-M05-L03-Q02",
+      "prompt": "¿Qué indica longitud capturada menor que original?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Truncamiento de lo conservado"
+        },
+        {
+          "id": "B",
+          "text": "Cifrado roto"
+        },
+        {
+          "id": "C",
+          "text": "Ausencia de tráfico"
+        },
+        {
+          "id": "D",
+          "text": "Un handshake completo necesariamente"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L03](../../05_RECURSOS/LABORATORIOS/RED-L03.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **WIRESHARK**: [Wireshark User’s Guide](https://www.wireshark.org/docs/wsug_html_chunked/). Filtros, captura, streams, metadatos y límites de observación.\n- **CHECKSUM**: [Checksums](https://www.wireshark.org/docs/wsug_html_chunked/ChAdvChecksums.html). Artefactos de checksum y offload.\n- **RFC8484**: [RFC 8484: DNS Queries over HTTPS](https://www.rfc-editor.org/rfc/rfc8484.html). DNS sobre HTTPS; evita asumir que toda resolución DNS usa UDP/TCP 53.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "af82ee1516b8c4362b2762ed"
+}

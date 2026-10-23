@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-11-L01",
+  "sourceHash": "ec3616b6d1b9eed1d46418419076e58027545961980747fdbb37e38529767b41",
+  "questions": [
+    {
+      "id": "LNX-11-L01-Q01",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Valida las firmas de los metadatos de repositorio y los hashes asociados, no la integridad posterior de todo archivo».\n\n`apt-secure` autentica los metadatos firmados del repositorio y los hashes ligados a ellos, según la política configurada. No firma cada archivo tras la instalación, no garantiza que ningún servicio quede vulnerable y no elimina la necesidad de claves."
+    },
+    {
+      "id": "LNX-11-L01-Q02",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Compara contra la base de datos RPM local, que podría estar alterada».\n\n`rpm -V` compara los atributos de los archivos con la base RPM del propio host; si esa base fue manipulada, el resultado hereda ese límite. No depende exclusivamente de Internet ni de claves remotas, no es exclusivo de Arch y no impide consultar el historial de DNF."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "La cadena de versión de upstream no decide el estado de parcheo: las distribuciones **retroportan** correcciones y mantienen versiones aparentemente antiguas con parches aplicados y revisión propia. Una versión «vieja» puede estar parcheada dentro de la política de la distribución.\n\nControles de solo lectura: origen con `apt-cache policy` o `dnf info`, versión y estado con `dpkg-query -W` o `rpm -q`, propiedad de la ruta con `dpkg -S` o `rpm -qf`, integridad local con `dpkg -V` o `rpm -V`, e historial con los logs de APT/dpkg o `dnf history`. No ejecutaría `apt update` como primera acción, porque altera índices y metadatos.\n\nLímite: la verificación local se hace contra los metadatos del propio host, que puede haber sido alterado, y sin el aviso o *advisory* de la distribución la versión por sí sola no decide si el sistema está parcheado.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Explica el retroportado de parches por la distribución."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Propone comandos de solo lectura para versión, origen, propiedad e integridad."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Evita tratar `apt update` o la instalación como una consulta."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Reconoce el límite de la verificación local frente a una referencia externa."
+      }
+    ]
+  },
+  "revision": "b2d954c0b2d4ee60c990eba5"
+}

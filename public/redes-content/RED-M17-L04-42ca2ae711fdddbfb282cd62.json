@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M17-L04",
+  "title": "Rutas asimétricas y atribución",
+  "sourceHash": "4b3aca4f51844961ea9527136922f51498a3facd522cac5f103852ee2cd52487",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M17-L04-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nCorroborar atribución y efectos del routing asimétrico.\n\nPrerrequisitos: [RED-M17-L03](../RED-E03/RED-M17-L03.md).\n\n## 2. Comprende el mecanismo\n\nLa asimetría no es siempre un fallo, pero puede afectar controles que esperan observar ambos sentidos y al análisis de capturas unidireccionales. Tras NAT, DHCP o VPN, una IP requiere contexto temporal para relacionarla con un activo o identidad. Combina traducciones, concesiones, sesiones y tiempos con incertidumbre explícita. Una ruta legítima de retorno alternativa puede eludir un sensor sin que desaparezca el tráfico. No atribuyas al host inicial todas las acciones de una IP compartida durante un día entero.\n\n### Vocabulario de apoyo\n\n- **SNAT, DNAT y PAT**: Traducción del origen, del destino y de direcciones con distinción de puertos.\n- **Proxy y backend**: Intermediario que atiende o reenvía peticiones y servicio situado detrás de él.\n- **Asimetría**: Uso de caminos diferentes para los sentidos de una comunicación.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M17-L04-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> DNS registra cliente .10; NAT reasigna puertos durante el día; alerta externa solo trae IP de salida y una hora aproximada de ±10 min.\n\nLa precisión disponible puede dejar varios candidatos. La conclusión debe expresar atribución incompleta en lugar de escoger el primer host que coincida.\n\n"
+    },
+    {
+      "id": "RED-M17-L04-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Construir pivotes temporales con NAT.\n- Red Team autorizado: Validar una regla NAT de alcance delimitado.\n- Evidencia del módulo: Tabla pre/post traducción con UTC y grado de confianza.\n- Criterio del módulo: No atribuye persona solo por IP pública.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L09](../../05_RECURSOS/LABORATORIOS/RED-L09.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC3022**: [RFC 3022: Traditional IP Network Address Translator](https://www.rfc-editor.org/rfc/rfc3022.html). Traducción de direcciones y puertos; referencia conceptual, no guía de despliegue.\n- **RFC3704**: [RFC 3704: Ingress Filtering for Multihomed Networks](https://www.rfc-editor.org/rfc/rfc3704.html). uRPF y compromisos ante caminos asimétricos.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M17-L04-P01",
+    "prompt": "El firewall A observa SYN y B observa SYN/ACK. Formula una hipótesis de red y una comprobación.",
+    "markdown": "## 4. Práctica individual\n\nEl firewall A observa SYN y B observa SYN/ACK. Formula una hipótesis de red y una comprobación.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M17-L04-Q01",
+      "prompt": "¿Qué necesita una atribución basada en NAT?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Traducción y tiempo con precisión suficiente"
+        },
+        {
+          "id": "B",
+          "text": "Solo la IP pública de salida durante todo el día"
+        },
+        {
+          "id": "C",
+          "text": "Solo el prefijo interno esperado sin el registro de la sesión"
+        },
+        {
+          "id": "D",
+          "text": "Una concesión DHCP de otro intervalo sin puertos traducidos"
+        }
+      ]
+    },
+    {
+      "id": "RED-M17-L04-Q02",
+      "prompt": "¿Qué explicación admite el caso SYN en A y SYN/ACK en B?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Asimetría del camino"
+        },
+        {
+          "id": "B",
+          "text": "Cifrado de la cabecera Ethernet"
+        },
+        {
+          "id": "C",
+          "text": "Autenticación fallida demostrada"
+        },
+        {
+          "id": "D",
+          "text": "Ausencia de toda respuesta"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L09](../../05_RECURSOS/LABORATORIOS/RED-L09.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC3022**: [RFC 3022: Traditional IP Network Address Translator](https://www.rfc-editor.org/rfc/rfc3022.html). Traducción de direcciones y puertos; referencia conceptual, no guía de despliegue.\n- **RFC3704**: [RFC 3704: Ingress Filtering for Multihomed Networks](https://www.rfc-editor.org/rfc/rfc3704.html). uRPF y compromisos ante caminos asimétricos.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "42ca2ae711fdddbfb282cd62"
+}

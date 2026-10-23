@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-20-L02",
+  "sourceHash": "d1821a51986c11a8c88d7929711fc434b9eabee4d6b06e25298b4bf3ab860b03",
+  "questions": [
+    {
+      "id": "LNX-20-L02-Q01",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Evalúa las reglas `Match` según los parámetros de conexión indicados».\n\n`sshd -T -C` aplica las reglas `Match` para el usuario, host, origen y puerto indicados y muestra el resultado. No reinicia el servicio, no genera claves y no toca `authorized_keys`."
+    },
+    {
+      "id": "LNX-20-L02-Q02",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Comprobar la configuración efectiva (`sshd -T`, `sshd -T -C`) y abrir una sesión nueva en paralelo antes de cerrar la previa».\n\nTras editar el fragmento hay que validar el resultado efectivo y probar el acceso desde una sesión nueva antes de cerrar la actual, para no quedarse sin acceso. `sshd -t` no basta, y no se debe borrar `known_hosts` ni cambiar el firewall a la vez."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "`sshd -t` comprueba solo la sintaxis y las llaves; no muestra el resultado efectivo. Puede haber otro fragmento cargado por `Include` que cambie una opción, y las reglas `Match` no se evalúan sin `-C`. Por eso que el archivo editado sea correcto no garantiza que la política se aplique a cada usuario y origen.\n\nFalta consultar la configuración efectiva con `sshd -T`, ejecutar `sshd -T -C` con los parámetros relevantes (usuario, host, origen) y probar el acceso abriendo una sesión nueva en paralelo antes de cerrar la previa. Si se cambia SSH y firewall a la vez sin pruebas intermedias, se puede perder el acceso.\n\nLímite: sin evaluar los `Match` y sin prueba real de acceso, no puedes afirmar que la política se aplique a todos los usuarios.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Explica que `sshd -t` valida sintaxis, no configuración efectiva."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Añade `sshd -T` y `sshd -T -C` con parámetros de conexión."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Propone probar el acceso con sesión paralela antes de cerrar la actual."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Declara que sin prueba real no se confirma la aplicación de la política."
+      }
+    ]
+  },
+  "revision": "0710b229eeea85498092efde"
+}

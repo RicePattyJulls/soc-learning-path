@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M04-L01",
+  "title": "TCP y UDP",
+  "sourceHash": "52712c9216b914fea8f9683aca2247c9858950af8e416f5f7ba700649598a872",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M04-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nElegir transporte según sus garantías y sus límites.\n\nPrerrequisitos: [RED-M01-L04](../RED-E01/RED-M01-L04.md), [RED-M02-L04](../RED-E01/RED-M02-L04.md).\n\n## 2. Comprende el mecanismo\n\nTCP ofrece a la aplicación un flujo ordenado de bytes con mecanismos de retransmisión y control de flujo; no conserva los límites de mensajes que la aplicación escribe. UDP conserva datagramas pero no incorpora por sí mismo establecimiento fiable, reordenación o retransmisión. Las aplicaciones pueden construir esas funciones encima: QUIC emplea UDP y no por eso carece de fiabilidad. Los puertos ayudan a identificar extremos de transporte, pero un número conocido no prueba qué aplicación o usuario está actuando.\n\n### Vocabulario de apoyo\n\n- **Handshake**: Intercambio inicial que establece el estado de una conexión.\n- **5-tupla**: IP origen, IP destino, puerto origen, puerto destino y protocolo de transporte.\n- **MTU, MSS y PMTU**: Máximo paquete de un enlace, máximo dato TCP anunciado y menor MTU del camino, respectivamente.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M04-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Traza docente: cliente envía UDP/53; no hay respuesta observada. Otra sesión TCP/443 completa handshake y recibe datos.\n\nEl silencio UDP no demuestra puerto cerrado ni servicio inexistente. La sesión TCP confirma intercambio en ese camino, sin probar el éxito funcional de la aplicación.\n\n"
+    },
+    {
+      "id": "RED-M04-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Discriminar anomalías y degradación.\n- Red Team autorizado: Estimar alcance real de comunicaciones.\n- Evidencia del módulo: Filtros, secuencia TCP, hipótesis y límites.\n- Criterio del módulo: Distingue pérdida, reset, bloqueo y no observabilidad.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L02](../../05_RECURSOS/LABORATORIOS/RED-L02.md)\n- [Guía de laboratorio RED-L03](../../05_RECURSOS/LABORATORIOS/RED-L03.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC9293**: [RFC 9293: Transmission Control Protocol](https://www.rfc-editor.org/rfc/rfc9293.html). Bytes, handshake, secuencias, ventanas y estados TCP.\n- **RFC1191**: [RFC 1191: Path MTU Discovery](https://www.rfc-editor.org/rfc/rfc1191.html). PMTUD IPv4 y mensajes de error.\n- **RFC8201**: [RFC 8201: Path MTU Discovery for IPv6](https://www.rfc-editor.org/rfc/rfc8201.html). PMTU e ICMPv6 Packet Too Big.\n- **RFC9000**: [RFC 9000: QUIC: A UDP-Based Multiplexed and Secure Transport](https://www.rfc-editor.org/rfc/rfc9000.html). Transporte sobre UDP y límites de inferir fiabilidad desde UDP solo.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M04-L01-P01",
+    "prompt": "¿Qué evidencia adicional pedirías para distinguir pérdida de respuesta DNS de una solicitud que nunca llegó al resolver?",
+    "markdown": "## 4. Práctica individual\n\n¿Qué evidencia adicional pedirías para distinguir pérdida de respuesta DNS de una solicitud que nunca llegó al resolver?\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M04-L01-Q01",
+      "prompt": "¿Qué unidad conserva UDP?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Datagramas"
+        },
+        {
+          "id": "B",
+          "text": "Paquetes siempre retransmitidos"
+        },
+        {
+          "id": "C",
+          "text": "Sesiones autenticadas de usuario"
+        },
+        {
+          "id": "D",
+          "text": "Un flujo de bytes necesariamente ordenado"
+        }
+      ]
+    },
+    {
+      "id": "RED-M04-L01-Q02",
+      "prompt": "¿Qué permite concluir el silencio UDP observado?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El puerto está cerrado con certeza"
+        },
+        {
+          "id": "B",
+          "text": "No se observó una respuesta en ese punto e intervalo"
+        },
+        {
+          "id": "C",
+          "text": "TCP está bloqueado en toda la red"
+        },
+        {
+          "id": "D",
+          "text": "El resolver fue eliminado"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L02](../../05_RECURSOS/LABORATORIOS/RED-L02.md)\n- [Guía de laboratorio RED-L03](../../05_RECURSOS/LABORATORIOS/RED-L03.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC9293**: [RFC 9293: Transmission Control Protocol](https://www.rfc-editor.org/rfc/rfc9293.html). Bytes, handshake, secuencias, ventanas y estados TCP.\n- **RFC1191**: [RFC 1191: Path MTU Discovery](https://www.rfc-editor.org/rfc/rfc1191.html). PMTUD IPv4 y mensajes de error.\n- **RFC8201**: [RFC 8201: Path MTU Discovery for IPv6](https://www.rfc-editor.org/rfc/rfc8201.html). PMTU e ICMPv6 Packet Too Big.\n- **RFC9000**: [RFC 9000: QUIC: A UDP-Based Multiplexed and Secure Transport](https://www.rfc-editor.org/rfc/rfc9000.html). Transporte sobre UDP y límites de inferir fiabilidad desde UDP solo.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "e8897df4311cddf6fb4df3ea"
+}

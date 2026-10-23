@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-18-L01",
+  "title": "BIA y dependencias de identidad",
+  "sourceHash": "ec0c128d24c4eddcb457cc10c261a6426421a400cab8c4e2b0a91fd5b2e201d5",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-18-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nIdentificar las dependencias críticas de la identidad y priorizarlas en un análisis de impacto.\n\nPrerrequisitos: `WAD-12-L03` (SYSVOL, políticas y cambio inocuo), `WAD-13-L03` (dcdiag/repadmin y fallos seguros) y `WAD-15-L03` (Windows LAPS/DSRM y custodia).\n\n## 2. Comprende el mecanismo\n\nContinuidad no empieza comprando cintas ni programando tareas: empieza midiendo. La **BIA** (análisis de impacto en el negocio) es el ejercicio que responde dos preguntas: qué se detiene cuando un servicio cae y cuánto duele cada minuto de caída. Sin ese mapa, cualquier plan de respaldo es una apuesta.\n\nLa identidad es la primera dependencia de casi todo. Cuando el directorio no responde, los usuarios no inician sesión, los servicios no obtienen tickets y la administración remota se queda sin credenciales. Por eso la BIA de un entorno Windows suele ordenar primero lo que sostiene la autenticación: **DNS**, el **directorio** y **SYSVOL** con sus directivas.\n\nEse orden no es capricho. DNS resuelve los nombres que el dominio necesita; sin nombres, los clientes no localizan un controlador. El directorio responde la autenticación; sin él no hay sesión ni autorización. SYSVOL distribuye las directivas; si falta, los equipos arrancan con configuración desactualizada o parcial.\n\nUn **cambio** en la identidad agrava cualquier incidente. Si alguien modificó grupos, confianzas o credenciales antes de la caída, restaurar a ciegas puede reintroducir el problema. La BIA anota también esas dependencias de confianza: qué cuentas de recuperación existen, dónde se custodian y quién puede usarlas.\n\nEl **ransomware** es el escenario que más pesa, porque cifra el dato y además intenta borrar las copias accesibles. Una estrategia de continuidad no se mide por copiar, sino por **poder recuperar**: si el medio de respaldo comparte credenciales o red con el original, cae con él.\n\nLa conclusión que cierra la lección: **primero el mapa de dependencias, después la tecnología**. Se practica sobre `ad.lab.test` con datos sintéticos; no se toca un directorio real.\n\n### Vocabulario de apoyo\n\n- **BIA (análisis de impacto en el negocio)**: ejercicio que identifica los servicios críticos y el efecto de su caída.\n- **Dependencia**: servicio o recurso que debe estar disponible para que otro funcione.\n- **Servicio crítico**: el que, si cae, detiene una función esencial.\n- **Ransomware**: código que cifra datos y exige un rescate, y que suele atacar también las copias accesibles.\n- **SYSVOL**: recurso compartido del dominio que aloja los archivos de las GPO y se replica entre controladores.\n- **Continuidad**: capacidad de mantener o restablecer un servicio tras un incidente.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-18-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test`, tras un incidente de cifrado el directorio no responde, los puestos no inician sesión y la consola de administración no conecta con `DC01`.\n\nEl primer paso es ordenar las dependencias por impacto, no por antigüedad del equipo. La caída del directorio explica que no haya inicio de sesión; si además DNS o SYSVOL dependen del mismo host cifrado, la restauración debe empezar por lo que devuelve la autenticación. La evidencia útil es el inventario de servicios afectados, su relación de dependencia y la lista de credenciales de recuperación disponibles. La conclusión acota lo observable —«la identidad es la dependencia de mayor impacto en este caso»— y reconoce su límite: sin confirmar el alcance del cifrado y el estado de cada copia, la prioridad es una hipótesis de trabajo, no un plan validado.\n\n"
+    },
+    {
+      "id": "WAD-18-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: El mapa de dependencias permite informar qué servicio devolver primero y por qué.\n- Red Team autorizado: Conocer los servicios críticos ayuda a describir el impacto de un incidente sin tocar el entorno autorizado.\n- Evidencia de la etapa: Inventario de servicios dependientes, orden de impacto y lista de credenciales de recuperación.\n- Criterio de dominio: La continuidad se ordena por impacto medido, no por tecnología disponible.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB12](../../05_RECURSOS/LABORATORIOS/WAD-LAB12.md)\n- [Guía de laboratorio WAD-LAB14](../../05_RECURSOS/LABORATORIOS/WAD-LAB14.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **FORESTREC**: [Active Directory forest recovery guide](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/ad-forest-recovery-guide). Marco general para planificar la recuperación del directorio.\n- **RANSOMWARE**: [StopRansomware Guide (CISA)](https://www.cisa.gov/stopransomware/ransomware-guide). Escenario de amenaza que guía la prioridad de las copias.\n- **ADDSOVER**: [Active Directory Domain Services overview](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/get-started/virtual-dc/active-directory-domain-services-overview). Componentes del directorio y sus dependencias.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-18-L01-P01",
+    "prompt": "En `ad.lab.test` debes priorizar la continuidad de la identidad tras un incidente. Haz el análisis de impacto: enumera los servicios y dependencias críticas de la identidad y justifica el orden de prioridad.",
+    "markdown": "## 4. Práctica individual\n\nEn `ad.lab.test` debes priorizar la continuidad de la identidad tras un incidente. Haz el análisis de impacto: enumera los servicios y dependencias críticas de la identidad y justifica el orden de prioridad.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber recuperado un dominio real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-18-L01-Q01",
+      "prompt": "Antes de diseñar los respaldos de la identidad, ¿cuál es el primer paso de un análisis de impacto (BIA)?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Identificar los servicios y dependencias críticas de la identidad y ordenar su impacto antes de elegir cómo respaldarlos"
+        },
+        {
+          "id": "B",
+          "text": "Comprar más almacenamiento y programar copias cada hora sin analizar dependencias"
+        },
+        {
+          "id": "C",
+          "text": "Restaurar un controlador para comprobar que los medios funcionan"
+        },
+        {
+          "id": "D",
+          "text": "Documentar la lista de objetos del dominio por orden alfabético"
+        }
+      ]
+    },
+    {
+      "id": "WAD-18-L01-Q02",
+      "prompt": "El dominio depende de DNS, de SYSVOL con las GPO y de las credenciales de recuperación. ¿Qué lectura conviene para priorizar la continuidad?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Solo importa el objeto del dominio; todo lo demás se regenera sin coste"
+        },
+        {
+          "id": "B",
+          "text": "Priorizar el servicio menos usado, porque molesta menos al restaurarlo"
+        },
+        {
+          "id": "C",
+          "text": "Ordenar las dependencias por el impacto de su caída: sin DNS o sin directorio se detiene la autenticación y con ella el resto"
+        },
+        {
+          "id": "D",
+          "text": "Tratar todos los componentes como igual de críticos y respaldar solo el más grande"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB12](../../05_RECURSOS/LABORATORIOS/WAD-LAB12.md)\n- [Guía de laboratorio WAD-LAB14](../../05_RECURSOS/LABORATORIOS/WAD-LAB14.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **FORESTREC**: [Active Directory forest recovery guide](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/ad-forest-recovery-guide). Marco general para planificar la recuperación del directorio.\n- **RANSOMWARE**: [StopRansomware Guide (CISA)](https://www.cisa.gov/stopransomware/ransomware-guide). Escenario de amenaza que guía la prioridad de las copias.\n- **ADDSOVER**: [Active Directory Domain Services overview](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/get-started/virtual-dc/active-directory-domain-services-overview). Componentes del directorio y sus dependencias.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "85e58b08ffe981a2a8237b09"
+}

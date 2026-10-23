@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-19-L03",
+  "title": "Sockets y procesos: LISTEN, ESTAB y límites",
+  "sourceHash": "9cc5271144e95e6e1cb68a0544f2b978973ddab8c42570a7006cb525fed66b9c",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-19-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nRelacionar sockets y procesos, y reconocer los límites de `ss` frente a namespaces, systemd y la historia.\n\nPrerrequisitos: `LNX-19-L02` (UDP, ICMP y dual stack).\n\n## 2. Comprende el mecanismo\n\nUn socket conecta una aplicación con la red. Saber **qué proceso** mantiene un socket exige privilegios y contexto: `ss -p` puede omitir sockets de otros usuarios sin privilegios, y la atribución depende de la versión y de la visibilidad del kernel.\n\n`LISTEN` y `ESTAB` responden a preguntas distintas. `LISTEN` es un servicio esperando conexiones en un puerto dentro de un espacio de red; `ESTAB` es una conversación en curso. Confundir «servicio escuchando» con «flujo establecido» lleva a errores de atribución y a conclusiones sobre tráfico que la observación no respalda.\n\nsystemd puede poseer la escucha mediante `systemd.socket` y activar el servicio bajo demanda. `ss` puede atribuir el socket a `systemd` o mostrar varios titulares de descriptor; conviene consultar `systemctl list-sockets` y la configuración de la unidad antes de etiquetar al PID 1 como sospechoso.\n\nLos **namespaces de red** aíslan sockets. Un servicio puede escuchar dentro de una namespace de contenedor y publicarse por proxy o NAT sobre el host. Un `ss` en la namespace del host no ve esa escucha; hay que inspeccionar el espacio correcto con herramientas legítimas (`ip netns exec` en namespaces de laboratorio, `nsenter` solo si está autorizado).\n\nLa regla de oro: «no sale en `ss` del host» no implica «no existe escucha» ni «no hubo conexión». Hay que considerar namespace, servicio proxy, contenedor, socket activation y observabilidad histórica.\n\nLos sockets son efímeros: entre dos comandos pueden cambiar (una *race*). Registra la hora UTC y repite. El límite: `ss` es una instantánea y no recupera sesiones terminadas ni prueba quién inició un flujo en el pasado.\n\n### Vocabulario de apoyo\n\n- **Socket**: extremo de comunicación entre un proceso y la red.\n- **LISTEN**: estado de un socket que espera conexiones entrantes.\n- **ESTAB**: estado de una conexión establecida entre dos extremos.\n- **systemd.socket**: unidad que posee una escucha y puede activar un servicio.\n- **Namespace de red**: espacio aislado con sus propias interfaces, rutas y sockets.\n- **Socket activation**: crear la escucha en systemd y activar el servicio bajo demanda.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-19-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un analista no ve el puerto 8080 en `ss -lntup` del host y afirma que el servicio «no existe ni pudo recibir tráfico». En realidad, el servicio escucha dentro de una namespace de contenedor y se publica por proxy sobre el host.\n\nLa observación es correcta y la conclusión no. `ss` examina los sockets visibles en la namespace donde se ejecuta y con los privilegios del usuario; un socket de otra namespace no aparece ahí. Un proxy o un reenvío de puertos puede publicar el servicio sobre el host sin que `ss` muestre el puerto en su forma esperada.\n\nLa lectura correcta inspecciona el espacio de red correcto (`ip netns exec` en namespaces de laboratorio), revisa `systemctl list-sockets` y la configuración del proxy. El límite de la conclusión: la ausencia en una instantánea de una namespace no prueba que el servicio no exista; la actividad histórica requiere otra fuente.\n\n"
+    },
+    {
+      "id": "LNX-19-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Comprobar namespace y socket activation antes de afirmar que un servicio no existe.\n- Red Team autorizado: Verificar exposición real por proxy o reenvío dentro del alcance y sin afectar servicios ajenos.\n- Evidencia de la etapa: Namespace inspeccionada, `systemctl list-sockets`, configuración de proxy y hora UTC.\n- Criterio de dominio: Distingue «no visible aquí» de «no existe» y declara los límites de la instantánea.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB23](../../05_RECURSOS/LABORATORIOS/LNX-LAB23.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F73**: [ss(8) — iproute2/man7](https://man7.org/linux/man-pages/man8/ss.8.html). Sockets visibles, filtros y atribución de procesos.\n- **F24**: [systemd: systemd.socket](https://www.freedesktop.org/software/systemd/man/257/systemd.socket.html). Unidades de socket y activación de servicios.\n- **F74**: [network_namespaces(7) — man7](https://man7.org/linux/man-pages/man7/network_namespaces.7.html). Aislamiento de sockets por namespace.\n- **F75**: [ip-netns(8) — iproute2/man7](https://man7.org/linux/man-pages/man8/ip-netns.8.html). Herramienta para inspeccionar namespaces de red propias.\n- **F100**: [tcp(7) — man7](https://man7.org/linux/man-pages/man7/tcp.7.html). Contraste entre `LISTEN` y `ESTAB` en el ciclo del socket.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-19-L03-P01",
+    "prompt": "Un analista no ve el puerto 8080 en `ss -lntup` del host y concluye que el servicio «no existe ni pudo recibir tráfico», aunque escucha dentro de una namespace de contenedor y se publica por proxy. Explica qué límites tiene esa observación y cómo lo comprobarías.",
+    "markdown": "## 4. Práctica individual\n\nUn analista no ve el puerto 8080 en `ss -lntup` del host y concluye que el servicio «no existe ni pudo recibir tráfico», aunque escucha dentro de una namespace de contenedor y se publica por proxy. Explica qué límites tiene esa observación y cómo lo comprobarías.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber inspeccionado contenedores ni haber modificado configuraciones de red.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-19-L03-Q01",
+      "prompt": "¿Qué significa que un puerto no aparezca en el `ss` del host?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que el servicio es imposible que exista en el sistema"
+        },
+        {
+          "id": "B",
+          "text": "Que el host está aislado de Internet"
+        },
+        {
+          "id": "C",
+          "text": "Solo que no hay ese socket visible en esa namespace y con esos privilegios; no prueba que no exista ni que no hubo flujos"
+        },
+        {
+          "id": "D",
+          "text": "Que el firewall permitió todo el tráfico"
+        }
+      ]
+    },
+    {
+      "id": "LNX-19-L03-Q02",
+      "prompt": "¿Qué añade `systemctl list-sockets` frente a `ss -lntup`?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Nada: son exactamente la misma salida"
+        },
+        {
+          "id": "B",
+          "text": "Identifica escuchas poseídas por systemd y el servicio asociado, útil para no etiquetar al PID 1 como sospechoso"
+        },
+        {
+          "id": "C",
+          "text": "El contenido del payload cifrado del flujo"
+        },
+        {
+          "id": "D",
+          "text": "Reemplaza a `nft list ruleset` en la evaluación de la política"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB23](../../05_RECURSOS/LABORATORIOS/LNX-LAB23.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F73**: [ss(8) — iproute2/man7](https://man7.org/linux/man-pages/man8/ss.8.html). Sockets visibles, filtros y atribución de procesos.\n- **F24**: [systemd: systemd.socket](https://www.freedesktop.org/software/systemd/man/257/systemd.socket.html). Unidades de socket y activación de servicios.\n- **F74**: [network_namespaces(7) — man7](https://man7.org/linux/man-pages/man7/network_namespaces.7.html). Aislamiento de sockets por namespace.\n- **F75**: [ip-netns(8) — iproute2/man7](https://man7.org/linux/man-pages/man8/ip-netns.8.html). Herramienta para inspeccionar namespaces de red propias.\n- **F100**: [tcp(7) — man7](https://man7.org/linux/man-pages/man7/tcp.7.html). Contraste entre `LISTEN` y `ESTAB` en el ciclo del socket.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "c5682ea617296213a8a92e73"
+}

@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-14-L03",
+  "sourceHash": "c9eac56e9128c31cfa332e34b7dc9f4ddedcff85628d4f70419149b474ac15c6",
+  "questions": [
+    {
+      "id": "LNX-14-L03-Q01",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Se produce un copy-up: el archivo se copia a la capa superior y allí se modifica».\n\nAl modificar un archivo que solo está abajo, overlayfs lo copia a la capa superior y trabaja sobre esa copia; la inferior no se altera. No se modifica la inferior, no se elimina y recrea, y la modificación no se descarta."
+    },
+    {
+      "id": "LNX-14-L03-Q02",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Un whiteout en la capa superior que lo oculta sin destruir el archivo inferior».\n\nEl borrado en la vista combinada se representa con un whiteout en la superior, que oculta el archivo inferior sin destruirlo. No es un copy-up (que mueve contenido), ni un fallo de checksum, ni una marca de respaldo."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "La vista la determina la **capa superior** con prioridad sobre las inferiores; el proceso ve la combinación, no una capa aislada. El archivo puede estar en la superior, haber sufrido un copy-up desde la inferior o haber sido creado directamente arriba. Para comprobarlo revisaría la configuración del montaje y el `mountinfo` de la namespace del proceso, e inspeccionaría la capa superior.\n\nLímite: una ausencia en la capa inferior no implica ausencia en la vista combinada, y un hallazgo sobre una sola capa puede ser irrelevante para lo que el proceso realmente usa.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Explica que la capa superior tiene prioridad en la vista combinada."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Menciona copy-up y whiteout como operaciones que mueven u ocultan archivos."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Propone revisar configuración, capas y `mountinfo` del proceso."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Reconoce que una sola capa no representa el sistema."
+      }
+    ]
+  },
+  "revision": "2168976bc5ca9460d44fb0d6"
+}

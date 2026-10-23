@@ -1,0 +1,74 @@
+# RED-L01 — Modelo OSI/TCP-IP, enlace y direccionamiento IPv4
+
+**Guía de diseño de laboratorio: no ejecutada ni técnicamente validada.**
+
+## Objetivo y previos
+
+Demostrar de forma reproducible modelo osi/tcp-ip, enlace y direccionamiento ipv4 en un entorno docente controlado.
+
+Módulos: RED-M01, RED-M02. Previos del diseño: los de los módulos asociados.
+
+- Explicar una comunicación extremo a extremo y aislar un fallo físico/L1-L2
+- Diseñar y justificar un esquema IPv4 sin solapamientos
+
+## Topología y preparación
+
+PC-A ↔ SW-A ↔ PC-B; interfaz administrativa separada; comprobar cable/duplex lógico
+
+Direccionamiento del diseño: VLAN10: 10.60.10.0/24; enlace fallido: gateway intencionadamente incorrecto
+
+Registrar host/hipervisor, versiones exactas e imágenes/sha256 autorizadas; respaldar configuraciones, plan de direccionamiento y prueba de aislamiento; no distribuir credenciales reales.
+
+Namespaces/redes virtuales sin bridge al LAN real, sin salida a Internet por defecto; dirección 10.60.0.0/16 y 2001:db8::/32 reservadas para topología didáctica (las subredes concretas se asignan por laboratorio).
+
+Autorización expresa del propietario del entorno; exclusivamente nodos propios, ventana docente y objetivos inventariados; parar ante pérdida de aislamiento, indisponibilidad inesperada o tráfico ajeno.
+
+Herramientas candidatas de la investigación: Packet Tracer, Wireshark. Seleccionar plataforma y versión compatibles antes de ejecutar; esta guía no distribuye imágenes ni acredita soporte. Alternativa de análisis: Captura/evidencia sintética y diagrama revisables sin levantar servicios
+
+## Tareas
+
+- Dibujar encapsulación y asignar IP/máscara/gateway
+- Predecir ARP/ICMP y demostrar ping permitido
+- Aislar defecto físico o de máscara
+
+## Pruebas positivas
+
+- PC-A alcanza PC-B por ICMP y explica ARP
+
+## Controles negativos y fallos para ensayar
+
+- Máscara incompatible impide conectividad prevista
+
+- Dúplex incompatible simulado
+- Máscara incorrecta
+- Cable virtual desconectado
+
+## Evidencias y evaluación
+
+- Topología numerada y tabla de interfaces/direcciones
+- Configuración inicial/final o captura de resultados y comandos usados
+- Resultado de prueba positiva y control negativo
+- Diagnóstico causal más limitaciones y evidencia contradictoria
+- Manifest de versiones, UTC, hashes SHA-256 de ficheros y rúbrica
+
+Todas las pruebas positivas pasan, el control negativo confirma el límite previsto, y el estudiante explica el mecanismo y el origen de los datos; ninguna infracción del aislamiento.
+
+No presentar como ejecución real la resolución de una ficha documental. Evaluar dominio práctico solo con observaciones de la práctica correspondiente y revisión adecuada.
+
+## Restauración
+
+Guardar artefactos y checksum; restaurar snapshot/config inicial; eliminar identidades/tokens de prueba y sesiones/recursos temporales; comprobar ausencia de conexiones hacia LAN externo.
+
+## Referencias
+
+- [RFC 1122: Requirements for Internet Hosts — Communication Layers](https://www.rfc-editor.org/rfc/rfc1122.html)
+- [Ethernet Bridging](https://docs.kernel.org/networking/bridge.html)
+- [Troubleshoot Switch Port and Interface Problems](https://www.cisco.com/c/en/us/support/docs/switches/catalyst-6500-series-switches/12027-53.html)
+- [Troubleshoot Power over Ethernet on Catalyst 9000](https://www.cisco.com/c/en/us/support/docs/switches/catalyst-9200-series-switches/215636-troubleshooting-power-over-ethernet-poe.html)
+- [RFC 4632: Classless Inter-domain Routing](https://www.rfc-editor.org/rfc/rfc4632.html)
+- [RFC 3021: 31-Bit Prefixes on IPv4 Point-to-Point Links](https://www.rfc-editor.org/rfc/rfc3021.html)
+- [ipaddress — IPv4/IPv6 manipulation library](https://docs.python.org/3/library/ipaddress.html)
+
+## Procedencia
+
+Adaptación de la ficha RED-L01 de T5 conservada en investigación. Estimación original: 7 h, incluidas en el recorrido total, no medidas en una ejecución.

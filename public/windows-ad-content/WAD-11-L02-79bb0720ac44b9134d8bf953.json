@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-11-L02",
+  "title": "NTLM y fallbacks medidos",
+  "sourceHash": "1a55523e3e3adb2bb8bcf6dc92ae77c2ef844e59b1f7b397a328391cf46249f9",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-11-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDistinguir NTLM de Kerberos y reconocer cuándo el sistema recurre al método heredado.\n\nPrerrequisitos: `WAD-11-L01` (TGT/TGS y SPN).\n\n## 2. Comprende el mecanismo\n\n**NTLM** es el mecanismo heredado de desafío-respuesta. El servicio envía un desafío y el cliente responde con un cálculo derivado de su credencial; la validación ocurre contra el dominio o contra la base local del equipo. No hay ticket, no hay centro de distribución de claves en el intercambio y el nombre del destino importa poco: por eso funciona donde **Kerberos** no llega.\n\nLa diferencia de fondo es sencilla:\n\n- **Kerberos** necesita un nombre resoluble, un SPN registrado y un reloj sincronizado; a cambio, la credencial no viaja hasta el servicio.\n- **NTLM** no necesita nada de eso y responde a un intercambio directo entre cliente y servicio.\n\nCuando la negociación no puede usar Kerberos, la pila **recurre a NTLM**. Ese «fallback» no es un ataque ni un error: es el comportamiento previsto. Aparece en casos reconocibles:\n\n- Acceso al servicio **por dirección IP** en lugar de por nombre, porque sin nombre no hay SPN que pedir.\n- Servicio **sin SPN registrado**, o registrado de forma que no se resuelve.\n- Equipos **fuera del dominio** o clientes que no negocian Kerberos.\n- Nombres que no resuelven al equipo que ejecuta el servicio.\n\nReconocer el fallback es solo la mitad del trabajo. La otra mitad es **medirlo en lugar de suponerlo**: conviene saber qué proporción del tráfico usa el método heredado, desde qué equipos y hacia qué servicios, porque de eso dependen dos decisiones posteriores —cuánto endurecimiento es viable sin romper rutas legítimas y qué visibilidad se tiene de esas autenticaciones—. Dar por sentado que «en este dominio todo es Kerberos» deja esas rutas fuera del análisis.\n\nAntes de atribuir el fallback a una configuración concreta conviene descartar que la causa sea un dominio enfermo: si el DNS no resuelve, la hora está desviada o la replicación se ha detenido, Kerberos falla para muchos clientes a la vez y el síntoma aparece como una oleada de NTLM. Las comprobaciones del estado del controlador de dominio ayudan a separar ese escenario de un fallo puntual de un solo servicio.\n\n### Vocabulario de apoyo\n\n- **NTLM**: mecanismo heredado de desafío-respuesta entre cliente y servicio.\n- **Kerberos**: mecanismo del dominio basado en tickets, alternativo y preferente.\n- **SPN (nombre de entidad de seguridad de servicio)**: nombre de destino que Kerberos necesita para emitir el ticket.\n- **TGT (ticket de concesión de tickets)**: ticket que habilita solicitar el ticket de servicio.\n- **TGS (ticket de servicio)**: ticket dirigido a un servicio concreto.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-11-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test` aparece tráfico **NTLM** hacia un servicio interno desde varios equipos del dominio. La hipótesis inicial es «equipos comprometidos que evitan Kerberos».\n\nLa hipótesis se cae al mirar los datos: los clientes se conectaban al servicio **por dirección IP** (`192.0.2.10`) y no por su nombre. Sin un nombre resoluble no hay **SPN** que solicitar, así que la negociación **recurre a NTLM**; es el fallback previsto, no una evasión deliberada. La revisión correcta ordena los datos: qué origen usaba cada cliente, si el servicio tenía SPN y si resolvía; en paralelo se comprueba el estado del controlador de dominio para descartar DNS, hora o replicación como causa común. La corrección mínima es publicar y usar el nombre con su SPN, y después **medir** cuánto NTLM queda. La conclusión acota la zona —«fallback por acceso por dirección IP»— y reconoce el límite: el registro dice que se usó el método heredado, no por qué lo eligió cada cliente.\n\n"
+    },
+    {
+      "id": "WAD-11-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Ver NTLM en el registro no cierra una investigación: hay que explicar la ruta —nombre o dirección, SPN presente o ausente— antes de hablar de intención.\n- Red Team autorizado: Conocer qué rutas caen al método heredado evita describir como hallazgo lo que es comportamiento previsto del sistema.\n- Evidencia de la etapa: Tabla de rutas observadas con mecanismo negociado, nombre o dirección usada y SPN implicado.\n- Criterio de dominio: No interpreta tickets o eventos como evidencia única de ataque.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB07](../../05_RECURSOS/LABORATORIOS/WAD-LAB07.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **NTLM**: [NTLM overview](https://learn.microsoft.com/en-us/windows-server/security/kerberos/ntlm-overview). Funcionamiento del desafío-respuesta y su papel como alternativa.\n- **KERB**: [Kerberos authentication overview](https://learn.microsoft.com/en-us/windows-server/security/kerberos/kerberos-authentication-overview). Requisitos que NTLM no exige y por eso aparece como fallback.\n- **DCDIAG**: [dcdiag](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/dcdiag). Comprobaciones de DNS, hora y replicación antes de culpar a la configuración del servicio.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-11-L02-P01",
+    "prompt": "En `ad.lab.test` dispones de cuatro observaciones sintéticas: un cliente que accede al servicio por su nombre de dominio y recibe un ticket de servicio; un cliente que accede por dirección IP; un servicio sin SPN registrado; y un equipo que no está unido al dominio. Indica para cada caso qué mecanismo esperarías, justifica por qué, y explica qué medirías antes de concluir que el uso del mecanismo heredado es un problema.",
+    "markdown": "## 4. Práctica individual\n\nEn `ad.lab.test` dispones de cuatro observaciones sintéticas: un cliente que accede al servicio por su nombre de dominio y recibe un ticket de servicio; un cliente que accede por dirección IP; un servicio sin SPN registrado; y un equipo que no está unido al dominio. Indica para cada caso qué mecanismo esperarías, justifica por qué, y explica qué medirías antes de concluir que el uso del mecanismo heredado es un problema.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber medido autenticaciones en un dominio real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-11-L02-Q01",
+      "prompt": "¿Cuándo es esperable que el sistema recurra a NTLM en lugar de Kerberos?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Siempre que el cliente use un nombre DNS del dominio"
+        },
+        {
+          "id": "B",
+          "text": "Cuando el equipo cliente dispone de un TGT vigente"
+        },
+        {
+          "id": "C",
+          "text": "Cuando el servicio tiene un SPN registrado y el nombre resuelve correctamente"
+        },
+        {
+          "id": "D",
+          "text": "Cuando el cliente accede por dirección IP o el servicio no tiene un SPN resoluble"
+        }
+      ]
+    },
+    {
+      "id": "WAD-11-L02-Q02",
+      "prompt": "¿Por qué conviene medir el uso de NTLM en lugar de darlo por supuesto?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Porque NTLM está deshabilitado de forma predeterminada en los dominios"
+        },
+        {
+          "id": "B",
+          "text": "Porque un dominio puede seguir usando el método heredado en rutas concretas y eso condiciona el endurecimiento y la visibilidad"
+        },
+        {
+          "id": "C",
+          "text": "Porque NTLM cifra los tickets de servicio"
+        },
+        {
+          "id": "D",
+          "text": "Porque NTLM sustituye al SPN cuando el DNS falla"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB07](../../05_RECURSOS/LABORATORIOS/WAD-LAB07.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **NTLM**: [NTLM overview](https://learn.microsoft.com/en-us/windows-server/security/kerberos/ntlm-overview). Funcionamiento del desafío-respuesta y su papel como alternativa.\n- **KERB**: [Kerberos authentication overview](https://learn.microsoft.com/en-us/windows-server/security/kerberos/kerberos-authentication-overview). Requisitos que NTLM no exige y por eso aparece como fallback.\n- **DCDIAG**: [dcdiag](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/dcdiag). Comprobaciones de DNS, hora y replicación antes de culpar a la configuración del servicio.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "79bb0720ac44b9134d8bf953"
+}

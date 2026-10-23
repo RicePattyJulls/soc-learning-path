@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-09-L03",
+  "title": "Comprobaciones cliente/DC",
+  "sourceHash": "1dc844acb872b1a400874e8baa620b1bf127e09122a2e9423266d70050d79396",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-09-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nVerificar con evidencia que un equipo se unió al dominio y que resuelve y autentica contra él.\n\nPrerrequisitos: `WAD-09-L02` (DNS SRV, DC Locator y tiempo).\n\n## 2. Comprende el mecanismo\n\nCuando un equipo se une al dominio, el directorio le crea una **cuenta de equipo**. Esa cuenta existe en el dominio y es lo primero que se ve al listar equipos, pero su presencia no demuestra que el equipo esté funcionando contra el dominio: solo dice que alguien lo registró.\n\nEntre la cuenta de equipo y la autenticación real hay un canal que debe estar en pie. El equipo y el **controlador de dominio (DC)** mantienen un secreto compartido que renuevan periódicamente; mientras ese canal es válido, el equipo puede autenticar a sus usuarios contra el dominio. Si el canal se rompe —por ejemplo, tras restaurar una instantánea de la máquina virtual sin el DC— la cuenta sigue en la lista y el inicio de sesión falla igual.\n\nPara no confundir ambas cosas, la comprobación se hace por capas:\n\n- **Resolución**: el cliente resuelve el nombre de dominio `ad.lab.test`. Sin esto, el **Localizador de DC (DC Locator)** no encuentra nada, porque no puede leer los **registros SRV**.\n- **Canal seguro**: una comprobación específica del canal entre el equipo y el dominio, como `Test-ComputerSecureChannel`, informa si ese vínculo sigue siendo válido.\n- **Salud del DC**: del lado del servidor, `dcdiag` ejecuta pruebas de diagnóstico —conectividad, servicios y registro DNS del dominio— que permiten ver dónde se rompe la cadena.\n- **Evidencia de inicio de sesión**: un inicio de sesión de dominio correcto deja un evento registrado. Sin evento, no hay prueba de que la autenticación ocurrió de verdad.\n\nLa conclusión se sostiene solo si las capas concuerdan. Un equipo que resuelve el dominio pero no tiene canal seguro está registrado, no autenticado. Y una prueba que no deja registro comprobable no es evidencia, sino una impresión. Todo esto se practica en el laboratorio aislado, con datos sintéticos.\n\n### Vocabulario de apoyo\n\n- **Cuenta de equipo**: identidad que representa a un equipo dentro del directorio.\n- **Controlador de dominio (DC)**: servidor que aloja el directorio del dominio y responde a las autenticaciones.\n- **Localizador de DC (DC Locator)**: componente del cliente que localiza un controlador de dominio consultando DNS.\n- **Registro SRV**: registro DNS que publica dónde y en qué puerto se ofrece un servicio.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-09-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un equipo de laboratorio `192.0.2.20` aparece en la lista de equipos del dominio y responde al ping del controlador de dominio. Sin embargo, al iniciar sesión con una cuenta de dominio el acceso falla. El técnico concluye que «el equipo está unido y el problema es la cuenta».\n\nLa apariencia de unión no es prueba de autenticación: la **cuenta de equipo** existe y el nombre se resuelve, pero eso no dice nada del canal seguro. La comprobación correcta es por capas: confirmar que el cliente resuelve `ad.lab.test`, comprobar el canal del equipo con el dominio, ejecutar `dcdiag` del lado del DC y revisar el evento del intento de inicio de sesión. Si el canal está roto, la corrección es restablecer el vínculo del equipo con el dominio, no cambiar la credencial. La conclusión acota la zona —«el equipo figura en el dominio, pero no autentica»— y reconoce su límite: un único inicio de sesión correcto no garantiza que el canal siga sano mañana.\n\n"
+    },
+    {
+      "id": "WAD-09-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Verificar por capas evita declarar resuelto un caso cuyo equipo figura en el dominio pero no autentica.\n- Red Team autorizado: Saber qué prueba demuestra la unión real acota qué se puede afirmar sobre el acceso en un ejercicio autorizado.\n- Evidencia de la etapa: Resolución del nombre de dominio, estado del canal seguro, salida de `dcdiag` y evento del inicio de sesión.\n- Criterio de dominio: Se distingue el equipo registrado del equipo que autentica, con evidencia y un límite reconocido.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB05](../../05_RECURSOS/LABORATORIOS/WAD-LAB05.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **JOINDOM**: [Join a computer to a domain](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/join-computer-to-domain). Qué ocurre al unir un equipo y qué se crea en el directorio.\n- **DCDIAG**: [dcdiag](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/dcdiag). Pruebas de diagnóstico del controlador de dominio.\n- **DNSADDS**: [DNS and AD DS](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/dns-and-ad-ds). Cómo se registra y se resuelve el dominio en DNS.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-09-L03-P01",
+    "prompt": "En un laboratorio aislado, un equipo aparece en la lista del dominio pero el inicio de sesión con una cuenta de dominio falla. Describe qué comprobaciones haces para separar «el equipo figura en el dominio» de «el equipo autentica de verdad», con qué evidencia lo demuestras y qué límite tiene tu conclusión.",
+    "markdown": "## 4. Práctica individual\n\nEn un laboratorio aislado, un equipo aparece en la lista del dominio pero el inicio de sesión con una cuenta de dominio falla. Describe qué comprobaciones haces para separar «el equipo figura en el dominio» de «el equipo autentica de verdad», con qué evidencia lo demuestras y qué límite tiene tu conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber unido ni diagnosticado un equipo real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-09-L03-Q01",
+      "prompt": "¿Qué demuestra de verdad que un equipo autentica contra el dominio?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que el equipo aparece en la lista de equipos del dominio"
+        },
+        {
+          "id": "B",
+          "text": "Que el nombre del dominio responde al ping desde el equipo"
+        },
+        {
+          "id": "C",
+          "text": "Que el canal seguro con el dominio es válido y un inicio de sesión de dominio queda registrado"
+        },
+        {
+          "id": "D",
+          "text": "Que el equipo tiene una dirección IP dentro de la misma red que el controlador"
+        }
+      ]
+    },
+    {
+      "id": "WAD-09-L03-Q02",
+      "prompt": "¿Para qué sirve `dcdiag` al comprobar un dominio?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Para ejecutar pruebas de salud del controlador de dominio y de su registro DNS"
+        },
+        {
+          "id": "B",
+          "text": "Para unir el equipo cliente al dominio"
+        },
+        {
+          "id": "C",
+          "text": "Para cambiar el nivel funcional del dominio"
+        },
+        {
+          "id": "D",
+          "text": "Para sincronizar el reloj del cliente con el controlador"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB05](../../05_RECURSOS/LABORATORIOS/WAD-LAB05.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **JOINDOM**: [Join a computer to a domain](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/join-computer-to-domain). Qué ocurre al unir un equipo y qué se crea en el directorio.\n- **DCDIAG**: [dcdiag](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/dcdiag). Pruebas de diagnóstico del controlador de dominio.\n- **DNSADDS**: [DNS and AD DS](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/dns-and-ad-ds). Cómo se registra y se resuelve el dominio en DNS.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "c0947a5bfca7ffa2a63a37ae"
+}

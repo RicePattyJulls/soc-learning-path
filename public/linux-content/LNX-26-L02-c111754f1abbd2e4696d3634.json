@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-26-L02",
+  "title": "AppArmor: aprender sin desproteger",
+  "sourceHash": "93f1e43f923ca6f1100bfd569d95a2035be8c483107c3c81f9d3fc812b793837",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-26-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nLeer perfiles y modos de AppArmor, distinguir denegación de ausencia de perfil y proponer ajustes mínimos que no desprotejan el servicio.\n\nPrerrequisitos: `LNX-26-L01` (SELinux: investigar una denegación).\n\n## 2. Comprende el mecanismo\n\n**AppArmor** es un LSM que confina programas mediante **perfiles** asociados a ejecutables y reglas basadas principalmente en rutas y operaciones. Donde SELinux razona con tipos, AppArmor razona con el binario y los caminos que puede tocar. Esa diferencia cambia el diagnóstico: aquí la pregunta central es qué perfil se aplica a este ejecutable y qué rutas autoriza.\n\nEl primer dato es el **modo del perfil**. Un perfil en `enforce` bloquea las operaciones no permitidas; en `complain` las registra sin bloquear. `aa-status` muestra cuántos perfiles están cargados, en qué modo y qué procesos están confinados. Un servicio puede no aparecer porque no tiene perfil, y eso no significa que el LSM esté desactivado: significa que ese binario corre sin confinamiento.\n\nEl segundo dato es el **perfil aplicado**. El nombre del perfil no siempre coincide con el nombre del servicio; puede estar asociado a una ruta concreta del ejecutable o a una variante. Leer el perfil permite ver qué rutas tiene permitidas y con qué operaciones (`r`, `w`, `k`, `l`, `m`). Una regla amplia sobre `/**` concede todo y convierte el perfil en un sello sin efecto real.\n\nEl tercer dato es el **evento**. Las denegaciones aparecen en el journal del kernel con la marca `apparmor=\"DENIED\"`, el perfil, la operación y la ruta. La ventana temporal importa: un `DENIED` de hace una semana no explica el fallo de ahora, y una denegación repetida cada minuto puede ser un reintento del servicio. Correlacionar con la unidad y el proceso evita atribuir al perfil un fallo que viene de otra capa.\n\nEl cuarto punto es el **modo de aprendizaje**. `complain` es útil para observar qué necesita un servicio antes de confinarlo, pero no es una configuración recomendada de forma permanente. `aa-logprof` puede escribir y cargar perfiles: no es una herramienta de lectura y no se ejecuta en un host personal por curiosidad. Convertir todo a `complain` para «que funcione» elimina la contención y deja el sistema peor que antes de la lección.\n\nLa corrección se hace con el **mínimo necesario**. Se identifica la ruta o la operación que falta, se valora si el acceso es legítimo para ese servicio, se añade la regla más estrecha posible y se vuelve a `enforce` con prueba positiva y negativa. Un ajuste amplio resuelve el síntoma y borra la evidencia de por qué hacía falta.\n\nLa regla de la lección: perfil, modo y evento antes de editar, y volver a enforce tras el ajuste. El límite: la ausencia de `DENIED` no demuestra que el perfil sea correcto ni que el servicio esté confinado; solo indica que no se registró una denegación en la ventana consultada.\n\n### Vocabulario de apoyo\n\n- **Perfil**: conjunto de reglas que confina un ejecutable en AppArmor.\n- **`enforce`**: modo que bloquea las operaciones no permitidas.\n- **`complain`**: modo que registra sin bloquear; útil para observar, no como estado final.\n- **`aa-status`**: herramienta que muestra perfiles cargados, modos y procesos confinados.\n- **`DENIED`**: marca de denegación de AppArmor en el journal del kernel.\n- **`aa-logprof`**: herramienta que puede escribir perfiles; no es solo lectura.\n- **Confinamiento**: aplicación efectiva de un perfil a un proceso.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-26-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un servicio de laboratorio con perfil AppArmor falla al escribir en un directorio nuevo. El operador pasa el perfil a `complain`, el servicio funciona y deja el cambio «temporalmente». Tres semanas después, el perfil sigue en `complain` y nadie recuerda por qué.\n\nLa solución funcionó y la protección se perdió. En `complain` el perfil registra las operaciones que antes bloqueaba, de modo que el servicio escribe porque ya no hay contención. El cambio resolvió el síntoma y eliminó el control; el «temporal» se convirtió en permanente por falta de seguimiento y de criterio de reversión.\n\nLa lectura correcta identifica la ruta denegada, comprueba si el acceso es legítimo, añade la regla mínima al perfil y vuelve a `enforce` con prueba positiva y negativa. El límite: sin el evento `DENIED` y sin el perfil aplicado, no se sabe qué operación faltaba; y sin retest en `enforce`, no se puede afirmar que el ajuste sea suficiente ni que la protección siga activa.\n\n"
+    },
+    {
+      "id": "LNX-26-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Distinguir perfil en `complain` de perfil en `enforce` al evaluar la contención real.\n- Red Team autorizado: Documentar rutas permitidas por un perfil sin aprovechar una regla amplia.\n- Evidencia de la etapa: `aa-status`, perfil aplicado, evento `DENIED` y retest tras el ajuste.\n- Criterio de dominio: Ajusta el mínimo necesario y devuelve el perfil a `enforce` con prueba.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB34](../../05_RECURSOS/LABORATORIOS/LNX-LAB34.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F108**: [Ubuntu Server: AppArmor](https://ubuntu.com/server/docs/how-to/security/apparmor/). Modos, `aa-status`, perfiles y operación habitual.\n- **F106**: [Linux Kernel: LSM usage](https://cdn.kernel.org/doc/html/latest/admin-guide/LSM/index.html). LSM activos y encadenamiento de controles.\n- **F109**: [Linux Kernel: Yama](https://docs.kernel.org/admin-guide/LSM/Yama.html). `ptrace_scope` y límites de observación entre procesos.\n- **F110**: [systemd.exec(5)](https://man7.org/linux/man-pages/man5/systemd.exec.5.html). Sandbox de la unidad que puede confundirse con una denegación MAC.\n- **F104**: [ACL(5)](https://man7.org/linux/man-pages/man5/acl.5.html). Capa DAC que conviene descartar antes de editar el perfil.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-26-L02-P01",
+    "prompt": "Un servicio de laboratorio con perfil AppArmor falla al escribir en un directorio nuevo. El operador pasa el perfil a `complain`, el servicio funciona y deja el cambio como «temporal»; tres semanas después sigue así. Explica qué muestra `aa-status`, qué información aporta el evento `DENIED`, cómo plantearías un ajuste mínimo y cuál es el límite de tu conclusión.",
+    "markdown": "## 4. Práctica individual\n\nUn servicio de laboratorio con perfil AppArmor falla al escribir en un directorio nuevo. El operador pasa el perfil a `complain`, el servicio funciona y deja el cambio como «temporal»; tres semanas después sigue así. Explica qué muestra `aa-status`, qué información aporta el evento `DENIED`, cómo plantearías un ajuste mínimo y cuál es el límite de tu conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber editado perfiles ni haber operado AppArmor.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-26-L02-Q01",
+      "prompt": "¿Qué efecto tiene pasar un perfil AppArmor de `enforce` a `complain`?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Añade automáticamente las reglas que faltan al perfil"
+        },
+        {
+          "id": "B",
+          "text": "Registra las operaciones que antes bloqueaba, sin impedirlas"
+        },
+        {
+          "id": "C",
+          "text": "Desactiva el LSM para todos los perfiles del sistema"
+        },
+        {
+          "id": "D",
+          "text": "Convierte el perfil en una regla de SELinux equivalente"
+        }
+      ]
+    },
+    {
+      "id": "LNX-26-L02-Q02",
+      "prompt": "Un servicio no aparece en `aa-status`. ¿Qué conclusión es correcta?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que AppArmor está desactivado en todo el sistema y no hay MAC"
+        },
+        {
+          "id": "B",
+          "text": "Que el servicio está confinado por SELinux de forma automática"
+        },
+        {
+          "id": "C",
+          "text": "Que ese binario probablemente corre sin perfil, lo que no implica que el LSM esté inactivo"
+        },
+        {
+          "id": "D",
+          "text": "Que el perfil está en `enforce` pero oculto por la herramienta"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB34](../../05_RECURSOS/LABORATORIOS/LNX-LAB34.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F108**: [Ubuntu Server: AppArmor](https://ubuntu.com/server/docs/how-to/security/apparmor/). Modos, `aa-status`, perfiles y operación habitual.\n- **F106**: [Linux Kernel: LSM usage](https://cdn.kernel.org/doc/html/latest/admin-guide/LSM/index.html). LSM activos y encadenamiento de controles.\n- **F109**: [Linux Kernel: Yama](https://docs.kernel.org/admin-guide/LSM/Yama.html). `ptrace_scope` y límites de observación entre procesos.\n- **F110**: [systemd.exec(5)](https://man7.org/linux/man-pages/man5/systemd.exec.5.html). Sandbox de la unidad que puede confundirse con una denegación MAC.\n- **F104**: [ACL(5)](https://man7.org/linux/man-pages/man5/acl.5.html). Capa DAC que conviene descartar antes de editar el perfil.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "c111754f1abbd2e4696d3634"
+}

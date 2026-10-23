@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-11-L03",
+  "title": "Servicios y gMSA",
+  "sourceHash": "36b789e3c41be2e775c2e0af9495ae1b305a8ee78a4f36a3602cbc83384e58e2",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-11-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nElegir la cuenta de servicio adecuada y corregir un fallo de SPN sin tocar secretos.\n\nPrerrequisitos: `WAD-11-L02` (NTLM y fallbacks medidos).\n\n## 2. Comprende el mecanismo\n\nTodo servicio que atiende a usuarios del dominio corre bajo una identidad, y elegirla es una decisión de seguridad. Las opciones habituales son cuatro, de menor a mayor control:\n\n- **Cuenta integrada** del equipo. Es lo más simple y no requiere gestión, pero comparte la identidad de la máquina: el servicio no se puede aislar y una concesión amplia se reparte entre todo lo que use esa identidad.\n- **Cuenta de usuario dedicada**. Permite registrar **SPN**, delegar permisos concretos y aislar el servicio. Su punto débil es la **contraseña**: la gestiona una persona, no rota sola y suele quedarse sin cambiar durante años.\n- **MSA (cuenta de servicio administrada)**. La administra el propio dominio y se asocia a una máquina; la contraseña deja de gestionarse a mano.\n- **gMSA (cuenta de servicio administrada de grupo)**. La administra el dominio y puede usarla un conjunto autorizado de equipos. La **contraseña rota automáticamente** y ningún operador necesita conocerla ni transcribirla: los equipos autorizados la obtienen del dominio.\n\nLa **gMSA** es, por eso, la opción preferente para servicios que deben autenticarse con Kerberos: elimina el secreto que alguien tendría que custodiar y reduce la superficie de una credencial compartida. Elegir la cuenta es el primer paso; autorizar qué equipos pueden usarla es el segundo.\n\nEl otro elemento del diagnóstico es el **SPN**. La cuenta que ejecuta el servicio publica ahí su SPN; con él, un cliente solicita el **TGS** correcto. Dos fallos muy comunes explican casi todos los casos:\n\n- **SPN ausente**: el cliente no tiene a qué nombre pedir el ticket, así que la negociación falla o **recurre a NTLM**.\n- **SPN duplicado**: el mismo SPN registrado en dos cuentas distintas. El dominio no puede decidir cuál corresponde y la autenticación Kerberos falla.\n\nLa corrección se hace **sobre la configuración del SPN**, registrándolo en la cuenta que ejecuta el servicio y retirándolo de las demás. Nunca se corrige tocando secretos: no se extraen claves, no se copian vales de autenticación ajenos y no se vuelca la memoria del proceso que custodia las credenciales. Esas prácticas quedan fuera del alcance de este material, que es sintético y de laboratorio: un fallo de SPN se arregla describiendo y ajustando el registro del nombre, no obteniendo la contraseña de nadie.\n\n### Vocabulario de apoyo\n\n- **Cuenta de servicio**: identidad bajo la que se ejecuta un servicio del dominio.\n- **gMSA (cuenta de servicio administrada de grupo)**: cuenta que administra el dominio, con contraseña rotada automáticamente y sin secreto conocido por el operador.\n- **SPN (nombre de entidad de seguridad de servicio)**: nombre con el que el servicio se anuncia para recibir tickets.\n- **Kerberos**: mecanismo que emite el ticket cuando el SPN es único y resoluble.\n- **NTLM**: mecanismo heredado al que se recurre cuando Kerberos no puede usarse.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-11-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test` un servicio ficticio deja de aceptar conexiones de los clientes del dominio. No hay cambios de contraseña ni de permisos, y el equipo que lo aloja responde por red. El resumen inicial sospecha de un ataque.\n\nEl servicio respondía, así que el problema no era de red ni de disponibilidad: era de **autenticación**, y el dato decisivo estaba en el registro del **SPN**. La revisión encontró el mismo **SPN** publicado en dos cuentas: una antigua cuenta de usuario dedicada que aún no se había retirado y la que actualmente ejecuta el servicio. Con un SPN duplicado el dominio no puede decidir a qué cuenta dirigir el ticket, y la autenticación falla o **recurre a NTLM**. La corrección es de configuración y no toca ningún secreto: se deja el SPN únicamente en la cuenta que ejecuta el servicio, se retira de la otra y se verifica con una prueba positiva —un cliente que sí obtiene su ticket de servicio— y una negativa —el duplicado ya no existe—. La conclusión acota la causa —«fallo de registro de SPN, no un ataque»— y reconoce el límite: el hallazgo explica este servicio, no descarta por sí solo que haya otra anomalía en el dominio.\n\n"
+    },
+    {
+      "id": "WAD-11-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Ante un servicio que deja de autenticar, revisar primero cuenta y SPN evita describir como ataque lo que es un fallo de registro.\n- Red Team autorizado: Conocer las opciones de cuenta de servicio ayuda a entender el impacto de una credencial compartida, siempre dentro del alcance autorizado y sin extraer secretos.\n- Evidencia de la etapa: Registro de la cuenta que ejecuta el servicio, SPN publicado, duplicados detectados y resultado de la prueba de conexión.\n- Criterio de dominio: No interpreta tickets o eventos como evidencia única de ataque.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB07](../../05_RECURSOS/LABORATORIOS/WAD-LAB07.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **GMSA**: [Group Managed Service Accounts overview](https://learn.microsoft.com/en-us/windows-server/security/group-managed-service-accounts/group-managed-service-accounts-overview). Qué resuelve una cuenta administrada por el dominio.\n- **GMSAMANAGE**: [Manage Group Managed Service Accounts](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/group-managed-service-accounts/group-managed-service-accounts/manage-group-managed-service-accounts). Autorización de equipos y uso de la cuenta.\n- **SPN**: [Service principal names](https://learn.microsoft.com/en-us/windows/win32/ad/service-principal-names). Registro del SPN, unicidad y motivos de fallo.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-11-L03-P01",
+    "prompt": "Un servicio sintético de `ad.lab.test` ejecutado con una cuenta de usuario dedicada deja de autenticar a los clientes del dominio. Los datos indican que su SPN aparece registrado también en una cuenta antigua que nadie retiró. Propón la corrección del registro y justifica qué tipo de cuenta de servicio convendría usar en adelante. Indica expresamente qué acciones descartarías y qué prueba demostraría que el arreglo funcionó.",
+    "markdown": "## 4. Práctica individual\n\nUn servicio sintético de `ad.lab.test` ejecutado con una cuenta de usuario dedicada deja de autenticar a los clientes del dominio. Los datos indican que su SPN aparece registrado también en una cuenta antigua que nadie retiró. Propón la corrección del registro y justifica qué tipo de cuenta de servicio convendría usar en adelante. Indica expresamente qué acciones descartarías y qué prueba demostraría que el arreglo funcionó.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber modificado cuentas de servicio ni registros de SPN en un dominio real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-11-L03-Q01",
+      "prompt": "¿Qué ventaja aporta una gMSA frente a una cuenta de usuario dedicada para ejecutar un servicio?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El dominio administra la contraseña y la rota automáticamente, sin que ningún operador necesite conocerla"
+        },
+        {
+          "id": "B",
+          "text": "Evita tener que registrar el SPN del servicio"
+        },
+        {
+          "id": "C",
+          "text": "Impide que el servicio pueda autenticarse con Kerberos"
+        },
+        {
+          "id": "D",
+          "text": "Elimina la necesidad de que el equipo esté unido al dominio"
+        }
+      ]
+    },
+    {
+      "id": "WAD-11-L03-Q02",
+      "prompt": "Un servicio deja de autenticar por Kerberos y se comprueba que su SPN está registrado en dos cuentas distintas. ¿Cuál es la corrección adecuada?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Extraer la clave de la cuenta de servicio para comprobar cuál de las dos es la válida"
+        },
+        {
+          "id": "B",
+          "text": "Copiar el ticket de otro servicio para reutilizarlo con esta cuenta"
+        },
+        {
+          "id": "C",
+          "text": "Volcar la memoria del proceso de seguridad para leer la credencial de la cuenta"
+        },
+        {
+          "id": "D",
+          "text": "Dejar el SPN en una sola cuenta, la que ejecuta el servicio, y retirarlo de la otra"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB07](../../05_RECURSOS/LABORATORIOS/WAD-LAB07.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **GMSA**: [Group Managed Service Accounts overview](https://learn.microsoft.com/en-us/windows-server/security/group-managed-service-accounts/group-managed-service-accounts-overview). Qué resuelve una cuenta administrada por el dominio.\n- **GMSAMANAGE**: [Manage Group Managed Service Accounts](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/group-managed-service-accounts/group-managed-service-accounts/manage-group-managed-service-accounts). Autorización de equipos y uso de la cuenta.\n- **SPN**: [Service principal names](https://learn.microsoft.com/en-us/windows/win32/ad/service-principal-names). Registro del SPN, unicidad y motivos de fallo.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "2ad0fe6a608605f2f7525672"
+}

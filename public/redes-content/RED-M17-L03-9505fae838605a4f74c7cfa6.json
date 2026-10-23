@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M17-L03",
+  "title": "Proxies y balanceadores",
+  "sourceHash": "ebb6f2e34bd9e1b3bf76aec532daed6f932a095214b712ed4397aee142ec22d6",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M17-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDiferenciar terminación de proxy y conexión de extremo a extremo.\n\nPrerrequisitos: [RED-M17-L02](../RED-E03/RED-M17-L02.md).\n\n## 2. Comprende el mecanismo\n\nUn proxy puede terminar una conexión y abrir otra hacia el backend; un balanceador puede trabajar en diferentes capas y modos. Por eso IP, puerto, secuencia TCP y negociación TLS pueden pertenecer a segmentos distintos de una misma transacción. Una cabecera que declara el cliente original es un dato de aplicación que exige una frontera de confianza: si el cliente puede falsificarla, no acredita identidad. Una comprobación de salud del balanceador tampoco garantiza que todos los backends sirvan toda operación de negocio.\n\n### Vocabulario de apoyo\n\n- **SNAT, DNAT y PAT**: Traducción del origen, del destino y de direcciones con distinción de puertos.\n- **Proxy y backend**: Intermediario que atiende o reenvía peticiones y servicio situado detrás de él.\n- **Asimetría**: Uso de caminos diferentes para los sentidos de una comunicación.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M17-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso docente: cliente→proxy con sesión TLS A; proxy→backend con sesión TLS B; backend registra IP del proxy.\n\nEl registro del backend no muestra necesariamente al cliente original. Correlacionar IDs de petición y logs del proxy evita equiparar ambas sesiones.\n\n"
+    },
+    {
+      "id": "RED-M17-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Construir pivotes temporales con NAT.\n- Red Team autorizado: Validar una regla NAT de alcance delimitado.\n- Evidencia del módulo: Tabla pre/post traducción con UTC y grado de confianza.\n- Criterio del módulo: No atribuye persona solo por IP pública.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L09](../../05_RECURSOS/LABORATORIOS/RED-L09.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC3022**: [RFC 3022: Traditional IP Network Address Translator](https://www.rfc-editor.org/rfc/rfc3022.html). Traducción de direcciones y puertos; referencia conceptual, no guía de despliegue.\n- **RFC3704**: [RFC 3704: Ingress Filtering for Multihomed Networks](https://www.rfc-editor.org/rfc/rfc3704.html). uRPF y compromisos ante caminos asimétricos.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M17-L03-P01",
+    "prompt": "Una petición incluye una cabecera de cliente original enviada directamente sin pasar por el proxy confiable. ¿Debe aceptarse como atribución?",
+    "markdown": "## 4. Práctica individual\n\nUna petición incluye una cabecera de cliente original enviada directamente sin pasar por el proxy confiable. ¿Debe aceptarse como atribución?\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M17-L03-Q01",
+      "prompt": "¿Qué puede cambiar al atravesar un proxy que termina conexiones?",
+      "options": [
+        {
+          "id": "A",
+          "text": "La conexión y sus extremos de transporte"
+        },
+        {
+          "id": "B",
+          "text": "El protocolo IP deja de existir"
+        },
+        {
+          "id": "C",
+          "text": "La VLAN se convierte en usuario"
+        },
+        {
+          "id": "D",
+          "text": "Toda petición queda autenticada por defecto"
+        }
+      ]
+    },
+    {
+      "id": "RED-M17-L03-Q02",
+      "prompt": "¿A quién identifica la IP observada por el backend del ejemplo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "A todos los clientes individualmente"
+        },
+        {
+          "id": "B",
+          "text": "Al proxy como extremo de esa conexión"
+        },
+        {
+          "id": "C",
+          "text": "Necesariamente al usuario original"
+        },
+        {
+          "id": "D",
+          "text": "Al resolver DNS obligatoriamente"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L09](../../05_RECURSOS/LABORATORIOS/RED-L09.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC3022**: [RFC 3022: Traditional IP Network Address Translator](https://www.rfc-editor.org/rfc/rfc3022.html). Traducción de direcciones y puertos; referencia conceptual, no guía de despliegue.\n- **RFC3704**: [RFC 3704: Ingress Filtering for Multihomed Networks](https://www.rfc-editor.org/rfc/rfc3704.html). uRPF y compromisos ante caminos asimétricos.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "9505fae838605a4f74c7cfa6"
+}

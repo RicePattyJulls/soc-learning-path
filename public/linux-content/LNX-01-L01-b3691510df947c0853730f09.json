@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-01-L01",
+  "title": "De la aplicación al kernel",
+  "sourceHash": "8bc49a2aae5bfd98029f1158d09f4cb7103024f28677f632728443b213b3dc45",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-01-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nSituar la frontera entre aplicación, shell y kernel para observar un host sin confundir capas ni privilegios.\n\nPrerrequisitos: ninguno; puedes comenzar desde cero.\n\n## 2. Comprende el mecanismo\n\nLinux no es una sola pieza. Es un **kernel** que administra memoria, procesos, ficheros y red, y un conjunto de **programas** que le piden cosas mediante *llamadas al sistema* (syscalls). Cuando escribes un comando en la shell, no hablas con el kernel: hablas con un programa que, a su vez, le pide al kernel que lea un fichero, cree un proceso o envíe datos por la red.\n\nLa **shell** (por ejemplo Bash) es solo otro programa: interpreta lo que escribes, expande variables y comodines, y lanza otros programas. Por eso «ejecutar `ls`» significa *que la shell pida al sistema que arranque el programa `ls`, y ese programa pida al kernel que liste un directorio*. Son tres saltos de responsabilidad, no uno.\n\nCada proceso que corre lleva una **identidad**: usuario real y efectivo, grupos y capacidades. El kernel decide qué puede hacer cada proceso comparando esa identidad con los permisos del recurso. Dos comandos idénticos ejecutados por usuarios distintos pueden tener resultados opuestos; la diferencia no está en el comando, sino en quién lo ejecuta.\n\nEl kernel también expone una **vista de sí mismo**: el sistema de ficheros virtual `/proc` ofrece información de procesos y del sistema como si fuera un conjunto de archivos. Leer `/proc` es observar al kernel describir su propio estado, no ejecutar magia.\n\nComprender estas capas evita una confusión habitual: creer que «el sistema hizo algo» cuando en realidad lo hizo un programa con una identidad concreta. Antes de concluir nada, ubica **quién** corre, **qué** pide y **en qué capa** ocurre.\n\n### Vocabulario de apoyo\n\n- **Kernel**: núcleo del sistema; gestiona memoria, procesos, dispositivos y red.\n- **Llamada al sistema (syscall)**: petición formal de un programa al kernel.\n- **Shell**: intérprete de comandos; otro programa que lanza programas.\n- **Proceso**: programa en ejecución, con identidad, memoria y estado propios.\n- **Credenciales (UID/GID)**: identidad real y efectiva que el kernel usa para autorizar.\n- **`/proc`**: sistema de ficheros virtual que muestra procesos y estado del kernel.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-01-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un analista ejecuta un comando de listado como su usuario y también con `sudo`, y observa que el segundo muestra archivos que el primero no. Concluye que «el comando cambió».\n\nLa conclusión no se sostiene. El **programa** era el mismo; lo que cambió fue la **identidad efectiva** con la que se ejecutó. Con `sudo`, el proceso pasó a tener privilegios que el kernel acepta para leer más archivos. El comando no cambió: cambió quién lo ejecutaba a ojos del kernel.\n\nRazonar así es la diferencia entre describir un síntoma («el comando hace cosas distintas») y localizar una causa («la identidad efectiva es distinta»). El límite de la conclusión: sin comprobar la identidad real y efectiva, no puedes afirmar *por qué* difieren los resultados, solo *que* difieren.\n\n"
+    },
+    {
+      "id": "LNX-01-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Registrar identidad efectiva y capa de ejecución antes de interpretar un hallazgo como anomalía.\n- Red Team autorizado: Distinguir entre una capacidad del programa y un derecho de uso sobre el sistema.\n- Evidencia de la etapa: Ficha de host con usuario real, usuario efectivo y comando observado.\n- Criterio de dominio: Explica en qué capa ocurre un efecto y con qué identidad antes de concluir.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB01](../../05_RECURSOS/LABORATORIOS/LNX-LAB01.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F01**: [Filesystem Hierarchy Standard 3.0](https://specifications.freedesktop.org/fhs/latest/). Organización de directorios y carácter convencional de las rutas.\n- **F03**: [Linux credentials(7)](https://man7.org/linux/man-pages/man7/credentials.7.html). Identidad real y efectiva que el kernel usa para autorizar.\n- **F10**: [Linux proc(5)](https://man7.org/linux/man-pages/man5/proc.5.html). Vista del kernel y de los procesos como sistema de ficheros virtual.\n- **F13**: [Linux signal(7)](https://man7.org/linux/man-pages/man7/signal.7.html). Señales con las que los procesos se comunican y responden.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-01-L01-P01",
+    "prompt": "Ejecutas el mismo comando de listado como usuario normal y con privilegios, y obtienes resultados distintos. Explica en qué capa está la diferencia y qué dato registrarías para demostrarlo.",
+    "markdown": "## 4. Práctica individual\n\nEjecutas el mismo comando de listado como usuario normal y con privilegios, y obtienes resultados distintos. Explica **en qué capa** está la diferencia y **qué dato** registrarías para demostrarlo.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado un host real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-01-L01-Q01",
+      "prompt": "¿Qué hace realmente la shell cuando escribes un comando como `ls`?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Ejecuta el código del kernel directamente"
+        },
+        {
+          "id": "B",
+          "text": "Pide al sistema que arranque un programa, que a su vez pide al kernel el listado"
+        },
+        {
+          "id": "C",
+          "text": "Modifica los permisos del directorio que se va a listar"
+        },
+        {
+          "id": "D",
+          "text": "Cambia tu identidad para poder leer todos los archivos"
+        }
+      ]
+    },
+    {
+      "id": "LNX-01-L01-Q02",
+      "prompt": "Dos usuarios obtienen resultados distintos con el mismo comando. ¿Cuál es la explicación más precisa?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El kernel es distinto para cada usuario"
+        },
+        {
+          "id": "B",
+          "text": "El comando cambió de versión entre ejecuciones"
+        },
+        {
+          "id": "C",
+          "text": "La identidad efectiva del proceso es distinta y el kernel autoriza según ella"
+        },
+        {
+          "id": "D",
+          "text": "La shell reordena los argumentos según el usuario"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB01](../../05_RECURSOS/LABORATORIOS/LNX-LAB01.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F01**: [Filesystem Hierarchy Standard 3.0](https://specifications.freedesktop.org/fhs/latest/). Organización de directorios y carácter convencional de las rutas.\n- **F03**: [Linux credentials(7)](https://man7.org/linux/man-pages/man7/credentials.7.html). Identidad real y efectiva que el kernel usa para autorizar.\n- **F10**: [Linux proc(5)](https://man7.org/linux/man-pages/man5/proc.5.html). Vista del kernel y de los procesos como sistema de ficheros virtual.\n- **F13**: [Linux signal(7)](https://man7.org/linux/man-pages/man7/signal.7.html). Señales con las que los procesos se comunican y responden.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "b3691510df947c0853730f09"
+}

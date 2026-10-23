@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-13-L01",
+  "sourceHash": "21f74b16920ff7181b615e7d759a21cc9afcca6c65688a53a4e4054a980d79ed",
+  "questions": [
+    {
+      "id": "LNX-13-L01-Q01",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Permisos, ACL, xattrs y otros metadatos que no forman parte del contenido».\n\nEl hash se calcula sobre los bytes del contenido, así que dos archivos con el mismo hash pueden diferir en propietario, modo, ACL, xattrs, enlaces o tiempos. El hash no cubre esos atributos ni el sistema de archivos de destino."
+    },
+    {
+      "id": "LNX-13-L01-Q02",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Aproximadamente recursión, enlaces, permisos y tiempos, pero no ACL ni xattrs por sí solo».\n\n`-a` reúne recursión, enlaces, permisos, tiempos, grupo y propietario según acceso. No incluye ACL (`-A`), xattrs (`-X`) ni hard links (`-H`); darlo por hecho lleva a restaurar con menos metadatos de los esperados."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "El hash solo cubre el contenido. Pueden haber cambiado el propietario y el modo (si la copia no se hizo con privilegios suficientes), las ACL, los atributos extendidos (etiquetas de seguridad, capacidades), los hard links y las marcas temporales. Lo confirmaría leyendo metadatos antes y después —por ejemplo con `stat`, `getfacl` y `getfattr`— y probando el comportamiento de la aplicación en un destino aislado.\n\nLímite: un hash coincidente nunca revela diferencias de metadatos, y aunque la herramienta capture xattrs, un sistema de archivos destino que no los soporte puede no restaurarlos. El hash demuestra igualdad de contenido, no fidelidad de restauración.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Distingue contenido de metadatos al hablar de fidelidad."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Enumera propietario, modo, ACL, xattrs, enlaces y tiempos como posibles diferencias."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Propone lecturas de metadatos y una prueba funcional."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Reconoce que el hash no cubre metadatos ni la compatibilidad del destino."
+      }
+    ]
+  },
+  "revision": "f04134f29567c2af1fa85a3b"
+}

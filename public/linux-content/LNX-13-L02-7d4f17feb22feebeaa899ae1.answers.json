@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-13-L02",
+  "sourceHash": "192cd7691d2abce7574e2210e902ada00d8c20b62e542ec60bb7d7cefbcab790",
+  "questions": [
+    {
+      "id": "LNX-13-L02-Q01",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Son dos nombres (hard links) al mismo objeto, que comparten contenido y metadatos del inodo».\n\nCompartir dispositivo e inodo identifica el mismo objeto: dos hard links al mismo contenido y metadatos. No son duplicados independientes, no implican un enlace simbólico y no es coincidencia de contenido."
+    },
+    {
+      "id": "LNX-13-L02-Q02",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Que cambió el estado del inodo (metadatos o datos), no que el archivo se creara en ese instante».\n\n`ctime` se actualiza ante cambios de estado del inodo, como renombrado o permisos. No fecha la creación, no mide lecturas y no implica que el archivo sea inmutable."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "`mtime` marca la última modificación del contenido; `ctime` marca el último cambio de estado del inodo —metadatos o datos— y no es la fecha de creación; `atime` refleja accesos con las limitaciones de `relatime` o `noatime`. Para fechar la creación buscaría `birth`/`crtime` cuando la plataforma y el sistema de archivos la soportan, y la compararía con una línea base.\n\nLímite: incluso con esas marcas, un host comprometido o un proceso privilegiado puede alterarlas, y ninguna fecha atribuye por sí sola quién hizo el cambio. Un `ctime` posterior a `mtime` solo indica un cambio de estado posterior.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Distingue `mtime` (contenido), `ctime` (estado) y `atime` (acceso)."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Señala que `ctime` no es la fecha de creación."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Propone `birth`/`crtime` y una línea base para fechar la creación."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Reconoce que las marcas pueden alterarse y no atribuyen autoría."
+      }
+    ]
+  },
+  "revision": "7d4f17feb22feebeaa899ae1"
+}

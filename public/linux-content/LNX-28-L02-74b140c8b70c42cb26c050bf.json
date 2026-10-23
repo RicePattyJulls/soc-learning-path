@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-28-L02",
+  "title": "Rsyslog: pipeline, transporte y evidencia",
+  "sourceHash": "976523611f07b58595686d203ede682c15d2bf96e7c0b3877ae0ee5109fe842f",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-28-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nSeguir un mensaje a través del pipeline de rsyslog, elegir transporte según lo que se necesita garantizar y describir qué evidencia produce cada salto.\n\nPrerrequisitos: `LNX-28-L01` (journald: estructurado, booteos y retención).\n\n## 2. Comprende el mecanismo\n\nRsyslog no es «el fichero donde van los logs». Es un **pipeline**: recibe mensajes de una o varias fuentes, los parsea, aplica reglas y ejecuta acciones locales o remotas. Cada etapa puede perder, duplicar o transformar información, y una conclusión sobre el contenido final depende de conocer el recorrido.\n\nLa **entrada** puede venir de un socket syslog, de módulos que leen el journal, de ficheros o de la red. Cuando journald y rsyslog conviven, hay que saber quién reenvía a quién: si rsyslog lee el journal y además journald reenvía al socket, el mismo mensaje puede aparecer dos veces. La duplicación no es un ataque; es una consecuencia de la arquitectura, y contarla como dos eventos infla cualquier línea de tiempo.\n\nEl **parser** convierte la línea en propiedades: instalación, severidad, host, proceso, marca de tiempo y mensaje. El formato syslog (RFC 5424) define esos campos, pero muchas aplicaciones emiten variantes antiguas o texto libre. Un mensaje sin host ni proceso no es necesariamente manipulado: puede ser un emisor que no los incluye.\n\nLas **reglas y filtros** deciden qué acción se ejecuta. Un filtro mal escrito descarta mensajes sin dejar rastro, y eso es una pérdida silenciosa. La evidencia de que una regla funciona no es que el fichero exista, sino que un mensaje de prueba conocido aparezca en el destino esperado y no en el inesperado. El **transporte** cambia lo que se garantiza: UDP no confirma entrega, porque el emisor no sabe si el receptor recibió; TCP mantiene la conexión y detecta cortes, pero no garantiza que la aplicación del receptor haya indexado el mensaje; TLS añade cifrado y autenticación del canal, no autenticidad del contenido original ni retención en destino. Para confirmación a nivel de mensaje hay que estudiar RELP o capacidades del receptor, y aun así la garantía es del canal, no de la veracidad del emisor.\n\nLa **cola** es el amortiguador entre recepción y envío. En memoria se pierde al reiniciar; en disco sobrevive, pero consume espacio y puede llenarse. Una cola dimensionada sin cálculo de picos se convierte en el punto de pérdida que se quería evitar. El **spool** y la rotación local también condicionan cuánta historia queda en el host.\n\nLa evidencia de un salto se describe con precisión: qué mensaje, con qué identificador, en qué fichero o índice, con qué marca de tiempo y qué hash si se preserva. Un `systemctl status rsyslog` activo solo dice que el proceso corre; no dice que el canal funcione. La prueba canaria —un mensaje sintético conocido que se busca en el destino— es la que demuestra el recorrido de extremo a extremo.\n\nLa regla de la lección: describe el pipeline antes de confiar en el destino. El límite: que un mensaje llegue al colector prueba el canal en ese momento; no prueba que todos los mensajes anteriores llegaran ni que el contenido sea veraz.\n\n### Vocabulario de apoyo\n\n- **Pipeline**: secuencia entrada, parseo, reglas y acciones de rsyslog.\n- **`omfwd`**: módulo de salida que reenvía mensajes a un destino remoto.\n- **UDP**: transporte sin confirmación de entrega.\n- **TCP/TLS**: transporte con conexión y, en TLS, cifrado y autenticación del canal.\n- **RELP**: protocolo con confirmación a nivel de mensaje entre emisor y receptor.\n- **Cola en disco**: buffer persistente que sobrevive a reinicios y consume espacio.\n- **Mensaje canario**: evento sintético conocido usado para verificar el recorrido completo.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-28-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: el SIEM deja de recibir eventos de un host. El servicio rsyslog figura activo, la configuración valida sin errores y el fichero local crece. El equipo concluye que el host está comprometido y que alguien borró los eventos en el colector.\n\nLa conclusión salta etapas. Que el proceso esté activo prueba que arrancó, no que la acción remota funcione. Que el fichero local crezca prueba que la entrada y el parseo reciben mensajes, no que `omfwd` los entregue. La causa puede estar en resolución del destino, en un certificado caducado, en una cola llena o en una regla que dejó de coincidir tras un cambio.\n\nLa lectura correcta recorre el pipeline: mensaje canario generado en el host, búsqueda en el fichero local, revisión de la cola y de los contadores de la acción remota, comprobación de conectividad y TLS contra el colector autorizado, y búsqueda del canario en el índice. Solo cuando un salto falla se puede hablar de ese salto. El límite: encontrar el salto roto explica la ausencia de eventos nuevos; no demuestra que no haya habido borrado ni que el host esté limpio.\n\n"
+    },
+    {
+      "id": "LNX-28-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Verificar el canal de logs con un canario antes de declarar una brecha de visibilidad.\n- Red Team autorizado: Documentar qué transporte usa el reenvío y qué garantías no ofrece.\n- Evidencia de la etapa: Mensaje de prueba, ruta recorrida, cola, estado de la acción y presencia en destino.\n- Criterio de dominio: Distingue proceso activo de canal funcionando y transporte de contenido veraz.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB35](../../05_RECURSOS/LABORATORIOS/LNX-LAB35.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F115**: [Rsyslog omfwd](https://docs.rsyslog.com/doc/configuration/modules/omfwd.html). Acción de reenvío, transporte y opciones de cola.\n- **F120**: [syslog protocol RFC 5424](https://www.rfc-editor.org/rfc/rfc5424). Campos y estructura del mensaje syslog.\n- **F122**: [NIST SP 800-92 (log management)](https://csrc.nist.gov/pubs/sp/800/92/final). Transporte, protección y retención de registros.\n- **F02**: [GNU Bash Reference Manual](https://www.gnu.org/software/bash/manual/bash.html). Redirecciones y pipelines para generar y verificar mensajes de prueba.\n- **F127**: [MITRE ATT&CK Data Sources (deprecated)](https://attack.mitre.org/datasources/). Límites de lo que una fuente de datos permite afirmar.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-28-L02-P01",
+    "prompt": "El SIEM deja de recibir eventos de un host; rsyslog está activo, la configuración valida y el fichero local crece, y el equipo concluye que alguien borró los eventos en el colector. Explica cómo recorrerías el pipeline, qué prueba usarías en cada salto y cuál es el límite de tu conclusión.",
+    "markdown": "## 4. Práctica individual\n\nEl SIEM deja de recibir eventos de un host; rsyslog está activo, la configuración valida y el fichero local crece, y el equipo concluye que alguien borró los eventos en el colector. Explica cómo recorrerías el pipeline, qué prueba usarías en cada salto y cuál es el límite de tu conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber reconfigurado rsyslog ni haber probado un colector real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-28-L02-Q01",
+      "prompt": "¿Qué garantiza UDP como transporte de logs hacia un colector remoto?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Confirmación de entrega por mensaje"
+        },
+        {
+          "id": "B",
+          "text": "Cifrado del contenido en tránsito"
+        },
+        {
+          "id": "C",
+          "text": "Nada sobre entrega: el emisor no sabe si el receptor recibió el mensaje"
+        },
+        {
+          "id": "D",
+          "text": "Que el colector conservará el evento durante la retención acordada"
+        }
+      ]
+    },
+    {
+      "id": "LNX-28-L02-Q02",
+      "prompt": "El servicio rsyslog está activo y el fichero local crece, pero el colector no recibe eventos. ¿Qué comprobación aporta más?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Reiniciar el host para descartar un fallo transitorio"
+        },
+        {
+          "id": "B",
+          "text": "Un mensaje canario que se busca en cada salto: fichero local, cola, acción remota y destino"
+        },
+        {
+          "id": "C",
+          "text": "Aumentar el nivel de severidad de todas las reglas"
+        },
+        {
+          "id": "D",
+          "text": "Desactivar TLS para simplificar el envío"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB35](../../05_RECURSOS/LABORATORIOS/LNX-LAB35.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F115**: [Rsyslog omfwd](https://docs.rsyslog.com/doc/configuration/modules/omfwd.html). Acción de reenvío, transporte y opciones de cola.\n- **F120**: [syslog protocol RFC 5424](https://www.rfc-editor.org/rfc/rfc5424). Campos y estructura del mensaje syslog.\n- **F122**: [NIST SP 800-92 (log management)](https://csrc.nist.gov/pubs/sp/800/92/final). Transporte, protección y retención de registros.\n- **F02**: [GNU Bash Reference Manual](https://www.gnu.org/software/bash/manual/bash.html). Redirecciones y pipelines para generar y verificar mensajes de prueba.\n- **F127**: [MITRE ATT&CK Data Sources (deprecated)](https://attack.mitre.org/datasources/). Límites de lo que una fuente de datos permite afirmar.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "74b140c8b70c42cb26c050bf"
+}

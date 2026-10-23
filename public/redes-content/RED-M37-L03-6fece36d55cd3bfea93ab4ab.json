@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M37-L03",
+  "title": "Ansible y estados deseados",
+  "sourceHash": "96209db43ddadfe208e3304f68b470cfe8f6a9fcde4c6e7b5d75fc75265c3e00",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M37-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDeclarar un estado deseado y comprobar la idempotencia del módulo.\n\nPrerrequisitos: [RED-M37-L02](../RED-E07/RED-M37-L02.md).\n\n## 2. Comprende el mecanismo\n\nAnsible organiza automatización mediante inventarios, tareas y módulos con contratos propios; usarlo no garantiza idempotencia universal. Un módulo de recursos puede comparar estado deseado y efectivo, mientras una tarea de comando arbitrario puede repetir acciones sin entender el estado. Check mode y diff dependen de soporte y no sustituyen la ejecución verificada. Delimita qué campos controla la tarea para no borrar configuración ajena. Conserva capacidades, permisos y resultados por dispositivo.\n\n### Vocabulario de apoyo\n\n- **API REST y HTTP 202**: Interfaz de recursos con contrato propio y aceptación que puede dejar procesamiento pendiente.\n- **YANG, NETCONF y RESTCONF**: Modelado de datos y protocolos de operación sobre datos modelados, con capacidades específicas.\n- **Idempotencia**: Propiedad de repetir una operación sin producir efectos adicionales respecto al estado previsto.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M37-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Tarea docente añade la misma línea cada vez sin comprobar si existe. Segunda ejecución informa otro cambio idéntico.\n\nEse comportamiento no es idempotente respecto al estado deseado. Repetir la tarea puede duplicar configuración en lugar de mantenerla.\n\n"
+    },
+    {
+      "id": "RED-M37-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Recuperar configuraciones para contexto.\n- Red Team autorizado: Comparar configuraciones esperadas y reales.\n- Evidencia del módulo: Esquema, plan, secretos excluidos, resultado esperado.\n- Criterio del módulo: Comportamiento predecible con fallos controlados.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L18](../../05_RECURSOS/LABORATORIOS/RED-L18.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC9110**: [RFC 9110: HTTP Semantics](https://www.rfc-editor.org/rfc/rfc9110.html). Métodos, respuestas y significado de 202/403.\n- **RFC6241**: [RFC 6241: Network Configuration Protocol NETCONF](https://www.rfc-editor.org/rfc/rfc6241.html). Capacidades y operaciones NETCONF; opcionales no universales.\n- **RFC7950**: [RFC 7950: The YANG 1.1 Data Modeling Language](https://www.rfc-editor.org/rfc/rfc7950.html). Modelos, tipos y revisiones YANG.\n- **RFC8040**: [RFC 8040: RESTCONF Protocol](https://www.rfc-editor.org/rfc/rfc8040.html). Recursos modelados mediante HTTP.\n- **ANSIBLE**: [Ansible Network Examples](https://docs.ansible.com/projects/ansible/latest/network/user_guide/network_best_practices_2.5.html). Inventario, tareas y prácticas de automatización; verificar contrato de cada módulo.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M37-L03-P01",
+    "prompt": "Una tarea de recurso converge sin cambios en la segunda pasada. ¿Qué límite mantiene esa evidencia?",
+    "markdown": "## 4. Práctica individual\n\nUna tarea de recurso converge sin cambios en la segunda pasada. ¿Qué límite mantiene esa evidencia?\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M37-L03-Q01",
+      "prompt": "¿Qué significa converger de forma idempotente aquí?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El nombre de Ansible garantiza cualquier tarea"
+        },
+        {
+          "id": "B",
+          "text": "Nunca hace falta validar entradas"
+        },
+        {
+          "id": "C",
+          "text": "Reaplicar el mismo estado no produce nuevos cambios innecesarios"
+        },
+        {
+          "id": "D",
+          "text": "Toda ejecución debe duplicar reglas"
+        }
+      ]
+    },
+    {
+      "id": "RED-M37-L03-Q02",
+      "prompt": "¿Qué defecto muestra la segunda ejecución del caso?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Tiene un inventario"
+        },
+        {
+          "id": "B",
+          "text": "Vuelve a añadir una línea ya deseada"
+        },
+        {
+          "id": "C",
+          "text": "Registra que cambió"
+        },
+        {
+          "id": "D",
+          "text": "No utiliza tráfico de usuario"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L18](../../05_RECURSOS/LABORATORIOS/RED-L18.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC9110**: [RFC 9110: HTTP Semantics](https://www.rfc-editor.org/rfc/rfc9110.html). Métodos, respuestas y significado de 202/403.\n- **RFC6241**: [RFC 6241: Network Configuration Protocol NETCONF](https://www.rfc-editor.org/rfc/rfc6241.html). Capacidades y operaciones NETCONF; opcionales no universales.\n- **RFC7950**: [RFC 7950: The YANG 1.1 Data Modeling Language](https://www.rfc-editor.org/rfc/rfc7950.html). Modelos, tipos y revisiones YANG.\n- **RFC8040**: [RFC 8040: RESTCONF Protocol](https://www.rfc-editor.org/rfc/rfc8040.html). Recursos modelados mediante HTTP.\n- **ANSIBLE**: [Ansible Network Examples](https://docs.ansible.com/projects/ansible/latest/network/user_guide/network_best_practices_2.5.html). Inventario, tareas y prácticas de automatización; verificar contrato de cada módulo.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "6fece36d55cd3bfea93ab4ab"
+}

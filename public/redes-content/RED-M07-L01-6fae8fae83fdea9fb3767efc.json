@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M07-L01",
+  "title": "Resolución recursiva y caches",
+  "sourceHash": "e7e1f03287241e42b3ac2a877b15684ccd83e199cd4f6d36a3ddaa4934294c2f",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M07-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nInterpretar resolución, autoridad y caché sin confundir sus respuestas.\n\nPrerrequisitos: [RED-M02-L04](../RED-E01/RED-M02-L04.md), [RED-M03-L04](../RED-E01/RED-M03-L04.md), [RED-M05-L04](../RED-E01/RED-M05-L04.md).\n\n## 2. Comprende el mecanismo\n\nEl resolver recursivo busca respuestas en nombre del cliente y puede conservarlas durante su TTL; un servidor autoritativo responde por las zonas de su responsabilidad. A y AAAA indican direcciones; CNAME expresa un alias; MX refiere al correo; NS a servidores de una zona y PTR a resolución inversa. Un nombre puede tener respuestas distintas en vistas internas y externas. NXDOMAIN y timeout no significan lo mismo: uno es una respuesta sobre existencia y el otro ausencia de respuesta observada. El TTL no obliga a que todos los clientes renueven simultáneamente.\n\n### Vocabulario de apoyo\n\n- **Resolver y autoridad DNS**: El resolver consulta por el cliente; la autoridad responde por las zonas a su cargo.\n- **DHCP y relay**: DHCP entrega configuración de red; el relay comunica la red cliente con un servidor en otra red.\n- **TTL y offset**: TTL limita vigencia o recorrido según protocolo; offset es el desfase de un reloj frente a una referencia.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M07-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Zona docente: app.example.test A=192.0.2.20, TTL=300. Se cambia a .21; un resolver conserva .20 durante 120 s restantes.\n\nEl resolver puede responder con la entrada todavía válida de su caché. Consultar a la autoridad y comparar TTL permite diferenciar propagación por caché de una edición fallida.\n\n"
+    },
+    {
+      "id": "RED-M07-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Investigar DNS anómalo con baseline.\n- Red Team autorizado: Verificar que servicios de pruebas no salen del lab.\n- Evidencia del módulo: Trazas de consultas, leases, cronología y causa.\n- Criterio del módulo: Recupera los tres servicios y verifica hora.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L03](../../05_RECURSOS/LABORATORIOS/RED-L03.md)\n- [Guía de laboratorio RED-L05](../../05_RECURSOS/LABORATORIOS/RED-L05.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC1034**: [RFC 1034: Domain Names — Concepts and Facilities](https://www.rfc-editor.org/rfc/rfc1034.html). Resolver, autoridad, caché y funciones DNS.\n- **RFC2131**: [RFC 2131: Dynamic Host Configuration Protocol](https://www.rfc-editor.org/rfc/rfc2131.html). Concesiones, cliente/servidor/relay DHCPv4.\n- **RFC8415**: [RFC 8415: Dynamic Host Configuration Protocol for IPv6](https://www.rfc-editor.org/rfc/rfc8415.html). Funciones DHCPv6; no reemplazo de Router Discovery.\n- **RFC5905**: [RFC 5905: Network Time Protocol Version 4](https://www.rfc-editor.org/rfc/rfc5905.html). Referencia temporal, offset y sincronización.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M07-L01-P01",
+    "prompt": "La vista interna responde con dirección privada y la externa con otra dirección. Define qué comprobar antes de declarar manipulación.",
+    "markdown": "## 4. Práctica individual\n\nLa vista interna responde con dirección privada y la externa con otra dirección. Define qué comprobar antes de declarar manipulación.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M07-L01-Q01",
+      "prompt": "¿Qué expresa un registro CNAME?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Una máscara de interfaz"
+        },
+        {
+          "id": "B",
+          "text": "La hora del cliente"
+        },
+        {
+          "id": "C",
+          "text": "Un alias de otro nombre"
+        },
+        {
+          "id": "D",
+          "text": "El gateway predeterminado"
+        }
+      ]
+    },
+    {
+      "id": "RED-M07-L01-Q02",
+      "prompt": "¿Por qué puede seguir apareciendo .20?",
+      "options": [
+        {
+          "id": "A",
+          "text": "DNS nunca admite cambios"
+        },
+        {
+          "id": "B",
+          "text": "El resolver es necesariamente malicioso"
+        },
+        {
+          "id": "C",
+          "text": "La caché conserva una entrada cuyo TTL no ha vencido"
+        },
+        {
+          "id": "D",
+          "text": "A y AAAA son el mismo tipo"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L03](../../05_RECURSOS/LABORATORIOS/RED-L03.md)\n- [Guía de laboratorio RED-L05](../../05_RECURSOS/LABORATORIOS/RED-L05.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC1034**: [RFC 1034: Domain Names — Concepts and Facilities](https://www.rfc-editor.org/rfc/rfc1034.html). Resolver, autoridad, caché y funciones DNS.\n- **RFC2131**: [RFC 2131: Dynamic Host Configuration Protocol](https://www.rfc-editor.org/rfc/rfc2131.html). Concesiones, cliente/servidor/relay DHCPv4.\n- **RFC8415**: [RFC 8415: Dynamic Host Configuration Protocol for IPv6](https://www.rfc-editor.org/rfc/rfc8415.html). Funciones DHCPv6; no reemplazo de Router Discovery.\n- **RFC5905**: [RFC 5905: Network Time Protocol Version 4](https://www.rfc-editor.org/rfc/rfc5905.html). Referencia temporal, offset y sincronización.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "6fae8fae83fdea9fb3767efc"
+}

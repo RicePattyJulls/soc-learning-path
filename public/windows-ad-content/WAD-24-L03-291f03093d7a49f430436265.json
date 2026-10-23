@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-24-L03",
+  "title": "Cobertura efectiva y pérdida",
+  "sourceHash": "b4c86587ab163c631e7205ba03ad53c5faebb476134ce9cc8a33ad904fcebe1d",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-24-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nMedir la cobertura efectiva y reconocer qué eventos se pierden y por qué.\n\nPrerrequisitos: `WAD-24-L02` (Subcategorías de auditoría y SACL).\n\n## 2. Comprende el mecanismo\n\nHabilitar la auditoría no equivale a disponer del evento cuando se necesita. Entre la acción y el análisis hay varias etapas donde un evento puede **no llegar nunca** o **desaparecer antes de leerse**. La **cobertura efectiva** es lo que de verdad se conserva, no lo que la política declara.\n\nLa primera pérdida es de origen: si una **subcategoría** no está habilitada o un objeto no tiene **SACL**, el evento nunca se escribe. La política puede parecer completa y, aun así, dejar la actividad fuera de cobertura.\n\nLa segunda pérdida ocurre en el propio registro. Cada registro tiene un **tamaño máximo** y una política de **retención** o **rotación**: cuando se llena, los eventos más antiguos se sobrescriben para dejar sitio a los nuevos. Un registro pequeño que rota muy rápido puede descartar justo la ventana que se investiga. El tamaño y el comportamiento del registro se consultan con herramientas de eventos, y conviene comprobarlos antes de concluir que algo «no ocurrió».\n\nLa tercera pérdida aparece en el tránsito. Si los eventos se reenvían a un recolector y esa **cobertura** o el canal falla, el origen los tiene un tiempo y luego los pierde. Un evento ausente en el destino puede seguir existiendo en el origen, o haber desaparecido en ambos si el registro local ya rotó.\n\nLas guías de monitorización del directorio recomiendan qué conviene recoger en un controlador y recuerdan que la cobertura se **mide** con evidencia: qué subcategorías están activas, qué objetos tienen SACL, cuánto conserva cada registro y qué eventos esperados llegan. La ausencia de un evento es un **hecho registrado** —no está— y su causa es una **interpretación** que exige revisar la cobertura antes de atribuirla a que la acción no sucedió.\n\nLa regla que cierra la lección y la etapa: **la cobertura se mide; un evento que falta no prueba por sí solo que la acción no ocurriera**. Todo se practica sobre `ad.lab.test`, sin alterar registros de producción.\n\n### Vocabulario de apoyo\n\n- **Cobertura efectiva**: eventos que de verdad se conservan, más allá de lo que la política declara.\n- **Retención**: periodo que un registro conserva antes de perder información.\n- **Rotación**: sobrescritura de los eventos más antiguos al llenarse el registro.\n- **Punto ciego**: zona sin cobertura de un control.\n- **Reenvío**: traslado de eventos de un origen a un recolector.\n- **Preservación**: asegurar la evidencia antes de modificarla.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-24-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test` la política de auditoría está activa, pero al reconstruir un periodo faltan eventos que se esperaban en Security. Nadie borró el registro a mano.\n\nEl análisis recorre las tres pérdidas posibles antes de concluir nada. En origen se comprueba que la subcategoría y la SACL cubrían la actividad; en el registro se revisa su tamaño máximo y su rotación, porque un registro pequeño puede haber sobrescrito los eventos más antiguos del periodo; en el tránsito se verifica si los eventos se reenviaban y si el canal funcionaba. La evidencia útil es la configuración del registro, el rango de horas conservado y la lista de subcategorías activas. La conclusión acota lo observable —«faltan eventos y la cobertura no los conservaba»— y reconoce su límite: que el evento no aparezca es un hecho, pero la causa se demuestra midiendo la cobertura, no suponiéndola.\n\n"
+    },
+    {
+      "id": "WAD-24-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Medir la cobertura efectiva evita concluir que algo no ocurrió cuando en realidad el registro no lo conservaba.\n- Red Team autorizado: Conocer dónde se pierden eventos ordena la lectura y separa el hecho registrado de la interpretación.\n- Evidencia de la etapa: Subcategorías activas, SACL por objeto, tamaño y retención del registro y rango de horas conservado.\n- Criterio de dominio: La cobertura se mide antes de afirmar que una actividad no sucedió.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB17](../../05_RECURSOS/LABORATORIOS/WAD-LAB17.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **LOGSIZE**: [Eventlog key](https://learn.microsoft.com/en-us/windows/win32/eventlog/eventlog-key). Tamaño máximo y comportamiento de retención del registro.\n- **WEVTUTIL**: [wevtutil](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/wevtutil). Consulta y configuración del tamaño, la retención y el contenido de un registro.\n- **ADSOCMON**: [Monitoring Active Directory for signs of compromise](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/monitoring-active-directory-for-signs-of-compromise). Qué conviene recoger en un controlador para detectar signos de compromiso.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-24-L03-P01",
+    "prompt": "En `ad.lab.test`, la política de auditoría está activa pero faltan eventos del periodo que se investiga. Explica cómo mides la cobertura efectiva, dónde puede perderse información y qué evidencia reúnes.",
+    "markdown": "## 4. Práctica individual\n\nEn `ad.lab.test`, la política de auditoría está activa pero faltan eventos del periodo que se investiga. Explica cómo mides la cobertura efectiva, dónde puede perderse información y qué evidencia reúnes.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber medido la cobertura en un dominio real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-24-L03-Q01",
+      "prompt": "Se amplió la política de auditoría, pero parte de los eventos esperados no aparece. ¿Qué explica mejor la pérdida?",
+      "options": [
+        {
+          "id": "A",
+          "text": "La auditoría registra siempre todo, así que los eventos deben estar en otro equipo"
+        },
+        {
+          "id": "B",
+          "text": "Los eventos perdidos demuestran un ataque y no hace falta buscar más causas"
+        },
+        {
+          "id": "C",
+          "text": "Basta con reiniciar el controlador para que los eventos vuelvan a aparecer"
+        },
+        {
+          "id": "D",
+          "text": "Un tamaño de registro corto con rotación, una subcategoría o SACL sin cubrir o la falta de reenvío pueden descartar eventos antes de poder leerlos"
+        }
+      ]
+    },
+    {
+      "id": "WAD-24-L03-Q02",
+      "prompt": "¿Cómo se mide la cobertura efectiva de la auditoría?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Contando cuántas subcategorías existen en la documentación"
+        },
+        {
+          "id": "B",
+          "text": "Comprobando qué subcategorías están activas, qué objetos tienen SACL, el tamaño y la retención del registro y qué eventos esperados llegan y cuáles se pierden"
+        },
+        {
+          "id": "C",
+          "text": "Asumiendo que si hay eventos, la cobertura es total"
+        },
+        {
+          "id": "D",
+          "text": "Fiándose de la política declarada, sin revisar el registro"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB17](../../05_RECURSOS/LABORATORIOS/WAD-LAB17.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **LOGSIZE**: [Eventlog key](https://learn.microsoft.com/en-us/windows/win32/eventlog/eventlog-key). Tamaño máximo y comportamiento de retención del registro.\n- **WEVTUTIL**: [wevtutil](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/wevtutil). Consulta y configuración del tamaño, la retención y el contenido de un registro.\n- **ADSOCMON**: [Monitoring Active Directory for signs of compromise](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/monitoring-active-directory-for-signs-of-compromise). Qué conviene recoger en un controlador para detectar signos de compromiso.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "291f03093d7a49f430436265"
+}

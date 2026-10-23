@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-12-L03",
+  "sourceHash": "73e4431d59364ffd69e4a43a2e3f25f7deae2ede5a286f848f8e04c73c319786",
+  "questions": [
+    {
+      "id": "LNX-12-L03-Q01",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Identificar qué falla, en qué capa y desde qué contexto, y preservar evidencia antes de mutar».\n\nEl triaje busca entender y acotar antes de tocar, preservando el estado previo. Reinstalar, sustituir hardware o borrar de inmediato son mutaciones que pueden destruir evidencia y no responden a la pregunta de qué está fallando."
+    },
+    {
+      "id": "LNX-12-L03-Q02",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «`EDQUOT`, que indica una cuota de disco agotada y exige otra comprobación».\n\n`EDQUOT` señala que se superó una cuota, un recurso distinto de los bloques libres. `EROFS` y `ENOSPC` son errores de espacio o modo, no una cuota; por eso la cuota requiere una comprobación propia."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "Aplicaría el triaje en orden. Primera pregunta: qué sistema de archivos ve el proceso afectado, identificando su PID, su namespace de montaje y la ruta real. Segunda: qué falla exactamente; `ENOSPC` puede ser de bloques o de inodos, y no es lo mismo que `EDQUOT`, `EROFS` o `EIO`. Tercera: qué capa es responsable, comparando la vista del proceso con la del analista. Cuarta: qué evidencia preservar antes de actuar: estado y hora, copias o snapshots independientes, registros, historial de cambios y alertas.\n\nLímite: mientras no resuelva esas preguntas, cualquier reparación es una suposición; el hecho de que borrar temporales no arregle el fallo no demuestra que el disco esté dañado.",
+    "rubric": [
+      {
+        "criterion": "Ordena las cuatro preguntas",
+        "evidence": "observador, síntoma, capa y evidencia."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Distingue la vista del proceso afectado de la del analista."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Diferencia `ENOSPC` de otros errores (`EDQUOT`, `EROFS`, `EIO`, `ESTALE`)."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Reconoce que sin atribuir causa no puede concluir ni reparar."
+      }
+    ]
+  },
+  "revision": "b843d3ae40b650cab5c5cc43"
+}

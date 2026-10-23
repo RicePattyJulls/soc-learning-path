@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 1,
+  "courseId": "soc",
+  "id": "N2-08",
+  "sourceHash": "1775525de47d57be05f80a49c0cf1cbaeaf3e0707cdf41c2dd6f4187e4132fe6",
+  "revision": "e4b7002b0f8b7d4793106652",
+  "hipotesis": [
+    "Movimiento lateral mediante credenciales válidas a SMB/RPC, servicios remotos, tareas o herramientas de administración no autorizadas.",
+    "Despliegue corporativo, escaneo con credenciales, inventario o backup ejecutado con cuenta privilegiada aprobada.",
+    "NTLM fallback por SPN/DNS/time sync u otra incidencia de Kerberos, sin intención maliciosa.",
+    "Un 4776 en DC refleja validación NTLM para cuenta de dominio, pero NO documenta por sí solo el servidor destino; es necesario correlacionar 4624 del destino.",
+    "Una ráfaga 4624 LogonType=3 desde un mismo origen no implica ejecución remota: puede tratarse de acceso a recursos compartidos o autenticación sin acciones posteriores."
+  ],
+  "pasos": [
+    {
+      "fase": "1 · Alcance en segundos",
+      "accion": "Poner en una línea temporal los servidores afectados y el usuario; confirmar ventanas UTC, NAT, terminal real y CMDB. Si hay admin fuera de salto autorizado, elevar prioridad y avisar a N2/IR."
+    },
+    {
+      "fase": "2 · Correlación correcta de los eventos",
+      "accion": "Buscar 4624 en CADA servidor destino: LogonType=3, AuthenticationPackageName=NTLM, IpAddress, TargetUserName, WorkstationName, LogonId, privilegios. Buscar 4776 en DC para estado NTLM del dominio; no inferir destino desde 4776."
+    },
+    {
+      "fase": "3 · Verificar éxito frente a intento",
+      "accion": "Contabilizar éxitos 4624, fallos 4625/4776 y uso de recursos. Identificar hosts efectivamente accesibles, no equiparar una contraseña validada con código ejecutado."
+    },
+    {
+      "fase": "4 · Reconstruir host origen",
+      "accion": "Consultar en WS-23 EDR, usuario activo, proceso iniciador, proceso padre, hash y firma, herramientas de inventario, comandos de red, tareas y accesos administrados. Verificar si se abrió sesión legítima en el portátil."
+    },
+    {
+      "fase": "5 · Evaluar acciones posteriores",
+      "accion": "En hosts destino relacionar LogonId con 4672 (privilegios especiales), eventos 4688 con auditoría de proceso, 7045/4697 creación de servicio, 4698 tarea, 5140/5145 compartidos, telemetría EDR de procesos y archivos. Correlación temporal, host y cuenta; ninguna pieza sola es definitiva."
+    },
+    {
+      "fase": "6 · Confrontar con administración real",
+      "accion": "Cruzar inventario de jump hosts, PAM, tickets de cambios, ventanas SCCM/Intune, agentes autorizados, códigos de ejecutables, firmas y responsable. No aceptar una explicación oral como única evidencia."
+    },
+    {
+      "fase": "7 · Decidir contención proporcional",
+      "accion": "Si hay ejecución remota no autorizada o cuentas privilegiadas desde WS-23: preservar evidencia, aislar origen si está autorizado, restringir credenciales y accesos laterales, comprobar otros hosts alcanzados; evitar matar servicios de despliegue legítimo sin coordinación."
+    },
+    {
+      "fase": "8 · Determinar causa raíz",
+      "accion": "Investigar cómo se obtuvo la cuenta, si había secretos expuestos, uso indebido de NTLM y malas segmentaciones; planificar endurecimiento: jump hosts, control de logon, reducción NTLM, mínimo privilegio y alertas basadas en baseline."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "4624 LogonType=3 en destino",
+      "lectura": "Demuestra sesión de red autenticada si es éxito; AuthenticationPackageName y SourceNetworkAddress permiten atribuir protocolo/origen cuando están disponibles."
+    },
+    {
+      "dato": "4776 en DC",
+      "lectura": "Valida credenciales NTLM de cuentas de dominio; campo workstation informa origen reportado, no el recurso final al que se accedió."
+    },
+    {
+      "dato": "4625/4776 fallidos",
+      "lectura": "Muestran intentos y fallos; tasas anómalas refuerzan credenciales adivinadas o automatización."
+    },
+    {
+      "dato": "4672 + LogonId, 4688, 7045, 4698",
+      "lectura": "Elevación de contexto, ejecución y mecanismos persistentes/remotos; exigir correlación temporal y relación fuerte con la sesión."
+    },
+    {
+      "dato": "5140/5145 SMB + EDR network/process",
+      "lectura": "Pistas de copias a ADMIN$/IPC$ o ejecución; acceso SMB puede ser legítimo."
+    },
+    {
+      "dato": "Ticket de cambios, CMDB, jump hosts y PAM",
+      "lectura": "Valida o contradice administración esperada, identidad asignada y ventana aprobada."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Sentinel / SecurityEvent · NTLM tipo 3 y destinos múltiples",
+      "entorno": "Ingesta SecurityEvent de SERVIDORES destino. Schema usa LogonType:int, AuthenticationPackageName:string, IpAddress y TargetUserName. Normalizar FQDN y cuentas.",
+      "consulta": "SecurityEvent\n| where TimeGenerated > ago(6h) and EventID == 4624\n| where LogonType == 3 and AuthenticationPackageName =~ \"NTLM\"\n| extend origen=IpAddress, usuario=TargetUserName, destino=Computer\n| where isnotempty(origen) and origen !in (\"-\", \"127.0.0.1\", \"::1\")\n| summarize logons=count(), servidores=dcount(destino),\n            destinos=make_set(destino, 30),\n            primera=min(TimeGenerated), ultima=max(TimeGenerated)\n  by bin(TimeGenerated, 5m), origen, usuario\n| where servidores >= 3\n| order by servidores desc, logons desc",
+      "interpretacion": "Señala cuentas y orígenes que acceden a muchos servidores en pocos minutos; útil para hunting de expansión lateral.",
+      "limitaciones": "3 servidores/5 minutos es umbral didáctico. 4624 es éxito, no ejecución. IpAddress puede estar vacío, NAT u oculto; comparar con proceso/logon origen."
+    },
+    {
+      "nombre": "Defender XDR · accesos NTLM observados en endpoints de destino",
+      "entorno": "Advanced Hunting DeviceLogonEvents con MDE en los servidores. No usar LogonType numérico de SecurityEvent: aquí se expresa con etiquetas como Network.",
+      "consulta": "DeviceLogonEvents\n| where Timestamp > ago(6h)\n| where LogonType =~ \"Network\" and Protocol contains \"NTLM\"\n| summarize accesos=count(), servidores=dcount(DeviceName),\n            destinos=make_set(DeviceName, 30),\n            primera=min(Timestamp), ultima=max(Timestamp)\n  by bin(Timestamp, 5m), RemoteIP, AccountDomain, AccountName\n| where servidores >= 3\n| order by servidores desc, accesos desc",
+      "interpretacion": "Visualiza propagación por IP origen y cuenta según telemetría MDE.",
+      "limitaciones": "Los valores de Protocol/ActionType dependen del producto y pueden variar; verificar en portal. La presencia de evento MDE no asegura éxito: comprobar ActionType del dato devuelto."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk CIM Authentication · fan-out de identidades",
+      "entorno": "El modelo Authentication.Authentication debe estar poblado con src, dest, user, action y authentication_method o método equivalente. Ajustar el filtro NTLM al mapeo de tu TA.",
+      "consulta": "| tstats count from datamodel=Authentication.Authentication\n  where earliest=-6h latest=now Authentication.action=\"success\"\n  by _time span=5m Authentication.src Authentication.user Authentication.dest\n| rename Authentication.* as *\n| stats sum(count) as autenticaciones dc(dest) as servidores\n        values(dest) as destinos by _time src user\n| where servidores>=3\n| sort - servidores - autenticaciones",
+      "interpretacion": "Detecta fan-out de autenticaciones exitosas, aunque por defecto no restringe NTLM.",
+      "limitaciones": "CIM Authentication puede no llevar campo fiable de protocolo. Para afirmar NTLM, filtrar eventos Windows brutos con AuthenticationPackageName. El data model puede incluir autenticaciones no Windows."
+    },
+    {
+      "nombre": "Splunk Windows Security 4624 · origen, destinos y NTLM",
+      "entorno": "Índice con 4624 de los hosts destino; extracciones IpAddress, LogonType, AuthenticationPackageName.",
+      "consulta": "index=wineventlog earliest=-6h (EventCode=4624 OR EventID=4624)\n| eval tipo=coalesce(LogonType,Logon_Type),\n       metodo=coalesce(AuthenticationPackageName,Authentication_Package),\n       origen=coalesce(IpAddress,Source_Network_Address,src_ip),\n       cuenta=coalesce(TargetUserName,Account_Name,AccountName)\n| where tostring(tipo)=\"3\" AND upper(metodo)=\"NTLM\" AND isnotnull(origen)\n| bin _time span=5m\n| stats count as logons dc(host) as servidores values(host) as destinos by _time origen cuenta\n| where servidores>=3\n| sort - servidores - logons",
+      "interpretacion": "Relaciona cliente NTLM y amplitud de destino usando logs crudos.",
+      "limitaciones": "EventCode y nombres de campos dependen de la ingesta; si hay etiquetas FQDN y NetBIOS mixtas, normalizar para el dc(host)."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Windows PowerShell — solo lectura / servidor destino",
+      "proposito": "Inspeccionar 4624 del servidor concreto y los campos originales.",
+      "comando": "Get-WinEvent -ComputerName APP02 -FilterHashtable @{LogName='Security';Id=4624;StartTime=(Get-Date).AddHours(-3)} -MaxEvents 100 |\n  Select-Object TimeCreated,Message"
+    },
+    {
+      "entorno": "Windows PowerShell — solo lectura / DC",
+      "proposito": "Revisar 4776 y validar la cuenta y workstation reportada.",
+      "comando": "Get-WinEvent -ComputerName DC01 -FilterHashtable @{LogName='Security';Id=4776;StartTime=(Get-Date).AddHours(-3)} -MaxEvents 70 |\n  Select-Object TimeCreated,Message"
+    },
+    {
+      "entorno": "Windows PowerShell — solo lectura / servidor",
+      "proposito": "Verificar creación de servicios por Event ID 7045 en System (si está disponible).",
+      "comando": "Get-WinEvent -ComputerName APP02 -FilterHashtable @{LogName='System';Id=7045;StartTime=(Get-Date).AddHours(-3)} |\n  Select-Object TimeCreated,Message"
+    }
+  ],
+  "contencion": "No bloquear toda autenticación NTLM por impulso en un dominio con sistemas heredados. Si los indicios incluyen múltiples destinos y ejecución o abuso privilegiado, activar contención del endpoint fuente, salvaguardar evidencia y coordinar limitación de la cuenta, sesiones y hosts comprometidos. Mantener canal de administración fuera de banda y coordinar corte con operación de negocio. El inventario de sistemas y la política NTLM condicionan acciones duraderas.",
+  "escalation": [
+    "Privilegiado se autentica en varios servidores desde origen no inventariado.",
+    "Existen servicios nuevos, tareas remotas o cambios de grupo posteriores a 4624.",
+    "PAM/jump host no coincide con el origen registrado.",
+    "Hay alertas de credenciales comprometidas o acciones en DC.",
+    "Ráfaga continúa o afecta activos críticos sin dueño claro."
+  ],
+  "falsos_positivos": [
+    "Sistema de despliegue de parches o software autorizado.",
+    "Monitorización e inventario con cuenta de servicio.",
+    "Backup/antivirus que accede a compartidos de muchos hosts.",
+    "NTLM fallback porque Kerberos no está disponible o SPN erróneo.",
+    "IP NAT, proxy o gateway común que concentra accesos de varias estaciones."
+  ],
+  "errores": [
+    "Inferir servidor de destino directamente desde 4776 del DC.",
+    "Equiparar 4624 tipo 3 con RDP; RDP suele registrar tipo 10.",
+    "Considerar NTLM inherentemente malicioso en redes con legado.",
+    "No investigar ejecutables/servicios/tareas posteriores a la autenticación.",
+    "Omitir verificación de ticket PAM o inventario de jump hosts.",
+    "Correlacionar por minutos sin conservar user, host y LogonId adecuados."
+  ],
+  "perspectiva_red_team": "Un operador ofensivo puede reutilizar credenciales válidas para acceder a recursos distribuidos; autenticarse y ejecutar comandos son fases distintas. La huella permite correlacionar 4624/4776 con recursos SMB y servicios creados. La defensa minimiza credenciales reutilizables, limita conexiones laterales y usa jump hosts y baseline de cuentas.",
+  "respuesta_entrevista": "Agruparía los 4624 exitosos tipo 3 con NTLM por origen, usuario, destinos y ventana, y contrastaría 4776 en DC sabiendo que no revela el servidor destino. Haría pivote al equipo fuente y a los servidores para determinar si solo hubo acceso a recursos o ejecución remota mediante procesos, servicios, tareas y SMB. Compararía contra jump hosts, PAM y cambios. Si una cuenta privilegiada llega a servidores críticos desde una estación comercial y deja indicios de ejecución no autorizada, escalaría, contendría el origen y revisaría credenciales con IR.",
+  "criterios_evaluacion": [
+    "Diferencia 4624 logon type 3 de 10 y 4776.",
+    "No confunde autenticación NTLM con ejecución remota.",
+    "Comprueba fan-out por origen y host destino.",
+    "Une telemetría del origen con servicios/procesos/SMB en destino.",
+    "Conoce valor de PAM, jump hosts y baseline.",
+    "Contiene proporcionalmente sin indisponibilizar todo NTLM."
+  ],
+  "mitre": [
+    "T1021.002 — SMB/Windows Admin Shares (si se acredita)",
+    "T1078.002 — Valid Domain Accounts (si se acredita)",
+    "T1550.002 — Pass the Hash (solo si evidencias adicionales)"
+  ],
+  "fuentes": [
+    "https://learn.microsoft.com/windows/security/threat-protection/auditing/event-4624",
+    "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4776",
+    "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4648",
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/securityevent",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-devicelogonevents-table",
+    "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.1/data-models/authentication",
+    "https://csrc.nist.gov/pubs/sp/800/61/r3/final"
+  ]
+}

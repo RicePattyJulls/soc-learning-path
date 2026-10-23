@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M05-L04",
+  "title": "Primeras consultas DNS/TCP/TLS",
+  "sourceHash": "36a9a0d4e8bde54c5134abf41dc3696fe863d84e1772f738f4d909eab244a037",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M05-L04-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nConstruir una primera secuencia observable sin atribuir más de lo capturado.\n\nPrerrequisitos: [RED-M05-L03](../RED-E01/RED-M05-L03.md).\n\n## 2. Comprende el mecanismo\n\nCorrelaciona consulta/respuesta DNS, establecimiento TCP y negociación TLS por tiempo y extremos. Una respuesta DNS devuelve información, no prueba que el cliente la haya usado. Una conexión a una IP compartida tampoco identifica por sí sola el sitio servido. En TLS algunos metadatos dependen de versión y configuración; el contenido de aplicación permanece cifrado sin material apropiado. El nombre del servidor puede no estar disponible, por ejemplo con mecanismos que protegen el ClientHello. Registra cada inferencia y la evidencia que falta.\n\n### Vocabulario de apoyo\n\n- **PCAP/PCAPNG**: Formatos de almacenamiento de paquetes capturados y metadatos.\n- **SPAN y TAP**: Espejo de tráfico configurado en un equipo y punto de acceso de observación del enlace, con propiedades diferentes.\n- **Snaplen**: Límite de bytes conservados de cada paquete por la captura.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M05-L04-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Cronología sintética: 10:00:00 A app.example.test→192.0.2.20; 10:00:01 TCP a .20:443; 10:00:02 intercambio TLS; sin claves.\n\nLa secuencia es compatible con acceso al servicio resuelto, pero no revela la URL ni el contenido HTTP cifrado. Para atribuir una acción concreta hace falta corroboración.\n\n"
+    },
+    {
+      "id": "RED-M05-L04-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Preparar base de investigación PCAP.\n- Red Team autorizado: Comprobar telemetría generada por actividad autorizada.\n- Evidencia del módulo: Archivo origen, hash, filtros y hallazgos observables.\n- Criterio del módulo: Reproduce filtros, conserva original y declara límites.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L03](../../05_RECURSOS/LABORATORIOS/RED-L03.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **WIRESHARK**: [Wireshark User’s Guide](https://www.wireshark.org/docs/wsug_html_chunked/). Filtros, captura, streams, metadatos y límites de observación.\n- **CHECKSUM**: [Checksums](https://www.wireshark.org/docs/wsug_html_chunked/ChAdvChecksums.html). Artefactos de checksum y offload.\n- **RFC8484**: [RFC 8484: DNS Queries over HTTPS](https://www.rfc-editor.org/rfc/rfc8484.html). DNS sobre HTTPS; evita asumir que toda resolución DNS usa UDP/TCP 53.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M05-L04-P01",
+    "prompt": "Añade otra aplicación del mismo host que contacte la misma IP. ¿Qué fuente pedirías para distinguir los procesos?",
+    "markdown": "## 4. Práctica individual\n\nAñade otra aplicación del mismo host que contacte la misma IP. ¿Qué fuente pedirías para distinguir los procesos?\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M05-L04-Q01",
+      "prompt": "¿Qué aporta la respuesta DNS por sí sola?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Una respuesta a una consulta, no prueba de uso posterior"
+        },
+        {
+          "id": "B",
+          "text": "Un permiso de autenticación"
+        },
+        {
+          "id": "C",
+          "text": "La identidad del proceso remoto"
+        },
+        {
+          "id": "D",
+          "text": "La URL completa visitada"
+        }
+      ]
+    },
+    {
+      "id": "RED-M05-L04-Q02",
+      "prompt": "¿Qué falta para conocer la URL del caso?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Evidencia adicional del contenido de aplicación"
+        },
+        {
+          "id": "B",
+          "text": "Una tabla MAC distinta"
+        },
+        {
+          "id": "C",
+          "text": "Una máscara IPv4 más corta"
+        },
+        {
+          "id": "D",
+          "text": "El TTL del switch"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L03](../../05_RECURSOS/LABORATORIOS/RED-L03.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **WIRESHARK**: [Wireshark User’s Guide](https://www.wireshark.org/docs/wsug_html_chunked/). Filtros, captura, streams, metadatos y límites de observación.\n- **CHECKSUM**: [Checksums](https://www.wireshark.org/docs/wsug_html_chunked/ChAdvChecksums.html). Artefactos de checksum y offload.\n- **RFC8484**: [RFC 8484: DNS Queries over HTTPS](https://www.rfc-editor.org/rfc/rfc8484.html). DNS sobre HTTPS; evita asumir que toda resolución DNS usa UDP/TCP 53.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "4bc785b19c4ab61672e84c12"
+}

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-16-L03",
+  "title": "`restic`: repositorio cifrado y restauración",
+  "sourceHash": "ced54dd640b4898e843cd3f1f6daad44a91e8f4fe11ec7eb2f7a7f964023e6bc",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-16-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nExplicar cómo restic cifra, deduplica y versiona un repositorio, y distinguir la verificación estructural de la restauración comprobada.\n\nPrerrequisitos: `LNX-16-L02` (`tar` y `rsync`: alcance y límites).\n\n## 2. Comprende el mecanismo\n\n`restic` es una herramienta de respaldo que escribe en un **repositorio** propio, cifrado y con estructura propia. A diferencia de un espejo o de un archivo `tar`, cada ejecución de respaldo crea un **snapshot**: una vista identificable de un conjunto de datos en un momento. Los snapshots coexisten, se listan y se restauran por separado, así que el repositorio conserva un historial real, no solo el estado actual.\n\nEl repositorio está **cifrado** y aplica **deduplicación**: los bloques de contenido que ya existen no se vuelven a almacenar, y una referencia los reutiliza. Eso reduce el espacio de sucesivos snapshots, pero introduce una confianza implícita: el repositorio necesita su contraseña para funcionar. Un repositorio cifrado sin una **clave recuperable por procedimiento autorizado** es un repositorio inservible para recuperar; recuperabilidad y secreto son la misma pieza desde dos ángulos.\n\nLa **restauración** es el momento de la verdad. `restic restore` trae los archivos de un snapshot a un destino. Hay un detalle que sorprende a quien viene de copiar carpetas: cuando el snapshot respaldó una **ruta absoluta**, restic reconstruye esa jerarquía **bajo** el destino indicado. No se debe asumir que el archivo aparece en la raíz del destino; conviene consultar el contenido del snapshot antes de comparar.\n\nLa **verificación** tiene niveles y no conviene mezclarlos. `restic check` sin opciones valida la **integridad estructural** del repositorio: que los objetos referenciados existen y las relaciones son coherentes. No lee ni descifra todos los bloques de contenido. Para verificar los datos hay variantes como `--read-data` o lecturas por muestreo, que revisan contenido real a cambio de tiempo. Y ninguna de ellas equivale a restaurar y comprobar que la aplicación funciona.\n\nLa **retención** es otra pieza. `forget` aplica políticas para descartar snapshots y `prune` elimina el material que ya no está referenciado. Son operaciones con consecuencias: reducen el historial y liberan espacio, y por eso requieren controles y aprobación, no ejecuciones rutinarias a ciegas.\n\nQueda un matiz de modelo de amenazas. Un repositorio no resiste a quien puede borrarlo si comparte la credencial que lo administra. Un supuesto «append-only» solo es real bajo un mecanismo externo que lo imponga y sin facultad de borrado para la identidad comprometida. El cifrado protege la confidencialidad del contenido; no impide por sí solo la destrucción del repositorio.\n\nAntes de concluir, separa cuatro afirmaciones: el respaldo se completó, el repositorio es estructuralmente coherente, los datos se leyeron y verificaron, y la restauración funciona. El límite: solo la última demuestra recuperabilidad; las anteriores son condiciones necesarias, no suficientes.\n\n### Vocabulario de apoyo\n\n- **Repositorio**: almacén propio de restic, cifrado y deduplicado.\n- **Snapshot**: vista identificable de un conjunto de datos en un momento, restaurable por separado.\n- **Deduplicación**: reutilización de bloques ya almacenados para no repetir contenido.\n- **`check`**: verificación de integridad estructural del repositorio, no lectura de todo el contenido.\n- **`forget`/`prune`**: retención de snapshots y eliminación de material no referenciado.\n- **Retención**: política que decide cuántos snapshots y versiones se conservan.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-16-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un administrador crea un repositorio restic, respalda un directorio, ejecuta `restic check` y recibe un resultado correcto. Concluye que ya puede recuperar la base de datos del servicio, porque el repositorio «está verificado».\n\nLa conclusión encadena dos afirmaciones que no son equivalentes. `restic check` confirma que la **estructura** del repositorio es coherente: los objetos referenciados existen y encajan. No demuestra que el contenido respaldado sea consistente para la aplicación, ni que los datos se lean y descifren íntegramente, ni que una restauración arranque correctamente.\n\nRazonar así distingue una condición necesaria de una prueba suficiente. La verificación estructural es valiosa y conviene registrarla, pero la recuperabilidad se demuestra **restaurando** en un destino aislado y comprobando el contenido y el funcionamiento. El límite de la conclusión: sin un snapshot válido, una clave recuperable y una restauración probada, «el repositorio está verificado» no responde a la pregunta de si la base de datos puede volver a operar.\n\n"
+    },
+    {
+      "id": "LNX-16-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Registrar qué se verificó y qué se restauró, distinguiendo verificación estructural de prueba funcional.\n- Red Team autorizado: Evaluar si una identidad con control del repositorio puede destruir versiones protegidas.\n- Evidencia de la etapa: Snapshots identificados, verificación registrada y restauración comparada en destino aislado.\n- Criterio de dominio: Separa «respaldo completado», «repositorio coherente» y «restauración comprobada».\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB18](../../05_RECURSOS/LABORATORIOS/LNX-LAB18.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F57**: [restic: backing up](https://restic.readthedocs.io/en/stable/040_backup.html). Creación de snapshots y alcance del respaldo.\n- **F58**: [restic: restoring from backup](https://restic.readthedocs.io/en/stable/050_restore.html). Restauración de snapshots y reconstrucción de rutas bajo el destino.\n- **F59**: [restic: working with repositories, `check`](https://restic.readthedocs.io/en/stable/045_working_with_repos.html). Verificación estructural y comprobación de datos.\n- **F60**: [restic: forget, prune y retención](https://restic.readthedocs.io/en/stable/060_forget.html). Políticas de retención y consecuencias de podar el repositorio.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-16-L03-P01",
+    "prompt": "Un administrador ejecuta `restic check`, obtiene un resultado correcto y concluye que ya puede recuperar la base de datos del servicio. Explica qué valida realmente la comprobación, qué falta para afirmar recuperabilidad y cuál es el límite de la conclusión.",
+    "markdown": "## 4. Práctica individual\n\nUn administrador ejecuta `restic check`, obtiene un resultado correcto y concluye que ya puede recuperar la base de datos del servicio. Explica qué valida realmente la comprobación, qué falta para afirmar recuperabilidad y cuál es el límite de la conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber creado ni restaurado repositorios restic reales.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-16-L03-Q01",
+      "prompt": "¿Qué valida `restic check` sin opciones adicionales?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que todos los bloques de datos se leen y descifran correctamente"
+        },
+        {
+          "id": "B",
+          "text": "La integridad estructural del repositorio, no la lectura de todo el contenido"
+        },
+        {
+          "id": "C",
+          "text": "Que la aplicación restaurada arranca de forma consistente"
+        },
+        {
+          "id": "D",
+          "text": "Que la contraseña del repositorio es robusta"
+        }
+      ]
+    },
+    {
+      "id": "LNX-16-L03-Q02",
+      "prompt": "Tras `restic restore latest`, un analista no encuentra el archivo en la raíz del destino. ¿Qué lo explica?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Con rutas absolutas, restic reconstruye la jerarquía bajo el destino indicado"
+        },
+        {
+          "id": "B",
+          "text": "La restauración falló porque el repositorio no estaba cifrado"
+        },
+        {
+          "id": "C",
+          "text": "`latest` siempre apunta a un snapshot vacío"
+        },
+        {
+          "id": "D",
+          "text": "El archivo se restauró en el origen sobrescribiéndolo"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB18](../../05_RECURSOS/LABORATORIOS/LNX-LAB18.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F57**: [restic: backing up](https://restic.readthedocs.io/en/stable/040_backup.html). Creación de snapshots y alcance del respaldo.\n- **F58**: [restic: restoring from backup](https://restic.readthedocs.io/en/stable/050_restore.html). Restauración de snapshots y reconstrucción de rutas bajo el destino.\n- **F59**: [restic: working with repositories, `check`](https://restic.readthedocs.io/en/stable/045_working_with_repos.html). Verificación estructural y comprobación de datos.\n- **F60**: [restic: forget, prune y retención](https://restic.readthedocs.io/en/stable/060_forget.html). Políticas de retención y consecuencias de podar el repositorio.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "aedae752b13da6feeefdb4b2"
+}

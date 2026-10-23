@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-31-L01",
+  "title": "Automatización y Bash idempotente",
+  "sourceHash": "7dea393ec3e691757f06869cc92ccbcdab862facc3de604e32d2d6b352d05527",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-31-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDiseñar un script de evidencia en Bash que sea idempotente, acotado y observable, y explicar por qué repetirlo no debe alterar el estado ni la evidencia.\n\nPrerrequisitos: `LNX-30-L03` (Abuso de configuración (sin escape)).\n\n## 2. Comprende el mecanismo\n\nAutomatizar una tarea de SOC no consiste en ejecutar antes el mismo comando, sino en obtener el mismo resultado verificable cada vez que se ejecuta. Esa es la diferencia entre un atajo y una herramienta: el atajo depende de que nadie repita la operación; la herramienta sobrevive a la repetición.\n\nLa **idempotencia** es la propiedad de que ejecutar varias veces produce un estado equivalente al de ejecutarla una vez, sin acumular efectos ni destruir resultados anteriores. En captura de evidencia la repetición es normal: se relanza el script tras una interrupción, se hace una segunda toma o se verifica un cambio. Un diseño idempotente escribe en una ruta nueva y fechada, calcula hashes estables y distingue «no había datos» de «falló la lectura».\n\nBash ofrece ayudas, no garantías. `set -euo pipefail` detiene el script ante muchos errores, trata variables no definidas y propaga el fallo de una tubería, pero su semántica cambia según el contexto: condiciones, listas con `||`, funciones y subshells. Además, un `grep` sin coincidencias devuelve código 1 y eso no es un fallo del sistema. El script debe probar de forma explícita lo que considera error y declarar sus códigos de salida.\n\nLas entradas son otra fuente de fallos. Rutas con espacios, globs que se expanden a más archivos de los previstos, texto de un log interpretado como código y enlaces simbólicos que cambian entre la comprobación y el uso (**TOCTOU**) rompen la mejor intención. La defensa es citar variables, usar arrays, evitar `eval` y `bash -c` sobre contenido importado, crear directorios con `mktemp` y fijar `umask 077` para que la evidencia no nazca legible por todo el mundo.\n\nLa observabilidad forma parte del diseño, no es un adorno. Un script útil registra hora UTC, host, identificador de arranque, versión de kernel, identidad que ejecuta, alcance autorizado y código de salida; separa `stdout` de su log; admite `--dry-run`; y no borra evidencia de forma automática. Un `trap` puede informar la ruta de salida al terminar, pero nunca debe ejecutar `rm -rf` sobre el directorio de evidencia.\n\nTambién hay que pensar en la segunda ejecución. Si el script trunca un archivo fijo con `>`, la segunda toma destruye la primera; si escribe siempre el mismo nombre, no se puede comparar ni demostrar qué cambió. La idempotencia en evidencia se consigue con un directorio por ejecución, nombres previsibles, hashes y una decisión explícita de conservar o retirar. Repetir no debe modificar el host de forma acumulativa ni producir eventos que parezcan un ataque.\n\nEl límite: que un script funcione una vez en un laboratorio no demuestra que sea seguro en otro entorno. La validación requiere pruebas con datos sintéticos, revisión de otro analista y ensayos de fallo, no solo una ejecución feliz.\n\n### Vocabulario de apoyo\n\n- **Idempotencia**: propiedad de repetir una operación sin acumular efectos ni alterar el estado esperado.\n- **TOCTOU**: condición de carrera entre la comprobación de un recurso y su uso posterior.\n- **`pipefail`**: opción que hace que una tubería devuelva el fallo de cualquiera de sus componentes.\n- **Prueba de humo**: ejecución mínima que comprueba que el flujo principal responde.\n- **`--dry-run`**: modo que muestra lo que se haría sin aplicar cambios.\n- **Redacción**: sustitución de datos sensibles antes de registrar o compartir una salida.\n- **Evidencia preservada**: conjunto que se conserva sin truncar, con hash y contexto de captura.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-31-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un script llamado `recolecta.sh` escribe siempre en `/srv/evidencia/informe.txt`, borra ese directorio al inicio con `rm -rf`, carga parámetros con `eval \"$(cat \"$HOME/t5-lab/params.txt\")\"` y cuenta hallazgos con `grep ... | wc -l`. Durante una investigación se relanza para «actualizar» la toma y la anterior desaparece.\n\nEl diseño falla en cuatro puntos. El borrado inicial destruye la evidencia previa antes de que nadie decida conservarla. La ruta fija con `>` trunca el informe anterior aunque el borrado se elimine. `eval` sobre un archivo de parámetros convierte texto en código ejecutable y abre una vía de inyección. La tubería con `wc -l` enmascara el código de salida de `grep`, de modo que «no hubo coincidencias» y «falló la lectura» pueden parecer lo mismo.\n\nLa reescritura correcta crea un directorio por ejecución con `mktemp`, fija `umask 077`, escribe archivos con nombres fechados, calcula un hash al final y registra hora UTC, host e identidad. Los parámetros se leen en variables y se validan, sin `eval`; las rutas se citan y se comprueban; los estados de `grep` se tratan por separado del estado del script. Al terminar, informa la ruta de salida y deja la decisión de conservar o retirar a una persona.\n\nEl límite: el caso demuestra un fallo de diseño reproducible, no un incidente ni una pérdida real de evidencia. Sin una segunda ejecución controlada y una comparación de hashes, no se puede afirmar que la nueva versión sea idempotente en todos los entornos.\n\n"
+    },
+    {
+      "id": "LNX-31-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Estandarizar capturas repetibles que conserven la toma anterior y permitan comparar dos momentos sin ambigüedad.\n- Red Team autorizado: Reutilizar el mismo script dentro del alcance y documentar cada ejecución sin alterar el host ni ampliar el impacto.\n- Evidencia de la etapa: Hora UTC, host, identidad, alcance, ruta de salida, hash y código de salida de cada ejecución.\n- Criterio de dominio: Ejecuta dos veces el mismo flujo y demuestra que el estado y la evidencia previa sobreviven.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB39](../../05_RECURSOS/LABORATORIOS/LNX-LAB39.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F02**: [GNU Bash Reference Manual](https://www.gnu.org/software/bash/manual/bash.html). Quoting, expansión, redirecciones y control de errores en scripts.\n- **F122**: [NIST SP 800-92 (log management)](https://csrc.nist.gov/pubs/sp/800/92/final). Protección y administración de registros generados por la automatización.\n- **F124**: [strace(1)](https://man7.org/linux/man-pages/man1/strace.1.html). Observación de llamadas al sistema para verificar qué hace realmente un script.\n- **F136**: [systemd-analyze(1)](https://man7.org/linux/man-pages/man1/systemd-analyze.1.html). Análisis de unidades y de su configuración antes de automatizar su ejecución.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-31-L01-P01",
+    "prompt": "Un script de evidencia sobrescribe un informe anterior, borra su directorio de salida al inicio y se relanza durante una investigación. Explica qué falla en su diseño, cómo lo reescribirías para que sea idempotente y observable, y cuál es el límite de tu conclusión.",
+    "markdown": "## 4. Práctica individual\n\nUn script de evidencia sobrescribe un informe anterior, borra su directorio de salida al inicio y se relanza durante una investigación. Explica qué falla en su diseño, cómo lo reescribirías para que sea idempotente y observable, y cuál es el límite de tu conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber ejecutado un script real ni haber manipulado evidencia de un caso.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-31-L01-Q01",
+      "prompt": "¿Qué significa que un script de evidencia sea idempotente?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que solo puede ejecutarse una vez por investigación"
+        },
+        {
+          "id": "B",
+          "text": "Que tarda siempre el mismo tiempo en terminar"
+        },
+        {
+          "id": "C",
+          "text": "Que repetir la ejecución deja el sistema y la evidencia en un estado equivalente, sin acumular efectos ni destruir resultados previos"
+        },
+        {
+          "id": "D",
+          "text": "Que usa `set -euo pipefail` en la primera línea"
+        }
+      ]
+    },
+    {
+      "id": "LNX-31-L01-Q02",
+      "prompt": "¿Por qué `set -euo pipefail` no basta para considerar seguro un script?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Porque garantiza que ninguna entrada pueda contener código"
+        },
+        {
+          "id": "B",
+          "text": "Porque convierte Bash en un entorno aislado equivalente a un contenedor"
+        },
+        {
+          "id": "C",
+          "text": "Porque desactiva la expansión de globs y las rutas con espacios"
+        },
+        {
+          "id": "D",
+          "text": "Porque mejora el control de fallos, pero su semántica depende del contexto y no sustituye pruebas explícitas ni el diseño de errores"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB39](../../05_RECURSOS/LABORATORIOS/LNX-LAB39.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F02**: [GNU Bash Reference Manual](https://www.gnu.org/software/bash/manual/bash.html). Quoting, expansión, redirecciones y control de errores en scripts.\n- **F122**: [NIST SP 800-92 (log management)](https://csrc.nist.gov/pubs/sp/800/92/final). Protección y administración de registros generados por la automatización.\n- **F124**: [strace(1)](https://man7.org/linux/man-pages/man1/strace.1.html). Observación de llamadas al sistema para verificar qué hace realmente un script.\n- **F136**: [systemd-analyze(1)](https://man7.org/linux/man-pages/man1/systemd-analyze.1.html). Análisis de unidades y de su configuración antes de automatizar su ejecución.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "868f91d52d4613b1b7d248eb"
+}

@@ -1,5 +1,9 @@
 import {simulatorChange} from './simulator-reconciliation.mjs';
 import {v20Change} from './splunk-v20-reconciliation.mjs';
+import {windowsAdChange} from './windows-ad-reconciliation.mjs';
+import {linuxChange} from './linux-reconciliation.mjs';
+import {socChange} from './soc-reconciliation.mjs';
+import {repasoSocChange} from './repaso-soc-reconciliation.mjs';
 // Only the exact documentary checkpoint requested in RETOMAR is reconciled.
 // Historical inventories and their backups are never rewritten.
 export function checkpointDocumentChange(file, expected, actual) {
@@ -21,7 +25,7 @@ const guardEdits={
 };
 export function authorizedHistoricalChange(file,expected,actual) {
   const edit=guardEdits[file];
-  return simulatorChange(file,expected,actual) || v20Change(file,expected,actual) || checkpointDocumentChange(file,expected,actual) || !!edit && edit.expected===expected && edit.actual===actual || file===readerV122Edit.file&&expected===readerV122Edit.expected&&actual===readerV122Edit.actual || file===readerHeadingFix.file&&expected===readerHeadingFix.expected&&actual===readerHeadingFix.actual;
+  return simulatorChange(file,expected,actual) || v20Change(file,expected,actual) || windowsAdChange(file,expected,actual) || linuxChange(file,expected,actual) || socChange(file,expected,actual) || repasoSocChange(file,expected,actual) || checkpointDocumentChange(file,expected,actual) || !!edit && edit.expected===expected && edit.actual===actual || file===readerV122Edit.file&&expected===readerV122Edit.expected&&actual===readerV122Edit.actual || file===readerHeadingFix.file&&expected===readerHeadingFix.expected&&actual===readerHeadingFix.actual;
 }
 
 // V1.2.2 authorized reader-only replacement; no educational or map exception.

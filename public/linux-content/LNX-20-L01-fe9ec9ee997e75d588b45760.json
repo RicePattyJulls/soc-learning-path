@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-20-L01",
+  "title": "Autenticación del servidor ≠ del usuario",
+  "sourceHash": "d44d701d776b7acf76346267186942719d7c6c8b2376188aa4db51f1cde6a9ae",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-20-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDistinguir la autenticación del servidor de la del usuario en SSH y verificar la identidad por un canal fiable.\n\nPrerrequisitos: `LNX-19-L03` (Sockets y procesos: LISTEN, ESTAB y límites).\n\n## 2. Comprende el mecanismo\n\nEn SSH hay dos autenticaciones distintas que no deben mezclarse. El cliente verifica que habla con el servidor esperado mediante la **host key** (identidad del servidor). Después, el servidor decide qué usuario puede entrar (identidad del usuario), por clave o por contraseña. Confundirlas es el error que origina casi todos los malentendidos de esta etapa.\n\nLa **host key** se valida con confianza preexistente en `known_hosts` o con comprobación externa del *fingerprint* por un canal fiable. Un aviso de cambio de clave puede significar reinstalación, balanceador, rotación legítima o un ataque: no debe aceptarse automáticamente. `ssh-keyscan` recoge la clave observada, pero no establece confianza independiente.\n\nLa **user key** es la clave pública autorizada en `authorized_keys`. Que exista una clave no vuelve la sesión «segura» por definición: siguen aplicando los permisos de la cuenta, la shell, `sudo` y la política del servidor. Una clave robada con permisos laxos puede ser tan peligrosa como una contraseña.\n\nEn materia de contraseñas, la exigencia real depende de `AuthenticationMethods`, los métodos activados y PAM. Desactivar `PasswordAuthentication` no garantiza por sí solo que no haya acceso con contraseña si `KbdInteractiveAuthentication` con PAM queda habilitado. Hay que leer la configuración efectiva, no la intención.\n\nConviene evitar errores frecuentes: usar `StrictHostKeyChecking=no` como solución genérica, hacer `ssh-keyscan host >> known_hosts` sin comprobar el *fingerprint*, guardar claves privadas en repositorios o imprimirlas en logs.\n\nLa regla es verificar el *fingerprint* por un canal independiente y declarar qué autenticación estás evaluando. El límite: una conexión cifrada con el servidor equivocado es segura en tránsito y equivocada en destino.\n\n### Vocabulario de apoyo\n\n- **Host key**: clave que identifica al servidor ante el cliente.\n- **User key**: clave pública de usuario autorizada en `authorized_keys`.\n- **`known_hosts`**: almacén de claves de servidores ya conocidos por el cliente.\n- **Fingerprint**: huella que se compara por un canal fiable e independiente.\n- **`AuthenticationMethods`**: métodos que `sshd` exige para autenticar a un usuario.\n- **MFA**: segundo factor que, junto con la clave, endurece el acceso.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-20-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un analista recibe el aviso de que cambió la host key de un servidor, ejecuta `ssh-keyscan` y sobrescribe `known_hosts` para «quitar el error»; además, cifra la sesión y concluye que la conexión es segura porque está cifrada.\n\nEl razonamiento mezcla dos autenticaciones y destruye la referencia de confianza. Sobrescribir `known_hosts` elimina el registro previo, de modo que ya no hay con qué comparar; aceptar la nueva clave sin verificación puede estar aceptando el servidor equivocado. `ssh-keyscan` solo recoge la clave observada: no puede distinguir un servidor correcto de uno suplantado. Y el cifrado protege el tránsito, no garantiza que el destino sea el esperado.\n\nLa lectura correcta verifica el *fingerprint* por un canal independiente (documentación, consola OOB, administrador) antes de confiar en la nueva clave, y solo entonces actualiza `known_hosts`. El límite de la conclusión: sin verificación independiente no puedes afirmar la identidad del servidor, por mucho que la sesión esté cifrada.\n\n"
+    },
+    {
+      "id": "LNX-20-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Tratar un cambio de host key como evento a verificar, no como aviso a silenciar.\n- Red Team autorizado: Demostrar que el cliente rechaza una host key no validada, sin interceptar usuarios reales.\n- Evidencia de la etapa: Fingerprint verificado por canal fiable, registro en `known_hosts` y método de autenticación observado.\n- Criterio de dominio: Separa la identidad del servidor de la del usuario y exige verificación independiente.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB25](../../05_RECURSOS/LABORATORIOS/LNX-LAB25.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F82**: [sshd_config(5) — OpenSSH/OpenBSD](https://man.openbsd.org/sshd_config.5). Opciones de autenticación del servidor.\n- **F83**: [sshd(8) — OpenSSH/OpenBSD](https://man.openbsd.org/sshd.8). Comportamiento del servidor y verificación de claves.\n- **F84**: [ssh(1) — OpenSSH/OpenBSD](https://man.openbsd.org/ssh.1). Cliente, host keys y verificación de identidad.\n- **F85**: [ssh_config(5) — OpenSSH/OpenBSD](https://man.openbsd.org/ssh_config.5). Configuración del cliente y gestión de `known_hosts`.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-20-L01-P01",
+    "prompt": "Un analista recibe el aviso de que cambió la host key de un servidor, ejecuta `ssh-keyscan` y sobrescribe `known_hosts` para «quitar el error», y concluye que la conexión es segura porque está cifrada. Explica qué confunde sobre la autenticación del servidor y cuál es el límite.",
+    "markdown": "## 4. Práctica individual\n\nUn analista recibe el aviso de que cambió la host key de un servidor, ejecuta `ssh-keyscan` y sobrescribe `known_hosts` para «quitar el error», y concluye que la conexión es segura porque está cifrada. Explica qué confunde sobre la autenticación del servidor y cuál es el límite.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber modificado `known_hosts` ni haber accedido a servidores reales.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-20-L01-Q01",
+      "prompt": "¿Qué verifica la host key en SSH?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que el cliente está hablando con el servidor esperado, mediante confianza preexistente o validación externa del fingerprint"
+        },
+        {
+          "id": "B",
+          "text": "Que el usuario tenga permisos de root"
+        },
+        {
+          "id": "C",
+          "text": "Que el firewall permita el puerto 22"
+        },
+        {
+          "id": "D",
+          "text": "Que el payload viaje cifrado de extremo a extremo"
+        }
+      ]
+    },
+    {
+      "id": "LNX-20-L01-Q02",
+      "prompt": "¿Por qué `ssh-keyscan host >> known_hosts` no basta para validar la identidad del servidor?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Porque solo funciona en IPv6"
+        },
+        {
+          "id": "B",
+          "text": "Porque desactiva el cifrado del canal"
+        },
+        {
+          "id": "C",
+          "text": "Porque borra `authorized_keys` del usuario"
+        },
+        {
+          "id": "D",
+          "text": "Porque recoge la clave observada sin establecer confianza independiente; no puede distinguir un servidor correcto de uno suplantado"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB25](../../05_RECURSOS/LABORATORIOS/LNX-LAB25.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F82**: [sshd_config(5) — OpenSSH/OpenBSD](https://man.openbsd.org/sshd_config.5). Opciones de autenticación del servidor.\n- **F83**: [sshd(8) — OpenSSH/OpenBSD](https://man.openbsd.org/sshd.8). Comportamiento del servidor y verificación de claves.\n- **F84**: [ssh(1) — OpenSSH/OpenBSD](https://man.openbsd.org/ssh.1). Cliente, host keys y verificación de identidad.\n- **F85**: [ssh_config(5) — OpenSSH/OpenBSD](https://man.openbsd.org/ssh_config.5). Configuración del cliente y gestión de `known_hosts`.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "fe9ec9ee997e75d588b45760"
+}

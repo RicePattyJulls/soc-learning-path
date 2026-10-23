@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-18-L01",
+  "sourceHash": "fab3a8815d9e2f95f2f641e4b0d5f5322507c70d43879feeb474f81fd6e7c9e3",
+  "questions": [
+    {
+      "id": "LNX-18-L01-Q01",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Que escucha en IPv4 sobre todas las interfaces locales del host, sin probar accesibilidad externa».\n\n`0.0.0.0` es la dirección comodín de IPv4: el socket acepta en las interfaces locales del namespace. No demuestra accesibilidad desde Internet, ni firewall desactivado, ni que solo se acepte loopback."
+    },
+    {
+      "id": "LNX-18-L01-Q02",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Inferir identidad y legitimidad a partir del número de puerto, que no identifica protocolo ni autor».\n\nEl puerto 443 no identifica HTTPS ni al autor del flujo. Es un error de asignación de significado a un dato de la capa de transporte, no un conflicto entre L2 y L7, de sensores, ni de familia de direcciones."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "`0.0.0.0:22` describe un socket en `LISTEN` dentro del namespace del host, enlazado a todas las interfaces IPv4 locales. No prueba accesibilidad desde fuera: para llegar desde otro segmento debe existir ruta y autorización efectiva a través de todos los controles (host, red, nube). El puerto 22 tampoco identifica por sí solo qué proceso escucha ni su legitimidad.\n\nLa observación pertenece a la capa de socket/proceso; la afirmación «expuesto a Internet» pertenece a la capa de ruta y política. Confundirlas lleva a exagerar el hallazgo y a proponer contenciones innecesarias.\n\nLímite: desde un único host y una instantánea de `ss` no puedes afirmar exposición externa; eso exige una prueba controlada desde el otro extremo y dentro del alcance autorizado.",
+    "rubric": [
+      {
+        "criterion": "Interpreta `0.0.0.0",
+        "evidence": "22` como bind local en IPv4 sobre todas las interfaces, no como exposición."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Distingue la capa de socket/proceso de la capa de ruta y política."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Declara que la exposición requiere prueba desde el otro extremo."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Reconoce el límite de una instantánea tomada en un solo host."
+      }
+    ]
+  },
+  "revision": "19d64c04a360401c748bdfc6"
+}

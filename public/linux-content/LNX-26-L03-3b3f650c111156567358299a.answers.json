@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-26-L03",
+  "sourceHash": "67533074b8095e508c9bbe76c4e6ec3d7af01aa772f39c998a52d035bcf9dde7",
+  "questions": [
+    {
+      "id": "LNX-26-L03-Q01",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «El sandbox de la unidad, que oculta esa ruta con independencia de los permisos DAC».\n\n`ProtectHome=yes` hace que el servicio no vea los directorios de usuario aunque el DAC los permita. No es una etiqueta SELinux, ni una máscara de ACL, ni una umask aplicada en ejecución."
+    },
+    {
+      "id": "LNX-26-L03-Q02",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Que una operación fue bloqueada por el perfil, sin identificar autoría ni intención».\n\nEl evento describe el bloqueo de una operación por el perfil. No identifica a un atacante, no prueba que los permisos fueran incorrectos y no indica el modo del perfil en ese instante."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "El orden de descarte empieza por el **DAC**: `stat` y `namei -l` confirman que `svc` puede atravesar el camino y que el modo `640` con grupo `svc` concede lectura. Si el DAC explicara el fallo, no haría falta invocar MAC. Después se revisa el **MAC**: el `DENIED` de AppArmor aporta perfil, operación y ruta, y permite ver si la ruta nueva no está contemplada. En tercer lugar, el **sandbox** de la unidad puede ocultar rutas o limitar escrituras sin generar eventos MAC.\n\nEl evento sostiene que una operación fue bloqueada por el perfil. No sostiene que alguien intentara acceder de forma indebida: un despliegue que cambia una ruta produce el mismo `DENIED` sin intención maliciosa. La corrección es la regla mínima en el perfil y el retorno a `enforce` con prueba positiva y negativa.\n\nLímite: el diagnóstico explica por qué falló una operación en un momento concreto; no reconstruye intención ni demuestra que no haya habido otras acciones no observadas.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Descarta DAC antes de atribuir el fallo a MAC."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Distingue evento MAC de restricción de sandbox."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Interpreta el `DENIED` como bloqueo de una operación, no como autoría."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Declara el límite y evita señalar responsables sin evidencia adicional."
+      }
+    ]
+  },
+  "revision": "3b3f650c111156567358299a"
+}

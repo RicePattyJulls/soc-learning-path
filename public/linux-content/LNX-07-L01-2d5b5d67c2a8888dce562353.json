@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-07-L01",
+  "title": "Cadena principal y variantes",
+  "sourceHash": "37f418b3fee430463d45d73dc542dcdaac66cf1686044a81ab33c5ffd3df09f9",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-07-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nReconstruir la cadena de arranque desde el firmware hasta PID 1 y reconocer sus variantes sin asumir un orden estricto.\n\nPrerrequisitos: `LNX-06-L03` (Scripts auditables y línea base).\n\n## 2. Comprende el mecanismo\n\nEl arranque de un host GNU/Linux es una **cadena de responsabilidades**, no un único programa. Al encender, el **firmware** (BIOS o UEFI) inicializa lo imprescindible y elige una entrada de arranque. UEFI no equivale a *Secure Boot* ni obliga a usar un gestor concreto: puede cargar un cargador, un *stub* EFI o una imagen unificada.\n\nEl **cargador de arranque** —GRUB, `systemd-boot` u otro— presenta o selecciona una entrada, transmite los **parámetros del kernel** y entrega la imagen del kernel junto a una imagen inicial. Que exista un menú y que el sistema arranque sin interacción depende de esa configuración.\n\nEl **kernel** toma el control: establece memoria, procesos, sistemas de ficheros virtuales y controladores. Cuando la raíz real necesita preparación previa —cifrado, LVM, RAID o controladores no incluidos— el kernel extrae un **initramfs**: un sistema de archivos inicial mínimo en memoria que monta o desbloquea la raíz definitiva. No es exactamente el `initrd` histórico, aunque el uso informal mezcle los nombres.\n\nDespués, el kernel **cambia a la raíz definitiva** y arranca el primer proceso de usuario, **PID 1**. No des por supuesto que PID 1 sea `systemd` en todo Linux: contenedores, sistemas embebidos y otras distribuciones pueden usar otro `init`.\n\nDesde PID 1 se activan **targets y unidades**: montajes, sockets, servicios, timers y sesiones. La secuencia se dibuja a menudo como una línea, pero el sistema inicia unidades **en paralelo** cuando no hay dependencias de orden que lo impidan. Una cadena ordenada en un dibujo no significa ejecución estrictamente serial.\n\nConviene separar dos ideas que se confunden con facilidad. Primero, cada etapa **entrega** algo a la siguiente; si una falla, lo que falló es esa etapa, no «el arranque» en abstracto. Segundo, **Secure Boot** verifica ciertas etapas según claves y política, pero por sí solo no garantiza que cada archivo del sistema o cada unidad sea confiable.\n\n### Vocabulario de apoyo\n\n- **Firmware**: software inicial del equipo (BIOS o UEFI) que arranca el hardware y elige una entrada.\n- **Cargador de arranque**: programa que selecciona la entrada, pasa parámetros y entrega el kernel.\n- **initramfs**: sistema de archivos inicial en memoria que prepara el acceso a la raíz real.\n- **PID 1**: primer proceso de usuario del sistema final; origen de las unidades.\n- **Target**: unidad que agrupa y sincroniza un estado deseado del sistema.\n- **Secure Boot**: verificación de etapas de arranque según claves y política del firmware.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-07-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: durante un arranque, la consola apenas muestra mensajes porque los parámetros incluyen `quiet`. Un analista toma el último mensaje visible como «la causa del fallo» y concluye que el problema está en esa etapa.\n\nLa conclusión no se sostiene con ese dato. `quiet` **reduce la salida de consola**, no elimina los eventos: muchos pasos ocurren sin mostrar texto. Además, el último mensaje visible es solo el último que se imprimió, no necesariamente el punto donde se detuvo la cadena.\n\nRazonar así exige ubicar la **etapa** correcta. Si el sistema no alcanzó PID 1, la hipótesis apunta a firmware, cargador, kernel, initramfs o raíz; si llegó a PID 1, apunta a unidades y dependencias. El límite de la conclusión: sin evidencia de la etapa alcanzada —consola, parámetros y estado del montaje— solo puedes describir el síntoma, no fijar la causa.\n\n"
+    },
+    {
+      "id": "LNX-07-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Situar un fallo en la etapa correcta de la cadena antes de etiquetarlo como «problema de arranque».\n- Red Team autorizado: Evaluar si una configuración de arranque relaja controles, como riesgo de control físico y de arranque.\n- Evidencia de la etapa: Diagrama con al menos cinco hitos y la evidencia directa que respalda cada uno.\n- Criterio de dominio: Nombra la etapa alcanzada y su evidencia antes de proponer una causa.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB06](../../05_RECURSOS/LABORATORIOS/LNX-LAB06.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F17**: [systemd: bootup](https://www.freedesktop.org/software/systemd/man/257/bootup.html). Descripción de las etapas de arranque que gestiona PID 1 tras el kernel.\n- **F18**: [systemd: systemd-boot](https://www.freedesktop.org/software/systemd/man/257/systemd-boot.html). Gestor de arranque UEFI como variante frente a otros cargadores.\n- **F37**: [systemd: targets and special units](https://www.freedesktop.org/software/systemd/man/257/systemd.special.html). Targets que agrupan el estado deseado y ordenan la activación.\n- **F38**: [Linux Kernel: initrd](https://docs.kernel.org/admin-guide/initrd.html). Imagen inicial con la que el kernel prepara el acceso a la raíz real.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-07-L01-P01",
+    "prompt": "Un host arranca sin mostrar apenas mensajes y se detiene. Reconstruye la cadena de etapas y explica qué evidencia necesitarías para situar el fallo en una etapa concreta, en lugar de atribuirlo al último mensaje de consola.",
+    "markdown": "## 4. Práctica individual\n\nUn host arranca sin mostrar apenas mensajes y se detiene. Reconstruye la cadena de etapas y explica qué evidencia necesitarías para situar el fallo en una etapa concreta, en lugar de atribuirlo al último mensaje de consola.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber diagnosticado un arranque real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-07-L01-Q01",
+      "prompt": "¿Qué etapa entrega al kernel una imagen inicial que prepara el acceso a la raíz definitiva?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El initramfs, un sistema de archivos inicial que el kernel extrae para preparar la raíz real"
+        },
+        {
+          "id": "B",
+          "text": "El firmware UEFI, que monta directamente el sistema de archivos raíz definitivo"
+        },
+        {
+          "id": "C",
+          "text": "El cargador de arranque, que ejecuta como PID 1 la primera unidad del sistema"
+        },
+        {
+          "id": "D",
+          "text": "El target por defecto, que descarga el initramfs desde la red antes del kernel"
+        }
+      ]
+    },
+    {
+      "id": "LNX-07-L01-Q02",
+      "prompt": "El arranque muestra `quiet` en los parámetros del kernel y una consola sin mensajes. ¿Qué permite afirmar ese dato?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que la salida de consola se redujo, no que no ocurrieran eventos"
+        },
+        {
+          "id": "B",
+          "text": "Que el kernel no cargó ningún controlador durante el arranque"
+        },
+        {
+          "id": "C",
+          "text": "Que la cadena de arranque se ejecutó estrictamente en serie"
+        },
+        {
+          "id": "D",
+          "text": "Que Secure Boot validó todas las unidades del sistema"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB06](../../05_RECURSOS/LABORATORIOS/LNX-LAB06.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F17**: [systemd: bootup](https://www.freedesktop.org/software/systemd/man/257/bootup.html). Descripción de las etapas de arranque que gestiona PID 1 tras el kernel.\n- **F18**: [systemd: systemd-boot](https://www.freedesktop.org/software/systemd/man/257/systemd-boot.html). Gestor de arranque UEFI como variante frente a otros cargadores.\n- **F37**: [systemd: targets and special units](https://www.freedesktop.org/software/systemd/man/257/systemd.special.html). Targets que agrupan el estado deseado y ordenan la activación.\n- **F38**: [Linux Kernel: initrd](https://docs.kernel.org/admin-guide/initrd.html). Imagen inicial con la que el kernel prepara el acceso a la raíz real.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "2d5b5d67c2a8888dce562353"
+}

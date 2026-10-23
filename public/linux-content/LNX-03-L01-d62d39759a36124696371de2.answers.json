@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-03-L01",
+  "sourceHash": "670fda916a6155ca02bc14d034ec51ef24b5be0fbaa9ff90f9a4a40647178390",
+  "questions": [
+    {
+      "id": "LNX-03-L01-Q01",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «El shell busca el nombre en las rutas de `PATH` y puede resolverlo a un fichero distinto del que esperas».\n\nEl shell resuelve el nombre buscando en `PATH` de izquierda a derecha, y gana la primera coincidencia. Ese nombre es una etiqueta de búsqueda, no la identidad del programa; por eso anotarlo no demuestra qué fichero se ejecutó. Las opciones A, C y D atribuyen al nombre propiedades que no tiene."
+    },
+    {
+      "id": "LNX-03-L01-Q02",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Son flujos distintos: el resultado suele ir a `stdout` (1) y el diagnóstico a `stderr` (2), y puedes verlos separados en `/proc/PID/fd`».\n\nResultado útil y diagnóstico son descriptores diferentes, y así se pueden redirigir por separado; `/proc/PID/fd` muestra a dónde apunta cada uno. La opción A confunde compartir pantalla con compartir flujo, y B y C inventan destinos y requisitos que no existen."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "El fichero vacío indica que el descriptor **1** (`stdout`) no recibió texto, no que la herramienta fallara. La redirección `>` reasigna solo ese descriptor; los mensajes que seguían apareciendo en la terminal viajaban por el descriptor **2** (`stderr`), que mantuvo su destino original. Hay, por tanto, dos flujos con cauces distintos: resultado útil y diagnóstico.\n\nPara saber qué programa se ejecutó de verdad conviene registrar el origen: la ruta resuelta del comando y cómo la resolvió el shell, junto con el estado de salida del proceso y la separación de ambos flujos (por ejemplo, capturando `stdout` y `stderr` en destinos distintos). Ese conjunto separa «qué se pidió» de «qué se ejecutó» y «por dónde habló».\n\nLímite: la evidencia de descriptores explica **por dónde** salió cada texto, no **por qué** aparecieron los avisos ni qué estado tenía el host. Sin leer el contenido de los diagnósticos, la causa sigue sin determinar.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Identifica que `>` reasigna solo el descriptor 1."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Explica que los avisos viajaron por `stderr` (2) y por eso siguieron en la terminal."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Propone registrar el origen del comando (ruta resuelta) y el estado de salida."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Reconoce que la evidencia de descriptores no explica la causa ni el estado del host."
+      }
+    ]
+  },
+  "revision": "d62d39759a36124696371de2"
+}

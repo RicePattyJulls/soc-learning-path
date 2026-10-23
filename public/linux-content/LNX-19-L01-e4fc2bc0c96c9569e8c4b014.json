@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-19-L01",
+  "title": "TCP y estados de conexión",
+  "sourceHash": "436c050b25eca02968e5a43fbfc159e1f3ea8b4a9613d6f15e63173ce95cf8f4",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-19-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nInterpretar los estados de conexión TCP y separar el estado observado de las hipótesis sobre el proceso.\n\nPrerrequisitos: `LNX-18-L03` (Inventario de red, rutas y DNS del host).\n\n## 2. Comprende el mecanismo\n\nTCP es orientado a conexión: un saludo de tres vías para establecer, datos con acuses y un cierre según el caso. Los estados que muestra `ss` describen en qué punto del ciclo está un socket, no la intención del proceso que lo mantiene.\n\n`LISTEN` significa que un proceso espera conexiones en un puerto dentro de un espacio de red; no implica que sea alcanzable. `SYN-SENT` y `SYN-RECV` describen el saludo en curso. `ESTAB` indica una conexión establecida entre dos extremos, con una conversación activa o en espera.\n\nLos estados de cierre tienen lectura útil. Un `CLOSE-WAIT` persistente suele señalar una aplicación que no cierra su lado de la conexión. Un `TIME-WAIT` puede ser normal en servidores de alta concurrencia y no es un error por sí mismo. Confundirlos con «ataque» es un salto de más.\n\nUn `RST` puede venir del destino o de un elemento intermedio como un firewall, un proxy o un balanceador. Un *timeout* es todavía más ambiguo: puede ser descarte, pérdida de paquetes, ruta inexistente o retorno asimétrico. La misma señal admite varias hipótesis competidoras.\n\nLas colas `Recv-Q`/`Send-Q` no significan lo mismo en un socket `LISTEN` que en uno establecido; no se convierten en «gigabytes exfiltrados». `conntrack` mantiene estado de los flujos con *timeouts* y límites de capacidad, y tampoco evalúa la legitimidad de un flujo.\n\nLa regla es declarar la hora UTC y repetir la observación si hace falta, porque los sockets son efímeros y `ss` es una instantánea. Antes de concluir, separa el estado observado de la hipótesis sobre el proceso y declara el límite.\n\n### Vocabulario de apoyo\n\n- **Handshake TCP**: intercambio SYN / SYN,ACK / ACK que establece la conexión.\n- **ESTAB**: estado de conexión establecida entre dos extremos.\n- **CLOSE-WAIT**: estado que indica que la aplicación local no cerró su lado.\n- **TIME-WAIT**: espera tras el cierre, normal en alta concurrencia.\n- **RST**: reinicio que puede originarse en el destino o en un intermediario.\n- **Estado conntrack**: seguimiento de un flujo por el kernel, sin evaluar legitimidad.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-19-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en un servidor, `ss -tan` muestra decenas de sockets en `TIME-WAIT` y varios en `CLOSE-WAIT`, y el analista concluye que hay «un ataque de denegación de servicio».\n\nLa conclusión no se sostiene con esos datos. `TIME-WAIT` es habitual tras cerrar muchas conexiones y no indica ataque por sí mismo. `CLOSE-WAIT` persistente apunta a una aplicación que no cierra su lado, lo que puede ser un defecto del servicio, no un atacante. La misma vista puede corresponder a carga legítima.\n\nLa lectura correcta compara con una línea base de volumen, revisa contadores y logs de la aplicación, y correlaciona con otros sensores antes de nombrar un ataque. El límite de la conclusión: desde una sola instantánea de `ss` no puedes atribuir intención ni causa; el número puede describirse, pero no interpretarse como ataque sin contexto.\n\n"
+    },
+    {
+      "id": "LNX-19-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Interpretar estados de cierre con una línea base antes de nombrar un ataque.\n- Red Team autorizado: Comprobar el comportamiento del servicio ante muchas conexiones sin degradar la disponibilidad.\n- Evidencia de la etapa: Hora UTC, salida de `ss`, volumen comparado y logs de la aplicación.\n- Criterio de dominio: Separa el estado observado de la hipótesis y exige contexto antes de atribuir intención.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB22](../../05_RECURSOS/LABORATORIOS/LNX-LAB22.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F73**: [ss(8) — iproute2/man7](https://man7.org/linux/man-pages/man8/ss.8.html). Estados TCP, colas y filtros de consulta.\n- **F100**: [tcp(7) — man7](https://man7.org/linux/man-pages/man7/tcp.7.html). Semántica del protocolo y de sus estados.\n- **F95**: [Wireshark — referencia TCP](https://www.wireshark.org/docs/dfref/t/tcp.html). Campos de TCP útiles al leer un flujo.\n- **F91**: [conntrack — Netfilter](https://conntrack-tools.netfilter.org/). Estado de flujos y sus límites de capacidad.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-19-L01-P01",
+    "prompt": "En un servidor, `ss -tan` muestra decenas de sockets en `TIME-WAIT` y varios en `CLOSE-WAIT`, y se concluye que hay un «ataque de denegación de servicio». Explica qué significan ambos estados y cuál es el límite de la conclusión.",
+    "markdown": "## 4. Práctica individual\n\nEn un servidor, `ss -tan` muestra decenas de sockets en `TIME-WAIT` y varios en `CLOSE-WAIT`, y se concluye que hay un «ataque de denegación de servicio». Explica qué significan ambos estados y cuál es el límite de la conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber diagnosticado un ataque ni haber ejecutado capturas sobre redes reales.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-19-L01-Q01",
+      "prompt": "¿Qué sugiere un socket que permanece en `CLOSE-WAIT` durante mucho tiempo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que el firewall remoto está bloqueando el flujo"
+        },
+        {
+          "id": "B",
+          "text": "Que la aplicación local no cerró su lado de la conexión"
+        },
+        {
+          "id": "C",
+          "text": "Que el host está bajo un ataque de saturación SYN"
+        },
+        {
+          "id": "D",
+          "text": "Que la dirección remota es link-local"
+        }
+      ]
+    },
+    {
+      "id": "LNX-19-L01-Q02",
+      "prompt": "¿Qué significa encontrar muchos sockets en `TIME-WAIT` en un servidor de alta concurrencia?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que todos los clientes fueron exfiltrados"
+        },
+        {
+          "id": "B",
+          "text": "Que el kernel ha perdido las rutas"
+        },
+        {
+          "id": "C",
+          "text": "Puede ser normal tras cerrar muchas conexiones y no es por sí solo un ataque"
+        },
+        {
+          "id": "D",
+          "text": "Que el servicio no está escuchando"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB22](../../05_RECURSOS/LABORATORIOS/LNX-LAB22.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F73**: [ss(8) — iproute2/man7](https://man7.org/linux/man-pages/man8/ss.8.html). Estados TCP, colas y filtros de consulta.\n- **F100**: [tcp(7) — man7](https://man7.org/linux/man-pages/man7/tcp.7.html). Semántica del protocolo y de sus estados.\n- **F95**: [Wireshark — referencia TCP](https://www.wireshark.org/docs/dfref/t/tcp.html). Campos de TCP útiles al leer un flujo.\n- **F91**: [conntrack — Netfilter](https://conntrack-tools.netfilter.org/). Estado de flujos y sus límites de capacidad.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "e4fc2bc0c96c9569e8c4b014"
+}

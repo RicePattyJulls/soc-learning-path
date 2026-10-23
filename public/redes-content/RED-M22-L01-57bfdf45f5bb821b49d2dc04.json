@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M22-L01",
+  "title": "Planos de red",
+  "sourceHash": "0e18ef2a176710eb072446b9e1d4f5d2cf76b1ca6031bdafca0aa57d673cbda0",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M22-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nSeparar planos de datos, control y gestión.\n\nPrerrequisitos: [RED-M06-L04](../RED-E01/RED-M06-L04.md), [RED-M09-L04](../RED-E02/RED-M09-L04.md), [RED-M12-L04](../RED-E03/RED-M12-L04.md).\n\n## 2. Comprende el mecanismo\n\nEl plano de datos reenvía tráfico; el de control mantiene decisiones y protocolos; el de gestión administra y observa. Pueden compartir hardware y recursos aunque sus funciones difieran. Saturar paquetes dirigidos al equipo puede afectar su CPU sin agotar necesariamente capacidad de tránsito, según arquitectura. La protección requiere distinguir servicios de gestión de tráfico reenviado. Crear una VLAN de gestión ayuda a organizar caminos, pero su efectividad depende de rutas, ACL, identidad y canales administrativos.\n\n### Vocabulario de apoyo\n\n- **AAA**: Autenticación de identidad, autorización de acciones y registro de uso o accounting.\n- **CoPP**: Protección del tráfico dirigido al plano de control según capacidades de la plataforma.\n- **Fuera de banda y rollback**: Camino de gestión independiente del fallo previsto y reversión comprobable de un cambio.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M22-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso docente: tráfico de usuarios sigue pasando; acceso SSH al router se vuelve lento y CPU de control sube.\n\nEl síntoma no equivale a caída total del forwarding. Investigar paquetes punted al control, gestión y recursos del equipo según plataforma.\n\n"
+    },
+    {
+      "id": "RED-M22-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Identificar acceso administrativo anómalo.\n- Red Team autorizado: Validar exposición de plano de gestión.\n- Evidencia del módulo: Inventario de interfaces, política, respaldo y evidencias.\n- Criterio del módulo: Sólo admin aprobado y recuperación reproducible.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L05](../../05_RECURSOS/LABORATORIOS/RED-L05.md)\n- [Guía de laboratorio RED-L10](../../05_RECURSOS/LABORATORIOS/RED-L10.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC8907**: [RFC 8907: The TACACS+ Protocol](https://www.rfc-editor.org/rfc/rfc8907.html). AAA de administración y límites de protección del protocolo.\n- **RFC4253**: [RFC 4253: The Secure Shell Transport Layer Protocol](https://www.rfc-editor.org/rfc/rfc4253.html). Transporte SSH y autenticación del servidor; no recomendación de suites históricas.\n- **NIST-TEST**: [SP 800-115](https://csrc.nist.gov/pubs/sp/800/115/final). Planificación, alcance, evaluación y reporte de pruebas técnicas.\n- **COPP**: [Control Plane Policing — Cisco IOS XE 17.x](https://www.cisco.com/c/en/us/td/docs/routers/ios/config/17-x/qos/b-quality-of-service/m_qos-plcshp-ctrl-pln-plc-0.html). Clasificación y límites de tráfico dirigido o entregado al procesador; revisar capacidades y efectos por plataforma.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M22-L01-P01",
+    "prompt": "El operador permite SSH a la IP de gestión desde todas las VLAN. ¿Qué parte del aislamiento falta?",
+    "markdown": "## 4. Práctica individual\n\nEl operador permite SSH a la IP de gestión desde todas las VLAN. ¿Qué parte del aislamiento falta?\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M22-L01-Q01",
+      "prompt": "¿Qué función caracteriza al plano de datos?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Reenviar tráfico"
+        },
+        {
+          "id": "B",
+          "text": "Administrar usuarios y configuración mediante el canal de gestión"
+        },
+        {
+          "id": "C",
+          "text": "Calcular las rutas mediante protocolos de control"
+        },
+        {
+          "id": "D",
+          "text": "Negociar vecindades de routing como función principal"
+        }
+      ]
+    },
+    {
+      "id": "RED-M22-L01-Q02",
+      "prompt": "¿Qué observación evita declarar caída total?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que SSH tarde más en responder, sin probar forwarding"
+        },
+        {
+          "id": "B",
+          "text": "CPU de control alta sin medir tránsito"
+        },
+        {
+          "id": "C",
+          "text": "El tráfico de usuarios sigue pasando"
+        },
+        {
+          "id": "D",
+          "text": "Que la interfaz de gestión siga configurada, sin observar paquetes"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L05](../../05_RECURSOS/LABORATORIOS/RED-L05.md)\n- [Guía de laboratorio RED-L10](../../05_RECURSOS/LABORATORIOS/RED-L10.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC8907**: [RFC 8907: The TACACS+ Protocol](https://www.rfc-editor.org/rfc/rfc8907.html). AAA de administración y límites de protección del protocolo.\n- **RFC4253**: [RFC 4253: The Secure Shell Transport Layer Protocol](https://www.rfc-editor.org/rfc/rfc4253.html). Transporte SSH y autenticación del servidor; no recomendación de suites históricas.\n- **NIST-TEST**: [SP 800-115](https://csrc.nist.gov/pubs/sp/800/115/final). Planificación, alcance, evaluación y reporte de pruebas técnicas.\n- **COPP**: [Control Plane Policing — Cisco IOS XE 17.x](https://www.cisco.com/c/en/us/td/docs/routers/ios/config/17-x/qos/b-quality-of-service/m_qos-plcshp-ctrl-pln-plc-0.html). Clasificación y límites de tráfico dirigido o entregado al procesador; revisar capacidades y efectos por plataforma.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "57bfdf45f5bb821b49d2dc04"
+}

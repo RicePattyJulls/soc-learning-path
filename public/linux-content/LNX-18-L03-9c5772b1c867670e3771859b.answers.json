@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-18-L03",
+  "sourceHash": "19389424d64d3112f0bfff2a46197cc92ddb7e4ac3dce977dfeddbad0e4e1b0e",
+  "questions": [
+    {
+      "id": "LNX-18-L03-Q01",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Las reglas de policy routing que pueden seleccionar otras tablas de rutas».\n\n`ip rule show` revela las reglas que deciden qué tabla se consulta según origen, marca, interfaz o VRF. Sin ellas, la vista de `table main` es incompleta. No aporta hashes, sockets ni es cosmética."
+    },
+    {
+      "id": "LNX-18-L03-Q02",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Porque siguen rutas de resolución distintas: `dig` consulta DNS con su lógica y `getent` usa la resolución del sistema».\n\n`dig` habla DNS directamente, mientras `getent` sigue `/etc/hosts`, NSS y el resolver del sistema. Pueden devolver direcciones distintas sin que ninguno esté «roto». No es un problema de antigüedad, de familia IP ni de repetición."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "Falta el *policy routing* y la comparación de rutas de resolución. La tabla `main` no es todo el encaminamiento: una regla `ip rule` puede seleccionar otra tabla por origen, marca, interfaz o VRF, de modo que parte del tráfico no siga esa ruta por defecto. Para verlo hay que revisar `ip rule show`, `ip route show table all` y `ip route get` con el origen adecuado.\n\nTampoco basta con que `dig` responda. La aplicación puede resolver por `/etc/hosts`, por NSS o por el *stub* de `systemd-resolved`, y obtener otra dirección. Conviene comparar `getent ahosts` con `resolvectl` o `dig` y registrar qué resolver se usó.\n\nLímite: un inventario local describe las decisiones del kernel en ese host, pero no prueba entrega extremo a extremo ni la política de los intermediarios.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Añade `ip rule` y las tablas de rutas más allá de `main`."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Distingue `ip route show` de `ip route get` y sus condiciones."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Compara la resolución del sistema (`getent`) con la de `dig`/`resolvectl`."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Declara que el inventario local no prueba entrega extremo a extremo."
+      }
+    ]
+  },
+  "revision": "9c5772b1c867670e3771859b"
+}

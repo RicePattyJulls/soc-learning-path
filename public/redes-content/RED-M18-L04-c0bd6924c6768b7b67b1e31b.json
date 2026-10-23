@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M18-L04",
+  "title": "SD-WAN y políticas",
+  "sourceHash": "62ed51313fb0bfbda1101f9fa997feaddfafc0a4f11c076beee21310cb9f2587",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M18-L04-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nSeparar underlay, overlay y decisiones de política SD-WAN.\n\nPrerrequisitos: [RED-M18-L03](../RED-E03/RED-M18-L03.md).\n\n## 2. Comprende el mecanismo\n\nEl underlay proporciona conectividad de transporte; el overlay construye conectividad lógica sobre él. SD-WAN añade control y políticas de selección de caminos, con funciones concretas según solución. Un controlador accesible no demuestra que cada túnel de datos esté sano. La política puede considerar pérdida, latencia y jitter para dirigir una aplicación, pero necesita mediciones válidas y umbrales que eviten oscilación. Dos túneles sobre el mismo acceso no eliminan su dependencia física común. DMVPN es otra tecnología de diseño y no sinónimo general de SD-WAN.\n\n### Vocabulario de apoyo\n\n- **Underlay y overlay**: Transporte base y conectividad lógica construida sobre él.\n- **GRE, IKE y ESP**: Encapsulación de túnel, negociación de asociaciones y transporte protegido de IPsec.\n- **SLA y jitter**: Condiciones contractuales de servicio y variación de demora según el método de medida.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M18-L04-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Política docente: voz usa enlace A si jitter<20 ms; medición sube a 50 ms; enlace B está disponible con 10 ms.\n\nLa intención es seleccionar B conforme a la política, si sus otras condiciones se cumplen. Debe observarse el flujo efectivo y retorno, no solo el panel de control.\n\n"
+    },
+    {
+      "id": "RED-M18-L04-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Investigar cambios de origen y túnel.\n- Red Team autorizado: Identificar exposición de management/WAN lab.\n- Evidencia del módulo: Diseño, dependencia de rutas y plan de diagnóstico.\n- Criterio del módulo: Explica seguridad/cifrado y rutas sin falsas garantías.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L09](../../05_RECURSOS/LABORATORIOS/RED-L09.md)\n- [Guía de laboratorio RED-L12](../../05_RECURSOS/LABORATORIOS/RED-L12.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC4301**: [RFC 4301: Security Architecture for the Internet Protocol](https://www.rfc-editor.org/rfc/rfc4301.html). Arquitectura IPsec y política; no prueba de un túnel concreto.\n- **RFC3031**: [RFC 3031: Multiprotocol Label Switching Architecture](https://www.rfc-editor.org/rfc/rfc3031.html). Etiquetas y arquitectura MPLS; no confidencialidad automática.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M18-L04-P01",
+    "prompt": "Ambos overlays caen al desconectar un único cable WAN. Identifica el dominio de fallo compartido.",
+    "markdown": "## 4. Práctica individual\n\nAmbos overlays caen al desconectar un único cable WAN. Identifica el dominio de fallo compartido.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M18-L04-Q01",
+      "prompt": "¿Qué función cumple el underlay?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Producir una única VLAN obligatoria"
+        },
+        {
+          "id": "B",
+          "text": "Sustituir todas las políticas"
+        },
+        {
+          "id": "C",
+          "text": "Garantizar identidad de todos los usuarios"
+        },
+        {
+          "id": "D",
+          "text": "Dar conectividad de transporte al overlay"
+        }
+      ]
+    },
+    {
+      "id": "RED-M18-L04-Q02",
+      "prompt": "¿Qué camino pretende usar la política del caso?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El controlador como payload necesariamente"
+        },
+        {
+          "id": "B",
+          "text": "A siempre por su nombre"
+        },
+        {
+          "id": "C",
+          "text": "Ninguno porque voz no usa red"
+        },
+        {
+          "id": "D",
+          "text": "B por cumplir mejor el umbral de jitter dado"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L09](../../05_RECURSOS/LABORATORIOS/RED-L09.md)\n- [Guía de laboratorio RED-L12](../../05_RECURSOS/LABORATORIOS/RED-L12.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC4301**: [RFC 4301: Security Architecture for the Internet Protocol](https://www.rfc-editor.org/rfc/rfc4301.html). Arquitectura IPsec y política; no prueba de un túnel concreto.\n- **RFC3031**: [RFC 3031: Multiprotocol Label Switching Architecture](https://www.rfc-editor.org/rfc/rfc3031.html). Etiquetas y arquitectura MPLS; no confidencialidad automática.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "c0bd6924c6768b7b67b1e31b"
+}

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M08-L02",
+  "title": "Dominios de broadcast",
+  "sourceHash": "c443ebe8c9cc25647e84f01c8298ef6dc367f72fe1e8e9f488912d19af9b1888",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M08-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nIdentificar qué limita un dominio de broadcast.\n\nPrerrequisitos: [RED-M08-L01](../RED-E02/RED-M08-L01.md).\n\n## 2. Comprende el mecanismo\n\nUna VLAN define un dominio de broadcast de capa 2. Un broadcast de Ethernet se propaga por los puertos elegibles de esa VLAN, no cruza automáticamente un router hacia otra. En un enlace conmutado full duplex no se comparte un dominio de colisión como en Ethernet con hubs. Confundir broadcast y colisión conduce a diseños erróneos. La comunicación entre VLAN exige funciones de capa 3 y políticas asociadas; crear más VLAN no establece por sí solo un firewall efectivo.\n\n### Vocabulario de apoyo\n\n- **Tabla MAC**: Relación aprendida entre direcciones MAC, puertos y VLAN para conmutar tramas.\n- **LLDP/CDP**: Protocolos que anuncian información de vecinos del enlace; CDP corresponde a Cisco.\n- **Contador acumulativo**: Total desde su inicio o reinicio; para medir actividad reciente se comparan muestras.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M08-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Switch docente: p1,p2 en VLAN10; p3 en VLAN20. p1 emite una solicitud ARP broadcast.\n\nLa solicitud puede llegar a p2, no se entrega como ese mismo broadcast a p3. Un gateway puede permitir comunicación encaminada por una política independiente.\n\n"
+    },
+    {
+      "id": "RED-M08-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Ubicar punto de captura y equipo probable.\n- Red Team autorizado: Inventario de activos dentro de alcance.\n- Evidencia del módulo: Plano de puertos, MAC y rutas L2.\n- Criterio del módulo: Mapa consistente con evidencias L2.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L04](../../05_RECURSOS/LABORATORIOS/RED-L04.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **BRIDGE**: [Ethernet Bridging](https://docs.kernel.org/networking/bridge.html). Learning, forwarding, VLAN y controles de bridge; kAPI no se presenta como estable.\n- **PHY**: [Troubleshoot Switch Port and Interface Problems](https://www.cisco.com/c/en/us/support/docs/switches/catalyst-6500-series-switches/12027-53.html). Dúplex, CRC, contadores y diagnóstico de interfaces; procedimientos dependientes de familia.\n- **POE**: [Troubleshoot Power over Ethernet on Catalyst 9000](https://www.cisco.com/c/en/us/support/docs/switches/catalyst-9200-series-switches/215636-troubleshooting-power-over-ethernet-poe.html). Demanda de potencia, presupuesto y diagnóstico PoE.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M08-L02-P01",
+    "prompt": "Dos VLAN tienen routing completamente abierto. Explica qué segmentación existe y cuál no está demostrada.",
+    "markdown": "## 4. Práctica individual\n\nDos VLAN tienen routing completamente abierto. Explica qué segmentación existe y cuál no está demostrada.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M08-L02-Q01",
+      "prompt": "¿Qué delimita una VLAN?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Un cifrado de extremo a extremo"
+        },
+        {
+          "id": "B",
+          "text": "Un dominio de broadcast de capa 2"
+        },
+        {
+          "id": "C",
+          "text": "Una única aplicación mundial"
+        },
+        {
+          "id": "D",
+          "text": "La identidad de un usuario"
+        }
+      ]
+    },
+    {
+      "id": "RED-M08-L02-Q02",
+      "prompt": "¿Quién recibe el ARP del ejemplo dentro del switch?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Todos los puertos de todas las redes"
+        },
+        {
+          "id": "B",
+          "text": "Solo servidores públicos"
+        },
+        {
+          "id": "C",
+          "text": "p3 por pertenecer a VLAN20"
+        },
+        {
+          "id": "D",
+          "text": "Los puertos elegibles de VLAN10, como p2"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L04](../../05_RECURSOS/LABORATORIOS/RED-L04.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **BRIDGE**: [Ethernet Bridging](https://docs.kernel.org/networking/bridge.html). Learning, forwarding, VLAN y controles de bridge; kAPI no se presenta como estable.\n- **PHY**: [Troubleshoot Switch Port and Interface Problems](https://www.cisco.com/c/en/us/support/docs/switches/catalyst-6500-series-switches/12027-53.html). Dúplex, CRC, contadores y diagnóstico de interfaces; procedimientos dependientes de familia.\n- **POE**: [Troubleshoot Power over Ethernet on Catalyst 9000](https://www.cisco.com/c/en/us/support/docs/switches/catalyst-9200-series-switches/215636-troubleshooting-power-over-ethernet-poe.html). Demanda de potencia, presupuesto y diagnóstico PoE.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "7c8b70f7caba12dc39ab81cc"
+}

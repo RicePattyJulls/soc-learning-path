@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-03-L01",
+  "title": "SAM y LSA: identidades locales",
+  "sourceHash": "07523584052ee97b1aaf34e564beebf814b263982ca5b00402afa057940efe33",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-03-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDistinguir las identidades locales que gestionan SAM y LSA y comprobar a quién pertenece una cuenta con evidencia.\n\nPrerrequisitos: `WAD-02-L03` (la etapa anterior completa).\n\n## 2. Comprende el mecanismo\n\nUn equipo Windows trabaja con **identidades locales** antes de hablar de dominio. Dos componentes aparecen en cuanto se habla de «quién es quién»:\n\n- **SAM** (Security Account Manager): la base donde viven las **cuentas y grupos locales** y su material de autenticación. Es lo que consultas cuando enumeras usuarios locales.\n- **LSA** (Local Security Authority): la autoridad que **autentica** los inicios de sesión locales, aplica la política de seguridad y **construye el token** con el que trabajará el proceso. Se ejecuta dentro de un proceso crítico del sistema; se observa, no se manipula.\n\nCada cuenta y cada grupo se identifican con un **SID** (identificador de seguridad). Y aquí está la idea que más se olvida: **el nombre visible no es la identidad**. Una cuenta puede renombrarse sin cambiar de SID, y dos cuentas distintas pueden parecerse en el nombre. El SID es lo estable; el nombre, no.\n\nAlgunos SID son **conocidos** porque el sistema los usa siempre igual (por ejemplo, la identidad del sistema, o grupos integrados como Administradores o Usuarios). Reconocerlos ayuda a leer resultados sin confundir un nombre traducido con una identidad nueva.\n\nLa **pertenencia a grupos** importa porque los derechos y permisos suelen concederse a grupos, no a personas: un usuario hereda lo de sus grupos. Por eso, para responder «¿qué puede hacer esta cuenta?» no basta el usuario; hay que mirar sus grupos.\n\nTodo esto se comprueba en **solo lectura**, y conviene separar dos planos:\n\n- **Se observa**: nombre, SID, si la cuenta está habilitada, a qué grupos pertenece y desde qué origen.\n- **Se infiere**: para qué se creó, quién la usa y si su existencia es legítima.\n\nQue una cuenta se llame «Soporte» o pertenezca a Administradores describe **qué es**, no **si debería estar ahí**. Eso se valora con el resto de la evidencia.\n\n### Vocabulario de apoyo\n\n- **SAM**: base de datos de cuentas y grupos locales.\n- **LSA**: autoridad de seguridad local que autentica y construye el token.\n- **SID**: identificador de seguridad estable de una cuenta, grupo o recurso.\n- **SID conocido**: identificador reservado por el sistema (por ejemplo, grupos integrados).\n- **Grupo local**: conjunto de identidades que comparte derechos y permisos.\n- **Identidad efectiva**: conjunto de SID con los que actúa un proceso.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta las definiciones cuando las necesites; no hace falta memorizarlas.\n\n"
+    },
+    {
+      "id": "WAD-03-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en un host de laboratorio hay dos cuentas llamadas «Soporte» en listados distintos: una local y otra que parece creada por una aplicación. El equipo pregunta si es la misma identidad duplicada.\n\nNo se decide por el nombre. Se registra, para cada una, su **SID**, si está **habilitada**, su **origen** y sus **grupos**. Comparados los SID, se concluye si son la misma identidad o dos distintas; el nombre parecido solo explica por qué se confundieron. La conclusión honesta acota la zona —«hay dos cuentas locales con nombre similar y distinto SID»— y propone la siguiente comprobación (revisar quién las creó y para qué), sin afirmar duplicidad ni compromiso.\n\n"
+    },
+    {
+      "id": "WAD-03-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Distinguir identidad de nombre al revisar cuentas locales, y registrar SID, estado y grupos antes de concluir.\n- Red Team autorizado: Enumerar identidades locales solo en laboratorio propio; la pertenencia a grupos es un dato de alcance, no una autorización.\n- Evidencia de la etapa: Tabla de cuentas y grupos con SID, estado y origen.\n- Criterio de dominio: Explica por qué el nombre no es la identidad y comprueba la pertenencia con datos observables.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB02](../../05_RECURSOS/LABORATORIOS/WAD-LAB02.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **SECIDENT**: [Security identifiers](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/understand-security-identifiers). Qué es un SID y sus formas conocidas.\n- **GETLOCALUSER**: [Get-LocalUser](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.localaccounts/get-localuser). Consulta de cuentas locales y su estado.\n- **WHOAMI**: [whoami](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/whoami). Identidad y grupos efectivos de la sesión actual.\n- **ACCESSCTRL**: [Access control overview](https://learn.microsoft.com/en-us/windows/win32/secauthz/access-control). Marco general de identidades, permisos y control de acceso.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-03-L01-P01",
+    "prompt": "Un host de laboratorio tiene tres cuentas locales con nombres parecidos, y una de ellas pertenece al grupo integrado de administradores. Describe cómo registrarías de forma inequívoca la identidad de cada cuenta y su pertenencia, e indica qué dato distingue dos cuentas con el mismo nombre visible. Añade una prueba positiva y una negativa sobre la pertenencia al grupo.",
+    "markdown": "## 4. Práctica individual\n\nUn host de laboratorio tiene tres cuentas locales con nombres parecidos, y una de ellas pertenece al grupo integrado de administradores. Describe cómo registrarías de forma inequívoca la identidad de cada cuenta y su pertenencia, e indica qué dato distingue dos cuentas con el mismo nombre visible. Añade una **prueba positiva y una negativa** sobre la pertenencia al grupo.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber ejecutado ni administrado un host real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-03-L01-Q01",
+      "prompt": "¿Qué identifica de forma estable a una cuenta local aunque se renombre?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El nombre visible de la cuenta"
+        },
+        {
+          "id": "B",
+          "text": "El SID (identificador de seguridad)"
+        },
+        {
+          "id": "C",
+          "text": "La contraseña de la cuenta"
+        },
+        {
+          "id": "D",
+          "text": "La fecha de su último inicio de sesión"
+        }
+      ]
+    },
+    {
+      "id": "WAD-03-L01-Q02",
+      "prompt": "¿Qué base gestiona las cuentas y los grupos locales de un equipo Windows?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El BCD (almacén de configuración de arranque)"
+        },
+        {
+          "id": "B",
+          "text": "El registro de eventos"
+        },
+        {
+          "id": "C",
+          "text": "La base de datos SAM"
+        },
+        {
+          "id": "D",
+          "text": "El catálogo global"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB02](../../05_RECURSOS/LABORATORIOS/WAD-LAB02.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **SECIDENT**: [Security identifiers](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/understand-security-identifiers). Qué es un SID y sus formas conocidas.\n- **GETLOCALUSER**: [Get-LocalUser](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.localaccounts/get-localuser). Consulta de cuentas locales y su estado.\n- **WHOAMI**: [whoami](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/whoami). Identidad y grupos efectivos de la sesión actual.\n- **ACCESSCTRL**: [Access control overview](https://learn.microsoft.com/en-us/windows/win32/secauthz/access-control). Marco general de identidades, permisos y control de acceso.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "7b924ac2d0b4bb3cae297230"
+}

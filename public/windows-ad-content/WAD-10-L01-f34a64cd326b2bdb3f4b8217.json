@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-10-L01",
+  "title": "LDAP y atributos consultables",
+  "sourceHash": "eb877ed6d610fa9d281dca83c1cb1e20132b102a4e872bd4f0e092d5d6d51cc8",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-10-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nConsultar objetos del directorio por LDAP y leer sus atributos sin modificar el dominio.\n\nPrerrequisitos: `WAD-09-L03` (comprobaciones cliente/DC) y `WAD-04-L03` (auditoría de acceso y restauración).\n\n## 2. Comprende el mecanismo\n\nUn directorio es una base de datos jerárquica: cada objeto tiene un lugar en el árbol y un conjunto de datos con nombre. **LDAP** es el protocolo con el que el cliente pregunta por esos objetos y lee sus datos. La misma conversación que sirve para leer puede servir para escribir, y por eso la primera distinción que hay que fijar es **consulta** frente a **modificación**.\n\nCada objeto se localiza por su **Nombre distinguido (DN)**, que es su ruta completa dentro del árbol. Un DN nombra la posición del objeto —unidad organizativa, contenedor, dominio— y no su función. El atributo **Identificador de inicio de sesión (sAMAccountName)** es el nombre corto con el que la cuenta inicia sesión; el nombre y el DN son cosas distintas y no siempre coinciden.\n\nAl consultar, se leen **Atributos**, que son los datos del objeto. Los más habituales en una revisión son:\n\n- `distinguishedName`: la ruta del objeto en el árbol.\n- `sAMAccountName`: el identificador de inicio de sesión.\n- `memberOf`: los grupos de los que el objeto es miembro.\n- `objectClass`: el tipo de objeto —cuenta de usuario, equipo, grupo—.\n\nLa lectura se puede hacer con una interfaz de directorio como **ADSI** o con cmdlets de solo lectura como `Get-ADUser`. Un cmdlet cuyo nombre empieza por `Get` no cambia el estado: recupera objetos y sus atributos. En cambio, verbos como `New`, `Set` o `Remove` sí modifican el directorio. Reconocer el verbo es la forma más rápida de saber si una operación escribe.\n\nLa **firma LDAP (LDAP signing)** no es una opción del servidor que el cliente ignore: cuando el dominio la exige, el cliente debe firmar sus operaciones para que el DC las acepte. Una consulta sin firma puede fallar por ese motivo y no porque los datos no existan. Confundir «no obtuve respuesta» con «no hay cuentas» lleva a conclusiones equivocadas.\n\nConsultar no modifica. Esa frase parece trivial y explica casi todos los incidentes de esta etapa: una enumeración de lectura no cambia ningún atributo, ningún miembro de grupo y ninguna contraseña. Si algo cambió, no fue la consulta: fue otra operación.\n\n### Vocabulario de apoyo\n\n- **LDAP**: protocolo con el que se consultan y modifican objetos de un directorio.\n- **Atributo**: dato con nombre de un objeto del directorio, por ejemplo `memberOf`.\n- **Nombre distinguido (DN)**: ruta completa que localiza un objeto dentro del árbol.\n- **Identificador de inicio de sesión (sAMAccountName)**: nombre corto con el que una cuenta inicia sesión.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-10-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en el dominio `ad.lab.test` el soporte revisa las cuentas de `OU=Helpdesk` con un cmdlet de solo lectura. La consulta falla y un operador concluye que «el dominio se rompió» al consultarlo.\n\nLa consulta no rompió nada: el verbo `Get` no escribe. Un fallo en una lectura apunta a la conexión, a la autenticación o a la exigencia de **firma LDAP**, no a un cambio de estado. La comprobación correcta es repetir la lectura de un objeto conocido y verificar el error exacto —firma, credenciales, controlador— antes de afirmar un efecto sobre el directorio. Los **Atributos** leídos describen el objeto en el instante de la consulta, y una ausencia de valor puede significar «no configurado» o «no visible para esta credencial». La conclusión se acota a «la lectura no devolvió datos por un motivo de conexión o firma» y reconoce el límite: un resultado vacío no demuestra que el objeto no exista.\n\n"
+    },
+    {
+      "id": "WAD-10-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Distinguir lectura de escritura evita atribuir cambios del directorio a una simple consulta de reconocimiento.\n- Red Team autorizado: En una prueba autorizada, enumerar con verbos de solo lectura mantiene el alcance acordado y deja el dominio intacto.\n- Evidencia de la etapa: Consulta registrada con los atributos leídos y su valor en el momento de la lectura.\n- Criterio de dominio: Explica qué atributos leyó, con qué operación y por qué esa operación no modificó el directorio.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB06](../../05_RECURSOS/LABORATORIOS/WAD-LAB06.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **ADSI**: [Active Directory Service Interfaces](https://learn.microsoft.com/en-us/windows/win32/adsi/active-directory-service-interfaces-adsi). Interfaz de acceso a objetos del directorio.\n- **LDAPSIGN**: [LDAP signing](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/ldap-signing). Requisito de firma que el cliente debe cumplir.\n- **GETADUSER**: [Get-ADUser](https://learn.microsoft.com/en-us/powershell/module/activedirectory/get-aduser). Consulta de cuentas y sus atributos en solo lectura.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-10-L01-P01",
+    "prompt": "En el dominio de laboratorio `ad.lab.test` el soporte debe revisar las cuentas de `OU=Helpdesk` sin cambiar nada. Indica qué atributos concretos leerías por LDAP con un cmdlet de solo lectura, cómo distingues una consulta de una modificación y qué precaución de firma LDAP debe respetar el cliente. Señala el límite de lo que puedes concluir con los datos leídos.",
+    "markdown": "## 4. Práctica individual\n\nEn el dominio de laboratorio `ad.lab.test` el soporte debe revisar las cuentas de `OU=Helpdesk` sin cambiar nada. Indica qué atributos concretos leerías por LDAP con un cmdlet de solo lectura, cómo distingues una consulta de una modificación y qué precaución de firma LDAP debe respetar el cliente. Señala el límite de lo que puedes concluir con los datos leídos.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber consultado un dominio real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-10-L01-Q01",
+      "prompt": "¿Qué diferencia una consulta LDAP de una modificación del directorio?",
+      "options": [
+        {
+          "id": "A",
+          "text": "La consulta solo lee atributos y no cambia el estado del objeto; la modificación altera los atributos del objeto"
+        },
+        {
+          "id": "B",
+          "text": "La consulta usa LDAP y la modificación nunca"
+        },
+        {
+          "id": "C",
+          "text": "La consulta exige ser administrador del dominio y la modificación no"
+        },
+        {
+          "id": "D",
+          "text": "La consulta cambia el nombre distinguido y la modificación solo el identificador de inicio de sesión"
+        }
+      ]
+    },
+    {
+      "id": "WAD-10-L01-Q02",
+      "prompt": "¿Qué implica la firma LDAP (LDAP signing) para el cliente que consulta el directorio?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que el cliente debe presentar un certificado distinto en cada consulta"
+        },
+        {
+          "id": "B",
+          "text": "Que la consulta se cifra de extremo a extremo de forma obligatoria"
+        },
+        {
+          "id": "C",
+          "text": "Que el cliente debe firmar sus operaciones para que el DC las acepte cuando el dominio lo exige"
+        },
+        {
+          "id": "D",
+          "text": "Que el cliente puede omitir la autenticación previa"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB06](../../05_RECURSOS/LABORATORIOS/WAD-LAB06.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **ADSI**: [Active Directory Service Interfaces](https://learn.microsoft.com/en-us/windows/win32/adsi/active-directory-service-interfaces-adsi). Interfaz de acceso a objetos del directorio.\n- **LDAPSIGN**: [LDAP signing](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/ldap-signing). Requisito de firma que el cliente debe cumplir.\n- **GETADUSER**: [Get-ADUser](https://learn.microsoft.com/en-us/powershell/module/activedirectory/get-aduser). Consulta de cuentas y sus atributos en solo lectura.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "f34a64cd326b2bdb3f4b8217"
+}

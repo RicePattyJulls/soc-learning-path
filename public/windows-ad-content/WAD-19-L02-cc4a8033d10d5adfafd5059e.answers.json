@@ -1,0 +1,39 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-19-L02",
+  "sourceHash": "762240c9e83457e0e26db7444a1742cb6b8a0124b3eff6ca3dc733fcdf2ef52e",
+  "questions": [
+    {
+      "id": "WAD-19-L02-Q01",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «El controlador vuelve al estado de la copia y después recibe los cambios actuales de sus socios, de modo que la replicación lo pone al día».\n\nLa restauración no autoritativa devuelve el controlador al estado de la copia y deja que la replicación lo actualice, sin marcar nada como prevaleciente. Marcar todo como autoritativo, sustituir el directorio de todos los controladores o desactivar la replicación describen lo contrario de este procedimiento."
+    },
+    {
+      "id": "WAD-19-L02-Q02",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «La contraseña de recuperación DSRM, definida y custodiada de antemano, porque ese modo no usa credenciales de dominio».\n\nEl arranque en DSRM se autentica con la credencial local de recuperación, que debe existir y custodiarse antes de necesitarla. El nivel funcional no la sustituye, una cuenta de administrador del dominio no se usa en ese modo y el certificado de la entidad de certificación no interviene en este arranque."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "La restauración parte de reconocer qué se recupera: la copia es del estado del sistema del controlador, que incluye el directorio, y no de un objeto concreto. Como no hay nada que deba prevalecer sobre los socios, corresponde una restauración no autoritativa. El procedimiento empieza iniciando el controlador en modo de restauración de servicios de directorio, usando la contraseña de recuperación DSRM custodiada de antemano; en ese modo el servicio de directorio no está en línea y no se usan credenciales de dominio. Ya en DSRM se aplica la copia del estado del sistema con la herramienta de respaldo y se reinicia en modo normal, esperando que la replicación ponga al día lo que la copia dejó atrás. El límite: la copia devuelve un estado anterior, de modo que un objeto eliminado después de la copia no vuelve por esta vía.",
+    "rubric": [
+      {
+        "criterion": "Alcance de la restauración",
+        "evidence": "Distingue la restauración del controlador de la restauración de un objeto."
+      },
+      {
+        "criterion": "Criterio no autoritativo",
+        "evidence": "Justifica la restauración no autoritativa por el hecho de que nada debe prevalecer."
+      },
+      {
+        "criterion": "Papel de DSRM",
+        "evidence": "Explica la entrada en DSRM con la credencial de recuperación custodiada."
+      },
+      {
+        "criterion": "Límite reconocido",
+        "evidence": "Describe la vuelta a la replicación y admite el límite temporal de la copia."
+      }
+    ]
+  },
+  "revision": "cc4a8033d10d5adfafd5059e"
+}

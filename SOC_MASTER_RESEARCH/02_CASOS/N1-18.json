@@ -1,0 +1,185 @@
+{
+  "id": "N1-18",
+  "nivel": "N1",
+  "bloque": "Procedimientos SOC y gestión de incidentes",
+  "titulo": "IP maliciosa con conexiones bloqueadas: ¿incidente resuelto?",
+  "pregunta": "Detectas una IP maliciosa en los logs de firewall, pero todas las conexiones aparecen bloqueadas. ¿Considerarías el incidente resuelto?",
+  "escenario": "Un firewall perimetral registra 920 intentos bloqueados en 30 minutos desde 203.0.113.88 contra el puerto 3389 de un servidor público. El feed TI etiqueta la dirección como sospechosa. No hay sesiones permitidas en ese dispositivo durante la ventana consultada, pero la empresa tiene VPN, CDN y un segundo firewall y no se ha comprobado el histórico ni los equipos internos.",
+  "objetivo": "Diferenciar intento externo detenido por un control de compromiso de activo. Validar la eficacia de bloqueo, su cobertura, correlacionar accesos por otras rutas, reputación y contexto y cerrar o escalar conforme a evidencia y criterio de recurrencia.",
+  "hipotesis": [
+    "Escaneo automatizado oportunista bloqueado correctamente; no hay efecto observable.",
+    "Ataque repetitivo o dirigido con múltiples orígenes, no limitado a la IP del feed.",
+    "La IP tuvo conexiones permitidas antes de activar la regla o por otra ruta de entrada.",
+    "El «deny» corresponde a intento iniciado, no necesariamente a tráfico previo ya establecido.",
+    "La IP tiene mala reputación histórica/compartida, pero el intento actual no es específico.",
+    "Hay egress desde activos internos al mismo destino que no está cubierto por el firewall inspeccionado."
+  ],
+  "pasos": [
+    {
+      "fase": "0. Identificar direccionalidad",
+      "accion": "Determinar si 203.0.113.88 es origen que intenta entrar o destino al que un host interno trata de salir; cambia drásticamente la hipótesis. Identificar interfaz, zona y NAT."
+    },
+    {
+      "fase": "1. Validar acción realmente tomada",
+      "accion": "Revisar campos DeviceAction/SimplifiedDeviceAction, motivo de denegación y estado del sensor. «Alert» no es «block»; distinguir deny, reset, drop, allowed y sesión terminada."
+    },
+    {
+      "fase": "2. Acotar y ampliar tiempo",
+      "accion": "Observar primeros/últimos intentos, minutos previos y posteriores a la regla, cambios de configuración y disponibilidad del dispositivo. Buscar conexiones ya establecidas."
+    },
+    {
+      "fase": "3. Resolver exposición y destino",
+      "accion": "Confirmar puerto/servicio, si está accesible públicamente, criticidad, WAF/proxy/CDN/VPN, host real tras DNAT y otras rutas de acceso."
+    },
+    {
+      "fase": "4. Correlacionar con autenticación y endpoints",
+      "accion": "Buscar éxitos de RDP/VPN, fallos, nuevos servicios, EDR, conexiones salientes y otros indicadores desde la misma infraestructura o cuenta. No equiparar mismo IP a misma persona."
+    },
+    {
+      "fase": "5. Validar fuente de inteligencia",
+      "accion": "Comprobar fecha, confianza, contexto y uso compartido del indicador TI. La reputación de una IP no equivale a ataque exitoso."
+    },
+    {
+      "fase": "6. Medir alcance y recurrencia",
+      "accion": "Contar puertos, hosts, zonas, destinos y cambios de IP/ASN. Identificar si un host interno intenta conexiones persistentes aunque estén bloqueadas."
+    },
+    {
+      "fase": "7. Decidir estado",
+      "accion": "Si hubo solo intentos no exitosos, control efectivo, sin evidencia de compromiso y cobertura suficiente, documentar evento bloqueado según SOP. Mantener alerta o escalado si hay indicios asociados."
+    },
+    {
+      "fase": "8. Verificar detección preventiva",
+      "accion": "Pedir validación de regla y control complementario por equipos de red/IR cuando proceda; no bloquear rangos enteros sin evaluar impacto y propiedad."
+    },
+    {
+      "fase": "9. Documentar límites",
+      "accion": "Guardar dirección, puertos, volumen, rango UTC, dispositivos consultados, reglas, resultado, fuentes no disponibles y criterio de cierre/escalado."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "DeviceAction y SimplifiedDeviceAction",
+      "lectura": "Distinguen acción ejecutada; mapear variantes y verificar política del proveedor."
+    },
+    {
+      "dato": "SourceIP, DestinationIP, puertos, SourceTranslatedAddress",
+      "lectura": "Aclaran flujo real, NAT y destino; una IP de gateway puede ocultar al origen."
+    },
+    {
+      "dato": "Rule, DeviceName, zona/interfaz",
+      "lectura": "Relacionan bloqueo con firewall concreto, su cobertura y prioridad de política."
+    },
+    {
+      "dato": "SentBytes / ReceivedBytes, estado de sesión",
+      "lectura": "Ayudan a medir tráfico observado, pero sus valores y dirección dependen del fabricante."
+    },
+    {
+      "dato": "Logs de VPN/RDP/IdP/EDR",
+      "lectura": "Revelan accesos o ejecuciones posteriores que el firewall no ve."
+    },
+    {
+      "dato": "Vigencia/confianza TI",
+      "lectura": "Reduce bloqueo por reputación caducada o infraestructura multi-tenant."
+    },
+    {
+      "dato": "Cambios de reglas y rutas alternativas",
+      "lectura": "Detectan caminos que el filtro principal no cubre."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Sentinel / Log Analytics: acciones de firewall por IP investigada",
+      "entorno": "Tabla CommonSecurityLog (CEF) con eventos relevantes ingeridos; IP TEST-NET 203.0.113.88 como ejemplo y acción normalizada por parser.",
+      "consulta": "CommonSecurityLog\n| where TimeGenerated > ago(24h)\n| where SourceIP == \"203.0.113.88\" or DestinationIP == \"203.0.113.88\"\n| extend Accion=tolower(iff(isempty(SimplifiedDeviceAction), DeviceAction, SimplifiedDeviceAction))\n| summarize Eventos=count(), Primera=min(TimeGenerated), Ultima=max(TimeGenerated),\n            Acciones=make_set(Accion, 15), Reglas=make_set(Activity, 15)\n  by SourceIP, DestinationIP, DestinationPort, DeviceVendor, DeviceProduct\n| order by Eventos desc",
+      "interpretacion": "Expone intentos y tipos de acciones por origen/destino/puerto para contrastar «todo bloqueado».",
+      "limitaciones": "SimplifiedDeviceAction puede ser vacío; Activity no equivale siempre a ID de regla. Revisar DeviceAction concreto para decidir bloqueos permitidos."
+    },
+    {
+      "nombre": "Sentinel / Log Analytics: búsquedas de actividad permitida o denegada en el mismo par",
+      "entorno": "CommonSecurityLog; adaptar mapeo de acciones vendor y relación NAT; la comparación es orientativa.",
+      "consulta": "CommonSecurityLog\n| where TimeGenerated > ago(7d)\n| where SourceIP == \"203.0.113.88\" or DestinationIP == \"203.0.113.88\"\n| extend Accion=tolower(iff(isempty(SimplifiedDeviceAction), DeviceAction, SimplifiedDeviceAction))\n| summarize Eventos=count(), BytesEnviados=sum(SentBytes),\n            Acciones=make_set(Accion, 20)\n  by bin(TimeGenerated, 1h), SourceIP, DestinationIP, DestinationPort\n| order by TimeGenerated asc",
+      "interpretacion": "Revela historial, intervalos previos al bloqueo, intentos repetidos y posibles transferencias.",
+      "limitaciones": "Bytes y acción dependen de registros de sesión/parsers; cero bytes no prueba cero tráfico ni ausencia de otra ruta."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk CIM Network Traffic: intentar confirmar que tráfico fue bloqueado",
+      "entorno": "CIM Network_Traffic.All_Traffic con action mapeado a allowed/blocked/teardown (varía por TA).",
+      "consulta": "| tstats count sum(All_Traffic.bytes_out) as BytesSalida\n  from datamodel=Network_Traffic.All_Traffic\n  where earliest=-24h latest=now\n    (All_Traffic.src=\"203.0.113.88\" OR All_Traffic.dest=\"203.0.113.88\")\n  by All_Traffic.src All_Traffic.dest All_Traffic.dest_port All_Traffic.action\n| rename All_Traffic.* as *\n| sort - count",
+      "interpretacion": "Separa acciones permitidas y bloqueadas, direccionalidad y activos involucrados.",
+      "limitaciones": "El modelo incluye reglas de red pero puede no incluir IDS, WAF ni todos los firewalls; campos normalizados requieren validación."
+    },
+    {
+      "nombre": "Splunk CIM Intrusion Detection: actividad IDS asociada a la IP",
+      "entorno": "CIM Intrusion_Detection.IDS_Attacks ingerido con signature/action; observar si IDS alertó o bloqueó.",
+      "consulta": "| tstats count min(_time) as Primero max(_time) as Ultimo\n  from datamodel=Intrusion_Detection.IDS_Attacks\n  where earliest=-7d latest=now\n    (IDS_Attacks.src=\"203.0.113.88\" OR IDS_Attacks.dest=\"203.0.113.88\")\n  by IDS_Attacks.signature IDS_Attacks.action IDS_Attacks.src IDS_Attacks.dest\n| rename IDS_Attacks.* as *\n| convert ctime(Primero) ctime(Ultimo)\n| sort - count",
+      "interpretacion": "Corrobora detecciones de patrones, sin confundir intento IDS con éxito.",
+      "limitaciones": "IDS observa firmas y acciones separadas de reglas de conectividad; ausencia de eventos depende del sensor y de visibilidad de tráfico."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Linux — estado de sockets desde host protegido",
+      "proposito": "Solo si se tiene acceso autorizado al host; instantánea de conexiones actuales, sin prueba de tráfico histórico.",
+      "comando": "sudo ss -tunap | head -80"
+    },
+    {
+      "entorno": "Linux — reglas nftables",
+      "proposito": "Solo lectura; inspecciona reglas locales, no reglas del firewall perimetral/cloud.",
+      "comando": "sudo nft list ruleset | head -120"
+    },
+    {
+      "entorno": "Windows — sockets TCP existentes",
+      "proposito": "Listado puntual local; corroborar el PID en caso de sospecha.",
+      "comando": "Get-NetTCPConnection | Select-Object -First 40 LocalAddress,LocalPort,RemoteAddress,RemotePort,State,OwningProcess"
+    }
+  ],
+  "contencion": "Bloquear la IP puede ser protección complementaria, pero no asumir que cubre variantes, proxy, VPN, egress u otros orígenes. En N1 normalmente verificar regla y escalar si hay indicios de compromiso; modificaciones de firewall o aislamiento son acciones autorizadas y registradas.",
+  "escalation": [
+    "Cualquier sesión permitida previa/posterior con autenticación o ejecución asociada.",
+    "Mismo IOC como destino de tráfico saliente desde un host interno.",
+    "Origen alternativo, múltiples vectores, explotación dirigida o cuentas privilegiadas afectadas.",
+    "Fallo de cobertura o evidencia de que el bloqueo no se aplicó a rutas de red completas.",
+    "RDP/servicio crítico expuesto innecesariamente o consecuencias operacionales serias."
+  ],
+  "falsos_positivos": [
+    "Escaneo de Internet genérico totalmente detenido en un puerto expuesto.",
+    "Proveedor NAT compartido incluido por reputación antigua.",
+    "Escáner interno autorizado representado por IP pública de pasarela.",
+    "Duplicación entre registros del mismo firewall y SIEM.",
+    "Normalización errónea de `deny` como `allowed`, o sesión `teardown` mal interpretada."
+  ],
+  "errores": [
+    "Decir «blocked = resuelto» sin comprobar otras rutas o actividad previa.",
+    "Confundir IP atacante externa con IP destino de C2.",
+    "Equiparar reputación TI con certeza de intrusión.",
+    "Ignorar NAT, proxies, balanceadores y túneles.",
+    "Creer que una regla nueva detiene todas las sesiones ya existentes sin validación.",
+    "Atribuir bytes de un solo firewall a toda la transferencia del sistema."
+  ],
+  "perspectiva_red_team": "Desde el lado adversario, una IP pública puede cambiar entre intentos o un intento puede progresar por un vector distinto. El defensor debe estudiar conducta, cuenta/activo, rutas de red e indicadores de efecto, y evitar depender exclusivamente de una lista estática de IPs. Una detección bloqueada es un resultado del control, no prueba de que no exista intrusión por otro camino.",
+  "respuesta_entrevista": "Primero aclararía si la IP es origen de ataque o destino de salida y confirmaría con los campos del firewall que realmente hubo bloqueo. Ampliaría la ventana antes de la regla y correlacionaría con VPN, autenticación, EDR, IDS y otras rutas. Si solo constan intentos bloqueados, sin señales de ejecución ni accesos permitidos y la cobertura es suficiente, documentaría el bloqueo según SOP. Si hay éxitos, egress o dudas graves de cobertura, escalaría.",
+  "criterios_evaluacion": [
+    "Distingue dirección de tráfico e intento frente a compromiso.",
+    "Valida acción de control y período anterior a activación.",
+    "Busca evidencia en controles distintos y rutas alternativas.",
+    "Reconoce calidad/vigencia de TI y errores de NAT.",
+    "Decide cierre condicionado con justificación, no absoluto."
+  ],
+  "mitre": [
+    "T1110 (si existen intentos de credenciales; no inferir del puerto)",
+    "T1046 (si hay barrido de servicios; no confirmado)"
+  ],
+  "fuentes": [
+    "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/commonsecuritylog",
+    "https://help.splunk.com/en/splunk-cloud-platform/common-information-model/6.1/data-models/network-traffic",
+    "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.1/data-models/intrusion-detection"
+  ],
+  "procedencia": {
+    "lote": "tanda-04",
+    "archivo": "SOC-RESPONSES_TANDA-04_N1-16_a_N1-20.json",
+    "fechaRevision": "2026-10-18"
+  }
+}

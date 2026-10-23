@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-07-L02",
+  "title": "Reconocimiento sin mutaciones",
+  "sourceHash": "0e2f7e579c82c2ca79f61b17f449d7a14ea1c92c1394afb3b0b239c4e954240c",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-07-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nSeparar las lecturas de reconocimiento de arranque de las operaciones que alteran la próxima entrada y acotar qué prueba cada dato.\n\nPrerrequisitos: `LNX-07-L01` (Cadena principal y variantes).\n\n## 2. Comprende el mecanismo\n\nReconocer un arranque es **leer sin cambiar**. Muchos datos útiles se obtienen de fuentes de solo lectura: la identidad de la distribución, la versión del kernel en ejecución, el proceso PID 1, los parámetros con los que el kernel arrancó y el montaje efectivo de la raíz. Ninguna de estas lecturas modifica la configuración de arranque.\n\nEl fichero **`/proc/cmdline`** expone los parámetros con los que el kernel fue lanzado. Debe tratarse como lectura: su contenido refleja el arranque actual. Un valor como `root=UUID=…` indica un **selector de raíz**, es decir, qué se pidió montar, no qué se montó finalmente. Ese contraste se resuelve comparando con el montaje real.\n\nOtras lecturas también ayudan: quién es PID 1 y cuál es su ejecutable real, si existe interfaz EFI, y qué target por defecto está configurado. Todas describen **estado observado** en este arranque, no intención ni procedencia.\n\nFrente a esto, hay operaciones que **mutan** la próxima entrada de arranque: regenerar el menú del cargador, reinstalar el cargador, regenerar la imagen inicial o modificar parámetros persistentes. Son cambios, no consultas: pueden alterar qué arranca la próxima vez y por eso no forman parte de la observación.\n\nLa regla práctica es simple: si una acción **puede cambiar la próxima entrada**, no es reconocimiento. Resérvala para una ventana aprobada, con respaldo y plan de vuelta atrás. La observación se hace con lecturas; la corrección con operaciones planificadas.\n\nConviene además distinguir **evidencia directa** de **inferencia**. Ver `root=UUID=…` es evidencia de lo solicitado; ver el montaje efectivo es evidencia de lo conseguido. La conclusión razonable usa ambas; su límite es que ninguna demuestra por sí sola que el dispositivo sea el correcto ni que esté libre de manipulación.\n\n### Vocabulario de apoyo\n\n- **Reconocimiento de solo lectura**: consulta que no altera configuración ni estado.\n- **`/proc/cmdline`**: parámetros con los que el kernel arrancó; se lee, no se edita.\n- **`root=`**: selector de la raíz solicitada, no prueba del montaje final.\n- **Montaje efectivo**: raíz realmente montada, que se contrasta con lo solicitado.\n- **Operación mutante**: acción que puede cambiar la próxima entrada de arranque.\n- **Hipótesis**: explicación provisional que se comprueba con datos observados.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-07-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: `cat /proc/cmdline` muestra `root=UUID=abcd-…`. Un analista concluye que «el sistema arrancó exactamente desde ese dispositivo». Al comparar con el montaje efectivo, la raíz montada no coincide con ese identificador.\n\nLa conclusión no se sostiene sin matizar. `root=UUID=…` es lo que se **solicitó** al kernel; el montaje efectivo es lo que **se obtuvo**. Una discrepancia así puede deberse a un dispositivo cambiado, a un montaje alternativo o a un error de interpretación del dato.\n\nLa lectura correcta usa dos evidencias: los parámetros actuales y el montaje real. Con ambas puedes describir la diferencia; sin ellas, solo repites una intención. El límite de la afirmación: aunque coincidan, eso no demuestra que el contenido del dispositivo sea confiable, solo que la raíz montada corresponde al selector indicado.\n\n"
+    },
+    {
+      "id": "LNX-07-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Fijar primero la raíz realmente montada y los parámetros actuales antes de interpretar un arranque.\n- Red Team autorizado: Distinguir una revisión de solo lectura de una operación que cambia el siguiente arranque.\n- Evidencia de la etapa: Captura de parámetros del kernel junto al montaje efectivo, sin mutarlos.\n- Criterio de dominio: Justifica cada dato como evidencia directa o inferencia antes de concluir.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB06](../../05_RECURSOS/LABORATORIOS/LNX-LAB06.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F19**: [systemd: systemd-analyze](https://www.freedesktop.org/software/systemd/man/257/systemd-analyze.html). Consulta del tiempo y de la cadena de arranque sin modificar el sistema.\n- **F20**: [systemd: journalctl](https://www.freedesktop.org/software/systemd/man/257/journalctl.html). Lectura de registros del arranque actual y anteriores, si se conservaron.\n- **F17**: [systemd: bootup](https://www.freedesktop.org/software/systemd/man/257/bootup.html). Etapas de arranque que conviene reconocer antes de interpretar datos.\n- **F38**: [Linux Kernel: initrd](https://docs.kernel.org/admin-guide/initrd.html). Imagen inicial relevante para entender la transición a la raíz real.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-07-L02-P01",
+    "prompt": "Ves `root=UUID=…` en `/proc/cmdline` y quieres saber de qué raíz arrancó el sistema realmente. Explica qué lecturas de solo lectura usarías, qué demuestra cada una y por qué no deberías regenerar el cargador como parte del reconocimiento.",
+    "markdown": "## 4. Práctica individual\n\nVes `root=UUID=…` en `/proc/cmdline` y quieres saber de qué raíz arrancó el sistema realmente. Explica qué lecturas de solo lectura usarías, qué demuestra cada una y por qué no deberías regenerar el cargador como parte del reconocimiento.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber modificado el arranque de un host real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-07-L02-Q01",
+      "prompt": "¿Cuál de estas acciones es de reconocimiento y no altera la próxima entrada de arranque?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Ejecutar `update-grub` para refrescar el menú del cargador"
+        },
+        {
+          "id": "B",
+          "text": "Regenerar la imagen inicial con `dracut -f`"
+        },
+        {
+          "id": "C",
+          "text": "Reinstalar el cargador con `grub-install`"
+        },
+        {
+          "id": "D",
+          "text": "Leer `cat /proc/cmdline` para ver los parámetros actuales del kernel"
+        }
+      ]
+    },
+    {
+      "id": "LNX-07-L02-Q02",
+      "prompt": "`root=UUID=…` aparece en `/proc/cmdline`. ¿Qué se puede concluir con ese único dato?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que se solicitó un selector de raíz, que hay que contrastar con el montaje real"
+        },
+        {
+          "id": "B",
+          "text": "Que el sistema de archivos raíz se montó sin errores"
+        },
+        {
+          "id": "C",
+          "text": "Que el kernel no usó initramfs en este arranque"
+        },
+        {
+          "id": "D",
+          "text": "Que el dispositivo con ese UUID está cifrado"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB06](../../05_RECURSOS/LABORATORIOS/LNX-LAB06.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F19**: [systemd: systemd-analyze](https://www.freedesktop.org/software/systemd/man/257/systemd-analyze.html). Consulta del tiempo y de la cadena de arranque sin modificar el sistema.\n- **F20**: [systemd: journalctl](https://www.freedesktop.org/software/systemd/man/257/journalctl.html). Lectura de registros del arranque actual y anteriores, si se conservaron.\n- **F17**: [systemd: bootup](https://www.freedesktop.org/software/systemd/man/257/bootup.html). Etapas de arranque que conviene reconocer antes de interpretar datos.\n- **F38**: [Linux Kernel: initrd](https://docs.kernel.org/admin-guide/initrd.html). Imagen inicial relevante para entender la transición a la raíz real.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "58c469cae202ea6fc9cacba2"
+}

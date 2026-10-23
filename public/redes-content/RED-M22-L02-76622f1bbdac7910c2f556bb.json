@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M22-L02",
+  "title": "AAA, SSH y roles",
+  "sourceHash": "5f72c91dbbc088e81fc1172b757401b2080e9dda53ff3bbd34501af596724e8b",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M22-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDefinir AAA de administración con roles y recuperación controlada.\n\nPrerrequisitos: [RED-M22-L01](../RED-E04/RED-M22-L01.md).\n\n## 2. Comprende el mecanismo\n\nAAA separa autenticación, autorización y accounting. SSH protege un canal, pero no decide por sí solo si un usuario debe ejecutar cualquier comando. RADIUS y TACACS+ tienen usos y propiedades diferentes; proteger su transporte y disponibilidad exige revisar la implementación, no atribuir cifrado completo universal. Define roles mínimos y una recuperación administrativa controlada si el servicio central falla. MFA y certificados pueden aportar controles cuando la plataforma los soporta, con registro de acciones y gestión segura del material de autenticación.\n\n### Vocabulario de apoyo\n\n- **AAA**: Autenticación de identidad, autorización de acciones y registro de uso o accounting.\n- **CoPP**: Protección del tráfico dirigido al plano de control según capacidades de la plataforma.\n- **Fuera de banda y rollback**: Camino de gestión independiente del fallo previsto y reversión comprobable de un cambio.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M22-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Política docente: rol observador puede leer estado; rol operador puede aplicar cambios aprobados; ambos acceden mediante canal de gestión protegido.\n\nEl canal y la autorización son capas distintas. Un observador autenticado no debería heredar capacidad de cambiar rutas por usar SSH.\n\n"
+    },
+    {
+      "id": "RED-M22-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Identificar acceso administrativo anómalo.\n- Red Team autorizado: Validar exposición de plano de gestión.\n- Evidencia del módulo: Inventario de interfaces, política, respaldo y evidencias.\n- Criterio del módulo: Sólo admin aprobado y recuperación reproducible.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L05](../../05_RECURSOS/LABORATORIOS/RED-L05.md)\n- [Guía de laboratorio RED-L10](../../05_RECURSOS/LABORATORIOS/RED-L10.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC8907**: [RFC 8907: The TACACS+ Protocol](https://www.rfc-editor.org/rfc/rfc8907.html). AAA de administración y límites de protección del protocolo.\n- **RFC4253**: [RFC 4253: The Secure Shell Transport Layer Protocol](https://www.rfc-editor.org/rfc/rfc4253.html). Transporte SSH y autenticación del servidor; no recomendación de suites históricas.\n- **NIST-TEST**: [SP 800-115](https://csrc.nist.gov/pubs/sp/800/115/final). Planificación, alcance, evaluación y reporte de pruebas técnicas.\n- **COPP**: [Control Plane Policing — Cisco IOS XE 17.x](https://www.cisco.com/c/en/us/td/docs/routers/ios/config/17-x/qos/b-quality-of-service/m_qos-plcshp-ctrl-pln-plc-0.html). Clasificación y límites de tráfico dirigido o entregado al procesador; revisar capacidades y efectos por plataforma.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M22-L02-P01",
+    "prompt": "El servicio AAA central falla. Define dos condiciones para un acceso de emergencia responsable.",
+    "markdown": "## 4. Práctica individual\n\nEl servicio AAA central falla. Define dos condiciones para un acceso de emergencia responsable.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M22-L02-Q01",
+      "prompt": "¿Qué responde autorización en AAA?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Solo quién solicita acceso"
+        },
+        {
+          "id": "B",
+          "text": "Qué acciones puede realizar la identidad autenticada"
+        },
+        {
+          "id": "C",
+          "text": "El tamaño de las tramas"
+        },
+        {
+          "id": "D",
+          "text": "La longitud del prefijo"
+        }
+      ]
+    },
+    {
+      "id": "RED-M22-L02-Q02",
+      "prompt": "¿Debe el observador cambiar rutas por tener SSH?",
+      "options": [
+        {
+          "id": "A",
+          "text": "No, porque ningún rol puede administrar mediante SSH"
+        },
+        {
+          "id": "B",
+          "text": "Sí, porque autenticar la cuenta equivale a autorizar cualquier comando"
+        },
+        {
+          "id": "C",
+          "text": "Sí, porque un canal cifrado concede permiso de configuración"
+        },
+        {
+          "id": "D",
+          "text": "No, requiere autorización de su rol"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L05](../../05_RECURSOS/LABORATORIOS/RED-L05.md)\n- [Guía de laboratorio RED-L10](../../05_RECURSOS/LABORATORIOS/RED-L10.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC8907**: [RFC 8907: The TACACS+ Protocol](https://www.rfc-editor.org/rfc/rfc8907.html). AAA de administración y límites de protección del protocolo.\n- **RFC4253**: [RFC 4253: The Secure Shell Transport Layer Protocol](https://www.rfc-editor.org/rfc/rfc4253.html). Transporte SSH y autenticación del servidor; no recomendación de suites históricas.\n- **NIST-TEST**: [SP 800-115](https://csrc.nist.gov/pubs/sp/800/115/final). Planificación, alcance, evaluación y reporte de pruebas técnicas.\n- **COPP**: [Control Plane Policing — Cisco IOS XE 17.x](https://www.cisco.com/c/en/us/td/docs/routers/ios/config/17-x/qos/b-quality-of-service/m_qos-plcshp-ctrl-pln-plc-0.html). Clasificación y límites de tráfico dirigido o entregado al procesador; revisar capacidades y efectos por plataforma.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "76622f1bbdac7910c2f556bb"
+}

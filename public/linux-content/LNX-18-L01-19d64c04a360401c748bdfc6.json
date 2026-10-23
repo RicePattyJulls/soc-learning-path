@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-18-L01",
+  "title": "Capas y controles relacionados",
+  "sourceHash": "fab3a8815d9e2f95f2f641e4b0d5f5322507c70d43879feeb474f81fd6e7c9e3",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-18-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nSituar cada pregunta de red en su capa y control correspondiente, y declarar qué prueba y qué no prueba cada observación.\n\nPrerrequisitos: `LNX-17-L03` (Prioridades, anti-patrón `fsck` y custodia).\n\n## 2. Comprende el mecanismo\n\nUn flujo de red no se explica con una sola etiqueta. Para no concluir de más, conviene situar cada observación en su capa y en el control que la decide: enlace, IP, transporte, aplicación, proceso y política local. Cada capa responde una pregunta distinta y ninguna responde todas.\n\nEn **L2 (enlace)**, la interfaz, la dirección MAC, ARP/NDP y las VLAN deciden por dónde se encamina en el segmento. Responden dónde va a nivel local, pero no prueban la identidad humana detrás de un flujo. Que una interfaz esté `UP` significa que hay portadora, no que la aplicación sea alcanzable.\n\nEn **L3 (IP)**, las direcciones, las rutas y las reglas de *policy routing* deciden el camino que el kernel elegiría. Una consulta como `ip route get` muestra esa decisión sin enviar paquetes. Una ruta elegida no prueba entrega extremo a extremo: el camino puede tener múltiples saltos y políticas.\n\nEn **L4 (transporte)**, TCP, UDP e ICMP describen puertos, estados y mensajes. Un puerto 443 usado por un proceso inesperado merece revisión, pero el número de puerto no identifica el protocolo ni la legitimidad de la aplicación. En **L7**, el protocolo aparente y su forma de autenticarse añaden contexto, no certeza.\n\nLa capa de **proceso/usuario** responde qué PID, UID, cmdline o cgroup mantiene un socket ahora. No demuestra persistencia histórica ni ausencia de ocultación: `ss -p` puede omitir procesos ajenos sin privilegios, y un socket desaparece entre dos comandos.\n\nLa **política local** (netfilter/nftables) decide si un paquete que cruza sus hooks se permite o se descarta. No conoce la política del router, del *security group* ni del firewall de nube: un `accept` en el host no supera un `drop` exterior.\n\nLa regla de oro: `0.0.0.0:22` significa escucha IPv4 en las interfaces locales, no exposición a Internet; un bind limitado al loopback queda restringido a la interfaz local salvo proxy, reenvío o túnel. Debe existir ruta y autorización efectiva a través de todas las capas. Antes de concluir, declara qué capa observaste y qué no.\n\n### Vocabulario de apoyo\n\n- **Capa (L2/L3/L4/L7)**: nivel de abstracción de red con su propia pregunta y sus propios límites.\n- **Ruta**: decisión del kernel sobre el camino de salida de un paquete.\n- **Policy routing**: selección de una tabla de rutas por origen, marca, interfaz o VRF.\n- **Hook netfilter**: punto del kernel donde una cadena evalúa un paquete.\n- **Namespace de red**: espacio de red aislado con sus propias interfaces, rutas y sockets.\n- **`0.0.0.0`**: dirección comodín que representa todas las interfaces locales IPv4.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-18-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en una VM de laboratorio, `ss -lnt` muestra `0.0.0.0:22` y el analista concluye que el servicio SSH es «visible desde Internet» y que el firewall del host no protege nada.\n\nLa conclusión salta capas. `0.0.0.0:22` describe un socket en `LISTEN` enlazado a todas las interfaces IPv4 del host; nada más. Para que un segmento externo alcance el servicio deben existir ruta y autorización efectiva a través de todos los controles: host, red y nube. Ver el socket prueba que hay una escucha, no que sea alcanzable ni que el firewall esté inactivo.\n\nLa lectura correcta separa la observación (un socket local) de la inferencia (exposición). Si el bind estuviera limitado al loopback, la escucha quedaría restringida a la interfaz local salvo proxy o túnel. El límite de la conclusión: desde un único host y una instantánea de `ss` no puedes afirmar accesibilidad externa; eso exige una prueba controlada desde el otro extremo y dentro del alcance autorizado.\n\n"
+    },
+    {
+      "id": "LNX-18-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Situar cada alerta en su capa y declarar qué prueba y qué no antes de escalar.\n- Red Team autorizado: Verificar exposición desde ambos extremos en vez de inferirla de un listener local.\n- Evidencia de la etapa: Capa observada, comando, salida, hora UTC y condiciones del host.\n- Criterio de dominio: Separa lo que observaste (un socket, una ruta) de lo que infieres (exposición, identidad).\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB21](../../05_RECURSOS/LABORATORIOS/LNX-LAB21.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F80**: [ip-link(8) — iproute2](https://man7.org/linux/man-pages/man8/ip-link.8.html). Capa de enlace: estado e interfaces.\n- **F72**: [ip-address(8) — iproute2/man7](https://man7.org/linux/man-pages/man8/ip-address.8.html). Direcciones locales y su ámbito.\n- **F71**: [ip-route(8) — iproute2/man7](https://man7.org/linux/man-pages/man8/ip-route.8.html). Decisión de encaminamiento en L3.\n- **F88**: [Netfilter hooks — nftables wiki](https://wiki.nftables.org/wiki-nftables/index.php/Netfilter_hooks). Punto de decisión de la política local.\n- **F81**: [IP sysctl — Linux kernel](https://docs.kernel.org/networking/ip-sysctl.html). Parámetros de red que cambian el comportamiento del host.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-18-L01-P01",
+    "prompt": "En una VM de laboratorio, `ss -lnt` muestra `0.0.0.0:22` y se concluye que el servicio SSH está «expuesto a Internet». Explica qué significa realmente esa dirección y ese puerto, qué capa observaste y cuál es el límite de la conclusión.",
+    "markdown": "## 4. Práctica individual\n\nEn una VM de laboratorio, `ss -lnt` muestra `0.0.0.0:22` y se concluye que el servicio SSH está «expuesto a Internet». Explica qué significa realmente esa dirección y ese puerto, qué capa observaste y cuál es el límite de la conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber probado accesibilidad ni ejecutado escaneos sobre redes reales.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-18-L01-Q01",
+      "prompt": "¿Qué significa ver `0.0.0.0:22` en un socket en estado `LISTEN` dentro de un host?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que el servicio es accesible desde Internet sin ninguna condición"
+        },
+        {
+          "id": "B",
+          "text": "Que el firewall del host está desactivado"
+        },
+        {
+          "id": "C",
+          "text": "Que escucha en IPv4 sobre todas las interfaces locales del host, sin probar accesibilidad externa"
+        },
+        {
+          "id": "D",
+          "text": "Que solo acepta conexiones desde el loopback"
+        }
+      ]
+    },
+    {
+      "id": "LNX-18-L01-Q02",
+      "prompt": "Un analista afirma que un flujo es «del atacante» solo porque vio el número de puerto 443. ¿Qué error de capa comete?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Confundir la capa de enlace con la de aplicación"
+        },
+        {
+          "id": "B",
+          "text": "Suponer que toda captura procede de un solo sensor"
+        },
+        {
+          "id": "C",
+          "text": "Inferir identidad y legitimidad a partir del número de puerto, que no identifica protocolo ni autor"
+        },
+        {
+          "id": "D",
+          "text": "Confundir IPv4 con IPv6"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB21](../../05_RECURSOS/LABORATORIOS/LNX-LAB21.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F80**: [ip-link(8) — iproute2](https://man7.org/linux/man-pages/man8/ip-link.8.html). Capa de enlace: estado e interfaces.\n- **F72**: [ip-address(8) — iproute2/man7](https://man7.org/linux/man-pages/man8/ip-address.8.html). Direcciones locales y su ámbito.\n- **F71**: [ip-route(8) — iproute2/man7](https://man7.org/linux/man-pages/man8/ip-route.8.html). Decisión de encaminamiento en L3.\n- **F88**: [Netfilter hooks — nftables wiki](https://wiki.nftables.org/wiki-nftables/index.php/Netfilter_hooks). Punto de decisión de la política local.\n- **F81**: [IP sysctl — Linux kernel](https://docs.kernel.org/networking/ip-sysctl.html). Parámetros de red que cambian el comportamiento del host.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "19d64c04a360401c748bdfc6"
+}

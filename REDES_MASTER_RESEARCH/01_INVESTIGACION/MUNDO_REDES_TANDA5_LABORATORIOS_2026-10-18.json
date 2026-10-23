@@ -1,0 +1,2372 @@
+{
+  "title": "Tanda 5/7 – Diseño de laboratorios y evaluación",
+  "consulted_on": "2026-10-18",
+  "status": "propuesta_disenada_no_ejecutada_ni_validada",
+  "origin": {
+    "tanda2_file": "MUNDO_REDES_TANDA2_ARQUITECTURA_2026-10-18.json",
+    "tanda3_file": "MUNDO_REDES_TANDA3_AUDITORIA_TECNICA_2026-10-18.json",
+    "tanda4_file": "MUNDO_REDES_TANDA4_SOC_REDTEAM_2026-10-18.json",
+    "baseline_sha256": {
+      "MUNDO_REDES_TANDA2_ARQUITECTURA_2026-10-18.json": "32e677fc52531e31a21da9e71222e9296abdd02fb02c286a9e689fb74d69ef3e",
+      "MUNDO_REDES_TANDA3_AUDITORIA_TECNICA_2026-10-18.json": "891cfcce7d09d7c90e6ae09d109eab6e7b1c86a981c68fd624ba5796b4ac3367",
+      "MUNDO_REDES_TANDA4_SOC_REDTEAM_2026-10-18.json": "25a81f11182497ae9b30b1b9999aebbfcb0d09c0f0c3ba3b2f275a7ba591beb9"
+    }
+  },
+  "assumptions": [
+    "20 laboratorios troncales y 2 ampliaciones opcionales.",
+    "Las horas de laboratorio están contenidas en las 592 horas de Tanda 2; no deben sumarse encima.",
+    "Recursos y horas son estimaciones de diseño, pendientes de benchmark.",
+    "Los datos de práctica y PCAP no se han generado; las descripciones de eventos son fixtures futuros.",
+    "Coste de licencia software libre/gratuito no implica que una academia comercial pueda redistribuir imagen o instalación ni que el hardware no cueste."
+  ],
+  "phases": {
+    "1": "Direccionamiento y captura",
+    "2": "Switching y servicios",
+    "3": "Routing, resiliencia y WAN",
+    "4": "Seguridad empresarial y cloud",
+    "5": "SOC: telemetría y respuesta",
+    "6": "Red Team autorizado",
+    "7": "Automatización y rollback",
+    "8": "Integración y evaluación final"
+  },
+  "labs": [
+    {
+      "id": "RED-L01",
+      "phase": 1,
+      "title": "Modelo OSI/TCP-IP, enlace y direccionamiento IPv4",
+      "modules": [
+        "RED-M01",
+        "RED-M02"
+      ],
+      "level": "Inicial",
+      "hours_estimated_within_curriculum": 7,
+      "status": "diseñado_no_ejecutado_no_validado",
+      "blue_red_cases": [],
+      "goal": "Demostrar de forma reproducible modelo osi/tcp-ip, enlace y direccionamiento ipv4 en un entorno docente controlado.",
+      "competencies": [
+        "Explicar una comunicación extremo a extremo y aislar un fallo físico/L1-L2",
+        "Diseñar y justificar un esquema IPv4 sin solapamientos"
+      ],
+      "prerequisites": [],
+      "topology": "PC-A ↔ SW-A ↔ PC-B; interfaz administrativa separada; comprobar cable/duplex lógico",
+      "addressing": "VLAN10: 10.60.10.0/24; enlace fallido: gateway intencionadamente incorrecto",
+      "main_activities": [
+        "Dibujar encapsulación y asignar IP/máscara/gateway",
+        "Predecir ARP/ICMP y demostrar ping permitido",
+        "Aislar defecto físico o de máscara"
+      ],
+      "positive_tests": [
+        "PC-A alcanza PC-B por ICMP y explica ARP"
+      ],
+      "negative_controls": [
+        "Máscara incompatible impide conectividad prevista"
+      ],
+      "seeded_failures": [
+        "Dúplex incompatible simulado",
+        "Máscara incorrecta",
+        "Cable virtual desconectado"
+      ],
+      "preferred_tools": [
+        "Packet Tracer",
+        "Wireshark"
+      ],
+      "alternate_path": "Captura/evidencia sintética y diagrama revisables sin levantar servicios",
+      "resources": {
+        "hardware_band": "8 GB RAM orientativos (no requisito del fabricante)",
+        "resource_tier": "ligera",
+        "estimate_status": "estimación curricular no contrastada con ejecución"
+      },
+      "licenses_and_costs": {
+        "software_eur": "0 € de licencia para la ruta principal, si se cumplen condiciones del proveedor; no incluye equipo/energía/red",
+        "external_costs": "0 € de infraestructura cloud obligatoria; si se activa nube, coste sin verificar y requiere autorización independiente",
+        "licensing_check": "Verificar derechos de uso/distribución con relación al futuro uso comercial de la academia; no incluir imágenes propietarias"
+      },
+      "isolation": "Namespaces/redes virtuales sin bridge al LAN real, sin salida a Internet por defecto; dirección 10.60.0.0/16 y 2001:db8::/32 reservadas para topología didáctica (las subredes concretas se asignan por laboratorio).",
+      "authorization": "Autorización expresa del propietario del entorno; exclusivamente nodos propios, ventana docente y objetivos inventariados; parar ante pérdida de aislamiento, indisponibilidad inesperada o tráfico ajeno.",
+      "preparation": "Registrar host/hipervisor, versiones exactas e imágenes/sha256 autorizadas; respaldar configuraciones, plan de direccionamiento y prueba de aislamiento; no distribuir credenciales reales.",
+      "required_evidence": [
+        "Topología numerada y tabla de interfaces/direcciones",
+        "Configuración inicial/final o captura de resultados y comandos usados",
+        "Resultado de prueba positiva y control negativo",
+        "Diagnóstico causal más limitaciones y evidencia contradictoria",
+        "Manifest de versiones, UTC, hashes SHA-256 de ficheros y rúbrica"
+      ],
+      "acceptance": "Todas las pruebas positivas pasan, el control negativo confirma el límite previsto, y el estudiante explica el mecanismo y el origen de los datos; ninguna infracción del aislamiento.",
+      "critical_errors": [
+        "Infringir alcance o enviar actividad fuera del laboratorio",
+        "Declarar ejecución/validación sin evidencia",
+        "Confundir simulación, logs sintéticos y producción",
+        "No aportar prueba negativa o no controlar estado inicial"
+      ],
+      "assessment": {
+        "type": "desempeño práctico más defensa oral/nota breve",
+        "grading": "rúbrica común 100 puntos y criterios específicos; fallo crítico de aislamiento impide aprobar",
+        "retest": "Corrección documentada y reevaluación con semilla distinta"
+      },
+      "cleanup": "Guardar artefactos y checksum; restaurar snapshot/config inicial; eliminar identidades/tokens de prueba y sesiones/recursos temporales; comprobar ausencia de conexiones hacia LAN externo.",
+      "sources": [
+        "PT",
+        "WS"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "RED-L02",
+      "phase": 1,
+      "title": "IPv6, Neighbor Discovery y MTU de extremo a extremo",
+      "modules": [
+        "RED-M03",
+        "RED-M04"
+      ],
+      "level": "Inicial",
+      "hours_estimated_within_curriculum": 8,
+      "status": "diseñado_no_ejecutado_no_validado",
+      "blue_red_cases": [],
+      "goal": "Demostrar de forma reproducible ipv6, neighbor discovery y mtu de extremo a extremo en un entorno docente controlado.",
+      "competencies": [
+        "Planificar prefijos IPv6 y resolver fallos de vecindad/autoconfiguración",
+        "Separar fallo de red, transporte y aplicación con trazas observables"
+      ],
+      "prerequisites": [
+        "RED-M01",
+        "RED-M02"
+      ],
+      "topology": "Host-v6 A ↔ router ↔ Host-v6 B; único dominio docente",
+      "addressing": "2001:db8:60:10::/64 y 2001:db8:60:11::/64; MTU declarada 1500 B, variación de MTU en un salto",
+      "main_activities": [
+        "Configurar GUA, link-local y ruta IPv6",
+        "Describir SLAAC, RA, DAD y ND con observación",
+        "Comparar tamaño de paquetes, PMTUD e ICMPv6"
+      ],
+      "positive_tests": [
+        "Conectividad IPv6 y explicación comprobable de RA/ND"
+      ],
+      "negative_controls": [
+        "RA ausente o filtrado con diagnóstico; el host no obtiene el prefijo previsto"
+      ],
+      "seeded_failures": [
+        "RA inaccesible",
+        "ICMPv6 esencial bloqueado",
+        "MTU incorrecta"
+      ],
+      "preferred_tools": [
+        "Packet Tracer",
+        "Wireshark"
+      ],
+      "alternate_path": "Captura/evidencia sintética y diagrama revisables sin levantar servicios",
+      "resources": {
+        "hardware_band": "8–12 GB orientación",
+        "resource_tier": "ligera",
+        "estimate_status": "estimación curricular no contrastada con ejecución"
+      },
+      "licenses_and_costs": {
+        "software_eur": "0 € de licencia para la ruta principal, si se cumplen condiciones del proveedor; no incluye equipo/energía/red",
+        "external_costs": "0 € de infraestructura cloud obligatoria; si se activa nube, coste sin verificar y requiere autorización independiente",
+        "licensing_check": "Verificar derechos de uso/distribución con relación al futuro uso comercial de la academia; no incluir imágenes propietarias"
+      },
+      "isolation": "Namespaces/redes virtuales sin bridge al LAN real, sin salida a Internet por defecto; dirección 10.60.0.0/16 y 2001:db8::/32 reservadas para topología didáctica (las subredes concretas se asignan por laboratorio).",
+      "authorization": "Autorización expresa del propietario del entorno; exclusivamente nodos propios, ventana docente y objetivos inventariados; parar ante pérdida de aislamiento, indisponibilidad inesperada o tráfico ajeno.",
+      "preparation": "Registrar host/hipervisor, versiones exactas e imágenes/sha256 autorizadas; respaldar configuraciones, plan de direccionamiento y prueba de aislamiento; no distribuir credenciales reales.",
+      "required_evidence": [
+        "Topología numerada y tabla de interfaces/direcciones",
+        "Configuración inicial/final o captura de resultados y comandos usados",
+        "Resultado de prueba positiva y control negativo",
+        "Diagnóstico causal más limitaciones y evidencia contradictoria",
+        "Manifest de versiones, UTC, hashes SHA-256 de ficheros y rúbrica"
+      ],
+      "acceptance": "Todas las pruebas positivas pasan, el control negativo confirma el límite previsto, y el estudiante explica el mecanismo y el origen de los datos; ninguna infracción del aislamiento.",
+      "critical_errors": [
+        "Infringir alcance o enviar actividad fuera del laboratorio",
+        "Declarar ejecución/validación sin evidencia",
+        "Confundir simulación, logs sintéticos y producción",
+        "No aportar prueba negativa o no controlar estado inicial"
+      ],
+      "assessment": {
+        "type": "desempeño práctico más defensa oral/nota breve",
+        "grading": "rúbrica común 100 puntos y criterios específicos; fallo crítico de aislamiento impide aprobar",
+        "retest": "Corrección documentada y reevaluación con semilla distinta"
+      },
+      "cleanup": "Guardar artefactos y checksum; restaurar snapshot/config inicial; eliminar identidades/tokens de prueba y sesiones/recursos temporales; comprobar ausencia de conexiones hacia LAN externo.",
+      "sources": [
+        "PT",
+        "WS",
+        "WSCAP"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "RED-L03",
+      "phase": 1,
+      "title": "TCP/UDP, DNS, HTTP, TLS y captura inicial",
+      "modules": [
+        "RED-M04",
+        "RED-M05",
+        "RED-M06",
+        "RED-M07"
+      ],
+      "level": "Inicial",
+      "hours_estimated_within_curriculum": 10,
+      "status": "diseñado_no_ejecutado_no_validado",
+      "blue_red_cases": [],
+      "goal": "Demostrar de forma reproducible tcp/udp, dns, http, tls y captura inicial en un entorno docente controlado.",
+      "competencies": [
+        "Separar fallo de red, transporte y aplicación con trazas observables",
+        "Obtener e interpretar una captura de laboratorio preservando procedencia",
+        "Describir dependencias y evidencias de TLS, HTTP, SSH, SMB, RDP, LDAP y Kerberos",
+        "Configurar/diagnosticar servicios de nombres, dirección y tiempo en topología docente"
+      ],
+      "prerequisites": [
+        "RED-M01",
+        "RED-M02",
+        "RED-M03"
+      ],
+      "topology": "Client ↔ DNS interno ↔ servidor web de prueba; segmento docente",
+      "addressing": "10.60.20.0/24; DNS 10.60.20.53; web 10.60.20.80; cliente .10",
+      "main_activities": [
+        "Recoger PCAP propia o revisar dataset sintético etiquetado",
+        "Interpretar consultas y respuestas DNS, SYN/ACK, retransmisión",
+        "Comparar HTTP en claro con TLS sin asumir contenido visible"
+      ],
+      "positive_tests": [
+        "Distingue handshake exitoso y solicitud DNS resuelta"
+      ],
+      "negative_controls": [
+        "Fallo DNS controlado no se confunde con caída de red"
+      ],
+      "seeded_failures": [
+        "NXDOMAIN sintético",
+        "Timeout de DNS",
+        "RST TCP"
+      ],
+      "preferred_tools": [
+        "Wireshark",
+        "tshark",
+        "Packet Tracer en modo simulación"
+      ],
+      "alternate_path": "Captura/evidencia sintética y diagrama revisables sin levantar servicios",
+      "resources": {
+        "hardware_band": "8–12 GB orientación",
+        "resource_tier": "ligera",
+        "estimate_status": "estimación curricular no contrastada con ejecución"
+      },
+      "licenses_and_costs": {
+        "software_eur": "0 € de licencia para la ruta principal, si se cumplen condiciones del proveedor; no incluye equipo/energía/red",
+        "external_costs": "0 € de infraestructura cloud obligatoria; si se activa nube, coste sin verificar y requiere autorización independiente",
+        "licensing_check": "Verificar derechos de uso/distribución con relación al futuro uso comercial de la academia; no incluir imágenes propietarias"
+      },
+      "isolation": "Namespaces/redes virtuales sin bridge al LAN real, sin salida a Internet por defecto; dirección 10.60.0.0/16 y 2001:db8::/32 reservadas para topología didáctica (las subredes concretas se asignan por laboratorio).",
+      "authorization": "Autorización expresa del propietario del entorno; exclusivamente nodos propios, ventana docente y objetivos inventariados; parar ante pérdida de aislamiento, indisponibilidad inesperada o tráfico ajeno.",
+      "preparation": "Registrar host/hipervisor, versiones exactas e imágenes/sha256 autorizadas; respaldar configuraciones, plan de direccionamiento y prueba de aislamiento; no distribuir credenciales reales.",
+      "required_evidence": [
+        "Topología numerada y tabla de interfaces/direcciones",
+        "Configuración inicial/final o captura de resultados y comandos usados",
+        "Resultado de prueba positiva y control negativo",
+        "Diagnóstico causal más limitaciones y evidencia contradictoria",
+        "Manifest de versiones, UTC, hashes SHA-256 de ficheros y rúbrica"
+      ],
+      "acceptance": "Todas las pruebas positivas pasan, el control negativo confirma el límite previsto, y el estudiante explica el mecanismo y el origen de los datos; ninguna infracción del aislamiento.",
+      "critical_errors": [
+        "Infringir alcance o enviar actividad fuera del laboratorio",
+        "Declarar ejecución/validación sin evidencia",
+        "Confundir simulación, logs sintéticos y producción",
+        "No aportar prueba negativa o no controlar estado inicial"
+      ],
+      "assessment": {
+        "type": "desempeño práctico más defensa oral/nota breve",
+        "grading": "rúbrica común 100 puntos y criterios específicos; fallo crítico de aislamiento impide aprobar",
+        "retest": "Corrección documentada y reevaluación con semilla distinta"
+      },
+      "cleanup": "Guardar artefactos y checksum; restaurar snapshot/config inicial; eliminar identidades/tokens de prueba y sesiones/recursos temporales; comprobar ausencia de conexiones hacia LAN externo.",
+      "sources": [
+        "WS",
+        "WSCAP",
+        "PT"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "RED-L04",
+      "phase": 2,
+      "title": "Switching, VLAN, trunks 802.1Q, STP y LACP",
+      "modules": [
+        "RED-M08",
+        "RED-M09",
+        "RED-M10"
+      ],
+      "level": "Inicial",
+      "hours_estimated_within_curriculum": 12,
+      "status": "diseñado_no_ejecutado_no_validado",
+      "blue_red_cases": [],
+      "goal": "Demostrar de forma reproducible switching, vlan, trunks 802.1q, stp y lacp en un entorno docente controlado.",
+      "competencies": [
+        "Reconstruir conectividad capa 2 e interpretar MAC table y LLDP",
+        "Diseñar y verificar segmentación L2/L3 básica",
+        "Diagnosticar redundancia de campus sin bucles ni blackholes"
+      ],
+      "prerequisites": [
+        "RED-M01",
+        "RED-M02"
+      ],
+      "topology": "SW-ACC1 ↔ SW-DIST ↔ SW-ACC2; PC-FIN y PC-HR en VLAN separadas; 3 enlaces redundantes en topología virtual",
+      "addressing": "VLAN10 10.60.30.0/24; VLAN20 10.60.31.0/24; VLAN99 gestión 10.60.39.0/24",
+      "main_activities": [
+        "Documentar tabla MAC y tags",
+        "Configurar VLAN, trunk y root STP previsto",
+        "Verificar agregación LACP disponible y forzar un fallo de enlace"
+      ],
+      "positive_tests": [
+        "VLAN correcta y convergencia tras pérdida de enlace"
+      ],
+      "negative_controls": [
+        "Un cliente de VLAN10 no atraviesa L2 hacia VLAN20 sin routing"
+      ],
+      "seeded_failures": [
+        "VLAN nativa discordante",
+        "Raíz STP errónea",
+        "Puerto LACP suspendido"
+      ],
+      "preferred_tools": [
+        "Packet Tracer donde aplique",
+        "CML-Free versión reducida ≤5 nodos"
+      ],
+      "alternate_path": "Versión segmentada y offline: material sintético claramente marcado, razonamiento + validaciones menores en entorno ligero",
+      "resources": {
+        "hardware_band": "8–16 GB; CML necesita mínimo 8 GB propios",
+        "resource_tier": "intermedia",
+        "estimate_status": "estimación curricular no contrastada con ejecución"
+      },
+      "licenses_and_costs": {
+        "software_eur": "0 € de licencia para la ruta principal, si se cumplen condiciones del proveedor; no incluye equipo/energía/red",
+        "external_costs": "0 € de infraestructura cloud obligatoria; si se activa nube, coste sin verificar y requiere autorización independiente",
+        "licensing_check": "Verificar derechos de uso/distribución con relación al futuro uso comercial de la academia; no incluir imágenes propietarias"
+      },
+      "isolation": "Namespaces/redes virtuales sin bridge al LAN real, sin salida a Internet por defecto; dirección 10.60.0.0/16 y 2001:db8::/32 reservadas para topología didáctica (las subredes concretas se asignan por laboratorio).",
+      "authorization": "Autorización expresa del propietario del entorno; exclusivamente nodos propios, ventana docente y objetivos inventariados; parar ante pérdida de aislamiento, indisponibilidad inesperada o tráfico ajeno.",
+      "preparation": "Registrar host/hipervisor, versiones exactas e imágenes/sha256 autorizadas; respaldar configuraciones, plan de direccionamiento y prueba de aislamiento; no distribuir credenciales reales.",
+      "required_evidence": [
+        "Topología numerada y tabla de interfaces/direcciones",
+        "Configuración inicial/final o captura de resultados y comandos usados",
+        "Resultado de prueba positiva y control negativo",
+        "Diagnóstico causal más limitaciones y evidencia contradictoria",
+        "Manifest de versiones, UTC, hashes SHA-256 de ficheros y rúbrica"
+      ],
+      "acceptance": "Todas las pruebas positivas pasan, el control negativo confirma el límite previsto, y el estudiante explica el mecanismo y el origen de los datos; ninguna infracción del aislamiento.",
+      "critical_errors": [
+        "Infringir alcance o enviar actividad fuera del laboratorio",
+        "Declarar ejecución/validación sin evidencia",
+        "Confundir simulación, logs sintéticos y producción",
+        "No aportar prueba negativa o no controlar estado inicial"
+      ],
+      "assessment": {
+        "type": "desempeño práctico más defensa oral/nota breve",
+        "grading": "rúbrica común 100 puntos y criterios específicos; fallo crítico de aislamiento impide aprobar",
+        "retest": "Corrección documentada y reevaluación con semilla distinta"
+      },
+      "cleanup": "Guardar artefactos y checksum; restaurar snapshot/config inicial; eliminar identidades/tokens de prueba y sesiones/recursos temporales; comprobar ausencia de conexiones hacia LAN externo.",
+      "sources": [
+        "PT",
+        "CML-FREE",
+        "CML-REQ"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "RED-L05",
+      "phase": 2,
+      "title": "Servicios DNS/DHCP/NTP y dependencias AAA",
+      "modules": [
+        "RED-M07",
+        "RED-M22"
+      ],
+      "level": "Inicial",
+      "hours_estimated_within_curriculum": 10,
+      "status": "diseñado_no_ejecutado_no_validado",
+      "blue_red_cases": [],
+      "goal": "Demostrar de forma reproducible servicios dns/dhcp/ntp y dependencias aaa en un entorno docente controlado.",
+      "competencies": [
+        "Configurar/diagnosticar servicios de nombres, dirección y tiempo en topología docente",
+        "Separar gestión/control/datos y proteger administración"
+      ],
+      "prerequisites": [
+        "RED-M02",
+        "RED-M03",
+        "RED-M05",
+        "RED-M06",
+        "RED-M09",
+        "RED-M12"
+      ],
+      "topology": "Clientes ↔ gateway ↔ DNS-DHCP ↔ syslog/servidor horario lógico",
+      "addressing": "10.60.40.0/24; servicio .53; gateway .1; clientes .100–.150",
+      "main_activities": [
+        "Identificar cadena DHCP DORA y leases",
+        "Resolver nombre interno y sincronía UTC",
+        "Observar intento administrativo ficticio AAA en registro simulado"
+      ],
+      "positive_tests": [
+        "DHCP asigna dirección y DNS resuelve hostname previsto"
+      ],
+      "negative_controls": [
+        "DNS en error impide nombre pero no prueba pérdida de IP"
+      ],
+      "seeded_failures": [
+        "DNS forwarder falla",
+        "Lease agotado",
+        "Reloj fuera de tolerancia"
+      ],
+      "preferred_tools": [
+        "Packet Tracer",
+        "Linux/servicios de prueba",
+        "logs sintéticos"
+      ],
+      "alternate_path": "Captura/evidencia sintética y diagrama revisables sin levantar servicios",
+      "resources": {
+        "hardware_band": "8–12 GB orientación",
+        "resource_tier": "ligera",
+        "estimate_status": "estimación curricular no contrastada con ejecución"
+      },
+      "licenses_and_costs": {
+        "software_eur": "0 € de licencia para la ruta principal, si se cumplen condiciones del proveedor; no incluye equipo/energía/red",
+        "external_costs": "0 € de infraestructura cloud obligatoria; si se activa nube, coste sin verificar y requiere autorización independiente",
+        "licensing_check": "Verificar derechos de uso/distribución con relación al futuro uso comercial de la academia; no incluir imágenes propietarias"
+      },
+      "isolation": "Namespaces/redes virtuales sin bridge al LAN real, sin salida a Internet por defecto; dirección 10.60.0.0/16 y 2001:db8::/32 reservadas para topología didáctica (las subredes concretas se asignan por laboratorio).",
+      "authorization": "Autorización expresa del propietario del entorno; exclusivamente nodos propios, ventana docente y objetivos inventariados; parar ante pérdida de aislamiento, indisponibilidad inesperada o tráfico ajeno.",
+      "preparation": "Registrar host/hipervisor, versiones exactas e imágenes/sha256 autorizadas; respaldar configuraciones, plan de direccionamiento y prueba de aislamiento; no distribuir credenciales reales.",
+      "required_evidence": [
+        "Topología numerada y tabla de interfaces/direcciones",
+        "Configuración inicial/final o captura de resultados y comandos usados",
+        "Resultado de prueba positiva y control negativo",
+        "Diagnóstico causal más limitaciones y evidencia contradictoria",
+        "Manifest de versiones, UTC, hashes SHA-256 de ficheros y rúbrica"
+      ],
+      "acceptance": "Todas las pruebas positivas pasan, el control negativo confirma el límite previsto, y el estudiante explica el mecanismo y el origen de los datos; ninguna infracción del aislamiento.",
+      "critical_errors": [
+        "Infringir alcance o enviar actividad fuera del laboratorio",
+        "Declarar ejecución/validación sin evidencia",
+        "Confundir simulación, logs sintéticos y producción",
+        "No aportar prueba negativa o no controlar estado inicial"
+      ],
+      "assessment": {
+        "type": "desempeño práctico más defensa oral/nota breve",
+        "grading": "rúbrica común 100 puntos y criterios específicos; fallo crítico de aislamiento impide aprobar",
+        "retest": "Corrección documentada y reevaluación con semilla distinta"
+      },
+      "cleanup": "Guardar artefactos y checksum; restaurar snapshot/config inicial; eliminar identidades/tokens de prueba y sesiones/recursos temporales; comprobar ausencia de conexiones hacia LAN externo.",
+      "sources": [
+        "PT",
+        "WSCAP"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "RED-L06",
+      "phase": 3,
+      "title": "Enrutamiento estático y OSPFv2/OSPFv3",
+      "modules": [
+        "RED-M12",
+        "RED-M13"
+      ],
+      "level": "Intermedio",
+      "hours_estimated_within_curriculum": 14,
+      "status": "diseñado_no_ejecutado_no_validado",
+      "blue_red_cases": [],
+      "goal": "Demostrar de forma reproducible enrutamiento estático y ospfv2/ospfv3 en un entorno docente controlado.",
+      "competencies": [
+        "Predecir la ruta seleccionada y reparar ausencia de ruta de retorno",
+        "Configurar y diagnosticar OSPF y justificar uso de áreas"
+      ],
+      "prerequisites": [
+        "RED-M02",
+        "RED-M03",
+        "RED-M09"
+      ],
+      "topology": "R1—R2—R3; dos LAN de extremos; versiones IPv4 e IPv6",
+      "addressing": "Tránsitos 10.60.50.0/30 y 10.60.50.4/30; LAN 10.60.51.0/24 y 10.60.52.0/24; IPv6 2001:db8:60:50::/64 etc.",
+      "main_activities": [
+        "Comparar ruta estática, LPM y adyacencias OSPF",
+        "Demostrar LSDB, ruta, vecino, coste y red de retorno",
+        "Cambiar área/coste controlado y diagnosticar convergencia"
+      ],
+      "positive_tests": [
+        "R1 llega LAN R3 con ruta esperada para IPv4/v6"
+      ],
+      "negative_controls": [
+        "Area mismatch provoca ausencia de vecino y se diagnostica"
+      ],
+      "seeded_failures": [
+        "Area mismatch",
+        "ID duplicado",
+        "MTU inconsistente",
+        "Route feedback"
+      ],
+      "preferred_tools": [
+        "FRRouting",
+        "Containerlab",
+        "CML-Free max 5 nodos"
+      ],
+      "alternate_path": "Versión segmentada y offline: material sintético claramente marcado, razonamiento + validaciones menores en entorno ligero",
+      "resources": {
+        "hardware_band": "16 GB recomendable para pequeña topología; 8 GB posible FRR ligero, no verificado",
+        "resource_tier": "intermedia",
+        "estimate_status": "estimación curricular no contrastada con ejecución"
+      },
+      "licenses_and_costs": {
+        "software_eur": "0 € de licencia para la ruta principal, si se cumplen condiciones del proveedor; no incluye equipo/energía/red",
+        "external_costs": "0 € de infraestructura cloud obligatoria; si se activa nube, coste sin verificar y requiere autorización independiente",
+        "licensing_check": "Verificar derechos de uso/distribución con relación al futuro uso comercial de la academia; no incluir imágenes propietarias"
+      },
+      "isolation": "Namespaces/redes virtuales sin bridge al LAN real, sin salida a Internet por defecto; dirección 10.60.0.0/16 y 2001:db8::/32 reservadas para topología didáctica (las subredes concretas se asignan por laboratorio).",
+      "authorization": "Autorización expresa del propietario del entorno; exclusivamente nodos propios, ventana docente y objetivos inventariados; parar ante pérdida de aislamiento, indisponibilidad inesperada o tráfico ajeno.",
+      "preparation": "Registrar host/hipervisor, versiones exactas e imágenes/sha256 autorizadas; respaldar configuraciones, plan de direccionamiento y prueba de aislamiento; no distribuir credenciales reales.",
+      "required_evidence": [
+        "Topología numerada y tabla de interfaces/direcciones",
+        "Configuración inicial/final o captura de resultados y comandos usados",
+        "Resultado de prueba positiva y control negativo",
+        "Diagnóstico causal más limitaciones y evidencia contradictoria",
+        "Manifest de versiones, UTC, hashes SHA-256 de ficheros y rúbrica"
+      ],
+      "acceptance": "Todas las pruebas positivas pasan, el control negativo confirma el límite previsto, y el estudiante explica el mecanismo y el origen de los datos; ninguna infracción del aislamiento.",
+      "critical_errors": [
+        "Infringir alcance o enviar actividad fuera del laboratorio",
+        "Declarar ejecución/validación sin evidencia",
+        "Confundir simulación, logs sintéticos y producción",
+        "No aportar prueba negativa o no controlar estado inicial"
+      ],
+      "assessment": {
+        "type": "desempeño práctico más defensa oral/nota breve",
+        "grading": "rúbrica común 100 puntos y criterios específicos; fallo crítico de aislamiento impide aprobar",
+        "retest": "Corrección documentada y reevaluación con semilla distinta"
+      },
+      "cleanup": "Guardar artefactos y checksum; restaurar snapshot/config inicial; eliminar identidades/tokens de prueba y sesiones/recursos temporales; comprobar ausencia de conexiones hacia LAN externo.",
+      "sources": [
+        "FRR",
+        "CLAB",
+        "CML-FREE"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "RED-L07",
+      "phase": 3,
+      "title": "BGP, filtros, políticas y redistribución segura",
+      "modules": [
+        "RED-M14",
+        "RED-M15"
+      ],
+      "level": "Intermedio",
+      "hours_estimated_within_curriculum": 16,
+      "status": "diseñado_no_ejecutado_no_validado",
+      "blue_red_cases": [],
+      "goal": "Demostrar de forma reproducible bgp, filtros, políticas y redistribución segura en un entorno docente controlado.",
+      "competencies": [
+        "Justificar selección de rutas y aplicar filtros BGP en dos AS simulados",
+        "Evitar bucles y fugas mediante redistribución y separación de planos"
+      ],
+      "prerequisites": [
+        "RED-M12",
+        "RED-M13"
+      ],
+      "topology": "AS65010 R1—AS65020 R2—AS65030 R3; prefix origination en R1, consumidor R3",
+      "addressing": "Tránsitos 10.60.60.0/30 y 10.60.60.4/30; prefijo anunciado 10.60.61.0/24; anuncio no permitido 10.60.62.0/24",
+      "main_activities": [
+        "Configurar pares eBGP e interpretar AS_PATH, next-hop, rutas aceptadas",
+        "Probar route-map/prefix-list para permitido/no permitido",
+        "Sembrar mala redistribución y verificar ruta de retorno"
+      ],
+      "positive_tests": [
+        "Se anuncia 10.60.61.0/24 y se rechaza 10.60.62.0/24"
+      ],
+      "negative_controls": [
+        "Anuncio prohibido no entra en tabla, con log o estado que lo demuestre"
+      ],
+      "seeded_failures": [
+        "Prefix-list al revés",
+        "Next-hop no alcanzable",
+        "Redistribución en bucle"
+      ],
+      "preferred_tools": [
+        "FRRouting",
+        "Containerlab"
+      ],
+      "alternate_path": "Versión segmentada y offline: material sintético claramente marcado, razonamiento + validaciones menores en entorno ligero",
+      "resources": {
+        "hardware_band": "12–16 GB orientación; contenedores reducen sobrecarga",
+        "resource_tier": "intermedia",
+        "estimate_status": "estimación curricular no contrastada con ejecución"
+      },
+      "licenses_and_costs": {
+        "software_eur": "0 € de licencia para la ruta principal, si se cumplen condiciones del proveedor; no incluye equipo/energía/red",
+        "external_costs": "0 € de infraestructura cloud obligatoria; si se activa nube, coste sin verificar y requiere autorización independiente",
+        "licensing_check": "Verificar derechos de uso/distribución con relación al futuro uso comercial de la academia; no incluir imágenes propietarias"
+      },
+      "isolation": "Namespaces/redes virtuales sin bridge al LAN real, sin salida a Internet por defecto; dirección 10.60.0.0/16 y 2001:db8::/32 reservadas para topología didáctica (las subredes concretas se asignan por laboratorio).",
+      "authorization": "Autorización expresa del propietario del entorno; exclusivamente nodos propios, ventana docente y objetivos inventariados; parar ante pérdida de aislamiento, indisponibilidad inesperada o tráfico ajeno.",
+      "preparation": "Registrar host/hipervisor, versiones exactas e imágenes/sha256 autorizadas; respaldar configuraciones, plan de direccionamiento y prueba de aislamiento; no distribuir credenciales reales.",
+      "required_evidence": [
+        "Topología numerada y tabla de interfaces/direcciones",
+        "Configuración inicial/final o captura de resultados y comandos usados",
+        "Resultado de prueba positiva y control negativo",
+        "Diagnóstico causal más limitaciones y evidencia contradictoria",
+        "Manifest de versiones, UTC, hashes SHA-256 de ficheros y rúbrica"
+      ],
+      "acceptance": "Todas las pruebas positivas pasan, el control negativo confirma el límite previsto, y el estudiante explica el mecanismo y el origen de los datos; ninguna infracción del aislamiento.",
+      "critical_errors": [
+        "Infringir alcance o enviar actividad fuera del laboratorio",
+        "Declarar ejecución/validación sin evidencia",
+        "Confundir simulación, logs sintéticos y producción",
+        "No aportar prueba negativa o no controlar estado inicial"
+      ],
+      "assessment": {
+        "type": "desempeño práctico más defensa oral/nota breve",
+        "grading": "rúbrica común 100 puntos y criterios específicos; fallo crítico de aislamiento impide aprobar",
+        "retest": "Corrección documentada y reevaluación con semilla distinta"
+      },
+      "cleanup": "Guardar artefactos y checksum; restaurar snapshot/config inicial; eliminar identidades/tokens de prueba y sesiones/recursos temporales; comprobar ausencia de conexiones hacia LAN externo.",
+      "sources": [
+        "FRR",
+        "CLAB"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "RED-L08",
+      "phase": 3,
+      "title": "Gateway redundante, QoS y diagnóstico de convergencia",
+      "modules": [
+        "RED-M16",
+        "RED-M19",
+        "RED-M39"
+      ],
+      "level": "Intermedio",
+      "hours_estimated_within_curriculum": 10,
+      "status": "diseñado_no_ejecutado_no_validado",
+      "blue_red_cases": [],
+      "goal": "Demostrar de forma reproducible gateway redundante, qos y diagnóstico de convergencia en un entorno docente controlado.",
+      "competencies": [
+        "Diseñar recuperación cuando falla enlace o gateway",
+        "Justificar decisiones de rendimiento con mediciones",
+        "Encontrar causa raíz con hipótesis y métricas de red"
+      ],
+      "prerequisites": [
+        "RED-M04",
+        "RED-M09",
+        "RED-M10",
+        "RED-M12",
+        "RED-M18",
+        "RED-M26",
+        "RED-M27"
+      ],
+      "topology": "GW-A y GW-B ↔ LAN cliente, enlace WAN con limitación controlada",
+      "addressing": "LAN 10.60.70.0/24; gateway virtual previsto .1; WAN 10.60.71.0/30",
+      "main_activities": [
+        "Establecer baseline RTT/pérdida/jitter internos",
+        "Cambiar gateway activo y medir convergencia",
+        "Comparar política QoS propuesta con latencia y colas observadas"
+      ],
+      "positive_tests": [
+        "Tras fallo simulado se restablece tráfico y se documenta intervalo medido, sin umbral fingido"
+      ],
+      "negative_controls": [
+        "Gateway mal anunciado causa fallo que el estudiante detecta"
+      ],
+      "seeded_failures": [
+        "FHRP mal configurado",
+        "WAN congestionada",
+        "Ruta asimétrica"
+      ],
+      "preferred_tools": [
+        "CML-Free ≤5 nodos si compatible",
+        "FRRouting/Linux para alternativa funcional y no equivalencia"
+      ],
+      "alternate_path": "Versión segmentada y offline: material sintético claramente marcado, razonamiento + validaciones menores en entorno ligero",
+      "resources": {
+        "hardware_band": "12–16 GB orientación",
+        "resource_tier": "intermedia",
+        "estimate_status": "estimación curricular no contrastada con ejecución"
+      },
+      "licenses_and_costs": {
+        "software_eur": "0 € de licencia para la ruta principal, si se cumplen condiciones del proveedor; no incluye equipo/energía/red",
+        "external_costs": "0 € de infraestructura cloud obligatoria; si se activa nube, coste sin verificar y requiere autorización independiente",
+        "licensing_check": "Verificar derechos de uso/distribución con relación al futuro uso comercial de la academia; no incluir imágenes propietarias"
+      },
+      "isolation": "Namespaces/redes virtuales sin bridge al LAN real, sin salida a Internet por defecto; dirección 10.60.0.0/16 y 2001:db8::/32 reservadas para topología didáctica (las subredes concretas se asignan por laboratorio).",
+      "authorization": "Autorización expresa del propietario del entorno; exclusivamente nodos propios, ventana docente y objetivos inventariados; parar ante pérdida de aislamiento, indisponibilidad inesperada o tráfico ajeno.",
+      "preparation": "Registrar host/hipervisor, versiones exactas e imágenes/sha256 autorizadas; respaldar configuraciones, plan de direccionamiento y prueba de aislamiento; no distribuir credenciales reales.",
+      "required_evidence": [
+        "Topología numerada y tabla de interfaces/direcciones",
+        "Configuración inicial/final o captura de resultados y comandos usados",
+        "Resultado de prueba positiva y control negativo",
+        "Diagnóstico causal más limitaciones y evidencia contradictoria",
+        "Manifest de versiones, UTC, hashes SHA-256 de ficheros y rúbrica"
+      ],
+      "acceptance": "Todas las pruebas positivas pasan, el control negativo confirma el límite previsto, y el estudiante explica el mecanismo y el origen de los datos; ninguna infracción del aislamiento.",
+      "critical_errors": [
+        "Infringir alcance o enviar actividad fuera del laboratorio",
+        "Declarar ejecución/validación sin evidencia",
+        "Confundir simulación, logs sintéticos y producción",
+        "No aportar prueba negativa o no controlar estado inicial"
+      ],
+      "assessment": {
+        "type": "desempeño práctico más defensa oral/nota breve",
+        "grading": "rúbrica común 100 puntos y criterios específicos; fallo crítico de aislamiento impide aprobar",
+        "retest": "Corrección documentada y reevaluación con semilla distinta"
+      },
+      "cleanup": "Guardar artefactos y checksum; restaurar snapshot/config inicial; eliminar identidades/tokens de prueba y sesiones/recursos temporales; comprobar ausencia de conexiones hacia LAN externo.",
+      "sources": [
+        "CML-FREE",
+        "FRR"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "RED-L09",
+      "phase": 3,
+      "title": "NAT/PAT, VPN y WAN híbrida sin salida externa",
+      "modules": [
+        "RED-M17",
+        "RED-M18"
+      ],
+      "level": "Intermedio",
+      "hours_estimated_within_curriculum": 12,
+      "status": "diseñado_no_ejecutado_no_validado",
+      "blue_red_cases": [],
+      "goal": "Demostrar de forma reproducible nat/pat, vpn y wan híbrida sin salida externa en un entorno docente controlado.",
+      "competencies": [
+        "Explicar traducciones y las limitaciones para atribuir clientes",
+        "Diseñar conectividad remota y diagnosticar overlay/underlay"
+      ],
+      "prerequisites": [
+        "RED-M04",
+        "RED-M07",
+        "RED-M12"
+      ],
+      "topology": "LAN-A ↔ FW-A ↔ red tránsito virtual ↔ FW-B ↔ LAN-B",
+      "addressing": "LAN-A 10.60.80.0/24; LAN-B 10.60.81.0/24; tránsito 198.51.100.0/30 (TEST-NET-2: ejemplo documental; sustituir por RFC1918 si se ejecuta)",
+      "main_activities": [
+        "Construir mapa NAT antes/después con puertos",
+        "Diseñar y verificar IPsec site-to-site si la plataforma lo permite",
+        "Medir tráfico con y sin túnel y distinguir cifrado de atribución"
+      ],
+      "positive_tests": [
+        "Tráfico permitido por túnel, evidenciado en extremos"
+      ],
+      "negative_controls": [
+        "Regla denegada rechaza servicio concreto, sin romper túnel"
+      ],
+      "seeded_failures": [
+        "Regla NAT incorrecta",
+        "Selector de túnel equivocado",
+        "Rutas de retorno faltantes"
+      ],
+      "preferred_tools": [
+        "OPNsense VM si hay recursos",
+        "FRR y registros IPsec sintéticos para perfil reducido"
+      ],
+      "alternate_path": "Versión segmentada y offline: material sintético claramente marcado, razonamiento + validaciones menores en entorno ligero",
+      "resources": {
+        "hardware_band": "16–24 GB recomendados en VM; alternativa documental para 8–16 GB",
+        "resource_tier": "avanzada",
+        "estimate_status": "estimación curricular no contrastada con ejecución"
+      },
+      "licenses_and_costs": {
+        "software_eur": "0 € de licencia para la ruta principal, si se cumplen condiciones del proveedor; no incluye equipo/energía/red",
+        "external_costs": "0 € de infraestructura cloud obligatoria; si se activa nube, coste sin verificar y requiere autorización independiente",
+        "licensing_check": "Verificar derechos de uso/distribución con relación al futuro uso comercial de la academia; no incluir imágenes propietarias"
+      },
+      "isolation": "Namespaces/redes virtuales sin bridge al LAN real, sin salida a Internet por defecto; dirección 10.60.0.0/16 y 2001:db8::/32 reservadas para topología didáctica (las subredes concretas se asignan por laboratorio).",
+      "authorization": "Autorización expresa del propietario del entorno; exclusivamente nodos propios, ventana docente y objetivos inventariados; parar ante pérdida de aislamiento, indisponibilidad inesperada o tráfico ajeno.",
+      "preparation": "Registrar host/hipervisor, versiones exactas e imágenes/sha256 autorizadas; respaldar configuraciones, plan de direccionamiento y prueba de aislamiento; no distribuir credenciales reales.",
+      "required_evidence": [
+        "Topología numerada y tabla de interfaces/direcciones",
+        "Configuración inicial/final o captura de resultados y comandos usados",
+        "Resultado de prueba positiva y control negativo",
+        "Diagnóstico causal más limitaciones y evidencia contradictoria",
+        "Manifest de versiones, UTC, hashes SHA-256 de ficheros y rúbrica"
+      ],
+      "acceptance": "Todas las pruebas positivas pasan, el control negativo confirma el límite previsto, y el estudiante explica el mecanismo y el origen de los datos; ninguna infracción del aislamiento.",
+      "critical_errors": [
+        "Infringir alcance o enviar actividad fuera del laboratorio",
+        "Declarar ejecución/validación sin evidencia",
+        "Confundir simulación, logs sintéticos y producción",
+        "No aportar prueba negativa o no controlar estado inicial"
+      ],
+      "assessment": {
+        "type": "desempeño práctico más defensa oral/nota breve",
+        "grading": "rúbrica común 100 puntos y criterios específicos; fallo crítico de aislamiento impide aprobar",
+        "retest": "Corrección documentada y reevaluación con semilla distinta"
+      },
+      "cleanup": "Guardar artefactos y checksum; restaurar snapshot/config inicial; eliminar identidades/tokens de prueba y sesiones/recursos temporales; comprobar ausencia de conexiones hacia LAN externo.",
+      "sources": [
+        "OPN",
+        "FRR"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "RED-L10",
+      "phase": 4,
+      "title": "Campus segmentado: ACL, firewall, hardening y controles L2",
+      "modules": [
+        "RED-M20",
+        "RED-M21",
+        "RED-M22",
+        "RED-M23"
+      ],
+      "level": "Intermedio",
+      "hours_estimated_within_curriculum": 16,
+      "status": "diseñado_no_ejecutado_no_validado",
+      "blue_red_cases": [],
+      "goal": "Demostrar de forma reproducible campus segmentado: acl, firewall, hardening y controles l2 en un entorno docente controlado.",
+      "competencies": [
+        "Diseñar red empresarial escalable con documentación y riesgos",
+        "Aplicar política de mínimos privilegios y validar flujos",
+        "Separar gestión/control/datos y proteger administración",
+        "Defender acceso de red y demostrar límites por plataforma"
+      ],
+      "prerequisites": [
+        "RED-M06",
+        "RED-M07",
+        "RED-M09",
+        "RED-M10",
+        "RED-M12",
+        "RED-M16",
+        "RED-M17"
+      ],
+      "topology": "Usuarios VLAN10 ↔ FW/RTR ↔ servidores VLAN20 ↔ administración VLAN99",
+      "addressing": "Usuarios 10.60.90.0/24; servidores 10.60.91.0/24; gestión 10.60.99.0/24",
+      "main_activities": [
+        "Diseñar matriz de flujos por zona",
+        "Permitir DNS/HTTPS y denegar gestión desde usuarios",
+        "Probar acceso admin seguro y revisar DHCP snooping/DAI según plataforma"
+      ],
+      "positive_tests": [
+        "Flujos explícitos permitidos y documentados"
+      ],
+      "negative_controls": [
+        "Gestión desde usuarios y salto lateral quedan rechazados"
+      ],
+      "seeded_failures": [
+        "ACL dirección invertida",
+        "Regla sombra",
+        "DHCP rogue simulado sin cruzar LAN física"
+      ],
+      "preferred_tools": [
+        "Packet Tracer para switching",
+        "CML-Free por fases",
+        "Linux nftables para filtrado real"
+      ],
+      "alternate_path": "Versión segmentada y offline: material sintético claramente marcado, razonamiento + validaciones menores en entorno ligero",
+      "resources": {
+        "hardware_band": "16 GB perfil modular; CML 5 nodos no sustituye escenario completo",
+        "resource_tier": "intermedia",
+        "estimate_status": "estimación curricular no contrastada con ejecución"
+      },
+      "licenses_and_costs": {
+        "software_eur": "0 € de licencia para la ruta principal, si se cumplen condiciones del proveedor; no incluye equipo/energía/red",
+        "external_costs": "0 € de infraestructura cloud obligatoria; si se activa nube, coste sin verificar y requiere autorización independiente",
+        "licensing_check": "Verificar derechos de uso/distribución con relación al futuro uso comercial de la academia; no incluir imágenes propietarias"
+      },
+      "isolation": "Namespaces/redes virtuales sin bridge al LAN real, sin salida a Internet por defecto; dirección 10.60.0.0/16 y 2001:db8::/32 reservadas para topología didáctica (las subredes concretas se asignan por laboratorio).",
+      "authorization": "Autorización expresa del propietario del entorno; exclusivamente nodos propios, ventana docente y objetivos inventariados; parar ante pérdida de aislamiento, indisponibilidad inesperada o tráfico ajeno.",
+      "preparation": "Registrar host/hipervisor, versiones exactas e imágenes/sha256 autorizadas; respaldar configuraciones, plan de direccionamiento y prueba de aislamiento; no distribuir credenciales reales.",
+      "required_evidence": [
+        "Topología numerada y tabla de interfaces/direcciones",
+        "Configuración inicial/final o captura de resultados y comandos usados",
+        "Resultado de prueba positiva y control negativo",
+        "Diagnóstico causal más limitaciones y evidencia contradictoria",
+        "Manifest de versiones, UTC, hashes SHA-256 de ficheros y rúbrica"
+      ],
+      "acceptance": "Todas las pruebas positivas pasan, el control negativo confirma el límite previsto, y el estudiante explica el mecanismo y el origen de los datos; ninguna infracción del aislamiento.",
+      "critical_errors": [
+        "Infringir alcance o enviar actividad fuera del laboratorio",
+        "Declarar ejecución/validación sin evidencia",
+        "Confundir simulación, logs sintéticos y producción",
+        "No aportar prueba negativa o no controlar estado inicial"
+      ],
+      "assessment": {
+        "type": "desempeño práctico más defensa oral/nota breve",
+        "grading": "rúbrica común 100 puntos y criterios específicos; fallo crítico de aislamiento impide aprobar",
+        "retest": "Corrección documentada y reevaluación con semilla distinta"
+      },
+      "cleanup": "Guardar artefactos y checksum; restaurar snapshot/config inicial; eliminar identidades/tokens de prueba y sesiones/recursos temporales; comprobar ausencia de conexiones hacia LAN externo.",
+      "sources": [
+        "PT",
+        "CML-FREE",
+        "CML-REQ"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "RED-L11",
+      "phase": 4,
+      "title": "Wi-Fi corporativo, 802.1X/RADIUS y autenticación",
+      "modules": [
+        "RED-M11",
+        "RED-M23",
+        "RED-M24"
+      ],
+      "level": "Intermedio",
+      "hours_estimated_within_curriculum": 12,
+      "status": "diseñado_no_ejecutado_no_validado",
+      "blue_red_cases": [
+        "S11"
+      ],
+      "goal": "Demostrar de forma reproducible wi-fi corporativo, 802.1x/radius y autenticación en un entorno docente controlado.",
+      "competencies": [
+        "Distinguir problemas RF, autenticación y direccionamiento WLAN",
+        "Defender acceso de red y demostrar límites por plataforma",
+        "Diagnosticar WPA2/WPA3-Enterprise y segmentación Wi-Fi"
+      ],
+      "prerequisites": [
+        "RED-M02",
+        "RED-M03",
+        "RED-M07",
+        "RED-M09",
+        "RED-M21",
+        "RED-M22"
+      ],
+      "topology": "Cliente Wi-Fi simulado ↔ AP/controladora simulados ↔ RADIUS ↔ VLAN usuarios/invitados",
+      "addressing": "Corp 10.60.100.0/24; Invitados 10.60.101.0/24; AAA 10.60.109.10",
+      "main_activities": [
+        "Dibujar flujo EAP/802.1X y dependencias RADIUS",
+        "Contrastar aceptación y rechazo de identidad ficticia",
+        "Evaluar fallos de certificado, VLAN asignada y WPA2/3 en distintas capas"
+      ],
+      "positive_tests": [
+        "Acceso de usuario autorizado a VLAN prevista según evidencia de simulación o logs sintéticos"
+      ],
+      "negative_controls": [
+        "Credenciales/certificado no autorizado no obtiene acceso"
+      ],
+      "seeded_failures": [
+        "RADIUS inaccesible",
+        "Certificado expirado sintético",
+        "VLAN asignada incorrecta"
+      ],
+      "preferred_tools": [
+        "Packet Tracer: solo lo soportado y etiquetado",
+        "registros sintéticos RADIUS/WLAN",
+        "hardware propio opcional como ampliación"
+      ],
+      "alternate_path": "Captura/evidencia sintética y diagrama revisables sin levantar servicios",
+      "resources": {
+        "hardware_band": "8–12 GB perfil de logs/simulación; radio real requiere equipo autorizado",
+        "resource_tier": "ligera",
+        "estimate_status": "estimación curricular no contrastada con ejecución"
+      },
+      "licenses_and_costs": {
+        "software_eur": "0 € de licencia para la ruta principal, si se cumplen condiciones del proveedor; no incluye equipo/energía/red",
+        "external_costs": "0 € de infraestructura cloud obligatoria; si se activa nube, coste sin verificar y requiere autorización independiente",
+        "licensing_check": "Verificar derechos de uso/distribución con relación al futuro uso comercial de la academia; no incluir imágenes propietarias"
+      },
+      "isolation": "Namespaces/redes virtuales sin bridge al LAN real, sin salida a Internet por defecto; dirección 10.60.0.0/16 y 2001:db8::/32 reservadas para topología didáctica (las subredes concretas se asignan por laboratorio).",
+      "authorization": "Autorización expresa del propietario del entorno; exclusivamente nodos propios, ventana docente y objetivos inventariados; parar ante pérdida de aislamiento, indisponibilidad inesperada o tráfico ajeno.",
+      "preparation": "Registrar host/hipervisor, versiones exactas e imágenes/sha256 autorizadas; respaldar configuraciones, plan de direccionamiento y prueba de aislamiento; no distribuir credenciales reales.",
+      "required_evidence": [
+        "Topología numerada y tabla de interfaces/direcciones",
+        "Configuración inicial/final o captura de resultados y comandos usados",
+        "Resultado de prueba positiva y control negativo",
+        "Diagnóstico causal más limitaciones y evidencia contradictoria",
+        "Manifest de versiones, UTC, hashes SHA-256 de ficheros y rúbrica"
+      ],
+      "acceptance": "Todas las pruebas positivas pasan, el control negativo confirma el límite previsto, y el estudiante explica el mecanismo y el origen de los datos; ninguna infracción del aislamiento.",
+      "critical_errors": [
+        "Infringir alcance o enviar actividad fuera del laboratorio",
+        "Declarar ejecución/validación sin evidencia",
+        "Confundir simulación, logs sintéticos y producción",
+        "No aportar prueba negativa o no controlar estado inicial"
+      ],
+      "assessment": {
+        "type": "desempeño práctico más defensa oral/nota breve",
+        "grading": "rúbrica común 100 puntos y criterios específicos; fallo crítico de aislamiento impide aprobar",
+        "retest": "Corrección documentada y reevaluación con semilla distinta"
+      },
+      "cleanup": "Guardar artefactos y checksum; restaurar snapshot/config inicial; eliminar identidades/tokens de prueba y sesiones/recursos temporales; comprobar ausencia de conexiones hacia LAN externo.",
+      "sources": [
+        "PT",
+        "CML-REL"
+      ],
+      "notes": "RF real, roaming físico y WPA3/802.1X real NO se dan por verificados mediante simulador; requieren hardware propio y pruebas separadas."
+    },
+    {
+      "id": "RED-L12",
+      "phase": 4,
+      "title": "Diseño de red cloud/híbrida y verificación offline",
+      "modules": [
+        "RED-M18",
+        "RED-M20",
+        "RED-M21",
+        "RED-M25"
+      ],
+      "level": "Intermedio",
+      "hours_estimated_within_curriculum": 10,
+      "status": "diseñado_no_ejecutado_no_validado",
+      "blue_red_cases": [],
+      "goal": "Demostrar de forma reproducible diseño de red cloud/híbrida y verificación offline en un entorno docente controlado.",
+      "competencies": [
+        "Diseñar conectividad remota y diagnosticar overlay/underlay",
+        "Diseñar red empresarial escalable con documentación y riesgos",
+        "Aplicar política de mínimos privilegios y validar flujos",
+        "Diseñar conectividad VNet/VPC híbrida y sus fuentes de evidencia"
+      ],
+      "prerequisites": [
+        "RED-M09",
+        "RED-M10",
+        "RED-M12",
+        "RED-M16",
+        "RED-M17",
+        "RED-M22"
+      ],
+      "topology": "VNet/VPC A ↔ túnel conceptual ↔ LAN B; subnets privadas y pública simulado en diagrama",
+      "addressing": "Cloud 10.60.110.0/24; on-prem 10.60.111.0/24; destino denegado 10.60.112.0/24",
+      "main_activities": [
+        "Comparar tablas de rutas, firewall/NSG/SG por semántica, sin equivalencias automáticas",
+        "Definir flujos permitidos/denegados y pruebas que exigiríamos",
+        "Registrar cuotas, ruta retorno, registro y modelo de costes como pendientes"
+      ],
+      "positive_tests": [
+        "Rutas/políticas coherentes en modelo revisado con casos trazados"
+      ],
+      "negative_controls": [
+        "Diseño rechaza movimiento entre segmentos no autorizado"
+      ],
+      "seeded_failures": [
+        "Ruta por defecto excesiva",
+        "Exposición amplia",
+        "Confusión entre SG/ACL"
+      ],
+      "preferred_tools": [
+        "Diagramas versionados",
+        "JSON políticas docentes",
+        "Cloud opcional solo con permiso de gasto"
+      ],
+      "alternate_path": "Captura/evidencia sintética y diagrama revisables sin levantar servicios",
+      "resources": {
+        "hardware_band": "8 GB suficiente para revisión offline",
+        "resource_tier": "ligera",
+        "estimate_status": "estimación curricular no contrastada con ejecución"
+      },
+      "licenses_and_costs": {
+        "software_eur": "0 € de licencia para la ruta principal, si se cumplen condiciones del proveedor; no incluye equipo/energía/red",
+        "external_costs": "0 € de infraestructura cloud obligatoria; si se activa nube, coste sin verificar y requiere autorización independiente",
+        "licensing_check": "Verificar derechos de uso/distribución con relación al futuro uso comercial de la academia; no incluir imágenes propietarias"
+      },
+      "isolation": "Namespaces/redes virtuales sin bridge al LAN real, sin salida a Internet por defecto; dirección 10.60.0.0/16 y 2001:db8::/32 reservadas para topología didáctica (las subredes concretas se asignan por laboratorio).",
+      "authorization": "Autorización expresa del propietario del entorno; exclusivamente nodos propios, ventana docente y objetivos inventariados; parar ante pérdida de aislamiento, indisponibilidad inesperada o tráfico ajeno.",
+      "preparation": "Registrar host/hipervisor, versiones exactas e imágenes/sha256 autorizadas; respaldar configuraciones, plan de direccionamiento y prueba de aislamiento; no distribuir credenciales reales.",
+      "required_evidence": [
+        "Topología numerada y tabla de interfaces/direcciones",
+        "Configuración inicial/final o captura de resultados y comandos usados",
+        "Resultado de prueba positiva y control negativo",
+        "Diagnóstico causal más limitaciones y evidencia contradictoria",
+        "Manifest de versiones, UTC, hashes SHA-256 de ficheros y rúbrica"
+      ],
+      "acceptance": "Todas las pruebas positivas pasan, el control negativo confirma el límite previsto, y el estudiante explica el mecanismo y el origen de los datos; ninguna infracción del aislamiento.",
+      "critical_errors": [
+        "Infringir alcance o enviar actividad fuera del laboratorio",
+        "Declarar ejecución/validación sin evidencia",
+        "Confundir simulación, logs sintéticos y producción",
+        "No aportar prueba negativa o no controlar estado inicial"
+      ],
+      "assessment": {
+        "type": "desempeño práctico más defensa oral/nota breve",
+        "grading": "rúbrica común 100 puntos y criterios específicos; fallo crítico de aislamiento impide aprobar",
+        "retest": "Corrección documentada y reevaluación con semilla distinta"
+      },
+      "cleanup": "Guardar artefactos y checksum; restaurar snapshot/config inicial; eliminar identidades/tokens de prueba y sesiones/recursos temporales; comprobar ausencia de conexiones hacia LAN externo.",
+      "sources": [
+        "SENTINEL",
+        "FRR"
+      ],
+      "notes": "Nunca afirmar que los controles Azure/AWS fueron desplegados o probados; no generar gastos en este proyecto."
+    },
+    {
+      "id": "RED-L13",
+      "phase": 5,
+      "title": "Telemetría Syslog/SNMP, UTC y calidad de observación",
+      "modules": [
+        "RED-M26"
+      ],
+      "level": "Intermedio",
+      "hours_estimated_within_curriculum": 10,
+      "status": "diseñado_no_ejecutado_no_validado",
+      "blue_red_cases": [],
+      "goal": "Demostrar de forma reproducible telemetría syslog/snmp, utc y calidad de observación en un entorno docente controlado.",
+      "competencies": [
+        "Explicar producción y calidad de logs y métricas de red"
+      ],
+      "prerequisites": [
+        "RED-M05",
+        "RED-M07",
+        "RED-M22"
+      ],
+      "topology": "RTR1/SW1 → colector Syslog + fuente SNMP; reloj lógico compartido",
+      "addressing": "Gestión 10.60.120.0/24; collector 10.60.120.10; router .1",
+      "main_activities": [
+        "Comparar timestamps evento/ingesta y normalizar a UTC",
+        "Registrar origen, severidad, pérdida y duplicados",
+        "Contrastar SNMP polling frente a traps y límites de autenticación"
+      ],
+      "positive_tests": [
+        "Se correlaciona un cambio de estado de interfaz con dos fuentes"
+      ],
+      "negative_controls": [
+        "Se elimina falso duplicado sin borrar evento único"
+      ],
+      "seeded_failures": [
+        "Desfase reloj",
+        "Campos ausentes",
+        "Duplicación por reenvío"
+      ],
+      "preferred_tools": [
+        "Linux syslog",
+        "tshark",
+        "logs sintéticos versionados"
+      ],
+      "alternate_path": "Captura/evidencia sintética y diagrama revisables sin levantar servicios",
+      "resources": {
+        "hardware_band": "8–12 GB para procesamiento offline",
+        "resource_tier": "ligera",
+        "estimate_status": "estimación curricular no contrastada con ejecución"
+      },
+      "licenses_and_costs": {
+        "software_eur": "0 € de licencia para la ruta principal, si se cumplen condiciones del proveedor; no incluye equipo/energía/red",
+        "external_costs": "0 € de infraestructura cloud obligatoria; si se activa nube, coste sin verificar y requiere autorización independiente",
+        "licensing_check": "Verificar derechos de uso/distribución con relación al futuro uso comercial de la academia; no incluir imágenes propietarias"
+      },
+      "isolation": "Namespaces/redes virtuales sin bridge al LAN real, sin salida a Internet por defecto; dirección 10.60.0.0/16 y 2001:db8::/32 reservadas para topología didáctica (las subredes concretas se asignan por laboratorio).",
+      "authorization": "Autorización expresa del propietario del entorno; exclusivamente nodos propios, ventana docente y objetivos inventariados; parar ante pérdida de aislamiento, indisponibilidad inesperada o tráfico ajeno.",
+      "preparation": "Registrar host/hipervisor, versiones exactas e imágenes/sha256 autorizadas; respaldar configuraciones, plan de direccionamiento y prueba de aislamiento; no distribuir credenciales reales.",
+      "required_evidence": [
+        "Topología numerada y tabla de interfaces/direcciones",
+        "Configuración inicial/final o captura de resultados y comandos usados",
+        "Resultado de prueba positiva y control negativo",
+        "Diagnóstico causal más limitaciones y evidencia contradictoria",
+        "Manifest de versiones, UTC, hashes SHA-256 de ficheros y rúbrica"
+      ],
+      "acceptance": "Todas las pruebas positivas pasan, el control negativo confirma el límite previsto, y el estudiante explica el mecanismo y el origen de los datos; ninguna infracción del aislamiento.",
+      "critical_errors": [
+        "Infringir alcance o enviar actividad fuera del laboratorio",
+        "Declarar ejecución/validación sin evidencia",
+        "Confundir simulación, logs sintéticos y producción",
+        "No aportar prueba negativa o no controlar estado inicial"
+      ],
+      "assessment": {
+        "type": "desempeño práctico más defensa oral/nota breve",
+        "grading": "rúbrica común 100 puntos y criterios específicos; fallo crítico de aislamiento impide aprobar",
+        "retest": "Corrección documentada y reevaluación con semilla distinta"
+      },
+      "cleanup": "Guardar artefactos y checksum; restaurar snapshot/config inicial; eliminar identidades/tokens de prueba y sesiones/recursos temporales; comprobar ausencia de conexiones hacia LAN externo.",
+      "sources": [
+        "WS",
+        "WSCAP"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "RED-L14",
+      "phase": 5,
+      "title": "NetFlow/IPFIX, Zeek, Suricata e IDS/NDR",
+      "modules": [
+        "RED-M27"
+      ],
+      "level": "Intermedio",
+      "hours_estimated_within_curriculum": 14,
+      "status": "diseñado_no_ejecutado_no_validado",
+      "blue_red_cases": [
+        "S02",
+        "S04",
+        "S06"
+      ],
+      "goal": "Demostrar de forma reproducible netflow/ipfix, zeek, suricata e ids/ndr en un entorno docente controlado.",
+      "competencies": [
+        "Distinguir flujos, alertas y paquetes y reconocer sesgos"
+      ],
+      "prerequisites": [
+        "RED-M17",
+        "RED-M21",
+        "RED-M26"
+      ],
+      "topology": "PCAP offline → sensor Zeek/Suricata → colector de eventos; exporter IPFIX sintético etiquetado",
+      "addressing": "Origen 10.60.130.10; destino 10.60.130.80; sensor lógico .20",
+      "main_activities": [
+        "Relacionar 5-tupla y ventanas de tiempo entre flujos y PCAP",
+        "Leer Zeek conn.log y Suricata EVE con campos documentados",
+        "Detectar evento con evidencia independiente y medir silencio por captura parcial"
+      ],
+      "positive_tests": [
+        "Caso conocido genera evento en dataset preparado, campos comprobables"
+      ],
+      "negative_controls": [
+        "Caso benigno no se clasifica automáticamente como intrusión"
+      ],
+      "seeded_failures": [
+        "Muestreo incompleto",
+        "No observación TLS contenido",
+        "Diferencia de esquema EVE"
+      ],
+      "preferred_tools": [
+        "Zeek",
+        "Suricata",
+        "Wireshark"
+      ],
+      "alternate_path": "Versión segmentada y offline: material sintético claramente marcado, razonamiento + validaciones menores en entorno ligero",
+      "resources": {
+        "hardware_band": "8–16 GB según tamaño de PCAP; procesamiento secuencial",
+        "resource_tier": "intermedia",
+        "estimate_status": "estimación curricular no contrastada con ejecución"
+      },
+      "licenses_and_costs": {
+        "software_eur": "0 € de licencia para la ruta principal, si se cumplen condiciones del proveedor; no incluye equipo/energía/red",
+        "external_costs": "0 € de infraestructura cloud obligatoria; si se activa nube, coste sin verificar y requiere autorización independiente",
+        "licensing_check": "Verificar derechos de uso/distribución con relación al futuro uso comercial de la academia; no incluir imágenes propietarias"
+      },
+      "isolation": "Namespaces/redes virtuales sin bridge al LAN real, sin salida a Internet por defecto; dirección 10.60.0.0/16 y 2001:db8::/32 reservadas para topología didáctica (las subredes concretas se asignan por laboratorio).",
+      "authorization": "Autorización expresa del propietario del entorno; exclusivamente nodos propios, ventana docente y objetivos inventariados; parar ante pérdida de aislamiento, indisponibilidad inesperada o tráfico ajeno.",
+      "preparation": "Registrar host/hipervisor, versiones exactas e imágenes/sha256 autorizadas; respaldar configuraciones, plan de direccionamiento y prueba de aislamiento; no distribuir credenciales reales.",
+      "required_evidence": [
+        "Topología numerada y tabla de interfaces/direcciones",
+        "Configuración inicial/final o captura de resultados y comandos usados",
+        "Resultado de prueba positiva y control negativo",
+        "Diagnóstico causal más limitaciones y evidencia contradictoria",
+        "Manifest de versiones, UTC, hashes SHA-256 de ficheros y rúbrica"
+      ],
+      "acceptance": "Todas las pruebas positivas pasan, el control negativo confirma el límite previsto, y el estudiante explica el mecanismo y el origen de los datos; ninguna infracción del aislamiento.",
+      "critical_errors": [
+        "Infringir alcance o enviar actividad fuera del laboratorio",
+        "Declarar ejecución/validación sin evidencia",
+        "Confundir simulación, logs sintéticos y producción",
+        "No aportar prueba negativa o no controlar estado inicial"
+      ],
+      "assessment": {
+        "type": "desempeño práctico más defensa oral/nota breve",
+        "grading": "rúbrica común 100 puntos y criterios específicos; fallo crítico de aislamiento impide aprobar",
+        "retest": "Corrección documentada y reevaluación con semilla distinta"
+      },
+      "cleanup": "Guardar artefactos y checksum; restaurar snapshot/config inicial; eliminar identidades/tokens de prueba y sesiones/recursos temporales; comprobar ausencia de conexiones hacia LAN externo.",
+      "sources": [
+        "ZEEK",
+        "SUR",
+        "SUR-SCHEMA",
+        "WS"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "RED-L15",
+      "phase": 5,
+      "title": "Investigación SOC de PCAP con hipótesis y atribución",
+      "modules": [
+        "RED-M28",
+        "RED-M29"
+      ],
+      "level": "Intermedio",
+      "hours_estimated_within_curriculum": 14,
+      "status": "diseñado_no_ejecutado_no_validado",
+      "blue_red_cases": [
+        "S01",
+        "S03",
+        "S04",
+        "S05"
+      ],
+      "goal": "Demostrar de forma reproducible investigación soc de pcap con hipótesis y atribución en un entorno docente controlado.",
+      "competencies": [
+        "Interpretar sesiones y artefactos de red sin sobreafirmar",
+        "Investigar hipótesis alternativas y escalar con grado de confianza"
+      ],
+      "prerequisites": [
+        "RED-M05",
+        "RED-M06",
+        "RED-M07",
+        "RED-M17",
+        "RED-M26",
+        "RED-M27"
+      ],
+      "topology": "PCAP + DNS + DHCP + NAT + endpoint sintéticos de dos intervalos",
+      "addressing": "IPs 10.60.140.10/24, 10.60.140.11/24; NAT a 198.51.100.10 con puertos y UTC",
+      "main_activities": [
+        "Crear línea temporal UTC y atribución NAT con lease",
+        "Diferenciar DNS anómalo, backup y transferencia no confirmada",
+        "Documentar hipótesis benigna alternativa y evidencia desfavorable"
+      ],
+      "positive_tests": [
+        "Asigna IP interna con puerto+tiempo o declara insuficiencia sin suplantar certeza"
+      ],
+      "negative_controls": [
+        "No acusa exfiltración solo por bytes elevados"
+      ],
+      "seeded_failures": [
+        "Falta puerto NAT",
+        "Lease solapado",
+        "Sensor en lugar equivocado"
+      ],
+      "preferred_tools": [
+        "Wireshark",
+        "Zeek offline",
+        "dataset sintético propio por crear"
+      ],
+      "alternate_path": "Captura/evidencia sintética y diagrama revisables sin levantar servicios",
+      "resources": {
+        "hardware_band": "8 GB viable lectura PCAP pequeña",
+        "resource_tier": "ligera",
+        "estimate_status": "estimación curricular no contrastada con ejecución"
+      },
+      "licenses_and_costs": {
+        "software_eur": "0 € de licencia para la ruta principal, si se cumplen condiciones del proveedor; no incluye equipo/energía/red",
+        "external_costs": "0 € de infraestructura cloud obligatoria; si se activa nube, coste sin verificar y requiere autorización independiente",
+        "licensing_check": "Verificar derechos de uso/distribución con relación al futuro uso comercial de la academia; no incluir imágenes propietarias"
+      },
+      "isolation": "Namespaces/redes virtuales sin bridge al LAN real, sin salida a Internet por defecto; dirección 10.60.0.0/16 y 2001:db8::/32 reservadas para topología didáctica (las subredes concretas se asignan por laboratorio).",
+      "authorization": "Autorización expresa del propietario del entorno; exclusivamente nodos propios, ventana docente y objetivos inventariados; parar ante pérdida de aislamiento, indisponibilidad inesperada o tráfico ajeno.",
+      "preparation": "Registrar host/hipervisor, versiones exactas e imágenes/sha256 autorizadas; respaldar configuraciones, plan de direccionamiento y prueba de aislamiento; no distribuir credenciales reales.",
+      "required_evidence": [
+        "Topología numerada y tabla de interfaces/direcciones",
+        "Configuración inicial/final o captura de resultados y comandos usados",
+        "Resultado de prueba positiva y control negativo",
+        "Diagnóstico causal más limitaciones y evidencia contradictoria",
+        "Manifest de versiones, UTC, hashes SHA-256 de ficheros y rúbrica"
+      ],
+      "acceptance": "Todas las pruebas positivas pasan, el control negativo confirma el límite previsto, y el estudiante explica el mecanismo y el origen de los datos; ninguna infracción del aislamiento.",
+      "critical_errors": [
+        "Infringir alcance o enviar actividad fuera del laboratorio",
+        "Declarar ejecución/validación sin evidencia",
+        "Confundir simulación, logs sintéticos y producción",
+        "No aportar prueba negativa o no controlar estado inicial"
+      ],
+      "assessment": {
+        "type": "desempeño práctico más defensa oral/nota breve",
+        "grading": "rúbrica común 100 puntos y criterios específicos; fallo crítico de aislamiento impide aprobar",
+        "retest": "Corrección documentada y reevaluación con semilla distinta"
+      },
+      "cleanup": "Guardar artefactos y checksum; restaurar snapshot/config inicial; eliminar identidades/tokens de prueba y sesiones/recursos temporales; comprobar ausencia de conexiones hacia LAN externo.",
+      "sources": [
+        "ZEEK",
+        "WS",
+        "WSCAP"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "RED-L16",
+      "phase": 5,
+      "title": "Reglas de detección, normalización y respuesta SOC",
+      "modules": [
+        "RED-M30",
+        "RED-M31"
+      ],
+      "level": "Intermedio",
+      "hours_estimated_within_curriculum": 16,
+      "status": "diseñado_no_ejecutado_no_validado",
+      "blue_red_cases": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S10"
+      ],
+      "goal": "Demostrar de forma reproducible reglas de detección, normalización y respuesta soc en un entorno docente controlado.",
+      "competencies": [
+        "Diseñar y evaluar una detección docente multiplataforma",
+        "Proponer contención proporcionada, preservación y verificación"
+      ],
+      "prerequisites": [
+        "RED-M22",
+        "RED-M26",
+        "RED-M27",
+        "RED-M29"
+      ],
+      "topology": "Dataset multi-fuente → motor de reglas docentes → incidente de muestra; sin acceso real a SIEM",
+      "addressing": "Orígenes de eventos 10.60.150.0/24; fechas UTC sintéticas sin direcciones externas reales",
+      "main_activities": [
+        "Definir campos de contrato + regla conceptual y casos de prueba",
+        "Comparar dataset positivo, benigno y ambiguo",
+        "Proponer contención y comprobar efecto en mesa; nunca aplicarla a producción"
+      ],
+      "positive_tests": [
+        "Detecta variante positiva y justifica falsos positivos/negativos"
+      ],
+      "negative_controls": [
+        "Caso benigno no desencadena afirmación de incidente confirmado"
+      ],
+      "seeded_failures": [
+        "Parser descarta puerto",
+        "Timezone desalineado",
+        "Regla sobreajustada"
+      ],
+      "preferred_tools": [
+        "Python local",
+        "JSONL",
+        "matriz de reglas independiente SIEM"
+      ],
+      "alternate_path": "Captura/evidencia sintética y diagrama revisables sin levantar servicios",
+      "resources": {
+        "hardware_band": "8 GB para datos pequeños; sistemas SIEM externos no requeridos",
+        "resource_tier": "ligera",
+        "estimate_status": "estimación curricular no contrastada con ejecución"
+      },
+      "licenses_and_costs": {
+        "software_eur": "0 € de licencia para la ruta principal, si se cumplen condiciones del proveedor; no incluye equipo/energía/red",
+        "external_costs": "0 € de infraestructura cloud obligatoria; si se activa nube, coste sin verificar y requiere autorización independiente",
+        "licensing_check": "Verificar derechos de uso/distribución con relación al futuro uso comercial de la academia; no incluir imágenes propietarias"
+      },
+      "isolation": "Namespaces/redes virtuales sin bridge al LAN real, sin salida a Internet por defecto; dirección 10.60.0.0/16 y 2001:db8::/32 reservadas para topología didáctica (las subredes concretas se asignan por laboratorio).",
+      "authorization": "Autorización expresa del propietario del entorno; exclusivamente nodos propios, ventana docente y objetivos inventariados; parar ante pérdida de aislamiento, indisponibilidad inesperada o tráfico ajeno.",
+      "preparation": "Registrar host/hipervisor, versiones exactas e imágenes/sha256 autorizadas; respaldar configuraciones, plan de direccionamiento y prueba de aislamiento; no distribuir credenciales reales.",
+      "required_evidence": [
+        "Topología numerada y tabla de interfaces/direcciones",
+        "Configuración inicial/final o captura de resultados y comandos usados",
+        "Resultado de prueba positiva y control negativo",
+        "Diagnóstico causal más limitaciones y evidencia contradictoria",
+        "Manifest de versiones, UTC, hashes SHA-256 de ficheros y rúbrica"
+      ],
+      "acceptance": "Todas las pruebas positivas pasan, el control negativo confirma el límite previsto, y el estudiante explica el mecanismo y el origen de los datos; ninguna infracción del aislamiento.",
+      "critical_errors": [
+        "Infringir alcance o enviar actividad fuera del laboratorio",
+        "Declarar ejecución/validación sin evidencia",
+        "Confundir simulación, logs sintéticos y producción",
+        "No aportar prueba negativa o no controlar estado inicial"
+      ],
+      "assessment": {
+        "type": "desempeño práctico más defensa oral/nota breve",
+        "grading": "rúbrica común 100 puntos y criterios específicos; fallo crítico de aislamiento impide aprobar",
+        "retest": "Corrección documentada y reevaluación con semilla distinta"
+      },
+      "cleanup": "Guardar artefactos y checksum; restaurar snapshot/config inicial; eliminar identidades/tokens de prueba y sesiones/recursos temporales; comprobar ausencia de conexiones hacia LAN externo.",
+      "sources": [
+        "ZEEK",
+        "SUR-SCHEMA",
+        "SENTINEL"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "RED-L17",
+      "phase": 6,
+      "title": "Alcance, descubrimiento mínimo y prueba de segmentación Red Team",
+      "modules": [
+        "RED-M32",
+        "RED-M33",
+        "RED-M34"
+      ],
+      "level": "Avanzado",
+      "hours_estimated_within_curriculum": 16,
+      "status": "diseñado_no_ejecutado_no_validado",
+      "blue_red_cases": [
+        "S07",
+        "S08",
+        "S09"
+      ],
+      "goal": "Demostrar de forma reproducible alcance, descubrimiento mínimo y prueba de segmentación red team en un entorno docente controlado.",
+      "competencies": [
+        "Definir límites y condiciones de parada de una prueba de red",
+        "Crear inventario de activos y verificar servicios únicamente en lab",
+        "Demostrar el comportamiento de ACL, NAC, Wi-Fi y rutas en lab"
+      ],
+      "prerequisites": [
+        "RED-M01",
+        "RED-M07",
+        "RED-M12",
+        "RED-M23",
+        "RED-M24"
+      ],
+      "topology": "Host-auditor → gateway lab → activo WEB 10.60.160.80 y activo ADMIN 10.60.161.50",
+      "addressing": "Rango autorizado 10.60.160.80/32 y 10.60.161.50/32; un máximo de 2 hosts; rangos adicionales prohibidos",
+      "main_activities": [
+        "Redactar autorización con objetivos, puertos, volumen y parada",
+        "Enumerar de forma mínima sólo destinos autorizados",
+        "Comparar política allow/deny y verificar firewall y PCAP"
+      ],
+      "positive_tests": [
+        "Servicio permitido confirma conexión al único destino autorizado"
+      ],
+      "negative_controls": [
+        "Puerto o zona prohibida no es accesible y hay evento corroborado"
+      ],
+      "seeded_failures": [
+        "ROE incompletas",
+        "ACL sombra",
+        "Falta ruta retorno confundida con filtrado"
+      ],
+      "preferred_tools": [
+        "Host Linux de laboratorio",
+        "nftables",
+        "capturas offline"
+      ],
+      "alternate_path": "Versión segmentada y offline: material sintético claramente marcado, razonamiento + validaciones menores en entorno ligero",
+      "resources": {
+        "hardware_band": "8–16 GB según topología; tráfico limitado sin DoS",
+        "resource_tier": "intermedia",
+        "estimate_status": "estimación curricular no contrastada con ejecución"
+      },
+      "licenses_and_costs": {
+        "software_eur": "0 € de licencia para la ruta principal, si se cumplen condiciones del proveedor; no incluye equipo/energía/red",
+        "external_costs": "0 € de infraestructura cloud obligatoria; si se activa nube, coste sin verificar y requiere autorización independiente",
+        "licensing_check": "Verificar derechos de uso/distribución con relación al futuro uso comercial de la academia; no incluir imágenes propietarias"
+      },
+      "isolation": "Namespaces/redes virtuales sin bridge al LAN real, sin salida a Internet por defecto; dirección 10.60.0.0/16 y 2001:db8::/32 reservadas para topología didáctica (las subredes concretas se asignan por laboratorio).",
+      "authorization": "Autorización expresa del propietario del entorno; exclusivamente nodos propios, ventana docente y objetivos inventariados; parar ante pérdida de aislamiento, indisponibilidad inesperada o tráfico ajeno.",
+      "preparation": "Registrar host/hipervisor, versiones exactas e imágenes/sha256 autorizadas; respaldar configuraciones, plan de direccionamiento y prueba de aislamiento; no distribuir credenciales reales.",
+      "required_evidence": [
+        "Topología numerada y tabla de interfaces/direcciones",
+        "Configuración inicial/final o captura de resultados y comandos usados",
+        "Resultado de prueba positiva y control negativo",
+        "Diagnóstico causal más limitaciones y evidencia contradictoria",
+        "Manifest de versiones, UTC, hashes SHA-256 de ficheros y rúbrica"
+      ],
+      "acceptance": "Todas las pruebas positivas pasan, el control negativo confirma el límite previsto, y el estudiante explica el mecanismo y el origen de los datos; ninguna infracción del aislamiento.",
+      "critical_errors": [
+        "Infringir alcance o enviar actividad fuera del laboratorio",
+        "Declarar ejecución/validación sin evidencia",
+        "Confundir simulación, logs sintéticos y producción",
+        "No aportar prueba negativa o no controlar estado inicial"
+      ],
+      "assessment": {
+        "type": "desempeño práctico más defensa oral/nota breve",
+        "grading": "rúbrica común 100 puntos y criterios específicos; fallo crítico de aislamiento impide aprobar",
+        "retest": "Corrección documentada y reevaluación con semilla distinta"
+      },
+      "cleanup": "Guardar artefactos y checksum; restaurar snapshot/config inicial; eliminar identidades/tokens de prueba y sesiones/recursos temporales; comprobar ausencia de conexiones hacia LAN externo.",
+      "sources": [
+        "WS",
+        "FRR"
+      ],
+      "notes": "No se incluyen técnicas de acceso no autorizado, denegación de servicio, persistencia ni evasión. No se recomienda tráfico contra infraestructuras reales."
+    },
+    {
+      "id": "RED-L18",
+      "phase": 7,
+      "title": "Automatización de inventario, YANG/APIs y rollback",
+      "modules": [
+        "RED-M36",
+        "RED-M37",
+        "RED-M38",
+        "RED-M39"
+      ],
+      "level": "Avanzado",
+      "hours_estimated_within_curriculum": 18,
+      "status": "diseñado_no_ejecutado_no_validado",
+      "blue_red_cases": [],
+      "goal": "Demostrar de forma reproducible automatización de inventario, yang/apis y rollback en un entorno docente controlado.",
+      "competencies": [
+        "Analizar logs/redes mediante scripts probados y versionados",
+        "Diseñar tareas de inventario/configuración con API y modelo de datos",
+        "Planear cambios reproducibles y recuperación ante fallos",
+        "Encontrar causa raíz con hipótesis y métricas de red"
+      ],
+      "prerequisites": [
+        "RED-M05",
+        "RED-M07",
+        "RED-M12",
+        "RED-M16",
+        "RED-M19",
+        "RED-M21",
+        "RED-M22",
+        "RED-M25",
+        "RED-M26",
+        "RED-M27"
+      ],
+      "topology": "Repositorio local → dispositivo FRR/endpoint de prueba → verificador de estado → snapshot",
+      "addressing": "Mgmt 10.60.170.0/24; router .1; controlador de automatización .10",
+      "main_activities": [
+        "Leer JSON/YAML y mantener Git con pruebas unitarias",
+        "Calcular diff, cambio idempotente y validación de pre/post",
+        "Demostrar rollback tras pérdida esperada de conectividad",
+        "Comparar API soportada frente a ejemplo de NETCONF/RESTCONF en simulador o dataset"
+      ],
+      "positive_tests": [
+        "Dos ejecuciones consecutivas producen mismo estado final (idempotencia)"
+      ],
+      "negative_controls": [
+        "Fallo de cambio activa rollback y restaura baseline"
+      ],
+      "seeded_failures": [
+        "Configuración inválida",
+        "Falta permisos",
+        "Esquema YANG ausente en plataforma elegida"
+      ],
+      "preferred_tools": [
+        "Python",
+        "Git",
+        "Ansible opcional",
+        "FRR",
+        "API/YANG docs"
+      ],
+      "alternate_path": "Versión segmentada y offline: material sintético claramente marcado, razonamiento + validaciones menores en entorno ligero",
+      "resources": {
+        "hardware_band": "8–16 GB y necesidad de compatibilidad real por plataforma",
+        "resource_tier": "intermedia",
+        "estimate_status": "estimación curricular no contrastada con ejecución"
+      },
+      "licenses_and_costs": {
+        "software_eur": "0 € de licencia para la ruta principal, si se cumplen condiciones del proveedor; no incluye equipo/energía/red",
+        "external_costs": "0 € de infraestructura cloud obligatoria; si se activa nube, coste sin verificar y requiere autorización independiente",
+        "licensing_check": "Verificar derechos de uso/distribución con relación al futuro uso comercial de la academia; no incluir imágenes propietarias"
+      },
+      "isolation": "Namespaces/redes virtuales sin bridge al LAN real, sin salida a Internet por defecto; dirección 10.60.0.0/16 y 2001:db8::/32 reservadas para topología didáctica (las subredes concretas se asignan por laboratorio).",
+      "authorization": "Autorización expresa del propietario del entorno; exclusivamente nodos propios, ventana docente y objetivos inventariados; parar ante pérdida de aislamiento, indisponibilidad inesperada o tráfico ajeno.",
+      "preparation": "Registrar host/hipervisor, versiones exactas e imágenes/sha256 autorizadas; respaldar configuraciones, plan de direccionamiento y prueba de aislamiento; no distribuir credenciales reales.",
+      "required_evidence": [
+        "Topología numerada y tabla de interfaces/direcciones",
+        "Configuración inicial/final o captura de resultados y comandos usados",
+        "Resultado de prueba positiva y control negativo",
+        "Diagnóstico causal más limitaciones y evidencia contradictoria",
+        "Manifest de versiones, UTC, hashes SHA-256 de ficheros y rúbrica"
+      ],
+      "acceptance": "Todas las pruebas positivas pasan, el control negativo confirma el límite previsto, y el estudiante explica el mecanismo y el origen de los datos; ninguna infracción del aislamiento.",
+      "critical_errors": [
+        "Infringir alcance o enviar actividad fuera del laboratorio",
+        "Declarar ejecución/validación sin evidencia",
+        "Confundir simulación, logs sintéticos y producción",
+        "No aportar prueba negativa o no controlar estado inicial"
+      ],
+      "assessment": {
+        "type": "desempeño práctico más defensa oral/nota breve",
+        "grading": "rúbrica común 100 puntos y criterios específicos; fallo crítico de aislamiento impide aprobar",
+        "retest": "Corrección documentada y reevaluación con semilla distinta"
+      },
+      "cleanup": "Guardar artefactos y checksum; restaurar snapshot/config inicial; eliminar identidades/tokens de prueba y sesiones/recursos temporales; comprobar ausencia de conexiones hacia LAN externo.",
+      "sources": [
+        "FRR",
+        "CLAB"
+      ],
+      "notes": "NETCONF/RESTCONF no se infieren disponibles en FRR; la plataforma concreta debe acreditar soporte o usarse una API de laboratorio independiente claramente distinguida."
+    },
+    {
+      "id": "RED-L19",
+      "phase": 8,
+      "title": "Proyecto empresarial integrado: diseño, resiliencia y operación",
+      "modules": [
+        "RED-M15",
+        "RED-M20",
+        "RED-M21",
+        "RED-M23",
+        "RED-M25",
+        "RED-M38",
+        "RED-M39",
+        "RED-M40"
+      ],
+      "level": "Avanzado",
+      "hours_estimated_within_curriculum": 24,
+      "status": "diseñado_no_ejecutado_no_validado",
+      "blue_red_cases": [
+        "S08",
+        "S12"
+      ],
+      "goal": "Demostrar de forma reproducible proyecto empresarial integrado: diseño, resiliencia y operación en un entorno docente controlado.",
+      "competencies": [
+        "Evitar bucles y fugas mediante redistribución y separación de planos",
+        "Diseñar red empresarial escalable con documentación y riesgos",
+        "Aplicar política de mínimos privilegios y validar flujos",
+        "Defender acceso de red y demostrar límites por plataforma",
+        "Diseñar conectividad VNet/VPC híbrida y sus fuentes de evidencia",
+        "Planear cambios reproducibles y recuperación ante fallos",
+        "Encontrar causa raíz con hipótesis y métricas de red",
+        "Entregar arquitectura de red empresarial defendible y recuperable"
+      ],
+      "prerequisites": [
+        "RED-M07",
+        "RED-M09",
+        "RED-M10",
+        "RED-M12",
+        "RED-M13",
+        "RED-M14",
+        "RED-M16",
+        "RED-M17",
+        "RED-M18",
+        "RED-M19",
+        "RED-M22",
+        "RED-M26",
+        "RED-M27",
+        "RED-M36",
+        "RED-M37"
+      ],
+      "topology": "Campus de 3 zonas + 2 gateways lógicos + servicio DNS + firewall + sensor; división modular del escenario si sólo hay 5 nodos",
+      "addressing": "Usuarios 10.60.180.0/24; apps 10.60.181.0/24; gestión 10.60.189.0/24; WAN enlace 10.60.190.0/30",
+      "main_activities": [
+        "Definir requisitos y threat model del cliente ficticio",
+        "Presentar diseño, rutas, segmentación, continuidad, backups y rollback",
+        "Resolver tres fallos sembrados y justificar decisiones de coste/observabilidad"
+      ],
+      "positive_tests": [
+        "Matriz de conectividad, rutas y cambios cumple requisitos documentados"
+      ],
+      "negative_controls": [
+        "Intenta un flujo no autorizado y demuestra rechazo en variante reducida"
+      ],
+      "seeded_failures": [
+        "Fallo de enrutamiento asimétrico",
+        "Gestión expuesta",
+        "Conflicto de dirección"
+      ],
+      "preferred_tools": [
+        "Packet Tracer / Linux / FRR por segmentos",
+        "documentación no dependiente de proveedor"
+      ],
+      "alternate_path": "Versión segmentada y offline: material sintético claramente marcado, razonamiento + validaciones menores en entorno ligero",
+      "resources": {
+        "hardware_band": "16–32 GB si se pretende ejecutar parcialmente; alternativa de diseño controlado en 8–16 GB",
+        "resource_tier": "avanzada",
+        "estimate_status": "estimación curricular no contrastada con ejecución"
+      },
+      "licenses_and_costs": {
+        "software_eur": "0 € de licencia para la ruta principal, si se cumplen condiciones del proveedor; no incluye equipo/energía/red",
+        "external_costs": "0 € de infraestructura cloud obligatoria; si se activa nube, coste sin verificar y requiere autorización independiente",
+        "licensing_check": "Verificar derechos de uso/distribución con relación al futuro uso comercial de la academia; no incluir imágenes propietarias"
+      },
+      "isolation": "Namespaces/redes virtuales sin bridge al LAN real, sin salida a Internet por defecto; dirección 10.60.0.0/16 y 2001:db8::/32 reservadas para topología didáctica (las subredes concretas se asignan por laboratorio).",
+      "authorization": "Autorización expresa del propietario del entorno; exclusivamente nodos propios, ventana docente y objetivos inventariados; parar ante pérdida de aislamiento, indisponibilidad inesperada o tráfico ajeno.",
+      "preparation": "Registrar host/hipervisor, versiones exactas e imágenes/sha256 autorizadas; respaldar configuraciones, plan de direccionamiento y prueba de aislamiento; no distribuir credenciales reales.",
+      "required_evidence": [
+        "Topología numerada y tabla de interfaces/direcciones",
+        "Configuración inicial/final o captura de resultados y comandos usados",
+        "Resultado de prueba positiva y control negativo",
+        "Diagnóstico causal más limitaciones y evidencia contradictoria",
+        "Manifest de versiones, UTC, hashes SHA-256 de ficheros y rúbrica"
+      ],
+      "acceptance": "Todas las pruebas positivas pasan, el control negativo confirma el límite previsto, y el estudiante explica el mecanismo y el origen de los datos; ninguna infracción del aislamiento.",
+      "critical_errors": [
+        "Infringir alcance o enviar actividad fuera del laboratorio",
+        "Declarar ejecución/validación sin evidencia",
+        "Confundir simulación, logs sintéticos y producción",
+        "No aportar prueba negativa o no controlar estado inicial"
+      ],
+      "assessment": {
+        "type": "desempeño práctico más defensa oral/nota breve",
+        "grading": "rúbrica común 100 puntos y criterios específicos; fallo crítico de aislamiento impide aprobar",
+        "retest": "Corrección documentada y reevaluación con semilla distinta"
+      },
+      "cleanup": "Guardar artefactos y checksum; restaurar snapshot/config inicial; eliminar identidades/tokens de prueba y sesiones/recursos temporales; comprobar ausencia de conexiones hacia LAN externo.",
+      "sources": [
+        "PT",
+        "FRR",
+        "CLAB",
+        "CML-FREE"
+      ],
+      "notes": "Proyecto no puede probarse completo en CML-Free de cinco nodos simultáneos. Se exige dividirlo en escenas verificables o usar plataforma permitida con recursos suficientes."
+    },
+    {
+      "id": "RED-L20",
+      "phase": 8,
+      "title": "Misión final Purple: actividad autorizada, SOC y retest",
+      "modules": [
+        "RED-M30",
+        "RED-M31",
+        "RED-M35",
+        "RED-M41",
+        "RED-M42"
+      ],
+      "level": "Avanzado",
+      "hours_estimated_within_curriculum": 26,
+      "status": "diseñado_no_ejecutado_no_validado",
+      "blue_red_cases": [
+        "S07",
+        "S08",
+        "S12"
+      ],
+      "goal": "Demostrar de forma reproducible misión final purple: actividad autorizada, soc y retest en un entorno docente controlado.",
+      "competencies": [
+        "Diseñar y evaluar una detección docente multiplataforma",
+        "Proponer contención proporcionada, preservación y verificación",
+        "Coordinar ensayo controlado, investigación SOC y corrección",
+        "Unir actividad autorizada, observación, investigación y corrección",
+        "Defender decisiones ante revisión y mostrar retención de competencias"
+      ],
+      "prerequisites": [
+        "RED-M22",
+        "RED-M26",
+        "RED-M27",
+        "RED-M29",
+        "RED-M34",
+        "RED-M40"
+      ],
+      "topology": "Zona usuarios → firewall → zona servidor; generador de tráfico + sensor PCAP/EVE + colector; entorno aislado, módulos en turnos",
+      "addressing": "Usuarios 10.60.200.0/24; servidor 10.60.201.0/24; gestión/sensor 10.60.209.0/24",
+      "main_activities": [
+        "Red Team propone ROE y genera sólo actividad controlada con archivos ficticios",
+        "SOC registra alerta y hipótesis alternativas, crea cronología y alcance",
+        "Equipo diseña contención, ejecuta solo en entorno autorizado, valida revertibilidad y repite prueba",
+        "Defensa final incluye demostración, diferencia pre/post y límites de prueba"
+      ],
+      "positive_tests": [
+        "Flujo autorizado genera evidencia y detector positivo documentado"
+      ],
+      "negative_controls": [
+        "Tráfico benigno o prueba bloqueada no se sobredimensionan; regla no debe marcar ambos por defecto"
+      ],
+      "seeded_failures": [
+        "Pérdida de visibilidad",
+        "Alerta falsa",
+        "Rollback falla (se evalúa plan, no se expone sistema externo)"
+      ],
+      "preferred_tools": [
+        "Zeek/Suricata offline",
+        "nftables",
+        "FRR/Linux",
+        "dataset sintético de entrenamiento"
+      ],
+      "alternate_path": "Versión segmentada y offline: material sintético claramente marcado, razonamiento + validaciones menores en entorno ligero",
+      "resources": {
+        "hardware_band": "16 GB por fases, 24–32 GB para varios sensores simultáneos; sin Security Onion Standalone obligatorio",
+        "resource_tier": "avanzada",
+        "estimate_status": "estimación curricular no contrastada con ejecución"
+      },
+      "licenses_and_costs": {
+        "software_eur": "0 € de licencia para la ruta principal, si se cumplen condiciones del proveedor; no incluye equipo/energía/red",
+        "external_costs": "0 € de infraestructura cloud obligatoria; si se activa nube, coste sin verificar y requiere autorización independiente",
+        "licensing_check": "Verificar derechos de uso/distribución con relación al futuro uso comercial de la academia; no incluir imágenes propietarias"
+      },
+      "isolation": "Namespaces/redes virtuales sin bridge al LAN real, sin salida a Internet por defecto; dirección 10.60.0.0/16 y 2001:db8::/32 reservadas para topología didáctica (las subredes concretas se asignan por laboratorio).",
+      "authorization": "Autorización expresa del propietario del entorno; exclusivamente nodos propios, ventana docente y objetivos inventariados; parar ante pérdida de aislamiento, indisponibilidad inesperada o tráfico ajeno.",
+      "preparation": "Registrar host/hipervisor, versiones exactas e imágenes/sha256 autorizadas; respaldar configuraciones, plan de direccionamiento y prueba de aislamiento; no distribuir credenciales reales.",
+      "required_evidence": [
+        "Topología numerada y tabla de interfaces/direcciones",
+        "Configuración inicial/final o captura de resultados y comandos usados",
+        "Resultado de prueba positiva y control negativo",
+        "Diagnóstico causal más limitaciones y evidencia contradictoria",
+        "Manifest de versiones, UTC, hashes SHA-256 de ficheros y rúbrica"
+      ],
+      "acceptance": "Todas las pruebas positivas pasan, el control negativo confirma el límite previsto, y el estudiante explica el mecanismo y el origen de los datos; ninguna infracción del aislamiento.",
+      "critical_errors": [
+        "Infringir alcance o enviar actividad fuera del laboratorio",
+        "Declarar ejecución/validación sin evidencia",
+        "Confundir simulación, logs sintéticos y producción",
+        "No aportar prueba negativa o no controlar estado inicial"
+      ],
+      "assessment": {
+        "type": "desempeño práctico más defensa oral/nota breve",
+        "grading": "rúbrica común 100 puntos y criterios específicos; fallo crítico de aislamiento impide aprobar",
+        "retest": "Corrección documentada y reevaluación con semilla distinta"
+      },
+      "cleanup": "Guardar artefactos y checksum; restaurar snapshot/config inicial; eliminar identidades/tokens de prueba y sesiones/recursos temporales; comprobar ausencia de conexiones hacia LAN externo.",
+      "sources": [
+        "ZEEK",
+        "SUR",
+        "FRR",
+        "SO"
+      ],
+      "notes": "No se califica éxito por comprometer un objetivo. Se califica evidencia del control, respeto de ROE y corrección/retest."
+    }
+  ],
+  "extensions": [
+    {
+      "id": "RED-X01",
+      "title": "Wi-Fi real controlado: RF, roaming, WPA3-Enterprise",
+      "status": "opcional_diseñado_no_validado",
+      "modules": [
+        "RED-M11",
+        "RED-M23",
+        "RED-M24",
+        "RED-M34"
+      ],
+      "needs": "AP propio configurable y dispositivos bajo control legal; radiofrecuencia sin interferir redes ajenas; herramientas con permiso",
+      "estimated_hours_additional": 8,
+      "result": "Contrastar simulación/registro con 802.11 en radio real, interferencia y RADIUS",
+      "cost": "No hay importe verificado; dependerá de hardware propio; no es prerrequisito",
+      "license": "Verificar equipo y firmware; no incluir capturas de terceros",
+      "safety": "Únicamente SSID y clientes propios; sin deauth ajeno ni captura de terceros",
+      "sources": [
+        "CML-REL",
+        "PT"
+      ]
+    },
+    {
+      "id": "RED-X02",
+      "title": "Alternativa empresarial con CML Personal y más nodos",
+      "status": "opcional_diseñado_no_validado",
+      "modules": [
+        "RED-M13",
+        "RED-M14",
+        "RED-M20",
+        "RED-M40"
+      ],
+      "needs": "VM CML con recursos y suscripción autorizada, sin exportar IOS hacia GNS3",
+      "estimated_hours_additional": 10,
+      "result": "Montar topología ampliada si el titular adquiere y cumple la licencia",
+      "cost": "Cisco publica Personal USD 199 y Plus USD 349 (precio web consultado 2026-10-18); sin conversión EUR ni impuestos",
+      "license": "Uso y distribución en academia por validar con titular/licenciante",
+      "safety": "Topología aislada y sin puentes a producción",
+      "sources": [
+        "CML-PRICES",
+        "CML-FREE",
+        "CML-REQ"
+      ]
+    }
+  ],
+  "module_to_labs": {
+    "RED-M01": [
+      "RED-L01"
+    ],
+    "RED-M02": [
+      "RED-L01"
+    ],
+    "RED-M03": [
+      "RED-L02"
+    ],
+    "RED-M04": [
+      "RED-L02",
+      "RED-L03"
+    ],
+    "RED-M05": [
+      "RED-L03"
+    ],
+    "RED-M06": [
+      "RED-L03"
+    ],
+    "RED-M07": [
+      "RED-L03",
+      "RED-L05"
+    ],
+    "RED-M08": [
+      "RED-L04"
+    ],
+    "RED-M09": [
+      "RED-L04"
+    ],
+    "RED-M10": [
+      "RED-L04"
+    ],
+    "RED-M11": [
+      "RED-L11"
+    ],
+    "RED-M12": [
+      "RED-L06"
+    ],
+    "RED-M13": [
+      "RED-L06"
+    ],
+    "RED-M14": [
+      "RED-L07"
+    ],
+    "RED-M15": [
+      "RED-L07",
+      "RED-L19"
+    ],
+    "RED-M16": [
+      "RED-L08"
+    ],
+    "RED-M17": [
+      "RED-L09"
+    ],
+    "RED-M18": [
+      "RED-L09",
+      "RED-L12"
+    ],
+    "RED-M19": [
+      "RED-L08"
+    ],
+    "RED-M20": [
+      "RED-L10",
+      "RED-L12",
+      "RED-L19"
+    ],
+    "RED-M21": [
+      "RED-L10",
+      "RED-L12",
+      "RED-L19"
+    ],
+    "RED-M22": [
+      "RED-L05",
+      "RED-L10"
+    ],
+    "RED-M23": [
+      "RED-L10",
+      "RED-L11",
+      "RED-L19"
+    ],
+    "RED-M24": [
+      "RED-L11"
+    ],
+    "RED-M25": [
+      "RED-L12",
+      "RED-L19"
+    ],
+    "RED-M26": [
+      "RED-L13"
+    ],
+    "RED-M27": [
+      "RED-L14"
+    ],
+    "RED-M28": [
+      "RED-L15"
+    ],
+    "RED-M29": [
+      "RED-L15"
+    ],
+    "RED-M30": [
+      "RED-L16",
+      "RED-L20"
+    ],
+    "RED-M31": [
+      "RED-L16",
+      "RED-L20"
+    ],
+    "RED-M32": [
+      "RED-L17"
+    ],
+    "RED-M33": [
+      "RED-L17"
+    ],
+    "RED-M34": [
+      "RED-L17"
+    ],
+    "RED-M35": [
+      "RED-L20"
+    ],
+    "RED-M36": [
+      "RED-L18"
+    ],
+    "RED-M37": [
+      "RED-L18"
+    ],
+    "RED-M38": [
+      "RED-L18",
+      "RED-L19"
+    ],
+    "RED-M39": [
+      "RED-L08",
+      "RED-L18",
+      "RED-L19"
+    ],
+    "RED-M40": [
+      "RED-L19"
+    ],
+    "RED-M41": [
+      "RED-L20"
+    ],
+    "RED-M42": [
+      "RED-L20"
+    ]
+  },
+  "rubrics": {
+    "ingenieria": {
+      "diseno_y_exp": 20,
+      "configuracion_y_verificacion": 25,
+      "diagnostico_causal": 25,
+      "prueba_negativa": 15,
+      "evidencia_y_restauracion": 15
+    },
+    "soc": {
+      "integridad_y_fuentes": 25,
+      "cronologia_utc_y_atribucion": 20,
+      "hipotesis_alternativas": 20,
+      "alcance_y_correlacion": 20,
+      "comunicacion_y_escalado": 15
+    },
+    "redteam": {
+      "autorizacion_ROE_y_parada": 30,
+      "minimizacion_y_prueba_de_control": 25,
+      "telemetria_y_prueba_negativa": 20,
+      "informe_y_limitaciones": 15,
+      "retest_y_restauracion": 10
+    },
+    "integral": {
+      "arquitectura_y_operacion": 20,
+      "actividad_controlada_ROE": 20,
+      "deteccion_y_razonamiento_soc": 25,
+      "correccion_retest_y_rollback": 25,
+      "defensa_y_limitaciones": 10
+    }
+  },
+  "safety": [
+    "Aislar por defecto; prohibir bridges a LAN/internet para escenarios ofensivos.",
+    "Uso exclusivamente en activos propios del laboratorio con alcance escrito y criterio de parada.",
+    "No usar cuentas personales, datos de producción ni extracciones de datos reales.",
+    "Nunca confundir un diseño o fixture sintético con ejecución real ni validación.",
+    "Capturas sólo propias/autorizadas; hash y UTC; no publicar credenciales, PCAP con datos personales o binarios de Cisco.",
+    "Toda instancia cloud necesita presupuesto separado aprobado y controles de borrado."
+  ],
+  "release_gates": [
+    {
+      "key": "T",
+      "title": "Trazabilidad: módulos y competencias",
+      "pass": "Cada módulo tiene al menos un laboratorio con evidencia y criterio concreto"
+    },
+    {
+      "key": "R",
+      "title": "Recursos reales y licencias",
+      "pass": "SO soportado, RAM/cpu/disco medidos, derecho de uso y redistribución acreditados"
+    },
+    {
+      "key": "I",
+      "title": "Aislamiento y seguridad",
+      "pass": "No hay conectividad a LAN/Internet salvo necesidad expresamente autorizada y controlada"
+    },
+    {
+      "key": "D",
+      "title": "Datos y sensores",
+      "pass": "Datasets con verdad terreno, fuentes, campos y artefactos SHA-256 reproducibles"
+    },
+    {
+      "key": "F",
+      "title": "Fallos y restauración",
+      "pass": "Semillas, snapshot previo, fallo reproducible y reversión demostrados"
+    },
+    {
+      "key": "G",
+      "title": "Evaluación",
+      "pass": "Pruebas positivas/negativas, rúbrica, puntuación interevaluador y feedback"
+    },
+    {
+      "key": "V",
+      "title": "Validez técnica",
+      "pass": "Cada feature contrastada en la versión exacta de la imagen/plataforma"
+    },
+    {
+      "key": "C",
+      "title": "Coste y coste temporal",
+      "pass": "Tiempo ejecutado, consumo, costes y condiciones verificados por alumno"
+    }
+  ],
+  "grade_policy": {
+    "max_points": 100,
+    "minimum_per_lab_proposed": 75,
+    "minimum_capstone_proposed": 80,
+    "critical_errors_auto_fail": true,
+    "not_validated_benchmarks": true,
+    "must_show_unsupported_features_and_no_claims": true
+  },
+  "sources": {
+    "CML-FREE": {
+      "organization": "Cisco",
+      "title": "Cisco Modeling Labs – Free",
+      "url": "https://developer.cisco.com/docs/modeling-labs/cml-free/",
+      "version_date": "2.10; consulta 2026-10-18",
+      "supports": "5 nodos, solo un usuario, imágenes licenciadas solo dentro de CML; telemetría anonimizada no desactivable",
+      "accessed": "2026-10-18",
+      "confidence": "alta_documentacion_oficial_para_afirmacion_citada"
+    },
+    "CML-REQ": {
+      "organization": "Cisco",
+      "title": "CML – System Requirements",
+      "url": "https://developer.cisco.com/docs/modeling-labs/system-requirements/",
+      "version_date": "2.10; consulta 2026-10-18",
+      "supports": "Mínimo VM: 8 GB, 4+ cores Intel, 32 GB disco; recursos consumidos por nodos aparte",
+      "accessed": "2026-10-18",
+      "confidence": "alta_documentacion_oficial_para_afirmacion_citada"
+    },
+    "CML-REL": {
+      "organization": "Cisco",
+      "title": "CML 2.10 Release Notes",
+      "url": "https://developer.cisco.com/docs/modeling-labs/cml-release-notes/",
+      "version_date": "2.10.1 mantenim. 2026-10-01; consulta 2026-10-18",
+      "supports": "Existe release 2.10.1; modelos wireless experimentales; no asegurar su presencia en Free",
+      "accessed": "2026-10-18",
+      "confidence": "alta_documentacion_oficial_para_afirmacion_citada"
+    },
+    "CML-PRICES": {
+      "organization": "Cisco",
+      "title": "Cisco Modeling Labs, Personal",
+      "url": "https://www.cisco.com/site/us/en/learn/training-certifications/training/modeling-labs/index.html",
+      "version_date": "consulta 2026-10-18",
+      "supports": "Personal 199 USD, Personal Plus 349 USD publicados (moneda USD); ver condiciones y precios al comprar",
+      "accessed": "2026-10-18",
+      "confidence": "alta_documentacion_oficial_para_afirmacion_citada"
+    },
+    "PT": {
+      "organization": "Cisco Networking Academy",
+      "title": "Cisco Packet Tracer",
+      "url": "https://www.netacad.com/cisco-packet-tracer",
+      "version_date": "consulta 2026-10-18",
+      "supports": "Curso gratuito y descarga por cuenta académica; simulación limitada no genera PCAP física",
+      "accessed": "2026-10-18",
+      "confidence": "alta_documentacion_oficial_para_afirmacion_citada"
+    },
+    "PT-DOC": {
+      "organization": "Cisco Networking Academy",
+      "title": "Packet Tracer Download and Installation Instructions",
+      "url": "https://www.netacad.com/skillsforall/files/Cisco_Packet_Tracer_Download_and_Installation_Instructions.pdf",
+      "version_date": "©2025; consulta 2026-10-18",
+      "supports": "Windows, Linux, macOS; no se valida Parrot OS como plataforma soportada",
+      "accessed": "2026-10-18",
+      "confidence": "alta_documentacion_oficial_para_afirmacion_citada"
+    },
+    "GNS3": {
+      "organization": "GNS3",
+      "title": "Where do I get IOS images?",
+      "url": "https://docs.gns3.com/docs/troubleshooting-faq/where-do-i-get-ios-images",
+      "version_date": "consulta 2026-10-18",
+      "supports": "GNS3 no distribuye IOS; los derechos de cada imagen requieren verificación",
+      "accessed": "2026-10-18",
+      "confidence": "alta_documentacion_oficial_para_afirmacion_citada"
+    },
+    "CLAB": {
+      "organization": "Containerlab",
+      "title": "FRRouting Kind",
+      "url": "https://containerlab.dev/manual/kinds/frr/",
+      "version_date": "consulta 2026-10-18",
+      "supports": "FRR en topologías reproducibles; cuidado con permisos de contenedores y limpieza",
+      "accessed": "2026-10-18",
+      "confidence": "alta_documentacion_oficial_para_afirmacion_citada"
+    },
+    "FRR": {
+      "organization": "FRRouting",
+      "title": "FRRouting User Guide",
+      "url": "https://docs.frrouting.org/en/latest/",
+      "version_date": "consulta 2026-10-18",
+      "supports": "Suite de routing GPLv2; funciones y soporte por plataforma varían",
+      "accessed": "2026-10-18",
+      "confidence": "alta_documentacion_oficial_para_afirmacion_citada"
+    },
+    "WS": {
+      "organization": "Wireshark",
+      "title": "Wireshark FAQ",
+      "url": "https://www.wireshark.org/faq",
+      "version_date": "consulta 2026-10-18",
+      "supports": "Sin coste de licencia, GPLv2",
+      "accessed": "2026-10-18",
+      "confidence": "alta_documentacion_oficial_para_afirmacion_citada"
+    },
+    "WSCAP": {
+      "organization": "Wireshark",
+      "title": "Saving Captured Packets",
+      "url": "https://www.wireshark.org/docs/wsug_html_chunked/ChIOSaveSection.html",
+      "version_date": "consulta 2026-10-18",
+      "supports": "PCAP no siempre incluye contadores de paquetes descartados",
+      "accessed": "2026-10-18",
+      "confidence": "alta_documentacion_oficial_para_afirmacion_citada"
+    },
+    "ZEEK": {
+      "organization": "Zeek",
+      "title": "conn.log – Book of Zeek",
+      "url": "https://docs.zeek.org/en/current/reference/logs/conn.html",
+      "version_date": "documentación 9.0.0 actual al consultar",
+      "supports": "Interpretación de flujos TCP/UDP; significado de estado y bytes",
+      "accessed": "2026-10-18",
+      "confidence": "alta_documentacion_oficial_para_afirmacion_citada"
+    },
+    "SUR": {
+      "organization": "OISF",
+      "title": "Suricata 8.0.3 EVE JSON Output",
+      "url": "https://docs.suricata.io/en/suricata-8.0.3/output/eve/eve-json-output.html",
+      "version_date": "8.0.3 (documentación consultada)",
+      "supports": "EVE registra alertas, flujos/metadatos y protocolos; esquema depende de versión",
+      "accessed": "2026-10-18",
+      "confidence": "alta_documentacion_oficial_para_afirmacion_citada"
+    },
+    "SUR-SCHEMA": {
+      "organization": "OISF",
+      "title": "Suricata 8.0 EVE JSON Schema",
+      "url": "https://docs.suricata.io/en/suricata-8.0.0/appendix/eve-schema.html",
+      "version_date": "8.0.0 ejemplo; consulta 2026-10-18",
+      "supports": "Esquema versionado; campos no universales",
+      "accessed": "2026-10-18",
+      "confidence": "alta_documentacion_oficial_para_afirmacion_citada"
+    },
+    "SO": {
+      "organization": "Security Onion",
+      "title": "Hardware Requirements",
+      "url": "https://docs.securityonion.net/en/2.4/hardware.html",
+      "version_date": "Security Onion 2.4 doc; consulta 2026-10-18",
+      "supports": "Standalone 24 GB RAM y 200 GB almacenamiento como mínimo; eval/import diferentes",
+      "accessed": "2026-10-18",
+      "confidence": "alta_documentacion_oficial_para_afirmacion_citada"
+    },
+    "OPN": {
+      "organization": "OPNsense",
+      "title": "Download OPNsense",
+      "url": "https://opnsense.org/download/",
+      "version_date": "consulta 2026-10-18",
+      "supports": "Firewall comunitario descargable sin coste de licencia; consumir recursos de VM",
+      "accessed": "2026-10-18",
+      "confidence": "alta_documentacion_oficial_para_afirmacion_citada"
+    },
+    "SENTINEL": {
+      "organization": "Microsoft",
+      "title": "Plan costs and understand Microsoft Sentinel pricing and billing",
+      "url": "https://learn.microsoft.com/en-us/azure/sentinel/billing",
+      "version_date": "consulta 2026-10-18",
+      "supports": "Prueba 31 días 10 GB/día con exclusiones; costes de complementos y de otros recursos posibles",
+      "accessed": "2026-10-18",
+      "confidence": "alta_documentacion_oficial_para_afirmacion_citada"
+    },
+    "RFC5737": {
+      "organization": "IETF/RFC Editor",
+      "title": "RFC 5737 – IPv4 Address Blocks Reserved for Documentation",
+      "url": "https://www.rfc-editor.org/rfc/rfc5737.html",
+      "version_date": "2010-01, consulta 2026-10-18",
+      "supports": "198.51.100.0/24 TEST-NET-2 es solo para documentación, no direccionamiento privado de producción",
+      "accessed": "2026-10-18",
+      "confidence": "alta_documentacion_oficial_para_afirmacion_citada"
+    },
+    "RFC3849": {
+      "organization": "IETF/RFC Editor",
+      "title": "RFC 3849 – IPv6 Address Prefix Reserved for Documentation",
+      "url": "https://www.rfc-editor.org/rfc/rfc3849.html",
+      "version_date": "2004-07, consulta 2026-10-18",
+      "supports": "2001:db8::/32 reservado para ejemplos, no uso operativo",
+      "accessed": "2026-10-18",
+      "confidence": "alta_documentacion_oficial_para_afirmacion_citada"
+    },
+    "CCNA": {
+      "organization": "Cisco",
+      "title": "CCNA exam topics",
+      "url": "https://learningnetwork.cisco.com/s/ccna-exam-topics",
+      "version_date": "consulta inicial T1-T3",
+      "supports": "Programas: conservar matriz de T3, no afirmar correspondencia 1:1",
+      "accessed": "2026-10-18",
+      "confidence": "alta_documentacion_oficial_para_afirmacion_citada"
+    }
+  },
+  "open_issues": [
+    {
+      "id": "O01",
+      "priority": "critica",
+      "gap": "No se ha ejecutado ningún laboratorio, ni medido hardware/tiempo",
+      "next": "Reproducir 3 pilotos en PC de 8,16 y 32 GB (al menos uno real/simulado y uno offline)"
+    },
+    {
+      "id": "O02",
+      "priority": "critica",
+      "gap": "Licencia de distribución y uso comercial de CML-Free/Packet Tracer e imágenes",
+      "next": "Revisar licencias/ToS de cada proveedor y pedir permiso cuando corresponda; ofrecer alternativa libre"
+    },
+    {
+      "id": "O03",
+      "priority": "alta",
+      "gap": "Accesibilidad de Packet Tracer en Parrot OS sin soporte explícito",
+      "next": "Probar en distro soportada o ofrecer ruta GNS3/LX namespaces y lectura offline"
+    },
+    {
+      "id": "O04",
+      "priority": "alta",
+      "gap": "802.1X/WPA3 y RF real no verificables solo con simulación",
+      "next": "Laboratorio opcional con AP propio bajo autorización o prueba con dataset sin afirmar configuración real"
+    },
+    {
+      "id": "O05",
+      "priority": "alta",
+      "gap": "CML-Free 5 nodos y escenarios enterprise/sensores que requieren más",
+      "next": "Dividir prácticas por escenas reproducibles y validar topologías reducidas, sin afirmar ejecución simultánea"
+    },
+    {
+      "id": "O06",
+      "priority": "alta",
+      "gap": "No hay datasets ni golden answers publicables/licenciadas",
+      "next": "Crear datos sintéticos propios con hashes/verdad terreno y licencia clara en fase posterior"
+    },
+    {
+      "id": "O07",
+      "priority": "alta",
+      "gap": "VPN IPsec, QoS, FHRP, NETCONF/RESTCONF por plataforma",
+      "next": "Matriz de compatibilidad de versión/imagen, capacidades soportadas y rutas alternativas"
+    },
+    {
+      "id": "O08",
+      "priority": "media",
+      "gap": "Cronometraje de tarea, capacidad de RAM y almacenamiento real",
+      "next": "Benchmark de secuencias y piloto con rúbrica en estudiantes diversos"
+    },
+    {
+      "id": "O09",
+      "priority": "media",
+      "gap": "Rúbricas sin confiabilidad interevaluador",
+      "next": "Dos revisores califican mismos 5 informes, documentan diferencias y actualizan anclajes"
+    },
+    {
+      "id": "O10",
+      "priority": "media",
+      "gap": "Costes de cloud opcional o licencia paid y tributación región",
+      "next": "Cotizar al momento de decidir incorporar actividad pagada, con presupuesto y borrado"
+    }
+  ]
+}

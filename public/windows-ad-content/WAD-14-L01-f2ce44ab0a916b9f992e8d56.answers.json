@@ -1,0 +1,39 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-14-L01",
+  "sourceHash": "0577a29f8bddbc92bcd2521482c0892ef8f999a54866f51bbe7286055328b8d1",
+  "questions": [
+    {
+      "id": "WAD-14-L01-Q01",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Que las identidades de `socio.lab.test` puedan recibir acceso a recursos de `ad.lab.test`, pero no al revés por esa confianza».\n\nEl dominio de confianza acepta las identidades del confiado y puede concederles acceso a sus recursos; el sentido inverso no queda habilitado por una confianza de una sola vía. La opción B describe una confianza bidireccional, y A y C invierten o niegan esa dirección."
+    },
+    {
+      "id": "WAD-14-L01-Q02",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Que se extiende a los dominios en los que ya confía el dominio confiado, ampliando el alcance de la autenticación».\n\nLa transitividad amplía el alcance más allá del dominio nombrado. No limita la confianza a un solo dominio (A), no concede privilegios por sí misma (C) ni implica caducidad (D)."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "La confianza es de una sola vía: `ad.lab.test` es el dominio de confianza y `socio.lab.test` el confiado, así que las identidades de `socio.lab.test` pueden autenticarse en `ad.lab.test` y recibir acceso si este concede los permisos, mientras que las de `ad.lab.test` no obtienen acceso a `socio.lab.test` por esta confianza. El alcance depende de la transitividad: una confianza externa y no transitiva solo conecta los dos dominios nombrados y deja fuera a los demás dominios del bosque del socio, mientras que una confianza de bosque transitiva los incluiría a todos. La evidencia es la ficha de la confianza (tipo, dirección y transitividad) y la prueba de autenticación hacia cada dominio. El límite: el alcance de autenticación no equivale al acceso efectivo, que depende de los permisos concedidos sobre cada recurso.",
+    "rubric": [
+      {
+        "criterion": "Dirección",
+        "evidence": "Identifica que solo las identidades del dominio confiado pueden recibir acceso en el dominio de confianza."
+      },
+      {
+        "criterion": "Transitividad",
+        "evidence": "Distingue dirección de transitividad y explica hasta dónde alcanza la confianza."
+      },
+      {
+        "criterion": "Alcance del socio",
+        "evidence": "Reconoce que una confianza externa no transitiva no alcanza a otros dominios del bosque del socio."
+      },
+      {
+        "criterion": "Límite reconocido",
+        "evidence": "Aclara que el alcance de autenticación no confirma el acceso efectivo."
+      }
+    ]
+  },
+  "revision": "f2ce44ab0a916b9f992e8d56"
+}

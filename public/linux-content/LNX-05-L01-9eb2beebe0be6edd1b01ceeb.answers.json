@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-05-L01",
+  "sourceHash": "e6a683a6ffcd19a5efd428671afba49489403cbbf8b368a8d8c8c5038e5563bb",
+  "questions": [
+    {
+      "id": "LNX-05-L01-Q01",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Porque el kernel reutiliza los identificadores y cada captura es una foto sin continuidad».\n\nUn PID se libera y se reutiliza, y cada captura muestra solo el instante de la lectura; ver el mismo número no demuestra continuidad. `ps` no se limita al usuario que lo ejecuta, los procesos no cambian de nombre al entrar en Z y el PPID no se sobrescribe en cada captura."
+    },
+    {
+      "id": "LNX-05-L01-Q02",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Ya terminó, pero su padre aún no ha recogido su código de salida».\n\nEl estado Z describe un proceso que terminó y espera ser recogido por su padre. No consume CPU, no es una detención reanudable y no está esperando entrada del usuario."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "Un proceso con estado **Z (zombi)** ya terminó, pero su padre todavía no ha recogido su código de salida; permanece en la tabla como una entrada mínima. Que su **PPID** no aparezca en la lista es compatible con que el padre haya desaparecido —de modo que el proceso quedó adoptado— o con el momento de la lectura, no con un acto de manipulación.\n\nEl dato que ayudaría a describirlo como manipulación sería una fuente con tiempo (registro o auditoría) que documentara qué se ejecutó y cuándo, junto con datos de continuidad como la hora de arranque o el tiempo acumulado de CPU para descartar la **reutilización de PID**.\n\nLímite: un snapshot responde «qué hay ahora», no «qué ha habido». Sin una fuente que conserve tiempo, solo puedes describir el estado observado y su relación padre-hijo aparente.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Explica el estado Z como proceso terminado sin recoger por su padre."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Distingue la coincidencia de datos de una afirmación sobre intención."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Propone una fuente con tiempo (registro, auditoría, hora de arranque) como dato adicional."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Reconoce que un snapshot no reconstruye la historia."
+      }
+    ]
+  },
+  "revision": "9eb2beebe0be6edd1b01ceeb"
+}

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-31-L03",
+  "title": "Diferencias de responsabilidad SOC / Red Team",
+  "sourceHash": "34142acfedf12e323fe0664064def2f4af7bb27a2318ef4d755d33aa5c1766f4",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-31-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDistinguir las responsabilidades, los productos y los límites del SOC y del Red Team ante una misma exposición, y coordinarlos en un ejercicio Purple Team.\n\nPrerrequisitos: `LNX-31-L02` (Metodología de diez pasos y hallazgo).\n\n## 2. Comprende el mecanismo\n\nUn mismo evento técnico puede ser una alerta para el SOC y una evidencia para el Red Team, pero no significa lo mismo ni se cierra igual. Confundir los papeles produce dos errores simétricos: un analista que intenta explotar para «entender mejor» y un evaluador que contiene producción para «demostrar impacto».\n\nAl **SOC** le corresponde detectar, triar, construir la línea temporal, acotar el alcance, contener cuando esté aprobado, preservar evidencia y comunicar. Su producto es un registro de incidente con hipótesis, hechos, incertidumbres y decisiones. No le corresponde demostrar una ruta ofensiva ni atribuir autoría a partir de un único indicador: la atribución exige evidencia y, aun así, suele ser una conclusión condicionada.\n\nAl **Red Team autorizado** le corresponde demostrar que una ruta es factible dentro de un alcance y unas reglas de enfrentamiento. Su producto es un hallazgo con reproducción mínima, evidencia, impacto condicionado y remediación propuesta. No le corresponde persistir, exfiltrar, borrar registros ni ampliar el impacto para hacer más visible el resultado. La visibilidad se negocia, no se fuerza.\n\nLos productos se parecen pero no son intercambiables. El registro del SOC responde «qué pasó, qué sabemos, qué hicimos y qué falta»; el hallazgo del Red Team responde «qué configuración permite qué ruta, con qué evidencia y cómo se corrige». Compartir los hechos no borra la diferencia de responsabilidad sobre la contención y sobre el cierre.\n\nLa coordinación se prepara antes de empezar. Un **canal de deconflicción**, marcadores de prueba, ventana, cuentas, artefactos permitidos y condiciones de parada evitan que una alerta legítima se convierta en una contención que destruye la evidencia del ejercicio. Tampoco se resuelve silenciando la detección: una regla desactivada durante la prueba no demuestra nada y deja un hueco que hay que revertir.\n\nEl modo **Purple Team** une ambas responsabilidades sobre un objetivo común: acordar la señal mínima que debería observarse, generar un comportamiento benigno y comparable, medir si la detección lo ve de extremo a extremo y comprobar el caso negativo. La remediación tiene dueño y el retest tiene criterio; ninguno de los dos equipos se autoevalúa en solitario.\n\nEl límite: ni el SOC ni el Red Team demuestran autoría por sí solos, y la ausencia de alerta no prueba ausencia de actividad. Una contención ejecutada sin coordinación puede alterar el estado que el otro equipo necesitaba observar; por eso la deconflicción es parte del control, no una cortesía.\n\n### Vocabulario de apoyo\n\n- **Deconflicción**: coordinación previa que permite distinguir actividad autorizada de actividad no autorizada.\n- **Contención**: acción que limita el alcance de un incidente preservando la evidencia necesaria.\n- **Atribución**: identificación de un responsable, siempre condicionada por la evidencia disponible.\n- **Purple Team**: colaboración entre ataque y defensa para medir detección y remediación de extremo a extremo.\n- **Caso negativo**: prueba de que una conducta legítima o inocua no genera la alerta esperada.\n- **Producto del SOC**: registro de incidente con hechos, hipótesis, decisiones y límites.\n- **Producto del Red Team**: hallazgo con ruta, evidencia, impacto condicionado y remediación.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-31-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: dentro de una ventana aprobada, el Red Team escribe un marcador en `/srv/lab/rt-marker.txt` con una cuenta de bajo privilegio. El SOC recibe una alerta de creación de archivo en un directorio sensible y, sin consultar el calendario de pruebas, propone aislar el host.\n\nAmbas acciones son correctas por separado y contradictorias sin coordinación. El Red Team estaba dentro de su alcance y no amplió el impacto; el SOC reaccionó a una señal real y pensó en contener. Aislar el host habría interrumpido la prueba y alterado el estado que el ejercicio necesitaba medir, además de consumir tiempo de respuesta en un evento ya previsto.\n\nLa decisión correcta es deconfliccionar: confirmar ventana, cuenta, marcador y condición de parada; conservar la alerta como evidencia de que la detección funcionó; continuar la prueba sin ampliar el alcance; y cerrar con un retest que compruebe la función legítima y el bloqueo del abuso simulado. El límite: el caso demuestra una falla de coordinación, no una intrusión ni una negligencia del analista.\n\n"
+    },
+    {
+      "id": "LNX-31-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Construir la línea temporal y contener con aprobación, declarando hipótesis e incertidumbre antes de atribuir.\n- Red Team autorizado: Demostrar la ruta dentro del ROE con el mínimo impacto y sin persistencia ni exfiltración.\n- Evidencia de la etapa: Ventana, marcadores, alertas, decisiones de contención, productos de cada equipo y retest.\n- Criterio de dominio: Asigna cada decisión a su responsable y explica qué habría cambiado sin deconflicción.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB41](../../05_RECURSOS/LABORATORIOS/LNX-LAB41.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F121**: [NIST SP 800-61 Rev.3 (2025)](https://csrc.nist.gov/pubs/sp/800/61/r3/final). Fases de respuesta y criterios de contención y recuperación.\n- **F122**: [NIST SP 800-92 (log management)](https://csrc.nist.gov/pubs/sp/800/92/final). Valor probatorio y protección de los registros que sostienen cada producto.\n- **F127**: [MITRE ATT&CK Data Sources (deprecated)](https://attack.mitre.org/datasources/). Lenguaje común para describir qué observó cada equipo.\n- **F136**: [systemd-analyze(1)](https://man7.org/linux/man-pages/man1/systemd-analyze.1.html). Revisión de unidades y dependencias antes de contener o reiniciar servicios.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-31-L03-P01",
+    "prompt": "Un ejercicio autorizado genera una alerta real en el SOC mientras el Red Team sigue dentro de su ventana. Explica qué corresponde a cada equipo, cómo se coordinan y qué límites deben declarar.",
+    "markdown": "## 4. Práctica individual\n\nUn ejercicio autorizado genera una alerta real en el SOC mientras el Red Team sigue dentro de su ventana. Explica qué corresponde a cada equipo, cómo se coordinan y qué límites deben declarar.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber participado en un ejercicio real ni haber contenido un incidente.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-31-L03-Q01",
+      "prompt": "¿Qué corresponde al SOC ante una exposición detectada durante un ejercicio autorizado?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Establecer línea temporal, alcance e hipótesis, y contener sin atribuir autoría precipitada"
+        },
+        {
+          "id": "B",
+          "text": "Explotar la ruta para comprobar si el impacto es mayor"
+        },
+        {
+          "id": "C",
+          "text": "Desactivar la regla de detección hasta que termine la prueba"
+        },
+        {
+          "id": "D",
+          "text": "Atribuir la actividad a un actor concreto por el nombre del archivo creado"
+        }
+      ]
+    },
+    {
+      "id": "LNX-31-L03-Q02",
+      "prompt": "¿Qué debe acordarse antes de que empiece la actividad para evitar conflictos entre SOC y Red Team?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que el SOC no revise las alertas durante la ventana"
+        },
+        {
+          "id": "B",
+          "text": "Que el Red Team entregue las credenciales administrativas al SOC"
+        },
+        {
+          "id": "C",
+          "text": "Que la contención se ejecute siempre antes de consultar el calendario"
+        },
+        {
+          "id": "D",
+          "text": "Canal de deconflicción, marcadores de prueba, ventana, cuentas y condiciones de parada"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB41](../../05_RECURSOS/LABORATORIOS/LNX-LAB41.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F121**: [NIST SP 800-61 Rev.3 (2025)](https://csrc.nist.gov/pubs/sp/800/61/r3/final). Fases de respuesta y criterios de contención y recuperación.\n- **F122**: [NIST SP 800-92 (log management)](https://csrc.nist.gov/pubs/sp/800/92/final). Valor probatorio y protección de los registros que sostienen cada producto.\n- **F127**: [MITRE ATT&CK Data Sources (deprecated)](https://attack.mitre.org/datasources/). Lenguaje común para describir qué observó cada equipo.\n- **F136**: [systemd-analyze(1)](https://man7.org/linux/man-pages/man1/systemd-analyze.1.html). Revisión de unidades y dependencias antes de contener o reiniciar servicios.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "62ac7c9869253bf622145f13"
+}

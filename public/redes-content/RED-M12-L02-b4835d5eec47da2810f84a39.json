@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M12-L02",
+  "title": "Default route",
+  "sourceHash": "4318073d52a57e5b9a987afa94a9dbc342166f517740e77fc38f6cf0b38005a6",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M12-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nExplicar el alcance de una ruta por defecto y su riesgo de agujero negro.\n\nPrerrequisitos: [RED-M12-L01](../RED-E03/RED-M12-L01.md).\n\n## 2. Comprende el mecanismo\n\nLa ruta por defecto IPv4 es 0.0.0.0/0 y la IPv6 ::/0. Coincide con cualquier destino de su familia, pero una coincidencia más específica instalada tiene prioridad para forwarding ordinario. Una default no conoce la accesibilidad de todos los destinos ni garantiza retorno. Dos routers que se envían mutuamente destinos desconocidos pueden producir un bucle hasta agotar TTL o Hop Limit. Para una salida redundante conviene comprobar algo más que la presencia de enlace si el objetivo es detectar fallos aguas arriba.\n\n### Vocabulario de apoyo\n\n- **RIB y FIB**: Tabla de decisiones de routing y estado utilizado para reenviar paquetes, respectivamente.\n- **Next hop y LPM**: Siguiente salto y selección del prefijo coincidente más largo entre rutas instaladas.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M12-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> R1: default→R2. R2: default→R1. Ninguno tiene ruta específica al destino de documentación 203.0.113.20.\n\nCada uno devuelve el paquete al otro bajo esas rutas; el TTL limita el bucle, pero no crea conectividad. Debe definirse una salida o descarte coherente.\n\n"
+    },
+    {
+      "id": "RED-M12-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Interpretar caminos aparentes en flows.\n- Red Team autorizado: Delimitar rutas por las que pasa el tráfico del ensayo.\n- Evidencia del módulo: Tablas, traceroute lab y justificación de selección.\n- Criterio del módulo: Determina ida y retorno en IPv4/IPv6.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L06](../../05_RECURSOS/LABORATORIOS/RED-L06.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **FRR-STATIC**: [STATIC](https://docs.frrouting.org/en/latest/static.html). Rutas estáticas y siguiente salto.\n- **RFC4632**: [RFC 4632: Classless Inter-domain Routing](https://www.rfc-editor.org/rfc/rfc4632.html). Prefijos y agregación IPv4.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M12-L02-P01",
+    "prompt": "R1 añade 203.0.113.0/24 vía R3. Determina qué ruta usará para .20 y para 198.51.100.20.",
+    "markdown": "## 4. Práctica individual\n\nR1 añade 203.0.113.0/24 vía R3. Determina qué ruta usará para .20 y para 198.51.100.20.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M12-L02-Q01",
+      "prompt": "¿Qué prefijo identifica la default IPv6?",
+      "options": [
+        {
+          "id": "A",
+          "text": "::/0"
+        },
+        {
+          "id": "B",
+          "text": "::/128"
+        },
+        {
+          "id": "C",
+          "text": "2001:db8::/32 exclusivamente"
+        },
+        {
+          "id": "D",
+          "text": "fe80::/64 siempre"
+        }
+      ]
+    },
+    {
+      "id": "RED-M12-L02-Q02",
+      "prompt": "¿Qué caracteriza la topología inicial del ejemplo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Un posible bucle entre defaults"
+        },
+        {
+          "id": "B",
+          "text": "Un NAT válido demostrado"
+        },
+        {
+          "id": "C",
+          "text": "Una resolución DNS inversa"
+        },
+        {
+          "id": "D",
+          "text": "Una autorización Zero Trust"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L06](../../05_RECURSOS/LABORATORIOS/RED-L06.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **FRR-STATIC**: [STATIC](https://docs.frrouting.org/en/latest/static.html). Rutas estáticas y siguiente salto.\n- **RFC4632**: [RFC 4632: Classless Inter-domain Routing](https://www.rfc-editor.org/rfc/rfc4632.html). Prefijos y agregación IPv4.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "b4835d5eec47da2810f84a39"
+}

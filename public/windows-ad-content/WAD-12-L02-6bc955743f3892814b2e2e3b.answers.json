@@ -1,0 +1,39 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-12-L02",
+  "sourceHash": "1aee8ec0cfb19475608965efb6f61da12a6b9a3e1a37d73ab223e5991dc3f142",
+  "questions": [
+    {
+      "id": "WAD-12-L02-Q01",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Solo a las identidades incluidas en el filtro que además estén dentro del alcance del vínculo».\n\nEl vínculo fija la zona y el filtrado restringe las cuentas dentro de ella, así que hacen falta las dos condiciones. Que la OU tenga más equipos no amplía el filtro y el filtrado no anula el vínculo."
+    },
+    {
+      "id": "WAD-12-L02-Q02",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Muestra el resultado efectivo y el origen de cada ajuste en esa identidad concreta».\n\nLa política resultante responde a qué se aplicó y de dónde vino cada ajuste. No cambia el ajuste, no elimina filtros y no exime de comprobar el vínculo."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "Primero se fija que ambos equipos están dentro del mismo vínculo, porque pertenecen a la misma OU, de modo que la diferencia hay que buscarla en el filtrado. En el equipo que la recibe se usa `gpresult` para obtener la política resultante y se anota qué GPO se aplicaron y de qué origen viene cada ajuste; en el que no la recibe se usa el mismo informe para leer el motivo, que será el filtrado de seguridad si el token no incluye al grupo previsto o un filtro WMI si no se cumplen las condiciones del equipo. La explicación se cierra comparando ambos informes y registrando identidad, pertenencia a grupos, versión del sistema y hora. El límite: el informe describe lo procesado en ese equipo y ese contexto, así que no se generaliza a otras identidades.",
+    "rubric": [
+      {
+        "criterion": "Alcance común",
+        "evidence": "Sitúa ambos equipos dentro del mismo vínculo antes de explicar la diferencia."
+      },
+      {
+        "criterion": "Diagnóstico diferenciado",
+        "evidence": "Distingue filtrado de seguridad de filtro WMI como causas posibles."
+      },
+      {
+        "criterion": "Evidencia",
+        "evidence": "Usa `gpresult` y la política resultante, nombrando el origen de cada ajuste."
+      },
+      {
+        "criterion": "Límite reconocido",
+        "evidence": "Admite que un informe puntual no se generaliza a otras identidades."
+      }
+    ]
+  },
+  "revision": "6bc955743f3892814b2e2e3b"
+}

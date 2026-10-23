@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-10-L02",
+  "title": "Usuarios, grupos, ciclo de vida",
+  "sourceHash": "1295cde21d7f5920b804f59af252ce12cb99679ee7313415052179cd225adf51",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-10-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nGestionar cuentas y grupos entendiendo su ciclo de vida y el alcance de la pertenencia.\n\nPrerrequisitos: `WAD-10-L01` (LDAP y atributos consultables).\n\n## 2. Comprende el mecanismo\n\nLas cuentas de usuario, las cuentas de equipo y los grupos son objetos del directorio. Se crean, se mueven de unidad organizativa, se deshabilitan y se eliminan. Ese recorrido es el **Ciclo de vida de identidad**, y cada paso deja el objeto en un estado distinto que conviene reconocer antes de tocarlo.\n\nEl acceso casi nunca se concede a una persona directamente: se concede a un **Grupo de seguridad**. La cuenta hereda ese acceso por **pertenencia**, y por eso revisar `memberOf` explica la mayoría de los permisos que una cuenta tiene sin figurar en ninguna lista. Un cambio de pertenencia cambia el acceso efectivo de golpe, para bien y para mal.\n\nLos grupos tienen **Ámbito de grupo**, que decide qué identidades pueden contener y dónde se pueden usar como miembros:\n\n- **Global**: pensado para agrupar cuentas del propio dominio. Al anidarlo en otros grupos conserva un alcance limitado.\n- **Local de dominio**: agrupa identidades variadas para conceder acceso a recursos de este dominio.\n- **Universal**: se puede usar en todo el bosque, con un coste de replicación mayor.\n\nEl ámbito no es una etiqueta decorativa: define hasta dónde llega la pertenencia. Anidar un grupo dentro de otro propaga el acceso del grupo contenedor a todos sus miembros, y esa propagación es la que hay que saber leer.\n\nDel ciclo de vida, dos pasos se confunden a menudo:\n\n- **Deshabilitar** deja el objeto en su sitio, con sus atributos y sus pertenencias, pero impide el inicio de sesión. Es reversible: se vuelve a habilitar.\n- **Eliminar** quita el objeto del directorio. No es igual de reversible: el objeto deja de existir y restaurarlo no devuelve una identidad idéntica.\n\nPor eso, ante una baja o una ausencia, **deshabilitar** es la opción prudente y **eliminar** es la decisiva. Elegir la reversible primero evita destruir pertenencias y referencias que después hacen falta.\n\n### Vocabulario de apoyo\n\n- **Grupo de seguridad**: objeto que agrupa identidades para concederles acceso.\n- **Ámbito de grupo**: regla que determina qué puede contener un grupo y dónde puede usarse.\n- **Ciclo de vida de identidad**: recorrido de una cuenta por sus estados, desde la creación hasta la baja.\n- **Delegación**: traslado de una tarea concreta a otra identidad sin entregarle más de lo necesario.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-10-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: una persona sale del equipo y un operador elimina su cuenta para «dejarlo limpio». Días después hay que auditar a qué tenía acceso y no se puede reconstruir del todo.\n\nEliminar fue irreversible y con ello se perdió el rastro de la **pertenencia**. Lo prudente era **deshabilitar** la cuenta —dejaba de iniciar sesión y conservaba sus grupos y atributos— y revisar después `memberOf` para retirar el acceso heredado de los **Grupos de seguridad**. La conclusión no dice que eliminar esté prohibido, sino que se aplicó antes de tiempo: el orden correcto es deshabilitar, auditar la pertenencia y eliminar solo cuando ya no haga falta. El límite: aunque se restaure la cuenta, la identidad no vuelve a ser la misma, y las referencias que apuntaban al objeto original no se reconstruyen solas.\n\n"
+    },
+    {
+      "id": "WAD-10-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Leer la pertenencia explica accesos que no aparecen en ninguna lista y orienta la retirada correcta.\n- Red Team autorizado: En una prueba autorizada, conocer el ámbito de los grupos evita asumir un alcance que la pertenencia no concede.\n- Evidencia de la etapa: Cuenta, estado del ciclo de vida y grupos de los que es miembro.\n- Criterio de dominio: Elige deshabilitar frente a eliminar y justifica el acceso por la pertenencia observada.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB06](../../05_RECURSOS/LABORATORIOS/WAD-LAB06.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **SECGROUPS**: [Active Directory security groups](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/understand-security-groups). Tipos de grupo, ámbito y pertenencia.\n- **GETADGROUP**: [Get-ADGroup](https://learn.microsoft.com/en-us/powershell/module/activedirectory/get-adgroup). Consulta de grupos y sus miembros.\n- **GETADUSER**: [Get-ADUser](https://learn.microsoft.com/en-us/powershell/module/activedirectory/get-aduser). Estado de la cuenta y grupos a los que pertenece.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-10-L02-P01",
+    "prompt": "En `ad.lab.test` una persona deja el equipo y hay que retirar su acceso sin destruir el rastro. Explica en qué orden actuarías —crear, mover de unidad organizativa, deshabilitar o eliminar—, por qué deshabilitar es reversible y eliminar no lo es igual, y cómo comprobarías por la pertenencia qué acceso heredaba. Indica el límite de tu conclusión.",
+    "markdown": "## 4. Práctica individual\n\nEn `ad.lab.test` una persona deja el equipo y hay que retirar su acceso sin destruir el rastro. Explica en qué orden actuarías —crear, mover de unidad organizativa, deshabilitar o eliminar—, por qué deshabilitar es reversible y eliminar no lo es igual, y cómo comprobarías por la pertenencia qué acceso heredaba. Indica el límite de tu conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber gestionado cuentas reales.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-10-L02-Q01",
+      "prompt": "¿Qué determina el ámbito de un grupo de seguridad al anidarlo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El color con el que se muestra en las herramientas de administración"
+        },
+        {
+          "id": "B",
+          "text": "Qué identidades puede contener y dónde puede usarse como miembro"
+        },
+        {
+          "id": "C",
+          "text": "Únicamente la longitud del nombre del grupo"
+        },
+        {
+          "id": "D",
+          "text": "El número máximo de miembros que admite el grupo"
+        }
+      ]
+    },
+    {
+      "id": "WAD-10-L02-Q02",
+      "prompt": "¿Por qué deshabilitar una cuenta es reversible y eliminarla no lo es igual?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Porque deshabilitar borra la contraseña y volver a habilitar la regenera"
+        },
+        {
+          "id": "B",
+          "text": "Porque eliminar solo cambia el identificador de inicio de sesión"
+        },
+        {
+          "id": "C",
+          "text": "Porque ambas operaciones son igual de reversibles"
+        },
+        {
+          "id": "D",
+          "text": "Porque la cuenta deshabilitada conserva su objeto y sus pertenencias, mientras que la eliminada deja de existir y no se restaura de forma idéntica"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB06](../../05_RECURSOS/LABORATORIOS/WAD-LAB06.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **SECGROUPS**: [Active Directory security groups](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/understand-security-groups). Tipos de grupo, ámbito y pertenencia.\n- **GETADGROUP**: [Get-ADGroup](https://learn.microsoft.com/en-us/powershell/module/activedirectory/get-adgroup). Consulta de grupos y sus miembros.\n- **GETADUSER**: [Get-ADUser](https://learn.microsoft.com/en-us/powershell/module/activedirectory/get-aduser). Estado de la cuenta y grupos a los que pertenece.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "7683e8dc23b94fb0ae1b63f3"
+}

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-32-L01",
+  "title": "Inspección de seguridad de contenedor propio",
+  "sourceHash": "59b012f46708516b3a2068743aaa4524b14352141698cbc5a72b8cc1d036ab4f",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-32-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nInspeccionar la configuración efectiva de un contenedor propio y traducir usuario, capabilities, seccomp, montajes, red y límites en un riesgo documentado, sin ejecutar escapes.\n\nPrerrequisitos: `LNX-31-L03` (Diferencias de responsabilidad SOC / Red Team).\n\n## 2. Comprende el mecanismo\n\nInspeccionar un contenedor propio es leer, no romper. El objetivo es describir qué puede hacer el proceso según su configuración efectiva y qué controles lo limitan. Un escape, un montaje del socket del daemon o una prueba de impacto real quedan fuera de esta etapa y de cualquier autorización razonable.\n\nLa inspección empieza por el **inventario**. Se identifica el contenedor por nombre, imagen y digest verificado contra el registro interno, propietario, ticket, propósito y fecha de creación. Sin esa procedencia, un hallazgo no tiene dueño ni se puede comparar con una línea base. El digest importa porque una etiqueta puede apuntar a contenidos distintos con el tiempo.\n\nEl segundo bloque es la **configuración de privilegios**. Un `Config.User` vacío significa que el proceso corre como root dentro del contenedor; el riesgo real depende de las capabilities, los montajes y el user namespace. `Privileged: true` concede el conjunto completo y anula muchas restricciones. `CapAdd` y `CapDrop` muestran qué privilegios se añadieron o retiraron. `SecurityOpt` indica si seccomp o un LSM están aplicados, y la opción `no-new-privileges` si se impide ganar privilegios por ejecución.\n\nEl tercer bloque son los **montajes y la red**. Un bind mount de escritura conecta el contenedor con datos del host y amplía el efecto de cualquier fallo de la aplicación. Montar el socket del daemon es una delegación de control, no un simple archivo. `hostPID`, `hostNetwork` o un puerto publicado sin necesidad cambian el alcance. La red se documenta con su modo, sus puertos y su política de salida, no solo con la dirección observada.\n\nEl cuarto bloque son los **límites de recursos**. Memoria, CPU y número de procesos se leen en la configuración y se contrastan con el consumo. Su ausencia permite que un contenedor degrade al host y a sus vecinos; un límite mal dimensionado produce reinicios por OOM que se confunden con ataques. Anotar «sin límite» es un dato distinto de anotar un límite concreto.\n\nLa comparación con la **política** convierte datos en riesgo. Los estándares de seguridad de pods de Kubernetes sirven como referencia de mínimos aunque el runtime sea Docker: usuario no root, sin escalada, seccomp, capabilities mínimas y sistema de archivos de solo lectura cuando sea posible. El modo rootless reduce el alcance del daemon, pero no corrige un montaje excesivo ni una aplicación vulnerable. La gravedad se pondera por combinación, propósito y controles compensatorios.\n\nLa evidencia mínima incluye nombre, imagen y digest, usuario, privilegios, capabilities, seccomp/LSM, montajes, red, límites, fecha UTC, propietario y línea base. El límite: la configuración demuestra una exposición potencial; no demuestra que alguien la haya aprovechado ni que exista un escape efectivo. La inspección pasiva tampoco sustituye una prueba de comportamiento en runtime.\n\n### Vocabulario de apoyo\n\n- **Configuración efectiva**: estado que el runtime aplica realmente, más allá de lo declarado en un archivo.\n- **Capability**: privilegio del kernel delimitado que puede añadirse o quitarse a un proceso.\n- **Seccomp**: filtro que restringe las llamadas al sistema disponibles para un contenedor.\n- **Bind mount**: ruta del host expuesta dentro del contenedor, en lectura o en escritura.\n- **Rootless**: ejecución del daemon y de los contenedores bajo un usuario no root.\n- **Límite de recursos**: cuota de CPU, memoria o procesos aplicada mediante cgroups.\n- **Exposición**: capacidad potencial verificada en la configuración, todavía sin efecto observado.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-32-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: el contenedor propio `api-lab` muestra `Config.User` vacío, `Privileged: false`, `CapAdd: [\"NET_RAW\"]`, `SecurityOpt: [\"seccomp=unconfined\"]`, un montaje de escritura de `/srv/api` en `/app` y ningún límite de memoria. La imagen se verificó contra el registro interno y el propietario confirma que sigue en uso.\n\nLa conclusión «no es privilegiado, luego es seguro» no se sostiene. El proceso corre como root dentro del contenedor, conserva una capability de red que la aplicación no necesita, tiene seccomp sin confinar y escribe sobre datos del host. La ausencia de límite añade un riesgo de disponibilidad para el host y para los contenedores vecinos. Cada elemento es un dato de configuración, no una prueba de intrusión.\n\nEl hallazgo correcto describe la combinación: usuario root interno, capability añadida, filtro de syscalls desactivado, montaje de escritura y recurso sin acotar. Propone ejecutar como usuario no root, retirar `NET_RAW`, aplicar el perfil seccomp por defecto, reducir el montaje a lectura o a una ruta mínima y fijar un límite de memoria. El retest debe comprobar que la aplicación sigue funcionando y que la configuración insegura ya no se admite.\n\nEl límite: no se ha ejecutado ningún escape ni se ha tocado el host. La inspección demuestra una exposición grave y sostenida; no demuestra compromiso, y la ausencia de alertas no demuestra que la configuración sea segura.\n\n"
+    },
+    {
+      "id": "LNX-32-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Clasificar la exposición por configuración efectiva, alcance y controles compensatorios, no por la etiqueta de la imagen.\n- Red Team autorizado: Inspeccionar solo contenedores propios y preaprobados, documentar la exposición y no ejecutar escapes.\n- Evidencia de la etapa: Nombre, imagen y digest, usuario, privilegios, capabilities, seccomp/LSM, montajes, red, límites, propietario y fecha.\n- Criterio de dominio: Explica qué puede hacer la configuración y qué parte del riesgo sigue siendo potencial.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB40](../../05_RECURSOS/LABORATORIOS/LNX-LAB40.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F128**: [Docker Engine security](https://docs.docker.com/engine/security/). Superficie del daemon, del socket y de los montajes del host.\n- **F129**: [Docker rootless mode](https://docs.docker.com/engine/security/rootless/). Alcance y límites de un daemon sin root.\n- **F130**: [Docker seccomp profiles](https://docs.docker.com/engine/security/seccomp/). Filtrado de syscalls y perfil por defecto.\n- **F131**: [Kubernetes Pod Security Standards](https://kubernetes.io/docs/concepts/security/pod-security-standards/). Mínimos de referencia sobre usuario, capabilities y escalada.\n- **F139**: [Docker inspect](https://docs.docker.com/reference/cli/docker/inspect/). Lectura de la configuración declarada y del estado del contenedor.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-32-L01-P01",
+    "prompt": "Inspeccionas un contenedor propio y encuentras usuario vacío, una capability añadida, seccomp sin confinar, un montaje de escritura y ningún límite de memoria. Explica cómo documentarías el riesgo y por qué no puedes afirmar que hubo un escape.",
+    "markdown": "## 4. Práctica individual\n\nInspeccionas un contenedor propio y encuentras usuario vacío, una capability añadida, seccomp sin confinar, un montaje de escritura y ningún límite de memoria. Explica cómo documentarías el riesgo y por qué no puedes afirmar que hubo un escape.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber inspeccionado un contenedor real ni haber ejecutado un escape.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-32-L01-Q01",
+      "prompt": "En la inspección de un contenedor propio, ¿qué significa que `Config.User` esté vacío?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que el contenedor no tiene ningún usuario configurado y por tanto no puede ejecutar procesos"
+        },
+        {
+          "id": "B",
+          "text": "Que el proceso se ejecuta como root dentro del contenedor, con un riesgo que depende de capabilities, montajes y user namespace"
+        },
+        {
+          "id": "C",
+          "text": "Que el daemon aplica automáticamente un usuario sin privilegios"
+        },
+        {
+          "id": "D",
+          "text": "Que el contenedor usa rootless y no puede alcanzar el host"
+        }
+      ]
+    },
+    {
+      "id": "LNX-32-L01-Q02",
+      "prompt": "¿Qué convierte una inspección de contenedor en un hallazgo defendible?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Encontrar una imagen con una etiqueta conocida en el registro público"
+        },
+        {
+          "id": "B",
+          "text": "Ejecutar un escape controlado para medir el impacto real"
+        },
+        {
+          "id": "C",
+          "text": "Contrastar la configuración efectiva con la línea base y el propósito, con propietario, fecha y evidencia"
+        },
+        {
+          "id": "D",
+          "text": "Confirmar que el contenedor no ha generado alertas en la última semana"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB40](../../05_RECURSOS/LABORATORIOS/LNX-LAB40.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F128**: [Docker Engine security](https://docs.docker.com/engine/security/). Superficie del daemon, del socket y de los montajes del host.\n- **F129**: [Docker rootless mode](https://docs.docker.com/engine/security/rootless/). Alcance y límites de un daemon sin root.\n- **F130**: [Docker seccomp profiles](https://docs.docker.com/engine/security/seccomp/). Filtrado de syscalls y perfil por defecto.\n- **F131**: [Kubernetes Pod Security Standards](https://kubernetes.io/docs/concepts/security/pod-security-standards/). Mínimos de referencia sobre usuario, capabilities y escalada.\n- **F139**: [Docker inspect](https://docs.docker.com/reference/cli/docker/inspect/). Lectura de la configuración declarada y del estado del contenedor.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "995350b9baf735b39b0480e1"
+}

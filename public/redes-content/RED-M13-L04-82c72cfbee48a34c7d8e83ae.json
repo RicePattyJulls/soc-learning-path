@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M13-L04",
+  "title": "Sumarización y averías",
+  "sourceHash": "1af7720ea9eb751a21a0a694f238388b834e8bd4264d076ceec26699836b99de",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M13-L04-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nPlanificar áreas y sumarización sin ocultar fallos.\n\nPrerrequisitos: [RED-M13-L03](../RED-E03/RED-M13-L03.md).\n\n## 2. Comprende el mecanismo\n\nLa sumarización OSPF se realiza en lugares y contextos concretos, como ABR entre áreas o ASBR para rutas externas según soporte. No funciona como un filtro universal de LSAs dentro de una misma área. Un área stub restringe determinadas rutas externas; NSSA permite un tratamiento distinto de rutas introducidas en esa área mediante LSAs específicos. Antes de resumir, comprobar alineación, componentes y comportamiento para destinos ausentes. Un resumen anunciado no demuestra disponibilidad de todos sus subprefijos.\n\n### Vocabulario de apoyo\n\n- **LSA, LSDB y SPF**: Anuncio de estado de enlace, base de esos anuncios y cálculo de caminos de OSPF.\n- **DR/BDR y DROther**: Roles de router designado, respaldo y otros routers en ciertos medios OSPF.\n- **ABR y ASBR**: Router entre áreas y router que introduce rutas externas, respectivamente.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M13-L04-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> ABR docente resume 192.0.2.0/24; solo permanece alcanzable .0/25 y desaparece .128/25.\n\nEl resumen todavía puede atraer tráfico a la mitad ausente. Debe existir un tratamiento controlado y pruebas de conectividad para componentes, no solo presencia del agregado.\n\n"
+    },
+    {
+      "id": "RED-M13-L04-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Contextualizar cambios de rutas/ventanas de evento.\n- Red Team autorizado: Evaluar efectos de políticas OSPF solo en lab.\n- Evidencia del módulo: Salida de adyacencia, LSDB y mapa de caminos.\n- Criterio del módulo: Restituye anuncios y justifica raíz y política.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L06](../../05_RECURSOS/LABORATORIOS/RED-L06.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **FRR-OSPF**: [OSPFv2](https://docs.frrouting.org/en/latest/ospfd.html). Vecinos, LSDB, áreas, roles y operación OSPFv2.\n- **FRR-OSPF6**: [OSPFv3](https://docs.frrouting.org/en/latest/ospf6d.html). Implementación OSPFv3 y familias soportadas según versión.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M13-L04-P01",
+    "prompt": "Una sede necesita redistribuir una ruta externa, pero se diseñó como stub. Explica qué revisar sin cambiar a ciegas el tipo de área.",
+    "markdown": "## 4. Práctica individual\n\nUna sede necesita redistribuir una ruta externa, pero se diseñó como stub. Explica qué revisar sin cambiar a ciegas el tipo de área.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M13-L04-Q01",
+      "prompt": "¿Qué no debe asumirse sobre sumarización OSPF?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que filtra cualquier LSA arbitrariamente dentro de un área"
+        },
+        {
+          "id": "B",
+          "text": "Que reduce entradas cuando está bien diseñada"
+        },
+        {
+          "id": "C",
+          "text": "Que puede requerir un ABR o ASBR"
+        },
+        {
+          "id": "D",
+          "text": "Que necesita un prefijo alineado"
+        }
+      ]
+    },
+    {
+      "id": "RED-M13-L04-Q02",
+      "prompt": "¿Qué riesgo muestra el agregado del ejemplo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Atraer tráfico hacia un componente que ya no es alcanzable"
+        },
+        {
+          "id": "B",
+          "text": "Cambiar la MAC de cada cliente"
+        },
+        {
+          "id": "C",
+          "text": "Eliminar todas las rutas externas"
+        },
+        {
+          "id": "D",
+          "text": "Crear DNS recursivo automáticamente"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L06](../../05_RECURSOS/LABORATORIOS/RED-L06.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **FRR-OSPF**: [OSPFv2](https://docs.frrouting.org/en/latest/ospfd.html). Vecinos, LSDB, áreas, roles y operación OSPFv2.\n- **FRR-OSPF6**: [OSPFv3](https://docs.frrouting.org/en/latest/ospf6d.html). Implementación OSPFv3 y familias soportadas según versión.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "82c72cfbee48a34c7d8e83ae"
+}

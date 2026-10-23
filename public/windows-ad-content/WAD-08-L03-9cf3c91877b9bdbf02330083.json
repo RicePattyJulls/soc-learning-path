@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-08-L03",
+  "title": "Rol de AD DS frente a Entra ID",
+  "sourceHash": "9b844b3047317b96b8d0352055db49f1528d6b2666847386e9d17dbda0bfa6f4",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-08-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nComparar el dominio local con un servicio de identidad en la nube sin confundir sus límites de confianza.\n\nPrerrequisitos: `WAD-08-L02` (esquema, LDAP y GC).\n\n## 2. Comprende el mecanismo\n\n**AD DS** es el servicio de directorio que vive en los controladores de dominio de una organización. Sus identidades son las del **dominio propio**: se autentican contra él, y sus límites son los ya conocidos —el dominio para replicación y administración, el bosque para seguridad—.\n\n**Microsoft Entra ID** es un **servicio de identidad en la nube**: otro producto, con otras fronteras de confianza, otros mecanismos de autenticación y de autorización. No es «el mismo directorio con otro nombre» ni una partición del bosque.\n\nLa convivencia habitual es **híbrida**: las identidades del dominio local se **sincronizan** hacia Entra ID para poder usar los servicios en la nube con la misma cuenta y, según el método elegido, la autenticación se resuelve en local o en la nube. Esa sincronización **conecta** dos sistemas; no los fusiona.\n\nConsecuencias que conviene no confundir:\n\n- Un **límite de confianza no hereda las garantías del otro**. Que la sincronización funcione no significa que las políticas, los controles o las condiciones de acceso de un lado se apliquen igual en el otro.\n- Una cuenta **sincronizada** conserva su origen en un lado; los cambios suelen fluir en una dirección definida y no todo atributo se sincroniza.\n- Un bloqueo, una política de acceso condicional o una denegación en la nube **no** equivalen automáticamente a una denegación en el dominio local, ni al revés.\n\nDe ahí la regla de trabajo: al describir un acceso, se dice **qué servicio lo resolvió** y dentro de qué límite. «Está en el directorio» no es una frase completa cuando hay dos directorios.\n\nEl **nivel funcional** es un dato propio del dominio local: indica qué funciones de AD DS están disponibles según los controladores de dominio presentes. No dice nada sobre Entra ID, y elevarlo afecta solo al dominio o al bosque, según el nivel.\n\n### Vocabulario de apoyo\n\n- **Bosque**: conjunto de dominios que comparten esquema y configuración; constituye el límite de seguridad.\n- **Dominio**: unidad de replicación y administración con su propia partición de directorio.\n- **Catálogo global**: controlador con una réplica parcial de los atributos de todos los dominios del bosque.\n- **Nivel funcional**: conjunto de funciones de AD DS disponibles en un dominio o bosque según sus controladores.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-08-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: una organización ficticia sincroniza las cuentas de `ad.lab.test` con Entra ID. Al bloquearse el acceso de una cuenta en la nube, el equipo asume que la cuenta también quedó bloqueada en el dominio local y no revisa los controladores de dominio de `ad.lab.test`.\n\nLa suposición cruza límites sin justificarlo. La sincronización copia identidades y algunos atributos entre dos sistemas, pero cada uno mantiene sus propias reglas de autenticación y de bloqueo: una denegación en Entra ID no es automáticamente una denegación en el dominio local. Para saber qué ocurrió hay que comprobar **dónde** se resolvió la autenticación y **qué** servicio aplicó la decisión, y anotar por separado el estado en cada lado. La conclusión describe dos límites de confianza conectados —no uno solo— y reconoce su límite: sin revisar ambos lados no puede afirmarse el estado efectivo de la cuenta.\n\n"
+    },
+    {
+      "id": "WAD-08-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Atribuir un acceso al servicio que lo resolvió evita analizar el lado equivocado cuando hay identidades híbridas.\n- Red Team autorizado: Distinguir los dos límites acota qué sistemas entran en el alcance de una prueba autorizada.\n- Evidencia de la etapa: Cuadro comparativo de cada servicio con su origen de identidad, lo sincronizado y su frontera de confianza.\n- Criterio de dominio: Distingue OU, dominio y bosque con consecuencias reales, sin extender esas garantías a un servicio en la nube.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB05](../../05_RECURSOS/LABORATORIOS/WAD-LAB05.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **ADDSOVER**: [Active Directory Domain Services overview](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/get-started/virtual-dc/active-directory-domain-services-overview). Qué es AD DS y qué límites define en el entorno local.\n- **ENTRAID**: [What is Microsoft Entra](https://learn.microsoft.com/en-us/entra/fundamentals/whatis). Naturaleza del servicio de identidad en la nube y su alcance.\n- **FL**: [Active Directory Domain Services functional levels](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/active-directory-functional-levels). Qué indican los niveles funcionales dentro del dominio local.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-08-L03-P01",
+    "prompt": "Una organización ficticia mantiene `ad.lab.test` en local y un inquilino de Entra ID, con cuentas sincronizadas. Redacta una nota de dos fronteras: qué identidad resuelve cada servicio, qué se sincroniza y qué no puede darse por hecho en el otro lado, y qué límite de confianza sigue existiendo aunque la sincronización funcione.",
+    "markdown": "## 4. Práctica individual\n\nUna organización ficticia mantiene `ad.lab.test` en local y un inquilino de Entra ID, con cuentas sincronizadas. Redacta una nota de dos fronteras: qué identidad resuelve cada servicio, qué se sincroniza y qué no puede darse por hecho en el otro lado, y qué límite de confianza sigue existiendo aunque la sincronización funcione.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber administrado ni sincronizado identidades reales.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-08-L03-Q01",
+      "prompt": "¿Cuál de estas afirmaciones describe correctamente la relación entre AD DS y Entra ID?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Son servicios de identidad distintos: AD DS vive en el dominio propio y Entra ID es un servicio en la nube con sus propias fronteras de confianza"
+        },
+        {
+          "id": "B",
+          "text": "Entra ID es el mismo directorio que AD DS, con otro nombre comercial"
+        },
+        {
+          "id": "C",
+          "text": "Un dominio de AD DS adopta automáticamente las garantías de Entra ID al sincronizarse"
+        },
+        {
+          "id": "D",
+          "text": "Entra ID elimina la necesidad de controladores de dominio en cualquier escenario"
+        }
+      ]
+    },
+    {
+      "id": "WAD-08-L03-Q02",
+      "prompt": "En una organización que sincroniza `ad.lab.test` con Entra ID, ¿qué implica esa coexistencia?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que una contraseña comprometida en la nube deja de afectar al dominio local"
+        },
+        {
+          "id": "B",
+          "text": "Que el bosque pasa a ser una partición de Entra ID"
+        },
+        {
+          "id": "C",
+          "text": "Que hay dos límites de confianza conectados por la sincronización y cada uno conserva sus propias reglas"
+        },
+        {
+          "id": "D",
+          "text": "Que desaparecen las confianzas entre los dominios locales"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB05](../../05_RECURSOS/LABORATORIOS/WAD-LAB05.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **ADDSOVER**: [Active Directory Domain Services overview](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/get-started/virtual-dc/active-directory-domain-services-overview). Qué es AD DS y qué límites define en el entorno local.\n- **ENTRAID**: [What is Microsoft Entra](https://learn.microsoft.com/en-us/entra/fundamentals/whatis). Naturaleza del servicio de identidad en la nube y su alcance.\n- **FL**: [Active Directory Domain Services functional levels](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/active-directory-functional-levels). Qué indican los niveles funcionales dentro del dominio local.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "9cf3c91877b9bdbf02330083"
+}

@@ -1,0 +1,202 @@
+{
+  "id": "N1-20",
+  "nivel": "N1",
+  "bloque": "Procedimientos SOC y gestión de incidentes",
+  "titulo": "Sospecha de ransomware sin alertas SIEM: actuar sin esperar al panel",
+  "pregunta": "Un usuario informa de un posible ransomware, pero no existen alertas en el SIEM. ¿Cómo comenzarías la investigación?",
+  "escenario": "A las 09:18, el responsable de Contabilidad llama al SOC: «Mis documentos cambiaron de extensión y aparece una nota pidiendo pago». Ninguna alerta reciente aparece en el SIEM. Otros empleados comparten una unidad SMB con ese equipo; el EDR aparece con última comunicación hace 40 minutos. Todavía no se sabe si el cifrado sigue activo ni si el servidor de archivos también está afectado.",
+  "objetivo": "Tratar señales directas y verificables como posible incidente grave aunque falten alertas; activar respuesta rápida, comprobar alcance, preservar evidencia y coordinar aislamiento autorizado para reducir cifrado, movimiento lateral y exposición de copias.",
+  "hipotesis": [
+    "Ransomware activo en endpoint con acceso a unidad compartida; la propagación o el cifrado podrían continuar.",
+    "Cifrado ya terminado en el equipo pero credenciales y persistencia todavía en riesgo.",
+    "Nota de rescate creada por campaña previa, prueba controlada o broma; requiere validar artefactos antes de descartar.",
+    "Fallo de ingesta SIEM, cobertura endpoint, alerta suprimida, sensor offline o retraso.",
+    "Otro host, servidor de ficheros o cuenta comprometida es el origen real del cifrado observado.",
+    "También pudo existir exfiltración previa sin síntomas hasta el cifrado."
+  ],
+  "pasos": [
+    {
+      "fase": "0. Abrir incidente mayor y activar playbook",
+      "accion": "La modificación masiva de ficheros y nota de rescate son evidencia suficientemente grave para activar cadena de incidentes, aunque el SIEM esté silencioso; registrar hora y contacto."
+    },
+    {
+      "fase": "1. Protección inmediata, según autoridad",
+      "accion": "Indicar al usuario que deje de interactuar con ficheros y desconecte la red del equipo cuando lo indique el playbook/IR. Coordinar aislamiento EDR si está disponible; si no, con equipo de operaciones. No pedir reinicio innecesario."
+    },
+    {
+      "fase": "2. Determinar alcance inicial",
+      "accion": "Identificar equipo, usuario, directorios, discos locales, unidades mapeadas, servicios SMB y otros usuarios afectados; consultar servidores de ficheros y alertas de backup."
+    },
+    {
+      "fase": "3. Separar ausencia de detección de ausencia de ataque",
+      "accion": "Comprobar integridad del agente, último heartbeat, ingestión, permisos, retención, reglas de supresión y diferencia entre Microsoft Defender portal y Sentinel/Splunk."
+    },
+    {
+      "fase": "4. Verificar artefactos sin ejecutarlos",
+      "accion": "Pedir foto/copia segura de nombres de ficheros, nota de rescate y ejemplo de extensión; documentar rutas, hashes y marcas de tiempo. No abrir adjuntos ni ejecutar binarios sospechosos."
+    },
+    {
+      "fase": "5. Buscar precursores y cadena de procesos",
+      "accion": "Investigar procesos y padres, tareas/servicios nuevos, ejecución de herramientas de backup/vssadmin, PowerShell, cambios de Defender y orígenes de acceso. Herramientas administrativas tienen uso legítimo."
+    },
+    {
+      "fase": "6. Buscar cifrado y rutas de propagación",
+      "accion": "Con MDE/Sysmon/filesystem logs analizar ráfagas de modificaciones/renombrados, cuentas y extensiones; buscar conexiones SMB 445 y sesiones RDP/WinRM asociadas, sin equipararlos automáticamente a ataque."
+    },
+    {
+      "fase": "7. Proteger recuperación y evidencias",
+      "accion": "IR/backup valida instantáneas, copias offline/inmutables, integridad y separación de credenciales. Captura forense/snapshot/memoria según plan antes de cualquier limpieza; no restaurar sobre host no confiable."
+    },
+    {
+      "fase": "8. Evaluar riesgo de filtración",
+      "accion": "Cotejar tráfico egress, proxy, C2, accesos a datos sensibles y grandes transferencias anteriores. Cifrado no excluye robo de datos previo."
+    },
+    {
+      "fase": "9. Comunicar estado y escalado",
+      "accion": "Escalar a N2/IR, infraestructura, backup y continuidad de negocio. Documentar activos, prioridades, posibles daños, acciones verificadas y lagunas."
+    },
+    {
+      "fase": "10. Recuperar solo con autorización",
+      "accion": "No eliminar el software ni restaurar backups por iniciativa N1. IR decide erradicación, reseteo de credenciales, reconstrucción limpia, verificación de persistencia y criterios para volver a red."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "Extensiones masivas y nota de rescate",
+      "lectura": "Síntomas de cifrado o extorsión; validar autenticidad y temporalidad sin ejecutar archivos."
+    },
+    {
+      "dato": "MDE DeviceFileEvents y filesystem/Sysmon",
+      "lectura": "Escrituras, modificaciones y renombrados masivos; no todas las acciones están instrumentadas ni son iguales."
+    },
+    {
+      "dato": "DeviceProcessEvents, Security 4688, Sysmon Event 1",
+      "lectura": "Procesos y padres, cuentas, línea de comandos, artefactos de ejecución; audit policies influyen en visibilidad."
+    },
+    {
+      "dato": "Conexiones SMB/RDP/egress",
+      "lectura": "Ayudan a delimitar propagación y posible exfiltración; correlacionar con origen de proceso y sesiones."
+    },
+    {
+      "dato": "Heartbeats de agente y retraso de ingesta",
+      "lectura": "Explican silencio del SIEM sin descartar host comprometido."
+    },
+    {
+      "dato": "Logs de backups, integridad e inmutabilidad",
+      "lectura": "Determinan capacidad de recuperación; no manipular copias antes de validación."
+    },
+    {
+      "dato": "Snapshot/memoria/hash/reloj UTC/acta",
+      "lectura": "Preservan evidencia para IR y eventual investigación legal."
+    },
+    {
+      "dato": "Otros equipos con mismo patrón",
+      "lectura": "Define alcance y prioridad de aislamiento coordinado."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Defender XDR Advanced Hunting: ráfagas de actividad de ficheros por dispositivo",
+      "entorno": "DeviceFileEvents en equipos protegidos por MDE; acciones admitidas dependen de plataforma/versión; validar nombres en referencia de ActionType del portal.",
+      "consulta": "DeviceFileEvents\n| where Timestamp > ago(4h)\n| where ActionType in~ (\"FileCreated\", \"FileModified\", \"FileRenamed\")\n| summarize Eventos=count(), Archivos=dcount(strcat(FolderPath, \"/\", FileName)),\n            Ejemplos=make_set(FileName, 8),\n            Procesos=make_set(InitiatingProcessFileName, 8)\n  by DeviceName, bin(Timestamp, 5m)\n| where Eventos >= 100\n| order by Eventos desc",
+      "interpretacion": "Señala equipos con modificación intensiva de archivos para evaluar, no prueba ransomware.",
+      "limitaciones": "Umbral 100 es didáctico; los eventos pueden no captar todos los cambios. Copias de seguridad, compilaciones y sincronización también modifican muchos archivos; Archivos es el número aproximado de rutas/ficheros únicos observado por el sensor, no el número real de archivos cifrados."
+    },
+    {
+      "nombre": "Defender XDR Advanced Hunting: comandos y herramientas relacionadas con recuperación",
+      "entorno": "DeviceProcessEvents de Microsoft Defender XDR; confirmar cobertura de endpoints y correlacionar con el host realmente afectado.",
+      "consulta": "DeviceProcessEvents\n| where Timestamp > ago(24h)\n| where FileName in~ (\"vssadmin.exe\", \"wbadmin.exe\", \"bcdedit.exe\", \"wevtutil.exe\")\n   or ProcessCommandLine has_any (\"shadowcopy\", \"delete shadows\", \"recoveryenabled\")\n| project Timestamp, DeviceName, AccountName, FileName, ProcessCommandLine,\n          InitiatingProcessFileName, InitiatingProcessCommandLine, SHA1\n| order by Timestamp desc",
+      "interpretacion": "Ayuda a identificar herramientas usadas para alterar copias, registros o recuperación, y buscar contexto de padre/usuario.",
+      "limitaciones": "Aparecer en resultados no significa uso malicioso. Varios comandos son administrativos normales y ProcessCommandLine puede omitirse o truncarse."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk CIM Endpoint Filesystem: avalancha de cambios por host",
+      "entorno": "CIM Endpoint.Filesystem con eventos de ficheros realmente ingeridos; algunos EDR no generan eventos para todas las escrituras.",
+      "consulta": "| tstats count as Cambios dc(Endpoint.Filesystem.file_path) as Rutas\n  from datamodel=Endpoint.Filesystem\n  where earliest=-4h latest=now\n    (Endpoint.Filesystem.action=\"modified\" OR Endpoint.Filesystem.action=\"created\")\n  by _time span=5m Endpoint.Filesystem.dest\n| rename Endpoint.Filesystem.* as *\n| where Cambios>=100\n| sort - Cambios",
+      "interpretacion": "Identifica picos de actividad, priorizando los hosts con alteración masiva.",
+      "limitaciones": "Umbrales y acciones didácticas, varían por TA/CIM; no sustituye comparación con baseline ni implica cifrado."
+    },
+    {
+      "nombre": "Splunk CIM Endpoint Processes: utilidades usadas frecuentemente durante incidentes",
+      "entorno": "CIM Endpoint.Processes alimentado desde logs de proceso; mirar destinos/usuarios reales antes de escalado.",
+      "consulta": "| tstats count min(_time) as Primera max(_time) as Ultima\n  from datamodel=Endpoint.Processes\n  where earliest=-24h latest=now\n  by Endpoint.Processes.dest Endpoint.Processes.user\n     Endpoint.Processes.process_name Endpoint.Processes.parent_process_name\n     Endpoint.Processes.process\n| rename Endpoint.Processes.* as *\n| search process_name IN (\"vssadmin.exe\", \"wbadmin.exe\", \"bcdedit.exe\", \"wevtutil.exe\")\n| convert ctime(Primera) ctime(Ultima)\n| sort - Ultima",
+      "interpretacion": "Detecta actividad que merece revisión cuando coincide con señales de cifrado.",
+      "limitaciones": "No demuestra borrado de copias o ataque; examinar command line, autorización y relación temporal. Si no hay event logging la búsqueda queda vacía."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Windows — consultar el estado del antivirus",
+      "proposito": "Solo lectura; un endpoint comprometido podría mentir sobre su estado; no demuestra ausencia de infección.",
+      "comando": "Get-MpComputerStatus | Select-Object AMServiceEnabled,AntivirusEnabled,RealTimeProtectionEnabled,AntivirusSignatureLastUpdated"
+    },
+    {
+      "entorno": "Windows — ver ficheros recientes en carpeta afectada",
+      "proposito": "Ejecutar solo por personal autorizado, sobre rutas conocidas y sin abrir los ficheros; no tocar grandes árboles comprometidos por curiosidad.",
+      "comando": "Get-ChildItem -LiteralPath 'C:\\Users\\Public\\Documents' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 20 Name,Length,LastWriteTime"
+    },
+    {
+      "entorno": "Windows — consultar procesos de backup/shadow sin modificar",
+      "proposito": "Solo lectura; las copias pueden estar ausentes o manipuladas. Debe confirmarlo equipo de backup/IR.",
+      "comando": "vssadmin list shadows"
+    },
+    {
+      "entorno": "Windows — registros de seguridad de creación de procesos",
+      "proposito": "Requiere políticas de auditoría adecuadas y privilegios sobre Security.",
+      "comando": "Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4688; StartTime=(Get-Date).AddHours(-4)} -MaxEvents 100 | Select-Object TimeCreated, Id, Message"
+    }
+  ],
+  "contencion": "Una sospecha con archivos cifrados y nota de rescate amerita tratarse como emergencia aun sin SIEM. El aislamiento de host/red debe seguir playbook y coordinación con IR/infraestructura; en caso de propagación priorizar contención frente a investigación exhaustiva. Apagar únicamente si no puede contenerse por red y siguiendo evaluación de pérdida de memoria/evidencia. No pagar, descifrar, limpiar, ejecutar binarios ni restaurar sin instrucciones autorizadas.",
+  "escalation": [
+    "Nota de rescate verosímil junto a modificaciones masivas o ficheros inaccesibles.",
+    "Unidad compartida/servidor de ficheros con múltiples usuarios afectados.",
+    "Evidencia de propagación, abuso privilegiado, borrado de copias o EDR deshabilitado.",
+    "Posible exfiltración previa, información sensible afectada o acceso a datos regulados.",
+    "Ingestión EDR/SIEM silenciosa en medio de síntomas de cifrado; notificación directa a IR y continuidad."
+  ],
+  "falsos_positivos": [
+    "Simulación autorizada de ransomware con nota de prueba.",
+    "Cambio masivo de extensiones por migración/archivado o herramienta de sincronización.",
+    "Cifrado legítimo por software corporativo, aunque no debería generar nota de rescate.",
+    "Archivos dañados y mensaje falso no relacionado.",
+    "Falta de telemetría por agente apagado/cambio de colector, no necesariamente evasión maliciosa."
+  ],
+  "errores": [
+    "Descartar incidente porque el SIEM no alertó.",
+    "Pedir a usuario abrir nota, reenviar malware o ejecutar una «herramienta de comprobación».",
+    "Reiniciar o apagar de inmediato sin evaluar aislamiento/evidencia cuando la red puede desconectarse.",
+    "Borrar archivos maliciosos o restaurar sobre máquina comprometida antes de forense/IR.",
+    "Concluir ransomware solo por ejecutar vssadmin sin valorar el comando y contexto.",
+    "Investigar una hora mientras cifrado activo se extiende por recursos SMB.",
+    "No verificar protección de backups e identidad asociada."
+  ],
+  "perspectiva_red_team": "Un operador de ransomware puede cifrar rápidamente, intentar inutilizar backups y usar cuentas válidas o comparticiones administrativas para expandirse. Además, algunos ataques logran inhibir sensores o alertas, por lo que el reporte humano y los cambios de archivos son señales de alta importancia. Desde Blue Team, la investigación se centra en limitar impacto y reconstruir la secuencia de acceso, preparación, cifrado y eventual exfiltración.",
+  "respuesta_entrevista": "Consideraría el reporte un posible incidente crítico, activaría el playbook y escalaría inmediatamente. Con IR coordinaría aislamiento de equipo y recursos compartidos para limitar propagación, sin reiniciar ni manipular evidencia por iniciativa propia. Verificaría extensiones/notas, activos afectados, logs de ficheros y procesos, SMB, backups y última conexión de EDR. La falta de alertas del SIEM es una laguna a investigar, nunca una prueba de ausencia de ransomware.",
+  "criterios_evaluacion": [
+    "Prioriza posible cifrado activo sobre investigar alertas ausentes.",
+    "Activa escalado/aislamiento proporcional bajo autoridad y sin destruir evidencia.",
+    "Comprueba alcance de SMB, identidades y copias de seguridad.",
+    "Diferencia señales de daño de hipótesis no confirmadas.",
+    "Usa KQL/SPL para corroborar y reconoce limitaciones de fuentes."
+  ],
+  "mitre": [
+    "T1486 (Data Encrypted for Impact)",
+    "T1490 (Inhibit System Recovery)",
+    "T1021.002 (SMB/Windows Admin Shares, si hay evidencia)",
+    "T1562.001 (Impair Defenses, si se detecta)"
+  ],
+  "fuentes": [
+    "https://www.cisa.gov/stopransomware/ransomware-guide",
+    "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-devicefileevents-table",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-deviceprocessevents-table",
+    "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.4/data-models/endpoint"
+  ],
+  "procedencia": {
+    "lote": "tanda-04",
+    "archivo": "SOC-RESPONSES_TANDA-04_N1-16_a_N1-20.json",
+    "fechaRevision": "2026-10-18"
+  }
+}

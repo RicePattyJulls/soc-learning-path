@@ -1,0 +1,2024 @@
+{
+  "schema_version": "1.0.0",
+  "project": "LINUX SOC + Red Team",
+  "batch": 5,
+  "total_batches": 5,
+  "title": "Tanda 5 — PAM, SELinux/AppArmor, hardening, logs, auditoría, telemetría, troubleshooting, contenedores y Red Team",
+  "language": "es-ES",
+  "research_date": "2026-10-18",
+  "based_on": "linux(1).txt",
+  "companion_markdown": "Linux_SOC_RedTeam_Tanda5_Informe.md",
+  "companion_markdown_sha256": "a895dbf046a61a1ebac3401a2f7fa064e324ab7a9ea133116abd9b251818c8b6",
+  "source_outline": [
+    {
+      "number": 1,
+      "heading": "Resultados de aprendizaje, alcance y criterio de aprobación"
+    },
+    {
+      "number": 2,
+      "heading": "Arquitectura: decisiones de autorización y puntos de observación [DOC:S01–S06]"
+    },
+    {
+      "number": 3,
+      "heading": "Identidades, DAC, modos, ACL y privilegios [DOC:S03,S05,S06]"
+    },
+    {
+      "number": 4,
+      "heading": "Linux-PAM: pila, decisiones y superficie de fallos [DOC:S01,S02,S07]"
+    },
+    {
+      "number": 5,
+      "heading": "SELinux, AppArmor y Linux Security Modules [DOC:S08–S11]"
+    },
+    {
+      "number": 6,
+      "heading": "Hardening práctico y arquitectura de mínimo privilegio [DOC:S03,S05,S11–S14]"
+    },
+    {
+      "number": 7,
+      "heading": "Registro y auditoría: cuatro capas que no son equivalentes [DOC:S15–S21]"
+    },
+    {
+      "number": 8,
+      "heading": "Matriz de cobertura, coste y retención de telemetría [DOC:S15–S22]"
+    },
+    {
+      "number": 9,
+      "heading": "Colección forense y respuesta SOC sin destruir explicaciones [DOC:S21–S24]"
+    },
+    {
+      "number": 10,
+      "heading": "Detecciones SOC: hipótesis, consulta, validación y falsos positivos [DOC:S18–S24,S29]"
+    },
+    {
+      "number": 11,
+      "heading": "Rendimiento: separar avería de intrusión y medir correctamente [DOC:S25–S27]"
+    },
+    {
+      "number": 12,
+      "heading": "Bash y automatización segura en producción [DOC:S26,S28]"
+    },
+    {
+      "number": 13,
+      "heading": "Contenedores Linux: aislamiento, superficie y responsabilidad [DOC:S31–S37]"
+    },
+    {
+      "number": 14,
+      "heading": "Red Team autorizado: modelo de trabajo centrado en evidencia [DOC:S29,S38]"
+    },
+    {
+      "number": 15,
+      "heading": "Laboratorio base y reglas de ejecución [LAB]"
+    },
+    {
+      "number": 16,
+      "heading": "Catálogo de 12 laboratorios evaluables — 100 puntos"
+    },
+    {
+      "number": 17,
+      "heading": "Casos de entrevista y operación — solución razonada"
+    },
+    {
+      "number": 18,
+      "heading": "Plantilla de informe SOC/IR (entregable)"
+    },
+    {
+      "number": 19,
+      "heading": "Plantilla de hallazgo Red Team / Purple Team"
+    },
+    {
+      "number": 20,
+      "heading": "Examen final: 40 preguntas de razonamiento"
+    },
+    {
+      "number": 21,
+      "heading": "Secuencia de aprendizaje y dependencias para las cinco tandas"
+    },
+    {
+      "number": 22,
+      "heading": "Mapa de competencias SOC N1/N2 y Red Team"
+    },
+    {
+      "number": 23,
+      "heading": "Detecciones de baja fidelidad: catálogo de errores frecuentes"
+    },
+    {
+      "number": 24,
+      "heading": "Política mínima de logging viable para un mini-SOC Linux"
+    },
+    {
+      "number": 25,
+      "heading": "Modelo de madurez: cómo saber si ya dominas Linux para SOC + RT"
+    },
+    {
+      "number": 26,
+      "heading": "Matriz rápida de decisión ante un host con señales contradictorias"
+    },
+    {
+      "number": 27,
+      "heading": "Comparativas esenciales para examen/entrevista"
+    },
+    {
+      "number": 28,
+      "heading": "Límites y exclusiones"
+    },
+    {
+      "number": 29,
+      "heading": "Lista de verificación para cerrar la tanda"
+    },
+    {
+      "number": 30,
+      "heading": "Fuentes primarias: cómo se citan en este informe"
+    },
+    {
+      "number": 31,
+      "heading": "Referencias técnicas y normativas"
+    },
+    {
+      "number": 32,
+      "heading": "Cierre del programa completo de cinco tandas"
+    }
+  ],
+  "learning_objectives": [
+    "Separar autorización PAM, sudo, DAC, MAC, SUID, capabilities y credenciales de proceso",
+    "Diagnosticar denegaciones LSM sin anular seguridad y con retest positivo y negativo",
+    "Validar coberturas de journald, rsyslog, auditd y agentes kernel, incluyendo retención y pérdida",
+    "Correlacionar identidad, procesos, sesiones, rutas, red y cambios de configuración en incidentes SOC",
+    "Aplicar retención, cadena de custodia y decisiones de contención proporcionadas",
+    "Investigar CPU/memory/IO/PSI/OOM sin atribuciones precipitadas",
+    "Escribir automatizaciones seguras de evidencia sin efectos destructivos",
+    "Auditar Docker/Podman/K8s y privilegiado, socket, namespaces, seccomp y mounts",
+    "Redactar ROE, hallazgos RT y validarlos con Purple Team y retest"
+  ],
+  "execution_policy": {
+    "primary_mode": "observational_only",
+    "allowed_scope": "VM descartable y LAB con archivo propio; audit temporal solo cuando se autoriza en VM descartable",
+    "dangerous_changes_replaced_by_simulation": true,
+    "hard_stop_conditions": [
+      "Nunca actuar fuera de alcance ni ROE",
+      "No tocar PAM, sudoers, audit/firewall o sensores reales desde prácticas",
+      "No colocar backdoors, malware, persistencia ni intentar escalar privilegios fuera de pruebas inocuas",
+      "No registrar tokens/credenciales ni datos de terceros",
+      "Rollback de cambio exacto en el LAB; nunca limpiar todas las reglas",
+      "No atribuir actividad maliciosa sin evidencia y alternativas"
+    ],
+    "evidence_policy": "Capturar UTC/boot/source y SHA-256, documentar incertidumbre, nunca publicar secretos",
+    "simulations_are_not_proof_of_production_telemetry": true
+  },
+  "labs": [
+    {
+      "id": "T5-L01",
+      "title": "DAC/ACL/umask y rutas de acceso",
+      "category": "identity",
+      "difficulty": "básico",
+      "duration_minutes_estimate": 55,
+      "score_points": 8,
+      "prerequisites": [
+        "VM Linux descartable",
+        "Usuario no privilegiado",
+        "Directorio privado LAB"
+      ],
+      "scope": "VM desechable y autorizada; intervención únicamente sobre LAB propio, excepto auditctl temporal aprobado en VM",
+      "procedure": [
+        "Inicializar LAB con mktemp y umask 077",
+        "Crear private.txt bajo LAB/data, chmod 600 y data 700",
+        "Observar stat/namei/umask y si está disponible getfacl",
+        "Construir tabla de permisos: sujeto → directorios → archivo → ACL",
+        "Probar acceso positivo con el propietario y negativo con segunda identidad únicamente si está disponible y autorizada"
+      ],
+      "deliverables": [
+        "Inventario de ownership/mode/ACL",
+        "Pruebas de acceso positivo y negativo o limitación por falta de segunda identidad",
+        "Explicación de máscara ACL y permiso de travesía"
+      ],
+      "acceptance_criteria": [
+        "Inventario de ownership/mode/ACL",
+        "Pruebas de acceso positivo y negativo o limitación por falta de segunda identidad",
+        "Explicación de máscara ACL y permiso de travesía"
+      ],
+      "rubric": {
+        "planning_and_authorization": 2,
+        "evidence_and_observability": 2,
+        "technical_reasoning_detection": 2,
+        "rollback_and_retest": 2
+      },
+      "safety_constraints": [
+        "No modificar directorios ajenos",
+        "No intentar leer datos de otros usuarios",
+        "Sin creación de cuentas fuera de VM"
+      ],
+      "rollback_and_cleanup": [
+        "Restaurar únicamente permisos de LAB si cambiaron",
+        "El usuario decide cuándo borrar árbol LAB tras entregar hashes y evidencia"
+      ],
+      "required_observations": [
+        "resultado real/simulado etiquetado",
+        "fecha UTC y boot_id cuando corresponda",
+        "fuente y límites",
+        "prueba positiva",
+        "prueba negativa o imposibilidad explicada"
+      ],
+      "references": [
+        "S01",
+        "S03",
+        "S04",
+        "S06"
+      ],
+      "source_section": "16",
+      "full_description_markdown": "## LAB T5-L01 — DAC/ACL/umask y rutas de acceso (8 pt, 45–60 min)\n\n**Objetivo.** Explicar por qué un archivo puede ser legible por propietario y no por otra identidad; distinguir file mode, recorrido, grupo, ACL y umask.\n\n**Pasos:** crear en `$LAB/data` archivo 0600 y directorio 0700; inspeccionar `stat`, `namei`, `umask`; si están instalados `setfacl/getfacl`, añadir ACL para **el mismo usuario de laboratorio** sobre un archivo secundario y observar máscara en salida. No crear cuentas ni abrir permisos globalmente por comodidad.\n\n```bash\nprintf 'contenido sintético\\n' > \"$LAB/data/private.txt\"\nchmod 600 \"$LAB/data/private.txt\"\nchmod 700 \"$LAB/data\"\nstat -c '%a %U %G %n' \"$LAB/data/private.txt\"\nnamei -l \"$LAB/data/private.txt\"\ncommand -v getfacl >/dev/null && getfacl \"$LAB/data/private.txt\"\n```\n\n**Aceptación:** diagrama DAC correcto; comparativa de una prueba positiva y otra negativa con identidades del LAB cuando exista segunda cuenta, **sin** leer secretos ajenos. **Entregable:** tabla de permisos, ACL y contexto. **Rollback:** solo quitar ACL del fichero propio si se creó; conservar evidencia y retirar árbol manualmente cuando proceda. **[RT]** reportar exceso real, no hipotético."
+    },
+    {
+      "id": "T5-L02",
+      "title": "PAM/sudoers y superficies de identidad",
+      "category": "identity",
+      "difficulty": "intermedio",
+      "duration_minutes_estimate": 60,
+      "score_points": 8,
+      "prerequisites": [
+        "T1 y T2",
+        "Consulta de PAM instalada",
+        "Lecturas únicamente"
+      ],
+      "scope": "VM desechable y autorizada; intervención únicamente sobre LAB propio, excepto auditctl temporal aprobado en VM",
+      "procedure": [
+        "Registrar id y sudo -n -l para cuenta propia; documentar error esperado",
+        "Listar servicios PAM y analizar cadena auth/account/password/session",
+        "Escribir ejemplo ficticio en LAB/config, sin usar rutas reales",
+        "Analizar control required/requisite/sufficient y escenarios include/substack",
+        "Preparar plan de cambio con sesión de rescate y retest"
+      ],
+      "deliverables": [
+        "Diagrama de pila PAM",
+        "Cuatro riesgos contextualizados",
+        "Plan de rollback con éxito y fallo autenticación",
+        "Tres fuentes para detectar cambios PAM"
+      ],
+      "acceptance_criteria": [
+        "Diagrama de pila PAM",
+        "Cuatro riesgos contextualizados",
+        "Plan de rollback con éxito y fallo autenticación",
+        "Tres fuentes para detectar cambios PAM"
+      ],
+      "rubric": {
+        "planning_and_authorization": 2,
+        "evidence_and_observability": 2,
+        "technical_reasoning_detection": 2,
+        "rollback_and_retest": 2
+      },
+      "safety_constraints": [
+        "NO editar /etc/pam.d ni sudoers reales",
+        "NO ejecutar pam_exec de prueba",
+        "No cerrar sesión de administración"
+      ],
+      "rollback_and_cleanup": [
+        "Solo borrar fichero sintético del LAB tras conservar evidencia",
+        "No hay cambios de autenticación que revertir"
+      ],
+      "required_observations": [
+        "resultado real/simulado etiquetado",
+        "fecha UTC y boot_id cuando corresponda",
+        "fuente y límites",
+        "prueba positiva",
+        "prueba negativa o imposibilidad explicada"
+      ],
+      "references": [
+        "S01",
+        "S02",
+        "S05",
+        "S07"
+      ],
+      "source_section": "16",
+      "full_description_markdown": "## LAB T5-L02 — sudoers/PAM y superficies de identidad (8 pt, 45–70 min)\n\n**Objetivo.** Inspección segura sin editar `/etc/pam.d` ni sudoers reales. Capturar `id`, `sudo -n -l` (puede fallar legítimamente), relaciones include de PAM, hash de fichero **copiado** del laboratorio sin material sensible.\n\n**Pasos:** (1) listar nombres de servicios PAM de la VM; (2) interpretar `auth/account/password/session`; (3) revisar metadatos de scripts **ficticios** bajo `$LAB/config`; (4) crear ejemplo de regla sudoers sintética y analizar si un editor o script escribible amplía la delegación. No activar la regla, no invocar `pam_exec`.\n\n**Aceptación:** identificar al menos 4 fallos posibles, un plan de cambio con rescate y un caso donde usuario autenticado queda bloqueado por account. **Entregable:** diagrama de pila, amenazas, checklist de rollback y propuesta de configuración mínima no aplicada. **[SOC]** tres fuentes para corroborar modificación real de PAM."
+    },
+    {
+      "id": "T5-L03",
+      "title": "SUID/SGID y capabilities sin escalada",
+      "category": "privilege",
+      "difficulty": "básico",
+      "duration_minutes_estimate": 55,
+      "score_points": 8,
+      "prerequisites": [
+        "VM descartable",
+        "Archivo propio bajo LAB"
+      ],
+      "scope": "VM desechable y autorizada; intervención únicamente sobre LAB propio, excepto auditctl temporal aprobado en VM",
+      "procedure": [
+        "Crear un fichero de texto propio y establecer SGID 2640",
+        "Capturar stat y explicar por qué no hay escalada por bit",
+        "Consultar capabilities del propio proceso en /proc/self/status",
+        "Verificar archivo de LAB con getcap si está disponible",
+        "Comparar un hallazgo hipotético contra permisos/owner/ejecutabilidad/nosuid/LSM"
+      ],
+      "deliverables": [
+        "Baseline de metadatos",
+        "Diferencias UID real/efectivo",
+        "Hallazgo hipotético claramente marcado",
+        "Control mínimo y retest conceptual"
+      ],
+      "acceptance_criteria": [
+        "Baseline de metadatos",
+        "Diferencias UID real/efectivo",
+        "Hallazgo hipotético claramente marcado",
+        "Control mínimo y retest conceptual"
+      ],
+      "rubric": {
+        "planning_and_authorization": 2,
+        "evidence_and_observability": 2,
+        "technical_reasoning_detection": 2,
+        "rollback_and_retest": 2
+      },
+      "safety_constraints": [
+        "No crear binarios SUID root",
+        "No ejecutar binarios sospechosos",
+        "No recorrer todo el disco de producción"
+      ],
+      "rollback_and_cleanup": [
+        "Retirar SGID solo del archivo de práctica",
+        "Conservar output y hash"
+      ],
+      "required_observations": [
+        "resultado real/simulado etiquetado",
+        "fecha UTC y boot_id cuando corresponda",
+        "fuente y límites",
+        "prueba positiva",
+        "prueba negativa o imposibilidad explicada"
+      ],
+      "references": [
+        "S03",
+        "S04",
+        "S29"
+      ],
+      "source_section": "16",
+      "full_description_markdown": "## LAB T5-L03 — SUID, SGID y capabilities sin escalada (8 pt, 45–60 min)\n\n**Objetivo.** Distinguir permisos especiales de privilegio efectivo y elaborar baseline. En archivo de texto propio no ejecutable, establecer en VM de lab permiso 2640 y registrar aspecto SGID; el bit SUID en archivo de texto o script **no** debe interpretarse como escalada funcional en Linux.\n\n```bash\nprintf 'prueba sgid no ejecutable\\n' > \"$LAB/data/special.txt\"\nchmod 2640 \"$LAB/data/special.txt\"\nstat -c '%a %A %U:%G %n' \"$LAB/data/special.txt\"\ncommand -v getcap >/dev/null && getcap -r \"$LAB\" 2>/dev/null || true\ncat /proc/self/status | grep -E '^(Uid|Gid|Cap(Eff|Bnd|Amb)|NoNewPrivs):'\n```\n\n**Aceptación:** demostrar que metadatos del archivo no implican ejecución privilegiada; explicar por qué capabilities/flags necesitan contexto de proceso y binario. **Entregable:** baseline comparado y exposición corregible ficticia. **Rollback:** permisos normales en archivo LAB. **[RT]** no ejecutar binarios sospechosos ni construir SUID root."
+    },
+    {
+      "id": "T5-L04",
+      "title": "MAC SELinux/AppArmor: identificar y diagnosticar",
+      "category": "hardening",
+      "difficulty": "intermedio",
+      "duration_minutes_estimate": 60,
+      "score_points": 8,
+      "prerequisites": [
+        "Una VM AppArmor o SELinux",
+        "Herramientas disponibles según distro"
+      ],
+      "scope": "VM desechable y autorizada; intervención únicamente sobre LAB propio, excepto auditctl temporal aprobado en VM",
+      "procedure": [
+        "Detectar LSM en /sys/kernel/security/lsm y modo activo",
+        "Consultar aa-status o getenforce/sestatus y contextos si aplica",
+        "Leer AVC o AppArmor DENIED en ventana temporal acotada",
+        "Dibujar árbol de decisión DAC vs MAC vs unit sandbox",
+        "Proponer corrección mínima y test negativo sin cambios de política"
+      ],
+      "deliverables": [
+        "Estado de modo/perfil/contexto",
+        "Evento audit real o sintético rotulado",
+        "Hipótesis con falsos positivos",
+        "Remediación y regresión"
+      ],
+      "acceptance_criteria": [
+        "Estado de modo/perfil/contexto",
+        "Evento audit real o sintético rotulado",
+        "Hipótesis con falsos positivos",
+        "Remediación y regresión"
+      ],
+      "rubric": {
+        "planning_and_authorization": 2,
+        "evidence_and_observability": 2,
+        "technical_reasoning_detection": 2,
+        "rollback_and_retest": 2
+      },
+      "safety_constraints": [
+        "No setenforce 0",
+        "No aa-complain/aa-logprof en equipo personal",
+        "No generar denegaciones sobre datos reales"
+      ],
+      "rollback_and_cleanup": [
+        "Solo lectura; no requieren rollback",
+        "Si se creó muestra sintética, borrado bajo LAB tras conservar evidencia"
+      ],
+      "required_observations": [
+        "resultado real/simulado etiquetado",
+        "fecha UTC y boot_id cuando corresponda",
+        "fuente y límites",
+        "prueba positiva",
+        "prueba negativa o imposibilidad explicada"
+      ],
+      "references": [
+        "S08",
+        "S09",
+        "S10",
+        "S11",
+        "S40"
+      ],
+      "source_section": "16",
+      "full_description_markdown": "## LAB T5-L04 — Diagnóstico MAC SELinux/AppArmor (8 pt, 45–75 min)\n\n**Objetivo.** Identificar LSM real y ruta de evidencia. Con Ubuntu/Parrot: `aa-status` y mensajes de kernel; con Fedora/RHEL: `getenforce`, `sestatus`, `ls -Z`, auditoría AVC. Si no existe MAC, **documentar carencia** y usar un ejemplo de registro **sintético**, claramente marcado como tal.\n\n**Aceptación:** distinguir causa DAC, MAC y systemd sandbox; planear una corrección mínima y test positivo/negativo sin desactivar política. **Entregable:** árbol de decisión, ejemplo de evento (anonimizado) e hipótesis descartadas. **Rollback:** ninguno; lab de solo lectura."
+    },
+    {
+      "id": "T5-L05",
+      "title": "journal: canary, campos y retención",
+      "category": "logging",
+      "difficulty": "básico",
+      "duration_minutes_estimate": 55,
+      "score_points": 8,
+      "prerequisites": [
+        "systemd-journald disponible",
+        "logger disponible"
+      ],
+      "scope": "VM desechable y autorizada; intervención únicamente sobre LAB propio, excepto auditctl temporal aprobado en VM",
+      "procedure": [
+        "Registrar UTC y boot id",
+        "Emitir evento sintético etiquetado con logger",
+        "Buscar con journalctl -t y exportar en JSON",
+        "Comparar campos de tiempo/proceso/origen",
+        "Consultar journalctl --disk-usage y --list-boots",
+        "Explicar límites de persistencia, ratelimit y rotación"
+      ],
+      "deliverables": [
+        "Canary encontrado o brecha documentada",
+        "Timestamp, tag, boot id cuando esté presente",
+        "Límites de Storage/SystemMaxUse correctamente declarados",
+        "Captura redigida sin secretos"
+      ],
+      "acceptance_criteria": [
+        "Canary encontrado o brecha documentada",
+        "Timestamp, tag, boot id cuando esté presente",
+        "Límites de Storage/SystemMaxUse correctamente declarados",
+        "Captura redigida sin secretos"
+      ],
+      "rubric": {
+        "planning_and_authorization": 2,
+        "evidence_and_observability": 2,
+        "technical_reasoning_detection": 2,
+        "rollback_and_retest": 2
+      },
+      "safety_constraints": [
+        "Sin journalctl --vacuum ni borrar journal",
+        "No producir inundación de eventos",
+        "No insertar datos personales"
+      ],
+      "rollback_and_cleanup": [
+        "Evento pasa a ciclo de retención normal; no borrar logs",
+        "Conservar resumen y consulta del canary"
+      ],
+      "required_observations": [
+        "resultado real/simulado etiquetado",
+        "fecha UTC y boot_id cuando corresponda",
+        "fuente y límites",
+        "prueba positiva",
+        "prueba negativa o imposibilidad explicada"
+      ],
+      "references": [
+        "S15",
+        "S16",
+        "S22"
+      ],
+      "source_section": "16",
+      "full_description_markdown": "## LAB T5-L05 — journald estructurado, tags y retención (8 pt, 45–65 min)\n\n**Objetivo.** Generar evento sintético y recuperarlo con tiempo, boot y fields. `logger` puede usar syslog/journal distinto según host; validar ingreso real y **marcar como no cubierto** si no aparece.\n\n```bash\nTAG=\"t5-lab-$(id -u)\"\nlogger -t \"$TAG\" -- \"CANARY_LNX_T5_PERSISTENCIA_SINTETICA\"\njournalctl -t \"$TAG\" --since '10 minutes ago' -o json --no-pager | head -c 5000\njournalctl --disk-usage\njournalctl --list-boots --no-pager\n```\n\n**Aceptación:** export de evento con timestamp y boot ID cuando presentes, explicación del límite `Storage`/`SystemMaxUse`, retención expresada en **espacio/ventana observada**, nunca «30 días garantizados». **Rollback:** no vaciar el journal; evento expira por política del LAB."
+    },
+    {
+      "id": "T5-L06",
+      "title": "Audit: regla efímera y pérdida de eventos",
+      "category": "auditing",
+      "difficulty": "avanzado",
+      "duration_minutes_estimate": 75,
+      "score_points": 10,
+      "prerequisites": [
+        "VM desechable con auditd o variante sintética",
+        "Plan de rollback probado",
+        "Permiso explícito para tocar reglas efímeras"
+      ],
+      "scope": "VM desechable y autorizada; intervención únicamente sobre LAB propio, excepto auditctl temporal aprobado en VM",
+      "procedure": [
+        "Registrar auditctl -s y auditctl -l para conocer baseline",
+        "Definir watcher únicamente sobre fichero de LAB y clave t5_watch_lab",
+        "Si está autorizado, aplicar única regla audit temporal y registrar resultado",
+        "Hacer solo una modificación de fichero propio y consultar ausearch -k",
+        "Inspeccionar evento completo por serial, uid/euid/auid y PATH",
+        "Retirar únicamente la regla introducida; auditar estado y lost después",
+        "Si falta audit, usar simulación y etiquetar no cubierto"
+      ],
+      "deliverables": [
+        "Diff de reglas pre/post",
+        "Evento positivo y negativo o falta de cobertura declarada",
+        "Campo lost/backlog antes/después",
+        "Regla retirada sin interferir en otras"
+      ],
+      "acceptance_criteria": [
+        "Diff de reglas pre/post",
+        "Evento positivo y negativo o falta de cobertura declarada",
+        "Campo lost/backlog antes/después",
+        "Regla retirada sin interferir en otras"
+      ],
+      "rubric": {
+        "planning_and_authorization": 2,
+        "evidence_and_observability": 3,
+        "technical_reasoning_detection": 3,
+        "rollback_and_retest": 2
+      },
+      "safety_constraints": [
+        "Prohibido auditctl -D",
+        "No auditctl -e 2",
+        "No escribir /etc/audit ni reiniciar auditd",
+        "No instrumentar rutas críticas ni toda la raíz"
+      ],
+      "rollback_and_cleanup": [
+        "Usar auditctl -W sobre exactamente misma regla si se instaló",
+        "Confirmar reglas ajenas intactas y adjuntar auditoría post"
+      ],
+      "required_observations": [
+        "resultado real/simulado etiquetado",
+        "fecha UTC y boot_id cuando corresponda",
+        "fuente y límites",
+        "prueba positiva",
+        "prueba negativa o imposibilidad explicada"
+      ],
+      "references": [
+        "S18",
+        "S19",
+        "S20",
+        "S21",
+        "S41"
+      ],
+      "source_section": "16",
+      "full_description_markdown": "## LAB T5-L06 — Auditoría de cambios: regla efímera o sustituto sintético (10 pt, 60–90 min)\n\n**Objetivo.** Medir diferencia entre regla configurada, regla activa, evento recibido y pérdida. En **VM con auditd y autorización**, aplicar únicamente la regla de `$LAB/data/watch.txt` descrita en §7.3.1; registrar salida `auditctl -s`, crear un único cambio de archivo, consultar `ausearch -k t5_watch_lab`, eliminar **esa misma** regla, verificar su ausencia. Si audit no existe, documentar «instrumentación no presente» y correlacionar un evento sintético sin afirmar captura real.\n\n**Aceptación:** señal positiva **y negativa**, `lost` antes/después, correlación serial de registros, retirada controlada de la regla, sin `auditctl -D`. **Entregable:** diff de policy, evento y límites. **Fallo crítico:** tocar rutas de auditoría de producción o usar `auditctl -e 2` sin aprobación."
+    },
+    {
+      "id": "T5-L07",
+      "title": "Triage SOC, timeline y cadena de custodia",
+      "category": "dfir",
+      "difficulty": "intermedio",
+      "duration_minutes_estimate": 90,
+      "score_points": 10,
+      "prerequisites": [
+        "Labs L05 y preferible L06",
+        "Datos sintéticos",
+        "Conocer T3/T4"
+      ],
+      "scope": "VM desechable y autorizada; intervención únicamente sobre LAB propio, excepto auditctl temporal aprobado en VM",
+      "procedure": [
+        "Registrar autoridad, UTC y boot id",
+        "Crear canary journal y un cambio de archivo propio",
+        "Inventariar procesos y sockets con lecturas acotadas",
+        "Construir timeline de seis observaciones con fuente primaria",
+        "Presentar tres hipótesis alternativas y grados de certeza",
+        "Elegir contención proporcional y justificar orden de preservación",
+        "Congelar expediente, calcular sha256 y registrar transferencia"
+      ],
+      "deliverables": [
+        "Seis eventos reales/sintéticos distinguidos",
+        "Tres hipótesis y evidencia a favor/contra",
+        "Metadatos UTC y hashes reproducibles",
+        "Plan de contención, impacto y recuperación"
+      ],
+      "acceptance_criteria": [
+        "Seis eventos reales/sintéticos distinguidos",
+        "Tres hipótesis y evidencia a favor/contra",
+        "Metadatos UTC y hashes reproducibles",
+        "Plan de contención, impacto y recuperación"
+      ],
+      "rubric": {
+        "planning_and_authorization": 2,
+        "evidence_and_observability": 3,
+        "technical_reasoning_detection": 3,
+        "rollback_and_retest": 2
+      },
+      "safety_constraints": [
+        "No exfiltración real",
+        "No kill PID a ciegas",
+        "No publicar tokens, nombres reales ni datos privados"
+      ],
+      "rollback_and_cleanup": [
+        "No hay cambios de host aparte del artefacto propio",
+        "Conservar expediente y decidir retención/limpieza"
+      ],
+      "required_observations": [
+        "resultado real/simulado etiquetado",
+        "fecha UTC y boot_id cuando corresponda",
+        "fuente y límites",
+        "prueba positiva",
+        "prueba negativa o imposibilidad explicada"
+      ],
+      "references": [
+        "S18",
+        "S23",
+        "S24"
+      ],
+      "source_section": "16",
+      "full_description_markdown": "## LAB T5-L07 — Timeline de triaje SOC y cadena de custodia (10 pt, 70–100 min)\n\n**Objetivo.** Crear timeline desde canary journald, PID/sesión del lab, un archivo de datos sintéticos modificado y evidencia T4 de flujo **simulado/documental**. Cada evento debe declarar observación vs inferencia y fuente de tiempo.\n\n**Pasos:** registrar UTC y boot, obtener metadatos, congelar ficheros del expediente, sha256, simular alerta de proceso desconocido, documentar qué se necesitaría para atribuir egress. No exfiltrar datos ni lanzar conexiones externas.\n\n**Aceptación:** cronología de al menos 6 hechos sustentados, 3 hipótesis alternativas, decisiones de contención justificadas, limitaciones explicadas y hash reproducible. **Entrega:** expediente IR con medidas inmediatas y plan de recuperación. **[SOC]** evitar «no hay login en GUI por tanto no hay proceso»."
+    },
+    {
+      "id": "T5-L08",
+      "title": "PSI y rendimiento sin DoS",
+      "category": "performance",
+      "difficulty": "intermedio",
+      "duration_minutes_estimate": 60,
+      "score_points": 8,
+      "prerequisites": [
+        "Host VM propio",
+        "Acceso /proc/pressure"
+      ],
+      "scope": "VM desechable y autorizada; intervención únicamente sobre LAB propio, excepto auditctl temporal aprobado en VM",
+      "procedure": [
+        "Tomar tres muestras con UTC, uptime, free, vmstat y PSI",
+        "Relacionar loadavg con estados de espera, CPU e IO",
+        "Identificar procesos dominantes sin matar ni trazar",
+        "Explicar al menos un falso positivo y una condición sin cobertura",
+        "Proponer umbrales de rendimiento solo tras baseline"
+      ],
+      "deliverables": [
+        "Serie corta con tiempos",
+        "Interpretación some/full, IO y loadavg",
+        "Hipótesis de cuello de botella y límites",
+        "No modificar carga sustancial del host"
+      ],
+      "acceptance_criteria": [
+        "Serie corta con tiempos",
+        "Interpretación some/full, IO y loadavg",
+        "Hipótesis de cuello de botella y límites",
+        "No modificar carga sustancial del host"
+      ],
+      "rubric": {
+        "planning_and_authorization": 2,
+        "evidence_and_observability": 2,
+        "technical_reasoning_detection": 2,
+        "rollback_and_retest": 2
+      },
+      "safety_constraints": [
+        "No stress indiscriminado",
+        "No llenar FS/RAM",
+        "No perf/strace de procesos de terceros"
+      ],
+      "rollback_and_cleanup": [
+        "Solo lectura; sin rollback",
+        "No conservar datos sensibles de procesos"
+      ],
+      "required_observations": [
+        "resultado real/simulado etiquetado",
+        "fecha UTC y boot_id cuando corresponda",
+        "fuente y límites",
+        "prueba positiva",
+        "prueba negativa o imposibilidad explicada"
+      ],
+      "references": [
+        "S25",
+        "S26",
+        "S27"
+      ],
+      "source_section": "16",
+      "full_description_markdown": "## LAB T5-L08 — Presión de recursos y diagnóstico (8 pt, 45–70 min)\n\n**Objetivo.** Baseline `uptime/free/vmstat/PSI` y análisis de una ejecución benigna corta. No usar `stress --cpu N` arbitrario ni llenar FS. Tomar tres lecturas y describir si hay presión observada.\n\n```bash\nfor i in 1 2 3; do\n  date -u +%FT%TZ\n  cat /proc/pressure/{cpu,memory,io} 2>/dev/null || true\n  sleep 1\ndone\nps -eo pid,stat,%cpu,%mem,comm --sort=-%cpu | head -15\n```\n\n**Aceptación:** interpretar PSI `some/full`, loadavg vs CPU y un falso positivo benigno; no atribuir alto load a malware. **Entregable:** runbook de diagnóstico y umbrales que requieren calibración."
+    },
+    {
+      "id": "T5-L09",
+      "title": "Bash de evidencia privada, idempotente",
+      "category": "automation",
+      "difficulty": "intermedio",
+      "duration_minutes_estimate": 60,
+      "score_points": 8,
+      "prerequisites": [
+        "Bash y coreutils",
+        "T1: variables y quoting"
+      ],
+      "scope": "VM desechable y autorizada; intervención únicamente sobre LAB propio, excepto auditctl temporal aprobado en VM",
+      "procedure": [
+        "Ejecutar script de captura §12 como usuario no privilegiado",
+        "Verificar que cada ejecución crea directorio propio distinto",
+        "Inspeccionar umask, permisos y presencia de SHA256SUMS",
+        "Ejecutar sha256sum -c dentro del directorio",
+        "Probar path de trabajo con espacios y errores de entrada controlados",
+        "Añadir notas sobre redacción, aceptación y retención"
+      ],
+      "deliverables": [
+        "Dos carpetas sin sobrescritura",
+        "SHA256SUMS verificable",
+        "No secrets ni mutación de host",
+        "Registro de salida y límites de errores"
+      ],
+      "acceptance_criteria": [
+        "Dos carpetas sin sobrescritura",
+        "SHA256SUMS verificable",
+        "No secrets ni mutación de host",
+        "Registro de salida y límites de errores"
+      ],
+      "rubric": {
+        "planning_and_authorization": 2,
+        "evidence_and_observability": 2,
+        "technical_reasoning_detection": 2,
+        "rollback_and_retest": 2
+      },
+      "safety_constraints": [
+        "No sudo ni eval/bash -c de input",
+        "No rm -rf automático en trap",
+        "No sobreescribir evidencia existente"
+      ],
+      "rollback_and_cleanup": [
+        "No eliminar artefactos por defecto; borrar por decisión explícita solo paths identificados"
+      ],
+      "required_observations": [
+        "resultado real/simulado etiquetado",
+        "fecha UTC y boot_id cuando corresponda",
+        "fuente y límites",
+        "prueba positiva",
+        "prueba negativa o imposibilidad explicada"
+      ],
+      "references": [
+        "S28",
+        "S23"
+      ],
+      "source_section": "16",
+      "full_description_markdown": "## LAB T5-L09 — Automatización Bash y expediente íntegro (8 pt, 50–70 min)\n\n**Objetivo.** Ejecutar script de §12 en cuenta normal y confirmar salida privada, no sobrescritura, hash reproducible, código de salida, error de comando opcional y archivo de limitaciones. Probar rutas con espacios en un directorio de LAB, no en `/etc`.\n\n**Aceptación:** script ejecutado dos veces produce carpetas distintas y permisos restringidos; no secrets; trazabilidad de UTC/boot; `sha256sum -c SHA256SUMS` dentro de carpeta conserva integridad tras generación (ejecución contextual correcta). **Rollback:** decidir retención y eliminar exclusivamente directorios creados identificados."
+    },
+    {
+      "id": "T5-L10",
+      "title": "Seguridad de contenedores: inspección",
+      "category": "containers",
+      "difficulty": "intermedio",
+      "duration_minutes_estimate": 70,
+      "score_points": 8,
+      "prerequisites": [
+        "Runtime solo en VM descartable o caso offline simulado",
+        "Contenedor propio preaprobado"
+      ],
+      "scope": "VM desechable y autorizada; intervención únicamente sobre LAB propio, excepto auditctl temporal aprobado en VM",
+      "procedure": [
+        "Identificar contexto Docker/Podman y daemon rootless o rootful",
+        "Inspeccionar de forma pasiva UID/privileged/securityOpts/capabilities/mounts",
+        "Relacionar seccomp/LSM/namespaces con limitaciones del workload",
+        "Comparar configuración real con Restricted de Kubernetes cuando corresponda",
+        "Redactar cuatro hallazgos de hardening y dos contrapruebas"
+      ],
+      "deliverables": [
+        "Matriz riesgo/control/tests",
+        "Estado real vs simulado explícito",
+        "Cuatro diferencias de modelado de privilegios",
+        "Sin imágenes desconocidas ni mounts host"
+      ],
+      "acceptance_criteria": [
+        "Matriz riesgo/control/tests",
+        "Estado real vs simulado explícito",
+        "Cuatro diferencias de modelado de privilegios",
+        "Sin imágenes desconocidas ni mounts host"
+      ],
+      "rubric": {
+        "planning_and_authorization": 2,
+        "evidence_and_observability": 2,
+        "technical_reasoning_detection": 2,
+        "rollback_and_retest": 2
+      },
+      "safety_constraints": [
+        "No montar socket Docker",
+        "No --privileged",
+        "No docker pull de orígenes no verificados",
+        "No intervenir workloads ajenos"
+      ],
+      "rollback_and_cleanup": [
+        "Solo lectura; si hay contenedor propio temporal, limpiar tras capturar evidencia"
+      ],
+      "required_observations": [
+        "resultado real/simulado etiquetado",
+        "fecha UTC y boot_id cuando corresponda",
+        "fuente y límites",
+        "prueba positiva",
+        "prueba negativa o imposibilidad explicada"
+      ],
+      "references": [
+        "S31",
+        "S32",
+        "S33",
+        "S34",
+        "S36",
+        "S37",
+        "S42"
+      ],
+      "source_section": "16",
+      "full_description_markdown": "## LAB T5-L10 — Inspección de seguridad de contenedor propio (8 pt, 55–85 min)\n\n**Objetivo.** Si Docker/Podman está instalado en VM desechable, inspeccionar **solo** contenedor de laboratorio preaprobado: UID efectivo, privileges, capabilities, mounts, seccomp, límites, namespaces y logs. Si no hay runtime, usar manifiesto YAML ficticio offline y marcar el alcance como documental.\n\n**Aceptación:** identificar al menos 4 diferencias entre `user=root`, daemon rootful, rootless y namespace; no ejecutar imagen no verificada ni montar socket host. **Entrega:** matriz riesgo/control/test/retest. **Reversión:** solo detener/eliminar el contenedor creado para la práctica **si se creó bajo su control**."
+    },
+    {
+      "id": "T5-L11",
+      "title": "Red Team: enumeración y hallazgo no destructivo",
+      "category": "red_team_authorized",
+      "difficulty": "intermedio",
+      "duration_minutes_estimate": 75,
+      "score_points": 8,
+      "prerequisites": [
+        "ROE redactadas y aprobadas",
+        "Ficheros de ejemplo solo LAB",
+        "T1–T5 teoría de identidad"
+      ],
+      "scope": "VM desechable y autorizada; intervención únicamente sobre LAB propio, excepto auditctl temporal aprobado en VM",
+      "procedure": [
+        "Establecer alcance y prohibiciones del test",
+        "Inventariar permisos, scripts, capabilities y servicios sin mutación",
+        "Crear ejemplo de script de mantenimiento editable solo entre identidades simuladas de LAB",
+        "Demostrar por stat/getfacl que existe escritura; sin ejecución con root",
+        "Redactar hallazgo con impacto real vs potencial",
+        "Plantear remediación ownership/grupo/capability y retest positivo/negativo"
+      ],
+      "deliverables": [
+        "Ficha RT-XXX con evidencia y alcance",
+        "Posibilidad separada de explotación confirmada",
+        "Propuesta de corrección y observabilidad SOC",
+        "Retest documentado sin explotación"
+      ],
+      "acceptance_criteria": [
+        "Ficha RT-XXX con evidencia y alcance",
+        "Posibilidad separada de explotación confirmada",
+        "Propuesta de corrección y observabilidad SOC",
+        "Retest documentado sin explotación"
+      ],
+      "rubric": {
+        "planning_and_authorization": 2,
+        "evidence_and_observability": 2,
+        "technical_reasoning_detection": 2,
+        "rollback_and_retest": 2
+      },
+      "safety_constraints": [
+        "No privesc real sobre sistemas ajenos",
+        "No leer secretos ni ejecutar payload privilegiado",
+        "No implantar persistencia"
+      ],
+      "rollback_and_cleanup": [
+        "Restaurar archivos/pruebas solo LAB",
+        "Conservar hallazgo y hashes"
+      ],
+      "required_observations": [
+        "resultado real/simulado etiquetado",
+        "fecha UTC y boot_id cuando corresponda",
+        "fuente y límites",
+        "prueba positiva",
+        "prueba negativa o imposibilidad explicada"
+      ],
+      "references": [
+        "S03",
+        "S05",
+        "S29",
+        "S38"
+      ],
+      "source_section": "16",
+      "full_description_markdown": "## LAB T5-L11 — Enumeración RT autorizada y hallazgo de configuración (8 pt, 60–85 min)\n\n**Objetivo.** Sin explotación: inventariar capacidades, permisos, rutas de ejecución editables, grupos, servicios y configuraciones simuladas con propietarios propios. Diseñar un hallazgo de permisos sobre script de mantenimiento de `svc-lab` **sin** ejecutarlo como root.\n\n**Aceptación:** ROE explícito; reproducibilidad, evidencia de permiso, impacto posible claramente distinguido de compromiso, corrección propuesta y test negativo. **Entregable:** ficha RT de 1–2 páginas y correlativo SOC. **Fallo crítico:** lograr privilegios en sistema distinto del lab, leer secretos reales o desplegar persistencia."
+    },
+    {
+      "id": "T5-L12",
+      "title": "Purple Team final: detección y retest",
+      "category": "purple_team",
+      "difficulty": "avanzado",
+      "duration_minutes_estimate": 110,
+      "score_points": 8,
+      "prerequisites": [
+        "Preferiblemente labs L01–L11",
+        "T1–T4 revisados",
+        "Datos simulados claramente marcados"
+      ],
+      "scope": "VM desechable y autorizada; intervención únicamente sobre LAB propio, excepto auditctl temporal aprobado en VM",
+      "procedure": [
+        "Inyectar SOLO en LAB cambios benignos que representen sudoers/PAM",
+        "Generar canary journal y correlacionar con cambios de fichero",
+        "Contrastar D05-02 como lógica, no como detección operativa sin SIEM",
+        "Añadir contexto benigno de presión de recursos y manifiesto contenedor ficticio",
+        "Elaborar informe SOC y hallazgo RT con evidencia vinculada",
+        "Aplicar remediación simulada y ejecutar test positivo y negativo",
+        "Declarar señales no observadas, fallos de cobertura y latencias no medidas"
+      ],
+      "deliverables": [
+        "Informe SOC + RT enlazados",
+        "Al menos cinco fuentes/sensores mapeadas",
+        "Prueba positiva/negativa y retest funcional",
+        "Diferencia explícita entre simulación y alerta SIEM real"
+      ],
+      "acceptance_criteria": [
+        "Informe SOC + RT enlazados",
+        "Al menos cinco fuentes/sensores mapeadas",
+        "Prueba positiva/negativa y retest funcional",
+        "Diferencia explícita entre simulación y alerta SIEM real"
+      ],
+      "rubric": {
+        "planning_and_authorization": 2,
+        "evidence_and_observability": 2,
+        "technical_reasoning_detection": 2,
+        "rollback_and_retest": 2
+      },
+      "safety_constraints": [
+        "No escribir /etc real",
+        "No usar ataques fuera de lab",
+        "No inventar tiempos de detección",
+        "No presentar eventos sintéticos como logs del sistema"
+      ],
+      "rollback_and_cleanup": [
+        "Restaurar solo datos propios del LAB",
+        "Conservar hashes y limitar distribución"
+      ],
+      "required_observations": [
+        "resultado real/simulado etiquetado",
+        "fecha UTC y boot_id cuando corresponda",
+        "fuente y límites",
+        "prueba positiva",
+        "prueba negativa o imposibilidad explicada"
+      ],
+      "references": [
+        "S23",
+        "S29",
+        "S30",
+        "S31"
+      ],
+      "source_section": "16",
+      "full_description_markdown": "## LAB T5-L12 — Purple Team: prueba final y retest extremo a extremo (8 pt, 90–120 min)\n\n**Objetivo.** Combinar: un evento sintético de PAM/sudoers bajo árbol del lab, aviso de cambio de configuración, canary journal, tabla de detección D05-02, incidente de rendimiento benigno y contenedor inseguro **ficticio**. Ejecutar una secuencia de test positivo/negativo y producir informe SOC + hallazgo RT enlazados.\n\n**Aceptación:** (a) declarar claramente cuáles eventos fueron observados y cuáles simulados, (b) mapear al menos 5 fuentes/sensores, (c) calcular latencia solo si medida realmente, (d) remediación que mantiene servicio funcional, (e) prueba negativa, (f) lista de huecos. **Entrega:** dossier final y recomendaciones priorizadas."
+    }
+  ],
+  "labs_count": 12,
+  "labs_points_total": 100,
+  "assessment": {
+    "max_points": 100,
+    "passing_score_points": 80,
+    "questions": [
+      {
+        "id": "Q01",
+        "question": "Diferencia RUID, EUID, FSUID y `auid` en la atribución de una operación."
+      },
+      {
+        "id": "Q02",
+        "question": "¿Por qué `getent passwd` puede ser más completo que leer `/etc/passwd`?"
+      },
+      {
+        "id": "Q03",
+        "question": "¿Por qué ver `+` en permisos obliga a consultar `getfacl`?"
+      },
+      {
+        "id": "Q04",
+        "question": "¿Cuándo un directorio padre puede bloquear lectura de archivo que tiene `0644`?"
+      },
+      {
+        "id": "Q05",
+        "question": "Diferencia SUID binario, SGID directorio y sticky bit."
+      },
+      {
+        "id": "Q06",
+        "question": "¿Por qué tener `CAP_NET_BIND_SERVICE` no equivale a ser root?"
+      },
+      {
+        "id": "Q07",
+        "question": "¿Qué implica `CAP_SYS_ADMIN` y por qué restringirla especialmente?"
+      },
+      {
+        "id": "Q08",
+        "question": "¿En qué escenarios `sudo -l` no basta para concluir una elevación explotable?"
+      },
+      {
+        "id": "Q09",
+        "question": "Distingue control `required`, `requisite`, `sufficient`, `optional` en PAM."
+      },
+      {
+        "id": "Q10",
+        "question": "¿Por qué `account` PAM puede denegar un login tras autenticar correctamente?"
+      },
+      {
+        "id": "Q11",
+        "question": "¿Qué riesgo presenta `pam_exec` cuando el script es editable o recibe input no confiable?"
+      },
+      {
+        "id": "Q12",
+        "question": "¿Cómo cambiar PAM en producción sin perder acceso administrativo?"
+      },
+      {
+        "id": "Q13",
+        "question": "Diferencias DAC vs MAC con un ejemplo en que DAC permita y MAC niegue."
+      },
+      {
+        "id": "Q14",
+        "question": "¿Por qué AVC no prueba ataque y ausencia de AVC no prueba permiso?"
+      },
+      {
+        "id": "Q15",
+        "question": "¿Qué es un contexto/tipo SELinux y por qué mover una ruta puede alterar acceso?"
+      },
+      {
+        "id": "Q16",
+        "question": "¿Qué hace AppArmor complain en relación con enforce y por qué no deja el mismo riesgo?"
+      },
+      {
+        "id": "Q17",
+        "question": "¿Por qué `aa-logprof` no debe considerarse una lectura sin mutación?"
+      },
+      {
+        "id": "Q18",
+        "question": "¿Qué problema resuelve `ReadWritePaths` en un servicio con `ProtectSystem=strict`?"
+      },
+      {
+        "id": "Q19",
+        "question": "Explica por qué `systemd-analyze security` no certifica que una unidad sea segura."
+      },
+      {
+        "id": "Q20",
+        "question": "Diferencias funcionales entre journald, rsyslog y auditd."
+      },
+      {
+        "id": "Q21",
+        "question": "¿Qué dice `_BOOT_ID` y por qué es importante tras un reboot?"
+      },
+      {
+        "id": "Q22",
+        "question": "¿Qué garantiza `SystemMaxUse` y qué no garantiza de la retención?"
+      },
+      {
+        "id": "Q23",
+        "question": "¿Por qué `journalctl --verify` no demuestra por sí solo ausencia de manipulación?"
+      },
+      {
+        "id": "Q24",
+        "question": "¿Cómo relacionas `SYSCALL`, `EXECVE`, `PATH` con serial de audit?"
+      },
+      {
+        "id": "Q25",
+        "question": "¿Para qué sirve `auid` en una operación ejecutada con sudo y qué límite tiene?"
+      },
+      {
+        "id": "Q26",
+        "question": "¿Qué significan `lost` y `backlog` en la evaluación de cobertura de audit?"
+      },
+      {
+        "id": "Q27",
+        "question": "¿Por qué `auditctl -D` es inaceptable como limpieza de un laboratorio compartido?"
+      },
+      {
+        "id": "Q28",
+        "question": "¿Qué diferencia hay entre un log generado y un evento indexado en el SIEM?"
+      },
+      {
+        "id": "Q29",
+        "question": "Identifica dos falsas inferencias en «no hay login registrado, no hubo intrusión»."
+      },
+      {
+        "id": "Q30",
+        "question": "¿Qué preservarías antes de hacer `kill` durante una exfiltración y cuándo priorizarías contención inmediata?"
+      },
+      {
+        "id": "Q31",
+        "question": "¿Cómo interpretas CPU pressure `some` y por qué no diagnostica malware?"
+      },
+      {
+        "id": "Q32",
+        "question": "¿Cómo puede load average ser alto con CPU porcentualmente baja?"
+      },
+      {
+        "id": "Q33",
+        "question": "¿Qué daño puede causar instrumentación indiscriminada con `strace`?"
+      },
+      {
+        "id": "Q34",
+        "question": "¿Cómo haces que un script de recogida de evidencia no borre ni sobrescriba artefactos?"
+      },
+      {
+        "id": "Q35",
+        "question": "Diferencia un contenedor y una VM respecto a kernel y superficie de ataque."
+      },
+      {
+        "id": "Q36",
+        "question": "¿Por qué el socket Docker de daemon rootful equivale a un permiso sensible sobre host?"
+      },
+      {
+        "id": "Q37",
+        "question": "¿Qué diferencia hay entre daemon rootless, usuario del contenedor y `runAsNonRoot`?"
+      },
+      {
+        "id": "Q38",
+        "question": "¿Qué exigen seccomp, capabilities y Pod Security Restricted de forma no redundante?"
+      },
+      {
+        "id": "Q39",
+        "question": "¿Cómo demostrarías responsablemente un hallazgo de script de mantenimiento escribible?"
+      },
+      {
+        "id": "Q40",
+        "question": "¿Qué condiciones han de cumplirse antes de declarar que un retest cerró una vulnerabilidad y que SOC la detecta?"
+      }
+    ],
+    "questions_count": 40,
+    "answer_key": [
+      {
+        "id": "Q01",
+        "answer_guide": "Real, efectiva, filesystem y audit login UID describen propiedades distintas; la atribución exige continuidad de sesión y contexto."
+      },
+      {
+        "id": "Q02",
+        "answer_guide": "NSS puede usar directorio remoto, SSSD u otras fuentes."
+      },
+      {
+        "id": "Q03",
+        "answer_guide": "ACL extendida y máscara efectiva pueden alterar permisos visibles."
+      },
+      {
+        "id": "Q04",
+        "answer_guide": "Falta de permiso `x` de búsqueda/travesía en cualquier padre."
+      },
+      {
+        "id": "Q05",
+        "answer_guide": "Cambio de identidad en ejecución, grupo heredado y protección de borrado en directorio compartido."
+      },
+      {
+        "id": "Q06",
+        "answer_guide": "Es una capacidad delimitada, sujeta a bounding, LSM y otros controles."
+      },
+      {
+        "id": "Q07",
+        "answer_guide": "Amplia superficie de operaciones administrativas del kernel; no es capacidad mínima."
+      },
+      {
+        "id": "Q08",
+        "answer_guide": "Policy efectiva, argumentos, binario, owner, shell escapes, contexto y controles compensatorios."
+      },
+      {
+        "id": "Q09",
+        "answer_guide": "Acumulación de fallos, salida inmediata, posible éxito que termina pila y efecto condicionado."
+      },
+      {
+        "id": "Q10",
+        "answer_guide": "Account verifica elegibilidad/vigencia independientemente de credencial."
+      },
+      {
+        "id": "Q11",
+        "answer_guide": "Ejecución bajo identidad de servicio y entrada/entorno controlables, con riesgo de credenciales."
+      },
+      {
+        "id": "Q12",
+        "answer_guide": "Snapshot, out-of-band, sesión mantenida, aprobación, validación y rollback."
+      },
+      {
+        "id": "Q13",
+        "answer_guide": "Política obligatoria niega acceso aunque propietario/ACL lo permita."
+      },
+      {
+        "id": "Q14",
+        "answer_guide": "Desconfiguración legítima y registros ausentes, `dontaudit`, filtrado u otras limitaciones."
+      },
+      {
+        "id": "Q15",
+        "answer_guide": "Etiquetas y reglas por dominio/tipo pueden depender de contexto esperado de ruta."
+      },
+      {
+        "id": "Q16",
+        "answer_guide": "Complain permite y registra ciertas violaciones; enforce bloquea según perfil."
+      },
+      {
+        "id": "Q17",
+        "answer_guide": "Puede sugerir, guardar y cargar cambios de política."
+      },
+      {
+        "id": "Q18",
+        "answer_guide": "Declara rutas de escritura necesarias para servicio restringido sin abrir sistema entero."
+      },
+      {
+        "id": "Q19",
+        "answer_guide": "Revisa configuración de sandbox, no amenazas completas/servicio real."
+      },
+      {
+        "id": "Q20",
+        "answer_guide": "Journal estructurado de mensajes, pipeline syslog y auditoría de operaciones bajo reglas."
+      },
+      {
+        "id": "Q21",
+        "answer_guide": "Identificador de arranque; distingue ciclos con PIDs y monotonic time reciclados."
+      },
+      {
+        "id": "Q22",
+        "answer_guide": "Espacio local máximo condicionado, no ventana temporal fija ni entrega remota."
+      },
+      {
+        "id": "Q23",
+        "answer_guide": "Comprobación local no autentica fuentes ni representa sellado externo garantizado."
+      },
+      {
+        "id": "Q24",
+        "answer_guide": "Eventos de auditoría agrupan registros por serial/host/tiempo."
+      },
+      {
+        "id": "Q25",
+        "answer_guide": "Identidad de login puede sobrevivir elevación; puede estar unset y manipulable por root/host comprometido."
+      },
+      {
+        "id": "Q26",
+        "answer_guide": "Pérdida de eventos y profundidad de cola; monitorizar tasas y anomalías."
+      },
+      {
+        "id": "Q27",
+        "answer_guide": "Elimina reglas ajenas y rompe cobertura/compliance; limpiar una sola regla de LAB."
+      },
+      {
+        "id": "Q28",
+        "answer_guide": "Pipeline: source→agente→cola→red→parse→index; cada tramo puede fallar."
+      },
+      {
+        "id": "Q29",
+        "answer_guide": "Persistencia sin login nuevo y ausencia de instrumentación/retención; más hipótesis válidas."
+      },
+      {
+        "id": "Q30",
+        "answer_guide": "Sockets/procesos/FDs/memoria si factible; si el daño continúa, contención proporcional sin demora imprudente."
+      },
+      {
+        "id": "Q31",
+        "answer_guide": "Tiempo de espera por contención; causa puede ser carga legítima u otras limitaciones."
+      },
+      {
+        "id": "Q32",
+        "answer_guide": "Tareas bloqueadas por IO contribuyen a carga; CPU puede esperar."
+      },
+      {
+        "id": "Q33",
+        "answer_guide": "Overhead, timing, ptrace y captura de datos o secretos."
+      },
+      {
+        "id": "Q34",
+        "answer_guide": "`mktemp`/umask, no sobreescritura, validación, hashes y política de retención explícita."
+      },
+      {
+        "id": "Q35",
+        "answer_guide": "Contenedor común comparte kernel; VM tiene guest kernel y hypervisor, aislamiento distinto."
+      },
+      {
+        "id": "Q36",
+        "answer_guide": "Control de daemon puede conceder montajes/ejecución potente en host, según política."
+      },
+      {
+        "id": "Q37",
+        "answer_guide": "Daemon rootless protege daemon en userns; usuario de proceso y política K8s son otras dimensiones."
+      },
+      {
+        "id": "Q38",
+        "answer_guide": "Syscalls, privilegios de kernel y conjunto de política de pod/restricciones de ejecución."
+      },
+      {
+        "id": "Q39",
+        "answer_guide": "ROE, permisión observable, PoC inocua, efecto demostrado frente a hipotético, solución y test."
+      },
+      {
+        "id": "Q40",
+        "answer_guide": "Aprobación, configuración corregida, funcionalidad conservada, abuso bloqueado, registro observado, FP/FN y gaps claros."
+      }
+    ],
+    "question_answers_count": 40,
+    "rubric_per_8pt_lab": {
+      "planning_and_authorization": 2,
+      "evidence_and_observability": 2,
+      "technical_reasoning_detection": 2,
+      "rollback_and_retest": 2
+    },
+    "rubric_per_10pt_lab": {
+      "planning_and_authorization": 2,
+      "evidence_and_observability": 3,
+      "technical_reasoning_detection": 3,
+      "rollback_and_retest": 2
+    },
+    "critical_failures": [
+      "Nunca actuar fuera de alcance ni ROE",
+      "No tocar PAM, sudoers, audit/firewall o sensores reales desde prácticas",
+      "No colocar backdoors, malware, persistencia ni intentar escalar privilegios fuera de pruebas inocuas",
+      "No registrar tokens/credenciales ni datos de terceros",
+      "Rollback de cambio exacto en el LAB; nunca limpiar todas las reglas",
+      "No atribuir actividad maliciosa sin evidencia y alternativas"
+    ],
+    "minimum_quality": "Medición real frente a simulación explícita; pruebas positivas/negativas, referencias y retest"
+  },
+  "detections": [
+    {
+      "id": "D05-01",
+      "title": "PAM modificado fuera de ventana",
+      "hypothesis": "PAM modificado fuera de ventana",
+      "analytic_logic_conceptual": "write/rename/attrib sobre /etc/pam.d o ficheros del proveedor",
+      "minimum_telemetry": "FIM o audit para rutas efectivas + account/process + change tickets",
+      "false_positives": "Actualización de paquete/authtool/admin autorizado",
+      "false_negatives": "Cambios mediante mecanismos no instrumentados, pérdida de eventos",
+      "positive_negative_test": "Evento sintético bajo LAB/config/pam.d y no bajo /etc; en SIEM real sólo mediante sensor aprobado",
+      "analyst_validation": "Comparar con change window, hash y PID; no bloquear login por regex",
+      "mitre_attack_context_not_proof": "T1556.003",
+      "baseline_severity_only": "high",
+      "status": "conceptual_only_not_deployed",
+      "requires_local_schema_validation": true,
+      "requires_sensor_health_test": true
+    },
+    {
+      "id": "D05-02",
+      "title": "Cambio sudoers seguido de acción privilegiada",
+      "hypothesis": "Cambio sudoers seguido de acción privilegiada",
+      "analytic_logic_conceptual": "write bajo /etc/sudoers o /etc/sudoers.d + sudo/exec posterior ≤30 minutos",
+      "minimum_telemetry": "FIM/audit writes + sudo logs + account/time host",
+      "false_positives": "Gestión de privilegios programada",
+      "false_negatives": "La aplicación de política o sudo logs se registran en colectores distintos",
+      "positive_negative_test": "Dos archivos falsos bajo LAB con positivo/cambio aprobado negativo",
+      "analyst_validation": "Validar `visudo -c` y operador; separar permisos amplios de explotación observada",
+      "mitre_attack_context_not_proof": "T1548.003",
+      "baseline_severity_only": "high",
+      "status": "conceptual_only_not_deployed",
+      "requires_local_schema_validation": true,
+      "requires_sensor_health_test": true
+    },
+    {
+      "id": "D05-03",
+      "title": "Bit SUID/SGID nuevo en ruta anómala",
+      "hypothesis": "Bit SUID/SGID nuevo en ruta anómala",
+      "analytic_logic_conceptual": "cambio de modo + tipo binario + propietario + exec/UID de proceso",
+      "minimum_telemetry": "FIM/file metadata + audit attrib, exec",
+      "false_positives": "Instalación legítima de paquete o chmod SGID de directorio",
+      "false_negatives": "No hay sensor de attributes, mounts nosuid, binario no ejecutado",
+      "positive_negative_test": "chmod SGID solo sobre archivo de texto LAB; detectar cambio sin declararlo elevación",
+      "analyst_validation": "Reportar presencia como riesgo contextual y buscar secuencia real",
+      "mitre_attack_context_not_proof": "T1548.001",
+      "baseline_severity_only": "medium",
+      "status": "conceptual_only_not_deployed",
+      "requires_local_schema_validation": true,
+      "requires_sensor_health_test": true
+    },
+    {
+      "id": "D05-04",
+      "title": "Capability de fichero potente asignada",
+      "hypothesis": "Capability de fichero potente asignada",
+      "analytic_logic_conceptual": "security.capability modificado en binario no baseline",
+      "minimum_telemetry": "FIM xattr + inventario getcap + paquete origen",
+      "false_positives": "Despliegue aprobado de servicio que necesita bind de puertos",
+      "false_negatives": "Restricciones de bounding/permitted/namespace impiden capacidad real",
+      "positive_negative_test": "Inventario offline getcap y baseline ficticio; sin setcap sobre binario root",
+      "analyst_validation": "Revisar CAP_SYS_ADMIN/CAP_DAC_READ_SEARCH, no inferir exec posterior",
+      "mitre_attack_context_not_proof": "T1548",
+      "baseline_severity_only": "high",
+      "status": "conceptual_only_not_deployed",
+      "requires_local_schema_validation": true,
+      "requires_sensor_health_test": true
+    },
+    {
+      "id": "D05-05",
+      "title": "Desactivación/enfoque permisivo de MAC",
+      "hypothesis": "Desactivación/enfoque permisivo de MAC",
+      "analytic_logic_conceptual": "cambio de modo SELinux/AppArmor/perfiles, audit kernel o config",
+      "minimum_telemetry": "audit/config FIM + LSM state + change management",
+      "false_positives": "Troubleshooting o mantenimiento aprobado",
+      "false_negatives": "Kernel sin LSM, herramientas no instaladas, hooks ausentes",
+      "positive_negative_test": "Comparar aa-status/getenforce de solo lectura y evento simulado",
+      "analyst_validation": "Mantener bloqueo salvo cambio aprobado y plan de retest",
+      "mitre_attack_context_not_proof": "T1562.001",
+      "baseline_severity_only": "high",
+      "status": "conceptual_only_not_deployed",
+      "requires_local_schema_validation": true,
+      "requires_sensor_health_test": true
+    },
+    {
+      "id": "D05-06",
+      "title": "Pérdida de cobertura de journald/audit/forwarder",
+      "hypothesis": "Pérdida de cobertura de journald/audit/forwarder",
+      "analytic_logic_conceptual": "heartbeat ausente, agent failed o audit lost > baseline",
+      "minimum_telemetry": "health del sensor + auditctl status + colas rsyslog + canary ingestion",
+      "false_positives": "Reinicio planificado de servicios/rotación",
+      "false_negatives": "Un único canary no cubre todas las sources; ausencia de agente en host inventario",
+      "positive_negative_test": "logger canary end-to-end y registrar tramos que carecen de respuesta",
+      "analyst_validation": "Abrir incidente de visibilidad; evitar borrar journal o reiniciar servicios sin contención",
+      "mitre_attack_context_not_proof": "T1562.001",
+      "baseline_severity_only": "high",
+      "status": "conceptual_only_not_deployed",
+      "requires_local_schema_validation": true,
+      "requires_sensor_health_test": true
+    },
+    {
+      "id": "D05-07",
+      "title": "Sesión no habitual seguida de privilegios",
+      "hypothesis": "Sesión no habitual seguida de privilegios",
+      "analytic_logic_conceptual": "USER_AUTH/USER_ACCT + sudo + exec o cambios críticos dentro de ventana",
+      "minimum_telemetry": "auth/PAM logs + audit session/exec + inventario usuario",
+      "false_positives": "Guardias nocturnas, automatización autorizada",
+      "false_negatives": "SSSD remoto, registros huérfanos, clock skew y terminal root",
+      "positive_negative_test": "Secuencia sintética multi-fuente e incluir cuenta de mantenimiento como negativo",
+      "analyst_validation": "Validar principal y origen sin afirmar atacante por geografía/horario",
+      "mitre_attack_context_not_proof": "T1078",
+      "baseline_severity_only": "medium",
+      "status": "conceptual_only_not_deployed",
+      "requires_local_schema_validation": true,
+      "requires_sensor_health_test": true
+    },
+    {
+      "id": "D05-08",
+      "title": "Persistencia escrita por proceso anómalo",
+      "hypothesis": "Persistencia escrita por proceso anómalo",
+      "analytic_logic_conceptual": "modificación de unidades/timers/cron/keys por proceso fuera baseline",
+      "minimum_telemetry": "audit/FIM en rutas scope + exec + systemd diff",
+      "false_positives": "Paquete, scheduler, SSH provisioning legítimos",
+      "false_negatives": "User units, contenedores, paths no incluidos, autor UID faltante",
+      "positive_negative_test": "Crear ruta ficticia LAB/config/systemd y registrar cambio benigno",
+      "analyst_validation": "Comprobar servicio habilitado, ejecutado y escritura real antes de marcar persistencia",
+      "mitre_attack_context_not_proof": "T1543.002",
+      "baseline_severity_only": "high",
+      "status": "conceptual_only_not_deployed",
+      "requires_local_schema_validation": true,
+      "requires_sensor_health_test": true
+    },
+    {
+      "id": "D05-09",
+      "title": "Shell inesperada dentro de contenedor",
+      "hypothesis": "Shell inesperada dentro de contenedor",
+      "analytic_logic_conceptual": "exec shell en container ID de workload no interactivo",
+      "minimum_telemetry": "Falco/EDR syscall + metadata container + audit de API si K8s",
+      "false_positives": "kubectl exec de on-call; entrypoint de imagen",
+      "false_negatives": "Runtime no instrumentado, events dropped y shell renombrada",
+      "positive_negative_test": "Manifiesto offline y evento simulado, no iniciar una shell ajena",
+      "analyst_validation": "Correlacionar ticket/on-call, UID y pod revision",
+      "mitre_attack_context_not_proof": "T1059.004",
+      "baseline_severity_only": "medium",
+      "status": "conceptual_only_not_deployed",
+      "requires_local_schema_validation": true,
+      "requires_sensor_health_test": true
+    },
+    {
+      "id": "D05-10",
+      "title": "Cambio inseguro de runtime o seguridad de contenedor",
+      "hypothesis": "Cambio inseguro de runtime o seguridad de contenedor",
+      "analytic_logic_conceptual": "privileged=true, bind a docker.sock, hostPID, capadd inesperado",
+      "minimum_telemetry": "docker events/config inspect o K8s audit/admission",
+      "false_positives": "Nuevo deployment administrativo aprobado",
+      "false_negatives": "Cambios en runtime sin snapshot, esquemas distintos",
+      "positive_negative_test": "Comparar dos inspect ficticios con controles positivos/negativos",
+      "analyst_validation": "Revisar ownership de daemon, userns, imagen y accesos",
+      "mitre_attack_context_not_proof": "T1611",
+      "baseline_severity_only": "high",
+      "status": "conceptual_only_not_deployed",
+      "requires_local_schema_validation": true,
+      "requires_sensor_health_test": true
+    },
+    {
+      "id": "D05-11",
+      "title": "Pressure IO/OOM coincide con hueco audit/log",
+      "hypothesis": "Pressure IO/OOM coincide con hueco audit/log",
+      "analytic_logic_conceptual": "OOM/PSI alto junto con audit lost o lag de forwarder",
+      "minimum_telemetry": "PSI/kernel log + métricas agente + auditctl -s + SIEM",
+      "false_positives": "Pico legítimo de backups/compresión",
+      "false_negatives": "PSI no disponible o event loss sin conexión causal",
+      "positive_negative_test": "Tres muestras PSI + canary de journal y fallo de enlace simulado",
+      "analyst_validation": "Crear incidente de disponibilidad/telemetría, no etiquetar ataque automáticamente",
+      "mitre_attack_context_not_proof": "T1499",
+      "baseline_severity_only": "medium",
+      "status": "conceptual_only_not_deployed",
+      "requires_local_schema_validation": true,
+      "requires_sensor_health_test": true
+    },
+    {
+      "id": "D05-12",
+      "title": "Borrado local de evidencia con egreso atípico",
+      "hypothesis": "Borrado local de evidencia con egreso atípico",
+      "analytic_logic_conceptual": "truncate/delete relevante + flow egress anómalo + proceso común",
+      "minimum_telemetry": "FIM/audit del objeto + Netflow/EDR red + proceso/boot",
+      "false_positives": "Retención legítima y export autorizado a backup externo",
+      "false_negatives": "TLS, NAT/proxy y correlación host ausente; FS journaling no proporciona actor",
+      "positive_negative_test": "Logs/flows sintéticos sin datos externos y negativo backup autorizado",
+      "analyst_validation": "Contener daño si activo; correlacionar con T3/T4 y fuentes remotas",
+      "mitre_attack_context_not_proof": "T1070.002",
+      "baseline_severity_only": "high",
+      "status": "conceptual_only_not_deployed",
+      "requires_local_schema_validation": true,
+      "requires_sensor_health_test": true
+    }
+  ],
+  "detection_count": 12,
+  "controls_matrix": [
+    {
+      "area": "PAM/sudoers",
+      "controls": [
+        "política por servicio",
+        "allowlisting de comandos",
+        "revisión de permisos",
+        "cuentas separadas"
+      ],
+      "evidence": [
+        "efectividad PAM",
+        "sudo -l del usuario",
+        "registros de auth y cambios"
+      ],
+      "limits": "Riesgo de bloqueo; requiere consola y rollback"
+    },
+    {
+      "area": "SELinux/AppArmor",
+      "controls": [
+        "enforcing",
+        "contextos/perfiles mínimos",
+        "validación funcional"
+      ],
+      "evidence": [
+        "AVC y DENIED",
+        "modo/perfil y contexto",
+        "retest funcional"
+      ],
+      "limits": "DENIED no es sinónimo de ataque"
+    },
+    {
+      "area": "Audit/journal/rsyslog",
+      "controls": [
+        "reglas y sensores adecuados",
+        "colas/TLS",
+        "espacio y retención",
+        "canary end-to-end"
+      ],
+      "evidence": [
+        "auditctl lost/backlog",
+        "journal field boot",
+        "receptor SIEM"
+      ],
+      "limits": "Cobertura y retención dependientes de setup real"
+    },
+    {
+      "area": "Contenedores",
+      "controls": [
+        "rootless cuando posible",
+        "sin privileged",
+        "cap drop",
+        "seccomp/LSM",
+        "montajes restringidos"
+      ],
+      "evidence": [
+        "docker inspect",
+        "kubernetes securityContext/admission"
+      ],
+      "limits": "No hay aislamiento equivalente al de VM"
+    },
+    {
+      "area": "Recuperación",
+      "controls": [
+        "contención proporcional",
+        "preservación",
+        "restauración",
+        "cambio controlado"
+      ],
+      "evidence": [
+        "timeline",
+        "hashes",
+        "ticket",
+        "pruebas de regresión"
+      ],
+      "limits": "Host comprometido no es fuente íntegramente confiable"
+    }
+  ],
+  "telemetry_matrix": [
+    {
+      "question": "Cambio de PAM",
+      "needed": "audit/FIM + cuenta/ejecución + change management",
+      "limitation": "cambio de paquete o source fuera de reglas"
+    },
+    {
+      "question": "Acción privilegiada",
+      "needed": "auth/PAM + sudo + audit exec + host/boot",
+      "limitation": "uid/euid/auid difieren"
+    },
+    {
+      "question": "Pérdida de sensor",
+      "needed": "heartbeats + lost/backlog + queue + canary",
+      "limitation": "agente activo no garantiza entrega"
+    },
+    {
+      "question": "Contenedor y host",
+      "needed": "runtime inspect + syscall events + control plane audit",
+      "limitation": "mounts, namespaces y privilegios variados"
+    },
+    {
+      "question": "Egreso sospechoso",
+      "needed": "sockets/flows + PID+start/boot + proxy/cloud",
+      "limitation": "TLS/NAT/destinos variables"
+    }
+  ],
+  "soc_incident_runbook": [
+    {
+      "phase": "triage",
+      "actions": [
+        "confirmar daño y alcance",
+        "UTC/host/boot y dueño",
+        "comparar sensores externos"
+      ]
+    },
+    {
+      "phase": "containment",
+      "actions": [
+        "decidir aislamiento/egreso proporcional",
+        "mantener vía IR y registrar impacto",
+        "evitar kill aleatorio"
+      ]
+    },
+    {
+      "phase": "preservation",
+      "actions": [
+        "procesos/sockets/FDs cuando sea viable",
+        "journal/audit/EDR/FS artefactos",
+        "SHA-256 y cadena de custodia"
+      ]
+    },
+    {
+      "phase": "analysis",
+      "actions": [
+        "correlacionar identities/exec/network/config",
+        "validar hipótesis alternativas",
+        "registrar gaps y event loss"
+      ]
+    },
+    {
+      "phase": "recovery",
+      "actions": [
+        "remediar causa con cambios aprobados",
+        "verificar función legítima",
+        "retest malicioso simulado negativo y SIEM positivo si desplegado"
+      ]
+    }
+  ],
+  "case_studies": [
+    {
+      "id": "A",
+      "title": "Egreso anómalo con pérdida de logs",
+      "source_section": "17",
+      "critical_reasoning": "Contener egreso activo; lectura de sockets reales no -tulnp; observar audit/journal/forwarding"
+    },
+    {
+      "id": "B",
+      "title": "Login SSH bloqueado con identidad NSS válida",
+      "source_section": "17",
+      "critical_reasoning": "PAM auth/account, config sshd, LSM, permisos y rescate"
+    },
+    {
+      "id": "C",
+      "title": "SELinux AVC tras cambio de ruta",
+      "source_section": "17",
+      "critical_reasoning": "Contexto, DAC, restorecon -n, no desactivar enforcement"
+    },
+    {
+      "id": "D",
+      "title": "Audit sin eventos",
+      "source_section": "17",
+      "critical_reasoning": "Sensor pipeline, reglas, backlog/lost y canary"
+    },
+    {
+      "id": "E",
+      "title": "Imagen Docker confiable, acceso excesivo al host",
+      "source_section": "17",
+      "critical_reasoning": "Rootful daemon/socket, privileged, binds y policy"
+    },
+    {
+      "id": "F",
+      "title": "Memoria alta y latencia con CPU baja",
+      "source_section": "17",
+      "critical_reasoning": "PSI, memoria disponible, OOM, IO y cgroups"
+    },
+    {
+      "id": "G",
+      "title": "Cambio chmod SUID en archivo de usuario",
+      "source_section": "17",
+      "critical_reasoning": "Dueño, tipo ejecutable, montaje, contexto y exec posterior"
+    },
+    {
+      "id": "H",
+      "title": "Shell en pod a las 04:10",
+      "source_section": "17",
+      "critical_reasoning": "Correlación API audit, change ticket, runtime, contexto y falso positivo"
+    }
+  ],
+  "soc_evidence_template_fields": [
+    "case_id",
+    "host_id",
+    "boot_id",
+    "utc_start",
+    "source_timestamp",
+    "clock_skew",
+    "authorizing_party",
+    "source_system",
+    "collection_tool_version",
+    "collection_scope",
+    "file_path",
+    "sha256",
+    "custody_chain",
+    "observed_events",
+    "hypotheses",
+    "alternative_explanations",
+    "fidelity_limitations",
+    "containment_approval",
+    "retest_results"
+  ],
+  "references": [
+    {
+      "id": "S01",
+      "title": "Linux-PAM pam.d(5)",
+      "url": "https://man7.org/linux/man-pages/man5/pam.d.5.html",
+      "supports": "Sintaxis, grupos y pilas PAM",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S02",
+      "title": "Linux-PAM pam_exec(8)",
+      "url": "https://man7.org/linux/man-pages/man8/pam_exec.8.html",
+      "supports": "Comando externo, entorno, credenciales",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S03",
+      "title": "Linux capabilities(7)",
+      "url": "https://man7.org/linux/man-pages/man7/capabilities.7.html",
+      "supports": "Capabilities, bounding/ambient, execve",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S04",
+      "title": "Linux credentials(7)",
+      "url": "https://man7.org/linux/man-pages/man7/credentials.7.html",
+      "supports": "UID/GID y credenciales proceso",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S05",
+      "title": "sudoers(5)",
+      "url": "https://man7.org/linux/man-pages/man5/sudoers.5.html",
+      "supports": "Delegación sudo, NOEXEC, límites",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S06",
+      "title": "ACL(5)",
+      "url": "https://man7.org/linux/man-pages/man5/acl.5.html",
+      "supports": "ACL, máscara efectiva, DAC",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S07",
+      "title": "Linux-PAM pam.conf(5)",
+      "url": "https://man7.org/linux/man-pages/man5/pam.conf.5.html",
+      "supports": "Precedencia vendor y config servicio",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S08",
+      "title": "Linux Kernel: LSM usage",
+      "url": "https://cdn.kernel.org/doc/html/latest/admin-guide/LSM/index.html",
+      "supports": "MAC y LSM activos",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S09",
+      "title": "Red Hat RHEL 9 Using SELinux",
+      "url": "https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/pdf/using_selinux/troubleshooting-problems-related-to-selinux_using-selinux",
+      "supports": "AVC, contexto, troubleshooting",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S10",
+      "title": "Ubuntu Server: AppArmor",
+      "url": "https://ubuntu.com/server/docs/how-to/security/apparmor/",
+      "supports": "Enforce/complain, aa-status, perfiles",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S11",
+      "title": "Linux Kernel: Yama",
+      "url": "https://docs.kernel.org/admin-guide/LSM/Yama.html",
+      "supports": "ptrace_scope, límites de observación",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S12",
+      "title": "systemd.exec(5)",
+      "url": "https://man7.org/linux/man-pages/man5/systemd.exec.5.html",
+      "supports": "Sandboxing de servicios",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S13",
+      "title": "Linux Kernel: Seccomp BPF",
+      "url": "https://docs.kernel.org/userspace-api/seccomp_filter.html",
+      "supports": "Restringir syscalls, límites",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S14",
+      "title": "RHEL 9 Security hardening",
+      "url": "https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html-single/security_hardening/index",
+      "supports": "Hardening y Audit persistente",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S15",
+      "title": "journald.conf(5)",
+      "url": "https://man7.org/linux/man-pages/man5/journald.conf.5.html",
+      "supports": "Storage, rate limits, uso espacio",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S16",
+      "title": "journalctl(1)",
+      "url": "https://man7.org/linux/man-pages/man1/journalctl.1.html",
+      "supports": "Consultas, exportación, verify",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S17",
+      "title": "Rsyslog omfwd",
+      "url": "https://docs.rsyslog.com/doc/configuration/modules/omfwd.html",
+      "supports": "Cola y forwarding TCP/TLS",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S18",
+      "title": "auditd(8)",
+      "url": "https://man7.org/linux/man-pages/man8/auditd.8.html",
+      "supports": "Daemon, fuentes, reglas persistentes",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S19",
+      "title": "auditctl(8)",
+      "url": "https://man7.org/linux/man-pages/man8/auditctl.8.html",
+      "supports": "Estado, auditoría, pérdida, reglas",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S20",
+      "title": "ausearch(8)",
+      "url": "https://man7.org/linux/man-pages/man8/ausearch.8.html",
+      "supports": "Correlación/consulta de registros audit",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S21",
+      "title": "RHEL 9: auditing the system",
+      "url": "https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/security_hardening/auditing-the-system_security-hardening",
+      "supports": "Reglas, retención, límites",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S22",
+      "title": "syslog protocol RFC 5424",
+      "url": "https://www.rfc-editor.org/rfc/rfc5424",
+      "supports": "Formato syslog y campos",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S23",
+      "title": "NIST SP 800-61 Rev.3 (2025)",
+      "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+      "supports": "Preparación, respuesta, recuperación",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S24",
+      "title": "NIST SP 800-92 (log management)",
+      "url": "https://csrc.nist.gov/pubs/sp/800/92/final",
+      "supports": "Administración y protección de logs",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S25",
+      "title": "Linux Kernel: Pressure Stall Information",
+      "url": "https://docs.kernel.org/accounting/psi.html",
+      "supports": "Pressure CPU/memory/IO",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S26",
+      "title": "strace(1)",
+      "url": "https://man7.org/linux/man-pages/man1/strace.1.html",
+      "supports": "Trazas syscall, carga, seguridad",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S27",
+      "title": "proc_pressure(5)",
+      "url": "https://docs.kernel.org/accounting/psi.html#pressure-interface",
+      "supports": "Interfaz PSI en /proc",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S28",
+      "title": "GNU Bash manual",
+      "url": "https://www.gnu.org/software/bash/manual/bash.html",
+      "supports": "quoting, trap, errexit, pipelines",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S29",
+      "title": "MITRE ATT&CK T1548.001",
+      "url": "https://attack.mitre.org/techniques/T1548/001/",
+      "supports": "SUID/SGID y mitigación",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S30",
+      "title": "MITRE ATT&CK Data Sources (deprecated)",
+      "url": "https://attack.mitre.org/datasources/",
+      "supports": "Advertencia de v18 2025",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S31",
+      "title": "Docker Engine security",
+      "url": "https://docs.docker.com/engine/security/",
+      "supports": "Socket/daemon y binds",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S32",
+      "title": "Docker rootless mode",
+      "url": "https://docs.docker.com/engine/security/rootless/",
+      "supports": "User namespace y daemon no root",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S33",
+      "title": "Docker seccomp profiles",
+      "url": "https://docs.docker.com/engine/security/seccomp/",
+      "supports": "Filtro de syscalls",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S34",
+      "title": "Kubernetes Pod Security Standards",
+      "url": "https://kubernetes.io/docs/concepts/security/pod-security-standards/",
+      "supports": "Restricted/Baseline, capabilities",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S35",
+      "title": "Falco official project",
+      "url": "https://github.com/falcosecurity/falco",
+      "supports": "Runtime security y eventos kernel",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S36",
+      "title": "Docker resource constraints",
+      "url": "https://docs.docker.com/engine/containers/resource_constraints/",
+      "supports": "CPU/memory y límites contenedor",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S37",
+      "title": "Linux Kernel: cgroup v2",
+      "url": "https://docs.kernel.org/admin-guide/cgroup-v2.html",
+      "supports": "Recursos/cgroups",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S38",
+      "title": "MITRE ATT&CK T1548.003",
+      "url": "https://attack.mitre.org/techniques/T1548/003/",
+      "supports": "Sudo y abusos de elevación",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S39",
+      "title": "systemd-analyze(1)",
+      "url": "https://man7.org/linux/man-pages/man1/systemd-analyze.1.html",
+      "supports": "security/análisis de unidades",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S40",
+      "title": "Red Hat: policy SELinux y diagnósticos",
+      "url": "https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/10/html/using_selinux/troubleshooting-problems-related-to-selinux",
+      "supports": "AVC e identificación de denegaciones",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S41",
+      "title": "audit.rules(7)",
+      "url": "https://man7.org/linux/man-pages/man7/audit.rules.7.html",
+      "supports": "Sintaxis/persistencia de audit",
+      "source_type": "official_or_primary_technical_documentation"
+    },
+    {
+      "id": "S42",
+      "title": "Docker inspect",
+      "url": "https://docs.docker.com/reference/cli/docker/inspect/",
+      "supports": "Inspección de contenedor y seguridad",
+      "source_type": "official_or_primary_technical_documentation"
+    }
+  ],
+  "references_count": 42,
+  "coverage_summary": {
+    "source_topic_count": 11,
+    "tandas_completed": 5,
+    "topics_finished": [
+      "Linux Bash administración",
+      "boot systemd paquetes",
+      "FS y recuperación",
+      "red SSH firewall",
+      "PAM y MAC",
+      "logs/audit/telemetría",
+      "rendimiento/automatización",
+      "Red Team lab",
+      "contenedores",
+      "ruta/prerrequisitos/evaluaciones"
+    ]
+  },
+  "limitations": [
+    "No hay ejecución sobre infraestructura de usuario",
+    "Comandos dependen de versiones y distribución",
+    "Lógica de detección no es regla Splunk/Sentinel validada",
+    "Los resultados de laboratorios no son observaciones reales",
+    "NIST y manuales no sustituyen validación legal/compliance",
+    "Sin root exploit, bypass de EDR, evasion ni escape contenedor"
+  ],
+  "quality_assurance": {
+    "markdown_sha256": "a895dbf046a61a1ebac3401a2f7fa064e324ab7a9ea133116abd9b251818c8b6",
+    "labs_names_match_markdown": true,
+    "question_count_verified": 40,
+    "answer_key_count_verified": 40,
+    "all_lab_rubrics_sum_verified": true,
+    "sources_verification": "manuales oficiales y páginas primarias consultadas o referenciadas; validar versión instalada",
+    "json_validated": true
+  },
+  "status": "research_complete_labs_not_executed",
+  "next_batch": null
+}

@@ -1,0 +1,176 @@
+{
+  "schemaVersion": 1,
+  "courseId": "soc",
+  "id": "N2-01",
+  "sourceHash": "27aa0008dec0965d46f1c797cafe0b489a586b85f2d4e8dc7c913e9ccc0155ee",
+  "revision": "5a65d25f2c5e2341a4f01950",
+  "hipotesis": [
+    "Exfiltración desde proceso comprometido, cuenta de servicio, aplicación o agente no interactivo; «cero usuarios conectados» no descarta procesos en segundo plano.",
+    "Transferencia administrativa legítima de backup, replicación o copia a proveedor con destino no inventariado.",
+    "Telemetría de firewall atribuida erróneamente por NAT, balanceadores o etiquetas de activo obsoletas.",
+    "Transferencia por HTTPS/443, túnel saliente o conexión persistente, por lo que bloquear un puerto de escucha no detiene el flujo.",
+    "El volumen del firewall representa bytes en un intervalo distinto o contador acumulado; hay que validar métrica y sentido de tráfico.",
+    "El atacante puede tener otra sesión, token o proceso preparado para reiniciar la salida incluso si se mata el primer PID."
+  ],
+  "pasos": [
+    {
+      "fase": "T+0–5 s · Declarar sospecha crítica",
+      "accion": "Identificar el activo fuente y validar con el propio evento la dirección del tráfico. Accionar el canal de emergencia en paralelo; no esperar al inventario completo de procesos si el flujo continúa."
+    },
+    {
+      "fase": "T+5–15 s · Contención inmediata según playbook",
+      "accion": "Si la telemetría permite alta confianza y ya existe autoridad: aislar por EDR cuando el modo sea compatible y seguro, o aplicar denegación de egreso por identidad/segmento de servidor en firewall/NSG/ACL. Si aislar el host destruye disponibilidad, coordinar una regla de egreso específica para detener el flujo mientras IR y operaciones deciden. Las excepciones son temporales y justificadas."
+    },
+    {
+      "fase": "T+15–25 s · Confirmar efectividad",
+      "accion": "Revisar contadores de salida en la misma fuente y confirmar nuevos flujos permitidos/denegados. Distinguir «acción solicitada» de «confirmada»; un comando exitoso no prueba que cesó la fuga. Comprobar tráfico alternativo y otros destinos desde la misma fuente."
+    },
+    {
+      "fase": "T+25–35 s · Notificar a IR y responsables",
+      "accion": "Comunicar host, impacto, hora UTC, origen/destino, medida aplicada, responsable y estado de confirmación. Informar que «datos exfiltrados» es hipótesis hasta tener evidencia de contenido y perímetro de confianza."
+    },
+    {
+      "fase": "T+35–45 s · Preservación rápida",
+      "accion": "Guardar/exportar evento original, Flow Logs/firewall, EDR/alerta, consulta ejecutada, logs VPN/proxy, identificadores y hora UTC en repositorio autorizado. Si es posible, solicitar captura de memoria y snapshot coordinados una vez detenida la salida."
+    },
+    {
+      "fase": "T+45–60 s · Primer pivote técnico",
+      "accion": "Desde consola separada y sin ejecutar código no confiable: revisar conexiones ESTABLISHED, destino, PID y padre; no depender de ss -tulnp, que filtra sockets de escucha. En caso de host no fiable, priorizar telemetría fuera de banda."
+    },
+    {
+      "fase": "T+60 s en adelante · Alcance y erradicación",
+      "accion": "Investigar cuenta/proceso/inicio de sesión, credenciales usadas, artefactos, otros hosts con mismo destino y contenido accesible a la identidad comprometida. Decidir rotación de secretos, erradicación y restauración supervisadas; documentar impacto, comunicación legal y preservación."
+    },
+    {
+      "fase": "Criterio de éxito",
+      "accion": "La métrica de bytes enviados a destinos no aprobados desciende a cero o al nivel explicado por un canal autorizado y verificado; el servidor no obtiene rutas alternativas de salida; las medidas se mantienen hasta decisión de IR."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "Firewall/NetFlow: SourceIP, DestinationIP, SentBytes, Action y ventana",
+      "lectura": "Mide tráfico visto por el dispositivo; confirma dirección, NAT y baseline; bytes no equivalen automáticamente a registros filtrados."
+    },
+    {
+      "dato": "EDR: DeviceNetworkEvents, RemoteIP, InitiatingProcessId, InitiatingProcessCommandLine",
+      "lectura": "Relaciona conexión con proceso y usuario; no aporta por sí solo volumen real de bytes transmitidos."
+    },
+    {
+      "dato": "Estado de EDR «isolation requested/applied» + última comunicación",
+      "lectura": "Acredita aplicación técnica; comprobar limitaciones y comunicaciones permitidas."
+    },
+    {
+      "dato": "Capturas/Flow Logs antes y después del bloqueo",
+      "lectura": "Demuestran tendencia del flujo, conexión alternativa y efectividad de contención."
+    },
+    {
+      "dato": "Línea temporal de servicios, tareas, logons y transferencias autorizadas",
+      "lectura": "Ayuda a descartar replicación, backup y alertas por cambio de configuración."
+    },
+    {
+      "dato": "Registro de decisión y cadena de custodia",
+      "lectura": "Quién autorizó, ejecutó, verificó, qué herramienta y timestamps UTC, sin exponer credenciales."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Sentinel / Log Analytics · bytes de egreso en firewall CEF",
+      "entorno": "Workspace con CommonSecurityLog ingerido desde el firewall y contadores SentBytes realmente poblados; SourceIP es pre-NAT según proveedor. Modificar IP origen y periodo.",
+      "consulta": "let src = \"10.60.5.10\";\nCommonSecurityLog\n| where TimeGenerated between (ago(30m) .. now())\n| where SourceIP == src\n| summarize out_bytes=sum(tolong(SentBytes)), eventos=count(),\n            acciones=make_set(DeviceAction, 10)\n  by bin(TimeGenerated, 1m), DestinationIP, DestinationPort\n| extend out_mib=round(toreal(out_bytes)/1048576.0, 2)\n| order by TimeGenerated desc, out_bytes desc",
+      "interpretacion": "Permite observar picos por minuto/destino y estimar si la contención redujo la salida.",
+      "limitaciones": "SentBytes depende de proveedor y puede contar al cierre de la sesión, no en tiempo real. No asumir que todos los firewalls usan la misma semántica ni que loguean conexiones permitidas."
+    },
+    {
+      "nombre": "Defender XDR Advanced Hunting · conexiones salientes y proceso originador",
+      "entorno": "MDE integrado; tabla DeviceNetworkEvents con eventos de red del servidor. Defender Advanced Hunting, no consulta directa de SecurityEvent de Sentinel.",
+      "consulta": "let host = \"DB-PRD-01\";\nDeviceNetworkEvents\n| where Timestamp > ago(1h)\n| where DeviceName startswith strcat(host, \".\") or DeviceName =~ host\n| summarize conexiones=count(), primera=min(Timestamp), ultima=max(Timestamp),\n            destinos=make_set(RemoteIP, 30)\n  by DeviceName, InitiatingProcessId, InitiatingProcessFileName,\n     InitiatingProcessCommandLine, InitiatingProcessAccountName,\n     RemotePort, ActionType\n| order by ultima desc",
+      "interpretacion": "Identifica procesos y cuentas que abrieron conexiones; sirve para pivotar a DeviceProcessEvents y procesos padres.",
+      "limitaciones": "DeviceNetworkEvents NO es un medidor de bytes; count() mide eventos EDR, no volumen ni éxito de transferencia. Ajustar nombres FQDN y ActionType en el portal."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk CIM Network_Traffic · volumen de egreso por minuto",
+      "entorno": "Modelo Network_Traffic.All_Traffic con src, dest, bytes_out y action alimentados y mapeados; 10.60.5.10 IP didáctica.",
+      "consulta": "| tstats sum(All_Traffic.bytes_out) as bytes_fuera count as eventos\n  from datamodel=Network_Traffic.All_Traffic\n  where earliest=-30m latest=now All_Traffic.src=\"10.60.5.10\"\n  by _time span=1m All_Traffic.src All_Traffic.dest All_Traffic.dest_port All_Traffic.action\n| rename All_Traffic.* as *\n| eval MiB=round(bytes_fuera/1048576, 2)\n| sort - _time - bytes_fuera",
+      "interpretacion": "Detecta picos por minuto, tráfico bloqueado/permitido y destino.",
+      "limitaciones": "bytes_out puede faltar o representar contador por evento de cierre; comprobar sentido, mapeo CIM, NAT y límites de tstats."
+    },
+    {
+      "nombre": "Splunk CIM Network_Traffic · destinos alternativos tras contención",
+      "entorno": "Modelo CIM de tráfico para el host afectado; cambiar ventana a la hora exacta del incidente.",
+      "consulta": "| tstats count sum(All_Traffic.bytes_out) as bytes_fuera\n  from datamodel=Network_Traffic.All_Traffic\n  where earliest=-15m latest=now All_Traffic.src=\"10.60.5.10\"\n  by All_Traffic.dest All_Traffic.dest_port All_Traffic.action\n| rename All_Traffic.* as *\n| sort - bytes_fuera",
+      "interpretacion": "Ayuda a detectar destinos de reemplazo mientras se verifica el bloqueo.",
+      "limitaciones": "No demuestra finalización de toda exfiltración ni distingue tráfico autorizado sin inventario de egreso."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Linux — solo lectura",
+      "proposito": "Conexiones activas, con PID cuando esté disponible. Ejecutar únicamente en host autorizado y si aporta valor; no se usa para contener el flujo.",
+      "comando": "sudo ss -tunap state established"
+    },
+    {
+      "entorno": "Linux — solo lectura",
+      "proposito": "Identifica procesos con sockets; comparar PID, fecha y comando de ejecución.",
+      "comando": "sudo lsof -nP -iTCP -sTCP:ESTABLISHED"
+    },
+    {
+      "entorno": "Linux — solo lectura",
+      "proposito": "Ver estructura y propietario de un PID concreto, no ejecutarlo.",
+      "comando": "ps -o pid,ppid,user,lstart,etime,args -p 1234"
+    },
+    {
+      "entorno": "Linux — solo lectura",
+      "proposito": "Revisar reglas actuales sin modificarlas; no ejecutar cambios de red por SSH sin consola alternativa.",
+      "comando": "sudo nft list ruleset"
+    }
+  ],
+  "contencion": "Orden recomendado: contención remota con controles de red/EDR aprobados → verificación mediante telemetría independiente → preservación → análisis de proceso y credenciales. Evitar kill -9, apagado, reinicio, rm o borrado de cron de forma refleja: pueden destruir evidencia, provocar caída, reactivación o pérdida de trazabilidad. Si hay daño progresivo y no existe otra forma, el playbook puede contemplar medidas disruptivas con autorización. Aislamiento EDR completo suele preservar canal de gestión del propio agente, pero capacidades dependen de OS/versión; no asumir que una excepción mantiene base de datos operativa.",
+  "escalation": [
+    "Salida alta sostenida hacia destino no autorizado desde un repositorio de datos sensibles.",
+    "No es posible verificar la eficacia del bloqueo o aparecen nuevas IP/dominios.",
+    "Credenciales privilegiadas, múltiples hosts o indicios de staging de datos.",
+    "Se desconoce clasificación de datos/sistemas y podría requerirse notificación por brecha.",
+    "Las decisiones de disponibilidad afectan a operaciones y requieren comandante de incidente y negocio."
+  ],
+  "falsos_positivos": [
+    "Backup/restauración nocturna a proveedor legítimo con IP nueva o CDN.",
+    "Replicación de base de datos/DR o transferencias de analytics autorizadas.",
+    "Recuento duplicado en firewall por NAT o varios sensores del mismo trayecto.",
+    "Campo de bytes invertido en normalización respecto al sentido real.",
+    "Exportación legítima con destino no inventariado; confirmar autorización documental."
+  ],
+  "errores": [
+    "Usar ss -tulnp y pensar que muestra conexiones salientes establecidas; -l solo muestra sockets en escucha.",
+    "Matar el proceso antes de detener la salida y antes de preservar evidencia viable.",
+    "Bloquear el puerto de escucha de un servidor cuando el flujo malicioso es outbound HTTPS/443.",
+    "Afirmar «base de datos vaciada» con solo bytes de red, sin evidencia de contenido.",
+    "Aplicar firewall local remoto por SSH sin canal de recuperación y perder control.",
+    "Interpretar una orden de aislamiento enviada como aislamiento realmente efectivo."
+  ],
+  "perspectiva_red_team": "Una intrusión no requiere sesión interactiva visible: servicios, procesos hijos, agentes y tokens pueden continuar operando. El tráfico de exfiltración puede mezclarse con 443, almacenamiento cloud o túneles; perseguir una IP o PID aislados deja rutas alternas. La prioridad defensiva es controlar egreso desde origen y reconstruir proceso, identidad, destino y contenido con evidencias independientes.",
+  "respuesta_entrevista": "En 60 segundos priorizaría contener el egreso desde ese servidor mediante el mecanismo de aislamiento o regla de red ya autorizado, sin perder tiempo buscando primero un PID. Verificaría en firewall/telemetría que la transferencia cae y que no aparecen destinos alternativos. Avisaría a IR e infraestructura, registraría hora y evidencias, y después investigaría proceso, cuenta, persistencia y alcance. No confundiría usuarios conectados con procesos activos ni bytes de red con datos robados confirmados.",
+  "criterios_evaluacion": [
+    "Detiene el flujo antes de invertir minutos en investigación detallada.",
+    "Conoce diferencia ss -tulnp versus ss -tunap / ESTABLISHED.",
+    "Exige prueba de contención aplicada y verificada.",
+    "Preserva registros de red, EDR y cadena de custodia.",
+    "No confunde bytes de red con contenido exfiltrado comprobado.",
+    "Coordina autorización y recuperación del servicio crítico."
+  ],
+  "mitre": [
+    "T1041 (Exfiltration Over C2 Channel, hipótesis)",
+    "T1567 (Exfiltration Over Web Service, hipótesis)",
+    "T1071.001 (Web Protocols, si se acredita)"
+  ],
+  "fuentes": [
+    "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+    "https://www.cisa.gov/stopransomware/ransomware-guide",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-devicenetworkevents-table",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-deviceprocessevents-table",
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/commonsecuritylog",
+    "https://learn.microsoft.com/en-us/defender-endpoint/network-isolation-exclusions",
+    "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.1/data-models/network-traffic"
+  ]
+}

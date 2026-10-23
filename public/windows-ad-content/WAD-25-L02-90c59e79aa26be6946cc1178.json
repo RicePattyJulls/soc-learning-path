@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-25-L02",
+  "title": "Procesos/servicios y líneas de tiempo",
+  "sourceHash": "64b5c5e5ed6085c42bd7a84471b2a2afc7d2eaca391f49deadc310f7836b068a",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-25-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nOrdenar procesos y servicios en una línea de tiempo reproducible.\n\nPrerrequisitos: `WAD-25-L01` (Evento de identidad y contexto).\n\n## 2. Comprende el mecanismo\n\nEl evento de identidad sitúa a la cuenta en el tiempo; los **procesos** y los **servicios** completan esa línea. Ordenarlos bien convierte una lista de hallazgos sueltos en una **línea de tiempo reproducible**: otro analista, con los mismos datos, debería reconstruir el mismo orden.\n\nUn **proceso** es un programa en ejecución con un **identificador (PID)**. Ese identificador es único en un instante, pero se reutiliza con el tiempo: dos procesos distintos pueden compartir el mismo número en momentos diferentes. Por eso el PID solo significa algo junto a la hora de arranque y al equipo observado.\n\nLos **servicios** se describen con su estado y su **tipo de inicio** (automático, automático retardado, manual o deshabilitado). Un tipo de inicio automático indica que el servicio arranca con el sistema; no dice si esa configuración es legítima. Las **tareas programadas**, consultables con `schtasks`, añaden disparadores por hora, evento o inicio de sesión.\n\nPara que la línea sea reproducible se fijan reglas: registrar la hora en **UTC**, sin mezclar zonas horarias; anotar el equipo y la identidad que hicieron la consulta; y guardar el estado junto al momento en que se observó, porque un proceso vivo ahora pudo no existir antes.\n\nEl orden se construye por **marca de tiempo**, no por el orden en que aparecieron los hallazgos. Un servicio con arranque automático y una tarea ejecutada veinte minutos antes son dos hechos que ocupan su lugar; juntos sugieren una secuencia, pero la secuencia no demuestra por sí sola una intención.\n\nLa regla que cierra la lección: **una línea de tiempo es reproducible cuando cada dato lleva su hora, su identificador y su equipo, y la interpretación se mantiene aparte del hecho**. Todo se practica sobre `ad.lab.test`, con datos sintéticos.\n\n### Vocabulario de apoyo\n\n- **Línea de tiempo**: orden de hechos según su marca de tiempo.\n- **PID**: identificador de proceso; único en un instante, no en el tiempo.\n- **Hora de arranque**: momento en que un proceso o servicio empezó a ejecutarse.\n- **Tipo de inicio**: modo en que arranca un servicio (automático, automático retardado, manual o deshabilitado).\n- **Tarea programada**: acción que se ejecuta por un disparador (hora, evento, inicio de sesión).\n- **Línea base**: estado de referencia registrado antes de un cambio, que permite comparar.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-25-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test`, `SRV02` (192.0.2.11) informa de una tarea programada ejecutada a las 02:58, un servicio en estado en ejecución con tipo de inicio automático y un proceso cuya hora de arranque coincide con la tarea.\n\nEl hecho registrado es la tarea con su hora, el estado y el tipo de inicio del servicio, y el arranque del proceso. Ordenados por marca de tiempo, la tarea precede al proceso, y el servicio ya estaba configurado como automático con independencia de ambos. La lectura tentadora —«algo se instaló para persistir»— no se sostiene con esos tres datos: una tarea de mantenimiento y un servicio legítimo producen el mismo patrón. Lo que añade contexto es quién creó la tarea, desde dónde y si el proceso padre es el esperado. La conclusión acota lo observable —«la tarea y el arranque del proceso coinciden en el tiempo»— y reconoce su límite: la coincidencia ordena los hechos, pero no demuestra intención maliciosa.\n\n"
+    },
+    {
+      "id": "WAD-25-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Ordenar procesos y servicios por hora permite correlacionar y detectar cambios sin afirmar intenciones.\n- Red Team autorizado: Documentar la línea de tiempo de una prueba demuestra que la actividad quedó dentro del alcance.\n- Evidencia de la etapa: Tarea, estado y tipo de inicio del servicio y hora de arranque del proceso, todo con hora en UTC y equipo.\n- Criterio de dominio: La línea de tiempo es reproducible y la interpretación se mantiene separada del hecho.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB17](../../05_RECURSOS/LABORATORIOS/WAD-LAB17.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **GETPROC**: [Get-Process](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-process). Consulta de procesos, su identificador y su hora de arranque.\n- **GETSVC**: [Get-Service](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-service). Estado y tipo de inicio de los servicios.\n- **SCHTASKS**: [schtasks](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/schtasks). Consulta de tareas programadas y sus disparadores.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-25-L02-P01",
+    "prompt": "En `ad.lab.test`, `SRV02` (192.0.2.11) muestra una tarea programada ejecutada a las 02:58, un servicio en ejecución con tipo de inicio automático y un proceso cuya hora de arranque coincide con la tarea. Ordena estos hechos en una línea de tiempo reproducible y explica qué conclusiones sostienen los datos y cuáles no.",
+    "markdown": "## 4. Práctica individual\n\nEn `ad.lab.test`, `SRV02` (192.0.2.11) muestra una tarea programada ejecutada a las 02:58, un servicio en ejecución con tipo de inicio automático y un proceso cuya hora de arranque coincide con la tarea. Ordena estos hechos en una línea de tiempo reproducible y explica qué conclusiones sostienen los datos y cuáles no.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber investigado un equipo real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-25-L02-Q01",
+      "prompt": "¿Qué hace reproducible una línea de tiempo de procesos y servicios?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Anotar solo los procesos que parecen inusuales, sin su hora"
+        },
+        {
+          "id": "B",
+          "text": "Registrar cada dato con su hora en UTC, su identificador y el equipo observado, de modo que otro analista pueda reconstruir el mismo orden"
+        },
+        {
+          "id": "C",
+          "text": "Ordenar los hechos por el momento en que se descubrieron, no por su marca de tiempo"
+        },
+        {
+          "id": "D",
+          "text": "Mezclar procesos, servicios y tareas sin distinguir su origen"
+        }
+      ]
+    },
+    {
+      "id": "WAD-25-L02-Q02",
+      "prompt": "Un servicio con tipo de inicio automático y una tarea programada ejecutada poco antes aparecen en el mismo equipo. ¿Qué conclusión sostienen los datos?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El servicio es malicioso porque arranca automáticamente"
+        },
+        {
+          "id": "B",
+          "text": "La tarea programada confirma un compromiso"
+        },
+        {
+          "id": "C",
+          "text": "Ambos hechos, por sí solos, demuestran persistencia maliciosa"
+        },
+        {
+          "id": "D",
+          "text": "Son hechos observados que se ordenan por su marca de tiempo; su significado depende del contexto y no permiten concluir malicia por sí solos"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB17](../../05_RECURSOS/LABORATORIOS/WAD-LAB17.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **GETPROC**: [Get-Process](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-process). Consulta de procesos, su identificador y su hora de arranque.\n- **GETSVC**: [Get-Service](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-service). Estado y tipo de inicio de los servicios.\n- **SCHTASKS**: [schtasks](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/schtasks). Consulta de tareas programadas y sus disparadores.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "90c59e79aa26be6946cc1178"
+}

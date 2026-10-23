@@ -1,0 +1,37 @@
+{
+  "synthetic": true,
+  "referenceOnly": true,
+  "cause": "R10 anterior a R20 permite el flujo invitado→gestión bajo primera coincidencia.",
+  "correctedEventTime": "2026-10-18T10:00:00Z",
+  "collectorDelaySeconds": 5,
+  "correction": "Situar denegación específica antes del permiso o acotar los permisos sin introducir un bloqueo administrativo.",
+  "retest": [
+    {
+      "id": "P1-RETEST",
+      "source": "GUEST-A",
+      "destination": "MGMT-A",
+      "destinationPort": 22,
+      "expected": "deny"
+    },
+    {
+      "id": "P2-RETEST",
+      "source": "ADMIN-A",
+      "destination": "MGMT-A",
+      "destinationPort": 22,
+      "expected": "allow"
+    },
+    {
+      "id": "P3-RETEST",
+      "source": "EMPLOYEE-A",
+      "destination": "WEB-A",
+      "destinationPort": 443,
+      "expected": "allow"
+    }
+  ],
+  "unsupportedClaims": [
+    "Acceso administrativo exitoso",
+    "Validación de todos los caminos",
+    "Validación IPv6 por datos IPv4",
+    "Ejecución real de estos eventos"
+  ]
+}

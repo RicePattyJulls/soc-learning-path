@@ -1,0 +1,177 @@
+{
+  "schemaVersion": 1,
+  "courseId": "soc",
+  "id": "N2-17",
+  "sourceHash": "e864754a41fb23ac1673ef617cb1ea0563f5255a5dd37d19b507325350b96ceb",
+  "revision": "429421b4a7ee54ca1c9f747b",
+  "hipotesis": [
+    "La clave expuesta se utilizó para reconocimiento de cuenta y preparación de extracción o persistencia (T1078.004).",
+    "El origen externo pertenece a un runner legítimo o a un proveedor de automatización con IP no actualizada.",
+    "El principal hizo AssumeRole y generó sesiones temporales que deben seguirse por ARN, SessionIssuer y sourceIdentity.",
+    "La actividad afecta varias regiones/cuentas pero la consulta se limita al historial regional.",
+    "No existe visibilidad de lecturas de objetos S3 porque la ingesta de data events no estaba habilitada para ese recurso."
+  ],
+  "pasos": [
+    {
+      "fase": "1 · Confirmar credencial y autoridad",
+      "accion": "Clasificar incidencia cloud, recoger ID de key (no secreto), propietario, tipo IAM/STS, cuenta, regiones, rol, inventario y dependencia productiva. Notificar a cloud/security y dueño de automatización. Preservar alerta y ruta de exposición con acceso restringido."
+    },
+    {
+      "fase": "2 · Contener antes de hunting exhaustivo",
+      "accion": "Ante uso anómalo de alta confianza desactivar la access key afectada o imponer denegación de emergencia aprobada; si es credencial productiva preparar reemplazo seguro. No volver a publicar el secreto, ni esperar horas para reunir logs si el actor continúa."
+    },
+    {
+      "fase": "3 · Extraer timeline de CloudTrail",
+      "accion": "Buscar por AccessKeyId con `lookup-events` en las regiones pertinentes durante ≤90 días para management events, y consultar CloudTrail Lake/S3/Athena/SIEM si la retención/volumen exige más. CloudTrail Event History no sustituye data events ni es global para todas las consultas."
+    },
+    {
+      "fase": "4 · Atribuir a identidad efectiva",
+      "accion": "En cada evento revisar eventTime, recipientAccountId, awsRegion, eventSource, eventName, sourceIPAddress, userAgent, userIdentity.type/arn/accessKeyId, requestParameters, responseElements y errorCode. Diferenciar errores de permisos de acciones exitosas."
+    },
+    {
+      "fase": "5 · Buscar expansión de privilegios",
+      "accion": "Inspeccionar IAM CreateAccessKey, AttachUserPolicy, PutUserPolicy, UpdateAssumeRolePolicy, CreatePolicyVersion, cambios en roles y AssumeRole; rastrear credenciales STS derivadas por sesión/ARN, sin asumir que revocar la clave original invalida todo lo previamente emitido."
+    },
+    {
+      "fase": "6 · Buscar acceso/extracción de datos",
+      "accion": "Comprobar CloudTrail data events para S3, Lambda y otros servicios si fueron habilitados, más S3 server access logs, VPC Flow, GuardDuty, Security Hub y AWS Config según cobertura. ListBuckets/GetObject no son equivalentes; no declarar datos extraídos solo por listar buckets."
+    },
+    {
+      "fase": "7 · Determinar radio de impacto",
+      "accion": "Recorrer cuentas AWS Organizations, roles confiados, regiones y recursos tocados; documentar acciones de lectura/escritura y posibles costos/infra creados. Separar recursos accesibles por permisos de recursos efectivamente consultados o cambiados."
+    },
+    {
+      "fase": "8 · Recuperación segura",
+      "accion": "Rotar/reemplazar credenciales desde canal seguro, eliminar usuarios/keys/roles no autorizados según procedimiento, corregir permisos, forzar sesiones STS si aplica por controles aprobados y comprobar runners; adoptar roles temporales y evitar secretos de larga duración."
+    },
+    {
+      "fase": "9 · Validar y reportar",
+      "accion": "Confirmar que la clave no funciona, que STS y rutas alternativas están contenidas, que no quedan cambios persistentes, que alertas desaparecen y que reanudan tareas legítimas. Registrar brechas de Data Events, costos y notificaciones pertinentes."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "CloudTrail management events: AccessKeyId, arn, eventName, eventSource",
+      "lectura": "Actividad de API y contexto de principal; llamadas de solo lectura no equivalen a alteración."
+    },
+    {
+      "dato": "CloudTrail: errorCode, requestParameters, responseElements",
+      "lectura": "Intentos fallidos, operaciones y objetos: ciertos campos pueden estar omitidos, redactados o incompletos."
+    },
+    {
+      "dato": "AWS STS AssumeRole + SessionIssuer + sessionContext",
+      "lectura": "Posibles credenciales derivadas y cadena de confianza; hay que seguirlas por eventos y timestamps."
+    },
+    {
+      "dato": "CloudTrail data events (si están configurados)",
+      "lectura": "Posibles operaciones de objetos S3; sin estas fuentes no se puede excluir acceso a objetos."
+    },
+    {
+      "dato": "GuardDuty / Security Hub / IAM credential report",
+      "lectura": "Detecciones, postura, edad de credenciales y posible mal uso; hallazgo no siempre implica compromiso confirmado."
+    },
+    {
+      "dato": "Organizational trail + cuentas/regiones + VPC Flow/S3 access logs",
+      "lectura": "Ámbito multidominio, tráfico y acceso adicional; cobertura varía por servicio e implementación."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Sentinel · CloudTrail por identidad y origen",
+      "entorno": "AWSCloudTrail existe solo con conector/ingesta apropiada y esquema del workspace; usar usuario/ARN de ejemplo y no secretes.",
+      "consulta": "let usuario = \"svc-automation\";\nAWSCloudTrail\n| where TimeGenerated >= ago(7d)\n| where UserIdentityUserName =~ usuario or SessionIssuerUserName =~ usuario\n| project TimeGenerated, UserIdentityAccountId, UserIdentityUserName,\n          UserIdentityPrincipalid, SessionIssuerUserName,\n          EventName, EventSource, SourceIpAddress, UserAgent, AWSRegion,\n          ErrorCode, RequestParameters, ResponseElements\n| order by TimeGenerated asc",
+      "interpretacion": "Genera timeline del usuario/rol para hallar IP, APIs y cuentas; pivotar después a sesión y eventos CloudTrail crudos.",
+      "limitaciones": "La asociación por username puede perder sesiones temporales, y las columnas opcionales dependen del conector. No supone cobertura de CloudTrail data events."
+    },
+    {
+      "nombre": "Sentinel · agregación de APIs por cuenta, región e IP",
+      "entorno": "AWSCloudTrail con campos documentados UserIdentityAccountId, EventName, SourceIpAddress, AWSRegion.",
+      "consulta": "AWSCloudTrail\n| where TimeGenerated >= ago(7d)\n| summarize Llamadas=count(), Primera=min(TimeGenerated), Ultima=max(TimeGenerated),\n            APIs=make_set(EventName, 30)\n    by UserIdentityAccountId, AWSRegion, SourceIpAddress\n| where Llamadas >= 5\n| order by Llamadas desc",
+      "interpretacion": "Ayuda a detectar un origen desconocido y cambios de patrón de API/Región; correlacionar con inventario de automatizaciones.",
+      "limitaciones": "El umbral >=5 es solo ilustrativo. El resultado mezcla múltiples identidades desde NAT; refinar primero la clave/ARN real."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk · tracking de access key en eventos CloudTrail",
+      "entorno": "index=aws_cloudtrail ejemplo; eventos JSON con userIdentity.accessKeyId y extracciones spath; usar identificador ficticio.",
+      "consulta": "index=aws_cloudtrail earliest=-7d\n| spath path=userIdentity.accessKeyId output=key_id\n| spath path=userIdentity.arn output=principal_arn\n| search key_id=\"AKIAIOSFODNN7EXAMPLE\"\n| table _time recipientAccountId awsRegion eventName eventSource\n        sourceIPAddress userAgent errorCode principal_arn\n| sort 0 _time",
+      "interpretacion": "Reconstruye acciones exactas de una clave de acceso cuando está registrada; guardar eventos crudos con eventID.",
+      "limitaciones": "No cubre todas las credenciales temporales obtenidas posteriormente; algunas ingestas usan nombres de campo distintos."
+    },
+    {
+      "nombre": "Splunk · cambios IAM y STS de alto interés",
+      "entorno": "index=aws_cloudtrail con CloudTrail management events de todas las cuentas, regiones y read-only/writes.",
+      "consulta": "index=aws_cloudtrail earliest=-7d\n(eventName=AssumeRole OR eventName=CreateAccessKey OR eventName=AttachUserPolicy\n OR eventName=PutUserPolicy OR eventName=UpdateAssumeRolePolicy\n OR eventName=CreatePolicyVersion)\n| spath path=userIdentity.arn output=principal_arn\n| stats count as eventos values(eventName) as acciones\n        values(errorCode) as errores by recipientAccountId sourceIPAddress principal_arn\n| sort - eventos",
+      "interpretacion": "Localiza rutas de privilegios/credenciales que requieren análisis individual de parámetros.",
+      "limitaciones": "Acciones pueden ser legítimas. `userIdentity.arn` y otros campos requieren extracción; eventos regionales incompletos introducen falsos negativos."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "AWS CLI / lectura",
+      "proposito": "Ver eventos de gestión del access key identificado en una región (historial regional 90 días).",
+      "comando": "aws cloudtrail lookup-events \\\n  --region eu-west-1 \\\n  --lookup-attributes AttributeKey=AccessKeyId,AttributeValue=AKIAIOSFODNN7EXAMPLE \\\n  --max-items 50"
+    },
+    {
+      "entorno": "AWS CLI / lectura",
+      "proposito": "Consultar último uso conocido de una clave IAM; no reemplaza CloudTrail.",
+      "comando": "aws iam get-access-key-last-used \\\n  --access-key-id AKIAIOSFODNN7EXAMPLE"
+    },
+    {
+      "entorno": "AWS CLI / lectura",
+      "proposito": "Enumerar claves de usuario propietario para evaluar rotación sin publicarlas.",
+      "comando": "aws iam list-access-keys --user-name svc-automation"
+    },
+    {
+      "entorno": "Contención / solo previa autorización",
+      "proposito": "Ejemplo de desactivación de clave IAM de larga duración; NO aplicar automáticamente en producción.",
+      "comando": "# CAMBIO DE ESTADO: ejecución bajo playbook y aprobación\n# aws iam update-access-key --user-name svc-automation \\\n#   --access-key-id AKIAIOSFODNN7EXAMPLE --status Inactive"
+    }
+  ],
+  "contencion": "Ante evidencia de uso malicioso activo, desactivar/restringir la credencial y bloquear el camino de abuso respetando dependencias operativas. Investigar AssumeRole y credenciales STS temporales separadamente: bloquear la clave de origen no garantiza invalidar todos los tokens ya emitidos. Hacer rotación segura, revisar políticas y confianza cross-account y restaurar la automatización con roles de corta duración.",
+  "escalation": [
+    "Origen remoto no atribuido con lecturas o cambios exitosos.",
+    "Creación de nuevas claves, políticas, roles o sesiones STS.",
+    "Operaciones sobre S3, secretos, instantáneas, snapshots o cargas sensibles.",
+    "Acceso a varias cuentas y regiones o hallazgos GuardDuty correlacionados.",
+    "Falta de CloudTrail data events cuando se necesita determinar exposición de información."
+  ],
+  "falsos_positivos": [
+    "Rotación o despliegue de CI/CD desde un nuevo runner.",
+    "Proveedor legítimo con IP variable y permisos amplios.",
+    "AssumeRole por herramientas autorizadas de inventario.",
+    "Enumeración habitual de AWS Config, CSPM o auditoría.",
+    "CloudTrail entregado con retraso, orden de eventos no causal."
+  ],
+  "errores": [
+    "Pegar secretos completos en SIEM o documentación.",
+    "Investigar solo una región o una cuenta.",
+    "Tratar `lookup-events` como cobertura de objetos S3.",
+    "Desactivar la clave y asumir que todos los tokens STS quedan revocados.",
+    "Asumir extracción de S3 a partir de ListBuckets.",
+    "Rotar sin coordinar servicio productivo o sin revisar nuevas claves persistentes."
+  ],
+  "perspectiva_red_team": "Con una clave válida, el adversario puede consultar APIs dentro del permiso efectivo y, si existen relaciones de confianza amplias, acceder mediante STS a otros roles. La cadena de evidencia requiere enlazar la identidad usada inicialmente con sesiones derivadas y cambios de recursos. Blue Team debe analizar success/errorCode, CloudTrail management vs data events, múltiples regiones/cuentas y persistencia IAM, no únicamente el hallazgo inicial.",
+  "respuesta_entrevista": "Primero contendría la access key comprometida sin divulgar el secreto, coordinando la continuidad del servicio. Buscaría el ID en CloudTrail y recopilaría eventName, IP, cuenta, región, usuario, resultados y parámetros, ampliando a CloudTrail Lake/SIEM y otras cuentas. Investigaría IAM/STS para localizar roles asumidos, claves y permisos añadidos; separaría eventos de gestión de data events para evaluar acceso a objetos. Finalmente rotaría credenciales, eliminaría persistencia, validaría el bloqueo de sesiones alternativas y documentaría los vacíos de visibilidad.",
+  "criterios_evaluacion": [
+    "Contiene la credencial sin esperar análisis exhaustivo.",
+    "Reconoce límite regional/90 días de lookup-events.",
+    "Conoce diferencia management/data events S3.",
+    "Investiga AWS STS y cross-account.",
+    "Distingue enumeración de extracción y eventos fallidos de exitosos.",
+    "Valida recuperación productiva y rotación segura."
+  ],
+  "mitre": [
+    "T1078.004 — Valid Accounts: Cloud Accounts (hipótesis)",
+    "T1098.001 — Account Manipulation: Additional Cloud Credentials (según evidencia)"
+  ],
+  "fuentes": [
+    "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-event-reference-record-contents.html",
+    "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-event-reference-user-identity.html",
+    "https://docs.aws.amazon.com/cli/latest/reference/cloudtrail/lookup-events.html",
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/awscloudtrail",
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/queries/awscloudtrail",
+    "https://csrc.nist.gov/pubs/sp/800/61/r3/final"
+  ]
+}

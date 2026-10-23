@@ -1,0 +1,43 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-09-L01",
+  "sourceHash": "4c4518aeeef2890698805137a254179d9ba2114c21357ec38ee1a0daea1a58c2",
+  "questions": [
+    {
+      "id": "WAD-09-L01-Q01",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Porque el nombre de dominio se convierte en el nombre de la zona DNS del dominio».\n\nAl promover, el nombre de dominio define la zona que el DC publica, por eso se decide y se registra antes. No sustituye al nombre del equipo, no depende del nivel funcional y no fija ninguna dirección IP."
+    },
+    {
+      "id": "WAD-09-L01-Q02",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «El nombre de dominio, el nivel funcional, el rol de DNS y la custodia de la contraseña de recuperación».\n\nLa configuración resultante es la que permite reproducir el laboratorio y explicar después una falla. El valor del secreto no se registra, y el nombre del equipo o una marca de tiempo no describen el dominio."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "La promoción se planifica en una red virtual cerrada, con un bosque nuevo. El nombre `ad.lab.test` se fija primero porque se convierte en el nombre de la zona DNS del dominio y cambiarlo obliga a rehacer la topología. El nivel funcional se elige según las funciones necesarias, sabiendo que elevarlo habilita capacidades a cambio de exigir versiones mínimas más recientes. El rol de DNS se instala en el propio DC, que publica la zona y se apunta a su propia dirección (por ejemplo 192.0.2.10), sin resolutor externo. La contraseña de recuperación del directorio se define y se custodia fuera de la documentación: se menciona sin registrar su valor. La evidencia incluye la resolución del nombre de dominio desde el propio DC, el estado de los servicios del directorio y la configuración anotada. El límite es que esto demuestra un DC sano, no que un cliente lo resuelva ni que autentique contra él.",
+    "rubric": [
+      {
+        "criterion": "Nombre de dominio",
+        "evidence": "Justifica `ad.lab.test` como nombre de la zona DNS y no como etiqueta decorativa."
+      },
+      {
+        "criterion": "Nivel funcional",
+        "evidence": "Explica la elección del nivel funcional y su efecto sobre funciones y compatibilidad."
+      },
+      {
+        "criterion": "DNS en el propio DC",
+        "evidence": "Sitúa el rol de DNS en el DC y descarta el resolutor externo en la red aislada."
+      },
+      {
+        "criterion": "Custodia del secreto",
+        "evidence": "Menciona la contraseña de recuperación sin dar su valor y define su custodia."
+      },
+      {
+        "criterion": "Límite reconocido",
+        "evidence": "Registra comprobaciones posteriores y admite que no prueban el uso por un cliente."
+      }
+    ]
+  },
+  "revision": "7b519ea5656b21249a40b246"
+}

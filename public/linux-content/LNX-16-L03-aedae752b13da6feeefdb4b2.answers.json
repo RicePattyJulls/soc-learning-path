@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-16-L03",
+  "sourceHash": "ced54dd640b4898e843cd3f1f6daad44a91e8f4fe11ec7eb2f7a7f964023e6bc",
+  "questions": [
+    {
+      "id": "LNX-16-L03-Q01",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «La integridad estructural del repositorio, no la lectura de todo el contenido».\n\n`check` comprueba que la estructura y los objetos referenciados son coherentes, sin descifrar por ello todo el contenido. No garantiza el arranque de la aplicación ni la robustez de la contraseña, y no es preciso cifrar primero para poder comprobar."
+    },
+    {
+      "id": "LNX-16-L03-Q02",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Con rutas absolutas, restic reconstruye la jerarquía bajo el destino indicado».\n\nCuando el snapshot respalda una ruta absoluta, restic recrea esa jerarquía dentro del `--target`, de modo que el archivo no queda en la raíz del destino. No es un fallo por ausencia de cifrado, ni un snapshot vacío, ni una sobrescritura del origen."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "`restic check` sin opciones valida la **integridad estructural** del repositorio: que los objetos referenciados existen y encajan entre sí. No lee ni descifra todos los bloques de contenido, no demuestra consistencia para la aplicación y no prueba que una restauración arranque. Para afirmar recuperabilidad falta restaurar en un destino aislado, comparar el contenido y comprobar el funcionamiento real.\n\nLímite: la verificación estructural es una **condición necesaria, no suficiente**; sin snapshot válido, clave recuperable y restauración probada, «el repositorio está verificado» no responde a si la base de datos puede volver a operar.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Define `check` como verificación estructural, no lectura total de datos."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Distingue verificación de restauración comprobada."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Menciona la clave recuperable como requisito de recuperabilidad."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Reconoce que solo un restore aislado demuestra que el servicio vuelve a operar."
+      }
+    ]
+  },
+  "revision": "aedae752b13da6feeefdb4b2"
+}

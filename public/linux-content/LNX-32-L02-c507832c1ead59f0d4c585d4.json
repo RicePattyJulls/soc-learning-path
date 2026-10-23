@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-32-L02",
+  "title": "Purple Team: detección",
+  "sourceHash": "c34a0cd2b61ccc212e144b39f71791ceb10fceb97796d68a51d2ecd15ef3c78b",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-32-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDiseñar una prueba Purple Team con eventos sintéticos que verifique si una detección observa la conducta esperada y declarar los huecos de telemetría que quedan.\n\nPrerrequisitos: `LNX-32-L01` (Inspección de seguridad de contenedor propio).\n\n## 2. Comprende el mecanismo\n\nUna detección es una hipótesis, no una alarma decorativa. Afirma que cierta conducta produce ciertos eventos, que esos eventos llegan a un sensor y que una regla los convierte en una alerta con contexto suficiente para triar. Probar la detección consiste en recorrer esa cadena y medir dónde se rompe.\n\nEl diseño empieza por la **conducta esperada**. No se prueba «un ataque» en abstracto, sino un patrón concreto: una shell interactiva dentro de un contenedor, una escritura en un directorio sensible, una ejecución desde una ruta temporal. Para cada patrón se nombra la fuente de datos que debería observarlo y el campo que permitiría atribuirlo a un contenedor, una imagen y una identidad.\n\nEl **evento sintético** es un estímulo benigno, etiquetado y reproducible. Puede generarse con un proceso de laboratorio o inyectarse en el colector, pero nunca con malware real ni con una técnica que amplíe el impacto. La etiqueta importa para que el SOC no confunda la prueba con un incidente y para que el ejercicio pueda repetirse sin ambigüedad.\n\nToda prueba necesita **caso positivo y caso negativo**. El positivo comprueba que la conducta esperada genera la alerta. El negativo comprueba que una conducta legítima y parecida no la genera. Una regla que alerta de todo no detecta: solo desplaza el trabajo al analista. El caso negativo también revela exclusiones demasiado amplias y campos que faltan en el evento.\n\nLa medición no termina en «salió la alerta». Se registran fuente, latencia desde el evento hasta la alerta, campos presentes, enriquecimiento con identidad e imagen de contenedor, retención, sincronización de reloj y ruta de notificación. Un alerta sin imagen ni usuario obliga a investigar a ciegas; un evento que se pierde en el colector no se recupera después.\n\nEn runtime, herramientas como Falco observan llamadas al sistema y comportamiento del contenedor, mientras audit, journal y el plano de control aportan contexto. La correlación entre esas capas es lo que permite pasar de «hubo una shell» a «qué contenedor, qué imagen, qué usuario y desde qué identidad». La fuente por sí sola no responde esa pregunta.\n\nLos **huecos de telemetría** se declaran, no se disimulan. Si el sensor no estaba activo, si el campo no existe en esa versión o si la retención es menor que la ventana de investigación, se escribe. La ausencia de un evento no prueba ausencia de actividad. El límite: una prueba sintética demuestra cobertura para ese patrón y esa configuración; no garantiza detección frente a todas las variantes ni sustituye una validación en producción.\n\n### Vocabulario de apoyo\n\n- **Hipótesis de detección**: afirmación de que una conducta produce eventos observables y una alerta útil.\n- **Evento sintético**: estímulo benigno, etiquetado y reproducible que imita el patrón a detectar.\n- **Caso positivo**: prueba de que la conducta esperada genera la alerta.\n- **Caso negativo**: prueba de que una conducta legítima parecida no genera la alerta.\n- **Hueco de telemetría**: fuente, campo o evento que falta y que limita lo que se puede afirmar.\n- **Enriquecimiento**: incorporación de contexto como identidad, imagen, contenedor o host al evento.\n- **Fidelidad**: grado en que el estímulo reproduce la conducta relevante sin ampliar el impacto.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-32-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: se prueba una regla de runtime que debería alertar ante una shell interactiva dentro de un contenedor propio. El evento sintético genera la alerta, pero el registro solo incluye el nombre del contenedor y el comando; faltan la imagen, el usuario efectivo y el identificador del host. El caso negativo, un proceso de arranque normal, no genera alerta.\n\nLa prueba demuestra que la cadena funciona para ese patrón y que la regla no alerta con el proceso legítimo elegido. No demuestra cobertura completa: el evento no permite atribuir la conducta a una imagen ni a un usuario, y el caso negativo es una sola muestra. La detección existe, pero su contexto es insuficiente para triar sin trabajo adicional.\n\nEl cierre correcto declara el hueco: falta enriquecimiento con imagen, usuario y host; la retención y la latencia deben medirse; y el caso negativo debe ampliarse a otras rutinas del contenedor. Se propone ajustar la fuente o la regla para incorporar esos campos y repetir la prueba con el mismo estímulo. El límite: el ejercicio confirma una detección parcial en un laboratorio, no una cobertura real ni una ausencia de riesgo.\n\n"
+    },
+    {
+      "id": "LNX-32-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Validar que la alerta llega con identidad, imagen, host y contexto suficiente para triar sin adivinar.\n- Red Team autorizado: Generar estímulos benignos y etiquetados dentro del alcance, sin malware ni efectos fuera del laboratorio.\n- Evidencia de la etapa: Conducta, fuente, evento, caso positivo, caso negativo, latencia, campos presentes y huecos declarados.\n- Criterio de dominio: Distingue «la alerta funcionó» de «la detección cubre el comportamiento».\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB42](../../05_RECURSOS/LABORATORIOS/LNX-LAB42.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F121**: [NIST SP 800-61 Rev.3 (2025)](https://csrc.nist.gov/pubs/sp/800/61/r3/final). Fases de respuesta y criterios para validar detección y comunicación.\n- **F122**: [NIST SP 800-92 (log management)](https://csrc.nist.gov/pubs/sp/800/92/final). Retención, protección y límites de los registros usados en la prueba.\n- **F127**: [MITRE ATT&CK Data Sources (deprecated)](https://attack.mitre.org/datasources/). Mapa conceptual de fuentes; la marca deprecated advierte que no es un catálogo vigente.\n- **F132**: [Falco official project](https://github.com/falcosecurity/falco). Detección de comportamiento en runtime y eventos del kernel.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-32-L02-P01",
+    "prompt": "Una regla de detección se prueba con un evento sintético y genera alerta, pero el evento no incluye identidad ni imagen del contenedor. Explica qué demuestra la prueba, qué hueco de telemetría declara y cómo diseñarías el caso negativo.",
+    "markdown": "## 4. Práctica individual\n\nUna regla de detección se prueba con un evento sintético y genera alerta, pero el evento no incluye identidad ni imagen del contenedor. Explica qué demuestra la prueba, qué hueco de telemetría declara y cómo diseñarías el caso negativo.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber ejecutado una prueba Purple Team real ni haber modificado una regla de detección.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-32-L02-Q01",
+      "prompt": "¿Qué demuestra una prueba de detección con un evento sintético que genera alerta?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que la regla detectará cualquier variante real de la conducta"
+        },
+        {
+          "id": "B",
+          "text": "Que el SOC ya no necesita revisar el caso negativo"
+        },
+        {
+          "id": "C",
+          "text": "Que la ruta desde la fuente hasta la alerta funciona para ese patrón, no que cubra todas las variantes reales"
+        },
+        {
+          "id": "D",
+          "text": "Que el evento sintético equivale a un incidente confirmado"
+        }
+      ]
+    },
+    {
+      "id": "LNX-32-L02-Q02",
+      "prompt": "¿Cómo se declara un hueco de telemetría en el informe?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Omitiéndolo para no debilitar el resultado de la prueba"
+        },
+        {
+          "id": "B",
+          "text": "Sustituyéndolo por una captura de pantalla de la alerta"
+        },
+        {
+          "id": "C",
+          "text": "Afirmando que la ausencia de eventos prueba que no hubo actividad"
+        },
+        {
+          "id": "D",
+          "text": "Indicando qué sensor, campo o evento falta y por qué la ausencia no puede leerse como ausencia de actividad"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB42](../../05_RECURSOS/LABORATORIOS/LNX-LAB42.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F121**: [NIST SP 800-61 Rev.3 (2025)](https://csrc.nist.gov/pubs/sp/800/61/r3/final). Fases de respuesta y criterios para validar detección y comunicación.\n- **F122**: [NIST SP 800-92 (log management)](https://csrc.nist.gov/pubs/sp/800/92/final). Retención, protección y límites de los registros usados en la prueba.\n- **F127**: [MITRE ATT&CK Data Sources (deprecated)](https://attack.mitre.org/datasources/). Mapa conceptual de fuentes; la marca deprecated advierte que no es un catálogo vigente.\n- **F132**: [Falco official project](https://github.com/falcosecurity/falco). Detección de comportamiento en runtime y eventos del kernel.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "c507832c1ead59f0d4c585d4"
+}

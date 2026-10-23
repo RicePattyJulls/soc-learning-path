@@ -1,0 +1,43 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-08-L02",
+  "sourceHash": "cb3ecd35444e5b8d228c49d6e05da8a11521a86b0673591fc82faf4c05740280",
+  "questions": [
+    {
+      "id": "WAD-08-L02-Q01",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Las definiciones de clases de objeto y de atributos que el bosque admite».\n\nEl esquema es el diccionario del directorio: describe qué clases existen y con qué atributos, y se replica a todo el bosque. Las cuentas y los grupos son objetos de la partición de dominio, la réplica parcial corresponde al catálogo global y las confianzas no forman parte del esquema."
+    },
+    {
+      "id": "WAD-08-L02-Q02",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Para mantener una réplica parcial de los atributos de todos los dominios del bosque y resolver las pertenencias a grupos universales».\n\nEl catálogo global no copia cada dominio por completo: guarda los atributos de uso frecuente de todo el bosque y con ellos localiza objetos y resuelve pertenencias que un solo dominio no puede responder. No sustituye a LDAP ni define el esquema, y su réplica es parcial."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "El DN sitúa al objeto en la OU `Soporte` del dominio `ad.lab.test`, dentro de su partición de dominio. El esquema no dice que este equipo exista: define que la clase de objeto «equipo» admite ciertos atributos, y esos son los que devuelve la consulta. La lectura se realiza con LDAP mediante operaciones de búsqueda y de lectura de atributos, que no modifican nada, y ADSI es la interfaz que facilita ese acceso desde scripts. El catálogo global se necesita cuando el dato no vive en el dominio propio, por ejemplo para localizar un objeto de otro dominio o resolver una pertenencia a un grupo universal, porque mantiene una réplica parcial de todos los dominios. No se debe tocar el esquema ni escribir atributos: extenderlo se replica a todo el bosque y es difícil de revertir. El límite: se analiza una consulta sintética, sin acceso a un directorio real.",
+    "rubric": [
+      {
+        "criterion": "Diferencia esquema y objetos",
+        "evidence": "Explica que el esquema define clases y atributos, no instancias concretas."
+      },
+      {
+        "criterion": "Lectura por LDAP",
+        "evidence": "Identifica LDAP como protocolo y la lectura como operación que no modifica."
+      },
+      {
+        "criterion": "Papel del catálogo global",
+        "evidence": "Menciona la réplica parcial y la resolución de pertenencias a grupos universales."
+      },
+      {
+        "criterion": "Cautela con el esquema",
+        "evidence": "Señala que extenderlo es delicado y que no se deben escribir cambios."
+      },
+      {
+        "criterion": "Límite reconocido",
+        "evidence": "Aclara que la resolución es documental y sobre datos sintéticos."
+      }
+    ]
+  },
+  "revision": "40f9f7e2c8bad3bc84434c40"
+}

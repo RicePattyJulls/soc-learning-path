@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-17-L03",
+  "sourceHash": "9c00aceb23c7d9fd5d4a6f1208e60b4b2126340a20f48e1d2a613d1d8cb5d0b2",
+  "questions": [
+    {
+      "id": "LNX-17-L03-Q01",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Porque puede alterar metadatos, inodos y journal, destruyendo el estado que se pretendía observar».\n\nLa reparación no es inocua: modifica el estado del sistema de archivos. Las demás opciones no se sostienen —la duración no lo convierte en anti-patrón, los sistemas sí pueden necesitar comprobación y no es una operación de solo lectura—, y el problema no es el tiempo sino la pérdida de la escena original."
+    },
+    {
+      "id": "LNX-17-L03-Q02",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Quién manipuló el medio, cuándo, qué se hizo y con qué hashes y contexto que lo respalden».\n\nLa custodia es el registro continuo de las manipulaciones y su respaldo documental: sin ella, no puede sostenerse que el dato analizado sea el original. El resultado final, la velocidad del dispositivo o los bloques libres no constituyen por sí mismos una cadena de custodia."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "Es un anti-patrón porque la comprobación de sistemas de archivos no es de solo lectura: puede reescribir el journal, mover entradas y cambiar inodos y metadatos. Aplicada sobre el volumen **original**, altera el estado que se pretendía observar y destruye su valor probatorio, y esa pérdida no se revierte.\n\nEn su lugar se **adquiere primero una imagen** del volumen, se preserva el original intacto y se analiza —y, si hace falta, se repara— la copia. La cadena de custodia debe registrar quién manipuló el medio, cuándo, qué operación se realizó, sobre qué objeto (original o copia) y con qué hashes y contexto que lo respalden.\n\nLímite: si ya se intervino sobre el original, no puede afirmarse que se analizó el estado de origen, solo el estado resultante de la propia reparación.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Explica que `fsck` puede modificar metadatos, inodos y journal."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Identifica el original como objeto a preservar y propone trabajar sobre una imagen."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Enumera los elementos de la cadena de custodia (quién, cuándo, qué, hashes y contexto)."
+      },
+      {
+        "criterion": "Reconoce el límite",
+        "evidence": "tras reparar el original, el valor probatorio ya está comprometido."
+      }
+    ]
+  },
+  "revision": "34d83c5491ec07d7e285a3cf"
+}

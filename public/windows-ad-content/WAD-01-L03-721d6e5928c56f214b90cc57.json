@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-01-L03",
+  "title": "Inventario reproducible",
+  "sourceHash": "6aba5268e72d26f8e454ea42c3bb5373125a3feb2c3388b8a6ea47fd701b5545",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-01-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nObtener un inventario de host reproducible que distinga datos observados de inferencias.\n\nPrerrequisitos: `WAD-01-L02` (UEFI, BCD y servicios base).\n\n## 2. Comprende el mecanismo\n\nUn **inventario reproducible** es el mismo conjunto de datos obtenido con el mismo método, en un formato que otra persona puede volver a leer y comparar. No basta con mirar la pantalla: hay que registrar **qué** se consultó, **con qué** comando o herramienta, **cuándo** (en UTC) y sobre **qué host** (nombre y compilación exacta).\n\nDatos mínimos de un host Windows:\n\n- **Producto, compilación exacta y edición.** La compilación se descompone en `CurrentBuild` y `UBR` (revisión), y suele acompañarse de `DisplayVersion`. `ver`, `systeminfo`, `Get-ComputerInfo` o el registro de versión del sistema permiten leerla.\n- **Parches aplicados.** `Get-Hotfix` y la lista de actualizaciones permiten fechar el estado del sistema sin abrir el Centro de actualizaciones.\n- **Hardware e identidad del equipo.** `Get-CimInstance Win32_OperatingSystem`, `Win32_ComputerSystem` o `systeminfo` aportan arquitectura, memoria y modelo.\n- **Red.** Direcciones, tabla de rutas y adaptadores, con la salvedad de que una IP puede ser dinámica.\n- **Sesiones y software.** `qwinsta`/`quser` para sesiones, y las claves `Uninstall` del registro para software instalado con versión y ubicación.\n\nLa reproducibilidad incluye guardar la **salida** (por ejemplo, un archivo de texto con nombre de host y marca de tiempo) para poder contrastarla después. Si dos ejecuciones difieren, el valor está en la diferencia, no en memorizar un único resultado.\n\nUna trampa frecuente: el **PID se reutiliza**. Identificar un proceso por su número sin hora, host y contexto es frágil; siempre acompaña al PID la hora y la máquina. Del mismo modo, que un dato **no** aparezca no prueba que no exista: puede no haberse consultado o no haberse registrado.\n\n### Vocabulario de apoyo\n\n- **Inventario**: conjunto de datos de un host obtenido con un método definido.\n- **UBR**: número de revisión que acompaña a la compilación (corrección acumulada).\n- **DisplayVersion**: etiqueta de la rama/versión mostrada del sistema.\n- **UTC**: tiempo universal coordinado; evita ambigüedades de zona horaria.\n- **CIM/WMI**: interfaz para consultar el sistema (procesos, sistema operativo, servicios).\n- **Reproducible**: que otra persona obtiene y compara el mismo inventario.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). No necesitas memorizar todas las consultas: el objetivo es saber qué registrar y por qué.\n\n"
+    },
+    {
+      "id": "WAD-01-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: dos equipos de una sala afirman tener «la misma versión» de Windows Server. Un inventario muestra que comparten `CurrentBuild` pero difieren en `UBR`.\n\nLa conclusión correcta no es «son idénticos» ni «son distintos» en abstracto: **coinciden en la compilación base y difieren en la revisión acumulada**, es decir, tienen distinto nivel de parcheo. Ese es un dato accionable. Lo que el inventario **no** demuestra por sí solo es que uno sea vulnerable: para afirmarlo haría falta una comprobación dirigida. Registrar la diferencia ya es evidencia; la interpretación de riesgo es una inferencia que hay que justificar aparte.\n\n"
+    },
+    {
+      "id": "WAD-01-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Registrar producto, compilación, revisión, parches y sesiones con hora UTC para contrastar dos momentos distintos.\n- Red Team autorizado: Usar el inventario para situar superficie expuesta solo dentro del alcance autorizado del laboratorio.\n- Evidencia de la etapa: Ficha de host + salida guardada del inventario + nota de límites.\n- Criterio de dominio: Distingue datos observados de inferencias y no convierte un único resultado en una conclusión absoluta.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB01](../../05_RECURSOS/LABORATORIOS/WAD-LAB01.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **SYSINFO**: [systeminfo](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/systeminfo). Resumen de sistema operativo, hardware y parches.\n- **HOTFIX**: [Get-HotFix](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-hotfix). Actualizaciones aplicadas al sistema.\n- **CIM**: [Get-CimInstance](https://learn.microsoft.com/en-us/powershell/module/cimcmdlets/get-ciminstance). Consulta de clases como `Win32_OperatingSystem` y `Win32_Process`.\n- **F12**: [Process Explorer](https://learn.microsoft.com/en-us/sysinternals/downloads/process-explorer). Relación entre procesos, cuentas y módulos; apoyo para interpretar el inventario.\n\nConsulta editorial: 18/10/2026. Los comandos son de consulta, no de cambio; verifica nombres de propiedades en tu versión. Los ejemplos son una adaptación docente y no reproducen un despliegue del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-01-L03-P01",
+    "prompt": "Diseña la cabecera de un inventario reproducible para un host de laboratorio: enumera cuatro campos que no pueden faltar y explica por qué un quinto dato (por ejemplo, la memoria libre del momento) sería poco fiable.",
+    "markdown": "## 4. Práctica individual\n\nDiseña la **cabecera** de un inventario reproducible para un host de laboratorio: enumera cuatro campos que no pueden faltar y explica por qué un quinto dato (por ejemplo, la memoria libre del momento) sería poco fiable.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber ejecutado un inventario sobre un host real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-01-L03-Q01",
+      "prompt": "¿Qué hace que un inventario sea reproducible?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que muestre muchos datos en pantalla"
+        },
+        {
+          "id": "B",
+          "text": "Que use el comando más largo posible"
+        },
+        {
+          "id": "C",
+          "text": "Que el mismo método produzca un resultado comparable, con host, compilación exacta, fecha UTC y salida guardada"
+        },
+        {
+          "id": "D",
+          "text": "Que lo genere una sola persona"
+        }
+      ]
+    },
+    {
+      "id": "WAD-01-L03-Q02",
+      "prompt": "¿Por qué no basta identificar un proceso solo por su PID?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Porque el PID cambia de formato según la edición"
+        },
+        {
+          "id": "B",
+          "text": "Porque el PID se reutiliza; hace falta hora, host y contexto"
+        },
+        {
+          "id": "C",
+          "text": "Porque el PID nunca es único"
+        },
+        {
+          "id": "D",
+          "text": "Porque el PID solo funciona en modo kernel"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB01](../../05_RECURSOS/LABORATORIOS/WAD-LAB01.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **SYSINFO**: [systeminfo](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/systeminfo). Resumen de sistema operativo, hardware y parches.\n- **HOTFIX**: [Get-HotFix](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-hotfix). Actualizaciones aplicadas al sistema.\n- **CIM**: [Get-CimInstance](https://learn.microsoft.com/en-us/powershell/module/cimcmdlets/get-ciminstance). Consulta de clases como `Win32_OperatingSystem` y `Win32_Process`.\n- **F12**: [Process Explorer](https://learn.microsoft.com/en-us/sysinternals/downloads/process-explorer). Relación entre procesos, cuentas y módulos; apoyo para interpretar el inventario.\n\nConsulta editorial: 18/10/2026. Los comandos son de consulta, no de cambio; verifica nombres de propiedades en tu versión. Los ejemplos son una adaptación docente y no reproducen un despliegue del fabricante.\n",
+  "revision": "721d6e5928c56f214b90cc57"
+}

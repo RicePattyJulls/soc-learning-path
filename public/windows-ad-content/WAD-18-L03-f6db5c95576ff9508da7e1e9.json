@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-18-L03",
+  "title": "System State, full/BMR y test",
+  "sourceHash": "ac06d1364ba15f204d08d1bcf0480cf12e34def7f63ee09f67f6c5b60256a3b4",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-18-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nComparar la copia del estado del sistema, la copia completa y la recuperación ante desastres, y planificar su prueba.\n\nPrerrequisitos: `WAD-18-L02` (RPO/RTO, frecuencia y copia confiable).\n\n## 2. Comprende el mecanismo\n\nElegir el tipo de copia depende de qué se quiere restaurar. La **copia del estado del sistema** guarda la configuración crítica del equipo: el registro, los archivos de arranque y, cuando es un controlador de dominio, el **directorio** y **SYSVOL**. Es compacta y suficiente para devolver el rol del directorio, pero no reconstruye un sistema desde cero.\n\nLa **copia completa del servidor** guarda todos los volúmenes. Con ella se puede hacer una **recuperación a nivel de hardware (BMR)**, que restituye el sistema operativo entero en el mismo equipo o en uno nuevo. Es la opción cuando el hardware se pierde o el equipo debe reconstruirse por completo.\n\nLa **recuperación ante desastres** es el plan que combina copias, medios, orden de restauración y responsables. No es un tipo de archivo: es la secuencia con la que se devuelve el servicio. En ella encajan tanto la copia del estado del sistema como la copia completa, según lo que haya que reponer.\n\nLa utilidad **wbadmin** gestiona las copias y su restauración en Windows Server desde la línea de comandos. Permite iniciar una copia del estado del sistema o una copia completa, listar lo disponible y restaurar. Es la vía habitual cuando no hay interfaz gráfica, como en un servidor **Server Core**.\n\nNingún plan vale si no se prueba. Una copia **nunca restaurada** es solo una promesa: la tarea puede haber terminado sin error y el archivo puede existir, pero hasta ejecutar la restauración no se sabe si el medio sirve, si el orden es correcto y si el tiempo cabe en el RTO. La prueba se planifica en un entorno aislado, con la misma versión del sistema, y se documenta con fecha, alcance y resultado.\n\nLa regla que cierra la etapa: **se elige el tipo de copia por lo que hay que restaurar, y se confía en la copia solo después de probarla**. Todo se practica sobre `ad.lab.test`, en laboratorio y con datos sintéticos.\n\n### Vocabulario de apoyo\n\n- **Copia del estado del sistema**: respaldo de la configuración crítica del equipo, incluidos el directorio y SYSVOL en un controlador.\n- **Copia completa del servidor**: respaldo de todos los volúmenes del equipo.\n- **BMR (recuperación a nivel de hardware)**: restauración del sistema completo en el mismo equipo o en uno nuevo.\n- **wbadmin**: utilidad de línea de comandos que gestiona copias y restauraciones en Windows Server.\n- **Server Core**: instalación de Windows Server sin interfaz gráfica estándar.\n- **Prueba de restauración**: ejecución controlada de la recuperación para verificar que la copia sirve.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-18-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test` se prevé que un controlador pueda perderse por completo, hardware incluido, y el plan solo contempla copias del estado del sistema que nunca se han restaurado.\n\nLa copia del estado del sistema devuelve el directorio y la configuración, pero no reconstruye el sistema operativo en un equipo nuevo; para eso hace falta una copia completa que habilite una BMR. Además, que nunca se haya restaurado deja el plan sin verificar: la tarea pudo cerrar sin error sin que el medio sea utilizable. La decisión razonada es añadir una copia completa y planificar una prueba de restauración en un entorno aislado, midiendo el tiempo. La conclusión acota lo observable —«el plan actual no cubre la pérdida del equipo ni está probado»— y reconoce su límite: hasta no medir la restauración real no puede afirmarse que el RTO se cumpla.\n\n"
+    },
+    {
+      "id": "WAD-18-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Distinguir el estado del sistema de la copia completa permite elegir la restauración correcta para cada pérdida.\n- Red Team autorizado: Entender qué reconstruye cada copia ordena el escenario de recuperación sin tocar el entorno productivo.\n- Evidencia de la etapa: Tipo de copia elegido por objetivo, plan de restauración y prueba ejecutada con su resultado.\n- Criterio de dominio: Se confía en una copia solo después de restaurarla y documentar el tiempo obtenido.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB12](../../05_RECURSOS/LABORATORIOS/WAD-LAB12.md)\n- [Guía de laboratorio WAD-LAB14](../../05_RECURSOS/LABORATORIOS/WAD-LAB14.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **SYSTATESAVE**: [Back up the system state data](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-backing-up-system-state). Qué guarda la copia del estado del sistema y cuándo sirve.\n- **FULLSAVE**: [Back up a full server](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-backing-up-a-full-server). Copia completa del servidor y su papel en la BMR.\n- **WBADMINCMD**: [wbadmin](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/wbadmin). Comandos para copiar y restaurar desde la línea de comandos.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-18-L03-P01",
+    "prompt": "En `ad.lab.test` debes elegir entre una copia del estado del sistema, una copia completa y una recuperación ante desastres, y planificar su prueba. Compara las tres opciones, recomienda una y describe cómo comprobarías que la restauración funciona.",
+    "markdown": "## 4. Práctica individual\n\nEn `ad.lab.test` debes elegir entre una copia del estado del sistema, una copia completa y una recuperación ante desastres, y planificar su prueba. Compara las tres opciones, recomienda una y describe cómo comprobarías que la restauración funciona.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber probado un respaldo real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-18-L03-Q01",
+      "prompt": "Necesitas poder recuperar un controlador caído en hardware nuevo, con su sistema completo, a partir del respaldo. ¿Qué tipo de copia y recuperación encaja?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Una copia del estado del sistema, que ya incluye todo el sistema operativo"
+        },
+        {
+          "id": "B",
+          "text": "Copiar solo la carpeta SYSVOL, porque es lo único que cambia"
+        },
+        {
+          "id": "C",
+          "text": "Una copia de los archivos de usuario del equipo"
+        },
+        {
+          "id": "D",
+          "text": "Una copia completa del servidor que habilite una recuperación a nivel de hardware (BMR), porque permite restituir el sistema en un equipo nuevo"
+        }
+      ]
+    },
+    {
+      "id": "WAD-18-L03-Q02",
+      "prompt": "Un equipo nunca ha restaurado una copia y solo guarda registros de que la tarea terminó sin error. ¿Cuál es la lectura correcta?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Una copia que nunca se ha restaurado no se considera confiable: hay que probar la restauración y registrar el resultado"
+        },
+        {
+          "id": "B",
+          "text": "Si la tarea terminó sin error, la copia está garantizada y no hace falta probarla"
+        },
+        {
+          "id": "C",
+          "text": "Las pruebas de restauración solo se hacen tras un desastre real"
+        },
+        {
+          "id": "D",
+          "text": "Basta con comprobar que el archivo de copia existe en el disco"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB12](../../05_RECURSOS/LABORATORIOS/WAD-LAB12.md)\n- [Guía de laboratorio WAD-LAB14](../../05_RECURSOS/LABORATORIOS/WAD-LAB14.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **SYSTATESAVE**: [Back up the system state data](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-backing-up-system-state). Qué guarda la copia del estado del sistema y cuándo sirve.\n- **FULLSAVE**: [Back up a full server](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-backing-up-a-full-server). Copia completa del servidor y su papel en la BMR.\n- **WBADMINCMD**: [wbadmin](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/wbadmin). Comandos para copiar y restaurar desde la línea de comandos.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "f6db5c95576ff9508da7e1e9"
+}

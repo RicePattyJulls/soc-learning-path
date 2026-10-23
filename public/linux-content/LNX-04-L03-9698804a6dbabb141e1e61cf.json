@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-04-L03",
+  "title": "Uso seguro de privilegios",
+  "sourceHash": "ad6b1c4b26d5826d11b88d769a3bc6933002ac86fe9349620fa50e04f4945819",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-04-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDelegar privilegios de forma acotada y auditable con sudo y PAM, reconociendo que toda elevación es también superficie de riesgo.\n\nPrerrequisitos: `LNX-04-L02` (Bits especiales, ACL y capacidades).\n\n## 2. Comprende el mecanismo\n\nCuando una tarea necesita más privilegios que los del usuario, hay que **elevar** la identidad. Hay dos familias clásicas. `su` cambia de usuario abriendo una sesión completa, normalmente con la contraseña del usuario destino o con privilegios previos. `sudo` ejecuta **un comando** con otra identidad, según una política que decide quién puede ejecutar qué y en nombre de quién.\n\nLa política de `sudo` vive en ficheros `sudoers`. Cada regla indica qué identidad puede ejecutar qué comandos como qué usuario destino, y bajo qué condiciones: si exige contraseña, si la omite, qué entorno se conserva o se limpia, y en qué rutas se buscan los binarios. La regla es texto; lo que ocurre en la práctica depende de cómo la interpreta la herramienta.\n\n`sudo` se apoya en **PAM** para autenticar al usuario cuando la regla lo pide. La pila PAM de un servicio define qué comprobaciones ocurren; no es una capa decorativa, sino la que decide si la autenticación se concede. Por eso dos equipos con la misma regla pueden comportarse distinto si su configuración PAM difiere.\n\nEl principio de **mínimo privilegio** aconseja conceder solo lo estrictamente necesario para la tarea: el comando exacto, el usuario destino más débil posible y ningún privilegio de más. Delegaciones amplias como «puede ejecutar cualquier cosa como la cuenta administrativa» o «abre una shell completa» convierten una ayuda en un atajo hacia el control total.\n\nAquí está el matiz que suele escaparse: no basta con leer el **nombre** del comando autorizado. Un programa puede ofrecer salidas, editores o intérpretes que escapan de su función aparente. Un paginador que permite abrir una shell, un editor que ejecuta comandos o un comodín en una ruta convierten una regla que parecía inofensiva en una vía de elevación. La delegación segura escoge programas sin escapes, restringe los argumentos y, cuando aplica, desactiva esos atajos.\n\nToda elevación deja **registro**: quién, qué comando y con qué identidad. Ese registro es la evidencia auditable, no la regla escrita. La regla dice qué se permite; el registro dice qué se permitió y qué se hizo.\n\n### Vocabulario de apoyo\n\n- **`sudo`**: mecanismo para ejecutar comandos con los privilegios de otra identidad.\n- **`su`**: comando para cambiar de identidad de usuario abriendo una sesión.\n- **Política (`sudoers`)**: conjunto de reglas que indica quién puede ejecutar qué y como quién.\n- **PAM**: capa que decide cómo se autentica un servicio, incluida la elevación.\n- **Mínimo privilegio**: conceder solo las capacidades estrictamente necesarias para la tarea.\n- **Autorización**: decisión sobre qué puede hacer una identidad ya autenticada.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-04-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: una política `sudoers` autoriza a un usuario a ejecutar como la cuenta administrativa un paginador sobre `/var/log/*` sin pedir contraseña. Un analista la aprueba porque «solo sirve para leer registros».\n\nLa conclusión no se sostiene. El paginador no solo muestra texto: muchos permiten abrir una shell o ejecutar un comando desde dentro. Si eso ocurre, el proceso que era un «lector de registros» pasa a ser una vía para actuar con la identidad administrativa. Lo que se delega no es la intención aparente del programa, sino **todo lo que el programa sabe hacer**.\n\nLa delegación segura revisa el comportamiento del binario, no su nombre ni su uso previsto. Además, la ausencia de contraseña elimina una barrera que PAM habría aportado, de modo que conviene reservar esa omisión para casos muy acotados. El límite de la afirmación: sin leer la política literal, sin comprobar los escapes del programa y sin mirar el registro de lo ejecutado, no puedes certificar que la delegación sea segura; a lo sumo, que la intención parecía razonable.\n\n"
+    },
+    {
+      "id": "LNX-04-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Leer el registro de elevaciones para confirmar identidad, comando y momento antes de calificar un evento.\n- Red Team autorizado: Distinguir una regla de delegación acotada de una que abre una identidad privilegiada completa.\n- Evidencia de la etapa: Regla `sudoers` literal, capacidades del binario y registro de la ejecución observada.\n- Criterio de dominio: Justifica el alcance de una delegación por el comportamiento del programa y su registro, no por su nombre.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB02](../../05_RECURSOS/LABORATORIOS/LNX-LAB02.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F03**: [Linux credentials(7)](https://man7.org/linux/man-pages/man7/credentials.7.html). Identidad real y efectiva que resulta del cambio de credenciales.\n- **F101**: [Linux-PAM pam.d(5)](https://man7.org/linux/man-pages/man5/pam.d.5.html). Sintaxis, grupos y pilas PAM que deciden la autenticación.\n- **F103**: [sudoers(5)](https://man7.org/linux/man-pages/man5/sudoers.5.html). Delegación con sudo, límites, entorno y ejecución restringida.\n- **F135**: [MITRE ATT&CK T1548.003](https://attack.mitre.org/techniques/T1548/003/). Abusos de elevación con sudo y su mitigación.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-04-L03-P01",
+    "prompt": "Una política `sudoers` autoriza a un usuario a ejecutar como la cuenta administrativa un paginador sobre `/var/log/*` sin pedir contraseña. Un analista la aprueba porque «solo sirve para leer registros». Explica por qué esa conclusión puede no sostenerse, qué dato del programa o de la política revisarías y cuál es el límite de tu análisis.",
+    "markdown": "## 4. Práctica individual\n\nUna política `sudoers` autoriza a un usuario a ejecutar como la cuenta administrativa un paginador sobre `/var/log/*` sin pedir contraseña. Un analista la aprueba porque «solo sirve para leer registros». Explica por qué esa conclusión puede no sostenerse, qué dato del programa o de la política revisarías y cuál es el límite de tu análisis.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber modificado una política `sudoers` real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-04-L03-Q01",
+      "prompt": "¿Cuál es la afirmación más precisa sobre lo que deja una ejecución con `sudo`?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que modificó los permisos del sistema de ficheros de forma permanente"
+        },
+        {
+          "id": "B",
+          "text": "Que el comando se ejecutó como el usuario original y no con otra identidad"
+        },
+        {
+          "id": "C",
+          "text": "Que la contraseña del usuario quedó almacenada de forma persistente en el sistema"
+        },
+        {
+          "id": "D",
+          "text": "Que hubo una elevación con una identidad y un comando concretos, registrada para auditoría"
+        }
+      ]
+    },
+    {
+      "id": "LNX-04-L03-Q02",
+      "prompt": "¿Qué busca el principio de mínimo privilegio al delegar una tarea?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Conceder solo las capacidades estrictamente necesarias para esa tarea"
+        },
+        {
+          "id": "B",
+          "text": "Conceder todos los privilegios de una sola vez para simplificar la administración"
+        },
+        {
+          "id": "C",
+          "text": "Evitar el uso de contraseñas en cualquier operación administrativa"
+        },
+        {
+          "id": "D",
+          "text": "Sustituir los permisos clásicos por una única cuenta administradora compartida"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB02](../../05_RECURSOS/LABORATORIOS/LNX-LAB02.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F03**: [Linux credentials(7)](https://man7.org/linux/man-pages/man7/credentials.7.html). Identidad real y efectiva que resulta del cambio de credenciales.\n- **F101**: [Linux-PAM pam.d(5)](https://man7.org/linux/man-pages/man5/pam.d.5.html). Sintaxis, grupos y pilas PAM que deciden la autenticación.\n- **F103**: [sudoers(5)](https://man7.org/linux/man-pages/man5/sudoers.5.html). Delegación con sudo, límites, entorno y ejecución restringida.\n- **F135**: [MITRE ATT&CK T1548.003](https://attack.mitre.org/techniques/T1548/003/). Abusos de elevación con sudo y su mitigación.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "9698804a6dbabb141e1e61cf"
+}

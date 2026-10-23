@@ -1,0 +1,967 @@
+{
+  "schema_version": "1.0.0",
+  "proyecto": "SOC-RESPONSES",
+  "lote": "tanda-03",
+  "fecha_revision": "2026-10-18",
+  "idioma": "es",
+  "nivel": "SOC N1",
+  "rango_ids": [
+    "N1-11",
+    "N1-15"
+  ],
+  "total_preguntas": 5,
+  "estado_validacion": {
+    "estructura_json": "generada_y_validada_localmente",
+    "fuentes_esquemas": "contrastadas_con_documentacion_oficial",
+    "consultas_en_tenant_o_splunk_real": "no_ejecutadas",
+    "nota": "Plantillas educativas; adaptar ruta del fichero, campos, índices, data models, licencias, DCR, CIM y versiones. La documentación revisada no equivale a validar con datos reales ni autoriza ejecutar cambios de producción."
+  },
+  "convenciones": {
+    "valores_de_ejemplo": "Hosts FIN-WS-04 y FIN-WS-17, cuenta ana.martin, nombre de archivo factura_octubre.exe e IP 10.30.7.21 son ficticios; no son IOCs reales.",
+    "KQL": "WindowsEvent de Sentinel/Log Analytics contiene TimeGenerated y EventData dynamic; Defender XDR Advanced Hunting usa Timestamp y Device*; tablas distintas, no intercambiables de forma directa.",
+    "SPL": "CIM Authentication.Authentication y Endpoint.Processes necesitan asignación por fuentes. Splunk TA Windows determina nombres de EventCode/EventID y campos extraídos.",
+    "N1_y_autorizacion": "Investigación preferentemente lectura; contención y cambios de contraseñas/tareas/procesos requieren playbook, privilegios y aprobación correspondiente.",
+    "Evidencia": "Tomar hora UTC, actor, equipo, proceso, IDs, hashes, ventana de retención y capturas/exportación conforme a cadena de custodia.",
+    "MITRE": "Técnicas etiquetadas como hipótesis/contexto; no equivalen a confirmación.",
+    "Umbrales": "Todas las frecuencias y umbrales son de laboratorio; validar contra baseline del cliente."
+  },
+  "preguntas": [
+    {
+      "id": "N1-11",
+      "nivel": "N1",
+      "bloque": "Windows, Linux y Active Directory",
+      "titulo": "Avalancha de eventos Windows 4625: interpretar fallos de autenticación",
+      "pregunta": "En Windows aparece un evento 4625 repetido cientos de veces. ¿Qué campos analizarías para identificar el origen y el tipo de fallo?",
+      "escenario": "Son las 02:14 y un controlador de dominio registra 420 eventos Security 4625 en 12 minutos. El origen visible es 10.30.7.21, pero la alerta no indica si los intentos corresponden a un usuario o a decenas. Hay un servidor de aplicaciones que utiliza cuentas de servicio y una pasarela VPN corporativa. No se ha confirmado autenticación exitosa ni compromiso.",
+      "objetivo": "Determinar qué identidad y activo son afectados, qué sistema origina los intentos, cuál es el mecanismo de autenticación y si el patrón encaja con contraseña desactualizada, fallo de configuración, fuerza bruta, password spraying o actividad legítima anómala; priorizar impacto y escalar con evidencias.",
+      "hipotesis": [
+        "Contraseña caducada o antigua guardada en un servicio, tarea, aplicación, unidad de red o Credential Manager.",
+        "Fuerza bruta contra una identidad concreta; posible bloqueo posterior o inicio de sesión exitoso.",
+        "Password spraying contra numerosas identidades; un mismo origen puede corresponder a NAT, VPN o proxy de autenticación.",
+        "Nombre de usuario inválido, cuenta deshabilitada, horario no autorizado o fallo de infraestructura (no equivale a un ataque).",
+        "Registros duplicados, distintos servidores que reflejan el mismo origen o errores de sincronización temporal."
+      ],
+      "pasos": [
+        {
+          "fase": "0. Confirmar integridad de la alerta",
+          "accion": "Identificar sensor, equipo que emitió cada 4625, rango temporal UTC y número de eventos únicos. Verificar si el DC o miembro recibe la solicitud: un 4625 se registra en el equipo donde falla el inicio de sesión, no necesariamente en el equipo del usuario."
+        },
+        {
+          "fase": "1. Extraer campos clave",
+          "accion": "Recuperar TargetUserName/TargetDomainName, IpAddress, IpPort, WorkstationName, LogonType, AuthenticationPackageName, LogonProcessName, Status y SubStatus. Revisar Account/SID y ProcessName si el evento los expone."
+        },
+        {
+          "fase": "2. Interpretar el tipo de logon",
+          "accion": "LogonType=2 es interactivo; 3, red; 4, batch; 5, servicio; 7, desbloqueo; 10, RemoteInteractive/RDP; 11, cached interactive. Es un contexto de autenticación, no una atribución automática de ataque."
+        },
+        {
+          "fase": "3. Interpretar códigos NTSTATUS",
+          "accion": "Distinguir 0xC000006A (contraseña incorrecta), 0xC0000064 (usuario inexistente), 0xC0000234 (bloqueo), 0xC0000072 (deshabilitada) y 0xC000005E (servidor de logon no disponible). Considerar pareja Status/SubStatus y versión del sistema."
+        },
+        {
+          "fase": "4. Medir distribución",
+          "accion": "Calcular fallos por usuario, origen, destino, tipo, código y ventana. Un usuario/muchos intentos sugiere una hipótesis distinta de muchos usuarios/pocos intentos cada uno."
+        },
+        {
+          "fase": "5. Correlacionar desenlace",
+          "accion": "Buscar 4624 en destino y usuario en la misma ventana, 4740 para bloqueos y 4771/4776 cuando la cobertura lo permita; 4624 aislado no prueba que el mismo actor accediera sin correlación suficiente."
+        },
+        {
+          "fase": "6. Resolver origen real",
+          "accion": "Validar inventario de 10.30.7.21, NAT/VPN, procesos/servicios asociados, usuario final, hostname, controladores implicados y ventana de cambios. IpAddress o WorkstationName pueden aparecer vacíos o no representar la IP final del cliente."
+        },
+        {
+          "fase": "7. Priorizar y escalar",
+          "accion": "Elevar si cuenta privilegiada, origen no autorizado, múltiples usuarios, éxitos tras fallos, bloqueos masivos o lateralidad; solicitar contención proporcional y autorizada al equipo responsable."
+        },
+        {
+          "fase": "8. Documentar",
+          "accion": "Anotar período, valoraciones verificadas, códigos, volumen, cuentas, fuentes, lagunas de telemetría, ticket, propietario y acciones de seguimiento."
+        }
+      ],
+      "evidencias": [
+        {
+          "dato": "EventID 4625 y equipo emisor",
+          "lectura": "Confirma intento fallido registrado en ese equipo; no demuestra por sí mismo quién está detrás ni que una contraseña fue adivinada."
+        },
+        {
+          "dato": "TargetUserName y TargetDomainName",
+          "lectura": "Identidad destino; normalizar mayúsculas/dominio antes de agregar y no tratar cuentas de máquina como usuarios humanos."
+        },
+        {
+          "dato": "IpAddress, IpPort, WorkstationName",
+          "lectura": "Posible origen técnico; revisar IPv4 mapeada a IPv6, vacío/\"-\", NAT, saltos de autenticación y registros del concentrador."
+        },
+        {
+          "dato": "LogonType",
+          "lectura": "Explica clase de sesión solicitada; 3 no equivale siempre a SMB y 10 sugiere RDP/RemoteInteractive, sujeto a contexto."
+        },
+        {
+          "dato": "Status, SubStatus",
+          "lectura": "Códigos de fallo diferencian error de credenciales, cuenta deshabilitada, bloqueo o disponibilidad del dominio."
+        },
+        {
+          "dato": "4624, 4740, 4771, 4776",
+          "lectura": "Cruce para éxito, bloqueo y autenticaciones Kerberos/NTLM; la presencia y ubicación dependen de auditoría y protocolo."
+        },
+        {
+          "dato": "Cambios/servicios/tareas",
+          "lectura": "Corrobora job legítimo y contraseñas guardadas; comprobar autorizaciones sin modificar una cuenta en producción por intuición."
+        }
+      ],
+      "kql": [
+        {
+          "nombre": "Sentinel / Log Analytics: 4625 agrupados por identidad, origen y código",
+          "entorno": "Tabla WindowsEvent con eventos Security colectados mediante AMA/DCR; comprobar que EventData se haya parseado",
+          "consulta": "WindowsEvent\n| where TimeGenerated > ago(2h) and EventID == 4625\n| extend D = EventData\n| extend Usuario=tostring(D.TargetUserName), IPOrigen=tostring(D.IpAddress),\n         LogonType=tostring(D.LogonType), Status=tostring(D.Status),\n         SubStatus=tostring(D.SubStatus), Estacion=tostring(D.WorkstationName)\n| summarize Fallos=count(), Primer=min(TimeGenerated), Ultimo=max(TimeGenerated),\n            Equipos=make_set(Computer, 10), Estaciones=make_set(Estacion, 10)\n  by Usuario, IPOrigen, LogonType, Status, SubStatus, bin(TimeGenerated, 15m)\n| where Fallos >= 5\n| order by Fallos desc",
+          "interpretacion": "Muestra concentraciones por cuenta/IP/tipo/motivo para formular hipótesis; el umbral 5/15 min solo es didáctico.",
+          "limites": "WindowsEvent no equivale a SecurityEvent; EventData dinámico puede ser nulo o variar por proveedor. La IP registrada puede ser un intermediario."
+        },
+        {
+          "nombre": "Sentinel / Log Analytics: contrastar 4625 con 4624 y 4740",
+          "entorno": "WindowsEvent; requiere ingestión de eventos Security 4624, 4625 y 4740 en los equipos relevantes",
+          "consulta": "WindowsEvent\n| where TimeGenerated > ago(4h) and EventID in (4624, 4625, 4740)\n| extend D=EventData\n| extend Usuario=tostring(D.TargetUserName), Origen=tostring(D.IpAddress),\n         EquipoLlamante=tostring(D.CallerComputerName)\n| summarize Fallos=countif(EventID == 4625),\n            Exitos=countif(EventID == 4624), Bloqueos=countif(EventID == 4740),\n            Origenes=make_set(Origen, 20), EquiposLlamantes=make_set(EquipoLlamante, 20)\n    by Usuario, bin(TimeGenerated, 30m)\n| where Fallos > 0 or Bloqueos > 0\n| order by Bloqueos desc, Fallos desc",
+          "interpretacion": "Genera una visión por identidad para investigar éxitos próximos a muchos fallos y bloqueos.",
+          "limites": "No vincula causalmente un 4624 con un 4625. Agrupación temporal puede mezclar orígenes y equipos; validar SID, origen, hora y contexto antes de afirmar compromiso."
+        }
+      ],
+      "spl": [
+        {
+          "nombre": "Splunk CIM Authentication: fallos por origen y usuario",
+          "entorno": "Modelo de datos CIM Authentication.Authentication correctamente mapeado (action=failure); sustituir ventana y umbral",
+          "consulta": "| tstats count as Fallos min(_time) as Primer max(_time) as Ultimo\n  from datamodel=Authentication.Authentication\n  where Authentication.action=\"failure\" earliest=-2h\n  by Authentication.user Authentication.src Authentication.dest _time span=15m\n| rename Authentication.* AS *\n| where Fallos >= 5\n| convert ctime(Primer) ctime(Ultimo)\n| sort - Fallos",
+          "interpretacion": "Busca anomalías de autenticación independientes del proveedor si el CIM está normalizado.",
+          "limites": "Sin firma/ID de Windows filtrado, incluye otros sistemas de autenticación. Para aislar 4625 usar evento bruto normalizado o signature_id si está mapeado."
+        },
+        {
+          "nombre": "Splunk Windows Security: códigos y LogonType de 4625",
+          "entorno": "Índice ilustrativo windows con TA Windows y extracción de campos XML; adaptar a EventCode/EventID y sourcetype reales",
+          "consulta": "index=windows earliest=-2h (sourcetype=\"XmlWinEventLog:Security\" OR sourcetype=\"WinEventLog:Security\") EventCode=4625\n| eval Usuario=coalesce(TargetUserName, Account_Name),\n       Origen=coalesce(IpAddress, Source_Network_Address, WorkstationName),\n       Codigo=coalesce(SubStatus, Status)\n| stats count as Fallos values(Status) as Status\n        values(SubStatus) as SubStatus by Usuario Origen LogonType Codigo\n| sort - Fallos",
+          "interpretacion": "Muestra códigos y tipo de logon; útil para separar password incorrecta, usuario inválido y cuenta bloqueada.",
+          "limites": "Los nombres Account_Name/Source_Network_Address son dependientes de TA; comprobar extracción real. En algunos despliegues el campo es EventID, no EventCode."
+        }
+      ],
+      "comandos": [
+        {
+          "entorno": "Windows — revisar 4625 recientes",
+          "proposito": "Consulta solo lectura en equipo autorizado; requiere privilegios para Security log.",
+          "comando": "Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4625; StartTime=(Get-Date).AddHours(-2)} -MaxEvents 20 | Select-Object TimeCreated, Id, MachineName, Message"
+        },
+        {
+          "entorno": "Windows — revisar bloqueos 4740",
+          "proposito": "Consulta de eventos disponibles en ese equipo; para AD consultar DCs relevantes.",
+          "comando": "Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4740; StartTime=(Get-Date).AddHours(-4)} -MaxEvents 30"
+        },
+        {
+          "entorno": "Linux — revisar autenticaciones locales si el origen resulta Linux",
+          "proposito": "Los nombres de unidad/archivo varían según distro; no sustituye registros Windows.",
+          "comando": "sudo journalctl --since '2 hours ago' | grep -Ei 'authentication failure|failed password|pam_' | head -n 40"
+        }
+      ],
+      "contencion": "En N1, no bloquear una dirección que podría pertenecer al proxy corporativo ni deshabilitar cuentas de servicio sin autorización. Si hay una cuenta privilegiada comprometida o éxitos tras intentos sospechosos, escalar urgente a IR/IAM para suspensión o revocación de sesión, controles condicionales o bloqueo del origen real según playbook. Verificar antes/después y evitar que un bloqueo masivo provoque una denegación de servicio.",
+      "escalation": [
+        "Éxito 4624 coherente en origen/identidad/ventana tras fallos maliciosos (requiere validar causalidad).",
+        "Cuentas privilegiadas/servicios críticos implicados, múltiples objetivos o velocidad propia de automatización.",
+        "Bloqueos sucesivos 4740 o impacto de disponibilidad sobre área de negocio.",
+        "Evidencia externa corroborada por VPN, VPN logs, EDR, WAF o telemetría de identidad.",
+        "Origen que no corresponde a infraestructura aprobada, o actividad fuera de ventana y usuario que desconoce el acceso."
+      ],
+      "falsos_positivos": [
+        "Servicio Windows con contraseña almacenada antigua tras rotación.",
+        "Outlook, móvil o recurso compartido intentando credenciales caducadas.",
+        "Tarea programada o pool de aplicaciones que usa cuenta de dominio.",
+        "Firewall/VPN que concentra diferentes usuarios bajo una IP compartida.",
+        "Error de dominio, DNS o controlador disponible causando fallos repetidos."
+      ],
+      "errores": [
+        "Decir que 4625 confirma fuerza bruta; indica fallo de logon, no causa.",
+        "Confundir cuenta que genera el evento (Subject) con cuenta atacada (Target).",
+        "Clasificar LogonType 3 como ataque SMB por defecto.",
+        "Bloquear la IP sin identificar NAT/VPN y sin confirmar autorización.",
+        "No buscar 4624/4740 ni valorar contexto, NTSTATUS y múltiples equipos.",
+        "Hacer reset de credenciales administrativas inmediatamente sin coordinación."
+      ],
+      "perspectiva_red_team": "Un atacante puede generar fuerza bruta sobre una sola cuenta o password spraying disperso sobre muchas. Ambas generan fallos, pero las distribuciones usuario/origen/tiempo difieren y pueden mezclarse con tráfico legítimo. Desde Blue Team interesa responder a ¿quién?, ¿desde dónde realmente?, ¿qué tipo de logon?, ¿por qué falla? y ¿hubo éxito posterior? MITRE T1110 representa una hipótesis, no evidencia de intrusión por el evento 4625.",
+      "respuesta_entrevista": "Comprobaría si los 4625 proceden de un DC o un equipo miembro y extraería TargetUserName, IpAddress, WorkstationName, LogonType, Status y SubStatus. Agruparía los eventos por usuario, origen y ventana para distinguir fallos de un servicio de fuerza bruta o spraying. Contrastaría 4624 y 4740, revisar 4771/4776 cuando aplique y validaría el origen a través de VPN/NAT y el inventario. Si observo accesos exitosos sospechosos, cuentas privilegiadas o bloqueo masivo, escalaría inmediatamente con evidencia; no bloquearía a ciegas.",
+      "criterios_evaluacion": [
+        "Identifica 4625 como fallo, 4624 como éxito y 4740 como bloqueo.",
+        "Diferencia TargetUserName de Subject, y LogonType de protocolo.",
+        "Interpreta códigos relevantes y no concluye fuerza bruta solo por volumen.",
+        "Correlaciona secuencia temporal, origen real e impacto empresarial.",
+        "Ofrece escalado, registro y contención autorizada."
+      ],
+      "mitre": [
+        "T1110",
+        "T1110.003",
+        "T1078"
+      ],
+      "fuentes": [
+        "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4625",
+        "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/windowsevent",
+        "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.1/data-models/authentication",
+        "https://attack.mitre.org/techniques/T1110/"
+      ]
+    },
+    {
+      "id": "N1-12",
+      "nivel": "N1",
+      "bloque": "Windows, Linux y Active Directory",
+      "titulo": "Cuenta de Active Directory bloqueada repetidamente",
+      "pregunta": "Un empleado reporta que su cuenta de Active Directory se bloquea continuamente. ¿Cómo investigarías la causa?",
+      "escenario": "La usuaria ana.martin informa de seis bloqueos entre las 09:10 y 10:05. El Service Desk ya desbloqueó dos veces la cuenta, pero vuelve a bloquearse. Trabaja con portátil corporativo, teléfono con correo, sesión RDP ocasional y una aplicación legacy. En los DC aparece Security 4740, pero aún no se ha identificado dónde se guardó una contraseña antigua.",
+      "objetivo": "Encontrar la fuente que provoca el bloqueo sin introducir un ciclo de desbloqueos, diferenciar credenciales guardadas y servicios frente a abuso malicioso, evaluar impacto y corregir con el equipo dueño.",
+      "hipotesis": [
+        "Credenciales antiguas guardadas en teléfono, Outlook, VPN, cliente RDP, share o aplicación legacy.",
+        "Servicio, cuenta de aplicación, tarea programada o pool web corriendo con credenciales obsoletas.",
+        "Un atacante prueba repetidamente la cuenta; potencial guessing y denial-of-service de identidad.",
+        "Cuenta similar usada por distintos usuarios, problema de sincronización de contraseñas o identidad federada.",
+        "Varios controladores de dominio registran parte de la historia; CallerComputerName es vacío, genérico o ambiguo."
+      ],
+      "pasos": [
+        {
+          "fase": "0. Confirmar impacto y frecuencia",
+          "accion": "Recuperar hora exacta, SID y nombre canónico, número de bloqueos, si es cuenta privilegiada y si existe interrupción de operaciones o dependencia crítica."
+        },
+        {
+          "fase": "1. Revisar eventos 4740",
+          "accion": "Buscar en controladores de dominio que procesaron el bloqueo: TargetUserName, TargetSid, CallerComputerName, Computer y TimeGenerated. El host que muestra el 4740 no tiene por qué ser el host origen de los intentos."
+        },
+        {
+          "fase": "2. Verificar políticas y directorio",
+          "accion": "Con apoyo IAM revisar duración del bloqueo, umbral, si hay DCs fuera de sincronización y datos de cuenta. Evitar modificar la política global como respuesta improvisada."
+        },
+        {
+          "fase": "3. Buscar intentos previos",
+          "accion": "Correlacionar 4625 en equipos miembros/DC, 4771 si Kerberos pre-auth falla y 4776 si NTLM (según despliegue). Separar event_id de origen; los eventos no se generan todos en el mismo equipo."
+        },
+        {
+          "fase": "4. Identificar fuente real",
+          "accion": "Resolver CallerComputerName a activo actual en inventario/DNS/DHCP; comprobar IP, propietario y aplicaciones. Si CallerComputerName está ausente, apoyarse en logs del gateway/VPN/aplicación y telemetría de autenticación."
+        },
+        {
+          "fase": "5. Diferenciar error de credenciales y abuso",
+          "accion": "Si el mismo proceso/host falla inmediatamente después del unlock, sospechar contraseña guardada. Muchos orígenes no confiables, usuarios afectados y errores de autenticación progresivos elevan hipótesis de ataque."
+        },
+        {
+          "fase": "6. Corregir causa de raíz",
+          "accion": "Coordinar actualización de credenciales en cliente/servicio o revocación si compromiso; planificar cambio de contraseña de forma segura con IAM, especialmente en cuentas de servicio."
+        },
+        {
+          "fase": "7. Verificar control y seguridad",
+          "accion": "Tras medida aprobada, comprobar que no haya más 4740 ni nuevos fallos durante varias ventanas, que aplicaciones sigan operativas y que accesos sospechosos se contengan."
+        },
+        {
+          "fase": "8. Cerrar y documentar",
+          "accion": "Registrar fuente, host, servicio, credencial sustituida por el propietario, últimos 4740/4625, posible atacante, responsables, validación y acciones preventivas; no registrar secretos."
+        }
+      ],
+      "evidencias": [
+        {
+          "dato": "4740 TargetUserName / TargetSid",
+          "lectura": "Identifica cuenta bloqueada (no confundir con SubjectUserName, que puede ser SYSTEM)."
+        },
+        {
+          "dato": "4740 CallerComputerName",
+          "lectura": "Pista del equipo que emitió la solicitud que desembocó en bloqueo; puede estar en blanco, representar intermediario o no resolver el origen definitivo."
+        },
+        {
+          "dato": "4625 / 4771 / 4776",
+          "lectura": "Logon fallido en miembro/DC, Kerberos preauth fallida y validación NTLM respectivamente, cuando se auditan."
+        },
+        {
+          "dato": "Orden de eventos por DC y UTC",
+          "lectura": "Distingue secuencia real de duplicados/desfase de reloj y permite relacionar desbloqueos con nuevos fallos."
+        },
+        {
+          "dato": "Inventario: teléfono, servicios, tareas, shares, RDP",
+          "lectura": "Identifica aplicaciones y activos que almacenan credenciales; no asumir que CallerComputerName identifica un humano."
+        },
+        {
+          "dato": "SID, objeto AD y privilegios",
+          "lectura": "Asegura que la identidad analizada es la correcta y prioriza cuentas de alto impacto."
+        },
+        {
+          "dato": "Validación posterior",
+          "lectura": "Ausencia de bloqueos más funcionamiento del servicio y revisión de ataques asociados; ausencia de un 4740 en un DC no garantiza que todos estén limpios."
+        }
+      ],
+      "kql": [
+        {
+          "nombre": "Sentinel WindowsEvent: bloqueos 4740 por usuario y equipo llamante",
+          "entorno": "WindowsEvent: eventos Security de los DC habilitados con auditoría de administración de cuentas",
+          "consulta": "WindowsEvent\n| where TimeGenerated > ago(24h) and EventID == 4740\n| extend Cuenta=tostring(EventData.TargetUserName),\n         SID=tostring(EventData.TargetSid),\n         Caller=tostring(EventData.CallerComputerName)\n| where Cuenta =~ \"ana.martin\"  // Usuario de ejemplo; sustituir\n| project TimeGenerated, DC=Computer, Cuenta, SID, Caller, EventID, EventRecordId\n| order by TimeGenerated asc",
+          "interpretacion": "Construye línea temporal de bloqueos en los DC e identifica CallerComputerName para investigar.",
+          "limites": "CallerComputerName puede ser vacío/intermediario; 4740 no revela aplicación que envió la contraseña incorrecta."
+        },
+        {
+          "nombre": "Sentinel WindowsEvent: fallos 4625 próximos a la cuenta",
+          "entorno": "WindowsEvent en DC, equipos miembros, RDS y/o aplicación; eventos 4625 ingestados",
+          "consulta": "WindowsEvent\n| where TimeGenerated > ago(24h) and EventID == 4625\n| extend Cuenta=tostring(EventData.TargetUserName),\n         IP=tostring(EventData.IpAddress),\n         Estacion=tostring(EventData.WorkstationName),\n         Tipo=tostring(EventData.LogonType),\n         Status=tostring(EventData.Status), SubStatus=tostring(EventData.SubStatus)\n| where Cuenta =~ \"ana.martin\"\n| summarize Fallos=count(), Primer=min(TimeGenerated), Ultimo=max(TimeGenerated),\n            Motivos=make_set(strcat(Status,\"/\",SubStatus), 12),\n            Tipos=make_set(Tipo, 10)\n    by Computer, IP, Estacion, bin(TimeGenerated, 15m)\n| order by Primer asc",
+          "interpretacion": "Localiza equipos fuente/destino y códigos de error cercanos al bloqueo.",
+          "limites": "No todos los fallos de Kerberos/NTLM producen 4625 en el DC. Complementar con 4771/4776 cuando sean relevantes."
+        }
+      ],
+      "spl": [
+        {
+          "nombre": "Splunk Windows raw: línea temporal de 4740",
+          "entorno": "Índice ilustrativo windows con EventCode extraído y XML Security en DCs",
+          "consulta": "index=windows earliest=-24h (sourcetype=\"XmlWinEventLog:Security\" OR sourcetype=\"WinEventLog:Security\") EventCode=4740\n| eval Cuenta=coalesce(TargetUserName, Account_Name), Caller=coalesce(CallerComputerName, Caller_Computer_Name)\n| search Cuenta=\"ana.martin\"\n| table _time host Cuenta Caller TargetSid SubjectUserName\n| sort 0 _time",
+          "interpretacion": "Muestra qué DC registró el bloqueo y el CallerComputerName informado.",
+          "limites": "Las extracciones dependen del TA. Account_Name podría estar multivaluado o incluir Subject; verificar que se refiere al objetivo."
+        },
+        {
+          "nombre": "Splunk CIM Authentication: fallos de la cuenta",
+          "entorno": "Modelo CIM Authentication; action=failure correctamente mapeado; abarca apps y sistemas que se hayan integrado",
+          "consulta": "| tstats count as Fallos min(_time) as Primer max(_time) as Ultimo\n  from datamodel=Authentication.Authentication\n  where Authentication.action=\"failure\" Authentication.user=\"ana.martin\" earliest=-24h\n  by Authentication.src Authentication.dest Authentication.app _time span=15m\n| rename Authentication.* AS *\n| sort 0 Primer",
+          "interpretacion": "Compara fuentes y destinos de logins fallidos, incluso si origen no es Windows.",
+          "limites": "Un mismo usuario puede tener formatos DOMINIO\\usuario/UPN distintos; normalizar o adaptar filtro antes de concluir que faltan eventos."
+        }
+      ],
+      "comandos": [
+        {
+          "entorno": "Windows — revisar 4740 en DC autorizado",
+          "proposito": "Ejecutar por rol delegado o administración; consulta lectura, no desbloquea la cuenta.",
+          "comando": "Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4740; StartTime=(Get-Date).AddDays(-1)} | Select-Object TimeCreated, MachineName, Message -First 30"
+        },
+        {
+          "entorno": "Windows — estado de cuenta AD (si existe RSAT y permisos)",
+          "proposito": "No recupera credenciales, permite comprobar estado y contexto.",
+          "comando": "Get-ADUser -Identity 'ana.martin' -Properties LockedOut,LastBadPasswordAttempt,BadPwdCount | Select-Object SamAccountName,LockedOut,LastBadPasswordAttempt,BadPwdCount"
+        },
+        {
+          "entorno": "Windows — tareas y procesos de la máquina identificada",
+          "proposito": "Consulta sólo lectura; confirmar propietario antes de tocar tareas.",
+          "comando": "Get-ScheduledTask | Select-Object TaskName,TaskPath,State,Actions,Principal"
+        },
+        {
+          "entorno": "Windows — sesiones de credenciales",
+          "proposito": "Lista destinos de credenciales guardadas; no obtiene contraseñas.",
+          "comando": "cmdkey /list"
+        }
+      ],
+      "contencion": "Evitar ciclos de desbloqueo sin corregir causa; pueden agravar el problema y ocultar un ataque. No reiniciar todos los DC ni cambiar contraseñas de cuentas de servicio sin coordinación. Si hay ataque activo o actividad privilegiada, elevar a IAM/IR para bloqueo de origen legítimamente identificado, políticas de riesgo y revocación autorizada de credenciales/sesiones. Documentar las medidas y verificar que el acceso empresarial funciona.",
+      "escalation": [
+        "Bloqueos simultáneos de múltiples usuarios o de administradores/servicios críticos.",
+        "Los intentos proceden de IP/hosts no inventariados o de varias ubicaciones inexplicables.",
+        "Existen éxitos anómalos correlacionados, movimientos laterales o señales adicionales de compromiso.",
+        "La misma fuente sigue atacando tras la corrección de credenciales.",
+        "Hay continuidad de negocio afectada, potencial DoS o repetición pese a acciones del Service Desk."
+      ],
+      "falsos_positivos": [
+        "Cliente de correo móvil conserva contraseña anterior.",
+        "Conexión RDP guardada, drive de red reconectado o credencial de Office antigua.",
+        "Servicio Windows o aplicación IIS utilizando identidad desactualizada.",
+        "Herramienta de backup o agente de monitorización con contraseña antigua.",
+        "Nombre de equipo de 4740 asociado a un gateway, no a estación atacante."
+      ],
+      "errores": [
+        "Desbloquear repetidamente sin localizar origen.",
+        "Tratar SubjectUserName del 4740 como la cuenta víctima.",
+        "Buscar 4740 solo en el PC del empleado y no en DCs.",
+        "Decidir que CallerComputerName es fuente irrefutable del ataque.",
+        "Rotar una cuenta de servicio sin inventariar dependencias y dueño.",
+        "Asegurar que no hay ataque solo porque el usuario cambió su contraseña."
+      ],
+      "perspectiva_red_team": "Un adversario puede causar bloqueos con contraseñas erróneas para degradar el servicio o encubrir intentos de acceso. La observación defensiva compara el patrón de usuarios/fuentes y el motivo de los fallos con los dispositivos y procesos del usuario. MITRE T1110 se usa como posibilidad a contrastar; el bloqueo repetido por sí solo no demuestra fuerza bruta.",
+      "respuesta_entrevista": "Buscaría eventos 4740 en los controladores de dominio, identificando TargetUserName, SID, CallerComputerName y hora. A continuación correlacionaría 4625, 4771 y 4776 según el método de autenticación y revisar credenciales guardadas en teléfono, VPN, RDP, servicios y tareas. Distinguiría si es el mismo host fallando tras cada desbloqueo o varios orígenes no autorizados. Coordinaría con IAM la solución de raíz y solo después comprobaría que cesan los bloqueos y que los servicios funcionan.",
+      "criterios_evaluacion": [
+        "Conoce evento 4740 y sus principales campos.",
+        "Sabe dónde buscarlo: DCs; no asume que CallerComputerName sea IP final.",
+        "Relaciona Kerberos, NTLM, contraseñas guardadas y servicios.",
+        "No propone desbloqueos repetitivos ni rotaciones destructivas.",
+        "Verifica solución, escalado y evidencia."
+      ],
+      "mitre": [
+        "T1110",
+        "T1078"
+      ],
+      "fuentes": [
+        "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4740",
+        "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4625",
+        "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.1/data-models/authentication"
+      ]
+    },
+    {
+      "id": "N1-13",
+      "nivel": "N1",
+      "bloque": "Windows, Linux y Active Directory",
+      "titulo": "Proceso kworker al 95 % de CPU: ¿kernel o suplantación?",
+      "pregunta": "En un servidor Linux encuentras un proceso llamado kworker consumiendo el 95 % de la CPU. ¿Cómo comprobarías si es legítimo o malicioso?",
+      "escenario": "El sistema de monitorización alerta de uso del 95 % de un núcleo en un servidor Ubuntu. En `top` aparece una entrada de nombre kworker. El equipo de infraestructura afirma que empezó tras una actualización de controladores; a la vez se instaló un servicio externo de mantenimiento. No tienes prueba de malware. Se dispone de SSH de solo lectura, registros syslog/journald y MDE para Linux en un subconjunto de los hosts.",
+      "objetivo": "Diferenciar un hilo de trabajo real del kernel que consume CPU debido a I/O/hardware de un ejecutable de espacio de usuario que imita el nombre, sin matar hilos de kernel ni degradar el servidor. Correlacionar identidad del proceso, padre, ejecutable, recursos, conexiones y cambios.",
+      "hipotesis": [
+        "Un auténtico kernel worker thread está procesando colas del kernel, debido a driver, hardware, interrupciones, filesystem, I/O o una regresión.",
+        "Proceso de usuario malicioso usa nombre parecido a kworker para camuflar minería, persistencia o comunicaciones.",
+        "Un proceso legítimo de usuario tiene nombre engañosamente parecido; debe confirmarse con inventario, ruta y empaquetado.",
+        "Un servicio de infraestructura creó carga real que activa trabajos del kernel; el trabajador afectado no es el origen del problema.",
+        "Interpretación errónea del porcentaje de CPU por hilo/núcleo, contenedor o muestreo; valor alto no demuestra malware."
+      ],
+      "pasos": [
+        {
+          "fase": "0. Validar alerta y alcance",
+          "accion": "Confirmar host, distribución/kernel, uptime, 95 % de qué métrica (núcleo, total, hilo), carga histórica, fecha de parches y efectos sobre disponibilidad."
+        },
+        {
+          "fase": "1. Identificar PID/TID y representación",
+          "accion": "Ejecutar `ps` y `top -H` para observar PID, PPID, STAT, comm y args. Los hilos auténticos suelen presentarse entre corchetes, por ejemplo `[kworker/2:1-events]`; la grafía sola es falsificable."
+        },
+        {
+          "fase": "2. Diferenciar kernel thread de proceso usuario",
+          "accion": "Inspeccionar `/proc/<PID>/exe`, `cmdline`, `status` y `maps` en lectura. Un kernel thread auténtico generalmente carece de ejecutable de espacio de usuario y de línea de comandos; un ejecutable sospechoso podría mostrar ruta real o estar borrado. Ausencia de exe no es prueba definitiva."
+        },
+        {
+          "fase": "3. Revisar parentage",
+          "accion": "Mirar PPID y genealogía. Kernel threads suelen estar asociados a `kthreadd` (PID 2) o gestionados por kernel; un padre tipo `bash`, `python`, `systemd` o un shell de webapp justifica atención si el nombre aparenta un worker de kernel. PPID por sí solo no prueba compromiso."
+        },
+        {
+          "fase": "4. Observar red y archivos sin alterar",
+          "accion": "Consultar sockets de procesos de usuario con `ss -tunap` y `lsof -p PID` cuando corresponda; kernel threads no son ejecutables de usuario normales. Revisar archivos temporales, permisos y cambios de servicios autorizados, sin descargar/ejecutar muestras."
+        },
+        {
+          "fase": "5. Revisar kernel y rendimiento",
+          "accion": "Consultar `journalctl -k`, errores de I/O, driver, interrupciones y cambios recientes de kernel. Si es worker auténtico, escalar a SRE/Linux y evitar kill -9, reinicio o cambios de módulo sin evaluación."
+        },
+        {
+          "fase": "6. Correlacionar EDR y logs",
+          "accion": "Buscar creación de procesos de usuario que coincidan con `kworker` en DeviceProcessEvents o CIM Endpoint.Processes. La ausencia de un registro para un hilo de kernel genuino es esperable; no equivale a host limpio."
+        },
+        {
+          "fase": "7. Determinar riesgo",
+          "accion": "Si hay binario de usuario con ruta temporal, hash desconocido, conexión externa, persistencia o cadena padre anómala, registrar evidencia y elevar a N2/IR; si es kernel legítimo con señales de driver, transferir a Infra/SRE con datos."
+        },
+        {
+          "fase": "8. Verificar y documentar",
+          "accion": "Medir carga tras intervención aprobada; preservar hora, PID/TID, PPID, ejecutable si existe, hash si procede, red, logs de kernel, cambios y responsable."
+        }
+      ],
+      "evidencias": [
+        {
+          "dato": "PID, TID, PPID, STAT, cmd/comm",
+          "lectura": "Permiten saber qué se está midiendo y si parece un hilo del kernel o proceso de usuario. El nombre es editable por adversario."
+        },
+        {
+          "dato": "`/proc/<PID>/exe`, `cmdline`, `maps`",
+          "lectura": "Un hilo kernel genuino normalmente carece de exe/cmdline de usuario; proceso de usuario suele ofrecer ruta y argumentos, con excepciones y permisos."
+        },
+        {
+          "dato": "PPID 2 (kthreadd) y corchetes",
+          "lectura": "Orientan a kernel thread, no constituyen verificación criptográfica ni descartan anomalías más profundas."
+        },
+        {
+          "dato": "Conexiones y ficheros abiertos",
+          "lectura": "Proceso de usuario sospechoso podría comunicarse o leer archivos; no atribuir conexiones a un kernel thread solo por coincidencia de nombre."
+        },
+        {
+          "dato": "Logs del kernel, driver, I/O, IRQ",
+          "lectura": "Ayudan a investigar actividad normal de kworker y regresiones; no confundir carga con compromiso."
+        },
+        {
+          "dato": "EDR DeviceProcessEvents / auditd",
+          "lectura": "Captura ejecución de binarios de usuario; un verdadero kworker no tiene por qué generar evento de creación de proceso como un ejecutable."
+        },
+        {
+          "dato": "Cambio de kernel, servicio, update",
+          "lectura": "Correlación temporal con mantenimiento puede orientar, pero no certifica benignidad."
+        }
+      ],
+      "kql": [
+        {
+          "nombre": "Defender XDR: ejecutables de usuario con nombre kworker",
+          "entorno": "DeviceProcessEvents desde Defender for Endpoint para Linux correctamente incorporado",
+          "consulta": "DeviceProcessEvents\n| where Timestamp > ago(7d)\n| where FileName startswith \"kworker\" or ProcessCommandLine contains \"kworker\"\n| project Timestamp, DeviceName, DeviceId, FileName, FolderPath,\n          ProcessCommandLine, AccountName, ProcessId,\n          InitiatingProcessFileName, InitiatingProcessCommandLine, SHA1\n| order by Timestamp desc",
+          "interpretacion": "Identifica programas de usuario cuyo nombre o comando simula procesos del kernel; revisar ruta, padre y hash.",
+          "limites": "No representa la actividad interna de hilos kernel ni mide su porcentaje de CPU. La visibilidad depende de sensor y retención."
+        },
+        {
+          "nombre": "Defender XDR: actividad de red atribuida a ejecutable llamado kworker",
+          "entorno": "DeviceNetworkEvents de endpoints Linux con MDE; puede ser vacío en worker kernel genuino",
+          "consulta": "DeviceNetworkEvents\n| where Timestamp > ago(7d)\n| where InitiatingProcessFileName startswith \"kworker\"\n| project Timestamp, DeviceName, InitiatingProcessFileName,\n          InitiatingProcessFolderPath, InitiatingProcessCommandLine,\n          RemoteIP, RemotePort, ActionType, InitiatingProcessSHA1\n| order by Timestamp desc",
+          "interpretacion": "Si aparece actividad de red originada por un proceso de usuario llamado kworker, investigar posible suplantación.",
+          "limites": "La ausencia de eventos no demuestra inocuidad; muchos hosts Linux no están incorporados a MDE, y el sensor no instrumenta todo el kernel."
+        }
+      ],
+      "spl": [
+        {
+          "nombre": "Splunk CIM Endpoint: procesos con nombres semejantes a kworker",
+          "entorno": "CIM Endpoint.Processes mapeado desde auditd, Sysmon for Linux o EDR; requiere campo process_name",
+          "consulta": "| tstats count as Ejecuciones values(Processes.process) as Lineas\n         values(Processes.process_path) as Rutas\n         values(Processes.parent_process_name) as Padres\n  from datamodel=Endpoint.Processes earliest=-7d\n  where Processes.process_name=\"kworker*\"\n  by Processes.dest Processes.process_name\n| rename Processes.* AS *\n| sort - Ejecuciones",
+          "interpretacion": "Agrupa ejecutables de usuario con nombre sospechosamente parecido a kworker para comparar rutas y padres.",
+          "limites": "No mide CPU ni incluye necesariamente hilos kernel. `tstats` requiere que campos estén presentes en el datamodel y en fuentes mapeadas."
+        },
+        {
+          "nombre": "Splunk auditd: búsquedas de ejecución de binarios kworker",
+          "entorno": "Ejemplo de búsqueda sobre logs auditd con crudos completos ingestados en índice linux; adaptar sourcetype y registros EXECVE/PATH",
+          "consulta": "index=linux earliest=-7d (sourcetype=\"linux:audit\" OR sourcetype=\"auditd\")\n(\"kworker\" OR \"kworker/\")\n| table _time host type msg exe comm proctitle _raw\n| sort 0 -_time",
+          "interpretacion": "Busca pistas de ejecución usuario/auditd y deja contexto del mensaje crudo para validar.",
+          "limites": "La simple aparición de la palabra kworker en mensajes no demuestra malware. auditd puede no estar instalado, ni registrar hilos del kernel ni todos los argumentos."
+        }
+      ],
+      "comandos": [
+        {
+          "entorno": "Linux — listar procesos e hilos por CPU",
+          "proposito": "Lectura; la utilidad `ps` puede truncar args según terminal.",
+          "comando": "ps -eLo pid,tid,ppid,stat,comm,pcpu,args --sort=-pcpu | head -n 25"
+        },
+        {
+          "entorno": "Linux — metadatos de un PID",
+          "proposito": "Cambiar PID solo después de identificarlo. readlink puede fallar de forma esperable para hilos kernel.",
+          "comando": "PID=1234  # Sustituir por el PID observado\nps -p \"$PID\" -o pid,ppid,user,stat,comm,args\nsudo readlink \"/proc/$PID/exe\" || true\nsudo cat \"/proc/$PID/status\" | head -n 20"
+        },
+        {
+          "entorno": "Linux — línea de comandos de un proceso de usuario",
+          "proposito": "En worker kernel puede venir vacía; mostrar byte nulo como separador legible.",
+          "comando": "PID=1234\nsudo tr '\\0' ' ' < \"/proc/$PID/cmdline\"; echo"
+        },
+        {
+          "entorno": "Linux — mensajes recientes del kernel",
+          "proposito": "Revisión de hardware/driver/I/O y correlación temporal.",
+          "comando": "sudo journalctl -k --since \"2 hours ago\" --no-pager | tail -n 100"
+        },
+        {
+          "entorno": "Linux — conexiones salientes",
+          "proposito": "Ver conexiones y procesos disponibles; evita matar PID por nombre.",
+          "comando": "sudo ss -tunap"
+        }
+      ],
+      "contencion": "No ejecutar `kill -9` sobre un supuesto kworker: si es kernel thread, además de no ser una solución fiable, la operación puede desestabilizar el sistema; si es malware, perderías contexto de investigación. Para proceso de usuario claramente malicioso, pedir contención aprobada vía EDR o restricción de red, recoger evidencia antes cuando sea viable, y coordinar con Infra si la carga afecta producción. Para kernel thread genuino, derivar al equipo del kernel/hardware y seguir diagnóstico seguro.",
+      "escalation": [
+        "Se confirma ejecutable de usuario haciéndose pasar por kworker, en ruta no autorizada o con persistencia.",
+        "Existen comunicaciones externas, lectura de secretos, modificación de cuentas o escritura de archivos asociadas.",
+        "CPU elevada produce caída de un sistema crítico o aumento sostenido de latencias.",
+        "La creación del proceso no coincide con actividades de mantenimiento autorizadas.",
+        "Se detectan alteraciones de herramientas de monitorización, EDR u ocultación de procesos."
+      ],
+      "falsos_positivos": [
+        "Kernel worker real después de actualizar un controlador o módulo.",
+        "Eventos intensos de I/O, filesystem, discos o interrupciones de red.",
+        "Aplicaciones legítimas que usan etiquetas internas kworker (no habituales, pero posibles).",
+        "Top presenta 95 % de un núcleo, no del sistema completo.",
+        "Una cadena de texto kworker aparece en logs sin proceso ejecutable correspondiente."
+      ],
+      "errores": [
+        "Asumir que 95 % de CPU equivale a cryptominer.",
+        "Matar todos los procesos de nombre parecido a kworker.",
+        "Creer que corchetes y PPID 2 hacen imposible el engaño.",
+        "Afirmar que MDE `DeviceProcessEvents` captura todos los kthreads de kernel.",
+        "No verificar ruta, parentage, `/proc`, drivers, kernel logs y conexiones.",
+        "Reiniciar producción sin recopilar indicadores y sin permiso."
+      ],
+      "perspectiva_red_team": "El masquerading T1036 puede utilizar nombres cercanos a servicios legítimos o kernel workers. Un ejecutable de usuario puede cambiar su nombre visible o lanzar procesos con ruta/argv engañosos, lo que exige contrastar /proc, procesos, origen de creación y archivos. En paralelo un kworker real alto puede ser síntoma de hardware, no de atacante. El Blue Team distingue identidad real de un proceso frente a su etiqueta.",
+      "respuesta_entrevista": "Primero verificaría qué significa el 95 % de CPU y si `kworker` es un hilo real del kernel. Haría `ps` para PID/PPID/STAT, luego comprobaría `/proc/PID/exe` y `cmdline`, sabiendo que un kernel thread suele carecer de ejecutable de usuario. Revisaría logs del kernel, actualización de drivers y el servicio nuevo, además de EDR, conexiones y ruta si existe un proceso de usuario. No lo mataría por el nombre: si es carga legítima derivaría a Infra; si aparece un binario camuflado con actividad no autorizada escalaría a IR.",
+      "criterios_evaluacion": [
+        "Distingue hilo kernel de ejecutable de usuario y límites de top/ps.",
+        "Sabe interpretar PPID/comm/cmdline y /proc con cautela.",
+        "Usa evidencia de cambios, I/O, kernel, EDR y red.",
+        "No propone kill indiscriminado ni atribución solo por CPU.",
+        "Escala por compromiso o disponibilidad y documenta."
+      ],
+      "mitre": [
+        "T1036",
+        "T1036.004"
+      ],
+      "fuentes": [
+        "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-deviceprocessevents-table",
+        "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-devicenetworkevents-table",
+        "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.4/data-models/endpoint",
+        "https://attack.mitre.org/techniques/T1036/"
+      ]
+    },
+    {
+      "id": "N1-14",
+      "nivel": "N1",
+      "bloque": "Windows, Linux y Active Directory",
+      "titulo": "PowerShell cada cinco minutos mediante una tarea programada",
+      "pregunta": "Detectas una tarea programada en Windows que ejecuta PowerShell cada cinco minutos. ¿Qué revisarías antes de clasificarla como maliciosa?",
+      "escenario": "Defender señala que el equipo FIN-WS-17 ejecuta PowerShell cada cinco minutos desde las 08:00. Existe una tarea llamada `UpdaterCheck` cuyo XML apunta a `powershell.exe -NoProfile -File C:\\ProgramData\\Ops\\maintenance.ps1`. El nombre puede pertenecer a un despliegue autorizado o a persistencia. No hay prueba de que el script sea malicioso.",
+      "objetivo": "Atribuir la tarea a su creador, identificar exactamente qué ejecuta, cuándo se creó o modificó, permisos y cuenta de ejecución, impacto del código, proceso y red; decidir si es administración legítima o persistencia ofensiva sin borrarla prematuramente.",
+      "hipotesis": [
+        "Tarea autorizada del área IT/SRE para inventario, monitorización o mantenimiento.",
+        "Persistencia no autorizada: atacante crea o modifica tarea para ejecutar script periódico.",
+        "Software legítimo con actualización o gestión mediante PowerShell e intervalos cortos.",
+        "Script originalmente legítimo alterado tras compromiso (task hijacking).",
+        "Tarea deshabilitada, nunca ejecutada o detección basada en existencia sin actividad real."
+      ],
+      "pasos": [
+        {
+          "fase": "0. Diferenciar existencia de ejecución",
+          "accion": "Verificar que Task Scheduler muestra tarea habilitada, trigger de cinco minutos, último resultado y ejecución real. Una tarea definida no prueba que se haya ejecutado."
+        },
+        {
+          "fase": "1. Recuperar XML íntegro",
+          "accion": "Documentar TaskName/TaskPath, Actions (exe, argumentos, working directory), Triggers, Principal (cuenta), RunLevel, Hidden, fecha, autor y permisos. No ejecutar el script para probarlo."
+        },
+        {
+          "fase": "2. Buscar cambios en auditoría",
+          "accion": "Correlacionar 4698 (creación), 4702 (modificación), 4699 (eliminación) cuando está habilitado Audit Other Object Access Events; consultar canal TaskScheduler/Operational 106/140 y 200/201 si se colectan."
+        },
+        {
+          "fase": "3. Reconstruir ejecución",
+          "accion": "Con 4688 (si se audita creación de procesos con línea) y MDE DeviceProcessEvents observar powershell.exe/pwsh.exe, padre real, cuenta, línea de comandos, archivos abiertos y frecuencia. La relación con scheduler requiere contexto; el padre varía por versión."
+        },
+        {
+          "fase": "4. Investigar script",
+          "accion": "Calcular hash, firma, procedencia, ACL, creador, fechas, control de versiones, modificaciones recientes y referencias a red. Buscar codificación inesperada, descargas, cambios de defensas o persistencia, sin ejecutar."
+        },
+        {
+          "fase": "5. Validar autorización y necesidad",
+          "accion": "Verificar ticket de cambio, GPO/Intune/SCCM/RMM, firma de proveedor y dueño del sistema. Un nombre parecido a Update o Windows no certifica legitimidad."
+        },
+        {
+          "fase": "6. Correlacionar consecuencias",
+          "accion": "Relacionar cada ejecución con acceso a archivos, red, nuevos procesos, modificación de registro/servicios, alertas y uso de privilegios. Una tarea legítima también puede estar comprometida."
+        },
+        {
+          "fase": "7. Decidir y escalar",
+          "accion": "Si hay script no autorizado, ejecutado con SYSTEM y con descarga/ejecución sospechosa, escalar N2/IR. Solicitar deshabilitar con preservación y plan de rollback si autorizado; no eliminar sin copia."
+        },
+        {
+          "fase": "8. Registrar",
+          "accion": "Guardar copia controlada del XML, hashes, cronología, dueño, comando, rutas, proceso asociado, destinos, permisos, impacto y resolución."
+        }
+      ],
+      "evidencias": [
+        {
+          "dato": "EventID 4698, 4702",
+          "lectura": "Creación y actualización respectivamente cuando auditoría está activada. XML puede contener ruta, argumentos y cuenta de ejecución."
+        },
+        {
+          "dato": "TaskScheduler/Operational 106/140, 200/201",
+          "lectura": "Pistas de registro/modificación/ejecución de acción según versión y configuración. No asumir que esos eventos están presentes."
+        },
+        {
+          "dato": "Principal/RunLevel/Hidden",
+          "lectura": "Permisos y visibilidad. SYSTEM o run highest requiere especial contexto, pero es frecuente en administración legítima."
+        },
+        {
+          "dato": "Acción y argumentos PowerShell",
+          "lectura": "Ruta, flags, script y directorio de trabajo. EncodedCommand y opciones de evasión son pistas, no veredicto por sí solas."
+        },
+        {
+          "dato": "4688 / DeviceProcessEvents",
+          "lectura": "Prueba de creación y contexto del proceso, padre, usuario y hora. La línea de comandos 4688 requiere política explícita."
+        },
+        {
+          "dato": "Hash, firma, ACL y cambios de script",
+          "lectura": "Permite comparar integridad con despliegue esperado y priorizar cambios fuera de ventana."
+        },
+        {
+          "dato": "Conexiones/red/registro",
+          "lectura": "Determina efectos de ejecución como descarga, C2, alteración de defensas o comportamiento de administración esperado."
+        }
+      ],
+      "kql": [
+        {
+          "nombre": "Sentinel WindowsEvent: creación/modificación de tareas 4698 y 4702",
+          "entorno": "WindowsEvent Security con Audit Other Object Access Events, extraer TaskContent/TaskNewContent como XML en string",
+          "consulta": "WindowsEvent\n| where TimeGenerated > ago(7d) and EventID in (4698, 4702)\n| extend D=EventData\n| extend Nombre=tostring(D.TaskName), Autor=tostring(D.SubjectUserName),\n         Xml=coalesce(tostring(D.TaskContent), tostring(D.TaskNewContent))\n| where Nombre has \"UpdaterCheck\" or Xml contains \"powershell\"\n| project TimeGenerated, Computer, EventID, Nombre, Autor, Xml\n| order by TimeGenerated desc",
+          "interpretacion": "Detecta altas/actualizaciones de tareas cuyo contenido menciona PowerShell o el nombre investigado.",
+          "limites": "El nombre XML y los campos depende de versión y parseo; tareas existentes antes de la ventana no aparecerán. Consultar inventario local."
+        },
+        {
+          "nombre": "Defender XDR: ejecuciones PowerShell relacionadas con ruta de tarea",
+          "entorno": "DeviceProcessEvents con MDE en Windows; comparar el equipo, la ruta, usuario, proceso padre y repetición",
+          "consulta": "DeviceProcessEvents\n| where Timestamp > ago(3d)\n| where FileName in~ (\"powershell.exe\", \"pwsh.exe\")\n| where ProcessCommandLine contains \"maintenance.ps1\"\n| project Timestamp, DeviceName, FileName, ProcessCommandLine,\n          AccountName, InitiatingProcessFileName,\n          InitiatingProcessCommandLine, ProcessId, SHA1\n| order by Timestamp desc",
+          "interpretacion": "Localiza ejecuciones efectivas del script y da contexto de padre y usuario.",
+          "limites": "No atribuye automáticamente la ejecución a la tarea: el script puede ejecutarse manualmente o desde otra plataforma; ajustar nombre del archivo."
+        }
+      ],
+      "spl": [
+        {
+          "nombre": "Splunk Windows Security: eventos de creación/edición de tareas",
+          "entorno": "Índice windows Security con EventCode y TaskName/TaskContent extraídos; revisar XML crudo",
+          "consulta": "index=windows earliest=-7d (sourcetype=\"XmlWinEventLog:Security\" OR sourcetype=\"WinEventLog:Security\")\n(EventCode=4698 OR EventCode=4702)\n| eval Tarea=coalesce(TaskName, Task_Name), Contenido=coalesce(TaskContent, TaskNewContent)\n| search Tarea=\"*UpdaterCheck*\" OR Contenido=\"*powershell*\"\n| table _time host EventCode SubjectUserName Tarea Contenido\n| sort 0 -_time",
+          "interpretacion": "Localiza creación/modificación y conserva definición para revisar argumentos.",
+          "limites": "TaskContent puede requerir extracción XML específica; campos e índice son ilustrativos. Una tarea previa puede no generar 4698 en el período."
+        },
+        {
+          "nombre": "Splunk CIM Endpoint: creaciones de procesos PowerShell",
+          "entorno": "Datamodel CIM Endpoint.Processes con ruta y cmdline mapeadas, desde EDR o Sysmon/4688 normalizados",
+          "consulta": "| tstats count as Ejecuciones values(Processes.process) as Comandos\n         values(Processes.parent_process_name) as Padres\n  from datamodel=Endpoint.Processes earliest=-3d\n  where Processes.process_name=\"powershell.exe\" OR Processes.process_name=\"pwsh.exe\"\n  by Processes.dest Processes.user _time span=5m\n| rename Processes.* AS *\n| where mvfind(Comandos, \"maintenance\\\\.ps1\") >= 0\n| sort 0 -Ejecuciones",
+          "interpretacion": "Resume ejecuciones del script en ventanas de cinco minutos para buscar coincidencia temporal con la tarea.",
+          "limites": "Requiere campo Processes.user mapeado y multivalue Comandos. La agrupación de cinco minutos no demuestra trigger exacto ni parentage."
+        }
+      ],
+      "comandos": [
+        {
+          "entorno": "Windows — listar tarea y detalles",
+          "proposito": "Solo lectura en endpoint autorizado; nombre y ruta podrían no coincidir.",
+          "comando": "Get-ScheduledTask -TaskName 'UpdaterCheck' | Format-List TaskName,TaskPath,State,Actions,Triggers,Principal,Settings"
+        },
+        {
+          "entorno": "Windows — exportar definición XML",
+          "proposito": "Guardar evidencia en ubicación segura siguiendo procedimiento; no copiar secretos indiscriminadamente.",
+          "comando": "Export-ScheduledTask -TaskName 'UpdaterCheck' -TaskPath '\\' | Out-File -FilePath 'C:\\IR\\UpdaterCheck.xml' -Encoding utf8"
+        },
+        {
+          "entorno": "Windows — consultar historial 4698 / 4702",
+          "proposito": "Requiere habilitación de auditoría y acceso al registro Security.",
+          "comando": "Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4698,4702; StartTime=(Get-Date).AddDays(-7)} -MaxEvents 50"
+        },
+        {
+          "entorno": "Windows — comprobar hash del script (si existe)",
+          "proposito": "No ejecuta ni carga el script; hash puede usarse para correlación.",
+          "comando": "Get-FileHash -Algorithm SHA256 'C:\\ProgramData\\Ops\\maintenance.ps1'"
+        }
+      ],
+      "contencion": "Como N1, no suprimir una tarea de mantenimiento crítica o eliminar el script sin preservar XML, hashes, cronología y dueño. Si hay ejecución maliciosa probable o activa, escalar y solicitar deshabilitación temporal/aplicación EDR según procedimiento autorizado, sin ejecutar el fichero. Asegurar continuidad del servicio, posibles dependencias y verificación posterior. No confundir contención con borrado de evidencia.",
+      "escalation": [
+        "Tarea creada/modificada fuera de cambio aprobado por usuario inesperado o cuenta privilegiada.",
+        "Acción invoca PowerShell que descarga/ejecuta desde Internet, altera defensas o accede a datos sensibles.",
+        "El script cambia de hash inesperadamente, se ejecuta desde ruta temporal o tiene ACL abiertas.",
+        "La tarea se replica en múltiples equipos sin herramienta de despliegue identificada.",
+        "Eventos de red, procesos o persistencia corroboran ejecución no autorizada."
+      ],
+      "falsos_positivos": [
+        "Script de monitorización aprobado cada cinco minutos.",
+        "Despliegue Intune/RMM/SCCM/GPO con PowerShell legítimo.",
+        "Mantenimiento de ERP/backup y procesos programados del área IT.",
+        "Cuenta SYSTEM usada legítimamente para ejecutar tarea de infraestructura.",
+        "Tarea existente no ejecutada por estar deshabilitada o por condición incumplida."
+      ],
+      "errores": [
+        "Clasificar todo PowerShell en tareas como persistencia maliciosa.",
+        "Ejecutar el script sospechoso para ver si funciona.",
+        "Borrar o deshabilitar sin preservar definición y sin evaluar producción.",
+        "Ignorar eventos 4698/4702, cuenta/RunLevel y verificación de cambios.",
+        "Afirmar que 4688 siempre incluye línea de comandos (requiere política).",
+        "Concluir que repetición temporal implica conexión C2 sin datos de red."
+      ],
+      "perspectiva_red_team": "MITRE T1053.005 describe el abuso de tareas programadas para persistencia, ejecución o elevación cuando existen condiciones apropiadas; T1059.001 cubre ejecución con PowerShell. El adversario puede disfrazar tarea bajo nombre similar a actualizaciones o modificar una tarea legítima. La defensa debe revisar registro de creación, XML de acciones, integridad del script y efectos de ejecución; la existencia de una tarea no atribuye técnica por sí sola.",
+      "respuesta_entrevista": "Primero verificaría la definición completa y el historial de la tarea: propietario, cuenta, privilegios, trigger, acción, ruta, argumentos, XML y si realmente se ejecuta cada cinco minutos. Revisaría Security 4698/4702 y TaskScheduler/Operational cuando estén disponibles, además de 4688/Defender XDR para procesos ejecutados. Validaría el hash y el ticket de cambio del script sin ejecutarlo, y correlacionaría red y modificaciones. No eliminaría nada solo por ver PowerShell: si aparece actividad no autorizada escalaría con evidencias para una contención controlada.",
+      "criterios_evaluacion": [
+        "Diferencia existencia de tarea de ejecución real.",
+        "Conoce 4698/4702, XML, triggers, Principal y RunLevel.",
+        "Correlaciona proceso, archivo, padre, hash, red y cambio aprobado.",
+        "No ejecuta ni elimina evidencia precipitadamente.",
+        "Establece criterios y escalado según impacto."
+      ],
+      "mitre": [
+        "T1053.005",
+        "T1059.001"
+      ],
+      "fuentes": [
+        "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4698",
+        "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4702",
+        "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4688",
+        "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-deviceprocessevents-table",
+        "https://attack.mitre.org/techniques/T1053/005/"
+      ]
+    },
+    {
+      "id": "N1-15",
+      "nivel": "N1",
+      "bloque": "Windows, Linux y Active Directory",
+      "titulo": "Usuario ejecuta un EXE recibido por correo sin alerta del antivirus",
+      "pregunta": "Un usuario ejecutó un archivo .exe recibido por correo y Defender no generó ninguna alerta. ¿Qué registros y evidencias consultarías?",
+      "escenario": "Un empleado de finanzas informa a las 11:30 que descargó y ejecutó `factura_octubre.exe` desde un mensaje con supuesto PDF convertido a instalador. El archivo mostró una pantalla en blanco y desapareció. Microsoft Defender no registra detección en la consola. El equipo FIN-WS-04 está incorporado a Defender for Endpoint; Security Events y proxy están parcialmente disponibles. Aún no hay prueba de infección ni exfiltración.",
+      "objetivo": "Reconstruir descarga, ejecución, procesos hijos, conexiones, efectos sobre archivos/persistencia y controles de seguridad aun en ausencia de alerta AV. Determinar nivel de certeza y riesgo para contener a tiempo, preservar evidencia y orientar la respuesta N2/IR.",
+      "hipotesis": [
+        "Archivo ejecutable benigno no reconocido por el usuario, firmado y distribuido mediante proceso autorizado, aunque la entrega por correo es atípica.",
+        "Ejecución maliciosa inicial no detectada (ausencia de firma, retraso, políticas, exclusiones, evasión o falta de telemetría).",
+        "Archivo se ejecutó pero falló inmediatamente; puede haber creado procesos hijos, modificado claves o establecido persistencia antes de salir.",
+        "El usuario abrió un enlace/acceso directo distinto de un EXE, o el correo adjunto fue renombrado: requiere confirmación de evidencia.",
+        "La consola EDR no muestra alerta debido a salud del agente, alcance de retención, visibilidad o falta de reglas de detección."
+      ],
+      "pasos": [
+        {
+          "fase": "0. Asegurar la respuesta temprana",
+          "accion": "Confirmar hora, usuario, hostname, criticidad, ubicación del archivo y si el proceso sigue vivo. Si hay evidencia de actividad activa, coordinar aislamiento EDR aprobado; no esperar indefinidamente a una alerta automática."
+        },
+        {
+          "fase": "1. Preservar correo y contexto",
+          "accion": "Conservar ID del mensaje, remitente, encabezados, URL/adjunto, hash de la muestra en repositorio seguro, hora de entrega y acciones del usuario; no reenviar el EXE a terceros ni ejecutarlo en máquinas de producción."
+        },
+        {
+          "fase": "2. Verificar ejecución real",
+          "accion": "En Defender XDR DeviceProcessEvents buscar FileName, ruta, SHA1, ProcessCommandLine, InitiatingProcess*, AccountName, ProcessId y tiempo. En Windows buscar 4688 o Sysmon Event 1 si existen; no asumir que el archivo se ejecutó por haber sido descargado."
+        },
+        {
+          "fase": "3. Reconstruir árbol de procesos",
+          "accion": "Correlacionar PID con hora de creación, DeviceId, padres e hijos, y comprobar si abrió PowerShell, cmd, rundll32, mshta, wscript, servicios o procesos inesperados. El PID se reutiliza y no debe emparejarse sin ventana de tiempo."
+        },
+        {
+          "fase": "4. Revisar operaciones de archivo",
+          "accion": "Investigar DeviceFileEvents: origen de descarga (si está disponible), creación/escritura de nuevos binarios, ficheros en ProgramData/AppData/Temp y cambios de hash. Un SHA256 de MDE puede no estar poblado; usar SHA1 del sensor cuando exista, y SHA256 local para cadena de custodia."
+        },
+        {
+          "fase": "5. Correlacionar red e identidad",
+          "accion": "Buscar DeviceNetworkEvents por proceso/hash, DNS/proxy/firewall y posteriores inicios de sesión o permisos. Tráfico HTTPS no es automáticamente malicioso ni seguro; inspeccionar destino y volumen donde esté autorizado."
+        },
+        {
+          "fase": "6. Revisar persistencia y evasión",
+          "accion": "Comprobar tareas, Run keys, servicios, WMI, Defender DeviceEvents y salud del agente: estado de protección, alertas, exclusiones y modificaciones. No desactivar herramientas para testear el malware."
+        },
+        {
+          "fase": "7. Investigar alcance",
+          "accion": "Buscar SHA1/nombre/ruta/indicadores en otros dispositivos, otros destinatarios de correo, URLs y dominios relacionados; identificar si varios empleados abrieron el adjunto."
+        },
+        {
+          "fase": "8. Escalar y contener de forma proporcionada",
+          "accion": "Si hay proceso sospechoso, persistencia, detección TI fiable o conexiones de exfiltración, escalar urgente a N2/IR y solicitar aislamiento del equipo y bloqueo de indicadores validados. Preservar telemetría y garantizar medidas de recuperación."
+        },
+        {
+          "fase": "9. Validar remediación y cierre",
+          "accion": "Mantener el caso abierto hasta comprobar proceso, mecanismos persistentes, otras estaciones, integridad del agente y acciones posteriores del atacante. Documentar alcance, confianza, qué se sabe y qué falta; ausencia de alertas no es cierre."
+        }
+      ],
+      "evidencias": [
+        {
+          "dato": "Mensaje original, cabeceras y URL",
+          "lectura": "Origen de entrega y otros destinatarios; no fiarse solo de la dirección From visible."
+        },
+        {
+          "dato": "DeviceProcessEvents / 4688 / Sysmon 1",
+          "lectura": "Confirma creación de proceso con tiempo, usuario, línea y padre si telemetría disponible; descargado ≠ ejecutado."
+        },
+        {
+          "dato": "DeviceFileEvents y orígenes",
+          "lectura": "Descargas, copias y cambios de archivos; FileOriginUrl puede faltar, no es garantía de atribución."
+        },
+        {
+          "dato": "SHA1 de MDE y SHA256 local",
+          "lectura": "Correlación e integridad; campos SHA256 de MDE pueden venir vacíos. La mera coincidencia de hash no dicta por sí sola intención."
+        },
+        {
+          "dato": "DeviceNetworkEvents / DNS / proxy",
+          "lectura": "Revela comunicaciones del proceso u otros relacionados; puertos normales no implican ausencia de C2."
+        },
+        {
+          "dato": "Registro, servicios, tareas",
+          "lectura": "Indicadores de persistencia o cambios posteriores a la ejecución; coordinar acciones con N2."
+        },
+        {
+          "dato": "Defender salud y control",
+          "lectura": "Estado de protección, sensores, exclusiones, alertas y cambios. Falta de alerta no prueba que el archivo sea inocuo."
+        },
+        {
+          "dato": "Alcance por host/usuario",
+          "lectura": "Otros archivos ejecutados con mismo hash, equipos, destinatarios del mensaje y cuentas con indicios relacionados."
+        }
+      ],
+      "kql": [
+        {
+          "nombre": "Defender XDR: ejecución y cadena de origen del EXE",
+          "entorno": "DeviceProcessEvents de Defender for Endpoint en el endpoint; sustituir nombre/host y ventana temporal por datos del caso",
+          "consulta": "DeviceProcessEvents\n| where Timestamp > ago(3d)\n| where DeviceName startswith \"FIN-WS-04\"\n| where FileName =~ \"factura_octubre.exe\"\n      or ProcessCommandLine contains \"factura_octubre.exe\"\n| project Timestamp, DeviceId, DeviceName, FileName, FolderPath, SHA1,\n          ProcessId, ProcessCreationTime, ProcessCommandLine, AccountName,\n          InitiatingProcessFileName, InitiatingProcessCommandLine,\n          InitiatingProcessId, InitiatingProcessCreationTime\n| order by Timestamp asc",
+          "interpretacion": "Confirma si el ejecutable se lanzó, con contexto de usuario, ruta, hash y proceso iniciador.",
+          "limites": "Nombre y ruta pueden cambiar. No reconstruye por sí solo toda la descendencia; correlacionar DeviceId + ProcessId + creación temporal y datos relacionados para evitar reutilización de PID."
+        },
+        {
+          "nombre": "Defender XDR: comunicaciones de un proceso sospechoso",
+          "entorno": "DeviceNetworkEvents con MDE; filtrar equipo y nombre de proceso ilustrativo; comparar con SHA1/tiempo cuando estén disponibles",
+          "consulta": "DeviceNetworkEvents\n| where Timestamp > ago(3d)\n| where DeviceName startswith \"FIN-WS-04\"\n| where InitiatingProcessFileName =~ \"factura_octubre.exe\"\n| project Timestamp, DeviceName, RemoteIP, RemoteUrl, RemotePort,\n          ActionType, InitiatingProcessFileName, InitiatingProcessFolderPath,\n          InitiatingProcessCommandLine, InitiatingProcessSHA1,\n          InitiatingProcessId, InitiatingProcessCreationTime\n| order by Timestamp asc",
+          "interpretacion": "Muestra conexiones que MDE atribuye al EXE; revisar reputación e inventario de cada destino y tiempo respecto a ejecución.",
+          "limites": "Un proceso hijo o inyección podría generar red bajo otro nombre; ausencia de resultados no confirma que no haya habido comunicación."
+        }
+      ],
+      "spl": [
+        {
+          "nombre": "Splunk CIM Endpoint: proceso EXE y padres observados",
+          "entorno": "CIM Endpoint.Processes mapeado de EDR o Sysmon; filtrar por nombre sin ejecutar la muestra",
+          "consulta": "| tstats count as Ejecuciones values(Processes.process) as Comandos\n         values(Processes.process_path) as Rutas\n         values(Processes.parent_process_name) as Padres\n         values(Processes.process_hash) as Hashes\n  from datamodel=Endpoint.Processes earliest=-3d\n  where Processes.process_name=\"factura_octubre.exe\"\n  by Processes.dest Processes.user _time span=1h\n| rename Processes.* AS *\n| sort 0 _time",
+          "interpretacion": "Permite ver si proceso se creó, dónde y desde qué proceso padre en varios endpoints.",
+          "limites": "El modelo no conserva siempre parent-child individual tras agrupar; para reconstrucción exacta usar eventos originales y process_guid o PID + hora si no existe GUID."
+        },
+        {
+          "nombre": "Splunk Security 4688: creación de procesos próximos al incidente",
+          "entorno": "Índice windows con 4688 auditado; requiere política de Process Creation y extracción del campo CommandLine para capturar argumentos",
+          "consulta": "index=windows earliest=-3d (sourcetype=\"XmlWinEventLog:Security\" OR sourcetype=\"WinEventLog:Security\") EventCode=4688\n| search host=\"FIN-WS-04*\"\n| eval Imagen=coalesce(NewProcessName, New_Process_Name),\n       Comando=coalesce(CommandLine, Process_Command_Line),\n       Padre=coalesce(ParentProcessName, Creator_Process_Name)\n| where like(lower(Imagen), \"%factura_octubre.exe%\")\n       OR like(lower(Comando), \"%factura_octubre.exe%\")\n| table _time host SubjectUserName Imagen Padre Comando NewProcessId\n| sort 0 _time",
+          "interpretacion": "Busca ejecuciones/llamadas relacionadas con el nombre de archivo en Security 4688; sirve como contraste de EDR.",
+          "limites": "La línea de comandos de 4688 viene vacía sin auditoría apropiada; en determinadas fuentes nombres de campo cambian y hay que normalizar hostname."
+        }
+      ],
+      "comandos": [
+        {
+          "entorno": "Windows — comprobar hash del archivo en custodia",
+          "proposito": "Solo si existe copia preservada y autorización; calcular hash NO requiere ejecutar el binario.",
+          "comando": "Get-FileHash -Algorithm SHA256 'C:\\IR\\muestras\\factura_octubre.exe'"
+        },
+        {
+          "entorno": "Windows — buscar 4688 recientes",
+          "proposito": "Requiere permisos de lectura Security y auditoría de creación de procesos habilitada.",
+          "comando": "Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4688; StartTime=(Get-Date).AddHours(-6)} -MaxEvents 50"
+        },
+        {
+          "entorno": "Windows — comprobar estado AV local sin alterar configuración",
+          "proposito": "Solo lectura; revisar si dispositivos consultados coinciden con host afectado.",
+          "comando": "Get-MpComputerStatus | Select-Object AMServiceEnabled,AntivirusEnabled,RealTimeProtectionEnabled,AntispywareEnabled,AMEngineVersion"
+        },
+        {
+          "entorno": "Windows — revisar exclusiones AV localmente (autorizado)",
+          "proposito": "Evitar difundir rutas sensibles de toda la organización y no modificar exclusiones.",
+          "comando": "Get-MpPreference | Select-Object ExclusionPath,ExclusionProcess,ExclusionExtension"
+        },
+        {
+          "entorno": "Windows — revisar tareas registradas",
+          "proposito": "Pista de persistencia; la ausencia de tarea no descarta otras técnicas.",
+          "comando": "Get-ScheduledTask | Select-Object TaskName,TaskPath,State,Actions,Principal"
+        }
+      ],
+      "contencion": "La ausencia de alerta Defender no autoriza cerrar el ticket. Si las primeras evidencias muestran actividad activa sospechosa o datos sensibles en riesgo, pedir aislamiento EDR o restricciones de salida aprobadas mientras se conserva telemetría. No ejecutar ni abrir la muestra fuera de sandbox autorizado, ni usar servicios públicos de análisis de muestras sin aprobación y valoración de datos sensibles. No borrar el EXE como primera acción ni confiar solo en escaneo antivirus: investigar procesos, persistencia, red, identidad y extensión.",
+      "escalation": [
+        "Hay ejecución confirmada de binario no autorizado más actividad secundaria sospechosa.",
+        "Se detecta conexión de C2, exfiltración, descarga de componentes, persistencia o cambios de seguridad.",
+        "Los procesos fueron lanzados con permisos elevados, tareas o servicios nuevos y acceso a secretos.",
+        "Varios dispositivos recibieron/ejecutaron el mismo hash o remitente sospechoso.",
+        "Defender deshabilitado, agentes con fallos de salud o políticas modificadas coincidentes con la ejecución.",
+        "El activo tiene acceso a sistemas de alto impacto y faltan registros esenciales para descartar compromiso."
+      ],
+      "falsos_positivos": [
+        "Archivo legítimo de proveedor distribuido de forma irregular pero respaldado por ticket y firma válida.",
+        "El usuario ejecutó instalador permitido y la consola no genera detecciones benignas.",
+        "El ejecutable falló al iniciar sin efectos posteriores, pero debe verificarse.",
+        "El fichero fue renombrado: el nombre no corresponde al payload real del correo.",
+        "Telemetría tardía, retención insuficiente o endpoint desconectado de EDR."
+      ],
+      "errores": [
+        "Cerrar como falso positivo porque Defender no alertó.",
+        "Volver a ejecutar el EXE para comprobar qué hace.",
+        "Borrar inmediatamente el archivo y perder contexto de hash/metadata.",
+        "Buscar solo el nombre del EXE y no árbol de procesos, hashes o procesos hijos.",
+        "Confundir detección/prevención AV con registro de cada ejecución: las tecnologías y coberturas difieren.",
+        "Subir archivos internos a servicios públicos sin autorización.",
+        "Emparejar procesos únicamente por PID sin DeviceId ni tiempo de creación."
+      ],
+      "perspectiva_red_team": "La ejecución de un archivo entregado por ingeniería social puede encajar en T1204.002 (Malicious File) si se acredita acción del usuario y naturaleza maliciosa. Los adversarios pueden lanzar procesos hijos, usar intérpretes legítimos y cambiar nombre/ruta para eludir detección; sin embargo una ausencia de alerta no demuestra evasión efectiva. Para el Blue Team, la secuencia entrega → descarga → ejecución → comportamiento → alcance es el núcleo del caso.",
+      "respuesta_entrevista": "No cerraría el incidente porque Defender no haya alertado. Confirmaría el mensaje original y la hora de ejecución, guardaría el hash y revisaría MDE DeviceProcessEvents y, si está auditado, Windows 4688 o Sysmon 1. Reconstruiría padre, hijos y ruta, revisaría DeviceFileEvents, red, servicios y tareas programadas; también el estado de protección y exclusiones. Si observo actividad maliciosa o riesgo activo, escalaría para aislamiento autorizado y búsqueda de otros equipos. Guardaría evidencia antes de remediar y verificaría la cobertura del EDR.",
+      "criterios_evaluacion": [
+        "Comprende que ausencia de alertas no prueba inocuidad.",
+        "Distingue correo recibido, archivo descargado y ejecución demostrada.",
+        "Correlaciona procesos, padre/hijo, ficheros, red, identidad y persistencia.",
+        "Preserva hashes y evidencia sin ejecutar muestra ni filtrarla públicamente.",
+        "Propone contención autorizada y búsqueda de alcance."
+      ],
+      "mitre": [
+        "T1204.002",
+        "T1059",
+        "T1105"
+      ],
+      "fuentes": [
+        "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-deviceprocessevents-table",
+        "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-devicefileevents-table",
+        "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-devicenetworkevents-table",
+        "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-deviceevents-table",
+        "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4688",
+        "https://attack.mitre.org/techniques/T1204/002/"
+      ]
+    }
+  ],
+  "bibliografia_general": [
+    "https://attack.mitre.org/techniques/T1036/",
+    "https://attack.mitre.org/techniques/T1053/005/",
+    "https://attack.mitre.org/techniques/T1110/",
+    "https://attack.mitre.org/techniques/T1204/002/",
+    "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.1/data-models/authentication",
+    "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.4/data-models/endpoint",
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/windowsevent",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-deviceevents-table",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-devicefileevents-table",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-devicenetworkevents-table",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-deviceprocessevents-table",
+    "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4698",
+    "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4740",
+    "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4625",
+    "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4688",
+    "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4702"
+  ]
+}

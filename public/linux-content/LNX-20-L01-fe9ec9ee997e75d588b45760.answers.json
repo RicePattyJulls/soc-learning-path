@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-20-L01",
+  "sourceHash": "d44d701d776b7acf76346267186942719d7c6c8b2376188aa4db51f1cde6a9ae",
+  "questions": [
+    {
+      "id": "LNX-20-L01-Q01",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Que el cliente está hablando con el servidor esperado, mediante confianza preexistente o validación externa del fingerprint».\n\nLa host key identifica al servidor. Se valida con `known_hosts` o con una comprobación externa del *fingerprint*. No tiene que ver con permisos de root, con el firewall ni con el cifrado del payload."
+    },
+    {
+      "id": "LNX-20-L01-Q02",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Porque recoge la clave observada sin establecer confianza independiente; no puede distinguir un servidor correcto de uno suplantado».\n\n`ssh-keyscan` simplemente obtiene la clave que el servidor presenta. Sin un canal independiente no hay forma de saber si es la correcta. No es un problema de familia IP, ni desactiva el cifrado, ni borra `authorized_keys`."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "El analista confunde la autenticación del servidor con la del usuario y, además, destruye la referencia de confianza. Sobrescribir `known_hosts` elimina el registro previo, de modo que deja de haber algo con qué comparar la clave nueva. `ssh-keyscan` recoge la clave observada, pero no establece confianza independiente: no puede distinguir un servidor correcto de uno suplantado.\n\nEl cifrado de la sesión protege el tránsito, pero no garantiza que el destino sea el servidor esperado. La verificación correcta se hace comparando el *fingerprint* por un canal fiable (documentación, consola OOB, administrador) antes de aceptar la clave y actualizar `known_hosts`.\n\nLímite: sin verificación independiente no puedes afirmar la identidad del servidor, por mucho que la conexión esté cifrada.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Distingue host key (servidor) de user key (usuario)."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Explica que sobrescribir `known_hosts` elimina la referencia de comparación."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Señala que `ssh-keyscan` no establece confianza independiente."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Declara que el cifrado no prueba la identidad del destino."
+      }
+    ]
+  },
+  "revision": "fe9ec9ee997e75d588b45760"
+}

@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-24-L01",
+  "sourceHash": "6689c4d2222e365d346975421579164d453f3b9f7cbe6d14b14bc19cb9f03b8d",
+  "questions": [
+    {
+      "id": "LNX-24-L01-Q01",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «La segunda, que el kernel usa para la mayoría de comprobaciones de privilegio».\n\nLa línea `Uid:` lista identidad real, efectiva, saved y de sistema de archivos. La efectiva ocupa la segunda posición y gobierna la mayoría de comprobaciones de privilegio; la primera es la real y la cuarta la de sistema de archivos."
+    },
+    {
+      "id": "LNX-24-L01-Q02",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «La FSUID, que puede coincidir con la EUID pero se evalúa por separado».\n\nLas comprobaciones de acceso a archivos usan la FSUID, que normalmente coincide con la EUID pero puede diferir. El RUID, el nombre del registro de autenticación y el GID del archivo no sustituyen esa comprobación."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "El propietario de un archivo lo determina la **FSUID** del proceso que lo creó, no el usuario que figura en el registro de login. Un proceso puede conservar el RUID de `analista`, tener una EUID elevada por un binario con SUID o por capacidades de archivo, y escribir con una FSUID distinta. La línea `Uid:` de `/proc/PID/status` muestra los cuatro valores —real, efectiva, saved y de sistema de archivos— y habría hecho visible esa separación.\n\nLa atribución correcta exige tres datos: quién inició la sesión, qué credencial efectiva tenía el proceso en el momento de la escritura y qué identidad se usó para el acceso al sistema de archivos. El nombre del propietario del archivo es un metadato del objeto, no una prueba de autoría.\n\nLímite: si el proceso terminó y no se conservó su estado, la conclusión queda en hipótesis; el propietario del archivo no sustituye la evidencia del proceso ni demuestra intención.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Distingue RUID, EUID, saved y FSUID con la pregunta que responde cada una."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Identifica la FSUID como credencial de las comprobaciones sobre archivos."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Reconoce que un archivo de `root` no implica una sesión de `root`."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Declara el límite cuando el proceso ya no está disponible."
+      }
+    ]
+  },
+  "revision": "c39b341ab0a8c8a88162a5e2"
+}

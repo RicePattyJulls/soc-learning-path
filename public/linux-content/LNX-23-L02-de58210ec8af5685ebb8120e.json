@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-23-L02",
+  "title": "DNS vs rutas vs TLS/IPv6",
+  "sourceHash": "3b4ec4a723789f4eb6ddfa5021886cd2051d18422599c1d9927a01b7b64d35da",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-23-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nSeparar un fallo de resolución DNS, de encaminamiento, de transporte y de TLS o IPv6 mediante un orden de comprobación explícito.\n\nPrerrequisitos: `LNX-23-L01` (Herramientas y campos para correlación).\n\n## 2. Comprende el mecanismo\n\n«El DNS responde pero la aplicación no funciona» es un síntoma, no un diagnóstico. Detrás puede haber resolución, elección de familia IP, ruta, transporte o TLS. Conviene fijar un orden de comprobación y descartar hipótesis por pasos, sin desactivar nada como primer recurso.\n\nEl primer paso es comparar **rutas de resolución**. `getent ahosts` sigue la resolución de nombres del sistema (ficheros, NSS, `systemd-resolved`), mientras que `dig` consulta DNS con su propia lógica. Si dan resultados distintos, no es una paradoja: son dos caminos y pueden diferir. También conviene revisar `/etc/hosts`, `/etc/nsswitch.conf` y el destino real de `/etc/resolv.conf`, que puede apuntar al *stub* local de `systemd-resolved` y no a un servidor remoto.\n\nEl segundo paso es identificar la **dirección realmente elegida** por el cliente: puede escoger IPv4 o IPv6, atravesar un proxy o depender del SNI. Con la dirección en mano, `ip route get` muestra la decisión de encaminamiento del kernel para ese destino, sin enviar paquetes a esa dirección.\n\nEl tercer paso es separar el **transporte** de la aplicación. Un fallo `Connection refused`, un *timeout* o un `No route to host` tienen causas competidoras distintas: no escucha y responde RST, o el paquete se filtra, o falta ruta. Antes de atribuir el fallo a TLS o al certificado, hay que ver si el handshake TCP (SYN, SYN-ACK, RST) llegó a completarse.\n\nEl cuarto paso es **IPv6 y doble pila**. Que IPv4 funcione y IPv6 falle no significa que IPv6 esté «desactivado»: puede faltar un registro AAAA, una ruta, un anuncio de router o existir un filtro solo para IPv6. Se comprueba con `getent ahosts`, rutas IPv6 y pruebas `-4`/`-6`, sin apagar IPv6 a ciegas.\n\nEl quinto paso es **TLS**. TLS protege el transporte, no la legitimidad del destino ni la acción. Un error de certificado o de SNI es distinto de un error TCP, y conviene no mezclarlos. Bloquear ICMP o ICMPv6 también rompe diagnósticos y descubrimiento, así que no es una prueba válida.\n\nLa regla es un orden: resolución, elección de familia, ruta, transporte y TLS. El límite: desde un solo host no se ve toda la ruta; NAT, proxy o firewall intermedios pueden cambiar la correspondencia entre nombre, dirección y resultado.\n\n### Vocabulario de apoyo\n\n- **NSS**: capa del sistema que decide cómo se resuelven nombres.\n- **`getent ahosts`**: consulta que sigue la resolución de nombres del sistema.\n- **`dig`**: herramienta que consulta DNS con su propia lógica.\n- **Stub resolver**: resolvedor local que reenvía las consultas al servidor real.\n- **`ip route get`**: consulta de la decisión de encaminamiento sin enviar paquetes.\n- **SNI**: nombre de servidor que el cliente presenta al iniciar TLS.\n- **Doble pila**: funcionamiento simultáneo de IPv4 e IPv6.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-23-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un análisis de laboratorio muestra que `getent ahosts` resuelve un nombre a `2001:db8::20`, pero la aplicación no conecta. El analista concluye que «la red está bien porque el DNS responde» y no revisa la familia elegida ni la ruta.\n\nEl razonamiento confunde «resolver un nombre» con «poder conectar». Que la resolución devuelva una dirección **IPv6** de documentación no prueba que exista ruta hacia ella ni que el servicio acepte esa familia; IPv4 podría funcionar y IPv6 no. Atribuir el fallo al DNS deja sin comprobar la ruta y el transporte.\n\nLa lectura correcta sigue el orden: confirmar la dirección elegida, consultar `ip route get` hacia ella, observar el handshake TCP y solo después revisar TLS o certificado. El límite: desde el host no se ve toda la ruta; un proxy o un filtro intermedio puede alterar la correspondencia entre nombre, dirección y resultado.\n\n"
+    },
+    {
+      "id": "LNX-23-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Ordenar el diagnóstico por capas y no confundir resolución con conectividad.\n- Red Team autorizado: Falsar hipótesis de red en laboratorio propio, sin apagar IPv6 ni bloquear ICMP.\n- Evidencia de la etapa: Resultado de resolución, familia elegida, `ip route get`, estado del handshake y error TLS.\n- Criterio de dominio: Separa resolución, ruta, transporte y TLS, y declara el límite de cada prueba.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB28](../../05_RECURSOS/LABORATORIOS/LNX-LAB28.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F77**: [resolvectl — systemd](https://www.freedesktop.org/software/systemd/man/257/resolvectl.html). Consulta y estado de la resolución.\n- **F78**: [systemd-resolved.service — systemd](https://www.freedesktop.org/software/systemd/man/257/systemd-resolved.service.html). Stub local y resolución por interfaz.\n- **F71**: [ip-route(8) — iproute2/man7](https://man7.org/linux/man-pages/man8/ip-route.8.html). Decisión de encaminamiento y `route get`.\n- **F98**: [RFC 8200 — IPv6](https://www.rfc-editor.org/rfc/rfc8200). Semántica de IPv6 y doble pila.\n- **F99**: [RFC 8446 — TLS 1.3](https://www.rfc-editor.org/rfc/rfc8446). Qué protege TLS y qué no.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-23-L02-P01",
+    "prompt": "`getent ahosts` resuelve un nombre a `2001:db8::20`, pero la aplicación no conecta; concluyes que «la red está bien porque el DNS responde» y no revisas la familia elegida ni la ruta. Explica qué pasos seguirías para separar resolución, ruta, transporte y TLS, y cuál es el límite de tu conclusión.",
+    "markdown": "## 4. Práctica individual\n\n`getent ahosts` resuelve un nombre a `2001:db8::20`, pero la aplicación no conecta; concluyes que «la red está bien porque el DNS responde» y no revisas la familia elegida ni la ruta. Explica qué pasos seguirías para separar resolución, ruta, transporte y TLS, y cuál es el límite de tu conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber diagnosticado ni modificado una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-23-L02-Q01",
+      "prompt": "Si `getent ahosts` y `dig` dan resultados distintos para el mismo nombre, ¿qué explica la diferencia?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que el servicio DNS está caído por completo"
+        },
+        {
+          "id": "B",
+          "text": "Que el nombre no existe en ninguna parte"
+        },
+        {
+          "id": "C",
+          "text": "Que el kernel ha cambiado de familia IP"
+        },
+        {
+          "id": "D",
+          "text": "Que siguen rutas de resolución distintas: `getent` usa la resolución del sistema (NSS) y `dig` consulta DNS con su propia lógica"
+        }
+      ]
+    },
+    {
+      "id": "LNX-23-L02-Q02",
+      "prompt": "El DNS responde bien pero la aplicación falla. ¿Qué comprobación separa un problema de transporte de uno de TLS o certificado?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Reiniciar el servicio DNS del sistema"
+        },
+        {
+          "id": "B",
+          "text": "Cambiar el servidor DNS por uno de los rangos de documentación"
+        },
+        {
+          "id": "C",
+          "text": "Desactivar IPv6 en todo el sistema"
+        },
+        {
+          "id": "D",
+          "text": "Revisar `ip route get` hacia la dirección elegida y el handshake TCP (SYN, SYN-ACK, RST) antes de atribuir el fallo a TLS o al certificado"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB28](../../05_RECURSOS/LABORATORIOS/LNX-LAB28.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F77**: [resolvectl — systemd](https://www.freedesktop.org/software/systemd/man/257/resolvectl.html). Consulta y estado de la resolución.\n- **F78**: [systemd-resolved.service — systemd](https://www.freedesktop.org/software/systemd/man/257/systemd-resolved.service.html). Stub local y resolución por interfaz.\n- **F71**: [ip-route(8) — iproute2/man7](https://man7.org/linux/man-pages/man8/ip-route.8.html). Decisión de encaminamiento y `route get`.\n- **F98**: [RFC 8200 — IPv6](https://www.rfc-editor.org/rfc/rfc8200). Semántica de IPv6 y doble pila.\n- **F99**: [RFC 8446 — TLS 1.3](https://www.rfc-editor.org/rfc/rfc8446). Qué protege TLS y qué no.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "de58210ec8af5685ebb8120e"
+}

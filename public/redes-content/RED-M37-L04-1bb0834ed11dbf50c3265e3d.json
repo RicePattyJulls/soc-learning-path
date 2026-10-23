@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M37-L04",
+  "title": "Errores, secretos y logging",
+  "sourceHash": "985a9ac853f96de130adc50e0a424a948bf0ccaa93f3bb7108ab66ceea0fb835",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M37-L04-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nProteger secretos y evitar logs que aparenten una aplicación exitosa.\n\nPrerrequisitos: [RED-M37-L03](../RED-E07/RED-M37-L03.md).\n\n## 2. Comprende el mecanismo\n\nAutomatizar no elimina la necesidad de credenciales de mínimo privilegio, almacenamiento adecuado y rotación. Los errores y diffs pueden revelar material sensible; redacta campos y evita volcar respuestas completas sin necesidad. Una operación recibida debe contrastarse con estado efectivo y pruebas de servicio. Logging tiene que conservar correlación y resultado sin exponer autenticación. Distingue fallos de transporte, autenticación, esquema, permisos, capacidad y aplicación para que la recuperación no sea un reintento indiscriminado.\n\n### Vocabulario de apoyo\n\n- **API REST y HTTP 202**: Interfaz de recursos con contrato propio y aceptación que puede dejar procesamiento pendiente.\n- **YANG, NETCONF y RESTCONF**: Modelado de datos y protocolos de operación sobre datos modelados, con capacidades específicas.\n- **Idempotencia**: Propiedad de repetir una operación sin producir efectos adicionales respecto al estado previsto.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M37-L04-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Log docente imprime un encabezado Authorization real y después marca success solo porque recibió HTTP 200 de una consulta, no de un cambio.\n\nExisten dos problemas: exposición del secreto y atribución de éxito a la operación equivocada. Deben corregirse por separado.\n\n"
+    },
+    {
+      "id": "RED-M37-L04-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Recuperar configuraciones para contexto.\n- Red Team autorizado: Comparar configuraciones esperadas y reales.\n- Evidencia del módulo: Esquema, plan, secretos excluidos, resultado esperado.\n- Criterio del módulo: Comportamiento predecible con fallos controlados.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L18](../../05_RECURSOS/LABORATORIOS/RED-L18.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC9110**: [RFC 9110: HTTP Semantics](https://www.rfc-editor.org/rfc/rfc9110.html). Métodos, respuestas y significado de 202/403.\n- **RFC6241**: [RFC 6241: Network Configuration Protocol NETCONF](https://www.rfc-editor.org/rfc/rfc6241.html). Capacidades y operaciones NETCONF; opcionales no universales.\n- **RFC7950**: [RFC 7950: The YANG 1.1 Data Modeling Language](https://www.rfc-editor.org/rfc/rfc7950.html). Modelos, tipos y revisiones YANG.\n- **RFC8040**: [RFC 8040: RESTCONF Protocol](https://www.rfc-editor.org/rfc/rfc8040.html). Recursos modelados mediante HTTP.\n- **ANSIBLE**: [Ansible Network Examples](https://docs.ansible.com/projects/ansible/latest/network/user_guide/network_best_practices_2.5.html). Inventario, tareas y prácticas de automatización; verificar contrato de cada módulo.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M37-L04-P01",
+    "prompt": "Diseña un registro de cambio que permita auditar sin conservar el secreto.",
+    "markdown": "## 4. Práctica individual\n\nDiseña un registro de cambio que permita auditar sin conservar el secreto.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M37-L04-Q01",
+      "prompt": "¿Qué debe excluir un log ordinario de automatización?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El valor real de credenciales o tokens"
+        },
+        {
+          "id": "B",
+          "text": "El estado de la operación"
+        },
+        {
+          "id": "C",
+          "text": "Un ID de correlación"
+        },
+        {
+          "id": "D",
+          "text": "El activo afectado"
+        }
+      ]
+    },
+    {
+      "id": "RED-M37-L04-Q02",
+      "prompt": "¿Por qué HTTP 200 no demuestra el cambio del caso?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Corresponde a otra operación de consulta"
+        },
+        {
+          "id": "B",
+          "text": "Toda API es stateless sin recursos"
+        },
+        {
+          "id": "C",
+          "text": "No existen códigos para consultar"
+        },
+        {
+          "id": "D",
+          "text": "HTTP 200 siempre significa rechazo"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L18](../../05_RECURSOS/LABORATORIOS/RED-L18.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC9110**: [RFC 9110: HTTP Semantics](https://www.rfc-editor.org/rfc/rfc9110.html). Métodos, respuestas y significado de 202/403.\n- **RFC6241**: [RFC 6241: Network Configuration Protocol NETCONF](https://www.rfc-editor.org/rfc/rfc6241.html). Capacidades y operaciones NETCONF; opcionales no universales.\n- **RFC7950**: [RFC 7950: The YANG 1.1 Data Modeling Language](https://www.rfc-editor.org/rfc/rfc7950.html). Modelos, tipos y revisiones YANG.\n- **RFC8040**: [RFC 8040: RESTCONF Protocol](https://www.rfc-editor.org/rfc/rfc8040.html). Recursos modelados mediante HTTP.\n- **ANSIBLE**: [Ansible Network Examples](https://docs.ansible.com/projects/ansible/latest/network/user_guide/network_best_practices_2.5.html). Inventario, tareas y prácticas de automatización; verificar contrato de cada módulo.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "1bb0834ed11dbf50c3265e3d"
+}

@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 1,
+  "courseId": "soc",
+  "id": "N2-14",
+  "sourceHash": "392681ddcf9d2fa1027797270c75bf41f4e0ab3e20df25b82ce4696d9b36ff19",
+  "revision": "85d2ef7e5e4e7450a6c3b5dd",
+  "hipotesis": [
+    "T1070.001: un actor borra registros para dificultar análisis tras obtener permisos suficientes.",
+    "Administrador o herramienta de mantenimiento limpió Security log en una operación no debidamente coordinada.",
+    "Fallo/retención/rotación, pérdida de eventos por ingestión o collector, que parece «borrado» sin confirmación de acción.",
+    "El 1102 indica un borrado real de Security, pero no prueba qué sesiones/eventos existían antes ni que se borraron del SIEM remoto.",
+    "El atacante manipula también cobertura EDR o pipeline, por lo que ausencia de datos debe analizarse como limitación, no como prueba negativa."
+  ],
+  "pasos": [
+    {
+      "fase": "1 · Preservar evidencia disponible",
+      "accion": "Congelar exportaciones de SIEM/EDR/Sysmon, tiempo de alerta, host, EventRecordId, cuenta SID y el evento 1102 completo. Iniciar cadena de custodia; pedir snapshot forense aprobado y evitar ejecutar herramientas que alteren datos innecesariamente."
+    },
+    {
+      "fase": "2 · Interpretar correctamente el evento",
+      "accion": "Confirmar canal Security, proveedor Microsoft-Windows-Eventlog y campos del sujeto de 1102. Consultar al dueño del sistema, ticket y posible mantenimiento. Un 1102 no demuestra intrusión, pero debe investigarse."
+    },
+    {
+      "fase": "3 · Distinguir dónde falta la evidencia",
+      "accion": "Separar ausencia en equipo local, ausencia en forwarder y ausencia en SIEM. Analizar latencia, retención, colas, permisos, disco, reenvío de Windows Event Forwarding e interrupciones del agente."
+    },
+    {
+      "fase": "4 · Recuperar telemetría ya enviada",
+      "accion": "Consultar eventos históricos en Sentinel/Log Analytics y otro colector previo al borrado; la eliminación del log local no elimina automáticamente copias ya transferidas. Evaluar disponibilidad en backup y retención central."
+    },
+    {
+      "fase": "5 · Correlacionar red e identidad",
+      "accion": "Traer VPN, proxy, DNS, firewall, DHCP, NetFlow, eventos de AD/DC alternativos, Kerberos, logons en los destinos, cambios de cuenta y movimientos laterales. Documentar la precisión temporal y NTP."
+    },
+    {
+      "fase": "6 · Pivotar a endpoint",
+      "accion": "Investigar DeviceProcessEvents, DeviceFileEvents, DeviceRegistryEvents, EDR timeline, Sysmon en collector, tareas/servicios, y actividades del usuario. Prefetch, Amcache, USN, SRUM o Shimcache son fuentes forenses condicionadas a configuración/Windows y su interpretación requiere especialistas."
+    },
+    {
+      "fase": "7 · Construir timeline con trazabilidad",
+      "accion": "Normalizar timestamps en UTC y mantener campo de origen, zona horaria, reloj de cada sensor, usuario/SID, correlación por DeviceId y EventRecordId cuando corresponda. Marcar «observado», «inferido» y «desconocido»."
+    },
+    {
+      "fase": "8 · Contención y búsqueda de alcance",
+      "accion": "Si hay actividad maliciosa confirmada, contener dispositivos/cuentas según IR, no solo «restaurar logging». Identificar otros hosts con 1102/104, fallas de EDR o gaps simultáneos, y comprobar si hay persistencia."
+    },
+    {
+      "fase": "9 · Recuperación y lecciones",
+      "accion": "Restaurar políticas de auditoría/WEF/EDR, comprobar alertas de huecos de ingesta y retención suficiente; redactar alcance máximo sustentado, impacto e incertidumbres. No afirmar que se reconstruyó todo si existen huecos."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "Windows Security ID 1102",
+      "lectura": "Se borró Security audit log y se registró sujeto (SID, nombre y LogonId); evento debe validarse en canal correcto."
+    },
+    {
+      "dato": "System EventLog ID 104",
+      "lectura": "Indica limpieza de un log (especificar canal); no equipararlo automáticamente a 1102 de Security."
+    },
+    {
+      "dato": "Sentinel/WEF/collector remoto",
+      "lectura": "Copia central de eventos anteriores que puede permanecer tras borrado local, sujeto a retención y errores de envío."
+    },
+    {
+      "dato": "Defender XDR: DeviceProcessEvents y otros artefactos EDR",
+      "lectura": "Telemetría paralela a Event Log; puede tener pérdidas y ventanas de retención distintas."
+    },
+    {
+      "dato": "Proxy, DNS, firewall, VPN, DHCP",
+      "lectura": "Conexiones, destinos, sesiones, traducciones NAT y atribución de IP que ayudan a reconstruir acceso/movimiento."
+    },
+    {
+      "dato": "Prefetch, Amcache, USN, SRUM, filesystem timestamps",
+      "lectura": "Pistas de ejecución/artefactos que requieren colección e interpretación forense; ausencias no prueban que algo no se ejecutó."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Sentinel · borrado de Security 1102 y huecos cercanos",
+      "entorno": "WindowsEvent recoge Security 1102 y 4688. 4688 es opcional y puede carecer de command line; se busca contexto temporal.",
+      "consulta": "let borrados = WindowsEvent\n| where TimeGenerated >= ago(7d)\n| where EventID == 1102\n| project Host=Computer, HoraBorrado=TimeGenerated,\n          Actor=tostring(EventData.SubjectUserName),\n          Record=tostring(EventRecordId);\nborrados\n| order by HoraBorrado desc",
+      "interpretacion": "Recupera host, hora y actor del borrado si EventData lo contiene. Usar esa hora para pivotar a otras tablas.",
+      "limitaciones": "EventData puede no tener SubjectUserName según parseo; inspeccionar XML real. No atribuye intención y solo ve 1102 efectivamente ingestados."
+    },
+    {
+      "nombre": "Defender XDR · actividad de procesos alrededor del borrado",
+      "entorno": "Defender Advanced Hunting, reemplazar host/horas didácticos. Buscar eventos del sensor central, aunque Security local falte.",
+      "consulta": "DeviceProcessEvents\n| where Timestamp between (ago(2d) .. now())\n| where DeviceName =~ \"DC02\"\n| project Timestamp, DeviceName, AccountName, FileName,\n          FolderPath, ProcessCommandLine, ProcessId, ProcessCreationTime,\n          InitiatingProcessFileName, InitiatingProcessCommandLine\n| order by Timestamp asc",
+      "interpretacion": "Reconstruye secuencia de ejecución que puede correlacionarse con la ventana de borrado y demás fuentes.",
+      "limitaciones": "La ventana y DC02 son didácticos. MDE puede no estar presente en DC o haber perdido cobertura; datos EDR no sustituyen todo Security."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk · eventos 1102/104 capturados remotamente",
+      "entorno": "index=wineventlog con WindowsEvent incluidas fuentes Security y System, EventCode normalizado.",
+      "consulta": "index=wineventlog earliest=-7d (EventCode=1102 OR EventCode=104)\n| eval registro=coalesce(Channel,LogName,source)\n| table _time host EventCode registro SubjectUserName user Message\n| sort - _time",
+      "interpretacion": "Localiza borrados y permite diferenciar 1102/104 por canal/proveedor en el colector central.",
+      "limitaciones": "Puede haber otros IDs=104 de proveedores ajenos: filtrar proveedor real. La ausencia de registro en Splunk no prueba ausencia de borrado."
+    },
+    {
+      "nombre": "Splunk · detectar huecos de ingesta por host",
+      "entorno": "index=wineventlog representa logs de seguridad Windows y hay baseline de eventos de cada host.",
+      "consulta": "index=wineventlog earliest=-48h\n| bin _time span=1h\n| stats count as eventos by host _time\n| eventstats avg(eventos) as media_por_host by host\n| eval ratio=round(eventos/max(media_por_host,1),2)\n| where ratio<0.15\n| table _time host eventos media_por_host ratio\n| sort _time",
+      "interpretacion": "Detecta ventanas observadas con caída relativa de volumen por host; contrastar con uptime y calendario.",
+      "limitaciones": "Sin registros en una hora no existe fila y esa hora no aparece: generar serie temporal completa por host para detectar huecos absolutos. Baseline de 48h es simplificada."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "PowerShell autorizado — solo lectura",
+      "proposito": "Consultar y preservar metadata de 1102 local si todavía está disponible.",
+      "comando": "Get-WinEvent -FilterHashtable @{\n  LogName='Security'\n  Id=1102\n  StartTime=(Get-Date).AddDays(-7)\n} -MaxEvents 100 | Select-Object TimeCreated,Id,RecordId,Message"
+    },
+    {
+      "entorno": "PowerShell autorizado — solo lectura",
+      "proposito": "Verificar estado actual de canal Security, tamaño máximo y política de retención.",
+      "comando": "Get-WinEvent -ListLog Security |\n  Select-Object LogName,IsEnabled,RecordCount,MaximumSizeInBytes,LogMode"
+    },
+    {
+      "entorno": "PowerShell autorizado — solo lectura",
+      "proposito": "Leer algunos eventos de System cercanos a vaciados de otros canales.",
+      "comando": "Get-WinEvent -FilterHashtable @{\n  LogName='System'\n  Id=104\n  StartTime=(Get-Date).AddDays(-7)\n} -MaxEvents 100 | Select-Object TimeCreated,ProviderName,Id,Message"
+    }
+  ],
+  "contencion": "La primera acción no es limpiar más registros ni reiniciar. Preservar telemetría central, imagen/artefactos autorizados y cadena de custodia; decidir aislamiento o control de identidades según indicios de ataque activo. Comprobar que la captación continúa y rotar/corregir accesos solo siguiendo plan de IR. El dueño del sistema debe aprobar cambios con impacto en autenticación y producción.",
+  "escalation": [
+    "Borrado 1102 no autorizado en DC, jump host, servidor privilegiado o endpoint crítico.",
+    "Correlación con logons privilegiados, herramientas extrañas y movimiento lateral.",
+    "Borrados simultáneos en varios hosts o caída deliberada de EDR/colector.",
+    "Evidencia de persistencia/ransomware/exfiltración y pérdida de visibilidad.",
+    "Retención central insuficiente o backup/logs manipulados que comprometen reconstrucción."
+  ],
+  "falsos_positivos": [
+    "Actividad de troubleshooting/documentación que limpió un canal con aprobación.",
+    "Recreación de VM, reinstalación o restauración de imagen sin preservar logs.",
+    "Rotación del log por tamaño y retención confundida con borrado manual.",
+    "Fallo de forwarding/red/SIEM que aparenta hueco local.",
+    "Diferencia UTC/local o reloj inestable que parece salto cronológico."
+  ],
+  "errores": [
+    "Decir que 1102 demuestra autoría maliciosa.",
+    "Asumir que borrar local elimina la copia SIEM ya enviada.",
+    "Confundir retención/fallo de ingesta con manipulación forense.",
+    "Generar nueva actividad invasiva antes de preservar artefactos.",
+    "Afirmar timeline completa sin advertir lagunas de telemetría.",
+    "Ignorar correlación de hora, NAT, identidad y eventos de hosts destino."
+  ],
+  "perspectiva_red_team": "El borrado de logs reduce visibilidad de un canal, no borra necesariamente las múltiples copias o las telemetrías independientes. Un atacante puede buscar eludir auditoría antes o después de otras acciones, mientras los defensores pueden reconstruir parte del recorrido con EDR, controladores de dominio, proxy, netflows y artefactos forenses. La prioridad del análisis es preservar y acotar qué puede afirmarse realmente.",
+  "respuesta_entrevista": "Primero validaría el 1102, host, canal, sujeto y hora UTC, y comprobaría si existe mantenimiento aprobado. Preservaría los registros del SIEM/WEF que ya fueron enviados, porque borrar Security local no elimina esas copias. Después construiría una timeline cruzando EDR, Sysmon, firewall, DNS, proxy, identidad y hosts destino, etiquetando cada elemento como observado o inferido. Si detecto actividad activa de intrusión, contengo conforme a IR. Documentaría cualquier hueco y mejoraría monitorización de borrados y pérdida de ingesta.",
+  "criterios_evaluacion": [
+    "Sabe interpretar Security 1102 y System 104.",
+    "Entiende copias centrales y límites de retención.",
+    "Recupera evidencia multi-fuente y cadena de custodia.",
+    "Normaliza tiempos y correlaciona identidad/host.",
+    "No equipara ausencia de logs con ausencia de ataque.",
+    "Plantea cierre con incertidumbres explícitas."
+  ],
+  "mitre": [
+    "T1070.001 — Clear Windows Event Logs (si borrado intencionado)"
+  ],
+  "fuentes": [
+    "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-1102",
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/windowsevent",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-deviceprocessevents-table",
+    "https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon",
+    "https://csrc.nist.gov/pubs/sp/800/61/r3/final"
+  ]
+}

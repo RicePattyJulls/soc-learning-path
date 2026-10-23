@@ -1,0 +1,1541 @@
+{
+  "schema_version": "1.0.0",
+  "project": "Linux para SOC + Red Team",
+  "batch": 3,
+  "total_batches": 5,
+  "title": "Almacenamiento, sistemas de archivos, backups, restauración y recuperación",
+  "language": "es-ES",
+  "research_date": "2026-10-18",
+  "based_on": {
+    "original_scope_file": "linux(1).txt",
+    "original_scope_section": "Almacenamiento, sistemas de archivos, backups, restauración y recuperación.",
+    "previous_batch": "Tanda 2: Arranque, systemd, servicios y gestión de paquetes"
+  },
+  "companion_markdown": "Linux_SOC_RedTeam_Tanda3_Informe.md",
+  "companion_markdown_sha256": "2460841773c1663e6ba40fe9d7f6ec904f2e603d1995ff07b6934979ca3da3a2",
+  "source_outline": [
+    {
+      "section": 1,
+      "heading": "Objetivos comprobables y modelo mental"
+    },
+    {
+      "section": 2,
+      "heading": "Inventario: primero observar, después cambiar [DOC:F01–F04]"
+    },
+    {
+      "section": 3,
+      "heading": "VFS, inodos, rutas y metadatos [DOC:F05–F06]"
+    },
+    {
+      "section": 4,
+      "heading": "Familias de sistemas de archivos y garantías [DOC:F07–F12]"
+    },
+    {
+      "section": 5,
+      "heading": "Montajes, /etc/fstab, systemd y frontera de confianza [DOC:F02–F04,F14]"
+    },
+    {
+      "section": 6,
+      "heading": "Volúmenes y mapeadores: GPT, LVM, RAID, LUKS"
+    },
+    {
+      "section": 7,
+      "heading": "Capacidad, cuotas y rendimiento: árbol de decisión operativo"
+    },
+    {
+      "section": 8,
+      "heading": "Estrategia de backup como diseño de recuperación [DOC:F18–F22]"
+    },
+    {
+      "section": 9,
+      "heading": "Herramientas de backup: comparativa operacional"
+    },
+    {
+      "section": 10,
+      "heading": "Restaurar significa volver a operar, no solo copiar bytes"
+    },
+    {
+      "section": 11,
+      "heading": "Recuperación tras corrupción y dispositivos con errores [DOC:F08–F10,F23,F29]"
+    },
+    {
+      "section": 12,
+      "heading": "SOC/DFIR: preservar antes de intervenir"
+    },
+    {
+      "section": 13,
+      "heading": "Detecciones SOC: hipótesis, señal, confirmación y límites"
+    },
+    {
+      "section": 14,
+      "heading": "Red Team autorizado: evaluación de exposición del almacenamiento"
+    },
+    {
+      "section": 15,
+      "heading": "Laboratorios prácticos reproducibles (8 ejercicios, 100 puntos)"
+    },
+    {
+      "section": 16,
+      "heading": "Casos integradores de entrevista y operación"
+    },
+    {
+      "section": 17,
+      "heading": "Preguntas de evaluación (30) y guía de corrección"
+    },
+    {
+      "section": 18,
+      "heading": "Plantilla de entrega SOC + Red Team"
+    },
+    {
+      "section": 19,
+      "heading": "Guía rápida de decisiones"
+    },
+    {
+      "section": 20,
+      "heading": "Fuentes primarias y documentación consultada"
+    },
+    {
+      "section": 21,
+      "heading": "Limitaciones, exclusiones y continuación"
+    }
+  ],
+  "learning_objectives": [
+    "Mapear dispositivo→mapeador→filesystem→montaje→proceso y namespaces.",
+    "Diferenciar problemas de bloques, inodos, cuotas, permisos y archivos abiertos eliminados.",
+    "Comparar ext4, XFS, Btrfs, tmpfs, overlayfs y sistemas remotos con sus límites.",
+    "Interpretar timestamps, inode, enlaces, xattrs, ACL y límites probatorios.",
+    "Diseñar RPO/RTO, retención protegida, separación de privilegios y plan restore.",
+    "Realizar tar/rsync/restic seguros con restauración aislada y comprobación de datos.",
+    "Planificar chequeo/reparación en una imagen y evitar intervención dañina sobre medios reales.",
+    "Diseñar detecciones SOC y retests Red Team autorizados con canaries."
+  ],
+  "execution_policy": {
+    "environment": "VM propia, espacio aislado en rutas aleatorias /tmp o HOME",
+    "allow_root": "Solo observación aprobada, nunca cambios de FS/volumen real",
+    "denied_actions": [
+      "mkfs o reparación sobre /dev/*",
+      "xfs_repair -L",
+      "btrfs check --repair",
+      "cryptsetup luksFormat/luksErase/luksHeaderRestore en discos reales",
+      "lvremove/pvcreate en volúmenes no sintéticos",
+      "restic forget/prune",
+      "rsync --delete sobre datos reales",
+      "destruir backups reales",
+      "leer secretos ajenos"
+    ],
+    "critical_failure": "Cualquier acción destructiva sobre disco, origen restauración o evidencia, o afirmación falsa de ejecución de laboratorios.",
+    "do_not_execute_commands_without_understanding_paths": true,
+    "all_labs_status": "planned_not_executed"
+  },
+  "labs": [
+    {
+      "id": "LAB-3.1",
+      "title": "Inventario, topología y contexto de montaje",
+      "category": "storage_observability",
+      "difficulty": "fundamental",
+      "duration_minutes_estimate": [
+        35,
+        50
+      ],
+      "score_points": 10,
+      "prerequisites": [
+        "Linux user shell",
+        "lsblk, findmnt, df, sha256sum"
+      ],
+      "scope": "Host o VM administrados por el alumno; lectura solamente.",
+      "safety_constraints": [
+        "Sin cambios de particiones, montajes ni fstab",
+        "No registrar UUID, rutas de negocio o datos sensibles en informes públicos"
+      ],
+      "procedure": [
+        {
+          "step": 1,
+          "action": "Identificar distribución, kernel y usuario",
+          "command": "cat /etc/os-release; uname -r; id"
+        },
+        {
+          "step": 2,
+          "action": "Guardar inventario de dispositivos y capas",
+          "command": "mkdir -p \"$HOME/linux-t3-evidencia\"; lsblk -o NAME,TYPE,SIZE,FSTYPE,UUID,MOUNTPOINTS > \"$HOME/linux-t3-evidencia/lsblk.txt\""
+        },
+        {
+          "step": 3,
+          "action": "Documentar montajes efectivos",
+          "command": "findmnt -o TARGET,SOURCE,FSTYPE,OPTIONS > \"$HOME/linux-t3-evidencia/mounts.txt\""
+        },
+        {
+          "step": 4,
+          "action": "Medir bloques e inodos",
+          "command": "df -hT > \"$HOME/linux-t3-evidencia/df.txt\"; df -i > \"$HOME/linux-t3-evidencia/inodes.txt\""
+        },
+        {
+          "step": 5,
+          "action": "Sellar hash de artefactos sintéticos sin incluir manifiesto a sí mismo",
+          "command": "sha256sum \"$HOME\"/linux-t3-evidencia/{lsblk,mounts,df,inodes}.txt > \"$HOME/linux-t3-evidencia/SHA256SUMS\""
+        }
+      ],
+      "deliverables": [
+        "mapa-capacidad.md: jerarquía volumen→FS→montaje para dos rutas",
+        "4 salidas con fecha, versión y hash",
+        "Nota sobre diferencias de namespace y fuentes ausentes"
+      ],
+      "acceptance_criteria": [
+        "Mapeo coherente de al menos dos rutas",
+        "Distingue device, filesystem, punto de montaje y UUID",
+        "No confunde overlay/loop legítimo con amenaza",
+        "Explica limitación de mountinfo de proceso actual"
+      ],
+      "rubric": {
+        "inventario_correcto": 4,
+        "interpretacion_de_capas": 3,
+        "integridad_y_limites": 3
+      },
+      "cleanup_and_rollback": [
+        "Los artefactos permanecen en $HOME/linux-t3-evidencia hasta ser validados",
+        "Eliminar solo la carpeta de evidencias si se autoriza expresamente, sin comodines"
+      ],
+      "references": [
+        "F01",
+        "F02",
+        "F03",
+        "F04"
+      ],
+      "mitre_attack": []
+    },
+    {
+      "id": "LAB-3.2",
+      "title": "Inodos, hard links, symlinks y tiempos",
+      "category": "filesystem_metadata",
+      "difficulty": "fundamental",
+      "duration_minutes_estimate": [
+        45,
+        60
+      ],
+      "score_points": 12,
+      "prerequisites": [
+        "GNU coreutils",
+        "Carpeta temporal con escritura"
+      ],
+      "scope": "Directorio temporal del usuario con nombres inventados.",
+      "safety_constraints": [
+        "No analizar directorios ajenos ni seguir symlinks a destinos sensibles",
+        "No atribuir autor a partir de timestamps"
+      ],
+      "procedure": [
+        {
+          "step": 1,
+          "action": "Preparar carpeta aleatoria y archivo",
+          "command": "LAB=\"$(mktemp -d -t linux-t3-inode-XXXXXX)\"; printf \"version uno\\n\" > \"$LAB/a.txt\"; printf \"LAB=%s\\n\" \"$LAB\""
+        },
+        {
+          "step": 2,
+          "action": "Crear enlaces del mismo objeto y enlace a ruta",
+          "command": "ln -- \"$LAB/a.txt\" \"$LAB/a-hard.txt\"; ln -s -- a.txt \"$LAB/a-sym.txt\""
+        },
+        {
+          "step": 3,
+          "action": "Registrar identidad del inode y tiempos",
+          "command": "stat -c \"%n inode=%i device=%d links=%h mtime=%y ctime=%z\" \"$LAB\"/*"
+        },
+        {
+          "step": 4,
+          "action": "Escribir a través de enlace físico y comprobar reflejo",
+          "command": "printf \"version dos\\n\" >> \"$LAB/a-hard.txt\"; sha256sum \"$LAB/a.txt\" \"$LAB/a-hard.txt\""
+        },
+        {
+          "step": 5,
+          "action": "Explicar semántica de los cambios",
+          "command": "readlink \"$LAB/a-sym.txt\"; stat -c \"%d:%i %h %s %n\" \"$LAB/a.txt\" \"$LAB/a-hard.txt\""
+        }
+      ],
+      "deliverables": [
+        "Tabla con device:inode, link count, hash y marcas temporales",
+        "Explicación de por qué ctime no es crtime",
+        "Dos hipótesis forenses rivales sobre cambios de tiempo"
+      ],
+      "acceptance_criteria": [
+        "Hard links comparten device/inode y hash",
+        "Symlink se distingue correctamente",
+        "Reconoce relatividad de timestamps y falta de atribución",
+        "Rollback apunta exactamente a LAB"
+      ],
+      "rubric": {
+        "prueba_de_enlaces": 5,
+        "interpretacion_de_tiempos": 4,
+        "limites_y_rollback": 3
+      },
+      "cleanup_and_rollback": [
+        "Comprobar que LAB comienza por /tmp/linux-t3-inode- y es directorio no symlink",
+        "Revisar listado antes de borrar archivos sintéticos; no usar sudo"
+      ],
+      "references": [
+        "F05",
+        "F06"
+      ],
+      "mitre_attack": [
+        "T1070.006 (solo contexto, NO emulación)"
+      ]
+    },
+    {
+      "id": "LAB-3.3",
+      "title": "Diagnóstico de capacidad y archivo desvinculado",
+      "category": "filesystem_operations",
+      "difficulty": "intermediate",
+      "duration_minutes_estimate": [
+        40,
+        60
+      ],
+      "score_points": 12,
+      "prerequisites": [
+        "Python 3",
+        "lsblk/findmnt/df",
+        "Lsof opcional"
+      ],
+      "scope": "Archivo temporal de pocos bytes, no carga de disco.",
+      "safety_constraints": [
+        "No agotar bloques, inodos, swap ni cuotas reales",
+        "No cerrar ficheros de procesos de producción"
+      ],
+      "procedure": [
+        {
+          "step": 1,
+          "action": "Comparar señales de capacidad, inodos y montajes",
+          "command": "df -hT /tmp; df -i /tmp; findmnt --target /tmp"
+        },
+        {
+          "step": 2,
+          "action": "Emular un descriptor de archivo sin nombre (sin root)",
+          "command": "python3 - <<'EOF'\nimport os,tempfile\nfd,p=tempfile.mkstemp(prefix=\"linux-t3-unlinked-\")\nos.write(fd,b\"canario\\n\")\nprint(\"before\", p, os.fstat(fd).st_ino)\nos.unlink(p)\nprint(\"after\", os.path.exists(p), os.fstat(fd).st_size)\nos.close(fd)\nEOF"
+        },
+        {
+          "step": 3,
+          "action": "Proponer plan diferenciador para ENOSPC/EDQUOT/EROFS",
+          "command": null
+        }
+      ],
+      "deliverables": [
+        "Evidencia del descriptor abierto tras unlink",
+        "Árbol de decisión de ENOSPC frente a EDQUOT/EROFS",
+        "Advertencia sobre los límites de du frente a df"
+      ],
+      "acceptance_criteria": [
+        "Demuestra file descriptor vivo tras unlink sin tocar datos reales",
+        "Diferencia al menos tres mecanismos de saturación",
+        "Rechaza borrar /var/log o reiniciar como primer paso"
+      ],
+      "rubric": {
+        "experimento_controlado": 5,
+        "diagnostico": 5,
+        "seguridad_operativa": 2
+      },
+      "cleanup_and_rollback": [
+        "El script cierra descriptor y elimina su único nombre",
+        "No hay recursos especiales que restaurar"
+      ],
+      "references": [
+        "F01",
+        "F02",
+        "F05"
+      ],
+      "mitre_attack": []
+    },
+    {
+      "id": "LAB-3.4",
+      "title": "Imagen ext4 autocontenida y validación offline",
+      "category": "filesystem_recovery",
+      "difficulty": "intermediate",
+      "duration_minutes_estimate": [
+        45,
+        70
+      ],
+      "score_points": 12,
+      "prerequisites": [
+        "truncate",
+        "mkfs.ext4",
+        "e2fsck",
+        "96 MiB disponibles en /tmp"
+      ],
+      "scope": "SOLO un archivo regular recién creado por mktemp; nunca partición/dispositivo de bloque.",
+      "safety_constraints": [
+        "PROHIBIDO mkfs.ext4 sobre /dev/*",
+        "No corromper discos reales",
+        "Comprobar no symlink y prefijo de ruta antes de mkfs",
+        "No montar imagen para examen de e2fsck"
+      ],
+      "procedure": [
+        {
+          "step": 1,
+          "action": "Crear directorio y fichero imagen aleatorios",
+          "command": "LAB=\"$(mktemp -d -t linux-t3-fs-XXXXXX)\"; IMG=\"$LAB/ext4-lab.img\"; truncate -s 96M -- \"$IMG\""
+        },
+        {
+          "step": 2,
+          "action": "Validar la única ruta objetivo antes de crear FS",
+          "command": "case \"$IMG\" in \"$LAB\"/*) :;; *) exit 1;; esac; test -f \"$IMG\" && test ! -L \"$IMG\""
+        },
+        {
+          "step": 3,
+          "action": "Formatear SOLO el archivo",
+          "command": "mkfs.ext4 -F -q -- \"$IMG\""
+        },
+        {
+          "step": 4,
+          "action": "Examinar FS offline en modo de no reparación",
+          "command": "e2fsck -fn \"$IMG\"; printf \"e2fsck_rc=%s\\n\" \"$?\""
+        },
+        {
+          "step": 5,
+          "action": "Explicar cada capa del ejemplo",
+          "command": "stat \"$IMG\"; file \"$IMG\""
+        }
+      ],
+      "deliverables": [
+        "Salida de creación del FS (sin /dev)",
+        "Ruta validada, tipo de archivo y tamaño",
+        "Código real de salida de e2fsck -fn e interpretación",
+        "Comparación conceptual con procedimiento XFS/Btrfs"
+      ],
+      "acceptance_criteria": [
+        "La única diana fue archivo regular en temp",
+        "Operación de e2fsck sin reparar y sin FS montado",
+        "Captura código sin enmascarar error",
+        "Sabe por qué no replicarlo contra host"
+      ],
+      "rubric": {
+        "preflight_seguro": 5,
+        "ejecucion_y_codigo": 4,
+        "interpretacion": 3
+      },
+      "cleanup_and_rollback": [
+        "Conservar imagen para informe opcional",
+        "Solo tras validación, borrar fichero imagen exacto y directorio temporal propio"
+      ],
+      "references": [
+        "F07",
+        "F08",
+        "F09",
+        "F10",
+        "F30",
+        "F31"
+      ],
+      "mitre_attack": []
+    },
+    {
+      "id": "LAB-3.5",
+      "title": "Tar y rsync: restauración y metadatos",
+      "category": "backup",
+      "difficulty": "intermediate",
+      "duration_minutes_estimate": [
+        50,
+        70
+      ],
+      "score_points": 12,
+      "prerequisites": [
+        "tar GNU",
+        "rsync",
+        "sha256sum",
+        "getfacl opcional"
+      ],
+      "scope": "Source/mirror/restore inventados bajo LAB.",
+      "safety_constraints": [
+        "No --delete de rsync",
+        "No extraer archivo desconocido como root",
+        "No restaurar sobre origen",
+        "Desconfiar symlinks en orígenes no confiables"
+      ],
+      "procedure": [
+        {
+          "step": 1,
+          "action": "Preparar datos sintéticos",
+          "command": "LAB=\"$(mktemp -d -t linux-t3-copy-XXXXXX)\"; mkdir -p \"$LAB\"/{source,archives,restore,mirror}; printf \"v1\\n\" > \"$LAB/source/a.txt\"; ln \"$LAB/source/a.txt\" \"$LAB/source/b.txt\"; ln -s a.txt \"$LAB/source/l.txt\""
+        },
+        {
+          "step": 2,
+          "action": "Crear y listar archivo",
+          "command": "tar -C \"$LAB/source\" -cf \"$LAB/archives/base.tar\" .; tar -tf \"$LAB/archives/base.tar\""
+        },
+        {
+          "step": 3,
+          "action": "Extraer a destino aislado y validar",
+          "command": "tar -C \"$LAB/restore\" -xf \"$LAB/archives/base.tar\"; sha256sum \"$LAB/source/a.txt\" \"$LAB/restore/a.txt\""
+        },
+        {
+          "step": 4,
+          "action": "Ver cambios propuestos por rsync",
+          "command": "rsync -aHAX --dry-run --itemize-changes -- \"$LAB/source/\" \"$LAB/mirror/\""
+        },
+        {
+          "step": 5,
+          "action": "Copiar y comparar contenido/metadatos",
+          "command": "rsync -aHAX --itemize-changes -- \"$LAB/source/\" \"$LAB/mirror/\"; stat -c \"%d:%i %h %a %n\" \"$LAB\"/{source,mirror}/*"
+        }
+      ],
+      "deliverables": [
+        "Tar listado y restaura fuera del origen",
+        "Rsync dry run y ejecución sin --delete",
+        "Comparación hashes + hard links + symlinks",
+        "Diferencias reales de ACL/xattrs/permisos si hay soporte"
+      ],
+      "acceptance_criteria": [
+        "Restauración aislada con hash coincidente",
+        "Distingue -a frente a -HAX",
+        "Explica efecto barra final en source/",
+        "Reporta atributos no comprobables como no evaluados"
+      ],
+      "rubric": {
+        "backup_y_restore": 5,
+        "rsync_y_seguridad": 4,
+        "metadatos": 3
+      },
+      "cleanup_and_rollback": [
+        "No borrar antes de obtener evidencia",
+        "Eliminar solo LAB sintético propio tras comprobar ruta"
+      ],
+      "references": [
+        "F22",
+        "F28",
+        "F05"
+      ],
+      "mitre_attack": []
+    },
+    {
+      "id": "LAB-3.6",
+      "title": "Restic: versiones, check y doble restauración",
+      "category": "backup_restore",
+      "difficulty": "advanced",
+      "duration_minutes_estimate": [
+        75,
+        100
+      ],
+      "score_points": 18,
+      "prerequisites": [
+        "restic instalado",
+        "Una contraseña de práctica recuperable",
+        "Carpeta temporal 20 MB"
+      ],
+      "scope": "Repositorio local nuevo, datos sintéticos.",
+      "safety_constraints": [
+        "No incluir contraseña en capturas, historial, scripts compartidos o JSON",
+        "No forget/prune",
+        "No sobrescribir source",
+        "No hacer backup de datos reales ni secretos"
+      ],
+      "procedure": [
+        {
+          "step": 1,
+          "action": "Crear repositorio y v1",
+          "command": "LAB=\"$(mktemp -d -t linux-t3-restic-XXXXXX)\"; mkdir -p \"$LAB/source\" \"$LAB/restore-v1\" \"$LAB/restore-v2\"; printf \"v1\\n\" > \"$LAB/source/registro.txt\"; restic -r \"$LAB/repo\" init"
+        },
+        {
+          "step": 2,
+          "action": "Realizar primer backup y registrar ID",
+          "command": "restic -r \"$LAB/repo\" backup \"$LAB/source\"; restic -r \"$LAB/repo\" snapshots"
+        },
+        {
+          "step": 3,
+          "action": "Modificar solo dato sintético y realizar segundo backup",
+          "command": "printf \"v2\\n\" > \"$LAB/source/registro.txt\"; restic -r \"$LAB/repo\" backup \"$LAB/source\"; restic -r \"$LAB/repo\" snapshots"
+        },
+        {
+          "step": 4,
+          "action": "Verificar estructura y opcionalmente bloques",
+          "command": "restic -r \"$LAB/repo\" check; restic -r \"$LAB/repo\" check --read-data"
+        },
+        {
+          "step": 5,
+          "action": "Restaurar por ID snapshots distintos a dos destinos",
+          "command": "restic -r \"$LAB/repo\" restore SNAPSHOT_ID_V1 --target \"$LAB/restore-v1\"; restic -r \"$LAB/repo\" restore SNAPSHOT_ID_V2 --target \"$LAB/restore-v2\""
+        },
+        {
+          "step": 6,
+          "action": "Encontrar y contrastar archivos en jerarquía de ruta absoluta reconstruida",
+          "command": "find \"$LAB/restore-v1\" \"$LAB/restore-v2\" -type f -name registro.txt -print -exec cat {} \\;"
+        }
+      ],
+      "deliverables": [
+        "2 IDs reales de snapshots",
+        "check y, si factible, --read-data con salida",
+        "2 restores físicos y archivos examinados",
+        "Informe de contenido v1/v2, RTO local cronometrado y fallos"
+      ],
+      "acceptance_criteria": [
+        "Dos snapshots distintos verificados",
+        "Contenido v1 correcto y v2 correcto en rutas aisladas",
+        "Describe limitación de check sin leer datos",
+        "No usa forget/prune ni revela credenciales"
+      ],
+      "rubric": {
+        "backups_versionados": 4,
+        "restauraciones_reales": 8,
+        "integridad_y_limites": 4,
+        "secreto_y_seguridad": 2
+      },
+      "cleanup_and_rollback": [
+        "No borrar repo hasta completar validación",
+        "Eliminar solo directorio temp identificado, una vez copiada evidencia requerida"
+      ],
+      "references": [
+        "F18",
+        "F19",
+        "F20",
+        "F21"
+      ],
+      "mitre_attack": [
+        "T1490 (contexto de amenaza solamente)"
+      ]
+    },
+    {
+      "id": "LAB-3.7",
+      "title": "SOC: triaje de FS en solo lectura y backup fallido",
+      "category": "soc_dfir",
+      "difficulty": "advanced",
+      "duration_minutes_estimate": [
+        50,
+        75
+      ],
+      "score_points": 12,
+      "prerequisites": [
+        "Labs 3.1-3.6 completados o explicación equivalente",
+        "Plantilla de evidencias"
+      ],
+      "scope": "Incidente totalmente ficticio; no se modifican servicios.",
+      "safety_constraints": [
+        "No atribuir ataque sin observables",
+        "No auto-borrar logs, reparar ni restaurar sobre evidencia",
+        "Declarar faltas reales de sensor como gaps"
+      ],
+      "procedure": [
+        {
+          "step": 1,
+          "action": "Definir escenario: EROFS aparente, snapshot de 02:00 ausente, cambio de config fuera de ventana",
+          "command": null
+        },
+        {
+          "step": 2,
+          "action": "Formular hipótesis rivales: disco/FS, permisos/cuota, fallo de backup, posible acción deliberada",
+          "command": null
+        },
+        {
+          "step": 3,
+          "action": "Elaborar tabla >=8 pruebas: fuente, resultado hipotético, falsación y confianza",
+          "command": null
+        },
+        {
+          "step": 4,
+          "action": "Priorizar preservación y operación, diferenciando lectura, contingencia y reparación",
+          "command": null
+        },
+        {
+          "step": 5,
+          "action": "Entregar correlación sin declarar T1490 salvo evidencia atribuible",
+          "command": null
+        }
+      ],
+      "deliverables": [
+        "Matriz >=3 hipótesis y >=8 comprobaciones",
+        "Línea temporal UTC y matriz de evidencia",
+        "Dos vacíos de cobertura explicitados",
+        "Runbook seguro y condiciones de escalado"
+      ],
+      "acceptance_criteria": [
+        "Causas competidoras con pruebas que podrían refutarlas",
+        "No atribuye los mensajes de corrupción a atacante por sí solos",
+        "Preserva antes de reparar y distingue disponibilidad de forense",
+        "Incluye fuente de backup independiente"
+      ],
+      "rubric": {
+        "hipotesis_y_falsacion": 5,
+        "evidencia_cadena_de_custodia": 4,
+        "acciones_y_seguridad": 3
+      },
+      "cleanup_and_rollback": [
+        "No hay cambios sobre host"
+      ],
+      "references": [
+        "F23",
+        "F24",
+        "F25",
+        "F26",
+        "F27"
+      ],
+      "mitre_attack": [
+        "T1490",
+        "T1485",
+        "T1565.001",
+        "T1070.004"
+      ]
+    },
+    {
+      "id": "LAB-3.8",
+      "title": "Red Team autorizado: permisos de backups y retest canary",
+      "category": "red_team_authorized",
+      "difficulty": "intermediate",
+      "duration_minutes_estimate": [
+        45,
+        60
+      ],
+      "score_points": 12,
+      "prerequisites": [
+        "Bash",
+        "stat/getfacl (si existe)",
+        "Ambiente autorizado"
+      ],
+      "scope": "Solo directorio sintético bajo LAB o VM propia.",
+      "safety_constraints": [
+        "No copiar secretos reales ni acceder a datos terceros",
+        "No borrar snapshots o repositorios reales",
+        "No elevar privilegios ni deshabilitar protecciones",
+        "Probar borrado solo de un canary explícitamente acordado, si existe autorización"
+      ],
+      "procedure": [
+        {
+          "step": 1,
+          "action": "Crear árboles inocuos",
+          "command": "LAB=\"$(mktemp -d -t linux-t3-rt-XXXXXX)\"; mkdir -p \"$LAB\"/{data,backup,secret-mock}; printf \"canary\\n\" > \"$LAB/backup/canary.txt\""
+        },
+        {
+          "step": 2,
+          "action": "Observar permisos e identidad real",
+          "command": "id; namei -l \"$LAB/backup/canary.txt\"; stat -c \"%a %U:%G %n\" \"$LAB\" \"$LAB/backup\" \"$LAB/backup/canary.txt\""
+        },
+        {
+          "step": 3,
+          "action": "Probar con test -r/-w sin tocar contenido sensible",
+          "command": "test -r \"$LAB/backup/canary.txt\" && echo can_read; test -w \"$LAB/backup\" && echo can_write"
+        },
+        {
+          "step": 4,
+          "action": "Describir el riesgo real y la limitación de usar el mismo usuario creador",
+          "command": null
+        },
+        {
+          "step": 5,
+          "action": "Definir retest en control externo con identidad de copia sin permiso de borrado y evento de denegación auditable",
+          "command": null
+        }
+      ],
+      "deliverables": [
+        "Mapa de permisos de 3 rutas sintéticas",
+        "Hallazgo con impacto demostrado vs potencial",
+        "Recomendación separar roles y repositorio off-host",
+        "Retest canary con condiciones precisas y evidencia de auditoría requerida"
+      ],
+      "acceptance_criteria": [
+        "No confunde test -w del usuario actual con prueba de política para otro rol",
+        "Hallazgo limitado a evidencia alcanzada",
+        "Retest protege versiones reales y registra denegación",
+        "Ausencia de permiso o sensor se reporta honestamente"
+      ],
+      "rubric": {
+        "evidencia_y_limites": 5,
+        "control_y_retest": 5,
+        "seguridad": 2
+      },
+      "cleanup_and_rollback": [
+        "Conservar canary hasta retest",
+        "Eliminar únicamente LAB propio si se autoriza"
+      ],
+      "references": [
+        "F05",
+        "F17",
+        "F24",
+        "F28"
+      ],
+      "mitre_attack": [
+        "T1490 (modelo, sin acción destructiva)"
+      ]
+    }
+  ],
+  "labs_count": 8,
+  "labs_points_total": 100,
+  "assessment": {
+    "pass_points": 80,
+    "total_points": 100,
+    "mandatory_lab_ids": [
+      "LAB-3.6",
+      "LAB-3.7"
+    ],
+    "critical_failure_override": true,
+    "questions": [
+      {
+        "number": 1,
+        "question": "¿Por qué `/dev/sda` no es identidad persistente?"
+      },
+      {
+        "number": 2,
+        "question": "¿Diferencias entre UUID de filesystem y PARTUUID?"
+      },
+      {
+        "number": 3,
+        "question": "¿Qué aporta `findmnt` frente a `lsblk`?"
+      },
+      {
+        "number": 4,
+        "question": "¿Qué significa tener dos mount namespaces?"
+      },
+      {
+        "number": 5,
+        "question": "¿Por qué no concluye «disco libre» solo `df -h`?"
+      },
+      {
+        "number": 6,
+        "question": "¿Qué produce un `ENOSPC` aun con bloques disponibles?"
+      },
+      {
+        "number": 7,
+        "question": "¿Qué diferencia hay entre hard link y symlink?"
+      },
+      {
+        "number": 8,
+        "question": "¿Qué guarda un inode y qué no guarda?"
+      },
+      {
+        "number": 9,
+        "question": "¿Por qué `ctime` no es creación?"
+      },
+      {
+        "number": 10,
+        "question": "¿Por qué puede existir un archivo desvinculado con un descriptor abierto?"
+      },
+      {
+        "number": 11,
+        "question": "¿Qué conserva SHA-256 y qué no conserva del estado?"
+      },
+      {
+        "number": 12,
+        "question": "¿Cómo se diferencia un snapshot de un backup?"
+      },
+      {
+        "number": 13,
+        "question": "¿Por qué RAID1 no protege contra borrado malicioso?"
+      },
+      {
+        "number": 14,
+        "question": "¿Qué cubre el journal ext4 por defecto?"
+      },
+      {
+        "number": 15,
+        "question": "¿Cuál es el papel de `fsync` ante cortes de energía?"
+      },
+      {
+        "number": 16,
+        "question": "¿Por qué `fsck.xfs` no basta para certificar integridad?"
+      },
+      {
+        "number": 17,
+        "question": "¿Cuándo `btrfs scrub` puede reparar y cuándo no?"
+      },
+      {
+        "number": 18,
+        "question": "¿Qué implica `NOCOW/NODATASUM` para integridad?"
+      },
+      {
+        "number": 19,
+        "question": "¿Cómo afecta un whiteout de overlayfs a la interpretación de «borrado»?"
+      },
+      {
+        "number": 20,
+        "question": "¿Qué aporta y qué NO aporta LUKS a un host arrancado y desbloqueado?"
+      },
+      {
+        "number": 21,
+        "question": "¿Por qué proteger copias de cabecera LUKS como secretos críticos?"
+      },
+      {
+        "number": 22,
+        "question": "¿Qué opciones de `rsync` NO están en `-a`?"
+      },
+      {
+        "number": 23,
+        "question": "¿Por qué `--delete` debe restringirse especialmente?"
+      },
+      {
+        "number": 24,
+        "question": "¿Por qué `restic check` a secas no prueba el contenido de todos los bloques?"
+      },
+      {
+        "number": 25,
+        "question": "¿Por qué dos snapshots visibles no bastan para afirmar restaurabilidad?"
+      },
+      {
+        "number": 26,
+        "question": "¿Qué distingue `RPO` de `RTO`?"
+      },
+      {
+        "number": 27,
+        "question": "¿Por qué una copia caliente de base de datos puede no restaurar?"
+      },
+      {
+        "number": 28,
+        "question": "¿Qué tres fuentes mínimas usarías para atribuir borrado?"
+      },
+      {
+        "number": 29,
+        "question": "¿Qué se pierde al «arreglar» un filesystem antes de preservar estado?"
+      },
+      {
+        "number": 30,
+        "question": "¿Cuál es el criterio de aceptación de un retest de permisos en backups?"
+      }
+    ],
+    "questions_count": 30,
+    "grading_notes": "La clave resumida de respuestas figura en el capítulo 17 del Markdown. No se asignan calificaciones sin ejecución y revisión."
+  },
+  "detections": [
+    {
+      "id": "D3-01",
+      "hypothesis": "Unlink/destrucción de datos críticos no aprobada",
+      "minimum_telemetry": "auditd o EDR con operación, ruta, actor, proceso + change window",
+      "mitre_attack": [
+        "T1485",
+        "T1070.004"
+      ],
+      "alternate_explanations": "Procesos de limpieza, rotación o despliegues legítimos",
+      "automatic_remediation": false,
+      "required_validation": [
+        "Identificar host + identidad/proceso + tiempo UTC",
+        "Confirmar fuente/sensor disponible",
+        "Correlacionar con mantenimiento y baseline",
+        "Registrar limitaciones de retención"
+      ]
+    },
+    {
+      "id": "D3-02",
+      "hypothesis": "Cambio/retención/borrado de repositorio backup inusual",
+      "minimum_telemetry": "Logs de software backup y destino off-host, principal, cambios políticas",
+      "mitre_attack": [
+        "T1490"
+      ],
+      "alternate_explanations": "Expiración legítima de snapshots",
+      "automatic_remediation": false,
+      "required_validation": [
+        "Identificar host + identidad/proceso + tiempo UTC",
+        "Confirmar fuente/sensor disponible",
+        "Correlacionar con mantenimiento y baseline",
+        "Registrar limitaciones de retención"
+      ]
+    },
+    {
+      "id": "D3-03",
+      "hypothesis": "Integridad de ficheros de negocio alterada",
+      "minimum_telemetry": "FIM con baseline fuera de host, actor/proceso si existe",
+      "mitre_attack": [
+        "T1565.001"
+      ],
+      "alternate_explanations": "Procesamiento de negocio esperado",
+      "automatic_remediation": false,
+      "required_validation": [
+        "Identificar host + identidad/proceso + tiempo UTC",
+        "Confirmar fuente/sensor disponible",
+        "Correlacionar con mantenimiento y baseline",
+        "Registrar limitaciones de retención"
+      ]
+    },
+    {
+      "id": "D3-04",
+      "hypothesis": "Montaje/bind/overlay inesperado en ruta protegida",
+      "minimum_telemetry": "mountinfo por proceso + eventos montaje/config + cambios autorizados",
+      "mitre_attack": [],
+      "alternate_explanations": "Contenedor, sandbox o despliegue previsto",
+      "automatic_remediation": false,
+      "required_validation": [
+        "Identificar host + identidad/proceso + tiempo UTC",
+        "Confirmar fuente/sensor disponible",
+        "Correlacionar con mantenimiento y baseline",
+        "Registrar limitaciones de retención"
+      ]
+    },
+    {
+      "id": "D3-05",
+      "hypothesis": "Corrupción/RO inesperado de FS",
+      "minimum_telemetry": "Mensajes kernel, estado FS, métricas almacenamiento, alertas backend",
+      "mitre_attack": [],
+      "alternate_explanations": "Fallo de hardware/servicio; no presumir atacante",
+      "automatic_remediation": false,
+      "required_validation": [
+        "Identificar host + identidad/proceso + tiempo UTC",
+        "Confirmar fuente/sensor disponible",
+        "Correlacionar con mantenimiento y baseline",
+        "Registrar limitaciones de retención"
+      ]
+    },
+    {
+      "id": "D3-06",
+      "hypothesis": "Backup no generado, incorrecto o sin restore funcional",
+      "minimum_telemetry": "Último éxito, tamaño, snapshots, check completo y test restore",
+      "mitre_attack": [],
+      "alternate_explanations": "Corte de red, cuota, cambio de ruta o error de credenciales",
+      "automatic_remediation": false,
+      "required_validation": [
+        "Identificar host + identidad/proceso + tiempo UTC",
+        "Confirmar fuente/sensor disponible",
+        "Correlacionar con mantenimiento y baseline",
+        "Registrar limitaciones de retención"
+      ]
+    },
+    {
+      "id": "D3-07",
+      "hypothesis": "Acceso a material de recuperación LUKS",
+      "minimum_telemetry": "Registro acceso a backups header, secretos y repositorio, identidad",
+      "mitre_attack": [],
+      "alternate_explanations": "Rotación y recuperación autorizada",
+      "automatic_remediation": false,
+      "required_validation": [
+        "Identificar host + identidad/proceso + tiempo UTC",
+        "Confirmar fuente/sensor disponible",
+        "Correlacionar con mantenimiento y baseline",
+        "Registrar limitaciones de retención"
+      ]
+    },
+    {
+      "id": "D3-08",
+      "hypothesis": "Creación masiva de archivos y agotamiento de inodos",
+      "minimum_telemetry": "Métricas inodos, cuota y tasa ficheros, proceso y baseline",
+      "mitre_attack": [],
+      "alternate_explanations": "Proceso ETL o construcción legítima",
+      "automatic_remediation": false,
+      "required_validation": [
+        "Identificar host + identidad/proceso + tiempo UTC",
+        "Confirmar fuente/sensor disponible",
+        "Correlacionar con mantenimiento y baseline",
+        "Registrar limitaciones de retención"
+      ]
+    }
+  ],
+  "detection_count": 8,
+  "filesystem_and_mapper_matrix": [
+    {
+      "type": "ext4",
+      "properties": [
+        "journal metadatos en data=ordered típico",
+        "extents/inodes"
+      ],
+      "checks": [
+        "findmnt",
+        "tune2fs -l, lectura autorizada",
+        "e2fsck -n desmontado"
+      ],
+      "hazards": [
+        "journal no es backup",
+        "fsck montado puede ser inapropiado"
+      ],
+      "source_ids": [
+        "F07",
+        "F30"
+      ]
+    },
+    {
+      "type": "XFS",
+      "properties": [
+        "journal de metadatos",
+        "escala y paralelismo"
+      ],
+      "checks": [
+        "findmnt",
+        "xfs_repair -n desmontado"
+      ],
+      "hazards": [
+        "fsck.xfs no verifica",
+        "-L destruye log, último recurso"
+      ],
+      "source_ids": [
+        "F08"
+      ]
+    },
+    {
+      "type": "Btrfs",
+      "properties": [
+        "COW",
+        "subvolúmenes/snapshots",
+        "checksums según perfil y flags"
+      ],
+      "checks": [
+        "btrfs filesystem usage",
+        "btrfs scrub status",
+        "btrfs check --readonly bajo condiciones"
+      ],
+      "hazards": [
+        "NOCOW/NODATASUM",
+        "scrub no es chequeo estructural",
+        "check --repair no rutinario"
+      ],
+      "source_ids": [
+        "F09",
+        "F10",
+        "F11",
+        "F12"
+      ]
+    },
+    {
+      "type": "overlayfs",
+      "properties": [
+        "upper/lower",
+        "whiteouts",
+        "copy-up"
+      ],
+      "checks": [
+        "findmnt",
+        "/proc/PID/mountinfo"
+      ],
+      "hazards": [
+        "falso borrado o persistencia por inspeccionar capa inadecuada"
+      ],
+      "source_ids": [
+        "F13"
+      ]
+    },
+    {
+      "type": "LVM",
+      "properties": [
+        "PV/VG/LV",
+        "thin provisioning y snapshots"
+      ],
+      "checks": [
+        "pvs",
+        "vgs",
+        "lvs -a"
+      ],
+      "hazards": [
+        "saturación snapshot/thin pool",
+        "mismo fault domain que fuente"
+      ],
+      "source_ids": [
+        "F15"
+      ]
+    },
+    {
+      "type": "LUKS/dm-crypt",
+      "properties": [
+        "confidencialidad transparente de bloques",
+        "header y keyslots"
+      ],
+      "checks": [
+        "lsblk",
+        "cryptsetup status (consulta autorizada)"
+      ],
+      "hazards": [
+        "host desbloqueado expone datos a proceso con acceso",
+        "cabecera respaldada puede permitir contraseñas históricas"
+      ],
+      "source_ids": [
+        "F16",
+        "F17"
+      ]
+    }
+  ],
+  "backup_tool_matrix": [
+    {
+      "name": "tar",
+      "supports": "archivos y metadatos mediante opciones",
+      "not_guaranteed": "retención ni cifrado/versionado automatizado",
+      "safety": "no extraer archivos ajenos con root en árbol sensible",
+      "source_ids": [
+        "F22"
+      ]
+    },
+    {
+      "name": "rsync",
+      "supports": "sincronización y atributos configurados",
+      "not_guaranteed": "versionado histórico ni restauración de versiones previas",
+      "safety": "no --delete sin política y revisión de rutas",
+      "source_ids": [
+        "F28"
+      ]
+    },
+    {
+      "name": "restic",
+      "supports": "snapshots cifrados, deduplicados, check y restore",
+      "not_guaranteed": "inmutabilidad ante administrador repositorio ni consistencia DB en caliente",
+      "safety": "separar identidad de borrado y ensayar doble restore",
+      "source_ids": [
+        "F18",
+        "F19",
+        "F20",
+        "F21"
+      ]
+    },
+    {
+      "name": "snapshots Btrfs/LVM",
+      "supports": "punto de estado en infraestructura origen",
+      "not_guaranteed": "copia off-host ni consistencia aplicación",
+      "safety": "monitorizar espacio y exportar/respaldar externamente",
+      "source_ids": [
+        "F11",
+        "F12",
+        "F15"
+      ]
+    }
+  ],
+  "backup_architecture_checklist": [
+    {
+      "id": "BCK-01",
+      "control": "Activo, propietario, clasificación, contenido y exclusiones documentadas",
+      "evidence": "inventario y justificación"
+    },
+    {
+      "id": "BCK-02",
+      "control": "RPO/RTO aprobados",
+      "evidence": "objetivos y resultados medidos"
+    },
+    {
+      "id": "BCK-03",
+      "control": "Repositorio externo no eliminable por la misma identidad comprometida",
+      "evidence": "roles, políticas y test de denegación"
+    },
+    {
+      "id": "BCK-04",
+      "control": "Secreto recuperable por procedimiento seguro y acceso auditable",
+      "evidence": "custodia documentada; sin exponer material"
+    },
+    {
+      "id": "BCK-05",
+      "control": "Backup nativo de BD con punto consistente",
+      "evidence": "ensayo de restauración funcional"
+    },
+    {
+      "id": "BCK-06",
+      "control": "Monitorizar último éxito, integridad y pruebas restauración",
+      "evidence": "alertas verificadas y bitácora"
+    },
+    {
+      "id": "BCK-07",
+      "control": "Conservar evidencia previa a restore en incidente",
+      "evidence": "case ID y cadena custodia"
+    }
+  ],
+  "soc_incident_runbook": [
+    {
+      "phase": "PREPARE",
+      "sequence": 1,
+      "actions": [
+        "Inventario de datos, propietarios, dependencias y FS",
+        "RPO/RTO acordados",
+        "Backups independientes con claves recuperables y permisos segregados",
+        "Ensayo de restauración y salida de auditoría"
+      ]
+    },
+    {
+      "phase": "TRIAGE",
+      "sequence": 2,
+      "actions": [
+        "Registrar caso y estado UTC",
+        "Distinguir corrupción física/lógica/destrucción/permiso",
+        "Priorizar contención y preservar evidencia antes de reparar",
+        "Determinar último snapshot preincidente confiable"
+      ]
+    },
+    {
+      "phase": "RESTORE_IN_ISOLATION",
+      "sequence": 3,
+      "actions": [
+        "Conseguir credenciales por proceso aprobado",
+        "Restaurar en destino vacío y aislado",
+        "Comprobar hashes y metadatos",
+        "Validar aplicación y controles de red"
+      ]
+    },
+    {
+      "phase": "CUTOVER",
+      "sequence": 4,
+      "actions": [
+        "Obtener aprobación",
+        "Registrar RPO y RTO reales",
+        "Conmutar con rollback disponible",
+        "Verificar salud, permisos, alertas y acceso"
+      ]
+    },
+    {
+      "phase": "POSTMORTEM",
+      "sequence": 5,
+      "actions": [
+        "Preservar evidencias y cadena de custodia",
+        "Eliminar causa raíz y actualizar privilegios",
+        "Reevaluar backup e inmutabilidad",
+        "Programar restore tests periódicos"
+      ]
+    }
+  ],
+  "case_studies": [
+    {
+      "id": "CASE-01",
+      "title": "df al 98% y du al 34%",
+      "hypotheses": [
+        "unlinked/open file",
+        "montaje ocultando árbol",
+        "bloques reservados o FS con semántica distinta"
+      ],
+      "first_checks": [
+        "findmnt --target /var",
+        "df -hT /var",
+        "du -xhd1 /var",
+        "lsof +L1 si autorizado"
+      ],
+      "unsafe_shortcut": "rm aleatorio bajo /var/log o reinicio indiscriminado"
+    },
+    {
+      "id": "CASE-02",
+      "title": "Backup successful, DB no restaurable",
+      "hypotheses": [
+        "inconsistencia de BD hot",
+        "snapshot equivocado",
+        "exclusión",
+        "restauración de permisos errónea"
+      ],
+      "first_checks": [
+        "IDs y alcance snapshots",
+        "check/read-data según ventana",
+        "restore de BD con procedimiento nativo"
+      ],
+      "unsafe_shortcut": "sobrescribir BD de producción con snapshot no probado"
+    },
+    {
+      "id": "CASE-03",
+      "title": "Todos los backups locales eliminables",
+      "hypotheses": [
+        "dominio de administración compartido",
+        "sin separación permisos crear/borrar"
+      ],
+      "first_checks": [
+        "roles y ACL",
+        "prueba de canary bajo autorización",
+        "estado protección retención off-host"
+      ],
+      "unsafe_shortcut": "borrar snapshots reales para demostrar impacto"
+    },
+    {
+      "id": "CASE-04",
+      "title": "XFS corrupto tras apagón",
+      "hypotheses": [
+        "log sucio",
+        "backend defectuoso",
+        "metadatos dañados"
+      ],
+      "first_checks": [
+        "preservar logs y estado",
+        "copia/imagen",
+        "xfs_repair -n si desmontado y apropiado"
+      ],
+      "unsafe_shortcut": "xfs_repair -L sin backup"
+    },
+    {
+      "id": "CASE-05",
+      "title": "Archivo aparentemente borrado dentro de contenedor",
+      "hypotheses": [
+        "namespace distinto",
+        "overlay whiteout",
+        "descriptor aún abierto"
+      ],
+      "first_checks": [
+        "/proc/PID/mountinfo",
+        "findmnt",
+        "descriptores bajo acceso autorizado"
+      ],
+      "unsafe_shortcut": "atribuir malware por diferencia de rutas"
+    }
+  ],
+  "soc_evidence_template": {
+    "required_fields": [
+      "case_id",
+      "authorization_ticket",
+      "hostname",
+      "source_type",
+      "acquisition_utc",
+      "collector_and_versions",
+      "action_and_command",
+      "acquisition_kind",
+      "source_location",
+      "hash_sha256",
+      "chain_of_custody",
+      "observations",
+      "hypotheses",
+      "alternative_hypotheses",
+      "gaps",
+      "impact_demonstrated_vs_potential",
+      "next_action_approval"
+    ],
+    "interpretation_rule": "Cada afirmación se clasifica como observado, inferido, o no evaluado."
+  },
+  "references": [
+    {
+      "id": "F01",
+      "title": "util-linux `lsblk(8)`",
+      "url": "https://man7.org/linux/man-pages/man8/lsblk.8.html"
+    },
+    {
+      "id": "F02",
+      "title": "util-linux `findmnt(8)`",
+      "url": "https://man7.org/linux/man-pages/man8/findmnt.8.html"
+    },
+    {
+      "id": "F03",
+      "title": "util-linux `fstab(5)`",
+      "url": "https://man7.org/linux/man-pages/man5/fstab.5.html"
+    },
+    {
+      "id": "F04",
+      "title": "util-linux `mount(8)`",
+      "url": "https://man7.org/linux/man-pages/man8/mount.8.html"
+    },
+    {
+      "id": "F05",
+      "title": "Linux `stat(2)` y semántica de metadatos",
+      "url": "https://man7.org/linux/man-pages/man2/stat.2.html"
+    },
+    {
+      "id": "F06",
+      "title": "GNU coreutils, manual `stat`",
+      "url": "https://www.gnu.org/software/coreutils/manual/html_node/stat-invocation.html"
+    },
+    {
+      "id": "F07",
+      "title": "kernel Linux: administración ext4 y modos de journal",
+      "url": "https://cdn.kernel.org/doc/html/latest/admin-guide/ext4.html"
+    },
+    {
+      "id": "F08",
+      "title": "Red Hat Enterprise Linux 9: checking/repairing ext y XFS",
+      "url": "https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/managing_file_systems/checking-and-repairing-a-file-system__managing-file-systems"
+    },
+    {
+      "id": "F09",
+      "title": "Btrfs: `btrfs scrub`",
+      "url": "https://btrfs.readthedocs.io/en/latest/btrfs-scrub.html"
+    },
+    {
+      "id": "F10",
+      "title": "Btrfs: `btrfs check` y advertencias",
+      "url": "https://btrfs.readthedocs.io/en/latest/btrfs-check.html"
+    },
+    {
+      "id": "F11",
+      "title": "Btrfs: subvolúmenes y snapshots",
+      "url": "https://btrfs.readthedocs.io/en/latest/btrfs-subvolume.html"
+    },
+    {
+      "id": "F12",
+      "title": "Btrfs: `send` y replicación",
+      "url": "https://btrfs.readthedocs.io/en/latest/btrfs-send.html"
+    },
+    {
+      "id": "F13",
+      "title": "Linux kernel: OverlayFS, copy-up, whiteouts y permisos",
+      "url": "https://docs.kernel.org/filesystems/overlayfs.html"
+    },
+    {
+      "id": "F14",
+      "title": "util-linux `mount(8)`: `nodev/nosuid/noexec`",
+      "url": "https://man7.org/linux/man-pages/man8/mount.8.html"
+    },
+    {
+      "id": "F15",
+      "title": "Red Hat Enterprise Linux 9: LVM y snapshots",
+      "url": "https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/configuring_and_managing_logical_volumes/advanced-logical-volume-management_configuring-and-managing-logical-volumes"
+    },
+    {
+      "id": "F16",
+      "title": "kernel Linux: dm-crypt",
+      "url": "https://docs.kernel.org/admin-guide/device-mapper/dm-crypt.html"
+    },
+    {
+      "id": "F17",
+      "title": "cryptsetup `luksHeaderBackup(8)`",
+      "url": "https://man7.org/linux/man-pages/man8/cryptsetup-luksheaderbackup.8.html"
+    },
+    {
+      "id": "F18",
+      "title": "restic: backing up",
+      "url": "https://restic.readthedocs.io/en/stable/040_backup.html"
+    },
+    {
+      "id": "F19",
+      "title": "restic: restoring from backup",
+      "url": "https://restic.readthedocs.io/en/stable/050_restore.html"
+    },
+    {
+      "id": "F20",
+      "title": "restic: working with repositories, `check`",
+      "url": "https://restic.readthedocs.io/en/stable/045_working_with_repos.html"
+    },
+    {
+      "id": "F21",
+      "title": "restic: forget, prune y retención",
+      "url": "https://restic.readthedocs.io/en/stable/060_forget.html"
+    },
+    {
+      "id": "F22",
+      "title": "GNU tar manual, backups e incrementales",
+      "url": "https://www.gnu.org/software/tar/manual/tar.html"
+    },
+    {
+      "id": "F23",
+      "title": "NIST SP 800-86, Guide to Integrating Forensic Techniques into Incident Response (2006)",
+      "url": "https://csrc.nist.gov/pubs/sp/800/86/final"
+    },
+    {
+      "id": "F24",
+      "title": "MITRE ATT&CK, T1490 Inhibit System Recovery",
+      "url": "https://attack.mitre.org/techniques/T1490/"
+    },
+    {
+      "id": "F25",
+      "title": "MITRE ATT&CK, T1485 Data Destruction",
+      "url": "https://attack.mitre.org/techniques/T1485/"
+    },
+    {
+      "id": "F26",
+      "title": "MITRE ATT&CK, T1565.001 Stored Data Manipulation",
+      "url": "https://attack.mitre.org/techniques/T1565/001/"
+    },
+    {
+      "id": "F27",
+      "title": "MITRE ATT&CK, T1070.004 File Deletion",
+      "url": "https://attack.mitre.org/techniques/T1070/004/"
+    },
+    {
+      "id": "F28",
+      "title": "rsync: manual oficial y modelo de seguridad",
+      "url": "https://download.samba.org/pub/rsync/rsync.1"
+    },
+    {
+      "id": "F29",
+      "title": "Btrfs: comprobación y recuperación",
+      "url": "https://btrfs.readthedocs.io/en/latest/btrfs-check.html"
+    },
+    {
+      "id": "F30",
+      "title": "e2fsprogs: `e2fsck(8)`",
+      "url": "https://man7.org/linux/man-pages/man8/e2fsck.8.html"
+    },
+    {
+      "id": "F31",
+      "title": "util-linux: `losetup(8)` y riesgos de loop",
+      "url": "https://man7.org/linux/man-pages/man8/losetup.8.html"
+    },
+    {
+      "id": "F32",
+      "title": "kernel Linux: fs-verity (integridad por archivo, distinta de backup)",
+      "url": "https://docs.kernel.org/filesystems/fsverity.html"
+    }
+  ],
+  "references_count": 32,
+  "limitations": [
+    "Herramientas no ejecutadas en el host del usuario; no se han medido RPO, RTO ni éxito de restauración.",
+    "Los campos de auditoría/EDR no se garantizan sin desplegar/configurar sensores.",
+    "Semánticas y opciones dependen de kernel, distribución, filesystem y versión del binario.",
+    "NIST SP 800-86 (2006) se usa para metodología; no como respaldo de versiones actuales de software.",
+    "La integridad por hash del contenido no demuestra integridad de ACL/propiedad ni cadena de custodia.",
+    "Ejemplos de ataque se limitan a autorización y datos sintéticos, sin destrucción real."
+  ],
+  "quality_assurance": {
+    "markdown_sections": 21,
+    "lab_points_expected": 100,
+    "question_count_expected": 30,
+    "detection_count_expected": 8,
+    "reference_count_expected": 32,
+    "safe_by_default": true,
+    "lab_execution_confirmed": false,
+    "file_json_syntactically_valid": true
+  },
+  "status": "ready_for_study_not_executed",
+  "next_batch": "Tanda 4 de 5 — Red del host, SSH, firewalls y controles de acceso/hardening; investigación de logs y auditoría se completará según plan en Tandas 4–5."
+}

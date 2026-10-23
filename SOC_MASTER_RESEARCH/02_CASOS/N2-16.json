@@ -1,0 +1,180 @@
+{
+  "id": "N2-16",
+  "nivel": "N2",
+  "bloque": "Cloud, identidad y ataques avanzados",
+  "titulo": "MFA activado y sesión anómala en Entra ID: ¿robo de token, AiTM o sesión legítima?",
+  "pregunta": "Microsoft Entra ID registra un inicio de sesión exitoso desde una ubicación anómala, pero el usuario tiene MFA activado. ¿Cómo investigarías una posible sustracción de sesión?",
+  "escenario": "Son las 08:42 y el usuario ana.finance@empresa.example informa que trabaja desde Sevilla. Un inicio de sesión de Microsoft 365 aparece a las 08:40 desde un proveedor residencial de otro país. En el panel consta MFA como requisito satisfecho. En ese mismo intervalo la cuenta consultó SharePoint y Exchange. El usuario utilizó una VPN corporativa el día anterior, pero no reconoce el navegador ni el equipo del evento. Se desconoce si fue phishing de intermediario (AiTM), reutilización de cookie/token, abuso de refresh token, dispositivo legítimo remoto o geolocalización imprecisa.",
+  "objetivo": "Determinar si hay uso no autorizado de una sesión ya autenticada; separar autenticación inicial, emisión/canje de tokens y acceso al recurso, evaluar alcance del acceso a datos y activar contención de identidad proporcional sin asumir que MFA equivale a sesión segura.",
+  "hipotesis": [
+    "Robo/reutilización de cookie o token de sesión tras autenticación legítima; posible AiTM (hipótesis ATT&CK T1550.004).",
+    "Inicio de sesión legítimo por VPN, proxy SASE, red móvil o escritorio remoto, con geolocalización del punto de salida.",
+    "Token emitido previamente y reutilizado por una aplicación: el evento no indica necesariamente un desafío MFA nuevo.",
+    "Inscripción o consentimiento OAuth malicioso, dispositivo desconocido, manipulación de registro MFA o compromiso adicional.",
+    "Error de clasificación por agregación de logs, UPN compartido, direcciones NAT/CDN, reloj o datos incompletos."
+  ],
+  "pasos": [
+    {
+      "fase": "1 · Declarar y proteger",
+      "accion": "Identificar UPN, ObjectId, tenant, período en UTC, ID/correlación del evento, impacto de la cuenta y aplicaciones; preservar exports y evidencias del portal. Si hay actividad no reconocida activa o acceso privilegiado, elevar incidencia de identidad con prioridad alta."
+    },
+    {
+      "fase": "2 · Leer detalles, no solo icono MFA",
+      "accion": "Abrir SigninLogs y su AuthenticationDetails, AuthenticationRequirement, Status, ConditionalAccessStatus, ClientAppUsed, ResourceDisplayName, UserAgent, DeviceDetail e IP. No interpretar «MFA satisfied» como «el usuario acaba de aprobar una notificación»; puede ser una sesión/claim previa."
+    },
+    {
+      "fase": "3 · Comparar contexto del evento",
+      "accion": "Revisar ubicación, ASN, IP/ISP, agente de usuario, dispositivo/compliance, sesión y cambios respecto a la línea base. Comprobar túnel VPN, nodos proxy de la empresa, itinerancia y dispositivo registrado. La geolocalización, por sí sola, no atribuye malicia."
+    },
+    {
+      "fase": "4 · Construir timeline de inicios y tokens",
+      "accion": "Correlacionar SigninLogs y registros no interactivos cuando estén habilitados; comparar AuthenticationDetails, CorrelationId, Session/ClientSessionId, UniqueTokenIdentifier cuando poblado y controles de token protection. No asumir que estos identificadores siempre estarán disponibles o significan la misma cosa."
+    },
+    {
+      "fase": "5 · Buscar consecuencias",
+      "accion": "Investigar auditoría Exchange, SharePoint, OneDrive, cambios de reglas, permisos, OAuth consents, descargas inusuales y envío de correos. Un inicio de sesión exitoso no demuestra acceso a información sensible."
+    },
+    {
+      "fase": "6 · Analizar endpoint del usuario",
+      "accion": "Con autorización, inspeccionar MDE para navegador, extensiones, eventos de phishing, URL, descarga sospechosa y señales de robo de cookies, sin extraer tokens reales a portales externos. Un endpoint sano no descarta robo de sesión por otra vía."
+    },
+    {
+      "fase": "7 · Contener con equipo de identidad",
+      "accion": "Si hay compromiso probable, bloquear inicio o elevar controles condicionales, revocar sesiones/refresh tokens mediante procedimiento, restablecer credenciales si procede, revisar métodos MFA y sesiones de aplicaciones. Confirmar límites: algunas sesiones y aplicaciones pueden mantenerse activas hasta expiración o nueva evaluación."
+    },
+    {
+      "fase": "8 · Confirmar eficacia",
+      "accion": "Revisar nuevos inicios/canje de tokens y actividad M365 tras revocación, cortar accesos no autorizados y comprobar que el usuario recuperó acceso desde dispositivo confiable. Si hay sensibilidad de datos, informar a privacidad/IR."
+    },
+    {
+      "fase": "9 · Clasificar y documentar",
+      "accion": "Documentar evidencia a favor/en contra de AiTM y token theft, usuario/activos/recurso, ventana, acciones ejecutadas, efectividad, brechas de ingesta y necesidad de CA resistente a phishing/token binding según compatibilidad."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "SigninLogs: UserPrincipalName, IPAddress, AppDisplayName, ResultType, AuthenticationDetails",
+      "lectura": "Explican contexto y resultado; AuthenticationDetails puede incluir cómo se cumplió MFA, no prueban por sí solos robo de token."
+    },
+    {
+      "dato": "SigninLogs: DeviceDetail, UserAgent, ConditionalAccessStatus, AuthenticationRequirement",
+      "lectura": "Ayudan a comparar dispositivos y políticas. CA=success no excluye token reutilizado ni sesión robada."
+    },
+    {
+      "dato": "SigninLogs: ClientSessionId, UniqueTokenIdentifier, TokenProtectionStatusDetails",
+      "lectura": "Señales adicionales cuando se encuentran pobladas; no todas las apps/tokens exponen la misma trazabilidad."
+    },
+    {
+      "dato": "Entra audit logs: métodos MFA, registro de dispositivos, aplicaciones/consentimientos",
+      "lectura": "Detectan modificaciones de identidad y persistencia potencial, no necesariamente relacionadas causalmente."
+    },
+    {
+      "dato": "OfficeActivity / Purview / SharePoint / Exchange",
+      "lectura": "Acceso, configuración y envío observados tras el inicio; comprobar si las operaciones realmente ocurrieron."
+    },
+    {
+      "dato": "EDR, proxy, VPN, CASB e inventario",
+      "lectura": "Correlación de equipo real, VPN/proxy de salida y enlace con phishing; un resultado negativo no descarta el incidente."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Sentinel · contexto de inicio y MFA en SigninLogs",
+      "entorno": "Log Analytics con conector de Microsoft Entra sign-in logs; tabla SigninLogs, no consulta directa de Defender XDR. Reemplazar UPN ficticio.",
+      "consulta": "let usuario = \"ana.finance@empresa.example\";\nSigninLogs\n| where TimeGenerated >= ago(7d)\n| where UserPrincipalName =~ usuario\n| extend D = todynamic(DeviceDetail), A = todynamic(AuthenticationDetails)\n| project TimeGenerated, UserPrincipalName, IPAddress, Location,\n          AppDisplayName, ClientAppUsed, UserAgent, ResultType,\n          AuthenticationRequirement, ConditionalAccessStatus,\n          DeviceId=tostring(D.deviceId), Browser=tostring(D.browser),\n          DeviceOS=tostring(D.operatingSystem), AuthSteps=A,\n          CorrelationId, ClientSessionId, UniqueTokenIdentifier\n| order by TimeGenerated desc",
+      "interpretacion": "Revisar la secuencia de accesos, detalles de método y discrepancias de dispositivo/IP. La salida no es un detector concluyente de robo de sesión.",
+      "limitaciones": "Requiere ingestion específica y permisos. Alguns campos son opcionales o pueden venir vacíos; normalizar fechas UTC. Las señales de tokens y revalidación dependen de aplicación."
+    },
+    {
+      "nombre": "Sentinel · nuevas IP y aplicaciones por usuario",
+      "entorno": "SigninLogs y baseline de 14 días; definir umbrales/ASNs corporativos antes de clasificar anomalías.",
+      "consulta": "SigninLogs\n| where TimeGenerated >= ago(14d)\n| where ResultType == \"0\"\n| summarize Inicios=count(), Primera=min(TimeGenerated), Ultima=max(TimeGenerated),\n            Recursos=make_set(AppDisplayName, 8), Agentes=make_set(UserAgent, 5)\n    by UserPrincipalName, IPAddress\n| where Inicios > 0\n| order by Ultima desc",
+      "interpretacion": "Da pivotes por usuario/IP y servicios, útil para comparar patrones con un activo y evitar aislar exclusivamente por país.",
+      "limitaciones": "Puede mezclar IP dinámica, VPN y proxies. `ResultType==\"0\"` modela éxito usual en SigninLogs; no presupone desafío MFA nuevo."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk · timeline de autenticaciones Entra",
+      "entorno": "index=entra ejemplo con eventos exportados de Entra y extracciones propias (userPrincipalName, ipAddress, status.errorCode). Adaptar fuentes.",
+      "consulta": "index=entra earliest=-7d userPrincipalName=\"ana.finance@empresa.example\"\n| eval status_code=coalesce('status.errorCode',errorCode)\n| table _time userPrincipalName ipAddress appDisplayName clientAppUsed\n        userAgent conditionalAccessStatus authenticationRequirement status_code\n| sort 0 _time",
+      "interpretacion": "Mostrar autenticaciones exitosas/fallidas, aplicaciones y diferencias de clientes.",
+      "limitaciones": "Los campos JSON pueden requerir `spath`; `status.errorCode` es ejemplo de extracción. Correlacionar con registros no interactivos."
+    },
+    {
+      "nombre": "Splunk · cambios de IP y agentes para una identidad",
+      "entorno": "index=entra con ipAddress, userAgent, appDisplayName y registros de todos los métodos.",
+      "consulta": "index=entra earliest=-14d userPrincipalName=\"ana.finance@empresa.example\"\n| stats count as eventos earliest(_time) as primero latest(_time) as ultimo\n        values(appDisplayName) as recursos values(userAgent) as agentes\n  by ipAddress\n| convert ctime(primero) ctime(ultimo)\n| sort - eventos",
+      "interpretacion": "Resume cambios de red y navegador para priorizar pivotes.",
+      "limitaciones": "No detecta tokens robados por sí solo. Hay valores ausentes, NAT y sesgo de logging de sesión."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "PowerShell de Entra / solo lectura",
+      "proposito": "Consultar sesiones/inicios vía API Graph con permisos apropiados: no exponer tokens API ni datos personales.",
+      "comando": "# Ejemplo ilustrativo; requiere Microsoft.Graph, permisos AuditLog.Read.All\nGet-MgAuditLogSignIn -Filter \"userPrincipalName eq 'ana.finance@empresa.example'\" -Top 25 |\n  Select-Object CreatedDateTime, UserPrincipalName, IpAddress, AppDisplayName, ConditionalAccessStatus"
+    },
+    {
+      "entorno": "PowerShell de Microsoft 365 / solo lectura",
+      "proposito": "Revisar si la cuenta tiene métodos registrados y auditoría disponible, sin revelar datos de autenticación.",
+      "comando": "# Requiere privilegios y conexión Graph; no recopilar secretos\nGet-MgUserAuthenticationMethod -UserId 'ana.finance@empresa.example' |\n  Select-Object Id, AdditionalProperties"
+    },
+    {
+      "entorno": "Procedimiento de contención, NO ejecutar sin autorización",
+      "proposito": "Acción de revocación de sesión que puede interrumpir servicios; incluir rollback y validación.",
+      "comando": "# CAMBIO DE ESTADO - solo durante incidente autorizado\n# Revoke-MgUserSignInSession -UserId 'ID-DEL-USUARIO'"
+    }
+  ],
+  "contencion": "Si hay accesos no autorizados confirmados o muy probables, reducir exposición inmediatamente mediante Conditional Access, bloqueo selectivo, revocación de sesiones/refresh tokens y revisión de métodos MFA/OAuth, con propietario de identidad y preservación de evidencias. Restablecer contraseña no asegura invalidación instantánea de todas las sesiones y token lifetimes; comprobar nuevas solicitudes y accesos a datos. Priorizar cuentas privilegiadas o con información sensible.",
+  "escalation": [
+    "Accesos a recursos sensibles desde dispositivos/IP no confiables con efectos demostrables.",
+    "Cambios inesperados de métodos MFA, consentimientos o contraseñas.",
+    "Actividad sospechosa continua después de revocar sesiones.",
+    "Cuenta privilegiada o múltiples cuentas afectadas en patrón correlacionado.",
+    "Potencial fuga de datos o cambios de configuración M365."
+  ],
+  "falsos_positivos": [
+    "Salida VPN/SASE desde otro país, geolocalización IP imprecisa.",
+    "Acceso remoto legítimo, delegación o cliente móvil.",
+    "MFA satisfecha por claim previo o sesión existente.",
+    "Usuarios que viajan o comparten NAT corporativo.",
+    "Cambios normales de UserAgent tras actualizaciones o renovación de navegador."
+  ],
+  "errores": [
+    "MFA activado = acceso imposible de comprometer.",
+    "Bloquear país/IP como única contención.",
+    "Asumir que el icono de MFA refleja un desafío nuevo.",
+    "Concluir AiTM solo por IP extraña sin evidencias complementarias.",
+    "Obtener o compartir tokens/cookies reales como parte de la investigación.",
+    "No verificar sesiones persistentes después de la revocación."
+  ],
+  "perspectiva_red_team": "AiTM y otros métodos de sustracción de material de sesión apuntan a usar autorización ya concedida; no necesitan necesariamente conocer el segundo factor para cada acceso. Blue Team investiga disonancia entre sesión, dispositivo, fuente y acciones sobre datos. Un origen anómalo exige correlación; una política resistente a phishing y, donde aplique, token protection reducen superficies pero no dan invulnerabilidad.",
+  "respuesta_entrevista": "No trataría MFA como garantía absoluta. Primero validaría en SigninLogs el resultado, los detalles de autenticación, el dispositivo, la IP, el agente y las políticas. Buscaría accesos no interactivos y acciones posteriores sobre correo/archivos, comprobaría VPN y dispositivo corporativo e investigaría posibles cambios de métodos MFA. Si hay indicios consistentes de sesión robada, escalaría a IR, revocaría sesiones y restringiría accesos bajo procedimiento; después verificaría que no quedan sesiones activas no autorizadas y evaluaría la exposición de datos.",
+  "criterios_evaluacion": [
+    "Diferencia MFA registrada de desafío MFA nuevo.",
+    "Usa tabla SigninLogs real y describe limitaciones.",
+    "Correlaciona IP, dispositivo, sesión, aplicación y actividad posterior.",
+    "Comprende token replay vs phishing AiTM vs VPN.",
+    "Revoca/restringe y valida eficacia, no solo contraseña.",
+    "Menciona privacidad y acceso a archivos/correo."
+  ],
+  "mitre": [
+    "T1550.004 — Use Alternate Authentication Material: Web Session Cookie (hipótesis)",
+    "T1539 — Steal Web Session Cookie (hipótesis)"
+  ],
+  "fuentes": [
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/signinlogs",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-entraidsigninevents-table",
+    "https://learn.microsoft.com/en-us/entra/identity/monitoring-health/concept-sign-in-log-activity-details",
+    "https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-token-protection",
+    "https://learn.microsoft.com/en-us/entra/identity/users/users-revoke-access",
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/officeactivity",
+    "https://csrc.nist.gov/pubs/sp/800/61/r3/final"
+  ],
+  "procedencia": {
+    "lote": "tanda-08",
+    "archivo": "SOC-RESPONSES_TANDA-08_N2-16_a_N2-20.json",
+    "fechaRevision": "2026-10-18"
+  }
+}

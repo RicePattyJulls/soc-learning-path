@@ -1,0 +1,39 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-24-L03",
+  "sourceHash": "b4c86587ab163c631e7205ba03ad53c5faebb476134ce9cc8a33ad904fcebe1d",
+  "questions": [
+    {
+      "id": "WAD-24-L03-Q01",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Un tamaño de registro corto con rotación, una subcategoría o SACL sin cubrir o la falta de reenvío pueden descartar eventos antes de poder leerlos».\n\nLa pérdida tiene varias causas: cobertura de origen incompleta, un registro corto que rota y sobrescribe, o un reenvío que no llega. La auditoría no registra siempre todo, los eventos faltantes no demuestran por sí solos un ataque y reiniciar el controlador no recupera lo que ya se sobrescribió."
+    },
+    {
+      "id": "WAD-24-L03-Q02",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Comprobando qué subcategorías están activas, qué objetos tienen SACL, el tamaño y la retención del registro y qué eventos esperados llegan y cuáles se pierden».\n\nLa cobertura efectiva se mide verificando la configuración que la sostiene y contrastando qué eventos llegan y cuáles se pierden. Contar subcategorías, asumir cobertura total por haber eventos o fiarse de la política declarada no describen lo que de verdad se conserva."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "La cobertura se mide revisando tres frentes antes de concluir nada. En origen se comprueba qué subcategorías están activas y qué objetos tienen SACL, porque una actividad sin cobertura nunca se escribe. En el registro se consulta su tamaño máximo y su retención o rotación: un registro pequeño que se llena rápido sobrescribe los eventos más antiguos y puede haber descartado la ventana investigada. En el tránsito se verifica si los eventos se reenvían a un recolector y si el canal funcionaba, porque un evento ausente en el destino puede seguir en el origen o haber desaparecido en ambos. La evidencia reúne las subcategorías activas, la SACL por objeto, el tamaño y la retención del registro y el rango de horas conservado. El límite: que un evento no aparezca es un hecho registrado, pero su causa se demuestra midiendo la cobertura, no suponiéndola.",
+    "rubric": [
+      {
+        "criterion": "Cobertura en origen",
+        "evidence": "Revisa subcategorías activas y SACL por objeto."
+      },
+      {
+        "criterion": "Tamaño y retención",
+        "evidence": "Comprueba el tamaño del registro y su política de retención o rotación."
+      },
+      {
+        "criterion": "Reenvío",
+        "evidence": "Considera el reenvío y distingue el evento perdido en destino del conservado en origen."
+      },
+      {
+        "criterion": "Límite reconocido",
+        "evidence": "Reconoce que la ausencia de un evento no prueba que la acción no ocurriera."
+      }
+    ]
+  },
+  "revision": "291f03093d7a49f430436265"
+}

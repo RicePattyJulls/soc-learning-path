@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M05-L02",
+  "title": "Interfaces y puntos de observación",
+  "sourceHash": "4b953b2110b08d364b5ad6dceea91142953ff368d1dcd844e49efcdef7adf36c",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M05-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nEvaluar qué tráfico es visible desde cada punto de observación.\n\nPrerrequisitos: [RED-M05-L01](../RED-E01/RED-M05-L01.md).\n\n## 2. Comprende el mecanismo\n\nUna captura local ve lo que atraviesa la interfaz capturada, con efectos del sistema y del offload. En un switch, conectar un analizador a cualquier puerto no permite ver automáticamente conversaciones entre otros puertos. SPAN replica tráfico seleccionado; puede perder paquetes por sobresuscripción y no sustituye una garantía de captura completa. RSPAN transporta el espejo en una VLAN y ERSPAN usa encapsulación IP/GRE, según implementación. Un TAP y un espejo tienen propiedades operativas diferentes; documentar ubicación y direcciones observadas importa tanto como el filtro.\n\n### Vocabulario de apoyo\n\n- **PCAP/PCAPNG**: Formatos de almacenamiento de paquetes capturados y metadatos.\n- **SPAN y TAP**: Espejo de tráfico configurado en un equipo y punto de acceso de observación del enlace, con propiedades diferentes.\n- **Snaplen**: Límite de bytes conservados de cada paquete por la captura.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M05-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Enlace observado=10 Gb/s; puerto de espejo=1 Gb/s; captura registra huecos durante picos.\n\nLa capacidad del espejo puede explicar pérdida de visibilidad. Es incorrecto contar esos huecos como paquetes necesariamente perdidos en el enlace de producción.\n\n"
+    },
+    {
+      "id": "RED-M05-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Preparar base de investigación PCAP.\n- Red Team autorizado: Comprobar telemetría generada por actividad autorizada.\n- Evidencia del módulo: Archivo origen, hash, filtros y hallazgos observables.\n- Criterio del módulo: Reproduce filtros, conserva original y declara límites.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L03](../../05_RECURSOS/LABORATORIOS/RED-L03.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **WIRESHARK**: [Wireshark User’s Guide](https://www.wireshark.org/docs/wsug_html_chunked/). Filtros, captura, streams, metadatos y límites de observación.\n- **CHECKSUM**: [Checksums](https://www.wireshark.org/docs/wsug_html_chunked/ChAdvChecksums.html). Artefactos de checksum y offload.\n- **RFC8484**: [RFC 8484: DNS Queries over HTTPS](https://www.rfc-editor.org/rfc/rfc8484.html). DNS sobre HTTPS; evita asumir que toda resolución DNS usa UDP/TCP 53.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M05-L02-P01",
+    "prompt": "Necesitas comprobar tráfico entre dos VMs del mismo hipervisor. Explica por qué un espejo del uplink físico puede ser insuficiente.",
+    "markdown": "## 4. Práctica individual\n\nNecesitas comprobar tráfico entre dos VMs del mismo hipervisor. Explica por qué un espejo del uplink físico puede ser insuficiente.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M05-L02-Q01",
+      "prompt": "¿Qué permite ver un puerto normal de switch?",
+      "options": [
+        {
+          "id": "A",
+          "text": "La memoria de otras máquinas"
+        },
+        {
+          "id": "B",
+          "text": "Todas las conversaciones del campus siempre"
+        },
+        {
+          "id": "C",
+          "text": "El contenido TLS descifrado"
+        },
+        {
+          "id": "D",
+          "text": "El tráfico que recibe o envía según el funcionamiento del switch"
+        }
+      ]
+    },
+    {
+      "id": "RED-M05-L02-Q02",
+      "prompt": "¿Qué limita el espejo 10 Gb/s hacia 1 Gb/s?",
+      "options": [
+        {
+          "id": "A",
+          "text": "La desaparición del routing"
+        },
+        {
+          "id": "B",
+          "text": "La resolución de direcciones IPv6"
+        },
+        {
+          "id": "C",
+          "text": "Posible sobresuscripción y pérdida en la observación"
+        },
+        {
+          "id": "D",
+          "text": "La autenticación de usuarios"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L03](../../05_RECURSOS/LABORATORIOS/RED-L03.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **WIRESHARK**: [Wireshark User’s Guide](https://www.wireshark.org/docs/wsug_html_chunked/). Filtros, captura, streams, metadatos y límites de observación.\n- **CHECKSUM**: [Checksums](https://www.wireshark.org/docs/wsug_html_chunked/ChAdvChecksums.html). Artefactos de checksum y offload.\n- **RFC8484**: [RFC 8484: DNS Queries over HTTPS](https://www.rfc-editor.org/rfc/rfc8484.html). DNS sobre HTTPS; evita asumir que toda resolución DNS usa UDP/TCP 53.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "525ba19c67a707340702bcce"
+}

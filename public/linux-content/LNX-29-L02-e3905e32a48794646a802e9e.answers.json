@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-29-L02",
+  "sourceHash": "0f343dae5d30f63925ef9bf7aba034f3dc786d2338dac5e03066f9e2114930ec",
+  "questions": [
+    {
+      "id": "LNX-29-L02-Q01",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Contener el egreso por el control adecuado y preservar la evidencia mínima que sea viable».\n\nAnte daño activo, la mitigación no espera una colección completa. Reiniciar destruye estado y esperar la ventana de cambio prolonga la pérdida; la colección total antes de actuar solo se justifica cuando no hay daño en curso."
+    },
+    {
+      "id": "LNX-29-L02-Q02",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Que los bytes comparados son iguales entre la copia y el original».\n\nEl hash detecta cambios en los bytes comparados. No certifica autenticidad de la fuente, corrección del contenido ni cierre de la cadena de custodia."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "El orden correcto empieza por fijar contexto: hora UTC, host, booteo, propietario, alerta y daño observado. Después se preserva lo volátil antes de tocar el servicio: árbol de procesos con identidad real y efectiva, conexiones y puertos, descriptores abiertos, unidad y cgroup, sesiones activas y temporales relevantes. Cada captura se anota con herramienta, versión y hora, porque la observación modifica el sistema.\n\nCon ese estado registrado se decide la contención. Si el egreso hacia `203.0.113.40` es activo y hay datos sensibles en juego, se controla por perímetro o segmentación preservando el acceso de investigación; si no hay daño inminente, se completa la adquisición de journal, audit y configuración antes de aislar. Reiniciar el servicio solo es aceptable si el daño exige esa acción y queda registrado qué se perdió.\n\nEl registro debe incluir identificador de caso, host y booteo, observador y autorización, ventana UTC, fuentes, comandos y versiones, archivos con tamaño y hash, modo de adquisición, cambios hechos al investigar y limitaciones. El hash constata igualdad de bytes, no autenticidad ni completitud.\n\nLímite: la intervención documenta lo observable en esa ventana. No reconstruye el alcance completo ni demuestra autoría, y en un host comprometido la fiabilidad de las herramientas no se presume.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Fija contexto y ventana UTC antes de ejecutar la primera captura."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Preserva volátil antes de reiniciar, aislar o limpiar, salvo daño inminente justificado."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Registra herramienta, versión, hash, adquisición y cambios realizados."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Distingue hash de autenticidad y declara las limitaciones de la captura."
+      }
+    ]
+  },
+  "revision": "e3905e32a48794646a802e9e"
+}

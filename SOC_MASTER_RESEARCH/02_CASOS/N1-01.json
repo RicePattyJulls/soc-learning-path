@@ -1,0 +1,137 @@
+{
+  "id": "N1-01",
+  "nivel": "N1",
+  "bloque": "Monitorización y triaje",
+  "titulo": "150 inicios de sesión fallidos contra una cuenta",
+  "pregunta": "Son las 03:00 y Microsoft Sentinel genera una alerta de 150 intentos de inicio de sesión fallidos contra una misma cuenta. ¿Qué revisarías primero y cómo determinarías si es un ataque real?",
+  "escenario": "Alerta simulada: alice@empresa.example acumula 150 fallos en 10 minutos. El servicio afectado usa Microsoft Entra ID, pero aún no conoces la IP de origen, si existió un inicio exitoso ni si el usuario estaba trabajando. La cifra aislada no demuestra intrusión: es un indicador que requiere contexto.",
+  "objetivo": "Distinguir fallos benignos, fuerza bruta concentrada y password spraying, y descubrir si el atacante consiguió autenticarse o está causando denegación de servicio por bloqueo.",
+  "hipotesis": [
+    "Fuerza bruta o adivinación repetida contra una cuenta, desde una o más IP.",
+    "Contraseña guardada desactualizada en móvil, aplicación, servicio o cliente legacy: muchos fallos con origen y patrón estables.",
+    "Password spraying si al ampliar la búsqueda se observan muchas cuentas con pocos intentos por cada una, desde una IP o red común.",
+    "Actividad de un proxy corporativo o VPN: una IP compartida no identifica por sí sola a un atacante."
+  ],
+  "pasos": [
+    {
+      "fase": "0. Verificar alerta",
+      "accion": "Confirmar hora UTC, regla, ventana de agregación, cuenta/tenant, severidad, origen de datos, duplicados y estado de ingestión. 150 eventos pueden ser 150 intentos, no 150 contraseñas diferentes."
+    },
+    {
+      "fase": "1. Medir patrón",
+      "accion": "Agrupar por intervalos y por IP; inspeccionar ResultType/Status, aplicación, user agent, device, ubicación y protocolo. Distinguir una ráfaga de un flujo sostenido."
+    },
+    {
+      "fase": "2. Buscar éxito asociado",
+      "accion": "Ampliar 30–60 min antes/después e identificar autenticaciones exitosas de la cuenta, especialmente desde IP/dispositivo desconocidos. Un éxito eleva considerablemente la prioridad, pero no prueba por sí solo que el actor sea adversario."
+    },
+    {
+      "fase": "3. Evaluar alcance",
+      "accion": "Buscar otras cuentas impactadas por IP/ASN y determinar si hay bloqueos, riesgos de identidad, MFA anómala o cambios posteriores en credenciales/registro de métodos."
+    },
+    {
+      "fase": "4. Contactar y escalar",
+      "accion": "Confirmar de forma segura con usuario o mesa de ayuda (canal independiente), documentar evidencia y escalar según criterios de compromiso o spray distribuido."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "UserPrincipalName + ResultType",
+      "lectura": "Qué cuenta y qué resultado; revisar motivo real de fallo en Status y no asumir que todos son contraseña incorrecta."
+    },
+    {
+      "dato": "IPAddress + AppDisplayName + bin(TimeGenerated,5m)",
+      "lectura": "Origen lógico, servicio y frecuencia; IP de NAT/VPN puede representar múltiples personas."
+    },
+    {
+      "dato": "DeviceDetail, UserAgent, LocationDetails",
+      "lectura": "Contexto adicional de cliente y ubicación, no identificación fehaciente."
+    },
+    {
+      "dato": "ConditionalAccessStatus, AuthenticationRequirement, AuthenticationDetails",
+      "lectura": "Aplicación de controles; MFA exigida no equivale necesariamente a sesión segura."
+    },
+    {
+      "dato": "Eventos exitosos y auditoría posterior",
+      "lectura": "Determinar si hubo acceso y actividad anómala después de los fallos."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Sentinel / Log Analytics: intentos por IP y franja",
+      "entorno": "Microsoft Sentinel — SigninLogs con registros de inicio de sesión interactivo de Entra ID ingeridos",
+      "consulta": "let usuario = \"alice@empresa.example\";\nSigninLogs\n| where TimeGenerated > ago(2h)\n| where UserPrincipalName =~ usuario\n| summarize Fallidos=countif(ResultType != \"0\"),\n            Exitosos=countif(ResultType == \"0\"),\n            Codigos=make_set(ResultType, 10),\n            Apps=make_set(AppDisplayName, 10)\n    by bin(TimeGenerated, 5m), IPAddress\n| order by TimeGenerated asc, Fallidos desc",
+      "interpretacion": "Ráfagas por IP y ventana; si existen éxitos, revisar eventos originales con detalles de autenticación y secuencia temporal.",
+      "limitaciones": "ResultType no necesariamente representa un password erróneo: consultar Status. SigninLogs suele registrar inicios interactivos; los no interactivos y cuentas de servicio pueden estar en otras tablas."
+    },
+    {
+      "nombre": "Sentinel / Log Analytics: ampliar a varias cuentas",
+      "entorno": "Microsoft Sentinel — SigninLogs",
+      "consulta": "SigninLogs\n| where TimeGenerated > ago(1h)\n| where ResultType != \"0\"\n| summarize Fallos=count(), Usuarios=dcount(UserPrincipalName),\n            MuestraUsuarios=make_set(UserPrincipalName, 15)\n    by IPAddress\n| where Fallos >= 20 or Usuarios >= 5\n| order by Usuarios desc, Fallos desc",
+      "interpretacion": "Una IP contra muchas cuentas sugiere spraying, aunque servicios compartidos pueden imitar este patrón. Los umbrales son ejemplos para triaje, no reglas universales.",
+      "limitaciones": "Las técnicas distribuidas usan varias IP y podrían pasar inadvertidas; NAT corporativo puede generar falsos positivos."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk CIM Authentication: secuencia de fallos y éxitos",
+      "entorno": "Splunk con autenticaciones normalizadas al CIM (campos user, src, action)",
+      "consulta": "tag=authentication earliest=-2h user=\"alice@empresa.example\"\n| bin _time span=5m\n| stats count(eval(action=\"failure\")) AS fallidos\n        count(eval(action=\"success\")) AS exitosos\n        values(signature) AS motivos\n  BY _time user src\n| sort _time - fallidos",
+      "interpretacion": "Comparar distribuciones y localizar éxitos asociados a fallos.",
+      "limitaciones": "La búsqueda supone field mapping CIM correcto. signature puede no contener el código de error original; consultar raw events."
+    },
+    {
+      "nombre": "Splunk CIM Authentication: posible spray",
+      "entorno": "Splunk con CIM Authentication",
+      "consulta": "tag=authentication earliest=-1h action=failure\n| stats count AS fallos dc(user) AS usuarios values(user) AS muestra_usuarios BY src\n| where fallos>=20 OR usuarios>=5\n| sort - usuarios - fallos",
+      "interpretacion": "Identifica IP/host origen con múltiples cuentas afectadas.",
+      "limitaciones": "Si src representa un proxy, ampliar con telemetría del proxy y cabeceras confiables."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Windows/Entra",
+      "proposito": "No tocar el equipo inicialmente: recopilar Entra sign-in logs y ticket del usuario, con tiempo UTC. Los comandos de host no sustituyen los registros de autenticación en la nube.",
+      "comando": "# Sin acción intrusiva inicial: preservar ID de alerta, IP, UPN y correlación."
+    }
+  ],
+  "contencion": "Si solo hay fallos y existe protección eficaz, no bloquear la cuenta a ciegas; valorar bloqueo temporal de IP/Conditional Access según política. Si hay sesión sospechosa o riesgo alto: escalado urgente para revocación de sesiones, restablecimiento seguro de credenciales, revisión de MFA y restricción de acceso. Las acciones requieren autorización y atención al impacto.",
+  "escalation": [
+    "Inicio exitoso sospechoso después de la ráfaga.",
+    "Cuenta privilegiada o identidad de alto valor afectada.",
+    "Múltiples cuentas y/orígenes coordinados o señales de evasión MFA.",
+    "Eventos posteriores de cambios de privilegios o accesos a información sensible."
+  ],
+  "falsos_positivos": [
+    "Credencial caducada en aplicación automática.",
+    "Cliente móvil reintentando con password antiguo.",
+    "NAT corporativo, proxy o herramienta de pruebas aprobada."
+  ],
+  "errores": [
+    "Concluir compromiso solo por 150 fallos.",
+    "Confundir ataque de fuerza bruta contra una cuenta con password spraying contra muchas cuentas.",
+    "Bloquear IP compartida o usuario crítico sin evaluar impacto.",
+    "Cerrar sin buscar éxitos o sin comprobar ventana posterior."
+  ],
+  "perspectiva_red_team": "La fuerza bruta concentrada intenta múltiples secretos para un usuario; el password spraying utiliza pocos secretos contra múltiples usuarios para reducir bloqueos. Ambos dejan patrones que deben correlacionarse con resultados exitosos y telemetría de identidad.",
+  "respuesta_entrevista": "Primero validaría la regla y el resultado de autenticación, después agruparía los 150 fallos por IP, tiempo, aplicación y error. Buscaría éxitos posteriores y ampliaría a otras cuentas para diferenciar fuerza bruta, spraying o credenciales obsoletas. Confirmaría el contexto con el usuario y escalaría de inmediato si aparece un éxito anómalo, cuenta privilegiada o MFA sospechosa; solo aplicaría contención autorizada y documentada.",
+  "criterios_evaluacion": [
+    "No equiparar fallos con acceso logrado.",
+    "Saber separar fuerza bruta de spraying.",
+    "Correlacionar éxitos, MFA y alcance.",
+    "Evitar bloqueos disruptivos injustificados."
+  ],
+  "mitre": [
+    "T1110.001",
+    "T1110.003"
+  ],
+  "fuentes": [
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/signinlogs",
+    "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.1/data-models/authentication"
+  ],
+  "procedencia": {
+    "lote": "tanda-01",
+    "archivo": "SOC-RESPONSES_TANDA-01_N1-01_a_N1-05.json",
+    "fechaRevision": "2026-10-18"
+  }
+}

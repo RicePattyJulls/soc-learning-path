@@ -1,0 +1,139 @@
+{
+  "schemaVersion": 1,
+  "courseId": "soc",
+  "id": "N1-03",
+  "sourceHash": "2a1c1c3b51eaa4fad370f94e9ccf1d581992fbe231830e738b7fee45a3428ba9",
+  "revision": "a131a35a9df519be8c1f99ab",
+  "hipotesis": [
+    "El antivirus identificó el fichero antes de ejecutarse y lo cuarentenó correctamente.",
+    "El archivo se ejecutó antes de la detección; se aisló el artefacto, pero existen efectos secundarios o persistencia.",
+    "El objeto en cuarentena es una copia, mientras otros componentes siguen activos.",
+    "Falso positivo confirmado tras análisis y validación del proveedor/contexto."
+  ],
+  "pasos": [
+    {
+      "fase": "0. Verificar la acción",
+      "accion": "Revisar alerta original, hora, DeviceId, hash, ruta, nombre de amenaza, acción y resultado concreto. Diferenciar acción solicitada, completada y fallida; cuarentena no equivale automáticamente a “equipo limpio”."
+    },
+    {
+      "fase": "1. Reconstruir línea temporal",
+      "accion": "Investigar creación/descarga, usuario, proceso iniciador, ejecución del archivo, procesos hijos, conexiones de red y cambios relevantes antes y después de la detección. Ajustar ventana a ±30–60 minutos inicialmente."
+    },
+    {
+      "fase": "2. Buscar extensión",
+      "accion": "Buscar el hash/archivo en otros dispositivos, correo y rutas de almacenamiento. Investigar si hay alertas adicionales en el mismo host/usuario y si el sensor EDR está saludable."
+    },
+    {
+      "fase": "3. Evaluar impacto",
+      "accion": "Si nunca se ejecutó y no hay indicios laterales, documentar contención exitosa. Si hubo ejecución o persistencia, escalar a N2 para alcance y medidas de respuesta."
+    },
+    {
+      "fase": "4. Cerrar con evidencia",
+      "accion": "Cerrar únicamente cuando haya evidencia de remediación y de que no quedan señales razonables de compromiso dentro del alcance revisado, conforme al playbook del SOC."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "AlertId, Severity, estado, acción/respuesta",
+      "lectura": "Confirma qué detectó el producto y qué hizo efectivamente."
+    },
+    {
+      "dato": "SHA1/SHA256, FileName, FolderPath",
+      "lectura": "Permiten pivotar entre alertas, archivos y hosts; SHA256 no siempre está poblado en DeviceFileEvents."
+    },
+    {
+      "dato": "DeviceProcessEvents: proceso padre/hijo",
+      "lectura": "Distingue archivo presente de archivo ejecutado; ejecución sospechosa exige ampliar investigación."
+    },
+    {
+      "dato": "DeviceNetworkEvents y nuevas alertas",
+      "lectura": "Evalúa comunicaciones posteriores o actividad relacionada."
+    },
+    {
+      "dato": "Salud del sensor y estado final de remedios",
+      "lectura": "Sin telemetría suficiente, el cierre puede quedar condicionado."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Defender XDR Advanced Hunting: evidencia de una alerta",
+      "entorno": "Defender XDR Advanced Hunting (no la tabla SecurityAlert de Log Analytics)",
+      "consulta": "let alerta = \"SUSTITUIR_POR_ALERT_ID\";\nAlertInfo\n| where AlertId == alerta\n| join kind=leftouter (\n    AlertEvidence\n    | project AlertId, EntityType, DeviceName, FileName, SHA1\n  ) on AlertId\n| project Timestamp, AlertId, Title, Severity, ServiceSource,\n          EntityType, DeviceName, FileName, SHA1\n| order by Timestamp desc",
+      "interpretacion": "Recuperar título, severidad y entidades asociadas. El estado exacto de remediación se valida en la consola/historial de acciones del producto.",
+      "limitaciones": "Requiere Defender XDR y permisos; los campos de evidencia dependen de entidad y sensor."
+    },
+    {
+      "nombre": "Defender XDR: comprobar aparición y ejecución de archivo",
+      "entorno": "Defender XDR Advanced Hunting + Microsoft Defender for Endpoint",
+      "consulta": "let hash_sospechoso = \"SUSTITUIR_POR_SHA1\";\nDeviceFileEvents\n| where Timestamp > ago(7d)\n| where SHA1 == hash_sospechoso\n| project Timestamp, DeviceName, ActionType, FileName, FolderPath,\n          SHA1, InitiatingProcessFileName\n| order by Timestamp desc",
+      "interpretacion": "Eventos sobre el artefacto y otros equipos. Para confirmar ejecución, buscar el mismo SHA1 en DeviceProcessEvents; la mera creación no acredita ejecución.",
+      "limitaciones": "No confirma por sí sola cuarentena ni proceso ejecutado. Cobertura y retención según licencias; SHA1 recomendado cuando SHA256 falta."
+    },
+    {
+      "nombre": "Defender XDR: buscar ejecuciones del binario",
+      "entorno": "Defender XDR Advanced Hunting + Defender for Endpoint",
+      "consulta": "let hash_sospechoso = \"SUSTITUIR_POR_SHA1\";\nDeviceProcessEvents\n| where Timestamp > ago(7d)\n| where SHA1 == hash_sospechoso\n| project Timestamp, DeviceName, FileName, ProcessCommandLine,\n          InitiatingProcessFileName, InitiatingProcessCommandLine,\n          AccountName\n| order by Timestamp desc",
+      "interpretacion": "Una coincidencia de SHA1 en DeviceProcessEvents es evidencia de creación/inicio del proceso registrado; investigar lo anterior y posterior.",
+      "limitaciones": "El hash puede faltar; validar coincidencias por DeviceId, ruta y otros IOC. Los valores vienen de EDR, no de todos los hosts."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk CIM Malware: acciones contra detecciones",
+      "entorno": "Splunk con datos antivirus normalizados a CIM Malware_Attacks",
+      "consulta": "tag=malware tag=attack earliest=-24h dest=\"FIN-07\"\n| stats count AS eventos values(action) AS acciones\n        values(file_name) AS archivos values(file_hash) AS hashes\n        values(file_path) AS rutas BY dest signature\n| sort - eventos",
+      "interpretacion": "Revisar nombres de amenaza y acción normalizada.",
+      "limitaciones": "En CIM, action puede ser allowed/blocked/deferred; cuarentena detallada puede requerir campo específico del proveedor y logs raw."
+    },
+    {
+      "nombre": "Splunk: búsqueda de alcance por hash normalizado",
+      "entorno": "Splunk CIM Malware_Attacks; reemplazar hash",
+      "consulta": "tag=malware tag=attack earliest=-7d file_hash=\"SUSTITUIR_POR_HASH\"\n| stats dc(dest) AS equipos values(dest) AS lista_equipos\n        values(action) AS acciones BY file_hash signature",
+      "interpretacion": "Contabilizar endpoints afectados por el mismo IOC.",
+      "limitaciones": "El hash depende del add-on y algoritmo; ausencia de registros no equivale a ausencia de compromiso."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Windows PowerShell (solo consulta; Microsoft Defender local)",
+      "proposito": "Consultar detecciones y estado desde el endpoint cuando se cuenta con autorización de soporte. No restaurar ni ejecutar ficheros sospechosos.",
+      "comando": "Get-MpThreatDetection | Select-Object -First 20\nGet-MpComputerStatus | Select-Object AMServiceEnabled,AntivirusEnabled,RealTimeProtectionEnabled"
+    }
+  ],
+  "contencion": "Si hay ejecución sospechosa, comunicación externa, persistencia, otras máquinas afectadas o remediación fallida, solicitar aislamiento EDR del endpoint y respuesta N2 según impacto. Para un fichero bloqueado antes de ejecutarse con verificación completa, documentar y cerrar conforme a criterio de cierre del SOC.",
+  "escalation": [
+    "Ejecución del fichero o de procesos hijos.",
+    "Remediación fallida, repetida o sensor deshabilitado.",
+    "Mismo IOC en varios equipos.",
+    "Actividad de red/persistencia ligada a la detección o afectación de activos críticos."
+  ],
+  "falsos_positivos": [
+    "Herramienta empresarial clasificada como PUA.",
+    "Artefacto de laboratorio de seguridad autorizado.",
+    "Firma genérica con detección finalmente revocada por el proveedor."
+  ],
+  "errores": [
+    "Cerrar automáticamente por etiqueta “Quarantined”.",
+    "Confundir archivo creado con proceso ejecutado.",
+    "Usar solo un hash sin contemplar cambios de fichero.",
+    "Restaurar el fichero para “probar” si es malware."
+  ],
+  "perspectiva_red_team": "Un atacante puede probar cargas, reemplazar archivos y utilizar herramientas legítimas. El bloqueo de un binario no invalida necesariamente una ejecución anterior ni otros mecanismos de persistencia.",
+  "respuesta_entrevista": "No cerraría la alerta por el simple estado de cuarentena. Verificaría acción y resultado, hash, ruta, usuario y hora; reconstruiría si se ejecutó, qué procesos o conexiones generó y si el IOC aparece en otros equipos. Si se bloqueó preventivamente sin actividad adicional y la remediación está verificada, documentaría cierre. Con ejecución, persistencia o remediación fallida escalaría a N2.",
+  "criterios_evaluacion": [
+    "No equiparar cuarentena con ausencia de compromiso.",
+    "Verificar ejecución, persistencia y alcance.",
+    "Comprobar remediación final.",
+    "Cerrar con evidencias y trazabilidad."
+  ],
+  "mitre": [
+    "T1204"
+  ],
+  "fuentes": [
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-alertinfo-table",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-alertevidence-table",
+    "https://learn.microsoft.com/es-es/defender-xdr/advanced-hunting-devicefileevents-table",
+    "https://learn.microsoft.com/es-es/defender-xdr/advanced-hunting-deviceprocessevents-table",
+    "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.1/data-models/malware"
+  ]
+}

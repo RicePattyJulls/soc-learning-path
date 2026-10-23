@@ -1,0 +1,172 @@
+{
+  "schemaVersion": 1,
+  "courseId": "soc",
+  "id": "N2-11",
+  "sourceHash": "54642ce0942f19d1eef0e69d20fbd77c1dd3798f838ee5f5c71ec71f8415dc19",
+  "revision": "aacb3468c0b666fc110b18b8",
+  "hipotesis": [
+    "Un adversario con privilegios intenta evadir defensas mediante cambios de configuración, exclusiones, servicio, políticas o alteración del sensor (T1562.001).",
+    "GPO, Intune, herramienta RMM o migración de EDR aplicó una modificación aprobada que generó eventos.",
+    "El antivirus Microsoft Defender está en modo pasivo porque otra solución antimalware corporativa está activa y gestionada.",
+    "Una protección contra manipulación bloqueó el intento; la alerta de tampering no significa que el antivirus quedara apagado.",
+    "Hay interrupción de telemetría/ingesta o un dispositivo offline: ausencia de eventos recientes no demuestra que esté desprotegido."
+  ],
+  "pasos": [
+    {
+      "fase": "1 · Determinar impacto y tiempo",
+      "accion": "Abrir incidente y anotar 09:10 UTC/local, población esperada, tenant, versión del sensor, activos de alta criticidad, política de protección y estado de conectividad de MDE. Separar «evento detectado» de «estado efectivo». Negociar medidas con responsable IR antes de aislar estaciones masivamente."
+    },
+    {
+      "fase": "2 · Hunting por ActionType oficial",
+      "accion": "En Defender XDR ejecutar búsqueda de DeviceEvents con ActionType == \"TamperingAttempt\". Es el valor de ejemplo documentado por Microsoft; revisar los ActionType disponibles para otras clases de cambios; no inventar ActionTypes supuestos."
+    },
+    {
+      "fase": "3 · Correlación con logs de configuración",
+      "accion": "En Sentinel WindowsEvent (si la fuente llega) analizar Microsoft-Windows-Windows Defender/Operational para 5001 (protección real-time deshabilitada), 5004 (cambio función), 5007 (cambio de configuración) y su contexto. 5007 no prueba desactivación y los eventos no indican necesariamente el actor."
+    },
+    {
+      "fase": "4 · Comprobar estado actual",
+      "accion": "A través de administración autorizada/EDR o Get-MpComputerStatus en host, comprobar AMRunningMode, AntivirusEnabled, RealTimeProtectionEnabled y salud del sensor. Confirmar modo pasivo vs activo, exclusiones y servicios, sin aplicar comandos de alteración."
+    },
+    {
+      "fase": "5 · Buscar causalidad",
+      "accion": "Usar árbol de procesos MDE y DeviceRegistryEvents para correlacionar cambios con usuario, PID/tiempo, script, tareas, instalador aprobado o agente de gestión; no atribuir el evento a una ejecución solo porque coincida en una ventana de 30 minutos."
+    },
+    {
+      "fase": "6 · Buscar compromiso paralelo",
+      "accion": "Revisar inicios de sesión administrativos, creación de servicios/tareas, herramientas de administración no previstas, actividad de red y alertas en equipos que generaron eventos; inspeccionar alcance horizontal (otros equipos/OU/política)."
+    },
+    {
+      "fase": "7 · Decidir contención y priorizar",
+      "accion": "Si hay protección efectivamente degradada más indicios de ejecución maliciosa, solicitar aislamiento EDR o control de red conforme a playbook, preservando evidencia. Si es despliegue autorizado, documentar ticket, firma del agente y ventana."
+    },
+    {
+      "fase": "8 · Restaurar protección con propietario",
+      "accion": "Restablecer protección y políticas a través de gestión corporativa aprobada, validar sensor, estado real, cobertura EDR y posibles exclusiones no deseadas. Evitar reinicio no coordinado si existe riesgo forense."
+    },
+    {
+      "fase": "9 · Verificar y cerrar",
+      "accion": "Comprobar que no hay nuevos eventos sospechosos, que la protección está activa o pasiva de forma deliberada, y que las brechas de ingestión se resolvieron. Documentar alcance, mapeo de evidencias, ticket y seguimiento."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "DeviceEvents: ActionType=TamperingAttempt, DeviceId, Timestamp, AdditionalFields",
+      "lectura": "Intento detectado; consultar detalle de evento/alerta para saber si se bloqueó o tuvo efecto. No equivale a «Defender off»."
+    },
+    {
+      "dato": "Windows Defender/Operational: 5001, 5004, 5007",
+      "lectura": "5001 indica desactivación de análisis en tiempo real; 5004/5007 registran cambios. Hay que validar contexto y modo antivirus."
+    },
+    {
+      "dato": "Get-MpComputerStatus: AMRunningMode, RealTimeProtectionEnabled, AntivirusEnabled",
+      "lectura": "Estado actual local. Puede ser diferente del estado en el minuto de la alerta; registrar fecha de comprobación."
+    },
+    {
+      "dato": "DeviceProcessEvents: AccountName, InitiatingProcess*, ProcessCommandLine",
+      "lectura": "Candidatos a actor y mecanismo; atribución requiere árbol de procesos y secuencia coherente."
+    },
+    {
+      "dato": "DeviceRegistryEvents: RegistryKey, RegistryValueName, RegistryValueData",
+      "lectura": "Cambios correlacionados de configuración, sin asumir que cualquier registro modifica efectivamente Defender."
+    },
+    {
+      "dato": "Inventario Intune/GPO/CMDB + estado EDR",
+      "lectura": "Despliegue planificado, antivirus alternativo, salud del sensor, usuarios y equipos afectados."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Defender XDR · intentos de manipulación documentados",
+      "entorno": "Defender XDR Advanced Hunting con licencia y telemetría MDE; tabla DeviceEvents. ActionType validado por Microsoft para TamperingAttempt.",
+      "consulta": "DeviceEvents\n| where Timestamp >= ago(7d)\n| where ActionType == \"TamperingAttempt\"\n| extend Details = parse_json(AdditionalFields)\n| summarize Intentos=count(), Primer=min(Timestamp), Ultimo=max(Timestamp),\n            Ejemplos=make_set(tostring(Details), 3)\n    by DeviceId, DeviceName\n| order by Intentos desc",
+      "interpretacion": "Lista equipos y recuentos de intentos; pivotar a eventos sin resumir, portal de alertas y estado actual para verificar resultado.",
+      "limitaciones": "Los intentos bloqueados también aparecen. AdditionalFields tiene JSON variable; no hay campo universal de éxito. Sin sensor MDE no existe cobertura."
+    },
+    {
+      "nombre": "Sentinel · eventos de Microsoft Defender Antivirus",
+      "entorno": "Microsoft Sentinel/Log Analytics con WindowsEvent recogiendo el canal Microsoft-Windows-Windows Defender/Operational. No confundir con Defender XDR.",
+      "consulta": "WindowsEvent\n| where TimeGenerated >= ago(7d)\n| where Provider =~ \"Microsoft-Windows-Windows Defender\"\n| where EventID in (5001, 5004, 5007)\n| summarize Eventos=count(), Codigos=make_set(EventID, 5),\n            Primera=min(TimeGenerated), Ultima=max(TimeGenerated)\n    by Computer\n| order by Eventos desc",
+      "interpretacion": "Agrupa equipos con cambio de configuración o protección en tiempo real; filtrar EventID=5001 y examinar Message para revisar qué pasó.",
+      "limitaciones": "El proveedor/canal puede variar con el conector; confirmar muestreo de datos primero. 5007 no es garantía de éxito adversario; ausencia de datos ≠ sano."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk · cambios de Defender en eventos Windows",
+      "entorno": "index=wineventlog contiene Windows Defender Operational y extracciones EventCode, host, Message; adaptar TA y sourcetype.",
+      "consulta": "index=wineventlog earliest=-7d (EventCode=5001 OR EventCode=5004 OR EventCode=5007)\n| eval evento=coalesce(EventCode,EventID)\n| stats count as eventos values(evento) as ids min(_time) as primero max(_time) as ultimo by host\n| convert ctime(primero) ctime(ultimo)\n| sort - eventos",
+      "interpretacion": "Detecta equipos con eventos de política o protección; correlacionar con proveedor y operaciones de mantenimiento.",
+      "limitaciones": "index y aliases son supuestos locales; el evento 5001 no es obligatorio en todos los despliegues y no demuestra intención maliciosa."
+    },
+    {
+      "nombre": "Splunk · MDE exportado: eventos de tampering",
+      "entorno": "index=edr de ejemplo con ActionType, DeviceName o device_name normalizados desde exportador MDE.",
+      "consulta": "index=edr earliest=-7d ActionType=\"TamperingAttempt\"\n| eval equipo=coalesce(DeviceName,device_name,host)\n| stats count as intentos min(_time) as primero max(_time) as ultimo by equipo\n| convert ctime(primero) ctime(ultimo)\n| sort - intentos",
+      "interpretacion": "Busca intentos de manipulación publicados por el EDR central; útil si ya se exporta esa telemetría a Splunk.",
+      "limitaciones": "No existe index=edr por defecto. Requiere extracción de ActionType y no confirma desactivación efectiva."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "PowerShell autorizado / solo lectura",
+      "proposito": "Consultar estado antimalware del host y modo activo/pasivo; no modificar su configuración.",
+      "comando": "Get-MpComputerStatus |\n  Select-Object AMRunningMode,AntivirusEnabled,RealTimeProtectionEnabled,\n    AMServiceEnabled,AntispywareEnabled,QuickScanAge"
+    },
+    {
+      "entorno": "PowerShell autorizado / solo lectura",
+      "proposito": "Consultar cambios en canal Defender sin tocar servicio.",
+      "comando": "Get-WinEvent -FilterHashtable @{\n  LogName='Microsoft-Windows-Windows Defender/Operational'\n  Id=5001,5004,5007\n  StartTime=(Get-Date).AddDays(-7)\n} -MaxEvents 200 | Select-Object TimeCreated,Id,RecordId,Message"
+    },
+    {
+      "entorno": "PowerShell autorizado / solo lectura",
+      "proposito": "Consultar proceso del servicio mediante CIM en el equipo afectado.",
+      "comando": "Get-CimInstance Win32_Service -Filter \"Name='WinDefend'\" |\n  Select-Object Name,State,StartMode,PathName,ProcessId"
+    }
+  ],
+  "contencion": "Un intento de tampering bloqueado requiere investigación, no aislamiento automático. Si Defender quedó inactivo y hay evidencia de ejecución maliciosa, aplicar contención proporcional por EDR/red, priorizar equipos privilegiados, preservar alertas y telemetría y solicitar al equipo de endpoint que restaure cobertura mediante Intune/GPO u otro control corporativo. No proponer deshabilitar políticas ni servicios como paso de diagnóstico. Verificar después que el sensor reporta y que el antivirus está en el modo esperado.",
+  "escalation": [
+    "Varios equipos cambian protección a la vez sin ventana de cambio confirmada.",
+    "Eventos de tampering con procesos o cuentas administrativas inesperadas.",
+    "Defender efectivamente inactivo, exclusiones anómalas o fallo del sensor.",
+    "Host crítico, cuentas privilegiadas o indicios de movimiento lateral.",
+    "Ausencia anormal de telemetría que impide comprobar la protección."
+  ],
+  "falsos_positivos": [
+    "Migración planificada entre productos EDR/AV que pone Defender en modo pasivo.",
+    "Actualización de motor, políticas de seguridad o GPO documentada.",
+    "Prueba aprobada de seguridad que genera tamper protegido, sin cambio efectivo.",
+    "Sensor offline o retraso de ingesta que simula ausencia de controles.",
+    "Operador legítimo cambió exclusión o parámetros conforme a procedimiento."
+  ],
+  "errores": [
+    "Interpretar TamperingAttempt como deshabilitación exitosa de Defender.",
+    "Confundir 5007 (cambio) con 5001 (RTP desactivada).",
+    "Declarar comprometidos todos los dispositivos sin validar modo AV y agente alternativo.",
+    "Asumir que cada ActionType arbitrario está documentado y disponible.",
+    "Bloquear en masa equipos de producción sin coordinar contención.",
+    "No comprobar que la política corregida se aplique realmente ni salud del sensor."
+  ],
+  "perspectiva_red_team": "La defensa evadida puede buscar disminuir detección antes de ejecutar otras etapas. El actor necesita privilegios o vías de cambio; un intento puede ser bloqueado por Tamper Protection. El defensor debe buscar secuencia de privilegios, proceso, política y efecto sobre cobertura, no solo eventos individuales. La mejor detección une estado real, cambios, contexto operativo y otros comportamientos de intrusión.",
+  "respuesta_entrevista": "Partiría de DeviceEvents y el ActionType oficial TamperingAttempt para identificar máquinas y horas. En paralelo consultaría 5001, 5004 y 5007 donde estén ingestados y comprobaría el estado efectivo con el inventario de Defender y Get-MpComputerStatus. Correlacionaría procesos, cuentas y despliegues Intune/GPO. Diferenciaría intento bloqueado, modo pasivo legítimo y desactivación real. Si existe protección degradada más señales maliciosas, elevaría IR, contendría bajo playbook y verificaría restauración de cobertura.",
+  "criterios_evaluacion": [
+    "Usa DeviceEvents con ActionType=TamperingAttempt real.",
+    "Diferencia intento de desactivación efectiva.",
+    "Conoce eventos 5001/5004/5007 y sus límites.",
+    "Distingue Defender XDR vs Sentinel en KQL.",
+    "Correlaciona usuario/proceso/ticket de cambio.",
+    "Valida salud y modo AV tras contención."
+  ],
+  "mitre": [
+    "T1562.001 — Impair Defenses: Disable or Modify Tools (hipótesis)"
+  ],
+  "fuentes": [
+    "https://learn.microsoft.com/en-us/defender-endpoint/prevent-changes-to-security-settings-with-tamper-protection",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-deviceevents-table",
+    "https://learn.microsoft.com/en-us/defender-endpoint/troubleshoot-microsoft-defender-antivirus",
+    "https://learn.microsoft.com/en-us/powershell/module/defender/get-mpcomputerstatus",
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/windowsevent",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-deviceregistryevents-table",
+    "https://csrc.nist.gov/pubs/sp/800/61/r3/final"
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-29-L01",
+  "title": "Audit: reglas, semántica y pérdida de eventos",
+  "sourceHash": "73583e867a58f0d2db25d7f5052343cc11e870a22a10d3444fbf1247e90b7678",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-29-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nLeer reglas y eventos de Linux Audit, interpretar identidades y resultados sin sobreafirmar, y reconocer las condiciones en que se pierden eventos.\n\nPrerrequisitos: `LNX-28-L03` (journal: canary, campos y retención).\n\n## 2. Comprende el mecanismo\n\nLinux Audit no graba todo lo que ocurre. Graba lo que las **reglas cargadas** hacen coincidir con un hook del kernel, más algunos eventos que el sistema emite por su cuenta. Esa diferencia es la clave: una regla cargada no es una garantía de evento, y una ausencia de evento no es prueba de que la acción no ocurrió.\n\nLas **reglas** viven en el kernel y se administran con `auditctl`; la configuración persistente suele estar en `/etc/audit/rules.d/` y se compila con `augenrules`. Hay reglas de control (`-b` backlog, `-f` fallo, `-e` inmutabilidad), de vigilancia de ficheros (`-w` ruta `-p` permisos `-k` clave) y de syscalls. `auditctl -l` muestra lo cargado; `auditctl -s` muestra estado, backlog y contadores de pérdida.\n\nUn **evento** se compone de varios registros con el mismo `msg=audit(EPOCH:SERIAL)`: `SYSCALL`, `EXECVE`, `CWD`, `PATH`, `PROCTITLE`, `USER_AUTH`, etc. Correlacionar por ese par —y por host y booteo— reconstruye la operación. Leer un solo registro y llamarlo «el evento» es el error más común: el `SYSCALL` sin `PATH` no dice qué archivo, y el `EXECVE` sin `SYSCALL` no dice con qué identidad.\n\nLa **semántica de identidades** exige precisión. `uid` es la identidad real, `euid` la efectiva, `auid` la identidad de login que puede persistir tras elevar privilegios. Un `auid` con el valor máximo sin firmar suele indicar «no establecido», no un usuario inexistente. `success=yes` indica que la operación auditada tuvo éxito; no indica que fuera legítima. Un `exit` negativo corresponde a un error del sistema, y su significado depende de la syscall y la arquitectura.\n\nLa **pérdida de eventos** tiene causas concretas: backlog insuficiente, ráfagas que superan la capacidad, disco lleno, rate limit del propio audit o reglas demasiado amplias. Los contadores de `auditctl -s` (`lost`, `backlog`, `backlog_limit`) son la señal. Un `lost` mayor que cero obliga a declarar una brecha de visibilidad; no autoriza a imputar los eventos ausentes a un actor.\n\nLa **inmutabilidad** (`-e 2`) impide cambiar reglas hasta reiniciar. Es una protección útil en producción y una trampa en laboratorio si se activa sin plan de recuperación. Del mismo modo, `auditctl -D` elimina todas las reglas y no es una limpieza aceptable: borra la configuración que se quería estudiar.\n\nLa regla de la lección: regla, evento completo e identidad antes de concluir. El límite: audit describe operaciones que coincidieron con filtros; no reconstruye intención, no cubre lo que quedó fuera de las reglas y no sustituye la correlación con otras fuentes.\n\n### Vocabulario de apoyo\n\n- **Regla de audit**: filtro cargado en el kernel que decide qué operaciones se registran.\n- **`auditctl -l`**: lista las reglas efectivamente cargadas.\n- **`auditctl -s`**: muestra estado, backlog y contadores de pérdida.\n- **`auid`**: identidad de login, que puede persistir tras elevar privilegios.\n- **Serial de evento**: par época:serial que agrupa los registros de una misma operación.\n- **`lost`**: contador de eventos que no se pudieron registrar.\n- **`-e 2`**: modo que inmoviliza las reglas hasta el siguiente reinicio.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-29-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un analista busca actividad sobre un archivo de configuración de laboratorio y no encuentra eventos. Concluye que nadie lo tocó. En la misma sesión, `auditctl -s` muestra `lost` mayor que cero y `backlog` cerca del límite. La regla de vigilancia existía, pero se había cargado después del arranque y el archivo se modificó en los primeros minutos.\n\nLa conclusión invierte la carga de la prueba. La ausencia de eventos no demuestra ausencia de acción: puede haber coincidido con la ventana sin regla, con una ráfaga que desbordó el backlog o con un disco que no admitió más escritura. Los contadores de pérdida son parte de la evidencia y deben citarse junto con la consulta.\n\nLa lectura correcta reconstruye: cuándo se cargó la regla, qué permisos vigilaba, qué `lost` había en la ventana y qué otras fuentes cubren ese archivo (journal, cambios de paquete, copia de configuración). Solo entonces se puede decir «no se registró», que es distinto de «no ocurrió». El límite: incluso con la regla activa y sin pérdidas, audit muestra la operación que coincide con el filtro; no muestra la intención ni lo que pasó dentro de un script.\n\n"
+    },
+    {
+      "id": "LNX-29-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Citar `lost` y backlog junto a cualquier conclusión basada en ausencia de eventos.\n- Red Team autorizado: Verificar en VM propia que la regla dispara y qué registros produce antes de describir cobertura.\n- Evidencia de la etapa: Reglas cargadas, ventana de carga, contadores de pérdida y registros correlacionados por serial.\n- Criterio de dominio: Distingue «no registrado» de «no ocurrido» y no interpreta `success=yes` como legitimidad.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB36](../../05_RECURSOS/LABORATORIOS/LNX-LAB36.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F116**: [auditd(8)](https://man7.org/linux/man-pages/man8/auditd.8.html). Servicio de auditoría y su relación con el kernel.\n- **F117**: [auditctl(8)](https://man7.org/linux/man-pages/man8/auditctl.8.html). Carga de reglas, estado y contadores.\n- **F118**: [ausearch(8)](https://man7.org/linux/man-pages/man8/ausearch.8.html). Búsqueda y correlación de eventos por clave, mensaje y tiempo.\n- **F119**: [RHEL 9: auditing the system](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/security_hardening/auditing-the-system_security-hardening). Configuración persistente y buenas prácticas.\n- **F138**: [audit.rules(7)](https://man7.org/linux/man-pages/man7/audit.rules.7.html). Sintaxis y semántica de las reglas.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-29-L01-P01",
+    "prompt": "Un analista no encuentra eventos sobre un archivo de laboratorio y concluye que nadie lo tocó; `auditctl -s` muestra `lost` mayor que cero y la regla se cargó después del arranque. Explica cómo interpretarías la ausencia, qué comprobarías y cuál es el límite de tu conclusión.",
+    "markdown": "## 4. Práctica individual\n\nUn analista no encuentra eventos sobre un archivo de laboratorio y concluye que nadie lo tocó; `auditctl -s` muestra `lost` mayor que cero y la regla se cargó después del arranque. Explica cómo interpretarías la ausencia, qué comprobarías y cuál es el límite de tu conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber cargado reglas de audit ni haber investigado un host real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-29-L01-Q01",
+      "prompt": "¿Qué significa encontrar `lost` mayor que cero en `auditctl -s`?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que las reglas están mal escritas y no coinciden con nada"
+        },
+        {
+          "id": "B",
+          "text": "Que se perdieron eventos y existe una brecha de visibilidad que debe declararse"
+        },
+        {
+          "id": "C",
+          "text": "Que el kernel está en modo inmutable"
+        },
+        {
+          "id": "D",
+          "text": "Que el archivo vigilado fue borrado"
+        }
+      ]
+    },
+    {
+      "id": "LNX-29-L01-Q02",
+      "prompt": "En un evento de audit, ¿qué describe `auid`?",
+      "options": [
+        {
+          "id": "A",
+          "text": "La identidad de login, que puede persistir tras elevar privilegios"
+        },
+        {
+          "id": "B",
+          "text": "El identificador del proceso que ejecutó la syscall"
+        },
+        {
+          "id": "C",
+          "text": "El número de serie del evento"
+        },
+        {
+          "id": "D",
+          "text": "El código de error de la operación"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB36](../../05_RECURSOS/LABORATORIOS/LNX-LAB36.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F116**: [auditd(8)](https://man7.org/linux/man-pages/man8/auditd.8.html). Servicio de auditoría y su relación con el kernel.\n- **F117**: [auditctl(8)](https://man7.org/linux/man-pages/man8/auditctl.8.html). Carga de reglas, estado y contadores.\n- **F118**: [ausearch(8)](https://man7.org/linux/man-pages/man8/ausearch.8.html). Búsqueda y correlación de eventos por clave, mensaje y tiempo.\n- **F119**: [RHEL 9: auditing the system](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/security_hardening/auditing-the-system_security-hardening). Configuración persistente y buenas prácticas.\n- **F138**: [audit.rules(7)](https://man7.org/linux/man-pages/man7/audit.rules.7.html). Sintaxis y semántica de las reglas.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "21d9960efd56cbccac88ee28"
+}

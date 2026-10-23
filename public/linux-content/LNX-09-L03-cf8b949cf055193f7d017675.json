@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-09-L03",
+  "title": "Precedencia y `daemon-reload`",
+  "sourceHash": "137ceb560af52e19b35367fce9122e68d2811853d9b53265f87e61cf2cccac09",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-09-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nEntender la precedencia entre fragmentos y la diferencia entre definición en disco y definición cargada, con el papel de daemon-reload.\n\nPrerrequisitos: `LNX-09-L02` (Investigar la procedencia).\n\n## 2. Comprende el mecanismo\n\nCuando varias fuentes definen una unidad, systemd necesita una regla para resolverlas: la **precedencia**. El resultado no es una suma desordenada de archivos, sino una composición con un orden definido. Los fragmentos de mayor precedencia **sobrescriben directiva por directiva**, no reemplazan el archivo completo.\n\nEsto explica por qué dos archivos pueden parecer redundantes y no serlo: uno aporta directivas que el otro no define. Un drop-in, por ejemplo, sobrescribe solo las líneas que incluye y deja intactas las demás. La **composición efectiva** es lo que el gestor realmente usa.\n\nExiste además una distinción temporal decisiva: la **definición en disco** y la **definición cargada** por el gestor. Editar un archivo no cambia de inmediato lo que PID 1 tiene cargado. Hasta que se recargue, ambas pueden divergir. Los gestores suelen exponer una señal de esta desincronización, útil para detectarla sin adivinar.\n\nLa operación que reconcilia esa diferencia es **`daemon-reload`**: hace que PID 1 vuelva a leer unidades y generadores. Es importante no confundirla con reiniciar: recargar **carga definiciones**, no reinicia los servicios en marcha. Cargar la definición y hacer que el proceso la use siguen siendo dos pasos.\n\nLos generadores y las unidades transitorias añaden matices: parte de la composición puede generarse en tiempo de ejecución, no existir como archivo escrito a mano y cambiar tras una recarga. Por eso, tras un `daemon-reload`, la composición efectiva puede ser distinta a la del listado anterior.\n\nEn resumen: primero entiende la **precedencia**, después detecta si hay **desincronización** entre disco y gestor, y solo entonces decide si hace falta recargar. Y recuerda que recargar no es reiniciar.\n\n### Vocabulario de apoyo\n\n- **Precedencia**: regla que resuelve qué fragmento gana al definir una directiva.\n- **Composición efectiva**: resultado final de fusionar fragmentos según precedencia.\n- **Definición en disco**: lo que dicen los archivos en este momento.\n- **Definición cargada**: lo que el gestor tiene cargado y aplica.\n- **Desincronización**: diferencia entre disco y gestor hasta una recarga.\n- **`daemon-reload`**: recarga de unidades y generadores; no reinicia servicios.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-09-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un analista crea un drop-in, reinicia la unidad y observa que la directiva nueva no surte efecto. Concluye que «el drop-in está mal escrito».\n\nLa conclusión puede ser falsa. El orden lógico es: el drop-in debe ser **sintácticamente válido**, el gestor debe haber **recargado** para cargar la composición nueva, y solo entonces el reinicio de la unidad hará que el proceso adopte esa definición. Si se reinicia la unidad antes de recargar, el proceso puede partir de la definición anterior.\n\nLa comprobación correcta verifica la **desincronización** entre disco y gestor y consulta la composición efectiva antes de culpar al archivo. El límite: la precedencia puede hacer que otro fragmento sobrescriba la directiva, de modo que el valor efectivo no sea el que esperabas aunque el archivo esté bien escrito.\n\n"
+    },
+    {
+      "id": "LNX-09-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Comprobar la composición efectiva y la desincronización antes de atribuir un comportamiento a un archivo concreto.\n- Red Team autorizado: Separar «cargar la definición» de «aplicarla», para no romper disponibilidad sin ventana.\n- Evidencia de la etapa: Composición efectiva de la unidad y estado de sincronización disco/gestor.\n- Criterio de dominio: Explica precedencia, desincronización y recarga como pasos distintos.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB08](../../05_RECURSOS/LABORATORIOS/LNX-LAB08.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F22**: [systemd: systemd.unit](https://www.freedesktop.org/software/systemd/man/257/systemd.unit.html). Reglas de precedencia y composición de la definición efectiva.\n- **F36**: [systemd: generators](https://www.freedesktop.org/software/systemd/man/257/systemd.generator.html). Unidades que se regeneran durante una recarga del gestor.\n- **F39**: [systemd: transient units](https://www.freedesktop.org/software/systemd/man/257/systemd-run.html). Unidades al vuelo cuya composición puede cambiar tras recargar.\n- **F21**: [systemd: systemctl](https://www.freedesktop.org/software/systemd/man/257/systemctl.html). Consulta de propiedades y de la necesidad de recargar el gestor.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-09-L03-P01",
+    "prompt": "Creas un drop-in, reinicias la unidad y la directiva nueva no se aplica. Explica el orden correcto entre recargar el gestor y reiniciar la unidad, cómo detectarías una desincronización entre disco y gestor y por qué la precedencia podría explicar el resultado.",
+    "markdown": "## 4. Práctica individual\n\nCreas un drop-in, reinicias la unidad y la directiva nueva no se aplica. Explica el orden correcto entre recargar el gestor y reiniciar la unidad, cómo detectarías una desincronización entre disco y gestor y por qué la precedencia podría explicar el resultado.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber recargado un gestor real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-09-L03-Q01",
+      "prompt": "Modificaste un archivo de unidad y aún no recargaste el gestor. ¿Qué describe mejor el estado?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El archivo en disco y la definición cargada pueden diferir hasta un `daemon-reload`"
+        },
+        {
+          "id": "B",
+          "text": "El gestor aplica los cambios de inmediato sin ninguna acción adicional"
+        },
+        {
+          "id": "C",
+          "text": "El archivo en disco se ignora hasta el próximo reinicio del equipo"
+        },
+        {
+          "id": "D",
+          "text": "Es imposible que exista discrepancia entre disco y gestor"
+        }
+      ]
+    },
+    {
+      "id": "LNX-09-L03-Q02",
+      "prompt": "¿Qué indica una señal de recarga pendiente en la consulta de una unidad?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que el servicio debe reiniciarse obligatoriamente ahora"
+        },
+        {
+          "id": "B",
+          "text": "Que la definición en disco cambió respecto a la cargada y requiere `daemon-reload`"
+        },
+        {
+          "id": "C",
+          "text": "Que la unidad está enmascarada"
+        },
+        {
+          "id": "D",
+          "text": "Que el servicio no está habilitado para el arranque"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB08](../../05_RECURSOS/LABORATORIOS/LNX-LAB08.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F22**: [systemd: systemd.unit](https://www.freedesktop.org/software/systemd/man/257/systemd.unit.html). Reglas de precedencia y composición de la definición efectiva.\n- **F36**: [systemd: generators](https://www.freedesktop.org/software/systemd/man/257/systemd.generator.html). Unidades que se regeneran durante una recarga del gestor.\n- **F39**: [systemd: transient units](https://www.freedesktop.org/software/systemd/man/257/systemd-run.html). Unidades al vuelo cuya composición puede cambiar tras recargar.\n- **F21**: [systemd: systemctl](https://www.freedesktop.org/software/systemd/man/257/systemctl.html). Consulta de propiedades y de la necesidad de recargar el gestor.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "cf8b949cf055193f7d017675"
+}

@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-27-L03",
+  "sourceHash": "db7d274240f5bb9835d697eb3e732ff7cd7f04146cd634cc30e750c830b244d2",
+  "questions": [
+    {
+      "id": "LNX-27-L03-Q01",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Hay tareas bloqueadas esperando un recurso, probablemente IO; la carga no mide saturación de CPU».\n\n`loadavg` suma tareas ejecutables y en espera no interrumpible, así que puede subir con la CPU libre. La explicación correcta es espera de recurso; no corrupción del contador, minería ni swap permanente."
+    },
+    {
+      "id": "LNX-27-L03-Q02",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Que el kernel terminó un proceso dentro de ese cgroup al alcanzar su límite de memoria».\n\n`memory.events` es local al cgroup: cuenta eventos de ese grupo, no del host completo. Un `oom_kill` no describe un fallo de permisos ni un reinicio de systemd."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "El diagnóstico empieza por fijar la ventana en UTC, la unidad y el cgroup del servicio. Después se leen los tres ficheros de PSI: si `io` muestra `full` alto y `cpu` está bajo, el recurso que espera es el almacenamiento, no el procesador. La carga media de 14 con cuatro núcleos y CPU al 22 % es coherente con tareas bloqueadas, no con saturación de CPU. A continuación se revisan los límites efectivos (`memory.max`, `io.max`) y los contadores `memory.events`, que explican un `oom_kill` dentro del cgroup aunque el host tuviera memoria disponible.\n\nEl paso siguiente es correlacionar procesos en estado no interrumpible, trabajos programados y cambios de esa noche. El OOM explica la caída del servicio; no explica por sí solo qué llenó la memoria del cgroup. La causa puede ser un trabajo de copia, una actualización o un proceso ajeno escribiendo.\n\nLímite: PSI y los contadores describen espera y consumo. No identifican autoría ni distinguen por sí solos una avería de una acción maliciosa; para eso hace falta el árbol de procesos, la identidad y la cronología de cambios.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Ordena la medición por recurso en espera, no por el recurso más visible."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Distingue `loadavg` de saturación de CPU y `free` de memoria disponible."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Relaciona el `oom_kill` con el límite del cgroup y no solo con la memoria del host."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Declara que las métricas no atribuyen autoría y que la reproducción sería acotada."
+      }
+    ]
+  },
+  "revision": "bc419c005492457f14057007"
+}

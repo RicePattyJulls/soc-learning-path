@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-12-L03",
+  "title": "Triaje en cuatro preguntas",
+  "sourceHash": "73e4431d59364ffd69e4a43a2e3f25f7deae2ede5a286f848f8e04c73c319786",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-12-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nAplicar un triaje ordenado de cuatro preguntas ante un fallo de almacenamiento y preservar evidencia antes de reparar.\n\nPrerrequisitos: `LNX-12-L02` (Comandos iniciales sin mutación).\n\n## 2. Comprende el mecanismo\n\nAnte un fallo de almacenamiento, la tentación es arreglar de inmediato. El triaje propone el orden contrario: entender, acotar y preservar antes de tocar. Cuatro preguntas guían ese proceso.\n\nLa primera pregunta es qué sistema de archivos ve el proceso afectado. No basta con mirar la ruta desde la sesión del analista: hay que identificar el proceso, su namespace de montaje y la ruta real. La misma ruta puede resolver a orígenes distintos según el contexto.\n\nLa segunda pregunta es qué falla. Los códigos no son equivalentes: `ENOSPC` apunta a falta de espacio o de inodos, `EDQUOT` a cuota agotada, `EROFS` a un sistema de archivos en solo lectura, `EIO` a error de entrada/salida y `ESTALE` a un identificador remoto obsoleto. La latencia alta es otro síntoma distinto. Agruparlos bajo «el disco falla» pierde la pista que discrimina.\n\nLa tercera pregunta es cuál es la capa responsable. El problema puede estar en el dispositivo, en un mapeador, en el sistema de archivos, en permisos, en la aplicación, en el hipervisor o en la red. Asignar la capa correcta decide qué comprobación tiene sentido y qué procedimiento de reparación sería apropiado.\n\nLa cuarta pregunta es qué evidencia se necesita antes de arreglar: estado y hora, copias o snapshots independientes, registros disponibles, historial de cambios y alertas. Preservar primero evita que la propia reparación borre la causa.\n\nEl límite del triaje es que ordena la investigación, no la sustituye. Sin identificar observador, síntoma y capa, cualquier acción es una apuesta.\n\n### Vocabulario de apoyo\n\n- **Triaje**: clasificación ordenada de un fallo antes de intervenir.\n- **Namespace de montaje**: vista de montajes del proceso afectado, que puede diferir de la del analista.\n- **`ENOSPC`**: error de falta de espacio, que puede ser de bloques o de inodos.\n- **`EDQUOT`**: error de cuota de disco agotada, distinto de la falta de espacio.\n- **`EROFS`**: error por sistema de archivos montado o degradado a solo lectura.\n- **Preservación de evidencia**: registrar estado y datos antes de cualquier cambio.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-12-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un servicio falla con `ENOSPC`. El analista borra ficheros temporales para «liberar espacio», el fallo persiste y concluye que el disco está dañado.\n\nLa conclusión no se sostiene. `ENOSPC` puede deberse al agotamiento de bloques, pero también al de inodos, a una cuota o a un pool saturado; borrar ficheros temporales solo ayuda en el primer caso. Además, borrar antes de preservar elimina evidencia útil y puede destruir datos válidos.\n\nEl triaje correcto habría identificado primero qué sistema de archivos ve el proceso, luego el síntoma exacto, después la capa responsable y, por último, qué evidencia recoger antes de actuar. El límite: sin resolver esas preguntas, la reparación es una suposición, y su fracaso no demuestra que el disco esté dañado.\n\n"
+    },
+    {
+      "id": "LNX-12-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Registrar observador, síntoma y capa antes de etiquetar un fallo como avería o sabotaje.\n- Red Team autorizado: Preservar la evidencia del estado previo antes de demostrar cualquier impacto.\n- Evidencia de la etapa: Respuesta razonada a las cuatro preguntas con hora, ruta y contexto de namespace.\n- Criterio de dominio: Ordena el triaje y preserva evidencia antes de proponer una reparación.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB13](../../05_RECURSOS/LABORATORIOS/LNX-LAB13.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F42**: [util-linux findmnt(8)](https://man7.org/linux/man-pages/man8/findmnt.8.html). Qué sistema de archivos ve una ruta y con qué origen.\n- **F44**: [util-linux mount(8)](https://man7.org/linux/man-pages/man8/mount.8.html). Estados de montaje, opciones y modo de solo lectura.\n- **F62**: [NIST SP 800-86, Guide to Integrating Forensic Techniques into Incident Response (2006)](https://csrc.nist.gov/pubs/sp/800/86/final). Identificación, adquisición y preservación antes del análisis.\n- **F63**: [MITRE ATT&CK, T1490 Inhibit System Recovery](https://attack.mitre.org/techniques/T1490/). Supresión de la capacidad de recuperación como hipótesis, no como conclusión por un síntoma.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-12-L03-P01",
+    "prompt": "Ante un servicio que falla con `ENOSPC`, borras ficheros temporales, el fallo persiste y concluyes que el disco está dañado. Explica cómo aplicarías el triaje de cuatro preguntas, qué evidencia preservarías y cuál es el límite de tu conclusión.",
+    "markdown": "## 4. Práctica individual\n\nAnte un servicio que falla con `ENOSPC`, borras ficheros temporales, el fallo persiste y concluyes que el disco está dañado. Explica cómo aplicarías el triaje de cuatro preguntas, qué evidencia preservarías y cuál es el límite de tu conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber reparado ni intervenido sobre almacenamiento real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-12-L03-Q01",
+      "prompt": "Antes de «arreglar» un fallo de almacenamiento, ¿qué busca el triaje en cuatro preguntas?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Reinstalar el sistema de archivos para descartar corrupción"
+        },
+        {
+          "id": "B",
+          "text": "Sustituir de inmediato el dispositivo sospechoso"
+        },
+        {
+          "id": "C",
+          "text": "Identificar qué falla, en qué capa y desde qué contexto, y preservar evidencia antes de mutar"
+        },
+        {
+          "id": "D",
+          "text": "Borrar los datos temporales para recuperar espacio cuanto antes"
+        }
+      ]
+    },
+    {
+      "id": "LNX-12-L03-Q02",
+      "prompt": "¿Cuál de estos fallos NO es equivalente a un agotamiento de bloques?",
+      "options": [
+        {
+          "id": "A",
+          "text": "`EROFS`, que indica un sistema de archivos en solo lectura"
+        },
+        {
+          "id": "B",
+          "text": "`EDQUOT`, que indica una cuota de disco agotada y exige otra comprobación"
+        },
+        {
+          "id": "C",
+          "text": "`ENOSPC` por falta de bloques libres disponibles"
+        },
+        {
+          "id": "D",
+          "text": "`ENOSPC` reportado por un volumen que conserva espacio libre"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB13](../../05_RECURSOS/LABORATORIOS/LNX-LAB13.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F42**: [util-linux findmnt(8)](https://man7.org/linux/man-pages/man8/findmnt.8.html). Qué sistema de archivos ve una ruta y con qué origen.\n- **F44**: [util-linux mount(8)](https://man7.org/linux/man-pages/man8/mount.8.html). Estados de montaje, opciones y modo de solo lectura.\n- **F62**: [NIST SP 800-86, Guide to Integrating Forensic Techniques into Incident Response (2006)](https://csrc.nist.gov/pubs/sp/800/86/final). Identificación, adquisición y preservación antes del análisis.\n- **F63**: [MITRE ATT&CK, T1490 Inhibit System Recovery](https://attack.mitre.org/techniques/T1490/). Supresión de la capacidad de recuperación como hipótesis, no como conclusión por un síntoma.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "b843d3ae40b650cab5c5cc43"
+}

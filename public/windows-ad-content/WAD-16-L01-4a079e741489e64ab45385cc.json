@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-16-L01",
+  "title": "CA, EKU y ciclo de certificados",
+  "sourceHash": "27dc2c467c10ccc2cc274016999022885ec843960ab82b578f7f2e8b0e4201b9",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-16-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nExplicar el papel de una entidad de certificación, las extensiones de uso y el ciclo de vida de un certificado.\n\nPrerrequisitos: `WAD-11-L03` (servicios y gMSA) y `WAD-15-L03` (Windows LAPS/DSRM y custodia).\n\n## 2. Comprende el mecanismo\n\nUna **entidad de certificación (CA)** es el componente que emite y firma certificados dentro de una **PKI (infraestructura de clave pública)**. Un **certificado** es un documento firmado que asocia una identidad con una clave pública. La CA pone su firma y, con ella, declara que el vínculo entre esa identidad y esa clave pasó por sus reglas.\n\nLa confianza no aparece de la nada: se construye como una **cadena**. Una **CA raíz**, normalmente protegida y fuera de línea, firma a una **CA emisora**; esta firma los certificados de los equipos y servicios. Quien valida confía en la raíz y sigue la cadena hasta el certificado concreto. Si un eslabón no se puede comprobar, la confianza se rompe en ese punto.\n\nUn certificado no sirve para cualquier cosa. Las **extensiones** acotan su uso: el **EKU (uso extendido de clave)** indica los propósitos para los que fue emitido —por ejemplo, autenticación de servidor o de cliente—, y el uso de clave señala las operaciones criptográficas permitidas. Un certificado emitido para un propósito y presentado para otro es una señal que conviene investigar, no un detalle.\n\nTodo certificado recorre un **ciclo de vida**: solicitud, inscripción, emisión, uso, renovación y, al final, expiración o **revocación**. La revocación marca un certificado como no válido antes de su fecha de caducidad, y por eso su publicación también importa.\n\nDe ahí la regla que sostiene esta etapa: un certificado **emitido** no es un certificado **confiable en todo contexto**. La CA afirma lo que afirma, dentro de sus reglas; el resto lo decide quien valida, mirando la cadena, el propósito y el estado de revocación.\n\n### Vocabulario de apoyo\n\n- **CA (entidad de certificación)**: componente que emite y firma certificados y actúa como raíz de confianza.\n- **PKI (infraestructura de clave pública)**: conjunto de CA, políticas y servicios que emiten y validan certificados.\n- **Certificado**: documento firmado que asocia una identidad con una clave pública.\n- **Cadena de confianza**: secuencia de firmas desde un certificado hasta una CA raíz de confianza.\n- **EKU (uso extendido de clave)**: extensión que indica los propósitos para los que el certificado fue emitido.\n- **Ciclo de vida del certificado**: recorrido de solicitud, emisión, uso, renovación y revocación o expiración.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-16-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test`, un certificado emitido por `CA-Lab` con la plantilla `Tpl-Web-Lab` se presenta para autenticar un servicio, pero su EKU está restringido a otro propósito y, además, aparece marcado como revocado en el registro de la CA.\n\nEl certificado no debería aceptarse, y hay dos motivos que se suman: su **EKU** no cubre el uso con el que se presenta, y su estado es **revocado**, así que dejó de ser válido antes de caducar aunque su fecha siga vigente. La evidencia útil es la cadena que lleva de la raíz a este certificado, la extensión de uso que declara y la marca de revocación publicada por `CA-Lab`. La conclusión acota lo observable —«este certificado no es válido para este uso en este momento»— y reconoce un límite: con estos datos no se puede afirmar por qué se revocó ni si otros certificados de la misma plantilla comparten el mismo estado sin revisar cada caso.\n\n"
+    },
+    {
+      "id": "WAD-16-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Reconocer cadena, EKU y estado de revocación evita dar por bueno un certificado que no lo es.\n- Red Team autorizado: Entender el ciclo de vida de un certificado permite describir qué confianza concede una CA en el laboratorio.\n- Evidencia de la etapa: Ficha por certificado con su cadena, su EKU y su estado.\n- Criterio de dominio: La confianza se sostiene solo para el propósito y el momento verificados.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB10](../../05_RECURSOS/LABORATORIOS/WAD-LAB10.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **ADCSOVER**: [Active Directory Certificate Services overview](https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/active-directory-certificate-services-overview). Qué es AD CS y qué papel cumple la CA.\n- **CERTTRUST**: [Certificate trust](https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/certificate-trust). Cómo se construye y se valida la cadena de confianza.\n- **SECURECA**: [Secure, delegate, and audit the certification authority](https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/secure-delegate-audit-certification-authority). Protección, delegación y auditoría de la CA.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-16-L01-P01",
+    "prompt": "En `ad.lab.test`, la CA `CA-Lab` emitió un certificado con la plantilla `Tpl-Web-Lab` y una extensión EKU concreta. Describe cómo comprobarías la cadena de confianza, para qué uso es válido el certificado y en qué punto de su ciclo de vida se encuentra, antes de concluir si es confiable.",
+    "markdown": "## 4. Práctica individual\n\nEn `ad.lab.test`, la CA `CA-Lab` emitió un certificado con la plantilla `Tpl-Web-Lab` y una extensión EKU concreta. Describe cómo comprobarías la cadena de confianza, para qué uso es válido el certificado y en qué punto de su ciclo de vida se encuentra, antes de concluir si es confiable.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber emitido ni validado un certificado en una PKI real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-16-L01-Q01",
+      "prompt": "¿Qué papel cumple la entidad de certificación (CA) de laboratorio dentro de una PKI?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Guardar las contraseñas de las cuentas del dominio en un formato recuperable"
+        },
+        {
+          "id": "B",
+          "text": "Emitir y firmar certificados, actuando como raíz de confianza de la cadena"
+        },
+        {
+          "id": "C",
+          "text": "Descifrar el tráfico de red de todos los equipos del dominio"
+        },
+        {
+          "id": "D",
+          "text": "Sustituir al controlador de dominio en la autenticación Kerberos"
+        }
+      ]
+    },
+    {
+      "id": "WAD-16-L01-Q02",
+      "prompt": "Un certificado de laboratorio muestra una extensión EKU restringida a un uso concreto. ¿Qué indica esa extensión?",
+      "options": [
+        {
+          "id": "A",
+          "text": "La fecha exacta en que el certificado se revocó"
+        },
+        {
+          "id": "B",
+          "text": "La clave privada del solicitante en texto legible"
+        },
+        {
+          "id": "C",
+          "text": "Que el certificado sirve para cualquier uso, sin restricción"
+        },
+        {
+          "id": "D",
+          "text": "El propósito para el que el certificado fue emitido y puede usarse legítimamente"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB10](../../05_RECURSOS/LABORATORIOS/WAD-LAB10.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **ADCSOVER**: [Active Directory Certificate Services overview](https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/active-directory-certificate-services-overview). Qué es AD CS y qué papel cumple la CA.\n- **CERTTRUST**: [Certificate trust](https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/certificate-trust). Cómo se construye y se valida la cadena de confianza.\n- **SECURECA**: [Secure, delegate, and audit the certification authority](https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/secure-delegate-audit-certification-authority). Protección, delegación y auditoría de la CA.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "4a079e741489e64ab45385cc"
+}

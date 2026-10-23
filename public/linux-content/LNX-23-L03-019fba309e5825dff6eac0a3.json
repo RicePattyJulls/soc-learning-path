@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-23-L03",
+  "title": "Casos: SSH, DNS y firewall",
+  "sourceHash": "0a72f4db9f1b916d3b89f0813315034aac363673c15423e009e02c4355d819c2",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-23-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nResolver casos integrados de SSH, DNS y firewall con un orden de verificación, correlación de fuentes y retest defensivo.\n\nPrerrequisitos: `LNX-23-L02` (DNS vs rutas vs TLS/IPv6).\n\n## 2. Comprende el mecanismo\n\nLos incidentes reales no llegan etiquetados por tema: mezclan acceso, resolución y política. Por eso conviene tener un **orden de verificación** para cada síntoma, y cerrar con **correlación** y **retest**.\n\nAnte «no puedo conectarme por SSH», el orden sigue el flujo. Se confirma **ruta y origen desde el cliente**, se comprueba el **listener** en el servidor (con `ss` y la unidad del servicio), se revisan las **reglas de host, zonas y NAT** en orden lógico, y se examinan los **registros de autenticación**. Una denegación TCP **no** es un fallo de contraseña: son capas distintas y conviene no mezclarlas.\n\nAnte «el DNS responde pero la aplicación no», ya se vio un orden propio: comparar rutas de resolución, identificar la dirección elegida, consultar `ip route get`, observar el handshake TCP y solo después revisar TLS o certificado. El firewall aparece aquí como una **hipótesis competidora** entre las demás, no como la respuesta automática.\n\nAnte «las conexiones salen aunque el firewall parece bloquearlas», conviene preguntar por todas las **familias, hooks, cadenas y gestores**, incluida la cadena de salida; por namespaces, proxy, VPN o *offload*; por si la regla se aplica a **entrada** cuando el flujo es **saliente**; y por si los **contadores** cambian durante una prueba controlada.\n\nLa correlación integra las fuentes. Un mismo evento se contrasta con el socket y el proceso, el registro de SSH, la consulta DNS y la decisión de la política. Ninguna fuente demuestra por sí sola la causa; el valor está en el cruce y en declarar qué sostiene cada parte.\n\nEl cierre exige **retest defensivo**: probar casos positivos (lo permitido funciona) y negativos (lo denegado se bloquea), repetir la prueba tras el cambio y verificar que el efecto persiste. Un caso cerrado sin retest deja abierta la duda de si el cambio surtió efecto.\n\nLa regla es orden por capas, correlación y retest. El límite: un caso resuelto en un host de laboratorio no garantiza el mismo resultado en un entorno con otros gestores, NAT o cloud; hay que documentar las supuestos y las condiciones.\n\n### Vocabulario de apoyo\n\n- **Orden de verificación**: secuencia de comprobaciones por capas del flujo.\n- **Listener**: servicio que escucha en un puerto, visible con `ss`.\n- **Registro de autenticación**: evidencia de intentos y sesiones de SSH.\n- **Hipótesis competidora**: explicación alternativa que debe descartarse.\n- **Prueba negativa**: confirmar que lo denegado efectivamente se bloquea.\n- **Retest**: repetir la prueba tras el cambio para confirmar el efecto.\n- **Gestor de firewall**: componente que persiste la política (nft, UFW, firewalld).\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-23-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en un laboratorio se reportan tres síntomas a la vez: no conecta por SSH, el DNS responde pero la aplicación falla, y un flujo de egreso parece salir pese al firewall. Un analista empieza por añadir una regla de bloqueo, sin comprobar el listener ni el origen, y deja sin acceso al administrador legítimo.\n\nEl razonamiento omite el orden. Cambiar la política del firewall antes de saber si el problema era de listener, de ruta o de autenticación introduce un cambio que confunde el diagnóstico y puede cortar el acceso. Cada síntoma tiene su propia secuencia, y el firewall es una hipótesis entre otras, no la primera.\n\nLa lectura correcta recorre los pasos: escuchar y ruta antes que reglas; distinguir denegación TCP de fallo de autenticación; y, para el egreso, revisar familias, hooks, cadenas y gestores antes de concluir. El cierre exige correlacionar fuentes y hacer retest con casos positivos y negativos. El límite: el resultado de un host de laboratorio no se extrapola sin más a un entorno con NAT, cloud u otros gestores.\n\n"
+    },
+    {
+      "id": "LNX-23-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Aplicar un orden por capas y correlacionar fuentes antes de concluir.\n- Red Team autorizado: Reproducir los tres síntomas en laboratorio propio y verificar el retest.\n- Evidencia de la etapa: Orden seguido, fuentes correlacionadas, resultado de pruebas positivas y negativas.\n- Criterio de dominio: Separa los síntomas por capas, correlaciona y cierra con retest.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB30](../../05_RECURSOS/LABORATORIOS/LNX-LAB30.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F82**: [sshd_config(5) — OpenSSH/OpenBSD](https://man.openbsd.org/sshd_config.5). Política de acceso que condiciona la conexión SSH.\n- **F84**: [ssh(1) — OpenSSH/OpenBSD](https://man.openbsd.org/ssh.1). Diagnóstico del lado del cliente.\n- **F77**: [resolvectl — systemd](https://www.freedesktop.org/software/systemd/man/257/resolvectl.html). Comprobación de la resolución en el caso de DNS.\n- **F90**: [nft(8) — netfilter manual](https://netfilter.org/projects/nftables/manpage.html). Reglas, cadenas y contadores a revisar.\n- **F91**: [conntrack — Netfilter](https://conntrack-tools.netfilter.org/). Estado de los flujos para verificar la contención.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-23-L03-P01",
+    "prompt": "En un laboratorio se reportan tres síntomas a la vez: no conecta por SSH, el DNS responde pero la aplicación falla, y un flujo de egreso parece salir pese al firewall. Empiezas por añadir una regla de bloqueo, sin comprobar el listener ni el origen, y dejas sin acceso al administrador legítimo. Explica el orden de verificación que seguirías, cómo correlacionarías las fuentes y cuál es el límite de tu conclusión.",
+    "markdown": "## 4. Práctica individual\n\nEn un laboratorio se reportan tres síntomas a la vez: no conecta por SSH, el DNS responde pero la aplicación falla, y un flujo de egreso parece salir pese al firewall. Empiezas por añadir una regla de bloqueo, sin comprobar el listener ni el origen, y dejas sin acceso al administrador legítimo. Explica el orden de verificación que seguirías, cómo correlacionarías las fuentes y cuál es el límite de tu conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber operado un firewall ni haber resuelto un incidente real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-23-L03-Q01",
+      "prompt": "Ante «no puedo conectarme por SSH», ¿qué orden de verificación es correcto?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Empezar cambiando las reglas del firewall y probar después"
+        },
+        {
+          "id": "B",
+          "text": "Reiniciar el servicio SSH sin mirar nada más"
+        },
+        {
+          "id": "C",
+          "text": "Confirmar ruta y origen desde el cliente, comprobar el listener en el servidor, revisar reglas y NAT en orden de flujo, y examinar los registros de autenticación"
+        },
+        {
+          "id": "D",
+          "text": "Borrar `known_hosts` y `authorized_keys` del servidor"
+        }
+      ]
+    },
+    {
+      "id": "LNX-23-L03-Q02",
+      "prompt": "¿Cómo se cierra un caso de red con correlación y retest?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Declarando el incidente resuelto cuando baja un contador"
+        },
+        {
+          "id": "B",
+          "text": "Apagando IPv6 para simplificar"
+        },
+        {
+          "id": "C",
+          "text": "Borrando todos los `crontab` y cerrando el caso"
+        },
+        {
+          "id": "D",
+          "text": "Contrastando varias fuentes, probando casos positivos y negativos, y repitiendo la prueba tras el cambio para confirmar el efecto"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB30](../../05_RECURSOS/LABORATORIOS/LNX-LAB30.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F82**: [sshd_config(5) — OpenSSH/OpenBSD](https://man.openbsd.org/sshd_config.5). Política de acceso que condiciona la conexión SSH.\n- **F84**: [ssh(1) — OpenSSH/OpenBSD](https://man.openbsd.org/ssh.1). Diagnóstico del lado del cliente.\n- **F77**: [resolvectl — systemd](https://www.freedesktop.org/software/systemd/man/257/resolvectl.html). Comprobación de la resolución en el caso de DNS.\n- **F90**: [nft(8) — netfilter manual](https://netfilter.org/projects/nftables/manpage.html). Reglas, cadenas y contadores a revisar.\n- **F91**: [conntrack — Netfilter](https://conntrack-tools.netfilter.org/). Estado de los flujos para verificar la contención.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "019fba309e5825dff6eac0a3"
+}

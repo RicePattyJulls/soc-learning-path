@@ -1,0 +1,142 @@
+{
+  "schemaVersion": "redes-docente/v1",
+  "synthetic": true,
+  "acquisition": "authored_not_captured",
+  "title": "Empresa-Lab",
+  "businessRequirements": {
+    "employees": 120,
+    "guests": 60,
+    "servers": 20,
+    "recoveryTargetSeconds": 5,
+    "recoveryTargetMeasured": false,
+    "availableUserServicesBlock": "192.0.2.0/24"
+  },
+  "networks": [
+    {
+      "vlan": 10,
+      "role": "employees",
+      "ipv4": "192.0.2.0/25",
+      "gateway": "192.0.2.1",
+      "ipv6": "2001:db8:10::/64"
+    },
+    {
+      "vlan": 20,
+      "role": "guests",
+      "ipv4": "192.0.2.128/26",
+      "gateway": "192.0.2.129",
+      "ipv6": "2001:db8:20::/64"
+    },
+    {
+      "vlan": 30,
+      "role": "servers",
+      "ipv4": "192.0.2.192/27",
+      "gateway": "192.0.2.193",
+      "ipv6": "2001:db8:30::/64"
+    },
+    {
+      "vlan": 40,
+      "role": "management",
+      "ipv4": "192.0.2.224/27",
+      "gateway": "192.0.2.225",
+      "ipv6": "2001:db8:40::/64"
+    }
+  ],
+  "assets": [
+    {
+      "id": "GUEST-A",
+      "ip": "192.0.2.130"
+    },
+    {
+      "id": "EMPLOYEE-A",
+      "ip": "192.0.2.10"
+    },
+    {
+      "id": "ADMIN-A",
+      "ip": "192.0.2.227"
+    },
+    {
+      "id": "MGMT-A",
+      "ip": "192.0.2.226"
+    },
+    {
+      "id": "WEB-A",
+      "ip": "192.0.2.200"
+    }
+  ],
+  "policy": [
+    {
+      "id": "POL-1",
+      "fromRole": "guests",
+      "toRole": "management",
+      "protocol": "tcp",
+      "destinationPort": 22,
+      "expected": "deny"
+    },
+    {
+      "id": "POL-2",
+      "fromAsset": "ADMIN-A",
+      "toAsset": "MGMT-A",
+      "protocol": "tcp",
+      "destinationPort": 22,
+      "expected": "allow"
+    },
+    {
+      "id": "POL-3",
+      "fromRole": "employees",
+      "toAsset": "WEB-A",
+      "protocol": "tcp",
+      "destinationPort": 443,
+      "expected": "allow"
+    }
+  ],
+  "beforeRules": [
+    {
+      "id": "R10",
+      "fromRole": "guests",
+      "destination": "any",
+      "action": "allow"
+    },
+    {
+      "id": "R20",
+      "fromRole": "guests",
+      "toRole": "management",
+      "protocol": "tcp",
+      "destinationPort": 22,
+      "action": "deny"
+    }
+  ],
+  "beforeEvidence": [
+    {
+      "id": "P1-ACTIVITY",
+      "timestamp": "2026-10-18T10:00:00Z",
+      "source": "GUEST-A",
+      "destination": "MGMT-A",
+      "destinationPort": 22,
+      "activity": "authorized_docent_test"
+    },
+    {
+      "id": "P1-FW",
+      "timestamp": "2026-10-18T10:00:02Z",
+      "clockOffsetSeconds": 2,
+      "source": "GUEST-A",
+      "destination": "MGMT-A",
+      "destinationPort": 22,
+      "action": "allow",
+      "ruleId": "R10"
+    },
+    {
+      "id": "P1-COLLECTOR",
+      "receivedAt": "2026-10-18T10:00:05Z",
+      "originalEventId": "P1-FW"
+    }
+  ],
+  "studentDeliverables": [
+    "Plan de direccionamiento y capacidad",
+    "Diagrama y rutas de ida/retorno",
+    "Matriz IPv4/IPv6",
+    "Cronología con offset y procedencia",
+    "Hipótesis y causa respaldada",
+    "Cambio propuesto, riesgo y rollback",
+    "Plan de retest y límites"
+  ]
+}

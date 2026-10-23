@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-28-L01",
+  "title": "Cambios de identidad aprobados",
+  "sourceHash": "f551b190d0406eade30e8e771fa63abbddc9fcb296ac5f3ffbbc607065f57b45",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-28-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nEjecutar cambios de identidad aprobados, reversibles y documentados.\n\nPrerrequisitos: `WAD-20-L03` (CA, DNS, trusts y pruebas de servicio), `WAD-23-L03` (Informe, remediación, retest) y `WAD-27-L03` (Medición de cobertura y reducción de ruido).\n\n## 2. Comprende el mecanismo\n\nLa etapa WAD-28 es un proyecto: se administra un entorno aislado de principio a fin. El primer tramo es aplicar **cambios de identidad** sin improvisar. Un cambio de identidad es cualquier operación sobre una cuenta, un grupo o su pertenencia: dar de baja temporal una cuenta de prueba, retirarla de un grupo o moverla de unidad organizativa.\n\nCada cambio pasa por tres filtros antes de ejecutarse. El primero es la **aprobación**: la operación está autorizada por quien corresponde y con un **alcance** definido. El segundo es la **reversibilidad**: se sabe de antemano cómo volver al estado anterior. El tercero es la **documentación**: queda escrito qué se cambia, sobre qué objeto, a qué hora y con qué resultado.\n\nLa reversibilidad se apoya en una **línea base**: el estado registrado antes de tocar nada. Con ella se comparan el «antes» y el «después» y, si hace falta, se **revierte** el cambio. Sin línea base, un cambio acertado y uno equivocado se ven igual.\n\nLa **papelera de reciclaje de AD** conserva los objetos eliminados y permite restaurarlos con sus atributos y pertenencias durante un tiempo. Es una red de seguridad, no una excusa para borrar sin pensar: fuera de su ventana, la restauración deja de ser un clic y pasa a ser una recuperación mayor.\n\nLos permisos del objeto también se observan antes de cambiarlo. Leer el **descriptor de seguridad** revela quién puede hacer qué sobre la cuenta o el grupo, y evita conceder de más al delegar una tarea.\n\nQueda la **separación de roles**. Quien aprueba, quien ejecuta y quien verifica no deberían ser la misma identidad, y las tareas sensibles se hacen desde una estación de administración, no desde un puesto cualquiera. Todo ocurre en un **entorno aislado** y con datos sintéticos: `ad.lab.test`, no un directorio real.\n\nLa regla que cierra la lección: **aprobación previa, línea base, reversión definida y evidencia documentada**.\n\n### Vocabulario de apoyo\n\n- **Aprobación**: autorización que fija qué cambio se permite y sobre qué alcance.\n- **Reversibilidad (rollback)**: capacidad de volver al estado previo a un cambio.\n- **Línea base**: estado de referencia registrado antes de un cambio.\n- **Papelera de reciclaje de AD**: función que conserva los objetos eliminados y permite restaurarlos.\n- **Separación de roles**: reparto en el que quien aprueba, ejecuta y verifica no es la misma identidad.\n- **Tier 0**: nivel de máxima confianza que agrupa las identidades y los sistemas que controlan el directorio.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-28-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test` se aprueba dar de baja temporal una cuenta de prueba y retirarla de un grupo. Se pide ejecutar el cambio de forma reversible y dejar constancia.\n\nEl primer paso es registrar la línea base: el grupo al que pertenece la cuenta, sus atributos relevantes y el descriptor de seguridad del objeto, antes de modificar nada. Después se aplica el cambio aprobado, solo sobre el objeto autorizado, con su hora. A continuación se comprueba el estado posterior: la cuenta ya no figura en el grupo y conserva el resto de sus datos. La conclusión acota lo observable —«el objeto quedó en el estado esperado y el cambio es reversible»— y reconoce su límite: la reversibilidad depende de actuar dentro de la ventana en la que el estado previo sigue disponible, y la verificación cubre ese objeto y ese momento, no el resto del directorio.\n\n"
+    },
+    {
+      "id": "WAD-28-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Los cambios aprobados y documentados permiten distinguir lo previsto de lo inesperado al revisar la actividad.\n- Red Team autorizado: Ejecutar solo el cambio autorizado y dejar su reversión escrita demuestra disciplina de alcance.\n- Evidencia de la etapa: Línea base, aprobación, cambio aplicado con su hora, estado posterior y modo de reversión.\n- Criterio de dominio: Todo cambio de identidad está aprobado, es reversible y queda documentado con evidencia.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB20](../../05_RECURSOS/LABORATORIOS/WAD-LAB20.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **RECYCLEBIN**: [Active Directory Recycle Bin](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/get-started/adac/active-directory-recycle-bin). Qué conserva la papelera y cuándo permite restaurar un objeto eliminado.\n- **GETACL**: [Get-Acl](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.security/get-acl). Lectura del descriptor de seguridad antes de delegar o cambiar un objeto.\n- **TIER0**: [Privileged access access model](https://learn.microsoft.com/en-us/security/privileged-access-workstations/privileged-access-access-model). Modelo de niveles que ordena la separación de roles.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-28-L01-P01",
+    "prompt": "En `ad.lab.test` recibes la aprobación para dar de baja temporalmente una cuenta de prueba y retirarla de un grupo. Describe cómo registras la línea base, ejecutas el cambio de forma reversible y documentas la evidencia.",
+    "markdown": "## 4. Práctica individual\n\nEn `ad.lab.test` recibes la aprobación para dar de baja temporalmente una cuenta de prueba y retirarla de un grupo. Describe cómo registras la línea base, ejecutas el cambio de forma reversible y documentas la evidencia.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber aplicado un cambio de identidad real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-28-L01-Q01",
+      "prompt": "Antes de ejecutar un cambio de identidad aprobado en el laboratorio, ¿qué lo hace reversible y verificable?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Ejecutarlo directamente sobre el objeto real, sin registrar el estado previo"
+        },
+        {
+          "id": "B",
+          "text": "Confiar en que el directorio lo guarda todo por sí solo y no anotar nada"
+        },
+        {
+          "id": "C",
+          "text": "Aplicarlo a la vez sobre todas las cuentas del dominio para ganar tiempo"
+        },
+        {
+          "id": "D",
+          "text": "Registrar el estado previo como línea base, contar con la aprobación y definir cómo se revierte el cambio"
+        }
+      ]
+    },
+    {
+      "id": "WAD-28-L01-Q02",
+      "prompt": "Tras completar el cambio aprobado, ¿qué demuestra la comprobación posterior y qué límite tiene?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Demuestra que ningún otro objeto del bosque cambió en ningún momento"
+        },
+        {
+          "id": "B",
+          "text": "Demuestra que el objeto quedó en el estado esperado en ese momento; no garantiza que el cambio siga siendo adecuado después"
+        },
+        {
+          "id": "C",
+          "text": "Demuestra que el cambio fue autorizado, y por eso ya no hace falta documentarlo"
+        },
+        {
+          "id": "D",
+          "text": "Demuestra que la papelera de reciclaje puede restaurar cualquier objeto de forma indefinida"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB20](../../05_RECURSOS/LABORATORIOS/WAD-LAB20.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **RECYCLEBIN**: [Active Directory Recycle Bin](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/get-started/adac/active-directory-recycle-bin). Qué conserva la papelera y cuándo permite restaurar un objeto eliminado.\n- **GETACL**: [Get-Acl](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.security/get-acl). Lectura del descriptor de seguridad antes de delegar o cambiar un objeto.\n- **TIER0**: [Privileged access access model](https://learn.microsoft.com/en-us/security/privileged-access-workstations/privileged-access-access-model). Modelo de niveles que ordena la separación de roles.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "6d5423c3c4d5c550311c0687"
+}

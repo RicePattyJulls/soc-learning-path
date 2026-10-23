@@ -1,0 +1,188 @@
+{
+  "id": "N2-20",
+  "nivel": "N2",
+  "bloque": "Cloud, identidad y ataques avanzados",
+  "titulo": "Persistencia tras contención: investigación sistemática antes de restaurar",
+  "pregunta": "Has contenido un incidente, pero sospechas que el atacante mantiene persistencia mediante tareas programadas, servicios y mecanismos alternativos. ¿Cómo realizarías una investigación sistemática antes de restaurar el servicio?",
+  "escenario": "Un servidor Windows y un Linux fueron aislados tras acceso administrativo no autorizado. Se detectó un proceso extraño ya finalizado, pero hay señales de tareas nuevas, una cuenta local inesperada y un servicio de inicio automático. El equipo de aplicaciones presiona para restaurarlos. El EDR parece saludable, aunque se desconoce si la telemetría comenzó antes del ataque. El objetivo no es buscar un único cron: debes revisar superficies de persistencia y validar una restauración confiable.",
+  "objetivo": "Determinar mecanismos de persistencia activos o latentes y alcance de accesos residuales, reconstruir línea temporal sin asumir que una búsqueda negativa prueba limpieza; escoger erradicación o reconstrucción limpia y verificar identidad, configuración, red y registros antes del retorno a producción.",
+  "hipotesis": [
+    "Una tarea, servicio o unidad systemd/cron ejecuta código o conexión de acceso persistente.",
+    "Cuentas/roles, SSH authorized_keys, tokens OAuth, claves de nube o delegaciones proporcionan persistencia sin proceso local.",
+    "Run keys, WMI, Winlogon, autoruns, launch agents (si aplica) o DLL side loading permanecen fuera de la búsqueda inicial.",
+    "Hay mecanismos legítimos de backup, mantenimiento, EDR o MDM con apariencia sospechosa.",
+    "La persistencia reside en otro equipo y este servidor volverá a ser comprometido tras reconectarlo."
+  ],
+  "pasos": [
+    {
+      "fase": "1 · Fijar criterios de retorno",
+      "accion": "Definir quién autoriza volver a producción, servicios críticos, indicadores previos, alcance temporal, dependencia de identidades y criterio verificable de limpieza. Mantener aislamiento hasta decisión del responsable IR."
+    },
+    {
+      "fase": "2 · Preservar y adquirir",
+      "accion": "Guardar timeline EDR, hashes, copia forense y artefactos volátiles cuando sea viable, logs centralizados y snapshots coherentes; documentar cadena de custodia. Evitar reinicio/remoción impulsiva que afecte evidencia."
+    },
+    {
+      "fase": "3 · Enumerar Windows",
+      "accion": "Comparar Scheduled Tasks, servicios, Autoruns, Run/RunOnce, WMI subscription, cuentas locales/grupos, RDP y cambios de ACL con baseline/cambios aprobados. Registrar ruta, firma, fecha, autor y comando real. La sola presencia de tarea no demuestra malicia."
+    },
+    {
+      "fase": "4 · Enumerar Linux",
+      "accion": "Revisar cron de usuarios y sistema, /etc/cron.*, systemd units/timers usuario y sistema, rutas de ejecución, SSH authorized_keys, /etc/passwd/sudoers y modificaciones de shell profiles. `crontab -e` no es instrumento de auditoría; usar listados y lectura."
+    },
+    {
+      "fase": "5 · Explorar persistencia externa",
+      "accion": "Investigar IAM/Entra/AD, nuevas cuentas/roles, consentimientos OAuth, cambios de claves, certificados, service principals y credenciales de automatización; verificar que no quedan rutas por VPN y otras máquinas comprometidas."
+    },
+    {
+      "fase": "6 · Reconstruir causalidad",
+      "accion": "Correlacionar creación de servicios/tareas con 4697, 4698, 4702, 7045 cuando estén auditados, Sysmon, Windows 4688/EDR; en Linux journal/auditd/EDR y hash de binarios. Distinguir la creación del artefacto y su ejecución posterior."
+    },
+    {
+      "fase": "7 · Verificar control de red y malware",
+      "accion": "Buscar conexiones persistentes C2, backdoors, inicios no autorizados, cambios de políticas y exclusiones EDR; verificar integridad, kernel/firmware según riesgo y posibles alteraciones de logs. Reconocer límites de ausencia de hallazgos."
+    },
+    {
+      "fase": "8 · Erradicar o reconstruir",
+      "accion": "En compromiso privilegiado de raíz o sistema, preferir reconstrucción desde imagen y artefactos confiables donde se requiera alta garantía. Rotar credenciales afectadas desde sistemas limpios, revisar roles de confianza y restaurar únicamente datos verificados."
+    },
+    {
+      "fase": "9 · Prueba de aceptación en red controlada",
+      "accion": "Comprobar servicios limpios, hashes/firmas, control EDR, cuentas, timers, accesos no autorizados, conexiones salientes, reglas de red y backups. Reintroducir por fases y monitorizar con umbrales y rollback definidos."
+    },
+    {
+      "fase": "10 · Documentar cobertura residual",
+      "accion": "Anotar fuentes no disponibles, tiempo de retención insuficiente, dispositivos no instrumentados, supuestos pendientes, propietarios que aceptan riesgo y medidas preventivas. «No encontramos nada» no equivale a «host limpio»."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "Windows Security 4698/4702 (si auditoría), System 7045, 4697 (si auditado)",
+      "lectura": "Creación/modificación de tareas/servicios, con diferencias de canal/versión. Ausencia no garantiza que no existen."
+    },
+    {
+      "dato": "DeviceProcessEvents y DeviceRegistryEvents",
+      "lectura": "Correlacionan ejecuciones y cambios de Run/servicios; algunos artefactos no generan eventos si sensor estaba apagado."
+    },
+    {
+      "dato": "Autoruns, Scheduled Tasks, services, WMI, ACLs, cuentas",
+      "lectura": "Estado actual y artefactos comparables contra baseline/CMDB, no equivalen a historial completo."
+    },
+    {
+      "dato": "Linux: systemctl list-unit-files/list-timers, crontab -l, /etc/cron*, auditd, journalctl",
+      "lectura": "Enumeración de persistencia posible en Linux; sistemas con contenedores y rootless users necesitan fuentes adicionales."
+    },
+    {
+      "dato": "SSH authorized_keys, sudoers, identidad cloud/AD, consentimientos OAuth",
+      "lectura": "Persistencia no limitada al host; investigar confianza y permisos."
+    },
+    {
+      "dato": "EDR red, DNS, IAM, firewall y snapshots de configuración",
+      "lectura": "Valida comunicación anómala y estado tras remediación, sujeto a cobertura y retención."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Defender XDR · procesos relacionados con tareas y servicios",
+      "entorno": "DeviceProcessEvents MDE; nombres de proceso y argumentos de ejemplo para hunting, no detección definitiva.",
+      "consulta": "DeviceProcessEvents\n| where Timestamp >= ago(14d)\n| where FileName in~ (\"schtasks.exe\", \"sc.exe\", \"powershell.exe\",\n                      \"pwsh.exe\", \"wmic.exe\")\n| where ProcessCommandLine has_any (\"/create\", \"create\", \"Register-ScheduledTask\",\n                                     \"New-Service\", \"Set-Service\", \"__EventFilter\")\n| project Timestamp, DeviceName, AccountName, FileName,\n          ProcessCommandLine, ProcessId, ProcessCreationTime,\n          InitiatingProcessFileName, InitiatingProcessCommandLine\n| order by Timestamp desc",
+      "interpretacion": "Encuentra comandos de administración relevantes a contrastar con inventario y eventos; ampliar a técnicas distintas.",
+      "limitaciones": "Es hunting por cadena, no exhaustivo: APIs directas, WMI, tareas GUI, ofuscación o binarios alternativos pueden no detectarse; evitar declarar limpio si no hay resultados."
+    },
+    {
+      "nombre": "Defender XDR · cambios de claves de inicio automático",
+      "entorno": "DeviceRegistryEvents MDE y claves típicas Run/RunOnce. Investigar solo si se dispone de telemetría.",
+      "consulta": "DeviceRegistryEvents\n| where Timestamp >= ago(14d)\n| where RegistryKey contains @\"\\CurrentVersion\\Run\"\n| project Timestamp, DeviceName, ActionType, RegistryKey,\n          RegistryValueName, RegistryValueData,\n          InitiatingProcessFileName, InitiatingProcessCommandLine\n| order by Timestamp desc",
+      "interpretacion": "Recupera cambios de Run keys, procesos responsables y valores para verificación.",
+      "limitaciones": "No cubre servicios, WMI, COM, controladores, bootkits ni persistencia fuera de registro. `has_any` no siempre representa bien rutas; ajustar `contains` por cadena real y datos."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk · tareas, servicios y cuentas creados/modificados",
+      "entorno": "index=wineventlog con eventos Security/System y EventCode extraído; 4698/4702 pueden faltar por auditoría.",
+      "consulta": "index=wineventlog earliest=-14d (EventCode=4698 OR EventCode=4702\n OR EventCode=7045 OR EventCode=4697 OR EventCode=4720 OR EventCode=4732)\n| table _time host EventCode SubjectUserName ServiceName\n        TaskName AccountName MemberName Message\n| sort 0 _time",
+      "interpretacion": "Da línea temporal de cambios persistentes y cuentas a correlacionar con comandos.",
+      "limitaciones": "Campos varían según EventCode y TA; 7045 es del canal System. La auditoría no captura todas las vías."
+    },
+    {
+      "nombre": "Splunk · procesos de administración sospechosos",
+      "entorno": "index=edr ejemplo con process_name, process y user normalizados; revisar fuente antes de producción.",
+      "consulta": "index=edr earliest=-14d\n(process_name=\"schtasks.exe\" OR process_name=\"sc.exe\"\n OR process_name=\"powershell.exe\" OR process_name=\"wmic.exe\")\n| search (\"/create\" OR \"New-Service\" OR \"Register-ScheduledTask\" OR \"__EventFilter\")\n| table _time host user process_name parent_process process\n| sort 0 _time",
+      "interpretacion": "Encuentra candidatos para pivote hacia procesos padres y artefactos en disco.",
+      "limitaciones": "No detecta uso de APIs directas, persistencia exclusiva de Linux ni todas las formas de ejecución legítima. Es triage."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Windows PowerShell / solo lectura",
+      "proposito": "Enumerar tareas y acciones para comparar con baseline aprobado.",
+      "comando": "Get-ScheduledTask |\n  Select-Object TaskPath, TaskName, State, Actions, Principal |\n  Format-List"
+    },
+    {
+      "entorno": "Windows PowerShell / solo lectura",
+      "proposito": "Enumerar servicios y sus rutas/identidades.",
+      "comando": "Get-CimInstance Win32_Service |\n  Select-Object Name, StartMode, State, PathName, StartName |\n  Sort-Object Name"
+    },
+    {
+      "entorno": "Linux / solo lectura",
+      "proposito": "Revisar timers y unidades de arranque del sistema sin editar.",
+      "comando": "systemctl list-unit-files --type=service --state=enabled\nsystemctl list-timers --all\nsudo crontab -l\nls -la /etc/cron.* /etc/crontab 2>/dev/null"
+    },
+    {
+      "entorno": "Linux / solo lectura",
+      "proposito": "Revisar cron y timers de usuario y logs relevantes. Puede haber varias cuentas.",
+      "comando": "crontab -l\nsystemctl --user list-timers --all\nsudo journalctl --since '24 hours ago' --no-pager | tail -n 120"
+    }
+  ],
+  "contencion": "Mantener aislamiento hasta contar con un plan de retorno aprobado y cobertura suficiente de hosts, identidades y red. En compromiso de alto privilegio o integridad del sistema dudosa, no confiar en eliminar una tarea y devolver producción: reconstruir sobre base confiable y rotar credenciales desde estación limpia. Validar ausencia de nuevas ejecuciones, autenticaciones y conexiones sospechosas durante ventana de observación y tener rollback/monitorización intensificada.",
+  "escalation": [
+    "Persistencia con privilegios SYSTEM/root, DC, IAM o servidor de backups.",
+    "Servicios/tareas extraños reaparecen tras neutralización.",
+    "EDR estuvo deshabilitado o carecen de logs clave para garantizar integridad.",
+    "Compromiso de tokens, cuentas, claves SSH o accesos fuera del host.",
+    "Presión de restauración sin evidencia de contención efectiva ni criterios de aceptación."
+  ],
+  "falsos_positivos": [
+    "Herramienta RMM, backup o inventario corporativo con servicios/autostart.",
+    "Actualizadores firmados y tareas de sistema operativo.",
+    "Tareas cron legítimas de mantenimiento con nombres poco documentados.",
+    "Service principals y SSH keys de automatización autorizada.",
+    "Cambios ejecutados por playbooks IR o herramientas de gestión durante contención."
+  ],
+  "errores": [
+    "Buscar solo crontab -e y declarar host limpio.",
+    "Eliminar archivos/tareas antes de capturar pruebas.",
+    "Confundir servicios autorun legítimos con persistencia sin validación.",
+    "Olvidar servicios de usuario, systemd rootless, IAM y OAuth.",
+    "Reinstalar aplicación sobre SO posiblemente manipulado y reconectar sin control.",
+    "Rotar únicamente contraseña del usuario y olvidar tokens/keys/sesiones."
+  ],
+  "perspectiva_red_team": "La persistencia puede ser local (autoruns, scheduled tasks, servicios, systemd, SSH) o de identidad/control plane (roles, claves, OAuth). El actor puede tolerar la eliminación de un proceso si conserva otra ruta de acceso. Blue Team necesita hipótesis múltiples, baseline confiable, correlación temporal y controles de retorno. Ausencia de eventos puede significar simplemente ausencia de telemetría.",
+  "respuesta_entrevista": "No restauraría basándome solo en haber matado el proceso inicial. Preservaría evidencia y enumeraría tareas, servicios, Run keys, WMI y cuentas en Windows; cron, systemd, SSH y sudoers en Linux. Correlacionaría artefactos con procesos, eventos 4698/4702/7045, EDR y registros centralizados. Buscaría persistencia de identidad en AD/Entra/IAM y otros hosts. Si hubo privilegios elevados o integridad incierta, reconstruiría desde origen confiable, rotaría credenciales y validaría en red controlada con monitorización antes de producción. El criterio de cierre debe ser verificable, no ausencia de un solo IOC.",
+  "criterios_evaluacion": [
+    "No confunde contención con erradicación.",
+    "Enumera múltiples persistencias Windows y Linux.",
+    "Considera identidades, tokens y otras máquinas.",
+    "Evita editar/borrar antes de preservar y verificar.",
+    "Propone reconstrucción limpia en casos de alto riesgo.",
+    "Define criterios de aceptación para restauración y monitoreo."
+  ],
+  "mitre": [
+    "T1053 — Scheduled Task/Job (hipótesis)",
+    "T1543 — Create or Modify System Process (hipótesis)",
+    "T1098 — Account Manipulation (según evidencia)"
+  ],
+  "fuentes": [
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-deviceprocessevents-table",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-deviceregistryevents-table",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-deviceevents-table",
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/securityevent",
+    "https://csrc.nist.gov/pubs/sp/800/61/r3/final"
+  ],
+  "procedencia": {
+    "lote": "tanda-08",
+    "archivo": "SOC-RESPONSES_TANDA-08_N2-16_a_N2-20.json",
+    "fechaRevision": "2026-10-18"
+  }
+}

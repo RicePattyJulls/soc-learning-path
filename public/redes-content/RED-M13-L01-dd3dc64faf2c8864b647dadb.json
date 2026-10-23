@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M13-L01",
+  "title": "Vecinos y áreas",
+  "sourceHash": "30500b3f8f1a7a115932638da05894a1a3b5045e21b51b8ce647319c7e413fce",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M13-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nIdentificar requisitos de vecindad y papel de las áreas OSPF.\n\nPrerrequisitos: [RED-M12-L04](../RED-E03/RED-M12-L04.md).\n\n## 2. Comprende el mecanismo\n\nOSPF distribuye información de estado de enlace dentro de su organización de áreas. Vecindad y adyacencia completa no son siempre equivalentes: en redes broadcast, DR y BDR reducen el conjunto de adyacencias necesarias; dos routers DROther pueden quedarse en 2-Way de forma normal. Tipo de red, área, temporizadores, autenticación y parámetros pertinentes deben ser compatibles. Área 0 es el backbone y los ABR conectan áreas con él en el diseño normal. Un ASBR introduce información externa; no es sinónimo de ABR.\n\n### Vocabulario de apoyo\n\n- **LSA, LSDB y SPF**: Anuncio de estado de enlace, base de esos anuncios y cálculo de caminos de OSPF.\n- **DR/BDR y DROther**: Roles de router designado, respaldo y otros routers en ciertos medios OSPF.\n- **ABR y ASBR**: Router entre áreas y router que introduce rutas externas, respectivamente.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M13-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Red broadcast docente: R1=DR, R2=BDR, R3 y R4=DROther; R3-R4=2-Way y ambos tienen Full con DR/BDR.\n\n2-Way entre los dos DROther es compatible con funcionamiento normal. Forzar resets para alcanzar Full entre todos desconoce el tipo de red.\n\n"
+    },
+    {
+      "id": "RED-M13-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Contextualizar cambios de rutas/ventanas de evento.\n- Red Team autorizado: Evaluar efectos de políticas OSPF solo en lab.\n- Evidencia del módulo: Salida de adyacencia, LSDB y mapa de caminos.\n- Criterio del módulo: Restituye anuncios y justifica raíz y política.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L06](../../05_RECURSOS/LABORATORIOS/RED-L06.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **FRR-OSPF**: [OSPFv2](https://docs.frrouting.org/en/latest/ospfd.html). Vecinos, LSDB, áreas, roles y operación OSPFv2.\n- **FRR-OSPF6**: [OSPFv3](https://docs.frrouting.org/en/latest/ospf6d.html). Implementación OSPFv3 y familias soportadas según versión.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M13-L01-P01",
+    "prompt": "R5 no supera Init. Propón comprobar bidireccionalidad y dos parámetros de compatibilidad.",
+    "markdown": "## 4. Práctica individual\n\nR5 no supera Init. Propón comprobar bidireccionalidad y dos parámetros de compatibilidad.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M13-L01-Q01",
+      "prompt": "¿Qué función tiene un ABR?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Asignar toda concesión DHCP"
+        },
+        {
+          "id": "B",
+          "text": "Autenticar aplicaciones HTTP"
+        },
+        {
+          "id": "C",
+          "text": "Conectar áreas OSPF según la arquitectura del protocolo"
+        },
+        {
+          "id": "D",
+          "text": "Traducir siempre direcciones NAT"
+        }
+      ]
+    },
+    {
+      "id": "RED-M13-L01-Q02",
+      "prompt": "¿Es anómalo necesariamente R3-R4 en 2-Way?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Sí, todos deben ser Full entre sí"
+        },
+        {
+          "id": "B",
+          "text": "No porque OSPF no tiene adyacencias"
+        },
+        {
+          "id": "C",
+          "text": "No, es normal entre DROther en ese medio broadcast"
+        },
+        {
+          "id": "D",
+          "text": "Sí, demuestra un cable roto"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L06](../../05_RECURSOS/LABORATORIOS/RED-L06.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **FRR-OSPF**: [OSPFv2](https://docs.frrouting.org/en/latest/ospfd.html). Vecinos, LSDB, áreas, roles y operación OSPFv2.\n- **FRR-OSPF6**: [OSPFv3](https://docs.frrouting.org/en/latest/ospf6d.html). Implementación OSPFv3 y familias soportadas según versión.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "dd3dc64faf2c8864b647dadb"
+}

@@ -18,10 +18,15 @@ const Library = lazy(() => import('./components/Library'));
 const LearningReader = lazy(() => import('./components/LearningReader'));
 const Review = lazy(() => import('./components/Review'));
 const SplunkApp = lazy(() => import('./splunk/SplunkApp'));
+const RedesApp = lazy(() => import('./redes/RedesApp'));
+const WindowsAdApp = lazy(() => import('./windows-ad/WindowsAdApp'));
+const LinuxApp = lazy(() => import('./linux/LinuxApp'));
+const SocApp = lazy(() => import('./soc/SocApp'));
+const RepasoSocApp = lazy(() => import('./repaso-soc/RepasoSocApp'));
 const SimulatorApp = lazy(() => import('./simulator/entry'));
 export default function App() {
   const route = useRoute();
-  const course = route.page === 'splunk' || route.page === 'simulador' && route.id.startsWith('splunk') ? 'splunk' : 'sc200';
+  const course = route.page === 'redes' ? 'redes' : route.page === 'windows-ad' ? 'windows-ad' : route.page === 'linux' ? 'linux' : route.page === 'splunk' || route.page === 'simulador' && route.id.startsWith('splunk') ? 'splunk' : route.page === 'soc' && route.id.split('/')[0] === 'repaso_soc' ? 'repaso-soc' : route.page === 'soc' ? 'soc' : 'sc200';
   const previousCourse = useRef(course);
   useEffect(() => {
     const changed = previousCourse.current !== course;
@@ -31,7 +36,7 @@ export default function App() {
       return () => cancelAnimationFrame(frame);
     }
   }, [course]);
-  return <><AcademySelector course={course} />{route.page === 'simulador' ? <SimulatorBoundary><Suspense fallback={<main id="main-content" tabIndex={-1} className="page-shell" role="status">Abriendo el centro SOC…</main>}><SimulatorApp routeId={route.id}/></Suspense></SimulatorBoundary> : course === 'splunk' ? <CourseBoundary><Suspense fallback={<main id="main-content" tabIndex={-1} className="page-shell" role="status">Abriendo Splunk SOC…</main>}><SplunkApp /></Suspense></CourseBoundary> : <Sc200App />}</>;
+  return <><AcademySelector course={course} />{route.page === 'simulador' ? <SimulatorBoundary><Suspense fallback={<main id="main-content" tabIndex={-1} className="page-shell" role="status">Abriendo el centro SOC…</main>}><SimulatorApp routeId={route.id}/></Suspense></SimulatorBoundary> : course === 'redes' ? <Suspense fallback={<main id="main-content" tabIndex={-1} className="page-shell" role="status">Abriendo el mundo Redes…</main>}><RedesApp /></Suspense> : course === 'windows-ad' ? <Suspense fallback={<main id="main-content" tabIndex={-1} className="page-shell" role="status">Abriendo el mundo Windows + AD…</main>}><WindowsAdApp /></Suspense> : course === 'linux' ? <Suspense fallback={<main id="main-content" tabIndex={-1} className="page-shell" role="status">Abriendo el mundo Linux…</main>}><LinuxApp /></Suspense> : course === 'repaso-soc' ? <Suspense fallback={<main id="main-content" tabIndex={-1} className="page-shell" role="status">Abriendo Repaso SOC…</main>}><RepasoSocApp /></Suspense> : course === 'soc' ? <Suspense fallback={<main id="main-content" tabIndex={-1} className="page-shell" role="status">Abriendo el Mundo SOC…</main>}><SocApp /></Suspense> : course === 'splunk' ? <CourseBoundary><Suspense fallback={<main id="main-content" tabIndex={-1} className="page-shell" role="status">Abriendo Splunk SOC…</main>}><SplunkApp /></Suspense></CourseBoundary> : <Sc200App />}</>;
 }
 function Sc200App() {
   const route = useRoute();

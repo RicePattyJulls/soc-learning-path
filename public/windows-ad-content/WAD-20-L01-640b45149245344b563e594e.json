@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-20-L01",
+  "title": "Recuperación forestal en aislamiento",
+  "sourceHash": "52e1f7283eac45958d7ed4bf7951a9217d506522cab59880b6caea547d73a628",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-20-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nSecuenciar la recuperación forestal en aislamiento y fijar sus límites.\n\nPrerrequisitos: `WAD-19-L03` (Criterios de restauración y replicación) y `WAD-16-L03` (CRL/AIA y continuidad PKI).\n\n## 2. Comprende el mecanismo\n\nCuando el daño alcanza al conjunto del bosque y no a un objeto o a un controlador aislado, la respuesta ya no es una recuperación granular: es la **recuperación forestal**. Este procedimiento reconstruye el bosque desde una copia que se considera confiable y se ejecuta **en una red aislada**, separada de la red comprometida, para que nada vuelva a contaminar lo que se está restaurando.\n\nEl primer concepto que ordena todo es la **copia confiable**. Antes de empezar hay que decidir cuál es el respaldo válido —de qué fecha, de qué equipo y con qué integridad—, porque restaurar sobre una copia ya comprometida solo reproduce el problema. La guía de recuperación insiste en elegir primero cómo se va a recuperar y con qué material.\n\nEl segundo concepto es el **aislamiento**. El bosque recuperado se levanta sin contacto con la red de producción: sin acceso a internet, sin réplica hacia controladores no restaurados y sin confianzas activas hacia otros dominios. Así el bosque puede verificarse sin que una identidad o un equipo del entorno comprometido vuelva a entrar en él.\n\nEl tercero es la **secuencia**. Se restaura un primer controlador desde la copia confiable, se deja que reconstruya el directorio y solo después se incorporan los demás controladores, cada uno desde su material restaurado. Invertir el orden —promover equipos nuevos antes de restaurar— equivale a fabricar un bosque distinto del que se quiere recuperar.\n\nLa recuperación forestal tiene **límites** que conviene declarar desde el principio. Restablece el directorio a un punto conocido, pero no devuelve por sí sola los datos posteriores a la copia, ni valida las confianzas, ni demuestra que el bosque sea seguro para reintegrarse. Esos pasos vienen después y se comprueban aparte.\n\nLa regla que cierra la lección: **primero se aísla y se restaura desde una copia confiable; la reintegración es una decisión posterior y verificable, no un paso automático**. Todo se practica sobre `ad.lab.test` con copias de laboratorio y nunca sobre un bosque productivo.\n\n### Vocabulario de apoyo\n\n- **Recuperación forestal**: reconstrucción del bosque completo desde una copia confiable en una red aislada.\n- **Copia confiable**: respaldo cuya fecha, origen e integridad se han validado antes de restaurar.\n- **Aislamiento**: separación del bosque recuperado de la red comprometida durante la recuperación.\n- **Reintegración**: devolución del bosque recuperado a la red, con validaciones previas.\n- **Controlador restaurado**: controlador levantado desde una copia confiable durante la recuperación.\n- **Copia de laboratorio**: respaldo sintético usado solo con fines de práctica.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-20-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test` un incidente comprometió credenciales de administración y el bosque debe reconstruirse desde copias de laboratorio antes de volver a la red.\n\nEl orden razonado es: confirmar cuál es la copia confiable y su fecha; levantar un controlador desde esa copia en una red aislada; dejar que reconstruya el directorio; incorporar después los demás controladores desde su propio material; y solo al final decidir la reintegración, tras comprobar cuentas y confianzas. La conclusión acota lo observable —«el directorio quedó restablecido a un punto conocido en aislamiento»— y reconoce su límite: mientras no se validen las cuentas críticas, las confianzas y el retorno a la red, la recuperación está completa solo respecto al directorio, no respecto al servicio en producción.\n\n"
+    },
+    {
+      "id": "WAD-20-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Reconocer cuándo un incidente excede la recuperación granular justifica escalar a un procedimiento de recuperación forestal.\n- Red Team autorizado: Documentar el estado comprometido permite describir por qué el bosque debe reconstruirse en aislamiento.\n- Evidencia de la etapa: Copia confiable identificada, secuencia de restauración y comprobaciones previas a la reintegración.\n- Criterio de dominio: La secuencia aísla, restaura desde copia confiable y deja la reintegración como decisión verificable.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB15](../../05_RECURSOS/LABORATORIOS/WAD-LAB15.md)\n- [Guía de laboratorio WAD-LAB22](../../05_RECURSOS/LABORATORIOS/WAD-LAB22.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **FORESTREC**: [Active Directory forest recovery guide](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/ad-forest-recovery-guide). Marco completo de la recuperación del bosque.\n- **FORESTSTEPS**: [Steps for restoring the forest](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-steps-for-restoring-the-forest). Secuencia de pasos de la restauración.\n- **FORESTINIT**: [Perform the initial recovery](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/ad-forest-recovery-perform-initial-recovery). Restauración del primer controlador desde la copia confiable.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-20-L01-P01",
+    "prompt": "En `ad.lab.test` un incidente comprometió credenciales de administración y el bosque debe recuperarse desde copias confiables. Ordena los pasos de la recuperación forestal en aislamiento y describe qué comprobarías antes de reintegrar el bosque a la red.",
+    "markdown": "## 4. Práctica individual\n\nEn `ad.lab.test` un incidente comprometió credenciales de administración y el bosque debe recuperarse desde copias confiables. Ordena los pasos de la recuperación forestal en aislamiento y describe qué comprobarías antes de reintegrar el bosque a la red.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber recuperado un bosque real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-20-L01-Q01",
+      "prompt": "El bosque `ad.lab.test` debe recuperarse tras un incidente que comprometió credenciales de administración. ¿Qué secuencia corresponde a la recuperación forestal en aislamiento?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Conectar de inmediato el bosque recuperado a la red de producción para reanudar el servicio"
+        },
+        {
+          "id": "B",
+          "text": "Promover controladores nuevos antes de restaurar un primer controlador desde una copia confiable"
+        },
+        {
+          "id": "C",
+          "text": "Reutilizar cualquier medio de copia sin comprobar su fecha, su origen ni su integridad"
+        },
+        {
+          "id": "D",
+          "text": "Aislar el bosque, restaurar un controlador desde una copia confiable y verificar antes de reintegrar"
+        }
+      ]
+    },
+    {
+      "id": "WAD-20-L01-Q02",
+      "prompt": "¿Qué límite debe reconocerse al declarar recuperado un bosque que se restauró en aislamiento?",
+      "options": [
+        {
+          "id": "A",
+          "text": "La recuperación en aislamiento restablece el directorio, pero no demuestra por sí sola que el bosque pueda reintegrarse sin revisar cuentas y confianzas"
+        },
+        {
+          "id": "B",
+          "text": "La recuperación en aislamiento garantiza que no se perdió ningún dato posterior a la última copia"
+        },
+        {
+          "id": "C",
+          "text": "La recuperación en aislamiento elimina la necesidad de comprobar la replicación entre controladores"
+        },
+        {
+          "id": "D",
+          "text": "La recuperación en aislamiento sustituye la validación de las confianzas entre dominios"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB15](../../05_RECURSOS/LABORATORIOS/WAD-LAB15.md)\n- [Guía de laboratorio WAD-LAB22](../../05_RECURSOS/LABORATORIOS/WAD-LAB22.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **FORESTREC**: [Active Directory forest recovery guide](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/ad-forest-recovery-guide). Marco completo de la recuperación del bosque.\n- **FORESTSTEPS**: [Steps for restoring the forest](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-steps-for-restoring-the-forest). Secuencia de pasos de la restauración.\n- **FORESTINIT**: [Perform the initial recovery](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/ad-forest-recovery-perform-initial-recovery). Restauración del primer controlador desde la copia confiable.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "640b45149245344b563e594e"
+}

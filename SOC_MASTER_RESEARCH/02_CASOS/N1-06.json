@@ -1,0 +1,182 @@
+{
+  "id": "N1-06",
+  "nivel": "N1",
+  "bloque": "Redes y tráfico sospechoso",
+  "titulo": "Conexiones cada 30 segundos hacia una IP desconocida",
+  "pregunta": "Un servidor establece conexiones salientes cada 30 segundos hacia una IP desconocida. ¿Qué indicadores revisarías para detectar un posible beaconing?",
+  "escenario": "A las 03:10 un NDR observa conexiones del servidor SRV-APP-02 a 203.0.113.46:443 cada ~30 segundos desde hace dos horas. La IP es de documentación (no un IOC real); el destino no aparece en el inventario. El servidor contiene una aplicación crítica. Existe telemetría MDE y algunos logs de firewall, pero aún no se sabe si son 120 sesiones distintas o eventos de una misma sesión.",
+  "objetivo": "Distinguir un latido legítimo de aplicación, agente de monitorización o llamada API periódica de una comunicación de comando y control (C2), identificando host, proceso, destino, duración, volumen y efecto sobre el riesgo sin detener un servicio crítico a ciegas.",
+  "hipotesis": [
+    "Beaconing C2: un implante consulta regularmente a un controlador, a veces con variación intencionada (jitter).",
+    "Health-check, agente EDR, monitorización, sincronización, NTP sobre protocolo no habitual o tarea de aplicación programada.",
+    "Reintento automático tras error HTTP/TLS o problema de conectividad; no implica control remoto.",
+    "Proxy, NAT o registros por flujo: aparentan periodicidad que no pertenece a un único proceso.",
+    "Telemetría duplicada o muestreada: la regularidad puede reflejar cómo registra el sensor, no el tráfico real."
+  ],
+  "pasos": [
+    {
+      "fase": "0. Identificar alcance y fiabilidad de alerta",
+      "accion": "Confirmar activos, criticidad, zona de red, primer/último evento, UTC, si el registro procede de conexión/sesión/paquete y la tasa de pérdida o muestreo. No equiparar 30 s entre logs a 30 s entre paquetes."
+    },
+    {
+      "fase": "1. Validar dirección y exposición",
+      "accion": "Verificar IP local/remota, puerto, protocolo, estado permitido/bloqueado, NAT, red del proxy y si el destino es efectivamente externo. Una IP de un balanceador puede no identificar al servicio final."
+    },
+    {
+      "fase": "2. Caracterizar el tiempo",
+      "accion": "Extraer marcas temporales exactas y calcular intervalos medios, dispersión y ventanas sin tráfico; comparar con otros equipos y con el comportamiento histórico del host. Buscar jitter y variaciones de frecuencia."
+    },
+    {
+      "fase": "3. Atribuir conexión a proceso",
+      "accion": "Correlacionar MDE/EDR con InitiatingProcessFileName, hash, ruta, línea de comandos, padre, usuario, firma y hora de creación. Un nombre legítimo no es garantía de legitimidad."
+    },
+    {
+      "fase": "4. Revisar destino e identidad de aplicación",
+      "accion": "Consultar inventario y contratos SaaS, DNS, SNI/certificado TLS si se capturan legalmente, reputación contextual de dominio/IP, antigüedad de uso en tu empresa y rareza entre hosts. La ausencia de reputación no demuestra benignidad."
+    },
+    {
+      "fase": "5. Evaluar datos y actividad asociada",
+      "accion": "Revisar tamaños de flujo en firewall/NetFlow, errores/respuestas si existen proxies, persistencia, tareas programadas, cambios de archivos y procesos vinculados. Diferenciar beaconing de exfiltración: son hipótesis distintas."
+    },
+    {
+      "fase": "6. Validar legitimidad con área propietaria",
+      "accion": "Consultar al administrador de la aplicación con ticket/canal interno, sin enviar archivos ni ejecutar muestras. Si el patrón coincide con un job esperado, documentar cambio y evidencia."
+    },
+    {
+      "fase": "7. Escalar y contener según riesgo",
+      "accion": "Si hay proceso no autorizado, reputación confirmada, ejecución sospechosa o destino C2 conocido, escalar N2/IR y solicitar aislamiento o bloqueo de egreso autorizado. Preservar telemetría y verificar que el flujo cesa."
+    },
+    {
+      "fase": "8. Documentar resultado",
+      "accion": "Registrar UTC, host/usuario, IP/domino, puerto, intervalo, período, PID/hash, evidencia a favor/en contra, falsos positivos, medida tomada, propietario y siguientes pasos."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "Marcas de tiempo reales + jitter",
+      "lectura": "Periodicidad baja y estable es un indicador; servicios legítimos también envían latidos y C2 puede aleatorizar los intervalos."
+    },
+    {
+      "dato": "IP/dominio/ASN/proxy",
+      "lectura": "Establecer qué sistema se contacta realmente; CDN, NAT y IP compartidas dificultan atribución."
+    },
+    {
+      "dato": "MDE DeviceNetworkEvents",
+      "lectura": "Atribuir conexión saliente al proceso y a la cuenta si el sensor y el campo están disponibles."
+    },
+    {
+      "dato": "Árbol de procesos, hash, firma y ruta",
+      "lectura": "Priorizar cuando existe padre anómalo, binario recién escrito, intérprete no esperado o ejecución bajo cuenta privilegiada."
+    },
+    {
+      "dato": "Volumen y duración de sesión",
+      "lectura": "Detectar intercambios de baja tasa, descargas posteriores o transferencia relevante; MDE DeviceNetworkEvents no sustituye NetFlow para contadores de bytes."
+    },
+    {
+      "dato": "Inventario y cambio aprobado",
+      "lectura": "Ver si hay servicio autorizado o despliegue que explica el patrón."
+    },
+    {
+      "dato": "Otros hosts afectados",
+      "lectura": "Una IP rara común a estaciones distintas puede ser SaaS legítimo, actualización corporativa o una campaña; requiere contexto."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Defender XDR: candidatos con conexiones repetidas",
+      "entorno": "Microsoft Defender XDR Advanced Hunting — DeviceNetworkEvents (MDE desplegado)",
+      "consulta": "DeviceNetworkEvents\n| where Timestamp > ago(2h)\n| where isnotempty(RemoteIP)\n| summarize Eventos=count(), Primer=min(Timestamp), Ultimo=max(Timestamp),\n            Puertos=make_set(RemotePort, 10),\n            Procesos=make_set(InitiatingProcessFileName, 10)\n    by DeviceName, RemoteIP, bin(Timestamp, 10m)\n| where Eventos >= 8\n| order by Eventos desc",
+      "interpretacion": "Busca pares dispositivo/destino recurrentes y qué proceso los inicia. El umbral de ocho eventos/10 min es ilustrativo; partir de un IOC o host alertado es más eficiente.",
+      "limitaciones": "Un registro no equivale necesariamente a una conexión nueva. Puede haber censura de telemetría y destinos internos o proxies; la consulta no demuestra C2 ni intervalos exactos."
+    },
+    {
+      "nombre": "Defender XDR: medir intervalos entre eventos",
+      "entorno": "Microsoft Defender XDR Advanced Hunting — DeviceNetworkEvents; adaptar host e IP",
+      "consulta": "DeviceNetworkEvents\n| where Timestamp > ago(3h)\n| where DeviceName =~ \"SRV-APP-02\"\n| where RemoteIP == \"203.0.113.46\"  // IP de ejemplo, sustituir\n| project Timestamp, DeviceName, RemoteIP, RemotePort,\n          InitiatingProcessFileName, InitiatingProcessId\n| sort by DeviceName asc, RemoteIP asc, Timestamp asc\n| serialize PrevTime=prev(Timestamp), PrevDevice=prev(DeviceName),\n            PrevIP=prev(RemoteIP)\n| extend GapSec=iff(DeviceName == PrevDevice and RemoteIP == PrevIP,\n                    datetime_diff(\"second\", Timestamp, PrevTime), int(null))\n| summarize Intervalos=countif(isnotnull(GapSec)),\n            MediaSeg=round(avg(GapSec), 1),\n            DesvSeg=round(stdev(GapSec), 1),\n            IntervalosEjemplo=make_set(GapSec, 15)\n    by DeviceName, RemoteIP\n| where Intervalos >= 5",
+      "interpretacion": "Una media cercana a 30 segundos, con dispersión pequeña, aumenta la hipótesis de automatismo; interpretar después procesos y contenido/contexto.",
+      "limitaciones": "Los espacios entre EVENTOS no garantizan intervalos entre conexiones reales. Si se quiere medir cada PID/puerto, hay que separar correctamente las series y evitar mezclar procesos."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk CIM: actividad recurrente por destino y ventana",
+      "entorno": "Splunk — datamodel Network_Traffic.All_Traffic normalizado; aceleración recomendable pero no imprescindible",
+      "consulta": "| tstats count as Eventos from datamodel=Network_Traffic.All_Traffic\n    by _time span=10m All_Traffic.src All_Traffic.dest All_Traffic.dest_port\n| rename All_Traffic.* AS *\n| where Eventos >= 8\n| sort - Eventos",
+      "interpretacion": "Identifica patrones repetidos agrupados por origen/destino; buscar la evolución de cada par y luego proceso en EDR.",
+      "limitaciones": "El agregado a 10 minutos NO calcula periodicidad de 30 segundos. Revisar si la fuente representa paquetes, sesiones o flujos y si hay logs duplicados."
+    },
+    {
+      "nombre": "Splunk CIM: intervalo aproximado entre registros",
+      "entorno": "Splunk — eventos normalizados al CIM Network Traffic con tags network/communicate y tiempos por evento",
+      "consulta": "tag=network tag=communicate earliest=-3h\n| where isnotnull(src) AND isnotnull(dest) AND isnotnull(dest_port)\n| sort 0 src dest dest_port _time\n| streamstats current=f last(_time) as TiempoAnterior by src dest dest_port\n| eval GapSeg=_time-TiempoAnterior\n| stats count(GapSeg) as Intervalos avg(GapSeg) as MediaSeg\n        stdev(GapSeg) as DesvSeg values(app) as Apps by src dest dest_port\n| where Intervalos >= 5\n| eval MediaSeg=round(MediaSeg,1), DesvSeg=round(DesvSeg,1)\n| sort MediaSeg",
+      "interpretacion": "Cuantifica la separación temporal entre registros del mismo flujo lógico (origen/destino/puerto) y permite estudiar regularidad.",
+      "limitaciones": "Requiere campos CIM correctamente mapeados. Si el firewall emite múltiples eventos por la misma sesión, la media puede ser engañosa. En alto volumen acotar por host/destino antes del sort."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Linux — observar conexiones actuales",
+      "proposito": "Inspeccionar sockets, incluyendo conexiones salientes; no usar solo -l, que limita a escuchas.",
+      "comando": "sudo ss -tunap"
+    },
+    {
+      "entorno": "Linux — detalle por proceso conocido",
+      "proposito": "Ver sockets abiertos por PID investigado; sustituir el número tras correlación.",
+      "comando": "sudo lsof -nP -a -p 1234 -i"
+    },
+    {
+      "entorno": "Linux — proceso y creación",
+      "proposito": "Inspeccionar argumentos y árbol de ejecución actual, sin asumir que conservará evidencia tras finalizar.",
+      "comando": "ps -fp 1234\nps -ef --forest | less"
+    },
+    {
+      "entorno": "Windows — conexiones TCP observadas",
+      "proposito": "Consultar conexiones salientes y sus PID, sin atribuir automáticamente un puerto a malware.",
+      "comando": "Get-NetTCPConnection | Where-Object {$_.State -eq \"Established\"} | Select-Object LocalAddress,LocalPort,RemoteAddress,RemotePort,OwningProcess"
+    }
+  ],
+  "contencion": "Como N1: no matar procesos ni bloquear por periodicidad aislada. Si la evidencia sugiere C2 activo, seguir playbook, solicitar al responsable respuesta de IR/EDR aislar el host o restringir salida a destinos autorizados, verificar el efecto y preservar trazas. En servicio crítico evaluar dependencia con Infra; no reiniciar por defecto.",
+  "escalation": [
+    "Proceso desconocido o sospechoso que realiza el tráfico, especialmente desde servidor crítico.",
+    "Destino relacionado de forma fiable con un incidente o infraestructura de C2 confirmado.",
+    "Evidencia de ejecución/persistencia maliciosa, descargas posteriores o comunicación con múltiples hosts afectados.",
+    "Aumento significativo de bytes salientes, fuga probable o conexiones hacia destinos no autorizados.",
+    "Imposibilidad de atribuir actividad con suficiente rapidez y riesgo alto para el activo."
+  ],
+  "falsos_positivos": [
+    "Agente de monitorización que consulta API cada 30 segundos.",
+    "Heartbeat de clúster/gestor de configuración o watchdog de aplicación.",
+    "Reintentos por indisponibilidad de un servicio legítimo.",
+    "Logs de flujo resumidos a una cadencia constante por el sensor."
+  ],
+  "errores": [
+    "Declarar C2 confirmado solo por intervalo regular.",
+    "Aplicar un bloqueo masivo de 443 o matar procesos en producción sin autorización.",
+    "Tomar RemoteIP como actor único sin evaluar proxy, NAT o CDN.",
+    "Considerar ausencia de reputación como evidencia de inocuidad.",
+    "Olvidar que un beacon puede realizarse por DNS, web o técnicas sin periodicidad fija."
+  ],
+  "perspectiva_red_team": "El adversario puede usar comunicaciones de latido para recibir órdenes; algunos implantes introducen jitter o usan protocolos aparentemente normales. Eso crea señales útiles de regularidad, rareza del destino o del proceso, pero ninguna es suficiente por sí sola. Desde Blue Team interesa vincular proceso, sesión, DNS y actividad previa/posterior. ATT&CK T1071.001 aplica si se demuestra abuso de protocolos web, no por cualquier conexión a 443.",
+  "respuesta_entrevista": "Primero confirmaría que la alerta describe conexiones salientes reales y revisaría la hora y el activo. Analizaría frecuencia, dispersión, destino, puertos y comportamiento histórico. Con Defender correlacionaría el tráfico con el proceso, su ruta, padre y usuario; con firewall verificaría volumen, dirección y si la salida está permitida. Comprobaría si existe un agente, monitorización o job legítimo. Si veo un proceso anómalo o más indicadores de compromiso, escalaría a N2 y solicitaría contención autorizada, preservando evidencias. La periodicidad sola no prueba C2.",
+  "criterios_evaluacion": [
+    "Diferencia correlación temporal de confirmación de malware.",
+    "Sabe que ss -tulnp solo muestra listening al incluir -l.",
+    "Relaciona red + proceso + entorno + histórico.",
+    "No confunde número de eventos con número real de conexiones.",
+    "Escala con documentación y propone contención proporcionada."
+  ],
+  "mitre": [
+    "T1071.001",
+    "T1095"
+  ],
+  "fuentes": [
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-devicenetworkevents-table",
+    "https://help.splunk.com/en/splunk-cloud-platform/common-information-model/6.1/data-models/network-traffic",
+    "https://attack.mitre.org/techniques/T1071/001/"
+  ],
+  "procedencia": {
+    "lote": "tanda-02",
+    "archivo": "SOC-RESPONSES_TANDA-02_N1-06_a_N1-10.json",
+    "fechaRevision": "2026-10-18"
+  }
+}

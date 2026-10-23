@@ -1,0 +1,194 @@
+{
+  "schemaVersion": 1,
+  "courseId": "soc",
+  "id": "N2-05",
+  "sourceHash": "174d4770c63739cea4dd773c93ead70118cf3634136c503c3041d18ae50d31b2",
+  "revision": "7f73c6516088eba4c92ad02a",
+  "hipotesis": [
+    "La aplicación o su cuenta de servicio está comprometida y genera tráfico saliente propio.",
+    "Una dependencia autorizada (monitorización, pasarela o proveedor) explica actividad inesperada.",
+    "El atacante usa canal saliente HTTPS en un proceso legítimo; un bloqueo de puerto único no basta.",
+    "Un cambio precipitado de credenciales de servicio o reglas de red podría tumbar la aplicación.",
+    "El servidor actúa como pivote interno a DB, SMB o puertos de administración.",
+    "El EDR no cubre toda actividad o el host presenta telemetría incompleta."
+  ],
+  "pasos": [
+    {
+      "fase": "0. Aceptación del contexto y mando",
+      "accion": "Declarar que el activo no está «seguro», sino operando bajo control temporal. Validar decisión con IR, negocio y operaciones, y abrir registro formal con dueño y plazo del riesgo."
+    },
+    {
+      "fase": "1. Mapear flujos mínimos de negocio",
+      "accion": "Identificar fuentes usuarias, destinos DB/pagos/DNS/monitorización, puertos, protocolos y secretos reales. Con inventario y logs distinguir indispensables de heredados."
+    },
+    {
+      "fase": "2. Contención de egreso",
+      "accion": "Aplicar en firewall/NSG/ACL una política de denegación para Internet desde el servidor, salvo endpoints aprobados estrictamente necesarios. Verificar también tráfico IPv6, NAT y acceso a proxy; documentar excepciones justificadas."
+    },
+    {
+      "fase": "3. Contención de ingreso y lateralidad",
+      "accion": "Limitar acceso de administración a bastion/PAW, restringir SMB/RDP/SSH no necesarios, reducir comunicaciones a otros servidores y limitar la DB a flujos de aplicación indispensables. No olvidar canal de monitoreo y recuperación."
+    },
+    {
+      "fase": "4. Controlar identidad y privilegios",
+      "accion": "Evaluar si svc-billing tiene permisos excesivos; preparar reemplazo/rotación de secretos, revocación de tokens y reglas de autenticación con pruebas de dependencia. No hacer una rotación sin coordinación que corte facturación."
+    },
+    {
+      "fase": "5. Incrementar vigilancia",
+      "accion": "Activar telemetría útil y aprobada: logs firewall/proxy/DNS, procesos/EDR, autenticación y actividad DB. Ajustar umbrales a baseline, emitir alertas de egreso nuevo o incremento anómalo y vigilar integridad de sensores."
+    },
+    {
+      "fase": "6. Preservar evidencia",
+      "accion": "Crear snapshot consistente/imagen y adquirir logs de fuentes fuera de banda si es viable. Evitar instalar herramientas intrusivas o reiniciar antes de coordinar con forense y SRE."
+    },
+    {
+      "fase": "7. Preparar planes de contingencia",
+      "accion": "Establecer quién puede cortar conectividad completamente si hay cifrado, exfiltración activa o movimiento lateral. Planificar failover a instancia limpia y recuperación si los indicadores crecen."
+    },
+    {
+      "fase": "8. Verificar por simulación segura",
+      "accion": "Comprobar desde fuentes de telemetría que solo pasa tráfico previsto y que las reglas realmente bloquean destinos fuera de allowlist; no se necesita generar ataques reales ni exfiltrar datos para verificar la política."
+    },
+    {
+      "fase": "9. Salir del modo degradado",
+      "accion": "Reconstruir o remediar desde estado limpio tras investigación, rotar secretos, auditar dependencias y volver a baseline progresivamente. No mantener indefinidas las reglas temporales ni dar por curado el host porque deje de emitir alertas."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "Matriz de flujos mínima con puertos, orígenes y destinos",
+      "lectura": "Base objetiva para política de segmentación; requiere validación de operaciones."
+    },
+    {
+      "dato": "CommonSecurityLog/Network_Traffic: permitido versus denegado",
+      "lectura": "Verifica controles; comparar por fuente, destino y tiempo antes/después."
+    },
+    {
+      "dato": "EDR: proceso, SHA1, cuenta, ruta, hijos y conexiones",
+      "lectura": "Cruzado con flujos, orienta si aplica a cuenta legítima o proceso ajeno."
+    },
+    {
+      "dato": "Logs de identidad y permisos de svc-billing",
+      "lectura": "Revela uso anómalo y servicios que se romperían con rotación."
+    },
+    {
+      "dato": "Tráfico DNS/proxy, flujos IPv6 y NAT",
+      "lectura": "Ayuda a encontrar rutas que el firewall inicial no cubría."
+    },
+    {
+      "dato": "Snapshot consistente y logs forenses disponibles",
+      "lectura": "Necesita política de custodia y verificación de respaldo sin romper producción."
+    },
+    {
+      "dato": "Dueño del riesgo, hora de expiración y disparadores de aislamiento",
+      "lectura": "Evita que la excepción temporal se convierta en exposición permanente."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Sentinel / Log Analytics · lista de flujos realmente observados",
+      "entorno": "CommonSecurityLog con acción, IP origen, destino y puerto; IP ficticia de APP-PRD-02=10.60.5.12.",
+      "consulta": "let src = \"10.60.5.12\";\nCommonSecurityLog\n| where TimeGenerated > ago(24h)\n| where SourceIP == src\n| summarize eventos=count(), bytes_fuera=sum(tolong(SentBytes)),\n            primera=min(TimeGenerated), ultima=max(TimeGenerated)\n  by SourceIP, DestinationIP, DestinationPort, DeviceAction\n| order by bytes_fuera desc",
+      "interpretacion": "Construye flujos relevantes para validarlos con propietarios de servicios antes de permitirlos.",
+      "limitaciones": "La observación no equivale a autorización; una actividad maliciosa puede formar parte del baseline reciente y contadores están sujetos a semántica de proveedor."
+    },
+    {
+      "nombre": "Defender XDR · proceso/cuenta asociada a conexiones inesperadas",
+      "entorno": "MDE integrado; la tabla permite eventos de conectividad, no bytes. Revisar nombres DNS e identidad antes de filtrar.",
+      "consulta": "DeviceNetworkEvents\n| where Timestamp > ago(24h)\n| where DeviceName startswith \"APP-PRD-02\"\n| summarize conexiones=count(), destinos=make_set(RemoteIP, 50),\n            puertos=make_set(RemotePort, 20), ultima=max(Timestamp)\n  by InitiatingProcessFileName, InitiatingProcessCommandLine,\n     InitiatingProcessAccountName, ActionType\n| order by ultima desc",
+      "interpretacion": "Prioriza cuentas y procesos con conexiones fuera de la matriz de dependencias autorizadas.",
+      "limitaciones": "Un proceso legítimo puede estar inyectado o abusado y un proceso malicioso puede imitar su nombre; requiere árbol de procesos, certificados y artefactos."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk CIM Network_Traffic · matriz de tráfico observada",
+      "entorno": "CIM Network_Traffic con src/dest/dest_port/action; el mapeo dependerá del fabricante y del TA.",
+      "consulta": "| tstats count sum(All_Traffic.bytes_out) as bytes_fuera\n  from datamodel=Network_Traffic.All_Traffic\n  where earliest=-24h latest=now All_Traffic.src=\"10.60.5.12\"\n  by All_Traffic.dest All_Traffic.dest_port All_Traffic.action\n| rename All_Traffic.* as *\n| sort - bytes_fuera",
+      "interpretacion": "Lista flujos para confrontar con matriz de dependencias de la aplicación y controles de egreso.",
+      "limitaciones": "Si el tráfico es interno y no pasa por firewall de egreso, el dataset puede no mostrarlo; complementar con sensores este-oeste."
+    },
+    {
+      "nombre": "Splunk CIM Network_Traffic · nuevos flujos posteriores al cambio",
+      "entorno": "CIM Network_Traffic normalizado; ajustar earliest al instante de cambio real.",
+      "consulta": "| tstats min(_time) as primera max(_time) as ultima count\n  from datamodel=Network_Traffic.All_Traffic\n  where earliest=-4h latest=now All_Traffic.src=\"10.60.5.12\"\n  by All_Traffic.dest All_Traffic.dest_port All_Traffic.action\n| rename All_Traffic.* as *\n| eval primera=strftime(primera,\"%Y-%m-%d %H:%M:%S\"),\n       ultima=strftime(ultima,\"%Y-%m-%d %H:%M:%S\")\n| sort primera",
+      "interpretacion": "Permite comprobar nuevos destinos/puertos durante el periodo de contención compensatoria.",
+      "limitaciones": "Ordenar strings de fecha funciona en formato fijo y zona horaria homogénea; preferir guardar epoch para correlación más rigurosa."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Linux — solo lectura",
+      "proposito": "Ver rutas y gateways para comprobar redes previstas sin crear reglas.",
+      "comando": "ip route show; ip -6 route show"
+    },
+    {
+      "entorno": "Linux — solo lectura",
+      "proposito": "Inventario de puertos en escucha y sockets establecidos. El comando no contiene el incidente.",
+      "comando": "sudo ss -tunap"
+    },
+    {
+      "entorno": "Linux — solo lectura",
+      "proposito": "Inspeccionar reglas vigentes antes/después de un cambio aplicado por redes.",
+      "comando": "sudo nft list ruleset"
+    },
+    {
+      "entorno": "Linux — solo lectura",
+      "proposito": "Servicios fallidos o afectados para medir impacto operacional.",
+      "comando": "systemctl --no-pager --failed"
+    },
+    {
+      "entorno": "Windows — solo lectura",
+      "proposito": "Comprobar configuración de conexiones observadas desde host Windows sin desconectarlas.",
+      "comando": "Get-NetTCPConnection | Select-Object LocalAddress,LocalPort,RemoteAddress,RemotePort,State,OwningProcess"
+    }
+  ],
+  "contencion": "Las medidas compensatorias no equivalen a erradicación: son una reducción temporal y documentada del riesgo. Diseñar default-deny para egreso y lateralidad, canales de administración verificados, excepciones restringidas, secrets/PAM y alertas reforzadas. Si la solución de EDR soporta aislamiento selectivo en el SO correspondiente, estudiar sus exclusiones con máxima cautela: no aplican al aislamiento completo y cada excepción debilita el aislamiento. Preferir segmentación de red central cuando las dependencias y las capacidades EDR lo aconsejen. Si hay daño acelerado, el umbral de protección puede prevalecer sobre disponibilidad según el plan aprobado.",
+  "escalation": [
+    "El servicio es regulado o el riesgo residual no tiene propietario que lo acepte.",
+    "Aparece cifrado, nuevas conexiones de alto volumen, movimiento lateral o elevación de privilegios.",
+    "La política de egreso no cubre proxy, NAT, IPv6 o interfaces alternas.",
+    "No existe cobertura de logs suficiente para verificar controles temporales.",
+    "Una restricción necesaria rompe una dependencia crítica y exige decisión de negocio."
+  ],
+  "falsos_positivos": [
+    "Pasarela de pagos legítima con nuevas IPs documentadas.",
+    "Monitoreo o CDN con endpoints rotatorios para una aplicación real.",
+    "Tráfico de base de datos entre zonas que pasa por un proxy o balanceador.",
+    "Agente corporativo firmado que actualiza destinos durante mantenimiento.",
+    "Transferencia legítima generada por facturación de cierre de mes, fuera de baseline reciente."
+  ],
+  "errores": [
+    "Confundir «no podemos aislar» con «no podemos contener nada».",
+    "Permitir salida 0.0.0.0/0 a 443 y declararlo egreso restringido.",
+    "Rotar secretos de producción sin verificar consumidores y dependencias.",
+    "Creer que un EDR con pocas alertas equivale a un servidor limpio.",
+    "No designar propietario de excepción, plazo ni umbral de aislamiento total.",
+    "Ignorar tráfico lateral a DB/SMB e IPv6 mientras solo se bloquea Internet.",
+    "Aplicar cambios remotos disruptivos sin rollback o consola alternativa."
+  ],
+  "perspectiva_red_team": "Si el servidor permanece accesible, un adversario puede seguir aprovechando credenciales y flujos de negocio para pivotar o exfiltrar datos. Reducir derechos, rutas y destinos disminuye la libertad de movimiento, aunque no elimina la amenaza ya instalada. Desde defensa se mide cobertura real, se preserva telemetría y se establece un punto de corte si la situación empeora.",
+  "respuesta_entrevista": "Si no puedo aislar completamente el servidor, aplicaría contención compensatoria acordada con IR y operaciones: egreso solo hacia destinos esenciales, restricción de administración y lateralidad, control de cuentas/secretos, EDR y monitorización de firewall/DNS/procesos reforzadas. Establecería un dueño y plazo del riesgo, un plan de failover y un criterio explícito para aislar completamente si aparece actividad destructiva o exfiltración. Tras contener, preservaría evidencia, investigaría y reconstruiría desde estado confiable; no declararía erradicación solo porque el servicio continúe funcionando.",
+  "criterios_evaluacion": [
+    "Propone segmentación y egreso con mínimo privilegio.",
+    "Contempla negocio y dependencia real de servicios.",
+    "Protege identidad, administración y lateralidad.",
+    "Incluye observabilidad fuera del host y prueba de eficacia.",
+    "Declara riesgo residual y plazo de medidas temporales.",
+    "Prepara fallback a aislamiento completo y recuperación limpia."
+  ],
+  "mitre": [
+    "T1041 (Exfiltration Over C2 Channel, hipótesis)",
+    "T1021 (Remote Services, si hay movimiento lateral)",
+    "T1078 (Valid Accounts, si hay uso indebido)",
+    "T1562.001 (Impair Defenses, solo si observado)"
+  ],
+  "fuentes": [
+    "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+    "https://www.cisa.gov/stopransomware/ransomware-guide",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-devicenetworkevents-table",
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/commonsecuritylog",
+    "https://learn.microsoft.com/en-us/defender-endpoint/network-isolation-exclusions",
+    "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.1/data-models/network-traffic"
+  ]
+}

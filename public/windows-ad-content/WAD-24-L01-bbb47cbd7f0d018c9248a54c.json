@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-24-L01",
+  "title": "Security, System, Directory Service",
+  "sourceHash": "18af7b9f9a8b1187620dfb737198c62d558b1bab9710c5aafbf5e0955b2d7507",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-24-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDistinguir los registros Security, System y Directory Service y qué aporta cada uno.\n\nPrerrequisitos: `WAD-07-L03` (Investigación breve y respuesta segura) y `WAD-13-L03` (dcdiag/repadmin y fallos seguros).\n\n## 2. Comprende el mecanismo\n\nLa etapa de SOC empieza por saber **dónde quedó registrado** lo que se investiga. En Windows los eventos no viven en un único sitio: el sistema los reparte en **registros** distintos, y cada uno responde a una pregunta diferente. Confundirlos lleva a buscar en el sitio equivocado o a dar por ausente algo que nunca se registró allí.\n\nEl registro **Security** reúne los accesos auditados. Solo aparece lo que la **política de auditoría** decidió registrar, y cada entrada describe un hecho: qué acción, sobre qué objeto, con qué identidad y con qué resultado. Si la política no cubría esa acción, el evento simplemente no está, aunque la acción haya ocurrido.\n\nEl registro **System** recoge los sucesos del propio sistema y de sus servicios: arranque y parada de servicios, errores de controladores y avisos de componentes. Aporta el contexto del equipo, no el detalle de quién accedió a un objeto.\n\nEl registro **Directory Service** existe en los controladores de dominio y reúne los sucesos del propio directorio: su arranque, la replicación y otros avisos propios del servicio. En cambio, el **acceso** a los objetos del directorio se audita en **Security**, no en este registro. Es un error frecuente buscarlo en el lugar equivocado.\n\nLos eventos se leen con herramientas que filtran por registro, identificador, hora e identidad. La lectura correcta empieza por **el hecho registrado**: la entrada describe un suceso con una hora y una cuenta. Su **significado** —si fue rutina o anomalía— es una interpretación posterior, que necesita contexto y no se deduce solo del texto del evento.\n\nLa regla que cierra la lección: **primero se identifica el registro que produce el dato, después se interpreta**. Todo se observa sobre `ad.lab.test`, un laboratorio aislado y sintético.\n\n### Vocabulario de apoyo\n\n- **Registro de eventos**: registro donde el sistema acumula los eventos auditados o de servicio.\n- **Security**: registro de los accesos auditados según la política; sin política no hay evento de acceso.\n- **System**: registro de los sucesos del sistema y de sus servicios.\n- **Directory Service**: registro del controlador de dominio con los sucesos del propio directorio.\n- **Hecho registrado**: suceso tal como la entrada lo describe, con su hora y su identidad.\n- **Interpretación**: lectura del significado del evento, que exige contexto y no se deduce del texto solo.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-24-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test`, `DC01` (192.0.2.10) generó actividad tras habilitar la auditoría de accesos. Se quiere saber qué registro consultar para cada dato y cómo separar el hecho de su lectura.\n\nLa pregunta se responde eligiendo el registro que produce cada dato: el acceso a un objeto del directorio se busca en Security, el arranque de un servicio en System y los avisos del propio directorio en Directory Service. Cada entrada es un **hecho registrado** —acción, objeto, identidad, hora y resultado— y no una conclusión: que un acceso figure no dice por sí solo si fue legítimo. La interpretación exige contexto, como la identidad habitual o la hora del día. La conclusión acota lo observable —«cada dato se busca en el registro que lo produce»— y reconoce su límite: la ausencia de un evento en Security solo indica que la política no lo cubría o que no ocurrió, no que no hubiera intención.\n\n"
+    },
+    {
+      "id": "WAD-24-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Distinguir Security, System y Directory Service permite buscar el dato donde de verdad se registra, sin interpretar de más.\n- Red Team autorizado: Saber qué registro cubre cada acción evita atribuir a un solo canal lo que ocurrió en otro.\n- Evidencia de la etapa: Evento citado con su registro de origen, hora, identidad observada y resultado.\n- Criterio de dominio: Cada dato se busca en el registro que lo produce y se separa el hecho registrado de su interpretación.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB17](../../05_RECURSOS/LABORATORIOS/WAD-LAB17.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **SECAUDIT**: [Advanced security audit policy settings](https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/advanced-security-audit-policy-settings). Subcategorías de auditoría avanzada y qué cubre cada una.\n- **BASICAUDIT**: [Basic security audit policies](https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/basic-security-audit-policies). Diferencia entre la política básica y la avanzada.\n- **GETWINEVENT**: [Get-WinEvent](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.diagnostics/get-winevent). Lectura y filtrado de los eventos de un registro.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-24-L01-P01",
+    "prompt": "En el laboratorio `ad.lab.test`, tras habilitar la auditoría de accesos se ha generado actividad en `DC01` y hay que revisar los registros Security, System y Directory Service. Explica qué aporta cada registro y cómo separas el hecho registrado de su interpretación.",
+    "markdown": "## 4. Práctica individual\n\nEn el laboratorio `ad.lab.test`, tras habilitar la auditoría de accesos se ha generado actividad en `DC01` y hay que revisar los registros Security, System y Directory Service. Explica qué aporta cada registro y cómo separas el hecho registrado de su interpretación.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber auditado un dominio real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-24-L01-Q01",
+      "prompt": "Se investiga un controlador de dominio y se dispone de los registros Security, System y Directory Service. ¿Qué aporta cada uno?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Los tres contienen exactamente la misma información, así que basta con revisar cualquiera de ellos"
+        },
+        {
+          "id": "B",
+          "text": "Security reúne los accesos auditados, System los sucesos del sistema y sus servicios, y Directory Service los del propio directorio"
+        },
+        {
+          "id": "C",
+          "text": "System guarda los accesos a objetos del directorio y Security solo los errores de arranque"
+        },
+        {
+          "id": "D",
+          "text": "Directory Service sustituye a Security en el controlador y no hace falta revisar los demás"
+        }
+      ]
+    },
+    {
+      "id": "WAD-24-L01-Q02",
+      "prompt": "Un evento auditado aparece registrado en el registro Security de un controlador. ¿Cómo debe leerse esa entrada?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Como prueba de que hubo un ataque en curso contra el dominio"
+        },
+        {
+          "id": "B",
+          "text": "Como un error del sistema que obliga a reiniciar el controlador"
+        },
+        {
+          "id": "C",
+          "text": "Como una acción que puede descartarse sin revisar su contexto"
+        },
+        {
+          "id": "D",
+          "text": "Como un hecho registrado según la política: describe la acción y la identidad, y su significado se valora después con contexto"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB17](../../05_RECURSOS/LABORATORIOS/WAD-LAB17.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **SECAUDIT**: [Advanced security audit policy settings](https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/advanced-security-audit-policy-settings). Subcategorías de auditoría avanzada y qué cubre cada una.\n- **BASICAUDIT**: [Basic security audit policies](https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/basic-security-audit-policies). Diferencia entre la política básica y la avanzada.\n- **GETWINEVENT**: [Get-WinEvent](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.diagnostics/get-winevent). Lectura y filtrado de los eventos de un registro.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "bbb47cbd7f0d018c9248a54c"
+}

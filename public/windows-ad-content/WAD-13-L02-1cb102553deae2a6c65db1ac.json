@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-13-L02",
+  "title": "FSMO y GC",
+  "sourceHash": "c57f617d41fdec52e2dd41656f05538fa2237b43b77c2761bee153fe1232ae62",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-13-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDistinguir los roles de maestro de operaciones y el catálogo global para no manipularlos ante un síntoma.\n\nPrerrequisitos: `WAD-13-L01` (topología y vectores de replicación).\n\n## 2. Comprende el mecanismo\n\nNo todo en el directorio se puede hacer a la vez en varios controladores sin chocar. Hay operaciones que, si dos DC las hicieran en paralelo, dejarían el dominio en un estado ambiguo: crear un dominio, agregar un atributo al esquema o repartir identificadores únicos. Para esas operaciones el bosque y el dominio designan un único responsable: los **roles de maestro de operaciones**, conocidos como **FSMO**.\n\nSon cinco y se reparten en dos niveles. Dos son **del bosque**: el **maestro de esquema**, que gobierna los cambios del esquema, y el **maestro de nombres de dominio**, que reparte los nombres de dominio. Tres son **del dominio**: el **maestro RID**, que entrega bloques de identificadores; el **emisor de infraestructura**, que mantiene las referencias entre dominios; y el **maestro de emulación del PDC**, que sirve de referencia para los cambios de contraseña y para el reloj del dominio. Cada rol lo atiende un controlador concreto, y los cinco pueden convivir en el mismo DC o repartirse entre varios.\n\nEstos roles son importantes, pero rara vez son la causa de un síntoma. Un inicio de sesión lento, una consulta que no encuentra un objeto o un error de replicación suelen tener otro origen. **Mover o transferir un rol es una operación de alto impacto** que se hace con motivo, no como primer reflejo.\n\nDistinto de los roles es el **catálogo global (GC)**. El catálogo global es un servicio que mantiene una **réplica parcial** de todos los dominios del bosque: guarda los atributos que hacen falta para buscar objetos y para resolver la pertenencia a grupos universales, sin replicar todos los datos de cada dominio. Un controlador que además es catálogo global responde a esas búsquedas de todo el bosque.\n\nLa **ubicación** del catálogo global se decide por diseño. En un sitio con un enlace de red limitado conviene tener uno cerca para no cruzar el vínculo en cada inicio de sesión; en un sitio con un solo DC, ese DC suele ser también catálogo global. Colocarlo bien es una decisión de planificación, no una reacción ante un error.\n\nDe ahí la regla de la lección: ante un síntoma, primero se **leen** el estado de los roles y la ubicación del catálogo global; solo con evidencia se plantea moverlos. Mover un rol o retirar el catálogo global «por si acaso» introduce más riesgo que el síntoma original.\n\n### Vocabulario de apoyo\n\n- **Maestro de operaciones (FSMO)**: rol único que atiende una operación sensible del bosque o del dominio.\n- **Maestro de esquema**: rol del bosque que controla los cambios del esquema.\n- **Maestro de emulación del PDC**: rol del dominio que sirve de referencia para contraseñas y hora.\n- **Catálogo global (GC)**: servicio con una réplica parcial de todos los dominios del bosque.\n- **Réplica parcial**: conjunto con atributos de todos los dominios, no todos los datos.\n- **Grupo universal**: grupo cuyo contenido se resuelve apoyándose en el catálogo global.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-13-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test`, `DC02` deja de aceptar la creación de algunos objetos con un error relacionado con identificadores, y a la vez se propone transferir el rol de esquema.\n\nEl error apunta a un bloque de identificadores agotado o no disponible, que es asunto del **maestro RID**, no del maestro de esquema. Transferir el rol de esquema no toca ese síntoma y añade riesgo. La evidencia correcta es leer qué controlador atiende cada rol, cuál es el estado del maestro RID y si el problema se acota a ese DC. La conclusión acota lo observable —«el síntoma encaja con el rol de identificadores»— y reconoce un límite: sin los informes de estado no se puede confirmar la causa exacta ni descartar otras derivaciones del dominio.\n\n"
+    },
+    {
+      "id": "WAD-13-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Distinguir los roles del catálogo global evita atribuir un síntoma a la pieza equivocada.\n- Red Team autorizado: Conocer dónde viven los roles describe la superficie del dominio sin alterarla.\n- Evidencia de la etapa: Tabla de roles por controlador y ubicación del catálogo global por sitio.\n- Criterio de dominio: Los roles y el catálogo global solo se describen y se justifican con evidencia.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB08](../../05_RECURSOS/LABORATORIOS/WAD-LAB08.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **FSMO**: [Active Directory FSMO roles](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/understand-fsmo-roles). Qué rol atiende cada operación y cómo se reparte.\n- **GC**: [Global catalog](https://learn.microsoft.com/en-us/windows/win32/ad/global-catalog). Qué es el catálogo global y qué datos mantiene.\n- **GCPLACE**: [Planning global catalog server placement](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/planning-global-catalog-server-placement). Cómo decidir dónde ubicar el catálogo global.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-13-L02-P01",
+    "prompt": "En `ad.lab.test`, un controlador muestra un error al crear objetos y otro administrador propone transferir de inmediato los roles de maestro de operaciones. Explica qué son los roles y el catálogo global, y cómo decidirías con evidencia antes de manipularlos.",
+    "markdown": "## 4. Práctica individual\n\nEn `ad.lab.test`, un controlador muestra un error al crear objetos y otro administrador propone transferir de inmediato los roles de maestro de operaciones. Explica qué son los roles y el catálogo global, y cómo decidirías con evidencia antes de manipularlos.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber transferido roles ni modificado el catálogo global en un sistema real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-13-L02-Q01",
+      "prompt": "¿Por qué existen roles de maestro de operaciones (FSMO) en lugar de dejar que todos los controladores hagan las mismas operaciones sensibles?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Para reducir el número de controladores del bosque"
+        },
+        {
+          "id": "B",
+          "text": "Para que las operaciones que no toleran conflictos las atienda un único controlador cada una"
+        },
+        {
+          "id": "C",
+          "text": "Para que cada sitio tenga su propio esquema duplicado"
+        },
+        {
+          "id": "D",
+          "text": "Para sustituir al catálogo global en las búsquedas"
+        }
+      ]
+    },
+    {
+      "id": "WAD-13-L02-Q02",
+      "prompt": "Ante un síntoma de inicio de sesión lento en un sitio, un administrador propone mover de inmediato los roles de maestro de operaciones. ¿Cuál es la actuación más prudente?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Mover los roles de inmediato, porque suelen ser la causa"
+        },
+        {
+          "id": "B",
+          "text": "Quitar el catálogo global de todos los controladores"
+        },
+        {
+          "id": "C",
+          "text": "Transferir el rol de esquema a un servidor de laboratorio"
+        },
+        {
+          "id": "D",
+          "text": "Comprobar primero el estado de los roles y la ubicación del catálogo global, y actuar solo con evidencia"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB08](../../05_RECURSOS/LABORATORIOS/WAD-LAB08.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **FSMO**: [Active Directory FSMO roles](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/understand-fsmo-roles). Qué rol atiende cada operación y cómo se reparte.\n- **GC**: [Global catalog](https://learn.microsoft.com/en-us/windows/win32/ad/global-catalog). Qué es el catálogo global y qué datos mantiene.\n- **GCPLACE**: [Planning global catalog server placement](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/planning-global-catalog-server-placement). Cómo decidir dónde ubicar el catálogo global.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "1cb102553deae2a6c65db1ac"
+}

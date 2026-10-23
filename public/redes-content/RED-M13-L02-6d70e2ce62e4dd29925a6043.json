@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M13-L02",
+  "title": "Estados, LSDB y SPF",
+  "sourceHash": "77419fe231ac950a0fd8bc992080ad55e55c3b7fe1ade2288b16613ce677e9a2",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M13-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nSeguir la sincronización de LSDB y el cálculo SPF.\n\nPrerrequisitos: [RED-M13-L01](../RED-E03/RED-M13-L01.md).\n\n## 2. Comprende el mecanismo\n\nOSPF intercambia LSAs para construir una base de estado de enlace con alcance definido. SPF calcula caminos a partir de esa información; LSDB, RIB y FIB son estados relacionados pero distintos. Estados ExStart y Exchange participan en la negociación e intercambio de descripciones; incompatibilidades como MTU pueden impedir progresar. Un LSA de red, uno de router y un anuncio externo no tienen la misma función. No corregir una adyacencia atascada desactivando comprobaciones sin contrastar el defecto que las provoca.\n\n### Vocabulario de apoyo\n\n- **LSA, LSDB y SPF**: Anuncio de estado de enlace, base de esos anuncios y cálculo de caminos de OSPF.\n- **DR/BDR y DROther**: Roles de router designado, respaldo y otros routers en ciertos medios OSPF.\n- **ABR y ASBR**: Router entre áreas y router que introduce rutas externas, respectivamente.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M13-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Enlace docente: R1 MTU=1500; R2 MTU=1400; vecinos repiten ExStart/Exchange; Hellos se reciben.\n\nLa recepción de Hellos no asegura sincronización. La MTU desigual es una hipótesis concreta que debe compararse con registros y configuración del enlace.\n\n"
+    },
+    {
+      "id": "RED-M13-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Contextualizar cambios de rutas/ventanas de evento.\n- Red Team autorizado: Evaluar efectos de políticas OSPF solo en lab.\n- Evidencia del módulo: Salida de adyacencia, LSDB y mapa de caminos.\n- Criterio del módulo: Restituye anuncios y justifica raíz y política.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L06](../../05_RECURSOS/LABORATORIOS/RED-L06.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **FRR-OSPF**: [OSPFv2](https://docs.frrouting.org/en/latest/ospfd.html). Vecinos, LSDB, áreas, roles y operación OSPFv2.\n- **FRR-OSPF6**: [OSPFv3](https://docs.frrouting.org/en/latest/ospf6d.html). Implementación OSPFv3 y familias soportadas según versión.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M13-L02-P01",
+    "prompt": "Los vecinos están Full pero falta una ruta. ¿Qué tres niveles de estado revisarías?",
+    "markdown": "## 4. Práctica individual\n\nLos vecinos están Full pero falta una ruta. ¿Qué tres niveles de estado revisarías?\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M13-L02-Q01",
+      "prompt": "¿Qué calcula SPF a partir de la información de enlace?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Contraseñas de los vecinos"
+        },
+        {
+          "id": "B",
+          "text": "Una política NAT obligatoria"
+        },
+        {
+          "id": "C",
+          "text": "Direcciones MAC públicas"
+        },
+        {
+          "id": "D",
+          "text": "Caminos de menor coste según el modelo OSPF"
+        }
+      ]
+    },
+    {
+      "id": "RED-M13-L02-Q02",
+      "prompt": "¿Qué parámetro difiere en el caso?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El nombre de un usuario"
+        },
+        {
+          "id": "B",
+          "text": "La versión de HTTP"
+        },
+        {
+          "id": "C",
+          "text": "La MTU"
+        },
+        {
+          "id": "D",
+          "text": "El resolver inverso del cliente"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L06](../../05_RECURSOS/LABORATORIOS/RED-L06.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **FRR-OSPF**: [OSPFv2](https://docs.frrouting.org/en/latest/ospfd.html). Vecinos, LSDB, áreas, roles y operación OSPFv2.\n- **FRR-OSPF6**: [OSPFv3](https://docs.frrouting.org/en/latest/ospf6d.html). Implementación OSPFv3 y familias soportadas según versión.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "6d70e2ce62e4dd29925a6043"
+}

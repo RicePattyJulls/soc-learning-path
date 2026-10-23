@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-26-L03",
+  "title": "UTC, retención, cadena de custodia",
+  "sourceHash": "72dd7a6a52f22a62d7f6ee072225378973f089f6fac7c9922d89261abcef1ed7",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-26-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nFijar hora en UTC, retención y cadena de custodia de la evidencia.\n\nPrerrequisitos: `WAD-26-L02` (Reenvío de eventos: WEF/WEC, canal y transporte).\n\n## 2. Comprende el mecanismo\n\nReunir eventos no basta si sus horas no son comparables. Cada equipo escribe su hora local; si dos hosts están en zonas horarias distintas o uno tiene el reloj desviado, ordenar los hechos se convierte en adivinanza. Fijar la referencia en **UTC** elimina esa ambigüedad.\n\nEl **servicio de hora** del dominio mantiene los relojes alineados con un origen definido. Una **desviación** grande no solo rompe la autenticación: también falsea el orden de los eventos. Por eso conviene conservar la **marca de tiempo original** junto con la hora de recolección, de modo que la secuencia se pueda reconstruir sin perder el dato de origen.\n\nLa **retención** decide cuánto tiempo sobrevive la evidencia. Cada registro tiene un **tamaño máximo** y un comportamiento al llenarse: puede **sobrescribir** los eventos más antiguos, o detenerse y conservarlos. Si se elige sobrescribir, la información más vieja desaparece sin aviso; una recolección con destino fuera del equipo protege contra esa **rotación**.\n\nLa **preservación** consiste en asegurar la evidencia antes de modificarla. Se trabaja sobre una **copia** exportada, no sobre el original, y se calcula una **huella** que permite detectar si algo cambió. Después, cada movimiento se documenta: la **cadena de custodia** registra quién tuvo la evidencia y desde cuándo.\n\nLa cadena solo vale si es completa. Copiar el registro a otro equipo sin anotar qué copia se hizo, de dónde y a qué hora deja la evidencia en duda. Y hay escenarios —el rescate tras un ataque de **ransomware**— en los que el registro del propio equipo puede cifrarse o borrarse, por lo que la copia apartada deja de ser un lujo y pasa a ser el único testigo.\n\nLa regla que cierra la etapa: **hora en UTC, evidencia preservada con su huella y custodia documentada**. Nada se da por conservado sin la prueba de que sigue íntegro. Todo se practica sobre `ad.lab.test`, un laboratorio aislado.\n\n### Vocabulario de apoyo\n\n- **UTC**: referencia de hora común que evita la ambigüedad de las zonas horarias.\n- **Desviación de reloj**: diferencia entre la hora de un equipo y la referencia de sincronización.\n- **Retención**: periodo durante el cual un registro conserva su información antes de perderla.\n- **Rotación**: sobrescritura de los eventos más antiguos cuando el registro se llena.\n- **Cadena de custodia**: registro de quién tuvo la evidencia y desde cuándo.\n- **Huella (hash)**: valor calculado sobre la evidencia que permite comprobar su integridad.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-26-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test`, `WKS01` genera un evento a las 16:03 según su hora local y `DC01` otro a las 14:03 según la suya, porque están en zonas horarias distintas. Al convertir ambos a UTC, los dos ocurren a las 14:03.\n\nLa conversión a UTC vuelve comparables las dos marcas y permite ordenar los hechos sin suponer cuál iba primero: la diferencia era de zona horaria, no de tiempo transcurrido. La conclusión acota lo observable —«en UTC ambas marcas coinciden y la secuencia queda ordenada»— y reconoce su límite: la coherencia de horas ordena los eventos, pero no demuestra por sí sola qué causó qué, y una desviación de reloj real seguiría presente aunque se exprese en UTC. Ordenar no es lo mismo que atribuir.\n\n"
+    },
+    {
+      "id": "WAD-26-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Ordenar los eventos en UTC y preservarlos permite reconstruir una secuencia sin depender de la hora local de cada host.\n- Red Team autorizado: Documentar la custodia y la integridad de la evidencia demuestra disciplina y respeta el alcance autorizado.\n- Evidencia de la etapa: Hora en UTC, copia preservada con su huella y registro de custodia de los movimientos.\n- Criterio de dominio: La evidencia se conserva íntegra y trazable; su falta de prueba se reconoce y no se sustituye por suposiciones.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB18](../../05_RECURSOS/LABORATORIOS/WAD-LAB18.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **W32TIME**: [How the Windows Time service works](https://learn.microsoft.com/en-us/windows-server/networking/windows-time-service/how-the-windows-time-service-works). Sincronización del reloj que hace comparables las marcas de tiempo.\n- **LOGSIZE**: [Eventlog key](https://learn.microsoft.com/en-us/windows/win32/eventlog/eventlog-key). Tamaño máximo y comportamiento de retención o rotación del registro.\n- **RANSOMWARE**: [StopRansomware Guide (CISA)](https://www.cisa.gov/stopransomware/ransomware-guide). Escenario en el que la copia apartada es el único testigo de los eventos.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-26-L03-P01",
+    "prompt": "En `ad.lab.test`, recolectas evidencia de los registros de `WKS01` y `DC01`. Describe cómo fijas la hora en UTC, cómo tratas la retención y cómo documentas la cadena de custodia de la evidencia.",
+    "markdown": "## 4. Práctica individual\n\nEn `ad.lab.test`, recolectas evidencia de los registros de `WKS01` y `DC01`. Describe cómo fijas la hora en UTC, cómo tratas la retención y cómo documentas la cadena de custodia de la evidencia.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber preservado evidencia real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-26-L03-Q01",
+      "prompt": "¿Por qué conviene fijar y registrar la hora en UTC al recolectar eventos de varios equipos?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Porque UTC elimina la necesidad de conservar la marca de tiempo original"
+        },
+        {
+          "id": "B",
+          "text": "Porque UTC evita la ambigüedad de zona horaria y permite ordenar los eventos de varios equipos de forma coherente"
+        },
+        {
+          "id": "C",
+          "text": "Porque la hora local de cada equipo es siempre idéntica y no hace falta convertirla"
+        },
+        {
+          "id": "D",
+          "text": "Porque UTC sustituye a la sincronización del reloj entre los equipos"
+        }
+      ]
+    },
+    {
+      "id": "WAD-26-L03-Q02",
+      "prompt": "¿Qué exige una cadena de custodia de la evidencia recolectada?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Guardar el registro solo en el equipo de origen, para no moverlo"
+        },
+        {
+          "id": "B",
+          "text": "Confiar en que nadie modificó el registro, sin anotar los accesos"
+        },
+        {
+          "id": "C",
+          "text": "Exportar el registro y editar después lo relevante para reducir su tamaño"
+        },
+        {
+          "id": "D",
+          "text": "Registrar quién tuvo la evidencia y desde cuándo, preservarla sin modificarla y verificar su integridad con una huella"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB18](../../05_RECURSOS/LABORATORIOS/WAD-LAB18.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **W32TIME**: [How the Windows Time service works](https://learn.microsoft.com/en-us/windows-server/networking/windows-time-service/how-the-windows-time-service-works). Sincronización del reloj que hace comparables las marcas de tiempo.\n- **LOGSIZE**: [Eventlog key](https://learn.microsoft.com/en-us/windows/win32/eventlog/eventlog-key). Tamaño máximo y comportamiento de retención o rotación del registro.\n- **RANSOMWARE**: [StopRansomware Guide (CISA)](https://www.cisa.gov/stopransomware/ransomware-guide). Escenario en el que la copia apartada es el único testigo de los eventos.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "b952a957bd7ccfc5450dcb10"
+}

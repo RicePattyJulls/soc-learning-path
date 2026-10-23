@@ -1,0 +1,179 @@
+{
+  "schemaVersion": 1,
+  "courseId": "soc",
+  "id": "N1-14",
+  "sourceHash": "29c88b01c53fd4352b37f67c1b79dcdb9d98c14ec942d98bb6d6c651ed34f0c3",
+  "revision": "89435573fc1b1d91dcee5db7",
+  "hipotesis": [
+    "Tarea autorizada del área IT/SRE para inventario, monitorización o mantenimiento.",
+    "Persistencia no autorizada: atacante crea o modifica tarea para ejecutar script periódico.",
+    "Software legítimo con actualización o gestión mediante PowerShell e intervalos cortos.",
+    "Script originalmente legítimo alterado tras compromiso (task hijacking).",
+    "Tarea deshabilitada, nunca ejecutada o detección basada en existencia sin actividad real."
+  ],
+  "pasos": [
+    {
+      "fase": "0. Diferenciar existencia de ejecución",
+      "accion": "Verificar que Task Scheduler muestra tarea habilitada, trigger de cinco minutos, último resultado y ejecución real. Una tarea definida no prueba que se haya ejecutado."
+    },
+    {
+      "fase": "1. Recuperar XML íntegro",
+      "accion": "Documentar TaskName/TaskPath, Actions (exe, argumentos, working directory), Triggers, Principal (cuenta), RunLevel, Hidden, fecha, autor y permisos. No ejecutar el script para probarlo."
+    },
+    {
+      "fase": "2. Buscar cambios en auditoría",
+      "accion": "Correlacionar 4698 (creación), 4702 (modificación), 4699 (eliminación) cuando está habilitado Audit Other Object Access Events; consultar canal TaskScheduler/Operational 106/140 y 200/201 si se colectan."
+    },
+    {
+      "fase": "3. Reconstruir ejecución",
+      "accion": "Con 4688 (si se audita creación de procesos con línea) y MDE DeviceProcessEvents observar powershell.exe/pwsh.exe, padre real, cuenta, línea de comandos, archivos abiertos y frecuencia. La relación con scheduler requiere contexto; el padre varía por versión."
+    },
+    {
+      "fase": "4. Investigar script",
+      "accion": "Calcular hash, firma, procedencia, ACL, creador, fechas, control de versiones, modificaciones recientes y referencias a red. Buscar codificación inesperada, descargas, cambios de defensas o persistencia, sin ejecutar."
+    },
+    {
+      "fase": "5. Validar autorización y necesidad",
+      "accion": "Verificar ticket de cambio, GPO/Intune/SCCM/RMM, firma de proveedor y dueño del sistema. Un nombre parecido a Update o Windows no certifica legitimidad."
+    },
+    {
+      "fase": "6. Correlacionar consecuencias",
+      "accion": "Relacionar cada ejecución con acceso a archivos, red, nuevos procesos, modificación de registro/servicios, alertas y uso de privilegios. Una tarea legítima también puede estar comprometida."
+    },
+    {
+      "fase": "7. Decidir y escalar",
+      "accion": "Si hay script no autorizado, ejecutado con SYSTEM y con descarga/ejecución sospechosa, escalar N2/IR. Solicitar deshabilitar con preservación y plan de rollback si autorizado; no eliminar sin copia."
+    },
+    {
+      "fase": "8. Registrar",
+      "accion": "Guardar copia controlada del XML, hashes, cronología, dueño, comando, rutas, proceso asociado, destinos, permisos, impacto y resolución."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "EventID 4698, 4702",
+      "lectura": "Creación y actualización respectivamente cuando auditoría está activada. XML puede contener ruta, argumentos y cuenta de ejecución."
+    },
+    {
+      "dato": "TaskScheduler/Operational 106/140, 200/201",
+      "lectura": "Pistas de registro/modificación/ejecución de acción según versión y configuración. No asumir que esos eventos están presentes."
+    },
+    {
+      "dato": "Principal/RunLevel/Hidden",
+      "lectura": "Permisos y visibilidad. SYSTEM o run highest requiere especial contexto, pero es frecuente en administración legítima."
+    },
+    {
+      "dato": "Acción y argumentos PowerShell",
+      "lectura": "Ruta, flags, script y directorio de trabajo. EncodedCommand y opciones de evasión son pistas, no veredicto por sí solas."
+    },
+    {
+      "dato": "4688 / DeviceProcessEvents",
+      "lectura": "Prueba de creación y contexto del proceso, padre, usuario y hora. La línea de comandos 4688 requiere política explícita."
+    },
+    {
+      "dato": "Hash, firma, ACL y cambios de script",
+      "lectura": "Permite comparar integridad con despliegue esperado y priorizar cambios fuera de ventana."
+    },
+    {
+      "dato": "Conexiones/red/registro",
+      "lectura": "Determina efectos de ejecución como descarga, C2, alteración de defensas o comportamiento de administración esperado."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Sentinel WindowsEvent: creación/modificación de tareas 4698 y 4702",
+      "entorno": "WindowsEvent Security con Audit Other Object Access Events, extraer TaskContent/TaskNewContent como XML en string",
+      "consulta": "WindowsEvent\n| where TimeGenerated > ago(7d) and EventID in (4698, 4702)\n| extend D=EventData\n| extend Nombre=tostring(D.TaskName), Autor=tostring(D.SubjectUserName),\n         Xml=coalesce(tostring(D.TaskContent), tostring(D.TaskNewContent))\n| where Nombre has \"UpdaterCheck\" or Xml contains \"powershell\"\n| project TimeGenerated, Computer, EventID, Nombre, Autor, Xml\n| order by TimeGenerated desc",
+      "interpretacion": "Detecta altas/actualizaciones de tareas cuyo contenido menciona PowerShell o el nombre investigado.",
+      "limitaciones": "El nombre XML y los campos depende de versión y parseo; tareas existentes antes de la ventana no aparecerán. Consultar inventario local."
+    },
+    {
+      "nombre": "Defender XDR: ejecuciones PowerShell relacionadas con ruta de tarea",
+      "entorno": "DeviceProcessEvents con MDE en Windows; comparar el equipo, la ruta, usuario, proceso padre y repetición",
+      "consulta": "DeviceProcessEvents\n| where Timestamp > ago(3d)\n| where FileName in~ (\"powershell.exe\", \"pwsh.exe\")\n| where ProcessCommandLine contains \"maintenance.ps1\"\n| project Timestamp, DeviceName, FileName, ProcessCommandLine,\n          AccountName, InitiatingProcessFileName,\n          InitiatingProcessCommandLine, ProcessId, SHA1\n| order by Timestamp desc",
+      "interpretacion": "Localiza ejecuciones efectivas del script y da contexto de padre y usuario.",
+      "limitaciones": "No atribuye automáticamente la ejecución a la tarea: el script puede ejecutarse manualmente o desde otra plataforma; ajustar nombre del archivo."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk Windows Security: eventos de creación/edición de tareas",
+      "entorno": "Índice windows Security con EventCode y TaskName/TaskContent extraídos; revisar XML crudo",
+      "consulta": "index=windows earliest=-7d (sourcetype=\"XmlWinEventLog:Security\" OR sourcetype=\"WinEventLog:Security\")\n(EventCode=4698 OR EventCode=4702)\n| eval Tarea=coalesce(TaskName, Task_Name), Contenido=coalesce(TaskContent, TaskNewContent)\n| search Tarea=\"*UpdaterCheck*\" OR Contenido=\"*powershell*\"\n| table _time host EventCode SubjectUserName Tarea Contenido\n| sort 0 -_time",
+      "interpretacion": "Localiza creación/modificación y conserva definición para revisar argumentos.",
+      "limitaciones": "TaskContent puede requerir extracción XML específica; campos e índice son ilustrativos. Una tarea previa puede no generar 4698 en el período."
+    },
+    {
+      "nombre": "Splunk CIM Endpoint: creaciones de procesos PowerShell",
+      "entorno": "Datamodel CIM Endpoint.Processes con ruta y cmdline mapeadas, desde EDR o Sysmon/4688 normalizados",
+      "consulta": "| tstats count as Ejecuciones values(Processes.process) as Comandos\n         values(Processes.parent_process_name) as Padres\n  from datamodel=Endpoint.Processes earliest=-3d\n  where Processes.process_name=\"powershell.exe\" OR Processes.process_name=\"pwsh.exe\"\n  by Processes.dest Processes.user _time span=5m\n| rename Processes.* AS *\n| where mvfind(Comandos, \"maintenance\\\\.ps1\") >= 0\n| sort 0 -Ejecuciones",
+      "interpretacion": "Resume ejecuciones del script en ventanas de cinco minutos para buscar coincidencia temporal con la tarea.",
+      "limitaciones": "Requiere campo Processes.user mapeado y multivalue Comandos. La agrupación de cinco minutos no demuestra trigger exacto ni parentage."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Windows — listar tarea y detalles",
+      "proposito": "Solo lectura en endpoint autorizado; nombre y ruta podrían no coincidir.",
+      "comando": "Get-ScheduledTask -TaskName 'UpdaterCheck' | Format-List TaskName,TaskPath,State,Actions,Triggers,Principal,Settings"
+    },
+    {
+      "entorno": "Windows — exportar definición XML",
+      "proposito": "Guardar evidencia en ubicación segura siguiendo procedimiento; no copiar secretos indiscriminadamente.",
+      "comando": "Export-ScheduledTask -TaskName 'UpdaterCheck' -TaskPath '\\' | Out-File -FilePath 'C:\\IR\\UpdaterCheck.xml' -Encoding utf8"
+    },
+    {
+      "entorno": "Windows — consultar historial 4698 / 4702",
+      "proposito": "Requiere habilitación de auditoría y acceso al registro Security.",
+      "comando": "Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4698,4702; StartTime=(Get-Date).AddDays(-7)} -MaxEvents 50"
+    },
+    {
+      "entorno": "Windows — comprobar hash del script (si existe)",
+      "proposito": "No ejecuta ni carga el script; hash puede usarse para correlación.",
+      "comando": "Get-FileHash -Algorithm SHA256 'C:\\ProgramData\\Ops\\maintenance.ps1'"
+    }
+  ],
+  "contencion": "Como N1, no suprimir una tarea de mantenimiento crítica o eliminar el script sin preservar XML, hashes, cronología y dueño. Si hay ejecución maliciosa probable o activa, escalar y solicitar deshabilitación temporal/aplicación EDR según procedimiento autorizado, sin ejecutar el fichero. Asegurar continuidad del servicio, posibles dependencias y verificación posterior. No confundir contención con borrado de evidencia.",
+  "escalation": [
+    "Tarea creada/modificada fuera de cambio aprobado por usuario inesperado o cuenta privilegiada.",
+    "Acción invoca PowerShell que descarga/ejecuta desde Internet, altera defensas o accede a datos sensibles.",
+    "El script cambia de hash inesperadamente, se ejecuta desde ruta temporal o tiene ACL abiertas.",
+    "La tarea se replica en múltiples equipos sin herramienta de despliegue identificada.",
+    "Eventos de red, procesos o persistencia corroboran ejecución no autorizada."
+  ],
+  "falsos_positivos": [
+    "Script de monitorización aprobado cada cinco minutos.",
+    "Despliegue Intune/RMM/SCCM/GPO con PowerShell legítimo.",
+    "Mantenimiento de ERP/backup y procesos programados del área IT.",
+    "Cuenta SYSTEM usada legítimamente para ejecutar tarea de infraestructura.",
+    "Tarea existente no ejecutada por estar deshabilitada o por condición incumplida."
+  ],
+  "errores": [
+    "Clasificar todo PowerShell en tareas como persistencia maliciosa.",
+    "Ejecutar el script sospechoso para ver si funciona.",
+    "Borrar o deshabilitar sin preservar definición y sin evaluar producción.",
+    "Ignorar eventos 4698/4702, cuenta/RunLevel y verificación de cambios.",
+    "Afirmar que 4688 siempre incluye línea de comandos (requiere política).",
+    "Concluir que repetición temporal implica conexión C2 sin datos de red."
+  ],
+  "perspectiva_red_team": "MITRE T1053.005 describe el abuso de tareas programadas para persistencia, ejecución o elevación cuando existen condiciones apropiadas; T1059.001 cubre ejecución con PowerShell. El adversario puede disfrazar tarea bajo nombre similar a actualizaciones o modificar una tarea legítima. La defensa debe revisar registro de creación, XML de acciones, integridad del script y efectos de ejecución; la existencia de una tarea no atribuye técnica por sí sola.",
+  "respuesta_entrevista": "Primero verificaría la definición completa y el historial de la tarea: propietario, cuenta, privilegios, trigger, acción, ruta, argumentos, XML y si realmente se ejecuta cada cinco minutos. Revisaría Security 4698/4702 y TaskScheduler/Operational cuando estén disponibles, además de 4688/Defender XDR para procesos ejecutados. Validaría el hash y el ticket de cambio del script sin ejecutarlo, y correlacionaría red y modificaciones. No eliminaría nada solo por ver PowerShell: si aparece actividad no autorizada escalaría con evidencias para una contención controlada.",
+  "criterios_evaluacion": [
+    "Diferencia existencia de tarea de ejecución real.",
+    "Conoce 4698/4702, XML, triggers, Principal y RunLevel.",
+    "Correlaciona proceso, archivo, padre, hash, red y cambio aprobado.",
+    "No ejecuta ni elimina evidencia precipitadamente.",
+    "Establece criterios y escalado según impacto."
+  ],
+  "mitre": [
+    "T1053.005",
+    "T1059.001"
+  ],
+  "fuentes": [
+    "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4698",
+    "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4702",
+    "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4688",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-deviceprocessevents-table",
+    "https://attack.mitre.org/techniques/T1053/005/"
+  ]
+}

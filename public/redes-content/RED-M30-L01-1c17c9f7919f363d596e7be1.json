@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M30-L01",
+  "title": "Campos y procedencia",
+  "sourceHash": "4b4cb8b340a9d2ad42f9f427f8a2b57ff50a22a27706a17805f5bfc23d105ab4",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M30-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDiseñar un contrato de campos que conserve significado y origen.\n\nPrerrequisitos: [RED-M26-L04](../RED-E05/RED-M26-L04.md), [RED-M27-L04](../RED-E05/RED-M27-L04.md), [RED-M29-L04](../RED-E05/RED-M29-L04.md).\n\n## 2. Comprende el mecanismo\n\nNormalizar facilita comparar datos, pero no autoriza a convertir ausencia en un valor conocido. Distingue IP observada antes o después de NAT, hora de evento o ingestión, bytes de un sentido o suma y acción solicitada o aplicada. Conserva campo original, parser, versión, zona y unidad. Un campo canónico propio es una decisión editorial, no un estándar oficial por llamarse source_ip. Los valores desconocidos deben poder representarse sin inventar identidad o resultado.\n\n### Vocabulario de apoyo\n\n- **Normalización y null**: Mapeo con semántica preservada y representación explícita de dato desconocido.\n- **CIM, CEF y DCR**: Modelo de información de Splunk, formato de eventos y reglas Azure de recolección/transformación.\n- **TP, FP, FN y TN**: Positivos correctos, alertas sobre benignos, positivos omitidos y benignos sin alerta respecto a etiquetas conocidas.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M30-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Registro docente A: bytes_out=1000; registro B: bytes_total=1000. Ambos se mapean erróneamente a bytes_out.\n\nEl mapeo altera semántica: el segundo no expresa necesariamente bytes de salida. Una comparación posterior daría precisión aparente con significado diferente.\n\n"
+    },
+    {
+      "id": "RED-M30-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Diseñar casos SOC Sentinel/Splunk.\n- Red Team autorizado: Verificar detectabilidad de actividad permitida.\n- Evidencia del módulo: Esquema, conjunto de pruebas, casos FP/FN, resultados.\n- Criterio del módulo: Reproducible en datasets declarados; sin inventar KQL/SPL.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L16](../../05_RECURSOS/LABORATORIOS/RED-L16.md)\n- [Guía de laboratorio RED-L20](../../05_RECURSOS/LABORATORIOS/RED-L20.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **CIM**: [Overview of the Splunk Common Information Model](https://help.splunk.com/en/data-management/common-information-model/6.4/introduction/overview-of-the-splunk-common-information-model). Modelo y normalización; etiqueta no demuestra conformidad.\n- **DCR**: [Data collection rules in Azure Monitor](https://learn.microsoft.com/en-us/azure/azure-monitor/data-collection/data-collection-rule-overview). Recolección y transformación; DCR no se equipara a un modelo CIM.\n- **NIST-IR**: [SP 800-61 Rev. 3](https://csrc.nist.gov/pubs/sp/800/61/r3/final). Contexto de preparación, detección, respuesta y recuperación.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M30-L01-P01",
+    "prompt": "Un parser convierte action ausente en allowed. Explica el defecto y su corrección.",
+    "markdown": "## 4. Práctica individual\n\nUn parser convierte action ausente en allowed. Explica el defecto y su corrección.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M30-L01-Q01",
+      "prompt": "¿Qué debe preservarse además del nombre canónico?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Solo el valor numérico, aunque cambie la unidad"
+        },
+        {
+          "id": "B",
+          "text": "Solo el nombre del campo y su formato de texto"
+        },
+        {
+          "id": "C",
+          "text": "Significado, unidad, origen y transformación"
+        },
+        {
+          "id": "D",
+          "text": "Un valor allowed predeterminado cuando la acción no existe"
+        }
+      ]
+    },
+    {
+      "id": "RED-M30-L01-Q02",
+      "prompt": "¿Qué problema muestra el mapeo de bytes?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Elimina necesidad de unidades"
+        },
+        {
+          "id": "B",
+          "text": "Acredita una transferencia completa"
+        },
+        {
+          "id": "C",
+          "text": "Confunde total con un sentido del tráfico"
+        },
+        {
+          "id": "D",
+          "text": "Demuestra duplicación exacta de paquetes"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L16](../../05_RECURSOS/LABORATORIOS/RED-L16.md)\n- [Guía de laboratorio RED-L20](../../05_RECURSOS/LABORATORIOS/RED-L20.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **CIM**: [Overview of the Splunk Common Information Model](https://help.splunk.com/en/data-management/common-information-model/6.4/introduction/overview-of-the-splunk-common-information-model). Modelo y normalización; etiqueta no demuestra conformidad.\n- **DCR**: [Data collection rules in Azure Monitor](https://learn.microsoft.com/en-us/azure/azure-monitor/data-collection/data-collection-rule-overview). Recolección y transformación; DCR no se equipara a un modelo CIM.\n- **NIST-IR**: [SP 800-61 Rev. 3](https://csrc.nist.gov/pubs/sp/800/61/r3/final). Contexto de preparación, detección, respuesta y recuperación.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "1c17c9f7919f363d596e7be1"
+}

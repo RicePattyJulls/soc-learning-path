@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-05-L01",
+  "title": "Objetos, pipeline y help",
+  "sourceHash": "447e57cd9b10b8fc0958f8cd097d0ac9531d77ec546ab5805e96cb3afe07e0a4",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-05-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nOperar con objetos y leer la ayuda antes de ejecutar cualquier comando.\n\nPrerrequisitos: `WAD-02-L03` (procesos y servicios) y `WAD-03-L03` (ACE, DACL, SACL e integridad).\n\n## 2. Comprende el mecanismo\n\nPowerShell no trabaja con **texto**: trabaja con **objetos**. Un comando devuelve objetos con **propiedades**, y el **pipeline** (el carácter `|`) pasa esos objetos al siguiente comando, no una cadena de caracteres. Esta diferencia explica casi todas las sorpresas:\n\n- Si se **filtra por texto**, se compara lo que se imprime; si se **filtra por propiedad**, se compara el dato real. Filtrar por texto falla en cuanto el formato cambia de ancho o de idioma.\n- **`Get-Member`** revela qué propiedades y métodos tiene el objeto que llega por el pipeline; es la forma de dejar de adivinar.\n- Los comandos siguen una convención **Verbo-Sustantivo**. El sustantivo dice sobre qué actúan y el verbo, con qué intención.\n\nLa segunda pieza es la **disciplina de lectura antes de la ejecución**. Todo comando tiene ayuda consultable, con ejemplos. En un entorno de operación segura, ejecutar «a ver qué pasa» es exactamente lo que no se hace: primero se lee qué hace, qué parámetros acepta y qué efectos declara. Esto enlaza con la distinción de la etapa 2 entre **leer** y **cambiar**: un verbo de consulta no altera estado; un verbo de acción, sí.\n\nY una advertencia de seguridad que conviene fijar: la **política de ejecución** no es una frontera de seguridad. Solo limita cómo se cargan los scripts; no impide que un comando haga daño si tiene permisos para hacerlo.\n\n### Vocabulario de apoyo\n\n- **Objeto**: valor estructurado con propiedades y métodos.\n- **Pipeline**: encadenamiento que pasa objetos de un comando al siguiente.\n- **Propiedad**: dato con nombre dentro de un objeto.\n- **Get-Member**: comando que enumera propiedades y métodos del objeto recibido.\n- **Política de ejecución**: ajuste que gobierna la carga de scripts; no es una frontera de seguridad.\n- **Verbo-Sustantivo**: convención de nombres de los comandos.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-05-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: una consulta «funciona» cuando se imprime, pero al filtrar los servicios detenidos no devuelve nada. El equipo cree que no hay servicios detenidos.\n\nEl filtro se estaba aplicando sobre el **texto** mostrado, no sobre la propiedad del **objeto**. Al cambiar la comparación de texto por una comparación de propiedad —la que `Get-Member` muestra en el objeto recibido— aparecen los servicios esperados. La conclusión acota la zona —«el filtro estaba mal planteado, no faltaban datos»— y evita la conclusión peligrosa de que un sistema limpio no tiene servicios detenidos.\n\n"
+    },
+    {
+      "id": "WAD-05-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Un inventario por propiedades se puede filtrar y comparar; uno por texto se rompe con el idioma o el ancho de columna.\n- Red Team autorizado: Leer la ayuda antes de ejecutar evita dejar rastro de cambios involuntarios durante una prueba.\n- Evidencia de la etapa: Inventario en objetos con la propiedad de estado identificada.\n- Criterio de dominio: Distingue los comandos de consulta de los de cambio antes de ejecutarlos.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB03](../../05_RECURSOS/LABORATORIOS/WAD-LAB03.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **PWSH**: [What is PowerShell?](https://learn.microsoft.com/en-us/powershell/scripting/overview). Modelo de objetos y uso general.\n- **PIPE**: [about_Pipelines](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_pipelines). Qué circula por el pipeline.\n- **HELP**: [Get-Help](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/get-help). Consulta de ayuda y ejemplos.\n- **GETMEMBER**: [Get-Member](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/get-member). Propiedades y métodos de un objeto.\n- **WHERE**: [Where-Object](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/where-object). Filtrado por propiedad.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-05-L01-P01",
+    "prompt": "Describe cómo construirías un inventario de servicios como objetos y cómo filtrarías después solo los que están detenidos: qué comandos usarías en cada paso, cómo comprobarías en qué propiedad está el estado y por qué el filtrado no debe hacerse sobre el texto impreso. No hace falta ejecutar nada: razona la construcción por pasos.",
+    "markdown": "## 4. Práctica individual\n\nDescribe cómo construirías un **inventario de servicios como objetos** y cómo filtrarías después solo los que están detenidos: qué comandos usarías en cada paso, cómo comprobarías en qué propiedad está el estado y por qué el filtrado **no** debe hacerse sobre el texto impreso. No hace falta ejecutar nada: razona la construcción por pasos.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber ejecutado los comandos en un sistema real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-05-L01-Q01",
+      "prompt": "¿Qué transporta el pipeline de PowerShell de un comando al siguiente?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Texto plano ya formateado"
+        },
+        {
+          "id": "B",
+          "text": "Objetos con sus propiedades"
+        },
+        {
+          "id": "C",
+          "text": "Nombres de archivos del sistema"
+        },
+        {
+          "id": "D",
+          "text": "Cadenas en formato JSON únicamente"
+        }
+      ]
+    },
+    {
+      "id": "WAD-05-L01-Q02",
+      "prompt": "¿Qué haces primero con un comando que no conoces?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Ejecutarlo con el parámetro de forzar"
+        },
+        {
+          "id": "B",
+          "text": "Ejecutarlo y observar qué ocurre"
+        },
+        {
+          "id": "C",
+          "text": "Consultar su ayuda y sus ejemplos antes de ejecutarlo"
+        },
+        {
+          "id": "D",
+          "text": "Guardarlo en un archivo y ejecutarlo con permisos elevados"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB03](../../05_RECURSOS/LABORATORIOS/WAD-LAB03.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **PWSH**: [What is PowerShell?](https://learn.microsoft.com/en-us/powershell/scripting/overview). Modelo de objetos y uso general.\n- **PIPE**: [about_Pipelines](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_pipelines). Qué circula por el pipeline.\n- **HELP**: [Get-Help](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/get-help). Consulta de ayuda y ejemplos.\n- **GETMEMBER**: [Get-Member](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/get-member). Propiedades y métodos de un objeto.\n- **WHERE**: [Where-Object](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/where-object). Filtrado por propiedad.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "178cbe9eec3d540b61d2c7da"
+}

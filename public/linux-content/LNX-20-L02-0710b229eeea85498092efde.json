@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-20-L02",
+  "title": "Configuración efectiva y prueba",
+  "sourceHash": "d1821a51986c11a8c88d7929711fc434b9eabee4d6b06e25298b4bf3ab860b03",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-20-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nEvaluar la configuración efectiva de SSH con `sshd -t`, `sshd -T` y `sshd -T -C`, y probarla sin perder acceso.\n\nPrerrequisitos: `LNX-20-L01` (Autenticación del servidor ≠ del usuario).\n\n## 2. Comprende el mecanismo\n\nLa configuración que gobierna SSH no es «el último archivo que se leyó», sino la configuración **efectiva** tras incluir fragmentos, aplicar precedencias y evaluar las reglas `Match`. Leer un archivo no basta: hay que comprobar el resultado que el servidor usaría.\n\nTres herramientas ordenan la comprobación del servidor. `sshd -t` valida sintaxis y llaves sin arrancar el servicio. `sshd -T` imprime la configuración efectiva. `sshd -T -C` evalúa además las reglas `Match` que dependen de parámetros de conexión como usuario, host, origen o puerto.\n\nUn aviso importante: `sshd -T` sin `-C` no sustituye probar los `Match` de todos los usuarios y orígenes, y las opciones disponibles varían según la versión. Muchas distribuciones cargan `/etc/ssh/sshd_config.d/*.conf` mediante `Include`, con reglas de precedencia: hay que validar el resultado efectivo, no la intención del editor.\n\nEn el cliente, `ssh -G host` muestra la configuración efectiva del cliente: de dónde salen los parámetros. Confundir la configuración del cliente con la del servidor es un error frecuente, porque son ficheros y lógicas distintas (`ssh_config` frente a `sshd_config`).\n\nUn cambio seguro exige consola OOB o una segunda sesión abierta, copia y *checksum* del fichero, `sshd -t` más `-T -C`, recarga según la distro y una sesión nueva en paralelo desde un origen permitido. Solo entonces se cierra la sesión previa. Nunca se cambian SSH y firewall a la vez sin pruebas intermedias.\n\nLa regla es validar la configuración efectiva y probar el acceso real. El límite: un `sshd -t` correcto no demuestra que las reglas `Match` de todos los usuarios estén bien; eso requiere `-T -C` y pruebas controladas.\n\n### Vocabulario de apoyo\n\n- **Configuración efectiva**: resultado tras incluir fragmentos, precedencias y reglas `Match`.\n- **`sshd -t`**: comprobación de sintaxis y llaves sin arrancar el servicio.\n- **`sshd -T`**: impresión de la configuración efectiva del servidor.\n- **`sshd -T -C`**: evaluación de `Match` según parámetros de conexión.\n- **`Include`**: directiva que carga fragmentos de configuración con precedencia.\n- **Consola OOB**: acceso fuera de banda para no perder el control del host.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-20-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un administrador edita un fragmento en `/etc/ssh/sshd_config.d/` y, tras `sshd -t` sin errores, afirma que la política ya se aplica a todos los usuarios, sin comprobar la configuración efectiva ni las reglas `Match`.\n\nLa conclusión se apoya en una prueba insuficiente. `sshd -t` valida la sintaxis y las llaves, no el resultado efectivo: otro fragmento cargado después por `Include` puede cambiar una opción, y las reglas `Match` no se muestran sin `-C`. Que el fichero sea correcto no garantiza que la política se aplique a cada usuario y origen.\n\nLa lectura correcta consulta `sshd -T`, ejecuta `sshd -T -C` con los parámetros relevantes y abre una sesión nueva en paralelo antes de cerrar la actual. El límite de la conclusión: sin evaluar los `Match` y sin prueba real de acceso, no puedes afirmar que la política se aplique a todos los usuarios.\n\n"
+    },
+    {
+      "id": "LNX-20-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Distinguir «archivo editado» de «configuración efectiva» al investigar un cambio de SSH.\n- Red Team autorizado: Comprobar la política real por usuario y origen dentro del alcance autorizado.\n- Evidencia de la etapa: Salidas de `sshd -t`, `sshd -T`, `sshd -T -C`, copia con checksum y resultado de la sesión de prueba.\n- Criterio de dominio: Exige prueba real de acceso y evaluación de `Match` antes de afirmar que una política se aplica.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB25](../../05_RECURSOS/LABORATORIOS/LNX-LAB25.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F82**: [sshd_config(5) — OpenSSH/OpenBSD](https://man.openbsd.org/sshd_config.5). Opciones, `Include` y reglas `Match`.\n- **F83**: [sshd(8) — OpenSSH/OpenBSD](https://man.openbsd.org/sshd.8). Modos `-t`, `-T` y `-C` del daemon.\n- **F85**: [ssh_config(5) — OpenSSH/OpenBSD](https://man.openbsd.org/ssh_config.5). Configuración del cliente y su diferencia con la del servidor.\n- **F84**: [ssh(1) — OpenSSH/OpenBSD](https://man.openbsd.org/ssh.1). Uso de `ssh -G` y sesión de prueba.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-20-L02-P01",
+    "prompt": "Un administrador edita un fragmento en `/etc/ssh/sshd_config.d/` y, tras un `sshd -t` sin errores, afirma que la política ya se aplica a todos los usuarios, sin comprobar la configuración efectiva ni las reglas `Match`. Explica qué falta y cuál es el límite de la conclusión.",
+    "markdown": "## 4. Práctica individual\n\nUn administrador edita un fragmento en `/etc/ssh/sshd_config.d/` y, tras un `sshd -t` sin errores, afirma que la política ya se aplica a todos los usuarios, sin comprobar la configuración efectiva ni las reglas `Match`. Explica qué falta y cuál es el límite de la conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber editado la configuración de SSH ni haber accedido a servidores reales.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-20-L02-Q01",
+      "prompt": "¿Qué hace `sshd -T -C user=...,host=...,addr=...` que no hace `sshd -T`?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Reinicia el servicio automáticamente"
+        },
+        {
+          "id": "B",
+          "text": "Evalúa las reglas `Match` según los parámetros de conexión indicados"
+        },
+        {
+          "id": "C",
+          "text": "Genera nuevas host keys"
+        },
+        {
+          "id": "D",
+          "text": "Desactiva `authorized_keys`"
+        }
+      ]
+    },
+    {
+      "id": "LNX-20-L02-Q02",
+      "prompt": "Tras editar un fragmento de `sshd_config` y pasar `sshd -t`, ¿qué falta antes de cerrar la sesión actual?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Nada: `sshd -t` garantiza que todo funciona"
+        },
+        {
+          "id": "B",
+          "text": "Comprobar la configuración efectiva (`sshd -T`, `sshd -T -C`) y abrir una sesión nueva en paralelo antes de cerrar la previa"
+        },
+        {
+          "id": "C",
+          "text": "Borrar `known_hosts` del servidor"
+        },
+        {
+          "id": "D",
+          "text": "Desactivar el firewall de forma simultánea"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB25](../../05_RECURSOS/LABORATORIOS/LNX-LAB25.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F82**: [sshd_config(5) — OpenSSH/OpenBSD](https://man.openbsd.org/sshd_config.5). Opciones, `Include` y reglas `Match`.\n- **F83**: [sshd(8) — OpenSSH/OpenBSD](https://man.openbsd.org/sshd.8). Modos `-t`, `-T` y `-C` del daemon.\n- **F85**: [ssh_config(5) — OpenSSH/OpenBSD](https://man.openbsd.org/ssh_config.5). Configuración del cliente y su diferencia con la del servidor.\n- **F84**: [ssh(1) — OpenSSH/OpenBSD](https://man.openbsd.org/ssh.1). Uso de `ssh -G` y sesión de prueba.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "0710b229eeea85498092efde"
+}

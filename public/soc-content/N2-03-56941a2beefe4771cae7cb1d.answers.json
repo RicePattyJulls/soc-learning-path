@@ -1,0 +1,178 @@
+{
+  "schemaVersion": 1,
+  "courseId": "soc",
+  "id": "N2-03",
+  "sourceHash": "9959b764e2bed336ab3736794007788d5c36a38bc36c12a702d737f175d0981e",
+  "revision": "56941a2beefe4771cae7cb1d",
+  "hipotesis": [
+    "Agente comprometido con lista de destinos C2 o infraestructura que rota por DNS/CDN.",
+    "El atacante realiza nuevas conexiones manualmente desde el mismo host y conserva privilegios.",
+    "Proxy corporativo, NAT o almacenamiento cloud hacen que varios destinos representen una sola aplicación legítima.",
+    "Un segundo proceso usa HTTPS, DNS, túnel o servicio en la nube como canal alternativo.",
+    "Varias reglas de firewall no se aplican al trayecto real; el tráfico pasa por otro egress/proxy.",
+    "El origen real es un host vecino y una IP compartida/NAT está induciendo atribución equivocada."
+  ],
+  "pasos": [
+    {
+      "fase": "0. Reafirmar la contención y confirmar el mismo activo",
+      "accion": "Comparar SourceIP, identidad, proceso, flujo, timestamp y NAT antes de asumir que es el mismo atacante. A la vez, mantener escalado crítico."
+    },
+    {
+      "fase": "1. Aplicar aislamiento basado en origen",
+      "accion": "Si hay autoridad y urgencia, aislar el host desde EDR o a nivel de red. Cuando el servidor deba seguir operando, denegar de manera predeterminada el egreso desde su segmento/identidad de host y crear una lista mínima de destinos corporativos aprobados."
+    },
+    {
+      "fase": "2. Evitar el «whack-a-mole» de IPs",
+      "accion": "Una IP blocklist sirve como IOC inicial, pero no como único control. Controlar acceso a Internet, proxys, DNS externo, VPN, rutas alternativas e IPv6; validar que la política cubra NAT y recursos multihomed."
+    },
+    {
+      "fase": "3. Proteger las credenciales relevantes",
+      "accion": "Identificar service principals, cuentas de servicio, access keys, tokens y credenciales de proxy usadas desde el host. Coordinar revocación/rotación en orden para que otros equipos no sean reutilizados y para no interrumpir indebidamente aplicaciones."
+    },
+    {
+      "fase": "4. Correlacionar con proceso e identidad",
+      "accion": "En EDR buscar conexiones por PID/proceso, cuenta, parent process, ruta y hashes. Distinguir software legítimo comprometido de proceso malicioso; un nombre aparentemente correcto no valida un binario."
+    },
+    {
+      "fase": "5. Cazar el mismo patrón en otros activos",
+      "accion": "Buscar otros hosts que contactaron destinos observados, nuevas conexiones periódicas, egreso inusual y las mismas identidades. No asumir que impedir un host detuvo toda la campaña."
+    },
+    {
+      "fase": "6. Verificar bloqueo multi-canal",
+      "accion": "Observar tráfico permitido y denegado en firewall/proxy, eventos de EDR y rutas DNS. Comprobar si el volumen total desde el origen cae y que no surge nuevo egreso a través de un proxy autorizado."
+    },
+    {
+      "fase": "7. Investigar persistencia y acceso inicial",
+      "accion": "Revisar procesos, servicios/timers, tareas, accesos, modificaciones, módulos y credenciales comprometidas. Preservar evidencia antes de erradicar; reinicio no es plan de erradicación."
+    },
+    {
+      "fase": "8. Recuperar con control",
+      "accion": "Si se confirma compromiso de sistema, preparar reconstrucción desde imagen conocida y secretos rotados; ejecutar pruebas y seguimiento temporal para verificar que no reaparecen destinos o comportamientos."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "Secuencia temporal de varias IP de destino",
+      "lectura": "La rotación de destino con mismo host/volumen aumenta sospecha; hay que considerar CDN y balanceo."
+    },
+    {
+      "dato": "EDR: mismo InitiatingProcessId + creación + cuenta",
+      "lectura": "Permite vincular conexiones a un mismo proceso; PID solo no es identidad estable entre reinicios."
+    },
+    {
+      "dato": "Proxy, DNS y SNI/HTTP host cuando legalmente disponible",
+      "lectura": "Ayuda a atribuir dominios y servicios, pero TLS 1.3/ECH y proxies limitan visibilidad."
+    },
+    {
+      "dato": "NAT y dirección IP real por segmento",
+      "lectura": "Evita tratar traducciones o IP compartidas como actores distintos."
+    },
+    {
+      "dato": "Control aplicado: egress ACL/firewall + auditoría de cambios",
+      "lectura": "Prueba qué rutas eran alcanzables y qué excepciones se permitieron."
+    },
+    {
+      "dato": "Cuenta/token y otros hosts que lo usan",
+      "lectura": "Permite detectar reutilización de identidades comprometidas; no exponer secretos en SIEM."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Sentinel / Log Analytics · pivote por origen y destinos cambiantes",
+      "entorno": "CommonSecurityLog ingerido desde firewall de egreso; campos SourceIP, DestinationIP, DestinationPort, SentBytes configurados.",
+      "consulta": "CommonSecurityLog\n| where TimeGenerated > ago(1h)\n| where SourceIP == \"10.60.5.10\"\n| summarize primera=min(TimeGenerated), ultima=max(TimeGenerated),\n            eventos=count(), bytes_fuera=sum(tolong(SentBytes)),\n            acciones=make_set(DeviceAction, 10)\n  by DestinationIP, DestinationPort\n| extend mib=round(toreal(bytes_fuera)/1048576.0,2)\n| order by ultima desc",
+      "interpretacion": "Da un listado de destinos observados y primer/último instante, para relacionarlo con el bloqueo inicial.",
+      "limitaciones": "No identifica por sí mismo C2; destinos pueden corresponder a CDN, servicios y proxies. Ventana y campos NAT deben revisarse."
+    },
+    {
+      "nombre": "Defender XDR · una misma identidad/proceso hacia múltiples IP",
+      "entorno": "MDE y DeviceNetworkEvents; DeviceName puede ser FQDN; analizar ActionType en la consola.",
+      "consulta": "DeviceNetworkEvents\n| where Timestamp > ago(2h)\n| where DeviceName startswith \"DB-PRD-01\"\n| summarize destinos=dcount(RemoteIP), ips=make_set(RemoteIP, 50),\n            puertos=make_set(RemotePort, 20),\n            primera=min(Timestamp), ultima=max(Timestamp), eventos=count()\n  by DeviceName, InitiatingProcessFileName,\n     InitiatingProcessCommandLine, InitiatingProcessAccountName\n| where destinos >= 2\n| order by destinos desc",
+      "interpretacion": "Agrupa conexiones que podrían compartir origen lógico; prioriza procesos que cambian frecuentemente de destino.",
+      "limitaciones": "La agrupación por comando no garantiza que sea el mismo proceso; para eso agregar PID + ProcessCreationTime/ProcessUniqueId disponible y revisar cobertura."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk CIM Network_Traffic · mapa de destinos por servidor",
+      "entorno": "CIM All_Traffic mapeado; bytes_out no está presente en todos los firewalls; cambiar IP didáctica.",
+      "consulta": "| tstats count sum(All_Traffic.bytes_out) as bytes_fuera\n  from datamodel=Network_Traffic.All_Traffic\n  where earliest=-2h latest=now All_Traffic.src=\"10.60.5.10\"\n  by All_Traffic.dest All_Traffic.dest_port All_Traffic.action\n| rename All_Traffic.* as *\n| sort - bytes_fuera",
+      "interpretacion": "Revela amplitud de destinos y el resultado de reglas por destino.",
+      "limitaciones": "Al cambiar IPs de egreso/proxy puede requerirse una correlación por host, usuario o NAT que CIM por sí solo no ofrece."
+    },
+    {
+      "nombre": "Splunk CIM Network_Traffic · velocidad de aparición de nuevos destinos",
+      "entorno": "Requiere fuentes con eventos de conexiones representativos y All_Traffic.dest normalizado.",
+      "consulta": "| tstats min(_time) as primer_contacto count as eventos\n  from datamodel=Network_Traffic.All_Traffic\n  where earliest=-2h latest=now All_Traffic.src=\"10.60.5.10\"\n  by All_Traffic.dest\n| rename All_Traffic.dest as dest\n| eval primer_contacto=strftime(primer_contacto, \"%Y-%m-%d %H:%M:%S %Z\")\n| sort primer_contacto",
+      "interpretacion": "Ordena los nuevos destinos para cotejar con cada decisión de bloqueo.",
+      "limitaciones": "La búsqueda mira solo la ventana seleccionada: «primer contacto» es primer registro visible, no primera vez histórica del destino."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Linux — solo lectura",
+      "proposito": "Revisar sockets establecidos y proceso asociado; no es el método primario de contención.",
+      "comando": "sudo ss -tunap state established"
+    },
+    {
+      "entorno": "Linux — solo lectura",
+      "proposito": "Resolver contexto del PID seleccionado sin borrar ni detener.",
+      "comando": "sudo ps -o pid,ppid,user,lstart,args -p 1234"
+    },
+    {
+      "entorno": "Linux — solo lectura",
+      "proposito": "Listar timers y servicios activos para orientar búsqueda de persistencia.",
+      "comando": "systemctl list-timers --all --no-pager"
+    },
+    {
+      "entorno": "Linux — solo lectura",
+      "proposito": "Observar rutas IPv4 e IPv6 sin introducir cambios en red.",
+      "comando": "ip route show; ip -6 route show"
+    }
+  ],
+  "contencion": "Preferir aislar el activo / reducir egreso mediante listas de destinos explícitamente autorizados y revisar acceso a proxies/DNS/IPv6. La salida 443 abierta a todo Internet equivale a permitir otra ruta para muchos tipos de exfiltración. Una regla temporal de bloqueo específica puede ser necesaria como primera medida, pero su cobertura se valida en el firewall que realmente ve el flujo. Se requieren aprobación, comprobación y rollback definidos; no borrar evidencias o procesos sin preservar el contexto.",
+  "escalation": [
+    "Reaparición de flujos tras una regla de bloqueo.",
+    "El mismo proceso/identidad contacta múltiples destinos no autorizados.",
+    "Aparición de otros hosts con un patrón equivalente.",
+    "Borrado de logs, evasión de proxy o saltos de seguridad.",
+    "Necesidad de restringir egreso de segmentos completos o rotar credenciales de servicio."
+  ],
+  "falsos_positivos": [
+    "CDN y DNS geo-distribuido con muchas IP de un mismo servicio autorizado.",
+    "Proxy de seguridad con un origen aparente común por NAT.",
+    "Balanceadores con rotación de IP y servicio legítimo respaldado por cambio aprobado.",
+    "Actualización de agente de seguridad/proveedor de backups que usa varios endpoints.",
+    "Picos al reconectar tras un corte, con contadores de bytes diferidos."
+  ],
+  "errores": [
+    "Añadir IPs a una blocklist indefinidamente sin contener el origen.",
+    "Ignorar IPv6, otro proxy o una interfaz secundaria.",
+    "Confiar en que bloqueo de 443 externo no rompa una dependencia legítima; validar.",
+    "Atribuir una IP de CDN compartida a un atacante sin evidencias adicionales.",
+    "Asumir que matar PID es erradicación y no buscar servicio/tarea que lo recrea.",
+    "No comprobar que la política alcanzó el punto de egreso correcto."
+  ],
+  "perspectiva_red_team": "Infraestructura de mando y exfiltración puede cambiar de IP o servicio sin modificar el origen comprometido. Esta es una limitación defensiva del IOC aislado; el patrón comportamental, la identidad, el proceso y las restricciones de egreso son controles más estables. Desde Blue Team se investiga primero la continuidad del flujo, luego el mecanismo que le permitió persistir.",
+  "respuesta_entrevista": "Dejaría de perseguir cada IP como defensa principal. Contendría el servidor o su identidad de red con una política de egreso restrictiva y solo excepciones empresariales necesarias. Correlacionaría en firewall, proxy, DNS y EDR los procesos, cuentas y destinos cambiantes, revisaría otros hosts y rotaría secretos afectados de manera coordinada. Verificaría que no queda ruta alternativa, incluyendo proxies e IPv6, antes de hablar de contención eficaz; después pasaría a erradicación y recuperación.",
+  "criterios_evaluacion": [
+    "Diferencia un IOC efímero de un control eficaz basado en origen.",
+    "Propone aislamiento/allowlist/egreso mínimo.",
+    "Correlaciona proceso, identidad, proxy y DNS.",
+    "Comprueba rutas y otras interfaces/hosts.",
+    "Separa contención, erradicación y validación de recuperación."
+  ],
+  "mitre": [
+    "T1071 (Application Layer Protocol, hipótesis)",
+    "T1567 (Exfiltration Over Web Service, hipótesis)",
+    "T1090 (Proxy, si hay evidencia)",
+    "T1041 (Exfiltration Over C2 Channel, hipótesis)"
+  ],
+  "fuentes": [
+    "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-devicenetworkevents-table",
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/commonsecuritylog",
+    "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.1/data-models/network-traffic",
+    "https://learn.microsoft.com/en-us/defender-endpoint/network-isolation-exclusions"
+  ]
+}

@@ -1,0 +1,179 @@
+{
+  "id": "N2-12",
+  "nivel": "N2",
+  "bloque": "Threat Hunting y SIEM",
+  "titulo": "PowerShell codificado: decodificar para analizar sin ejecutar",
+  "pregunta": "Tu SIEM registra un proceso powershell.exe ejecutado con argumentos codificados. ¿Cómo investigarías su contenido y su cadena de ejecución sin ejecutar código sospechoso?",
+  "escenario": "A las 02:18 un EDR detecta `powershell.exe` con `-EncodedCommand` lanzado desde una tarea programada en WS-42, equipo de finanzas. El parámetro codificado aparece truncado en el SIEM. Dos minutos después hay una conexión HTTPS hacia un destino no inventariado. El propietario indica que su organización usa scripts firmados de mantenimiento, pero no reconoce esa tarea.",
+  "objetivo": "Determinar exactamente qué comando se intentó ejecutar y bajo qué identidad, con qué proceso padre y efectos observados; analizar el contenido en un canal seguro y aislado sin evaluarlo ni activar payloads, y documentar los límites de comandos truncados o logs inexistentes.",
+  "hipotesis": [
+    "Script administrativo legítimo empaquetado como Base64 UTF-16LE para ejecución remota.",
+    "Ejecución de PowerShell con carga ofuscada para evadir controles y/o descargar segunda etapa.",
+    "Un instalador o RMM corporativo usa `-EncodedCommand` por compatibilidad de argumentos.",
+    "El string Base64 ha sido truncado por colector/SIEM y decodificarlo parcialmente puede ser engañoso.",
+    "La conexión a Internet pertenece a otro proceso, navegador o servicio: proximidad temporal no es atribución."
+  ],
+  "pasos": [
+    {
+      "fase": "1 · Preservar y acotar",
+      "accion": "Registrar DeviceId, host, cuenta, timestamp, ProcessId + ProcessCreationTime, ReportId y cadena original. Recuperar evento íntegro desde EDR antes de depender de un campo truncado de SIEM; preservar 4688/Sysmon 1, 4104 si estaba habilitado."
+    },
+    {
+      "fase": "2 · Investigar proceso padre",
+      "accion": "Construir árbol: tarea, servicio, intérprete, script host, proceso final; vincular con tiempo de creación. Un PID solo no es identificador estable por su reutilización. Buscar propietario de la tarea y ticket de despliegue."
+    },
+    {
+      "fase": "3 · Interpretar sintaxis",
+      "accion": "Identificar `-EncodedCommand` o abreviaturas dentro de la línea. El argumento de `powershell.exe -EncodedCommand` normalmente es Base64 de texto UTF-16LE; Base64 es codificación, no cifrado."
+    },
+    {
+      "fase": "4 · Decodificar en análisis sin ejecución",
+      "accion": "Sobre copia forense, convertir Base64 a bytes y mostrar UTF-16LE en un entorno sin red y sin evaluación de contenido. No pegar el texto en consola PowerShell para ejecutarlo, no ejecutar Invoke-Expression, no importar módulos de la muestra y evitar analizadores online que filtren secretos."
+    },
+    {
+      "fase": "5 · Examinar intenciones y límites",
+      "accion": "Buscar llamadas a red, manipulación de defensas, credenciales, persistencia, descargas, reflection o ejecución en memoria. No confundir una palabra sospechosa con ejecución real: valida 4104, procesos hijos y efectos observados."
+    },
+    {
+      "fase": "6 · Correlacionar actividad de red",
+      "accion": "Vincular con DeviceNetworkEvents por DeviceId, PID y CreationTime del proceso iniciador, no solo por host y cinco minutos. Revisar HTTPS, DNS, volumen y reputación; si no hay telemetría, declarar atribución no confirmada."
+    },
+    {
+      "fase": "7 · Determinar alcance",
+      "accion": "Buscar mismo SHA1/commandline, cuenta o tarea en otras estaciones, compararlo con scripts firmados aprobados y analizar origen de fichero/archivo/MOTW si aplica."
+    },
+    {
+      "fase": "8 · Aplicar medidas proporcionales",
+      "accion": "Ante ejecución activa de carga dañina, solicitar aislamiento o restricción de la tarea/activo vía EDR/playbook, con preservación de evidencias y comunicación al equipo de operaciones. Evitar simplemente matar PowerShell y cerrar."
+    },
+    {
+      "fase": "9 · Concluir y mejorar cobertura",
+      "accion": "Documentar decodificación sin ejecución, árbol, procesos, destino, cualquier telemetría perdida, responsable de scripts y oportunidades de Script Block Logging/AMSI y política de firma. Anotar datos sensibles en sistema restringido."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "DeviceProcessEvents: ProcessCommandLine, FileName, ProcessId, ProcessCreationTime",
+      "lectura": "Comando inicial y argumentos. Algunos sensores truncan o censuran parámetros."
+    },
+    {
+      "dato": "DeviceProcessEvents: InitiatingProcess* y AccountName",
+      "lectura": "Atribución de padre, usuario y contexto; validar por PID más hora de creación."
+    },
+    {
+      "dato": "PowerShell/Operational 4104: ScriptBlockText, ScriptBlockId",
+      "lectura": "Puede conservar contenido que el intérprete procesó, si Script Block Logging estaba habilitado y recolectado. Cuidado con secretos."
+    },
+    {
+      "dato": "Windows Security 4688 / Sysmon ID 1",
+      "lectura": "Eventos de creación de procesos; línea de comandos en 4688 exige habilitar la opción de auditoría correspondiente."
+    },
+    {
+      "dato": "DeviceNetworkEvents: InitiatingProcessId/CreationTime, RemoteUrl, RemoteIP",
+      "lectura": "Permite asociar conexiones a un proceso (cuando sensor registra conexión); conexión no revela automáticamente contenido HTTPS."
+    },
+    {
+      "dato": "Tarea/servicio que lo lanzó + firma/hash",
+      "lectura": "Diferencia mantenimiento aprobado de actividad no autorizada; firma no implica inocuidad del script."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Defender XDR · buscar procesos con argumento codificado",
+      "entorno": "DeviceProcessEvents de Defender XDR con telemetría MDE; buscar variantes documentadas del argumento y revisar salida completa.",
+      "consulta": "DeviceProcessEvents\n| where Timestamp >= ago(7d)\n| where FileName in~ (\"powershell.exe\", \"pwsh.exe\")\n| where ProcessCommandLine contains \"-EncodedCommand\"\n    or ProcessCommandLine contains \" -enc \"\n    or ProcessCommandLine contains \" -e \"\n| project Timestamp, DeviceName, DeviceId, AccountName,\n          ProcessId, ProcessCreationTime, ProcessCommandLine,\n          InitiatingProcessFileName, InitiatingProcessCommandLine,\n          InitiatingProcessId, InitiatingProcessCreationTime\n| order by Timestamp desc",
+      "interpretacion": "Da punto de partida para reconstruir línea de ejecución y extraer el texto codificado preservando copia del comando.",
+      "limitaciones": "Patrones no cubren todas las abreviaturas, sintaxis sin espacios, obfuscación, PowerShell embebido ni comandos truncados. `pwsh.exe` tiene versiones/comportamientos propios."
+    },
+    {
+      "nombre": "Defender XDR · correlación red-proceso por PID y creación",
+      "entorno": "MDE DeviceNetworkEvents y un host conocido; reemplazar WS-42 por nombre real tras validar. No usa tablas Sentinel ajenas.",
+      "consulta": "DeviceNetworkEvents\n| where Timestamp >= ago(7d)\n| where DeviceName =~ \"WS-42\"\n| where InitiatingProcessFileName in~ (\"powershell.exe\", \"pwsh.exe\")\n| project Timestamp, DeviceName, InitiatingProcessFileName,\n          InitiatingProcessId, InitiatingProcessCreationTime,\n          InitiatingProcessCommandLine, RemoteIP, RemoteUrl,\n          RemotePort, ActionType\n| order by Timestamp desc",
+      "interpretacion": "Identifica eventos de red atribuidos a PowerShell; correlacionar con la instancia exacta de proceso.",
+      "limitaciones": "No prueba descarga/exfiltración. Nombre WS-42 didáctico y cobertura depende de sensor/licencia; acción de red puede fallar o estar bloqueada."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk · buscar PowerShell codificado",
+      "entorno": "index=edr supone exportación MDE/Sysmon normalizada con process_name, process y parent_process; adaptar extracción.",
+      "consulta": "index=edr earliest=-7d (process_name=\"powershell.exe\" OR process_name=\"pwsh.exe\")\n(\"-EncodedCommand\" OR \" -enc \" OR \" -e \")\n| table _time host user process_name process parent_process process_id process_guid\n| sort - _time",
+      "interpretacion": "Devuelve líneas completas potencialmente codificadas y padres. Inspeccionar evento bruto si el comando está truncado.",
+      "limitaciones": "No hay index ni normalización universales; un string textual no captura todas las variantes. El entorno debe aplicar controles para no exponer secretos de las líneas."
+    },
+    {
+      "nombre": "Splunk · evento 4104 PowerShell Script Block Logging",
+      "entorno": "index=wineventlog ingesta el canal Microsoft-Windows-PowerShell/Operational y campo Message/ScriptBlockText.",
+      "consulta": "index=wineventlog earliest=-7d (EventCode=4104 OR EventID=4104)\n| eval bloque=coalesce(ScriptBlockText,Message)\n| table _time host user EventCode ScriptBlockId bloque\n| sort - _time",
+      "interpretacion": "Busca bloques procesados y los preserva para análisis estático, con restricciones de acceso.",
+      "limitaciones": "4104 no existe si logging no estaba activo o no se ingesta. Contiene potencialmente secretos; no exportar fuera del repositorio forense."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Python 3 en laboratorio sin red — decodificación estática",
+      "proposito": "Leer cadena Base64 de fichero autorizado y mostrar texto UTF-16LE sin ejecución. No usar servicios web.",
+      "comando": "# Guardar SOLO la cadena Base64 en /ruta/segura/cadena.b64.\nfrom pathlib import Path\nimport base64\nraw = Path('/ruta/segura/cadena.b64').read_text(encoding='ascii').strip()\ntexto = base64.b64decode(raw, validate=True).decode('utf-16-le', errors='strict')\nprint(texto)  # Solo muestra texto; NO lo ejecuta."
+    },
+    {
+      "entorno": "PowerShell autorizado — solo lectura",
+      "proposito": "Consulta de eventos 4104 en el endpoint para cotejar Script Block Logging.",
+      "comando": "Get-WinEvent -FilterHashtable @{\n  LogName='Microsoft-Windows-PowerShell/Operational'\n  Id=4104\n  StartTime=(Get-Date).AddDays(-2)\n} -MaxEvents 100 | Select-Object TimeCreated,RecordId,Message"
+    },
+    {
+      "entorno": "PowerShell autorizado — solo lectura",
+      "proposito": "Verificar la tarea señalada sin ejecutarla.",
+      "comando": "Get-ScheduledTask | Where-Object TaskName -match 'Update|Maintenance' |\n  Select-Object TaskName,TaskPath,State,Actions,Principal"
+    }
+  ],
+  "contencion": "No ejecutar ni «probar» el comando codificado, ni siquiera si parece benigno. Ante ejecución maliciosa comprobada o alta confianza, seguir playbook de aislamiento/contención de endpoint y control de tareas, registrando antes el objeto original y procesos. Determinar si hay credenciales comprometidas, reglas persistentes o tráfico C2; preservar la capacidad de restauración y compartir hallazgos de forma restringida.",
+  "escalation": [
+    "Comando decodificado contiene intención de descarga/ejecución no autorizada y la telemetría confirma consecuencias.",
+    "Proceso lanzado desde tarea desconocida por identidad privilegiada.",
+    "Secuencia proceso → red con destino sospechoso o actividad lateral.",
+    "Manipulación de EDR, persistencia o otros endpoints con mismo patrón.",
+    "Logs truncados impiden descartar compromiso en activo sensible."
+  ],
+  "falsos_positivos": [
+    "Software de administración remota que pasa parámetros largos como Base64.",
+    "Despliegue Intune/MECM o tarea de mantenimiento con firma y cambio aprobado.",
+    "Scripts de automatización que evitan caracteres especiales por `-EncodedCommand`.",
+    "Datos truncados provocan una decodificación incompleta que parece ofuscada.",
+    "PowerShell usó una URL corporativa de actualización, no infraestructura C2."
+  ],
+  "errores": [
+    "Copiar/pegar código sospechoso a una consola e introducirlo en Invoke-Expression.",
+    "Tratar Base64 como cifrado o IOC de malware por sí solo.",
+    "Decodificar UTF-8 por defecto en vez de UTF-16LE para `-EncodedCommand` clásico.",
+    "Unir PID sin creation time y atribuir conexiones de otro proceso.",
+    "Confundir 4104 con línea de comandos 4688.",
+    "Subir comando con secretos a un decodificador web público."
+  ],
+  "perspectiva_red_team": "La codificación cambia representación de argumentos, no concede privilegios ni invisibilidad automática. Permite transportar comandos complicados u ofuscar patrones simples; detección robusta pivota desde proceso/árbol a bloque de script, AMSI/EDR, cambios en host y red. Un análisis seguro inspecciona bytes/texto estáticamente y nunca valida el comportamiento ejecutándolo en producción.",
+  "respuesta_entrevista": "Preservaría la línea de comandos completa y reconstruiría el árbol de procesos con DeviceProcessEvents, 4688 o Sysmon 1. Extraería el argumento Base64 y lo decodificaría como UTF-16LE sobre una copia en entorno aislado, sin evaluarlo. Revisaría 4104 si estaba habilitado y correlacionaría proceso por DeviceId, PID y CreationTime con DeviceNetworkEvents. Confirmaría si la tarea pertenece a un cambio autorizado y si hay efectos de red o persistencia. Si observo impacto malicioso, escalaría IR y contendría siguiendo playbook.",
+  "criterios_evaluacion": [
+    "Distingue Base64 de cifrado y no ejecuta el contenido.",
+    "Domina Windows PowerShell -EncodedCommand y UTF-16LE.",
+    "Recupera proceso padre y posible tarea programada.",
+    "Usa 4104 condicionado a cobertura real.",
+    "No une eventos solo por PID sin CreationTime.",
+    "Verifica ejecución/evidencias y clasifica falsos positivos."
+  ],
+  "mitre": [
+    "T1059.001 — PowerShell (si hubo ejecución)",
+    "T1027 — Obfuscated Files or Information (si existe ofuscación real)"
+  ],
+  "fuentes": [
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-deviceprocessevents-table",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-devicenetworkevents-table",
+    "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_logging?view=powershell-5.1",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-best-practices",
+    "https://docs.splunk.com/Documentation/CIM/6.1.0/User/Endpoint",
+    "https://csrc.nist.gov/pubs/sp/800/61/r3/final"
+  ],
+  "procedencia": {
+    "lote": "tanda-07",
+    "archivo": "SOC-RESPONSES_TANDA-07_N2-11_a_N2-15.json",
+    "fechaRevision": "2026-10-18"
+  }
+}

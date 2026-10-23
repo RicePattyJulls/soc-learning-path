@@ -1,0 +1,39 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-13-L01",
+  "sourceHash": "8a30b12d9e52946c9099548d3e23cbc2b2b93f1d7445fb1e9a3cf754fccc3a91",
+  "questions": [
+    {
+      "id": "WAD-13-L01-Q01",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Los sitios, los vínculos entre sitios y el conocimiento de la topología que calcula el directorio».\n\nLa topología la definen los sitios, los vínculos entre ellos y las conexiones que calcula el KCC. El tamaño de la base, el número de sesiones o el nombre del sitio no deciden quién replica con quién."
+    },
+    {
+      "id": "WAD-13-L01-Q02",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Reunir evidencia de los vectores y del estado de replicación, y localizar el fallo antes de cambiar la topología».\n\nAnte una demora acotada conviene leer el estado y localizar el vector que falla antes de tocar nada. Recrear la topología, borrar objetos o deshabilitar la replicación agrava el problema y destruye la evidencia."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "`DC01` y `DC02` comparten sitio, así que el directorio los trata como réplicas con buena conectividad: el conocimiento de la topología calcula conexiones entre ellos y los cambios se intercambian con frecuencia y baja latencia, sin cruzar vínculos de sitio. La topología no la fija el nombre ni el tamaño de la base de datos, sino la pertenencia a sitios, los vínculos de sitio entre ubicaciones y las conexiones que el directorio genera y revisa. Cada partición se replica por separado, así que conviene distinguir qué partición tiene el cambio. Los datos que describirías sin tocar nada son el sitio de cada DC, las conexiones observadas, las particiones implicadas y los informes de estado. El límite: describir la topología explica el camino previsto, pero no confirma que un cambio concreto haya llegado a un destino.",
+    "rubric": [
+      {
+        "criterion": "Replicación dentro del sitio",
+        "evidence": "Sitúa `DC01` y `DC02` en el mismo sitio y describe la réplica frecuente y de baja latencia."
+      },
+      {
+        "criterion": "Qué define la topología",
+        "evidence": "Atribuye la topología a sitios, vínculos de sitio y conocimiento de la topología."
+      },
+      {
+        "criterion": "Modo lectura",
+        "evidence": "Describe particiones y conexiones sin proponer cambios de configuración."
+      },
+      {
+        "criterion": "Límite reconocido",
+        "evidence": "Admite que describir la topología no confirma la llegada de un cambio concreto."
+      }
+    ]
+  },
+  "revision": "ec4e3991ecdd81ee6fa4c73e"
+}

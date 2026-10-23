@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M03-L03",
+  "title": "SLAAC, DAD y DHCPv6",
+  "sourceHash": "2df9a490f3b6069d46e62ffa21931bfbbcd33293c2cc166ef6cb781bf67c7ef4",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M03-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nSeparar creación de dirección, detección de duplicados y configuración adicional.\n\nPrerrequisitos: [RED-M03-L02](../RED-E01/RED-M03-L02.md).\n\n## 2. Comprende el mecanismo\n\nSLAAC forma direcciones a partir de información anunciada y mecanismos del host; para los enlaces habituales se utiliza un prefijo /64 apropiado. DAD comprueba duplicidad antes de usar una dirección en condiciones normales, pero no autentica al dueño del prefijo. DHCPv6 puede asignar direcciones o información adicional según el modo y la implementación; no sustituye la función de RA para descubrir routers. Los flags A, M y O tienen funciones diferentes y no deben reducirse a una regla universal idéntica para todos los clientes.\n\n### Vocabulario de apoyo\n\n- **Link-local**: Dirección IPv6 válida dentro del enlace, que requiere identificar ese ámbito.\n- **ND, RA y DAD**: Neighbor Discovery agrupa funciones de vecindad; RA anuncia routers y DAD busca duplicidad de direcciones.\n- **SLAAC**: Autoconfiguración de direcciones mediante información anunciada en el enlace.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M03-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> RA docente: prefijo 2001:db8:10::/64, A=1; cliente forma dirección y DAD detecta otra respuesta para esa dirección.\n\nLa configuración automática no debe considerar utilizable esa dirección duplicada. Hay que revisar el conflicto y el estado final, no registrar la mera recepción del RA como éxito completo.\n\n"
+    },
+    {
+      "id": "RED-M03-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Analizar telemetría IPv6 sin analogías falsas con ARP.\n- Red Team autorizado: Verificar segmentación IPv6 en alcance aislado.\n- Evidencia del módulo: Plan de prefijos dual stack, trazas y causa raíz.\n- Criterio del módulo: Identifica dependencia ND/ICMPv6 y corrección.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L02](../../05_RECURSOS/LABORATORIOS/RED-L02.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC4291**: [RFC 4291: IPv6 Addressing Architecture](https://www.rfc-editor.org/rfc/rfc4291.html). Formato, ámbitos y tipos de direcciones IPv6.\n- **RFC8200**: [RFC 8200: Internet Protocol, Version 6](https://www.rfc-editor.org/rfc/rfc8200.html). Cabecera IPv6 y fragmentación por origen.\n- **RFC4861**: [RFC 4861: Neighbor Discovery for IPv6](https://www.rfc-editor.org/rfc/rfc4861.html). Vecinos, routers y mensajes ICMPv6.\n- **RFC4862**: [RFC 4862: IPv6 Stateless Address Autoconfiguration](https://www.rfc-editor.org/rfc/rfc4862.html). SLAAC y detección de direcciones duplicadas.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M03-L03-P01",
+    "prompt": "El cliente tiene dirección única y gateway, pero no puede resolver nombres. Identifica qué parte del proceso debes comprobar.",
+    "markdown": "## 4. Práctica individual\n\nEl cliente tiene dirección única y gateway, pero no puede resolver nombres. Identifica qué parte del proceso debes comprobar.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M03-L03-Q01",
+      "prompt": "¿Qué comprueba DAD?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El contenido de una sesión TLS"
+        },
+        {
+          "id": "B",
+          "text": "La licencia del servidor DHCP"
+        },
+        {
+          "id": "C",
+          "text": "La identidad de todos los routers"
+        },
+        {
+          "id": "D",
+          "text": "La posible duplicidad de una dirección"
+        }
+      ]
+    },
+    {
+      "id": "RED-M03-L03-Q02",
+      "prompt": "¿Qué resultado impide declarar utilizable la dirección del ejemplo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El uso de /64 en el RA"
+        },
+        {
+          "id": "B",
+          "text": "La existencia de un resolver DNS"
+        },
+        {
+          "id": "C",
+          "text": "La detección de un conflicto durante DAD"
+        },
+        {
+          "id": "D",
+          "text": "La notación hexadecimal"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L02](../../05_RECURSOS/LABORATORIOS/RED-L02.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC4291**: [RFC 4291: IPv6 Addressing Architecture](https://www.rfc-editor.org/rfc/rfc4291.html). Formato, ámbitos y tipos de direcciones IPv6.\n- **RFC8200**: [RFC 8200: Internet Protocol, Version 6](https://www.rfc-editor.org/rfc/rfc8200.html). Cabecera IPv6 y fragmentación por origen.\n- **RFC4861**: [RFC 4861: Neighbor Discovery for IPv6](https://www.rfc-editor.org/rfc/rfc4861.html). Vecinos, routers y mensajes ICMPv6.\n- **RFC4862**: [RFC 4862: IPv6 Stateless Address Autoconfiguration](https://www.rfc-editor.org/rfc/rfc4862.html). SLAAC y detección de direcciones duplicadas.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "95025929e338607dab9b80dd"
+}

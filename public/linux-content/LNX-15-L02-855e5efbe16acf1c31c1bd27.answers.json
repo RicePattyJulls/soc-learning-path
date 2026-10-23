@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-15-L02",
+  "sourceHash": "1b535d2b958ec3265b4286f1460d0cf8d9ab44fbaadc877395609d2273ec5ebb",
+  "questions": [
+    {
+      "id": "LNX-15-L02-Q01",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «El borrado se replica en ambos discos: RAID no es un respaldo versionado».\n\nEl espejo sincroniza las operaciones, así que el borrado alcanza a todos los miembros. RAID no impide el borrado, no restaura desde el segundo disco ni detecta el borrado como corrupción."
+    },
+    {
+      "id": "LNX-15-L02-Q02",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «El backup conserva versiones recuperables y un destino independiente; la réplica no».\n\nEl backup aporta versiones y un destino separado del origen. La réplica RAID refleja el estado actual, reside en el mismo conjunto y no conserva estados anteriores, por lo que no equivale a un backup aunque use varios discos."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "El espejo RAID1 replica el **estado actual**, no los estados anteriores. Cuando un proceso borra un directorio, la operación se escribe en ambos discos porque el conjunto sincroniza las operaciones; el segundo disco no guarda una versión previa, sino la misma versión ya afectada. RAID tolera el fallo de un disco físico, no un error lógico que se propaga.\n\nLímite: sin un respaldo independiente y versionado, no se puede volver al estado previo; la duplicación del espejo no aporta un historial recuperable.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Identifica que RAID tolera fallos de disco, no errores lógicos."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Explica que el borrado se replica en todos los miembros del conjunto."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Distingue réplica sincronizada de copia versionada independiente."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Reconoce que sin backup no hay retorno al estado anterior."
+      }
+    ]
+  },
+  "revision": "855e5efbe16acf1c31c1bd27"
+}

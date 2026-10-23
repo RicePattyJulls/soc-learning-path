@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-06-L03",
+  "title": "Scripts auditables y línea base",
+  "sourceHash": "f31134ca618fb8d3e6f7cf7589002bbc70b60dd4b8151bef5fb8d9ac587ecfcc",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-06-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nEscribir scripts de línea base reproducibles y auditables, y leer sus diferencias como candidatos sujetos a correlación.\n\nPrerrequisitos: `LNX-06-L02` (Globbing, separación y ficheros hostiles).\n\n## 2. Comprende el mecanismo\n\nUn script **auditable** es aquel que otra persona puede volver a ejecutar y obtener resultados comparables, entendiendo de antemano qué mide. Reproducibilidad no es un adorno: es lo que separa un dato de una anécdota. Para lograrla, el script declara sus **supuestos** —intérprete, `PATH`, directorio de trabajo, identidad y versión— en lugar de heredarlos en silencio.\n\nLa **línea base** es una foto de referencia del estado observado en un momento conocido. No es un historial ni un inventario completo: es el punto con el que comparar después. Solo tiene sentido si se toma **del mismo modo** cada vez; cambiar el script y comparar sus salidas mezclaría dos causas distintas en una misma diferencia.\n\nUn script defensivo se apoya en piezas de esta etapa y las anteriores: **cita** lo que proviene de datos —para que un nombre hostil no se reinterpret—, evita reexpandir texto, se mantiene de **solo lectura** y **valida los códigos de retorno** para no seguir como si nada cuando una lectura falla. Encadenar pasos sin comprobar el estado convierte un fallo parcial en una salida aparentemente correcta.\n\nLa evidencia se **etiqueta**: hora de la ejecución, identidad que la ejecutó, host y versión del script. Añadir una **huella** (un hash) del fichero de evidencia permite comprobar después que no se alteró. La huella acredita la integridad del fichero, no la veracidad de su contenido.\n\nAl comparar dos líneas base aparecen diferencias. Antes de llamarlas hallazgos hay que separar el **ruido del propio método** —órdenes no deterministas, marcas temporales, identificadores reutilizados— de los **cambios materiales**. Una diferencia es un **candidato**, no una intrusión.\n\nPor último, el script documenta lo que **no** cubre. Un script que calla sus límites invita a sobreinterpretar su salida. La conclusión honesta es acotada: *con este método y en este momento se observó este estado*; atribuir una causa exige correlacionar con otras fuentes que conserven tiempo.\n\n### Vocabulario de apoyo\n\n- **Script auditable**: automatización que otra persona puede repetir y comprender, con supuestos declarados.\n- **Reproducibilidad**: propiedad de obtener resultados comparables al ejecutar el mismo método.\n- **Línea base**: foto de referencia del estado observado en un momento conocido.\n- **Solo lectura**: operación que registra sin modificar el sistema ni los objetos.\n- **Código de retorno**: número que un proceso devuelve al terminar; permite validar cada paso.\n- **Huella (hash)**: resumen del contenido de un fichero que permite comprobar su integridad.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-06-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un analista ejecuta el mismo script de línea base en dos días consecutivos, compara las salidas y encuentra varias líneas distintas. Presenta el listado de diferencias como «pruebas de intrusión».\n\nEl salto es doble. Primero, el script no declaraba qué medía ni en qué orden, de modo que parte de las diferencias puede provenir de elementos no deterministas —momentos de lectura, identificadores, orden del listado— o de un contexto de ejecución distinto. Segundo, una diferencia respecto a la línea base indica **que algo cambió en lo observado**, no **por qué** ni **quién** lo cambió.\n\nLa lectura defendible es tratar cada línea divergente como un **candidato** y preguntar primero si el método era comparable —misma versión del script, mismo contexto— antes de atribuirla a un actor. El límite de la afirmación: sin versión idéntica, sin el mismo contexto y sin una fuente que conserve tiempo, el listado de diferencias solo autoriza a decir que las dos ejecuciones no coinciden.\n\n"
+    },
+    {
+      "id": "LNX-06-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Versionar el script, etiquetar su evidencia con hora e identidad y tratar cada diferencia como candidato.\n- Red Team autorizado: Recordar que un script sin supuestos declarados es un punto ciego de repetibilidad.\n- Evidencia de la etapa: Script versionado, salida con hora e identidad, huella del fichero y nota de sus límites.\n- Criterio de dominio: Distingue ruido de método y cambio material, y declara el alcance del script antes de concluir.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB05](../../05_RECURSOS/LABORATORIOS/LNX-LAB05.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F02**: [GNU Bash Reference Manual](https://www.gnu.org/software/bash/manual/bash.html). Escritura de scripts, opciones del intérprete y comprobación de estados.\n- **F14**: [POSIX.1-2024, Shell Command Language](https://pubs.opengroup.org/onlinepubs/9799919799/utilities/V3_chap02.html). Semántica normativa de listas, estados de salida y sustitución.\n- **F62**: [NIST SP 800-86](https://csrc.nist.gov/pubs/sp/800/86/final). Integración de técnicas forenses y preservación de la evidencia observada.\n- **F119**: [RHEL 9: auditing the system](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/security_hardening/auditing-the-system_security-hardening). Registro de cambios y límites del registro para correlacionar.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-06-L03-P01",
+    "prompt": "Un script de línea base se ejecuta dos días seguidos y produce diferencias que un analista presenta como indicios de intrusión. Explica qué debe garantizar un script auditable para que esas diferencias sean interpretables y cuál es el límite de la conclusión.",
+    "markdown": "## 4. Práctica individual\n\nUn script de línea base se ejecuta dos días seguidos y produce diferencias que un analista presenta como indicios de intrusión. Explica qué debe garantizar un script auditable para que esas diferencias sean interpretables y cuál es el límite de la conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber desplegado un script de línea base real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-06-L03-Q01",
+      "prompt": "¿Qué hace que un script de línea base sea auditable?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que tenga la menor cantidad de líneas posible para revisarlo rápido"
+        },
+        {
+          "id": "B",
+          "text": "Que se ejecute siempre con privilegios administrativos"
+        },
+        {
+          "id": "C",
+          "text": "Que oculte los errores para que la salida quede limpia"
+        },
+        {
+          "id": "D",
+          "text": "Que declare sus supuestos, valide los códigos de retorno y produzca evidencia etiquetada y reproducible"
+        }
+      ]
+    },
+    {
+      "id": "LNX-06-L03-Q02",
+      "prompt": "Dos ejecuciones del mismo script de línea base muestran diferencias. ¿Cuál es la conclusión más defendible?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El host fue comprometido necesariamente entre las dos ejecuciones"
+        },
+        {
+          "id": "B",
+          "text": "Las diferencias no aportan nada y deben descartarse"
+        },
+        {
+          "id": "C",
+          "text": "Son candidatos a cambio que hay que correlacionar, porque el método también puede aportar ruido o supuestos no declarados"
+        },
+        {
+          "id": "D",
+          "text": "La segunda ejecución está mal hecha por definición"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB05](../../05_RECURSOS/LABORATORIOS/LNX-LAB05.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F02**: [GNU Bash Reference Manual](https://www.gnu.org/software/bash/manual/bash.html). Escritura de scripts, opciones del intérprete y comprobación de estados.\n- **F14**: [POSIX.1-2024, Shell Command Language](https://pubs.opengroup.org/onlinepubs/9799919799/utilities/V3_chap02.html). Semántica normativa de listas, estados de salida y sustitución.\n- **F62**: [NIST SP 800-86](https://csrc.nist.gov/pubs/sp/800/86/final). Integración de técnicas forenses y preservación de la evidencia observada.\n- **F119**: [RHEL 9: auditing the system](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/security_hardening/auditing-the-system_security-hardening). Registro de cambios y límites del registro para correlacionar.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "54d1c8bbd3fc6b6ef80f3f97"
+}

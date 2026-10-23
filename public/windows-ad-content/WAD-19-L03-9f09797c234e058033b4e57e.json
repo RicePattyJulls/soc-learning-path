@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-19-L03",
+  "title": "Criterios de restauración y replicación",
+  "sourceHash": "87d293f9d347f48d28be9ffcac4724850d68493cf883f84d554d60969e8e1624",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-19-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nJustificar el criterio de restauración y verificar que la replicación converge sin divergencias.\n\nPrerrequisitos: `WAD-19-L02` (DSRM y restauración no autoritativa).\n\n## 2. Comprende el mecanismo\n\nRestaurar no termina cuando la copia se aplica. Termina cuando el directorio vuelve a un estado coherente. Esta lección cierra la etapa con dos decisiones que se encadenan: **qué criterio de restauración eliges** y **cómo demuestras que la replicación converge**.\n\nEl criterio depende de qué debe prevalecer. Si solo hay que devolver un controlador al servicio, basta la **restauración no autoritativa**: la copia se aplica y la replicación actualiza lo que falte. Si un dato borrado debe volver y quedarse, hace falta una **restauración autoritativa**, que marca lo recuperado para que su versión prevalezca sobre la que replican los socios.\n\nLa marca autoritativa se aplica sobre el objeto o el subárbol elegido, no sobre todo el directorio. Marcar de más propaga versiones antiguas que pisan cambios recientes en otras ramas; marcar de menos deja que la replicación reintroduzca el borrado. El criterio se decide antes de restaurar y se documenta con su alcance.\n\nDespués de una restauración autoritativa, el dato recuperado y **SYSVOL** no siempre viajan juntos. SYSVOL —el recurso compartido que aloja los archivos de las directivas— se replica por su propio servicio, y tras una restauración autoritativa hay que hacer que su copia converja de forma coherente para no dejar dos versiones de las mismas políticas.\n\nEn un controlador **virtualizado** entra en juego la detección de la restauración. El controlador reconoce que su máquina virtual volvió atrás en el tiempo y adopta precauciones para no reintroducir datos obsoletos, pero esa detección no exime de comprobar el resultado: hay que confirmar que la replicación se reanuda y que no quedan diferencias.\n\nLa verificación usa las pruebas de estado del controlador y la lectura de la replicación. Se revisa el estado de los socios y de las particiones, se confirma que la replicación progresa, se comprueba que SYSVOL converge y se compara lo recuperado con el estado esperado. Una **divergencia** persistente, o un objeto que sobrevive en un controlador después de haber sido eliminado en el origen, indica que el caso no está cerrado.\n\nLa regla que cierra la etapa: **la restauración se da por válida cuando la replicación converge y lo recuperado coincide con lo esperado**. Todo se practica sobre `ad.lab.test`, con copias y reintegraciones de laboratorio.\n\n### Vocabulario de apoyo\n\n- **Restauración autoritativa**: restauración que marca el dato recuperado para que prevalezca sobre la versión replicada.\n- **Convergencia**: estado en que todos los controladores acaban con la misma versión de los datos.\n- **Divergencia**: diferencia persistente entre controladores que la replicación no resuelve.\n- **Objeto rezagado (lingering object)**: objeto que permanece en un controlador después de haber sido eliminado en el origen.\n- **SYSVOL**: recurso compartido del dominio que aloja los archivos de las directivas y se replica entre controladores.\n- **Sincronización autoritativa de SYSVOL**: proceso que marca una copia de SYSVOL para que prevalezca sobre las demás.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-19-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test` se restaura `DC02` (192.0.2.12) tras una pérdida y un objeto eliminado debe volver y mantenerse. Ya existe evidencia de que la copia se aplicó correctamente.\n\nEl criterio no puede ser el mismo que en el caso anterior, porque aquí hay algo que debe prevalecer: si solo se aplicara la copia, la replicación reintroduciría el borrado y el objeto desaparecería otra vez. Por eso corresponde marcar un alcance autoritativo —solo el objeto o la rama afectada— y, después, hacer converger SYSVOL para que las políticas no queden con dos versiones. La comprobación cierra el caso: se lee el estado de los socios y de las particiones, se confirma que la replicación progresa y que SYSVOL converge, y se compara el objeto recuperado con el estado esperado. La conclusión acota lo demostrado —«el objeto prevalece y la replicación converge en lo observado»— y reconoce su límite: la convergencia se afirma sobre las particiones y las identidades comprobadas, no sobre todo el bosque de forma indefinida.\n\n"
+    },
+    {
+      "id": "WAD-19-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Verificar la convergencia distingue una restauración terminada de una que dejó divergencias silenciosas.\n- Red Team autorizado: Conocer el alcance de una restauración autoritativa permite describir qué versiones prevalecen sin tocar el entorno autorizado.\n- Evidencia de la etapa: Estado de los socios y las particiones, progreso de la replicación, convergencia de SYSVOL y comparación con el estado esperado.\n- Criterio de dominio: El caso se cierra con el criterio justificado, el alcance acotado y la convergencia comprobada.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB14](../../05_RECURSOS/LABORATORIOS/WAD-LAB14.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **FORESTHOW**: [Determine how to recover the forest](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-determine-how-to-recover). Criterios para decidir qué tipo de recuperación corresponde.\n- **DFSRSYSVOL**: [Authoritative synchronization of DFSR-replicated SYSVOL](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-authoritative-recovery-sysvol). Cómo hacer converger SYSVOL tras una restauración autoritativa.\n- **VIRTDC**: [Active Directory Domain Services virtualization](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/introduction-to-active-directory-domain-services-ad-ds-virtualization-level-100). Cómo detecta un controlador virtualizado una restauración y por qué importa.\n- **DCDIAG**: [dcdiag](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/dcdiag). Comprobación del estado de los controladores y de sus servicios.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-19-L03-P01",
+    "prompt": "En `ad.lab.test` se ha restaurado un controlador desde una copia y un objeto recuperado debe prevalecer sobre la versión que replican los demás. Justifica qué criterio de restauración eliges, qué alcance marcas y cómo comprobarías que la replicación converge sin divergencias.",
+    "markdown": "## 4. Práctica individual\n\nEn `ad.lab.test` se ha restaurado un controlador desde una copia y un objeto recuperado debe prevalecer sobre la versión que replican los demás. Justifica qué criterio de restauración eliges, qué alcance marcas y cómo comprobarías que la replicación converge sin divergencias.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber verificado la replicación de un dominio real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-19-L03-Q01",
+      "prompt": "En `ad.lab.test` hay que recuperar un objeto eliminado y evitar que la replicación vuelva a propagar su borrado. ¿Qué criterio de restauración corresponde?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Restaurar sin marcar nada y confiar en que la replicación conservará el objeto"
+        },
+        {
+          "id": "B",
+          "text": "Marcar el objeto como autoritativo en la restauración, para que su versión recuperada prevalezca sobre la copia de los demás controladores"
+        },
+        {
+          "id": "C",
+          "text": "Detener la replicación del dominio de forma permanente hasta nueva orden"
+        },
+        {
+          "id": "D",
+          "text": "Volver a crear el objeto con otro nombre para esquivar el conflicto"
+        }
+      ]
+    },
+    {
+      "id": "WAD-19-L03-Q02",
+      "prompt": "Tras restaurar un controlador y devolverlo al servicio, ¿qué comprobación demuestra mejor que la replicación converge sin divergencias?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Confirmar que el servicio de directorio arranca, sin mirar a los socios"
+        },
+        {
+          "id": "B",
+          "text": "Esperar sin medir y dar por hecho que la replicación se resolverá sola"
+        },
+        {
+          "id": "C",
+          "text": "Revisar el estado de los socios y de las particiones, confirmar que la replicación progresa y que SYSVOL converge, y comparar lo recuperado con el estado esperado"
+        },
+        {
+          "id": "D",
+          "text": "Revisar únicamente el registro de eventos del controlador restaurado"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB14](../../05_RECURSOS/LABORATORIOS/WAD-LAB14.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **FORESTHOW**: [Determine how to recover the forest](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-determine-how-to-recover). Criterios para decidir qué tipo de recuperación corresponde.\n- **DFSRSYSVOL**: [Authoritative synchronization of DFSR-replicated SYSVOL](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-authoritative-recovery-sysvol). Cómo hacer converger SYSVOL tras una restauración autoritativa.\n- **VIRTDC**: [Active Directory Domain Services virtualization](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/introduction-to-active-directory-domain-services-ad-ds-virtualization-level-100). Cómo detecta un controlador virtualizado una restauración y por qué importa.\n- **DCDIAG**: [dcdiag](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/dcdiag). Comprobación del estado de los controladores y de sus servicios.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "9f09797c234e058033b4e57e"
+}

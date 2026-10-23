@@ -1,0 +1,39 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-22-L02",
+  "sourceHash": "697da8b94c14d5c998a4307a023cc8da903f317f750c6aed191b6db3c22f44d3",
+  "questions": [
+    {
+      "id": "WAD-22-L02-Q01",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Son indicios de configuración que se documentan y priorizan; su presencia no demuestra por sí sola un acceso ni un ticket emitido».\n\nEl SPN y el protocolo permitido son condiciones que acotan hipótesis y se registran con su contexto. Informar una suplantación conseguida, dar por inocuo NTLM o anotar cuentas sin contexto convierten una observación en una conclusión que los datos no sostienen."
+    },
+    {
+      "id": "WAD-22-L02-Q02",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Que hay que documentar la dirección, la transitividad y los controles aplicados, porque una confianza habilita la autenticación pero no concede por sí sola autorización».\n\nEl alcance de una confianza lo fijan su dirección, su transitividad y controles como el filtrado de SID y la autenticación selectiva. Suponer acceso administrativo, lectura libre del otro bosque o la anulación de esos controles confunde autenticación con autorización."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "Cada hallazgo se clasifica por separado como condición de configuración. El SPN sobre una cuenta de usuario merece revisión porque une dos identidades en un mismo objeto y puede afectar a la emisión de tickets; se comprueba en qué cuenta está registrado y si debería estar en una cuenta de servicio administrada. NTLM habilitado es una decisión de compatibilidad que solo importa si algún recurso lo exige; se documenta como riesgo y se comprueba si hay autenticación que realmente degrade a él. La confianza se registra con su dirección, su transitividad y sus controles, porque esos detalles fijan su alcance. Ninguno se eleva a acceso probado: eso exigiría la evidencia de una operación realizada y verificada en el alcance autorizado, y el inventario solo demuestra configuración.",
+    "rubric": [
+      {
+        "criterion": "Separa los hallazgos",
+        "evidence": "Analiza el SPN, NTLM y la confianza por separado, sin agruparlos en una sola alarma."
+      },
+      {
+        "criterion": "Clasifica como condición",
+        "evidence": "Describe cada hallazgo como condición de configuración y no como acceso ejercido."
+      },
+      {
+        "criterion": "Propone la comprobación",
+        "evidence": "Indica qué comprobación adicional haría falta para elevar la severidad."
+      },
+      {
+        "criterion": "Límite reconocido",
+        "evidence": "Reconoce que el inventario no demuestra uso ni acceso y respeta el alcance autorizado."
+      }
+    ]
+  },
+  "revision": "0dcf3ff76f5a2ce80e794526"
+}

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-06-L02",
+  "title": "Globbing, separación y ficheros hostiles",
+  "sourceHash": "d0a63358e0428b9e913fe1537f1d64eb980ddeaba5f03dc23b90ff8998ec9fd3",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-06-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nExplicar la expansión de comodines y la división en palabras para procesar nombres de fichero hostiles sin reinterpretarlos.\n\nPrerrequisitos: `LNX-06-L01` (Orden de evaluación, parámetros y entorno).\n\n## 2. Comprende el mecanismo\n\nUn **nombre de fichero es dato**, pero la shell lo trata como texto que puede volver a interpretar. Si en algún punto ese texto se convierte en *estructura* (varias palabras, una opción, un comando), el nombre deja de ser dato y pasa a decidir lo que hace el programa. A esa situación la llamamos **nombre de fichero hostil**.\n\nDos etapas de la shell son la causa habitual. La primera es la **división en palabras**: tras expandir un parámetro, la shell parte el resultado usando `IFS`. Si el valor contenía espacios, un solo nombre se convierte en varios argumentos. La segunda es la **expansión de comodines** (*globbing*): los caracteres `*`, `?` y `[...]` se sustituyen por nombres que existen en el directorio.\n\nEl orden importa: la división en palabras ocurre **antes** que el globbing. Por eso `$(...)` sin comillas no solo se divide: además cada trozo se vuelve un patrón que puede expandirse a su vez. Es el motivo por el que «`rm $(ls)`» es un patrón de riesgo y no un atajo elegante: el texto que viene del directorio se reinterpreta como argumentos.\n\nLas comillas son el mecanismo de control. Las **comillas dobles** conservan el valor de la expansión pero impiden la división y el globbing; las **comillas simples** conservan todo literal. Cada carácter de un nombre de fichero puede ser significativo: espacios, tabuladores, saltos de línea, `;`, `&`, `$`, comillas y asteriscos son válidos en un nombre en la mayoría de los sistemas de ficheros.\n\nUn caso frecuente es el nombre que **empieza por guion**, como `-l` o `--force`. Muchas herramientas lo leen como una opción porque no pueden distinguirlo de una opción real. La defensa no es «tener cuidado»: es **separar las opciones de las rutas**, por ejemplo con `--`, o referir la ruta de forma que no empiece por guion, como `./-l`.\n\nCuando el procesamiento es por lotes, conviene que el flujo transporte nombres **delimitados de forma inequívoca** en lugar de texto libre. Un listado pensado para consumo humano se rompe con un salto de línea en un nombre; un listado delimitado por un byte nulo, no. Diseñar el formato de transporte es tan importante como el comando que lo produce.\n\n### Vocabulario de apoyo\n\n- **Globbing**: sustitución de patrones (`*`, `?`, `[...]`) por los nombres que coinciden en el directorio.\n- **División en palabras**: corte del texto expandido en argumentos según `IFS`.\n- **Comillas dobles**: preservan el valor de la expansión e impiden división y globbing adicionales.\n- **Comillas simples**: entregan el texto literal, sin ninguna expansión.\n- **`--`**: marca el fin de las opciones, de modo que lo siguiente se trate como operandos.\n- **Nombre hostil**: nombre de fichero que la shell o un programa pueden reinterpretar como estructura.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-06-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un analista revisa un directorio de cuarentena con un nombre de fichero que contiene un espacio, otro que empieza por guion y otro con un salto de línea. Un script que recorre el listado informa «cinco elementos» cuando solo hay tres ficheros, y uno de ellos no se pudo clasificar.\n\nLas cifras encajan si el listado se transportó como texto plano. El nombre con espacio se dividió en dos palabras; el que empieza por guion se interpretó como opción de la herramienta; el que contiene un salto de línea rompió la separación por líneas. Ninguno de los tres es un fichero «raro»: son nombres válidos que el flujo mal diseñado no soporta.\n\nLa corrección es de diseño: citar el texto que viene de datos, separar opciones de rutas con `--` y transportar los nombres con un delimitador inequívoco. El límite de la conclusión: sin conocer el delimitador que usó la herramienta, solo puedes afirmar *que* el conteo es poco fiable, no reconstruir la lista real a partir de esa salida.\n\n"
+    },
+    {
+      "id": "LNX-06-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Tratar toda cadena que provenga de un directorio o de un log como dato, no como estructura.\n- Red Team autorizado: Reconocer que un flujo que reexpande nombres permite influir en argumentos, no solo en datos.\n- Evidencia de la etapa: Listado de una muestra con nombres hostiles y el formato de transporte usado.\n- Criterio de dominio: Identifica la etapa (división o globbing) que reinterpretó el nombre y propone el control que lo evita.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB05](../../05_RECURSOS/LABORATORIOS/LNX-LAB05.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F02**: [GNU Bash Reference Manual](https://www.gnu.org/software/bash/manual/bash.html). Comillas, división en palabras, expansión de comodines y patrones.\n- **F14**: [POSIX.1-2024, Shell Command Language](https://pubs.opengroup.org/onlinepubs/9799919799/utilities/V3_chap02.html). Orden normativo entre expansión de campo y expansión de rutas.\n- **F16**: [Linux find(1)](https://man7.org/linux/man-pages/man1/find.1.html). Recorrido seguro de árboles y salida con delimitadores inequívocos.\n- **F01**: [Filesystem Hierarchy Standard 3.0](https://specifications.freedesktop.org/fhs/latest/). Convenciones de nombres y organización de directorios.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-06-L02-P01",
+    "prompt": "Un script de inventario produce una lista de ficheros y otro script los procesa uno a uno. Un nombre de fichero con espacios se procesa como dos entradas. Explica qué etapa de la línea de comandos causó el efecto y qué práctica lo evita.",
+    "markdown": "## 4. Práctica individual\n\nUn script de inventario produce una lista de ficheros y otro script los procesa uno a uno. Un nombre de fichero con espacios se procesa como dos entradas. Explica qué etapa de la línea de comandos causó el efecto y qué práctica lo evita.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber procesado ficheros reales hostiles.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-06-L02-Q01",
+      "prompt": "Cuando una variable contiene espacios, ¿qué hace la shell con `$var` sin comillas antes de ejecutar el programa?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Divide el texto literal de la variable antes de expandirla"
+        },
+        {
+          "id": "B",
+          "text": "Entrega `$var` sin cambiar porque el programa es externo"
+        },
+        {
+          "id": "C",
+          "text": "Expande el parámetro y después divide el resultado en palabras según `IFS`"
+        },
+        {
+          "id": "D",
+          "text": "Aplica el globbing antes de expandir el parámetro"
+        }
+      ]
+    },
+    {
+      "id": "LNX-06-L02-Q02",
+      "prompt": "Un fichero de un directorio se llama `-l`. ¿Qué práctica evita que una herramienta lo interprete como una opción?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Listarlo siempre con comillas dobles en la salida"
+        },
+        {
+          "id": "B",
+          "text": "Separar las opciones de las rutas con `--`, o referir la ruta como `./-l`"
+        },
+        {
+          "id": "C",
+          "text": "Ejecutar el comando con privilegios elevados"
+        },
+        {
+          "id": "D",
+          "text": "Confiar en que la shell detecta los nombres que empiezan por guion"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB05](../../05_RECURSOS/LABORATORIOS/LNX-LAB05.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F02**: [GNU Bash Reference Manual](https://www.gnu.org/software/bash/manual/bash.html). Comillas, división en palabras, expansión de comodines y patrones.\n- **F14**: [POSIX.1-2024, Shell Command Language](https://pubs.opengroup.org/onlinepubs/9799919799/utilities/V3_chap02.html). Orden normativo entre expansión de campo y expansión de rutas.\n- **F16**: [Linux find(1)](https://man7.org/linux/man-pages/man1/find.1.html). Recorrido seguro de árboles y salida con delimitadores inequívocos.\n- **F01**: [Filesystem Hierarchy Standard 3.0](https://specifications.freedesktop.org/fhs/latest/). Convenciones de nombres y organización de directorios.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "4d1f9c4fe38e2cb8663f8027"
+}

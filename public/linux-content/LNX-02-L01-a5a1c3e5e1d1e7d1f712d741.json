@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-02-L01",
+  "title": "Rutas y jerarquía",
+  "sourceHash": "9538c859427ad3ed478d74f22618cc7b0308c0ee3490d3f83097e512049f84ed",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-02-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nInterpretar rutas absolutas y relativas sobre la jerarquía de directorios y separar lo convencional de lo obligatorio antes de concluir.\n\nPrerrequisitos: `LNX-01-L03` (Cuatro malentendidos peligrosos).\n\n## 2. Comprende el mecanismo\n\nEn Linux todo nombre visible cuelga de un único árbol que empieza en la **raíz** (`/`). No hay letras de unidad ni rutas separadas por dispositivo: los discos se **montan** dentro de ese árbol y desde fuera parecen simples directorios. Por eso la posición de un fichero en el árbol no dice por sí sola en qué disco vive.\n\nUna **ruta absoluta** empieza por `/` y el kernel la resuelve desde la raíz, paso a paso, componente por componente. Una **ruta relativa** no empieza por `/` y se resuelve desde el *directorio de trabajo* del proceso que la usa. El mismo texto relativo significa cosas distintas para procesos con directorios de trabajo distintos.\n\nLos componentes `.` y `..` no son nombres de fichero: son referencias al directorio actual y a su directorio padre. El kernel las aplica durante la resolución. Así, `../etc/hosts` desde `/var/log` y `/etc/hosts` pueden terminar en el mismo objeto aunque el texto sea diferente.\n\nLa jerarquía está descrita por el **FHS** (*Filesystem Hierarchy Standard*). Conviene leerlo como una **convención**: indica qué suele vivir en cada directorio para que distintas distribuciones sean predecibles, pero no todos los directorios son obligatorios en todos los sistemas. `/etc`, por ejemplo, se reserva a configuración; eso es una convención fuerte, no una garantía de que no haya nada inesperado ahí.\n\nEl kernel distingue además entre la ruta que *pediste* y el objeto que *encontró*. Que dos rutas resuelvan al mismo inodo no significa que sean intercambiables: una puede ser un enlace o pasar por un punto de montaje distinto. La ruta es una instrucción de navegación, no una identidad.\n\nAntes de concluir cualquier cosa a partir de un nombre, ubica **desde dónde** se resuelve, **qué** componente especial aparece y si el estándar que citas es **obligatorio o solo convencional**.\n\n### Vocabulario de apoyo\n\n- **Ruta absoluta**: nombre que empieza por `/` y se resuelve desde la raíz.\n- **Ruta relativa**: nombre que se resuelve desde el directorio de trabajo del proceso.\n- **Directorio de trabajo**: directorio actual del proceso; base de las rutas relativas.\n- **Raíz (`/`)**: punto único donde se injerta todo el árbol de directorios.\n- **Punto de montaje**: directorio donde un sistema de ficheros se incorpora al árbol.\n- **FHS**: estándar que describe el uso convencional de los directorios.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-02-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: una tarea de laboratorio abre dos nombres para el mismo registro de eventos. El primero es la ruta absoluta `/var/log/registro.log`. El segundo es `./log/registro.log`, y la tarea que lo usa declara como directorio de trabajo `/var`. El analista concluye que son «dos ficheros distintos porque el texto no coincide».\n\nLa conclusión no se sostiene. La segunda ruta no empieza por `/`, así que se resuelve desde `/var` y termina en `/var/log/registro.log`: el mismo nombre absoluto que el primero. La diferencia está en el **punto de partida** de la resolución, no en el objeto.\n\nRazonar así separa el texto de la semántica. El límite de esta conclusión: con solo los nombres no puedes afirmar que ambos apunten al *mismo inodo*, porque cualquiera de los dos podría atravesar un enlace simbólico o un punto de montaje. Para cerrar la afirmación necesitarías un dato adicional, como el número de inodo de cada uno.\n\n"
+    },
+    {
+      "id": "LNX-02-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Fijar el directorio de trabajo y la ruta completa al registrar evidencia, para no confundir nombres iguales en contextos distintos.\n- Red Team autorizado: Recordar que la posición en el árbol no implica un dispositivo ni una identidad, y no atribuir más de lo que la ruta demuestra.\n- Evidencia de la etapa: Nota con ruta solicitada, directorio de trabajo y objeto resuelto.\n- Criterio de dominio: Explica desde qué punto de partida se resuelve un nombre y qué parte del FHS es convención.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB02](../../05_RECURSOS/LABORATORIOS/LNX-LAB02.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F01**: [Filesystem Hierarchy Standard 3.0](https://specifications.freedesktop.org/fhs/latest/). Organización de directorios y carácter convencional de las rutas.\n- **F02**: [GNU Bash Reference Manual](https://www.gnu.org/software/bash/manual/bash.html). Expansión y resolución de nombres tal como las trata la shell.\n- **F45**: [Linux `stat(2)` y semántica de metadatos](https://man7.org/linux/man-pages/man2/stat.2.html). Cómo el kernel resuelve una ruta y expone los metadatos del objeto.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-02-L01-P01",
+    "prompt": "Dos procesos abren el mismo fichero con textos distintos: uno usa una ruta absoluta y otro una ruta relativa, y declaras sus respectivos directorios de trabajo. Determina si pueden apuntar al mismo objeto, cómo lo comprobarías y qué dato haría falta para afirmarlo sin dudas.",
+    "markdown": "## 4. Práctica individual\n\nDos procesos abren el mismo fichero con textos distintos: uno usa una ruta absoluta y otro una ruta relativa, y declaras sus respectivos directorios de trabajo. Determina si pueden apuntar al mismo objeto, cómo lo comprobarías y qué dato haría falta para afirmarlo sin dudas.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber recorrido un sistema de ficheros real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-02-L01-Q01",
+      "prompt": "¿Qué distingue a una ruta absoluta de una relativa al abrir un fichero?",
+      "options": [
+        {
+          "id": "A",
+          "text": "La absoluta siempre apunta a un fichero existente y la relativa a uno inexistente"
+        },
+        {
+          "id": "B",
+          "text": "La absoluta empieza por `/` y se resuelve desde la raíz; la relativa se resuelve desde el directorio de trabajo del proceso"
+        },
+        {
+          "id": "C",
+          "text": "La absoluta la interpreta el kernel y la relativa la shell"
+        },
+        {
+          "id": "D",
+          "text": "La absoluta solo puede contener un componente y la relativa varios"
+        }
+      ]
+    },
+    {
+      "id": "LNX-02-L01-Q02",
+      "prompt": "Dos administradores describen el mismo directorio como `/var/log` y como `../../var/log` desde `/srv/app`. ¿Qué afirma correctamente la jerarquía de directorios?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Pueden resolver al mismo objeto porque la relativa se calcula desde el directorio de trabajo del proceso"
+        },
+        {
+          "id": "B",
+          "text": "Apuntan a objetos distintos porque el texto difiere"
+        },
+        {
+          "id": "C",
+          "text": "La forma relativa es inválida porque el FHS prohíbe usar `..`"
+        },
+        {
+          "id": "D",
+          "text": "Solo la forma absoluta es real; la relativa es una abreviatura que inventa la shell"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB02](../../05_RECURSOS/LABORATORIOS/LNX-LAB02.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F01**: [Filesystem Hierarchy Standard 3.0](https://specifications.freedesktop.org/fhs/latest/). Organización de directorios y carácter convencional de las rutas.\n- **F02**: [GNU Bash Reference Manual](https://www.gnu.org/software/bash/manual/bash.html). Expansión y resolución de nombres tal como las trata la shell.\n- **F45**: [Linux `stat(2)` y semántica de metadatos](https://man7.org/linux/man-pages/man2/stat.2.html). Cómo el kernel resuelve una ruta y expone los metadatos del objeto.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "a5a1c3e5e1d1e7d1f712d741"
+}

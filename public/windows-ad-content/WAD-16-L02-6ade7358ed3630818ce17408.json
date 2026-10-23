@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-16-L02",
+  "title": "Plantillas, inscripción y controles",
+  "sourceHash": "9109a52a89e1cdff43b6970f825eee299443f7eb1d987df9e23d5631aef54589",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-16-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nAuditar una plantilla sintética y sus permisos de inscripción.\n\nPrerrequisitos: `WAD-16-L01` (CA, EKU y ciclo de certificados).\n\n## 2. Comprende el mecanismo\n\nUna **plantilla de certificado** es el molde con el que la CA emite: fija qué extensión de uso llevará el certificado, quién puede solicitarlo y qué debe comprobarse antes de emitir. Sin plantilla, cada emisión sería un caso suelto; con plantilla, la emisión sigue reglas conocidas y repetibles.\n\nLa **inscripción** es el acto de solicitar un certificado a partir de una plantilla, y quien lo hace es el **solicitante**. Cada plantilla trae una lista de control de acceso: los permisos que deciden qué identidades pueden leerla, inscribirse con ella o administrarla. Esa lista es tan parte de la plantilla como su EKU.\n\nEl permiso de **inscripción (Enroll)** es el que fija el alcance: si un grupo amplio lo tiene, ese grupo puede solicitar el certificado. El permiso de administración de la plantilla es distinto y no debería quedar en las mismas manos que inscribe, porque quien administra puede cambiar las reglas y quien inscribe solo las usa.\n\nAuditar una plantilla es leerla antes de confiar en ella: qué uso concede su EKU, quién puede inscribirse, si hace falta **aprobación de la CA** y qué se hace con la clave. Conceder inscripción más amplia de lo necesario amplía a quién alcanza la confianza que emite la CA, aunque nadie lo haya decidido de forma explícita.\n\nDe ahí la regla de esta lección: **lo que la plantilla permite** no es **lo que conviene permitir**. Una plantilla técnicamente correcta puede tener un alcance de inscripción que nadie justificó, y eso solo se ve leyendo sus permisos.\n\n### Vocabulario de apoyo\n\n- **Plantilla de certificado**: molde que define uso, permisos de inscripción y reglas de emisión.\n- **Inscripción (enrollment)**: solicitud de un certificado a partir de una plantilla.\n- **Permiso de inscripción (Enroll)**: permiso que autoriza a una identidad a solicitar un certificado con una plantilla.\n- **Permiso de administración de plantilla**: permiso de modificar la definición de la plantilla.\n- **Solicitante**: identidad que solicita un certificado.\n- **Aprobación de la CA**: paso intermedio en que un administrador autoriza una solicitud.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-16-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test`, la plantilla `Tpl-Web-Lab` concede inscripción al grupo amplio `Usuarios del dominio`, y un equipo solicita con ella un certificado cuyo destino previsto era solo un servicio concreto.\n\nEl permiso de **inscripción** de la plantilla es el que explica el alcance: como lo tiene un grupo amplio, cualquier identidad de ese grupo puede solicitar el certificado, y ese alcance es mayor que el uso previsto. La lectura prudente no es «alguien se equivocó», sino «el permiso permite más de lo necesario y conviene acotarlo al grupo del servicio». La conclusión acota lo observable —«la lista de control de acceso autoriza a un grupo amplio»— y reconoce un límite: sin el registro de emisiones de `CA-Lab` no se puede afirmar quién solicitó certificados ni cuántos se emitieron con esa plantilla.\n\n"
+    },
+    {
+      "id": "WAD-16-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Saber quién puede inscribirse evita atribuir la emisión de un certificado al solicitante equivocado.\n- Red Team autorizado: Leer los permisos de una plantilla describe qué confianza se puede solicitar en un laboratorio autorizado.\n- Evidencia de la etapa: Ficha de plantilla con EKU, permisos y alcance de inscripción.\n- Criterio de dominio: Solo las identidades previstas pueden inscribirse con la plantilla.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB10](../../05_RECURSOS/LABORATORIOS/WAD-LAB10.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **CERTCONCEPTS**: [Certificate template concepts](https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/certificate-template-concepts). Qué define una plantilla y cómo gobierna la emisión.\n- **CERTMANAGE**: [Manage certificate templates](https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/manage-certificate-templates). Cómo se administran las plantillas y se conceden permisos sobre ellas.\n- **SECURECA**: [Secure, delegate, and audit the certification authority](https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/secure-delegate-audit-certification-authority). Delegación de inscripción y auditoría de la CA.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-16-L02-P01",
+    "prompt": "Auditas la plantilla sintética `Tpl-Web-Lab` de la CA `CA-Lab` en `ad.lab.test`. Indica qué revisarías en su EKU, qué permisos de inscripción tiene y a qué identidades alcanza, y qué recomendarías antes de dejarla como está.",
+    "markdown": "## 4. Práctica individual\n\nAuditas la plantilla sintética `Tpl-Web-Lab` de la CA `CA-Lab` en `ad.lab.test`. Indica qué revisarías en su EKU, qué permisos de inscripción tiene y a qué identidades alcanza, y qué recomendarías antes de dejarla como está.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber modificado una plantilla en una CA real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-16-L02-Q01",
+      "prompt": "Al auditar la plantilla sintética `Tpl-Web-Lab`, ¿qué permiso determina qué identidades pueden solicitar un certificado con ella?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El permiso de lectura del registro de eventos del dominio"
+        },
+        {
+          "id": "B",
+          "text": "El permiso de escritura sobre la carpeta compartida del dominio"
+        },
+        {
+          "id": "C",
+          "text": "El permiso de inscripción (Enroll) concedido a una identidad sobre la plantilla"
+        },
+        {
+          "id": "D",
+          "text": "El permiso de administrador local del equipo solicitante"
+        }
+      ]
+    },
+    {
+      "id": "WAD-16-L02-Q02",
+      "prompt": "Una plantilla sintética concede inscripción al grupo amplio `Usuarios del dominio`. ¿Cuál es la lectura más prudente?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que cualquier identidad de ese grupo puede solicitar el certificado y debe revisarse si ese alcance es necesario"
+        },
+        {
+          "id": "B",
+          "text": "Que la plantilla está inutilizable porque nadie puede inscribirse"
+        },
+        {
+          "id": "C",
+          "text": "Que la CA rechazará siempre esas solicitudes de forma predeterminada"
+        },
+        {
+          "id": "D",
+          "text": "Que el permiso solo afecta a la CA y nunca a los solicitantes"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB10](../../05_RECURSOS/LABORATORIOS/WAD-LAB10.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **CERTCONCEPTS**: [Certificate template concepts](https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/certificate-template-concepts). Qué define una plantilla y cómo gobierna la emisión.\n- **CERTMANAGE**: [Manage certificate templates](https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/manage-certificate-templates). Cómo se administran las plantillas y se conceden permisos sobre ellas.\n- **SECURECA**: [Secure, delegate, and audit the certification authority](https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/secure-delegate-audit-certification-authority). Delegación de inscripción y auditoría de la CA.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "6ade7358ed3630818ce17408"
+}

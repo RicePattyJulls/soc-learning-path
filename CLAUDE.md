@@ -1,26 +1,36 @@
 # SOC Learning Path — entrada para Claude Code y otras IA
 
-Proyecto local: `/home/tommy/Documentos/SOC_LEARNING_PATH`. Traspaso documental: **17 de octubre de 2026**. No necesitas las conversaciones anteriores para trabajar aquí.
+Proyecto local: `/home/tommy/Documentos/SOC_LEARNING_PATH`. Traspaso documental original: **17 de octubre de 2026**; **actualizado el 19 de octubre de 2026** (seis mundos y Mundo SOC). No necesitas las conversaciones anteriores para trabajar aquí.
 
 ## Leer antes de actuar
 
-1. [AGENTS.md](AGENTS.md): instrucciones del repositorio y límites de la tarea.
-2. [docs/HANDOFF-IA.md](docs/HANDOFF-IA.md): arquitectura real, estado, persistencia, fuentes y evidencias. Es el documento maestro de este traspaso.
-3. [docs/GUIA-CAMBIOS-FUTUROS.md](docs/GUIA-CAMBIOS-FUTUROS.md): procedimientos, riesgos, pruebas y recuperación por tipo de cambio.
-4. [docs/RETOMAR.md](docs/RETOMAR.md): índice de checkpoints e historial. Su aviso inicial distingue el estado vigente de las fases antiguas.
-5. Lee el código implicado y los informes de la fase correspondiente. Comprueba fechas, hashes y alcance; un informe antiguo no prueba el estado de un código nuevo.
+1. [docs/MAPA-MUNDOS.md](docs/MAPA-MUNDOS.md): **dónde vive cada cosa** hoy — secciones, payloads, generadores y estado de revisión de los seis mundos. Es el inventario vigente; contrasta sus conteos con el disco.
+2. [AGENTS.md](AGENTS.md): instrucciones del repositorio y límites de la tarea.
+3. [docs/HANDOFF-IA.md](docs/HANDOFF-IA.md): arquitectura real, estado, persistencia, fuentes y evidencias. Su cabecera es del 17/10 y describe tres áreas; su actualización y el mapa cubren lo posterior.
+4. [docs/GUIA-CAMBIOS-FUTUROS.md](docs/GUIA-CAMBIOS-FUTUROS.md): procedimientos, riesgos, pruebas y recuperación por tipo de cambio.
+5. [docs/RETOMAR.md](docs/RETOMAR.md): checkpoints e historial, del más reciente al más antiguo.
+6. Lee el código implicado y los informes de la fase correspondiente. Comprueba fechas, hashes y alcance; un informe antiguo no prueba el estado de un código nuevo.
 
-El README y `docs/ARQUITECTURA.md` conservan decisiones de etapas anteriores. Sus referencias a Splunk «próximamente» no describen la academia Splunk actual. No rehagas ese módulo por leer esos textos. El maestro identifica también mensajes históricos todavía presentes en la interfaz.
+El README y `docs/ARQUITECTURA.md` conservan decisiones de etapas anteriores. Sus referencias a Splunk «próximamente» no describen la academia Splunk actual. Los textos del 17/10 (HANDOFF-IA, RETOMAR, AGENTS) hablan de tres áreas y **no listan** Redes, Windows + AD, Linux ni el Mundo SOC: para esos mandan el mapa y este documento.
 
 ## Qué existe
 
-SPA educativa SOC N1/N2 con React/TypeScript/Vite, recursos locales y tres áreas:
+SPA educativa SOC local (React/TypeScript/Vite, sin backend, autenticación ni SIEM reales) con **seis cursos** y un **simulador** aparte. Cada mundo tiene ruta, payloads y clave de progreso propias; no se mezclan.
 
-- **Microsoft SC-200:** 13 regiones, 76 lecturas, 719 pasos, 272 actividades; 74 lecturas con actividades y dos introducciones pendientes de evaluación.
-- **Splunk SOC:** 11 regiones, 80 lecciones, 240 actividades; teoría autocorregida y prácticas formativas sin dominio práctico automático.
-- **SOC Simulator V1:** motor común, cuatro investigaciones sintéticas Microsoft/Splunk, expediente y evaluación estructurada. No concede XP de las academias.
+| Mundo | Ruta | Contenido | Payloads |
+| --- | --- | --- | --- |
+| SC-200 | `#/ruta`, `#/biblioteca` | 13 módulos, 76 lecturas, 719 pasos, 272 actividades | `public/content` |
+| Redes | `#/redes/...` | 8 etapas, 168 lecciones | `public/redes-content` |
+| Windows + AD | `#/windows-ad/...` | 28 etapas, 84 lecciones | `public/windows-ad-content` |
+| Splunk | `#/splunk/...` | 11 regiones, 80 lecciones, 240 actividades | `public/splunk-content` |
+| Linux | `#/linux/...` | 32 etapas, 96 lecciones | `public/linux-content` |
+| Mundo SOC | `#/soc/...` | 8 bloques, 40 casos de entrevista/triaje | `public/soc-content` |
+| Repaso SOC | `#/soc/repaso_soc` | 4 bloques, 98 fichas de conceptos | ninguno (`src/repaso-soc/cards.ts`) |
+| Simulador | `#/simulador/...` | 2 plataformas, 4 investigaciones | `public/simulator-data` |
 
-Sin backend, autenticación ni conexiones SIEM reales. Las rutas/progresos son independientes. El simulador pasó la ejecución automatizada Parrot `2026-10-17T06-59-48-681Z`; su revisión humana sigue pendiente. La paridad histórica del atlas Splunk a 320 px sigue abierta y es otra prueba.
+El **Mundo SOC** no es un curso por fases: es un entrenador de casos. Se responde en texto libre, se revela la respuesta modelo (KQL/SPL) y se autoevalúa con rúbrica. Tiene tablero filtrable y progreso propio. Desde el 23/10/2026 `#/soc/repaso` es **modo lectura** de las 40 respuestas modelo (sin fechas); la programación sigue en `review.ts`. Las rutas son `#/soc/ruta`, `#/soc/caso/<id>`, `#/soc/repaso`, `#/soc/fuentes` y `#/soc/progreso`.
+
+Todo el contenido es **sintético de laboratorio** y **ningún mundo acredita ejecución real** (consulta KQL/SPL no ejecutada). Ninguna revisión educativa es independiente todavía. El estado por mundo está en [MAPA-MUNDOS §1.1](docs/MAPA-MUNDOS.md); el Mundo SOC tiene la **revisión del propietario cerrada** (19/10/2026), atada a los hashes de sus casos.
 
 ## Dónde trabajar
 
@@ -28,42 +38,56 @@ Sin backend, autenticación ni conexiones SIEM reales. Las rutas/progresos son i
 | --- | --- |
 | Arranque y selección de módulo | `src/main.tsx`, `src/App.tsx`, `src/lib/router.ts` |
 | Academia SC-200 | `src/components/`, `src/lib/`, `src/education.ts` |
+| Academia Redes | `src/redes/` |
+| Academia Windows + AD | `src/windows-ad/` |
+| Academia Linux | `src/linux/` |
 | Academia Splunk | `src/splunk/` |
+| Mundo SOC (casos y repaso) | `src/soc/` |
+| Repaso SOC (fichas) | `src/repaso-soc/`; detalle en [MAPA-MUNDOS §3.8](docs/MAPA-MUNDOS.md) |
 | Simulador | `src/simulator/` |
-| Atlas, geometría e ilustraciones | `src/components/adventure/`, `src/lib/adventure.ts`, `src/lib/pilot-landscape.ts`, `src/lib/region-visuals.ts` |
-| Fuentes y generadores | `scripts/`, `SPLUNK_MASTER_RESEARCH/`; fuente SC-200 externa, detallada en el maestro |
+| Fuentes y generadores | `scripts/*.mjs`, `*_MASTER_RESEARCH/`; fuente SC-200 externa, detallada en el maestro |
 | Pruebas y evidencias | `tests/`, `output/` |
 
 ## Operaciones y validación
 
 Leer archivos, buscar con `rg`, inspeccionar informes y calcular hashes son operaciones de diagnóstico. Antes de editar, identifica el alcance, haz respaldo y comprueba las guardias. No reinstales dependencias ni regeneres contenido como primer intento de solucionar un error visual.
 
-Desde la raíz:
+Generar cada mundo y arrancar:
 
 ```sh
-node scripts/simulator-integrity.mjs
-npm run dev:pilot -- --port 5187 --strictPort
+npm run prepare:content && npm run prepare:redes && npm run prepare:windows-ad && npm run prepare:linux && npm run prepare:soc
+npm run dev                       # http://127.0.0.1:5173
+npm run dev:pilot -- --port 5187 --strictPort   # sirve sin regenerar contenido
 ```
 
-`dev:pilot` sirve la aplicación completa existente sin regenerar contenido; su nombre viene del piloto histórico. Para uso personal conserva el mismo navegador, perfil y origen habitual, normalmente `http://127.0.0.1:5173/`. Cambiar puerto o `localhost` por `127.0.0.1` cambia el almacenamiento visible.
+`predev`, `pretest` y `prebuild` ejecutan los cinco `prepare:*` del repo. Splunk se regenera aparte con `npm run prepare:splunk`. Para uso personal conserva el mismo navegador, perfil y origen (`http://127.0.0.1:5173/`): cambiar puerto o `localhost` por `127.0.0.1` cambia el almacenamiento visible.
 
-Tras cambios de código autorizados:
+Tras cambios autorizados, las 15 guardias encadenadas, TypeScript y las pruebas:
 
 ```sh
-npm test
-npm run build
-node scripts/simulator-integrity.mjs
+node scripts/{linux,redes,soc,windows-ad,repaso-soc}-reconciliation.mjs
+node scripts/{simulator,splunk,splunk-v11,splunk-v12,splunk-v121,splunk-v122,splunk-v20}-integrity.mjs
+node scripts/{simulator,splunk-checkpoint,splunk-v20}-reconciliation.mjs
+npx tsc -b && npm test && npm run build
 ```
 
-`pretest`, `prebuild` y `predev` regeneran SC-200 desde la fuente externa. Comprueba antes su disponibilidad y los hashes de partida. Para validación registrada completa, consulta los orquestadores de la guía. No hay necesidad de repetir Playwright por cambiar solo documentación. Usa siempre una salida nueva para pruebas de navegador; algunos runners antiguos escriben por defecto en carpetas históricas.
+Usa siempre una salida nueva para pruebas de navegador; algunos runners antiguos escriben por defecto en carpetas históricas. Distingue pruebas preparadas de pruebas ejecutadas y no inventes resultados, capturas ni aprobación humana.
 
 ## Proteger datos y continuidad
 
-No borres LocalStorage personal ni uses un perfil personal para pruebas. Las cinco claves exactas, esquemas, revisiones, exportaciones y reglas de fusión están en [Persistencia](docs/HANDOFF-IA.md#persistencia-y-progreso). No unifiques los almacenes SC-200, Splunk y simulador. La aplicación exporta progreso, pero no tiene un flujo general de importación/restauración.
+No borres LocalStorage personal ni uses un perfil personal para pruebas. Las claves, esquemas, revisiones, exportaciones y reglas de fusión están en [Persistencia](docs/HANDOFF-IA.md#persistencia-y-progreso). No unifiques los almacenes: cada mundo —y cada plataforma del simulador— tiene la suya.
 
-No edites a mano `src/generated/`, `public/content/`, `public/splunk-content/`, `public/simulator-data/` ni los informes derivados. No modifiques `SC-200.md`, las skills enlazadas ni otros proyectos. No cambies fuentes canónicas para arreglar presentación. No reescribas inventarios, resultados o capturas anteriores para aceptar un cambio. Los manifiestos de conciliación admiten únicamente rutas y hashes exactos autorizados.
+No edites a mano `src/generated/`, `public/*-content/`, `public/simulator-data/` ni los informes derivados: regenéralos. No modifiques `SC-200.md`, las skills enlazadas ni otros proyectos. No reescribas inventarios, resultados o capturas anteriores para aceptar un cambio.
 
-Conserva `output/`: contiene evidencias y respaldos que las guardias necesitan. `.gitignore` excluye esa carpeta y varios derivados; un clon que solo conserve archivos versionados puede ser insuficiente para reconstruir o verificar el proyecto. Las skills son un enlace externo, no parte autónoma de esta academia.
+**Ficheros con hash conciliado** (cambiarlos exige actualizar la guardia o el manifiesto, no basta con editar el texto):
+
+- `docs/RETOMAR.md` y `AGENTS.md` figuran en los inventarios de respaldo (`output/*/respaldo/inventario.json`). RETOMAR se actualiza por la vía sancionada (`docs/HANDOFF-CONCILIACION-SIMULATOR.json` + el `MANIFEST_SHA` de `scripts/simulator-reconciliation.mjs`); esos inventarios **no se reescriben**.
+- Cinco mundos fijan el SHA-256 de su `docs/<mundo>/CONCILIACION-INTEGRACION.json` (`redes`, `windows-ad`, `linux`, `soc`, `repaso-soc`): cualquier edición autorizada de un fichero protegido obliga a re-fijar ese hash. El último eslabón es `repaso-soc`: un nuevo cambio en `App.tsx`, el selector o esas guardias debe partir de sus hashes `after`.
+- Si cambia un caso del Mundo SOC, su revisión del propietario **caduca**: hay que rehacerla (`docs/soc/REVISION-PROPIETARIO.md`).
+- **Linux y Windows + AD** tienen la misma guardia (`prepare-linux.mjs`, `prepare-windows-ad.mjs`) pero siguen en `draft_pending_owner_review`, sin registro. Se cierran solo tras la revisión humana: `node scripts/owner-review.mjs <linux|windows-ad> --close --date AAAA-MM-DD` (hoja de trabajo: `docs/CHECKLIST-REVISION-PROPIETARIO.md`). Si cambia una lección después, la revisión caduca.
+- Cambiar `docs/RETOMAR.md` por la vía sancionada exige añadir su hash anterior a `before` y el nuevo a `after` en `docs/HANDOFF-CONCILIACION-SIMULATOR.json`, y re-fijar `MANIFEST_SHA` en `scripts/simulator-reconciliation.mjs` (hecho el 19/10/2026; respaldo en `output/owner-review-guard-2026-10-19/respaldo/`).
+
+Conserva `output/`: contiene evidencias y respaldos que las guardias necesitan (las capturas históricas de `output/playwright/` están en `output/archivo-capturas-historicas.tar.zst`). `.gitignore` excluye esa carpeta y varios derivados; un clon que solo conserve archivos versionados puede ser insuficiente para reconstruir o verificar el proyecto. **En la raíz hay un `.git` que no es un repositorio utilizable**: no hay commits; todo vive en disco.
 
 ## Cambios futuros
 

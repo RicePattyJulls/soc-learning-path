@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-11-L01",
+  "title": "APT/dpkg y DNF/RPM",
+  "sourceHash": "ec3616b6d1b9eed1d46418419076e58027545961980747fdbb37e38529767b41",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-11-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDistinguir los roles de APT/dpkg y DNF/RPM y acotar qué demuestra la verificación local de un paquete.\n\nPrerrequisitos: `LNX-10-L03` (Qué NO inferir de un único indicio).\n\n## 2. Comprende el mecanismo\n\nPaquete, repositorio, gestor y proceso son **cosas distintas**. El gestor resuelve dependencias y ejecuta transacciones; el repositorio aporta metadatos y paquetes; el proceso es lo que corre en memoria. La confianza de la cadena depende del origen, las claves, la política, la integridad y la configuración local, y merece tratarse como **control de cambios**, no como una consulta.\n\nEn Debian, Ubuntu y Parrot, **APT** resuelve metadatos, versiones, orígenes y dependencias, mientras **dpkg** registra e instala paquetes `.deb` y permite consultar propiedad y versión. **`apt-secure`** valida firmas de los metadatos de repositorio (Release) y los hashes asociados según la política configurada; no es una firma individual del `.deb` ni demuestra que un archivo instalado permanezca inalterado.\n\nLos repositorios se declaran en `/etc/apt/sources.list` y `/etc/apt/sources.list.d/`; opciones como `Signed-By` restringen qué claves se aceptan por origen. Conviene recordar que `apt update` cambia índices locales y que `apt upgrade` o `apt install` son **cambios de sistema**, capaces de ejecutar scripts de mantenimiento y activar servicios.\n\nEn Fedora y RHEL, **RPM** registra los paquetes y `rpm -V` compara los atributos de los archivos contra la base local; **DNF** (y DNF5) gestiona transacciones y expone su historial. Los archivos `.repo` viven en `/etc/yum.repos.d/` y la política de firmas depende de `gpgcheck`, repositorios, metadatos y *keyrings*. DNF4 y DNF5 difieren en CLI y flags: no hay que asumir que `dnf` es idéntico en todas las versiones.\n\nLa lectura sin instalación es la primera herramienta: versión, propiedad de una ruta, integridad local, origen e historial. Todas ellas se responden sin modificar el sistema. Instalar, actualizar o retirar, en cambio, son operaciones que requieren ventana.\n\nEl límite fundamental: la verificación local se hace contra metadatos almacenados por **el propio host**, que puede haber sido alterado. Da falsos positivos —configuración editada legítimamente— y falsos negativos —archivos no rastreados, cambios solo en memoria—. En un compromiso confirmado hay que validar contra una referencia externa de confianza.\n\n### Vocabulario de apoyo\n\n- **Paquete**: unidad instalable con metadatos y contenido propio.\n- **Repositorio**: origen de paquetes y metadatos firmados según una política.\n- **`apt-secure`**: validación de firmas de metadatos de repositorio y hashes asociados.\n- **`dpkg-query`**: consulta de propiedad y versión en la base de dpkg.\n- **`rpm -V`**: verificación de atributos de archivos contra la base RPM local.\n- **Transacción**: operación del gestor registrada en un historial (por ejemplo, `dnf history`).\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-11-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: `apt-cache policy` muestra para un paquete una versión anterior a la de upstream; el analista concluye que el paquete está sin parchear.\n\nEl número de versión de upstream no es el criterio de parcheo. Las distribuciones **retroportan** correcciones: mantienen versiones aparentemente antiguas con parches aplicados y con identificadores propios. Una cadena de versión «vieja» puede estar parcheada dentro de la política de la distribución.\n\nLa comprobación razonable correlaciona el aviso del fabricante, la revisión instalada y el estado real del proceso o del kernel en ejecución, sin ejecutar `apt update` como primera acción, porque altera índices y metadatos. El límite: sin el aviso o el *advisory* de la distribución, la cadena de versión por sí sola no decide si el sistema está parcheado.\n\n"
+    },
+    {
+      "id": "LNX-11-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Situar procedencia, versión e integridad local antes de afirmar que un paquete está parcheado o alterado.\n- Red Team autorizado: Distinguir lo que valida la firma de repositorio de lo que demuestra la verificación local.\n- Evidencia de la etapa: Versión, propiedad de ruta, historial de transacciones y origen declarado del paquete.\n- Criterio de dominio: Explica qué control protege cada paso y el límite de la verificación local.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB11](../../05_RECURSOS/LABORATORIOS/LNX-LAB11.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F29**: [Debian: apt-secure](https://manpages.debian.org/trixie/apt/apt-secure.8.en.html). Qué autentican las firmas de repositorio y qué queda fuera.\n- **F30**: [Debian: sources.list](https://manpages.debian.org/trixie/apt/sources.list.5.en.html). Declaración de repositorios y ámbito de confianza por origen.\n- **F31**: [Debian: dpkg](https://manpages.debian.org/trixie/dpkg/dpkg.1.en.html). Registro, instalación y consulta de propiedad y versión.\n- **F32**: [DNF5: history](https://dnf5.readthedocs.io/en/stable/commands/history.8.html). Historial de transacciones como fuente de control de cambios.\n- **F33**: [RPM: rpm manual](https://rpm.org/docs/4.20.x/man/rpm.8.html). Consulta y verificación contra la base RPM local.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-11-L01-P01",
+    "prompt": "Observas que la versión instalada de un paquete es anterior a la de upstream y concluyes que está sin parchear. Explica por qué la cadena de versión no basta, qué controles de solo lectura usarías para situar el origen y cuál es el límite de la verificación local.",
+    "markdown": "## 4. Práctica individual\n\nObservas que la versión instalada de un paquete es anterior a la de upstream y concluyes que está sin parchear. Explica por qué la cadena de versión no basta, qué controles de solo lectura usarías para situar el origen y cuál es el límite de la verificación local.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber actualizado ni instalado paquetes reales.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-11-L01-Q01",
+      "prompt": "¿Qué comprueba `apt-secure` según su diseño?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Firma criptográficamente cada archivo instalado después de la instalación"
+        },
+        {
+          "id": "B",
+          "text": "Garantiza que ningún servicio quedará vulnerable"
+        },
+        {
+          "id": "C",
+          "text": "Valida las firmas de los metadatos de repositorio y los hashes asociados, no la integridad posterior de todo archivo"
+        },
+        {
+          "id": "D",
+          "text": "Elimina la necesidad de claves de repositorio"
+        }
+      ]
+    },
+    {
+      "id": "LNX-11-L01-Q02",
+      "prompt": "¿Qué límite tiene `rpm -V` en un host que podría estar comprometido?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Solo verifica paquetes instalados desde repositorios de Arch"
+        },
+        {
+          "id": "B",
+          "text": "Compara contra la base de datos RPM local, que podría estar alterada"
+        },
+        {
+          "id": "C",
+          "text": "Exige obligatoriamente conexión a Internet y claves remotas"
+        },
+        {
+          "id": "D",
+          "text": "Impide consultar el historial de transacciones de DNF"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB11](../../05_RECURSOS/LABORATORIOS/LNX-LAB11.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F29**: [Debian: apt-secure](https://manpages.debian.org/trixie/apt/apt-secure.8.en.html). Qué autentican las firmas de repositorio y qué queda fuera.\n- **F30**: [Debian: sources.list](https://manpages.debian.org/trixie/apt/sources.list.5.en.html). Declaración de repositorios y ámbito de confianza por origen.\n- **F31**: [Debian: dpkg](https://manpages.debian.org/trixie/dpkg/dpkg.1.en.html). Registro, instalación y consulta de propiedad y versión.\n- **F32**: [DNF5: history](https://dnf5.readthedocs.io/en/stable/commands/history.8.html). Historial de transacciones como fuente de control de cambios.\n- **F33**: [RPM: rpm manual](https://rpm.org/docs/4.20.x/man/rpm.8.html). Consulta y verificación contra la base RPM local.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "b2d954c0b2d4ee60c990eba5"
+}

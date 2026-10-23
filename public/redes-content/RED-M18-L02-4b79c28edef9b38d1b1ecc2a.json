@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M18-L02",
+  "title": "IPsec/TLS y GRE",
+  "sourceHash": "e3593ef8af30a74d0782094f83ffeff3e70e8006f1151fdb4a35b1c2f16f2a7c",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M18-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nComparar protección de túnel, establecimiento y encapsulación.\n\nPrerrequisitos: [RED-M18-L01](../RED-E03/RED-M18-L01.md).\n\n## 2. Comprende el mecanismo\n\nGRE encapsula tráfico y no aporta por sí solo cifrado. IPsec define protección a nivel IP; IKEv2 negocia parámetros y asociaciones, y ESP transporta tráfico protegido según el modo. Una SA establecida no demuestra que selectores, rutas y retorno permitan el tráfico previsto. VPN basadas en TLS tienen otro contexto de aplicación y plataforma. Cada cabecera consume espacio: MTU y MSS deben contemplar el túnel. No confundir que un túnel esté activo con autorización ilimitada entre sus redes.\n\n### Vocabulario de apoyo\n\n- **Underlay y overlay**: Transporte base y conectividad lógica construida sobre él.\n- **GRE, IKE y ESP**: Encapsulación de túnel, negociación de asociaciones y transporte protegido de IPsec.\n- **SLA y jitter**: Condiciones contractuales de servicio y variación de demora según el método de medida.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M18-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso docente: IKE SA activa; contador ESP de salida aumenta; entrada=0; prefijo remoto solo tiene ruta de ida.\n\nExiste negociación y salida, pero no evidencia de retorno protegido. Revisar camino remoto, selectores y políticas antes de regenerar claves sin motivo.\n\n"
+    },
+    {
+      "id": "RED-M18-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Investigar cambios de origen y túnel.\n- Red Team autorizado: Identificar exposición de management/WAN lab.\n- Evidencia del módulo: Diseño, dependencia de rutas y plan de diagnóstico.\n- Criterio del módulo: Explica seguridad/cifrado y rutas sin falsas garantías.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L09](../../05_RECURSOS/LABORATORIOS/RED-L09.md)\n- [Guía de laboratorio RED-L12](../../05_RECURSOS/LABORATORIOS/RED-L12.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC4301**: [RFC 4301: Security Architecture for the Internet Protocol](https://www.rfc-editor.org/rfc/rfc4301.html). Arquitectura IPsec y política; no prueba de un túnel concreto.\n- **RFC3031**: [RFC 3031: Multiprotocol Label Switching Architecture](https://www.rfc-editor.org/rfc/rfc3031.html). Etiquetas y arquitectura MPLS; no confidencialidad automática.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M18-L02-P01",
+    "prompt": "Se necesita confidencialidad sobre un túnel GRE. Explica qué condición adicional comprobar.",
+    "markdown": "## 4. Práctica individual\n\nSe necesita confidencialidad sobre un túnel GRE. Explica qué condición adicional comprobar.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M18-L02-Q01",
+      "prompt": "¿Qué no proporciona GRE por sí solo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Un encabezado adicional"
+        },
+        {
+          "id": "B",
+          "text": "Encapsulación"
+        },
+        {
+          "id": "C",
+          "text": "Cifrado"
+        },
+        {
+          "id": "D",
+          "text": "Un contexto de túnel"
+        }
+      ]
+    },
+    {
+      "id": "RED-M18-L02-Q02",
+      "prompt": "¿Qué no acredita IKE SA activa en el caso?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que existe estado de control"
+        },
+        {
+          "id": "B",
+          "text": "Que se acordaron parámetros de esa SA"
+        },
+        {
+          "id": "C",
+          "text": "Que hubo negociación IKE"
+        },
+        {
+          "id": "D",
+          "text": "Que el tráfico esperado circule correctamente en ambos sentidos"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L09](../../05_RECURSOS/LABORATORIOS/RED-L09.md)\n- [Guía de laboratorio RED-L12](../../05_RECURSOS/LABORATORIOS/RED-L12.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC4301**: [RFC 4301: Security Architecture for the Internet Protocol](https://www.rfc-editor.org/rfc/rfc4301.html). Arquitectura IPsec y política; no prueba de un túnel concreto.\n- **RFC3031**: [RFC 3031: Multiprotocol Label Switching Architecture](https://www.rfc-editor.org/rfc/rfc3031.html). Etiquetas y arquitectura MPLS; no confidencialidad automática.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "4b79c28edef9b38d1b1ecc2a"
+}

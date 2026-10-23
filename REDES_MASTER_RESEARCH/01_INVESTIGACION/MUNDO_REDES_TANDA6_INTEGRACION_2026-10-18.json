@@ -1,0 +1,3540 @@
+{
+  "title": "Mundo de Redes — Tanda 6/7: Integración conceptual entre mundos",
+  "created_on": "2026-10-18",
+  "status": "diseño documental sin cambios de sistemas",
+  "baseline": {
+    "t2_sha256": "32e677fc52531e31a21da9e71222e9296abdd02fb02c286a9e689fb74d69ef3e",
+    "t3_sha256": "891cfcce7d09d7c90e6ae09d109eab6e7b1c86a981c68fd624ba5796b4ac3367",
+    "t4_sha256": "25a81f11182497ae9b30b1b9999aebbfcb0d09c0f0c3ba3b2f275a7ba591beb9",
+    "t5_sha256": "51ed03dc7358cb85ac65432ded261a149ff9ed6b3b583ee4a4aff89aaca8d913",
+    "stages": 8,
+    "modules": 42,
+    "lessons_proposed": 168,
+    "hours_estimated_unmodified": 592,
+    "lab_count": 20,
+    "case_count": 12
+  },
+  "research_method": {
+    "researcher": "fuentes oficiales Microsoft, Splunk, Microsoft Security Auditing, systemd/netfilter, MITRE, RFC, NIST",
+    "critic": "verificación de ausencia de equivalencias, solapamientos, fallos de atribución y de progreso",
+    "cycles": "1 investigación documental + 1 revisión sistemática; no validación de plataforma ni ejecución",
+    "classification": [
+      "documented_fact",
+      "curricular_recommendation",
+      "needs_validation"
+    ]
+  },
+  "worlds": [
+    {
+      "id": "MS",
+      "name": "Microsoft Sentinel + Defender XDR",
+      "status": "existente según encargo; motores y contenidos concretos no inspeccionados",
+      "owner_scope": "KQL y hunting, conectores, ingesta, incidentes y detecciones de Microsoft",
+      "redes_scope": "significado de paquetes, sesiones, DNS, firewall, procedencia de logs, limitaciones y topología",
+      "non_equivalence": "ASIM ≠ tablas crudas, Defender XDR Advanced Hunting ≠ todas las tablas de Sentinel; políticas/licencias importan"
+    },
+    {
+      "id": "SPL",
+      "name": "Splunk SOC",
+      "status": "existente según encargo; pipelines y esquema instalado no inspeccionados",
+      "owner_scope": "SPL, ingesta, sourcetypes, add-ons, CIM, correlación, búsquedas e investigación Splunk",
+      "redes_scope": "semántica de DNS, sesiones, flujos, firewall, IDS/NDR y ubicación de sensores",
+      "non_equivalence": "CIM no equivale a ASIM; sourcetype no garantiza conformidad CIM"
+    },
+    {
+      "id": "AD",
+      "name": "Windows / Active Directory",
+      "status": "futuro posible; no considerar existente",
+      "owner_scope": "administración de Windows y AD, GPO, DNS server, autenticación, auditing, Windows Firewall",
+      "redes_scope": "protocolos DNS/Kerberos/LDAP/SMB/RDP, rutas, puertos y segmentación",
+      "non_equivalence": "evento de autenticación ≠ flujo de red, nombre de usuario ≠ atribución corroborada"
+    },
+    {
+      "id": "LX",
+      "name": "Linux",
+      "status": "futuro posible; no considerar existente",
+      "owner_scope": "red Linux operativa, permisos, journal, nftables/firewalld, SSH, servicios, scripts",
+      "redes_scope": "L2-L4, direccionamiento, routing, conexión, filtrado, captura y procedencia",
+      "non_equivalence": "journal ≠ syslog exportado; nftables ≠ firewalld aunque puedan compartir backend"
+    },
+    {
+      "id": "SIM",
+      "name": "Simulador SOC",
+      "status": "existente según encargo; modelo de casos y persistencia no inspeccionados",
+      "owner_scope": "decisiones, presentación de casos, simulación, debrief y progresión interna",
+      "redes_scope": "ground truth docente, hipótesis, falsos positivos, límites y contratos de evidencia",
+      "non_equivalence": "reproducción de JSON sintético ≠ SIEM/telemetría real; puntuación ≠ dominio sin evidencia"
+    },
+    {
+      "id": "PUR",
+      "name": "Puente SOC ↔ Red Team",
+      "status": "vínculo pedagógico de M32–M35 con M26–M31; no motor independiente",
+      "owner_scope": "orquestar pruebas controladas, revisión colaborativa, corrección y retest de escenario aislado",
+      "redes_scope": "alcance de segmento, rutas permitidas, evidencia de dispositivo y controles de red",
+      "non_equivalence": "observabilidad ≠ vulnerabilidad confirmada; actividad simulada ≠ compromiso"
+    }
+  ],
+  "links": [
+    {
+      "id": "RED-X001",
+      "world_id": "MS",
+      "title": "Syslog/CEF: origen y colector",
+      "module_ids": [
+        "RED-M07",
+        "RED-M26"
+      ],
+      "lab_ids": [
+        "RED-L13",
+        "RED-L16"
+      ],
+      "case_ids": [],
+      "learn_in_redes": "Qué emite el dispositivo, reloj, forwarder, pérdida y timestamp",
+      "reference_in_other_world": "Configuración AMA, DCR, ingesta y tablas Syslog/CommonSecurityLog",
+      "knowledge_reused": "RFC 5424 y procedencia de evento",
+      "integration_practice": "Sobre 4 mensajes docentes comparar emisor, colector y timestamp transformado",
+      "observable_evidence": "Tabla de procedencia, 2 sesgos temporales y un control de duplicación",
+      "acceptance_criterion": "Identifica qué hora se usa; no inventa campos o ingesta real",
+      "source_ids": [
+        "S01",
+        "S02",
+        "S23"
+      ],
+      "priority": "alta",
+      "execution_status": "propuesto_no_ejecutado",
+      "link_type": "curricular_reference_not_runtime_integration",
+      "source_claim_type": "recomendación curricular apoyada en referencias técnicas, no comprobación de plataforma",
+      "competency_ids": [
+        "NET-C001",
+        "NET-C002"
+      ]
+    },
+    {
+      "id": "RED-X002",
+      "world_id": "MS",
+      "title": "DNS normalizado e identidad de cliente",
+      "module_ids": [
+        "RED-M06",
+        "RED-M07",
+        "RED-M28",
+        "RED-M29"
+      ],
+      "lab_ids": [
+        "RED-L03",
+        "RED-L15"
+      ],
+      "case_ids": [
+        "S01"
+      ],
+      "learn_in_redes": "Resolución, caché, respuesta, src real/observado, DoH/DoT",
+      "reference_in_other_world": "ASIM DNS, consulta KQL en el mundo Microsoft y orígenes disponibles",
+      "knowledge_reused": "RCODE, QueryName, DNS server, host/inventory",
+      "integration_practice": "Comparar 3 eventos DNS crudos con representación normalizada sólo si campos documentados",
+      "observable_evidence": "Matriz campos presentes, ausentes, transformaciones y atribución con límites",
+      "acceptance_criterion": "No atribuye cliente por IP de recursor sin prueba adicional",
+      "source_ids": [
+        "S06",
+        "S04"
+      ],
+      "priority": "alta",
+      "execution_status": "propuesto_no_ejecutado",
+      "link_type": "curricular_reference_not_runtime_integration",
+      "source_claim_type": "recomendación curricular apoyada en referencias técnicas, no comprobación de plataforma",
+      "competency_ids": [
+        "NET-C001",
+        "NET-C002",
+        "NET-C004",
+        "NET-C009",
+        "NET-C008"
+      ]
+    },
+    {
+      "id": "RED-X003",
+      "world_id": "MS",
+      "title": "Sesión de red vs flujo e IDS",
+      "module_ids": [
+        "RED-M17",
+        "RED-M27",
+        "RED-M30"
+      ],
+      "lab_ids": [
+        "RED-L14",
+        "RED-L16"
+      ],
+      "case_ids": [
+        "S02",
+        "S05"
+      ],
+      "learn_in_redes": "5-tupla, flujo agregado, NAT, muestreo y verdict de firewall",
+      "reference_in_other_world": "ASIM Network Session e investigación KQL en mundo Microsoft",
+      "knowledge_reused": "NetworkSession, Flow, EndpointNetworkSession, IDS",
+      "integration_practice": "Clasificar dataset por tipo antes de calcular conexiones/volumen",
+      "observable_evidence": "Inventario de tipos EventType, límites del denominador y prueba negativa",
+      "acceptance_criterion": "Nunca suma un IDS como volumen total de red",
+      "source_ids": [
+        "S03",
+        "S04",
+        "S05"
+      ],
+      "priority": "alta",
+      "execution_status": "propuesto_no_ejecutado",
+      "link_type": "curricular_reference_not_runtime_integration",
+      "source_claim_type": "recomendación curricular apoyada en referencias técnicas, no comprobación de plataforma",
+      "competency_ids": [
+        "NET-C001",
+        "NET-C002",
+        "NET-C004",
+        "NET-C008"
+      ]
+    },
+    {
+      "id": "RED-X004",
+      "world_id": "MS",
+      "title": "Defender XDR: conexión frente a proceso",
+      "module_ids": [
+        "RED-M28",
+        "RED-M29",
+        "RED-M30"
+      ],
+      "lab_ids": [
+        "RED-L15",
+        "RED-L16"
+      ],
+      "case_ids": [
+        "S04",
+        "S07"
+      ],
+      "learn_in_redes": "Paquetes no demuestran proceso local; diferenciar conexión iniciada y vista endpoint",
+      "reference_in_other_world": "DeviceNetworkEvents + DeviceProcessEvents; Advanced Hunting en mundo Microsoft",
+      "knowledge_reused": "correlación con timestamp, DeviceId y evidencia de identidad",
+      "integration_practice": "Investigar un PCAP sin proceso y luego añadir un evento endpoint sintético",
+      "observable_evidence": "Tabla de hipótesis antes/después; condiciones mínimas para atribuir a proceso",
+      "acceptance_criterion": "No asume MDE habilitado o que toda conexión tenga evento",
+      "source_ids": [
+        "S07",
+        "S08"
+      ],
+      "priority": "alta",
+      "execution_status": "propuesto_no_ejecutado",
+      "link_type": "curricular_reference_not_runtime_integration",
+      "source_claim_type": "recomendación curricular apoyada en referencias técnicas, no comprobación de plataforma",
+      "competency_ids": [
+        "NET-C001",
+        "NET-C002",
+        "NET-C004",
+        "NET-C008"
+      ]
+    },
+    {
+      "id": "RED-X005",
+      "world_id": "MS",
+      "title": "Calidad y deduplicación AMA/DCR",
+      "module_ids": [
+        "RED-M26",
+        "RED-M30",
+        "RED-M37"
+      ],
+      "lab_ids": [
+        "RED-L13",
+        "RED-L16",
+        "RED-L18"
+      ],
+      "case_ids": [],
+      "learn_in_redes": "Pérdida, recolección, timestamp origen/ingesta y validación de parser",
+      "reference_in_other_world": "Data collection rules, conectores y pruebas de KQL documentadas",
+      "knowledge_reused": "fuente → transformación → destino",
+      "integration_practice": "Diseñar tres controles para DCR mal filtrada, evento duplicado y DST",
+      "observable_evidence": "Ficha de prueba con registros de entrada/salida esperados, sin ejecutar Azure",
+      "acceptance_criterion": "Campos/columnas comprobados en doc y pruebas sin afirmar ingestión",
+      "source_ids": [
+        "S01",
+        "S02"
+      ],
+      "priority": "alta",
+      "execution_status": "propuesto_no_ejecutado",
+      "link_type": "curricular_reference_not_runtime_integration",
+      "source_claim_type": "recomendación curricular apoyada en referencias técnicas, no comprobación de plataforma",
+      "competency_ids": [
+        "NET-C001",
+        "NET-C002",
+        "NET-C004",
+        "NET-C007",
+        "NET-C008"
+      ]
+    },
+    {
+      "id": "RED-X006",
+      "world_id": "MS",
+      "title": "Contención: propuesta ≠ acción",
+      "module_ids": [
+        "RED-M21",
+        "RED-M31",
+        "RED-M35"
+      ],
+      "lab_ids": [
+        "RED-L16",
+        "RED-L20"
+      ],
+      "case_ids": [],
+      "learn_in_redes": "Rutas e impacto de cerrar un flujo, alternativas y rollback",
+      "reference_in_other_world": "Incidentes/playbooks y administración Microsoft se referencian sin ejecutarlos",
+      "knowledge_reused": "criterios de parada e impacto de negocio",
+      "integration_practice": "Elegir contención ante sesión permitida y explicar efectos secundarios",
+      "observable_evidence": "Orden de cambio hipotética, plan de rollback, autorizaciones",
+      "acceptance_criterion": "Rechaza bloquear gateway crítico sin evaluación",
+      "source_ids": [
+        "S24",
+        "S03"
+      ],
+      "priority": "alta",
+      "execution_status": "propuesto_no_ejecutado",
+      "link_type": "curricular_reference_not_runtime_integration",
+      "source_claim_type": "recomendación curricular apoyada en referencias técnicas, no comprobación de plataforma",
+      "competency_ids": [
+        "NET-C003",
+        "NET-C004",
+        "NET-C005",
+        "NET-C006"
+      ]
+    },
+    {
+      "id": "RED-X007",
+      "world_id": "SPL",
+      "title": "Ingesta, sourcetype y tiempo",
+      "module_ids": [
+        "RED-M07",
+        "RED-M26"
+      ],
+      "lab_ids": [
+        "RED-L13"
+      ],
+      "case_ids": [],
+      "learn_in_redes": "Syslog origen, event breaking, identidad de dispositivo, hora y pérdida",
+      "reference_in_other_world": "inputs/props, parsing, sourcetypes y SPL en mundo Splunk",
+      "knowledge_reused": "timestamp original e ingesta, RFC 5424",
+      "integration_practice": "Comparar cinco logs con sourcetypes intencionadamente erróneos",
+      "observable_evidence": "Registro de eventos mal partidos, zona horaria y consecuencia en correlación",
+      "acceptance_criterion": "Explica que sourcetype no prueba formato correcto",
+      "source_ids": [
+        "S11",
+        "S23"
+      ],
+      "priority": "alta",
+      "execution_status": "propuesto_no_ejecutado",
+      "link_type": "curricular_reference_not_runtime_integration",
+      "source_claim_type": "recomendación curricular apoyada en referencias técnicas, no comprobación de plataforma",
+      "competency_ids": [
+        "NET-C001",
+        "NET-C002"
+      ]
+    },
+    {
+      "id": "RED-X008",
+      "world_id": "SPL",
+      "title": "CIM Network Traffic",
+      "module_ids": [
+        "RED-M17",
+        "RED-M21",
+        "RED-M27"
+      ],
+      "lab_ids": [
+        "RED-L14",
+        "RED-L16"
+      ],
+      "case_ids": [
+        "S02",
+        "S05"
+      ],
+      "learn_in_redes": "Sesión stateful, decisión L3/L4, bytes, NAT y sensores",
+      "reference_in_other_world": "SPL y aceleración de data models; mapeo CIM en Splunk",
+      "knowledge_reused": "src, dest, src_port, dest_port, action, bytes y campos opcionales",
+      "integration_practice": "Mapear un evento de firewall sintético al contrato de campos CIM",
+      "observable_evidence": "Matriz raw/CIM/transformación/ausente, tests positivo y negativo",
+      "acceptance_criterion": "No atribuye bytes por dirección si el reporte no especifica dirección",
+      "source_ids": [
+        "S09",
+        "S12"
+      ],
+      "priority": "alta",
+      "execution_status": "propuesto_no_ejecutado",
+      "link_type": "curricular_reference_not_runtime_integration",
+      "source_claim_type": "recomendación curricular apoyada en referencias técnicas, no comprobación de plataforma",
+      "competency_ids": [
+        "NET-C001",
+        "NET-C002",
+        "NET-C003"
+      ]
+    },
+    {
+      "id": "RED-X009",
+      "world_id": "SPL",
+      "title": "CIM Intrusion Detection y falsos positivos",
+      "module_ids": [
+        "RED-M27",
+        "RED-M29",
+        "RED-M30"
+      ],
+      "lab_ids": [
+        "RED-L14",
+        "RED-L16"
+      ],
+      "case_ids": [
+        "S05"
+      ],
+      "learn_in_redes": "Diferenciar alerta IDS de denegación de firewall y evidencia corroborativa",
+      "reference_in_other_world": "Modelo Intrusion Detection y detecciones SPL en mundo Splunk",
+      "knowledge_reused": "regla/sensor, contexto, FP/FN, enriquecimiento",
+      "integration_practice": "Comparar una alerta IDS y un firewall allow con mismo 5-tuple",
+      "observable_evidence": "Caso con decisión y dos hipótesis contrastables",
+      "acceptance_criterion": "No transforma firma IDS en compromiso confirmado",
+      "source_ids": [
+        "S09",
+        "S10",
+        "S20"
+      ],
+      "priority": "alta",
+      "execution_status": "propuesto_no_ejecutado",
+      "link_type": "curricular_reference_not_runtime_integration",
+      "source_claim_type": "recomendación curricular apoyada en referencias técnicas, no comprobación de plataforma",
+      "competency_ids": [
+        "NET-C001",
+        "NET-C002",
+        "NET-C004",
+        "NET-C008"
+      ]
+    },
+    {
+      "id": "RED-X010",
+      "world_id": "SPL",
+      "title": "DNS y correlación entre fuentes",
+      "module_ids": [
+        "RED-M07",
+        "RED-M28",
+        "RED-M29"
+      ],
+      "lab_ids": [
+        "RED-L15",
+        "RED-L16"
+      ],
+      "case_ids": [
+        "S01"
+      ],
+      "learn_in_redes": "DNS resolver, DHCP/NAT y sesgos de zona horaria",
+      "reference_in_other_world": "SPL, mapeos de identidad, fuentes y correlación del mundo Splunk",
+      "knowledge_reused": "inventario IP→host→cuenta con intervalos válidos",
+      "integration_practice": "Reconstruir secuencia DNS+DHCP+firewall con recursión y NAT",
+      "observable_evidence": "Cronología UTC con valores nulos y límites",
+      "acceptance_criterion": "No usa la misma IP histórica para usuarios de distinto lease",
+      "source_ids": [
+        "S11",
+        "S12",
+        "S24"
+      ],
+      "priority": "alta",
+      "execution_status": "propuesto_no_ejecutado",
+      "link_type": "curricular_reference_not_runtime_integration",
+      "source_claim_type": "recomendación curricular apoyada en referencias técnicas, no comprobación de plataforma",
+      "competency_ids": [
+        "NET-C001",
+        "NET-C002",
+        "NET-C004",
+        "NET-C008"
+      ]
+    },
+    {
+      "id": "RED-X011",
+      "world_id": "SPL",
+      "title": "Calidad del dataset y tests de detección",
+      "module_ids": [
+        "RED-M26",
+        "RED-M30",
+        "RED-M36"
+      ],
+      "lab_ids": [
+        "RED-L16",
+        "RED-L18"
+      ],
+      "case_ids": [],
+      "learn_in_redes": "Cobertura sensor, casos negativos, schema contract y falsos positivos",
+      "reference_in_other_world": "búsquedas/reglas SPL/versionado/correlación en mundo Splunk",
+      "knowledge_reused": "controles de regresión, evidencia de cambios",
+      "integration_practice": "Definir manifest de dataset, eventos esperados y ausencia esperada",
+      "observable_evidence": "Ficha con ground truth, casos hard negatives y rangos de tiempo",
+      "acceptance_criterion": "No declara detección probada sin ejecución reproducible",
+      "source_ids": [
+        "S09",
+        "S10",
+        "S11",
+        "S24"
+      ],
+      "priority": "alta",
+      "execution_status": "propuesto_no_ejecutado",
+      "link_type": "curricular_reference_not_runtime_integration",
+      "source_claim_type": "recomendación curricular apoyada en referencias técnicas, no comprobación de plataforma",
+      "competency_ids": [
+        "NET-C001",
+        "NET-C002",
+        "NET-C004",
+        "NET-C007",
+        "NET-C008"
+      ]
+    },
+    {
+      "id": "RED-X012",
+      "world_id": "AD",
+      "title": "DNS de dominio y resolución de servicios",
+      "module_ids": [
+        "RED-M06",
+        "RED-M07",
+        "RED-M12"
+      ],
+      "lab_ids": [
+        "RED-L05",
+        "RED-L15"
+      ],
+      "case_ids": [],
+      "learn_in_redes": "DNS, SRV, caches, ruta a DC y puertos conceptuales",
+      "reference_in_other_world": "configuración DNS en AD y DC locator del futuro mundo Windows/AD",
+      "knowledge_reused": "fallo DNS vs fallo autenticación",
+      "integration_practice": "Diagnóstico offline con registros sintéticos de SRV y DNS erróneo",
+      "observable_evidence": "Hipótesis causa raíz y solución/rollback",
+      "acceptance_criterion": "No infiere que Kerberos cayó solo porque DNS falló",
+      "source_ids": [
+        "S13",
+        "S14"
+      ],
+      "priority": "alta",
+      "execution_status": "propuesto_no_ejecutado",
+      "link_type": "curricular_reference_not_runtime_integration",
+      "source_claim_type": "recomendación curricular apoyada en referencias técnicas, no comprobación de plataforma",
+      "competency_ids": [
+        "NET-C002",
+        "NET-C009"
+      ]
+    },
+    {
+      "id": "RED-X013",
+      "world_id": "AD",
+      "title": "Kerberos TGS y tráfico de autenticación",
+      "module_ids": [
+        "RED-M06",
+        "RED-M28",
+        "RED-M29"
+      ],
+      "lab_ids": [
+        "RED-L03",
+        "RED-L15"
+      ],
+      "case_ids": [
+        "S07"
+      ],
+      "learn_in_redes": "Intercambio Kerberos observable vs información invisible en TLS, tiempo y puertos",
+      "reference_in_other_world": "eventos DC 4769, auditoría, tickets y SPN en futuro mundo AD",
+      "knowledge_reused": "DC evidencia de ticket ≠ paquete de aplicación",
+      "integration_practice": "Correlacionar 4769 en DC con flujo sintético hacia servidor SMB",
+      "observable_evidence": "Cronología fuente DC+flujo, límites de usuario/dispositivo",
+      "acceptance_criterion": "Distingue TGS concedido de acceso exitoso al recurso",
+      "source_ids": [
+        "S13",
+        "S14"
+      ],
+      "priority": "alta",
+      "execution_status": "propuesto_no_ejecutado",
+      "link_type": "curricular_reference_not_runtime_integration",
+      "source_claim_type": "recomendación curricular apoyada en referencias técnicas, no comprobación de plataforma",
+      "competency_ids": [
+        "NET-C001",
+        "NET-C002",
+        "NET-C004",
+        "NET-C009",
+        "NET-C008"
+      ]
+    },
+    {
+      "id": "RED-X014",
+      "world_id": "AD",
+      "title": "SMB/LDAP/RDP y segmentación",
+      "module_ids": [
+        "RED-M06",
+        "RED-M21",
+        "RED-M33",
+        "RED-M34"
+      ],
+      "lab_ids": [
+        "RED-L10",
+        "RED-L17"
+      ],
+      "case_ids": [
+        "S09"
+      ],
+      "learn_in_redes": "puertos, sesiones, firewall en capa de red y ruta de vuelta",
+      "reference_in_other_world": "ACL Windows/AD, permisos de recurso, GPO, roles, auditoría",
+      "knowledge_reused": "IP/puerto permitido no significa permiso de aplicación",
+      "integration_practice": "Validar matriz allow/deny ficticia entre zonas de laboratorio aislado",
+      "observable_evidence": "Tráfico esperado vs observado, firewall logs y resultado de servicio",
+      "acceptance_criterion": "Separa fallo de ACL de acceso denegado por SMB",
+      "source_ids": [
+        "S14",
+        "S15",
+        "S24"
+      ],
+      "priority": "alta",
+      "execution_status": "propuesto_no_ejecutado",
+      "link_type": "curricular_reference_not_runtime_integration",
+      "source_claim_type": "recomendación curricular apoyada en referencias técnicas, no comprobación de plataforma",
+      "competency_ids": [
+        "NET-C003",
+        "NET-C005",
+        "NET-C009"
+      ]
+    },
+    {
+      "id": "RED-X015",
+      "world_id": "AD",
+      "title": "Windows Filtering Platform y atribución",
+      "module_ids": [
+        "RED-M21",
+        "RED-M26",
+        "RED-M29"
+      ],
+      "lab_ids": [
+        "RED-L10",
+        "RED-L15"
+      ],
+      "case_ids": [],
+      "learn_in_redes": "firewall stateful, eventos permitidos/bloqueados y local/remote",
+      "reference_in_other_world": "habilitación auditoría WFP y Event ID 5156/5157 en futuro AD",
+      "knowledge_reused": "ubicación evento ≠ punto intermedio",
+      "integration_practice": "Comparar 5156 y evento firewall perimetral que ve NAT",
+      "observable_evidence": "Cadenas de actor, origen original/observado y campos ausentes",
+      "acceptance_criterion": "Evita doble contabilización y atribución sin NAT/DHCP",
+      "source_ids": [
+        "S15",
+        "S14"
+      ],
+      "priority": "alta",
+      "execution_status": "propuesto_no_ejecutado",
+      "link_type": "curricular_reference_not_runtime_integration",
+      "source_claim_type": "recomendación curricular apoyada en referencias técnicas, no comprobación de plataforma",
+      "competency_ids": [
+        "NET-C001",
+        "NET-C002",
+        "NET-C003",
+        "NET-C004",
+        "NET-C008"
+      ]
+    },
+    {
+      "id": "RED-X016",
+      "world_id": "AD",
+      "title": "Relojes, identidad y movimiento lateral como hipótesis",
+      "module_ids": [
+        "RED-M07",
+        "RED-M29",
+        "RED-M31"
+      ],
+      "lab_ids": [
+        "RED-L15",
+        "RED-L16"
+      ],
+      "case_ids": [
+        "S07"
+      ],
+      "learn_in_redes": "correlación multi-fuente, ruta lateral y cronología UTC",
+      "reference_in_other_world": "auditoría Windows/AD, registro de logon 4624 y autenticación",
+      "knowledge_reused": "logon type y observación en host destino",
+      "integration_practice": "Investigar patrón SMB/RDP que resulta en mantenimiento autorizado",
+      "observable_evidence": "Informe hecho/hipótesis/alternativa; recomendación de validación",
+      "acceptance_criterion": "No etiqueta un 4624 tipo 3 como intrusión por sí solo",
+      "source_ids": [
+        "S14",
+        "S24",
+        "S20"
+      ],
+      "priority": "alta",
+      "execution_status": "propuesto_no_ejecutado",
+      "link_type": "curricular_reference_not_runtime_integration",
+      "source_claim_type": "recomendación curricular apoyada en referencias técnicas, no comprobación de plataforma",
+      "competency_ids": [
+        "NET-C002",
+        "NET-C004",
+        "NET-C006",
+        "NET-C008"
+      ]
+    },
+    {
+      "id": "RED-X017",
+      "world_id": "LX",
+      "title": "Interfaces, vecinos y rutas Linux",
+      "module_ids": [
+        "RED-M01",
+        "RED-M03",
+        "RED-M12"
+      ],
+      "lab_ids": [
+        "RED-L01",
+        "RED-L02",
+        "RED-L06"
+      ],
+      "case_ids": [],
+      "learn_in_redes": "IP, ARP/ND, route, tablas y hop-by-hop",
+      "reference_in_other_world": "iproute2, namespaces y diagnóstico de servicios en futuro mundo Linux",
+      "knowledge_reused": "subnetting, routing, gateway y MTU",
+      "integration_practice": "Resolver una tabla de rutas pregrabada con ruta por defecto incorrecta",
+      "observable_evidence": "Capturas de salidas y explicación de siguiente salto",
+      "acceptance_criterion": "Diferencia interfaz down de ACL/firewall",
+      "source_ids": [
+        "S23"
+      ],
+      "priority": "alta",
+      "execution_status": "propuesto_no_ejecutado",
+      "link_type": "curricular_reference_not_runtime_integration",
+      "source_claim_type": "recomendación curricular apoyada en referencias técnicas, no comprobación de plataforma",
+      "competency_ids": [
+        "NET-C009"
+      ]
+    },
+    {
+      "id": "RED-X018",
+      "world_id": "LX",
+      "title": "nftables: política vs observación",
+      "module_ids": [
+        "RED-M21",
+        "RED-M22",
+        "RED-M34"
+      ],
+      "lab_ids": [
+        "RED-L10",
+        "RED-L17"
+      ],
+      "case_ids": [],
+      "learn_in_redes": "direccionalidad, conntrack, reglas, allow/deny y counters",
+      "reference_in_other_world": "nft, política Linux y restauración en futuro mundo Linux",
+      "knowledge_reused": "estado de conexión y trazado controlado",
+      "integration_practice": "Sobre reglas de ejemplo, localizar por qué puerto 443 queda denegado",
+      "observable_evidence": "Diagrama de hooks y traza esperada, plan revert",
+      "acceptance_criterion": "No presupone que todo drop genera syslog",
+      "source_ids": [
+        "S17",
+        "S18",
+        "S24"
+      ],
+      "priority": "alta",
+      "execution_status": "propuesto_no_ejecutado",
+      "link_type": "curricular_reference_not_runtime_integration",
+      "source_claim_type": "recomendación curricular apoyada en referencias técnicas, no comprobación de plataforma",
+      "competency_ids": [
+        "NET-C003",
+        "NET-C005",
+        "NET-C009"
+      ]
+    },
+    {
+      "id": "RED-X019",
+      "world_id": "LX",
+      "title": "firewalld y zonas",
+      "module_ids": [
+        "RED-M20",
+        "RED-M21",
+        "RED-M23"
+      ],
+      "lab_ids": [
+        "RED-L10"
+      ],
+      "case_ids": [],
+      "learn_in_redes": "segmentación L3, zonas y dirección de política",
+      "reference_in_other_world": "firewall-cmd y políticas/zonas de Linux futuro",
+      "knowledge_reused": "camino de paquete interzona",
+      "integration_practice": "Diagnosticar tráfico en zona incorrecta sin tocar host",
+      "observable_evidence": "Política de entrada/salida y dos pruebas (allow, deny)",
+      "acceptance_criterion": "No equipara firewalld a lista literal de reglas nft",
+      "source_ids": [
+        "S19"
+      ],
+      "priority": "alta",
+      "execution_status": "propuesto_no_ejecutado",
+      "link_type": "curricular_reference_not_runtime_integration",
+      "source_claim_type": "recomendación curricular apoyada en referencias técnicas, no comprobación de plataforma",
+      "competency_ids": [
+        "NET-C003",
+        "NET-C009"
+      ]
+    },
+    {
+      "id": "RED-X020",
+      "world_id": "LX",
+      "title": "journald/Syslog, hora y preservación",
+      "module_ids": [
+        "RED-M07",
+        "RED-M26",
+        "RED-M29"
+      ],
+      "lab_ids": [
+        "RED-L13",
+        "RED-L15"
+      ],
+      "case_ids": [],
+      "learn_in_redes": "hora UTC, origen, colector, pérdida y permisos",
+      "reference_in_other_world": "journalctl, rsyslog/syslog-ng y configuración en Linux futuro",
+      "knowledge_reused": "cadena de evidencia journal→relay→SIEM",
+      "integration_practice": "Clasificar ejemplos journald y Syslog enviados/no enviados",
+      "observable_evidence": "Matriz de presencia, retención y sesgo UTC",
+      "acceptance_criterion": "No presupone ForwardToSyslog habilitado",
+      "source_ids": [
+        "S16",
+        "S23"
+      ],
+      "priority": "alta",
+      "execution_status": "propuesto_no_ejecutado",
+      "link_type": "curricular_reference_not_runtime_integration",
+      "source_claim_type": "recomendación curricular apoyada en referencias técnicas, no comprobación de plataforma",
+      "competency_ids": [
+        "NET-C001",
+        "NET-C002",
+        "NET-C004",
+        "NET-C008"
+      ]
+    },
+    {
+      "id": "RED-X021",
+      "world_id": "LX",
+      "title": "SSH, servicio de red y captura",
+      "module_ids": [
+        "RED-M05",
+        "RED-M06",
+        "RED-M28"
+      ],
+      "lab_ids": [
+        "RED-L03",
+        "RED-L15"
+      ],
+      "case_ids": [],
+      "learn_in_redes": "handshake TCP/TLS según protocolo, SSH, puertos, captura",
+      "reference_in_other_world": "administración SSH, tcpdump, permisos y journal en mundo Linux futuro",
+      "knowledge_reused": "pcap no expone credenciales cifradas",
+      "integration_practice": "Analizar PCAP SSH cifrado + journal sintético de login",
+      "observable_evidence": "Discrimina conexión, autenticación y sesión exitosa",
+      "acceptance_criterion": "No infiere usuario/contraseña desde captura cifrada",
+      "source_ids": [
+        "S16",
+        "S23"
+      ],
+      "priority": "alta",
+      "execution_status": "propuesto_no_ejecutado",
+      "link_type": "curricular_reference_not_runtime_integration",
+      "source_claim_type": "recomendación curricular apoyada en referencias técnicas, no comprobación de plataforma",
+      "competency_ids": [
+        "NET-C001",
+        "NET-C004",
+        "NET-C009"
+      ]
+    },
+    {
+      "id": "RED-X022",
+      "world_id": "SIM",
+      "title": "Caso SOC: estructura de evidencia y procedencia",
+      "module_ids": [
+        "RED-M26",
+        "RED-M29"
+      ],
+      "lab_ids": [
+        "RED-L13",
+        "RED-L15"
+      ],
+      "case_ids": [
+        "S01"
+      ],
+      "learn_in_redes": "sensor, observación, errores, incertidumbre, UTC",
+      "reference_in_other_world": "UI de escenarios, decisiones y revisión del simulador existente (sin asumir APIs)",
+      "knowledge_reused": "eventos sintéticos con origen y ground truth",
+      "integration_practice": "Convertir caso SOC S01 en ficha portable con evidencias visibles/ocultas",
+      "observable_evidence": "Manifest + oráculo + 2 alternativas explicadas",
+      "acceptance_criterion": "Nunca muestra ground truth como evento sensor",
+      "source_ids": [
+        "S24",
+        "S20"
+      ],
+      "priority": "alta",
+      "execution_status": "propuesto_no_ejecutado",
+      "link_type": "curricular_reference_not_runtime_integration",
+      "source_claim_type": "recomendación curricular apoyada en referencias técnicas, no comprobación de plataforma",
+      "competency_ids": [
+        "NET-C001",
+        "NET-C002",
+        "NET-C004",
+        "NET-C008"
+      ]
+    },
+    {
+      "id": "RED-X023",
+      "world_id": "SIM",
+      "title": "Árbol de decisiones e hipótesis alternativas",
+      "module_ids": [
+        "RED-M29",
+        "RED-M30"
+      ],
+      "lab_ids": [
+        "RED-L15",
+        "RED-L16"
+      ],
+      "case_ids": [],
+      "learn_in_redes": "triage, FP/FN, alcance, hipótesis independientes",
+      "reference_in_other_world": "experiencia de decisiones y feedback de simulador por decidir",
+      "knowledge_reused": "evidencia favorable y contraria; revisión explicada",
+      "integration_practice": "Diseñar 3 decisiones para un mismo caso con información incompleta",
+      "observable_evidence": "Feedback distingue incertidumbre de fallo y penaliza sobreatribución",
+      "acceptance_criterion": "No otorga éxito por encontrar indicador aislado",
+      "source_ids": [
+        "S24",
+        "S20"
+      ],
+      "priority": "alta",
+      "execution_status": "propuesto_no_ejecutado",
+      "link_type": "curricular_reference_not_runtime_integration",
+      "source_claim_type": "recomendación curricular apoyada en referencias técnicas, no comprobación de plataforma",
+      "competency_ids": [
+        "NET-C002",
+        "NET-C004",
+        "NET-C008"
+      ]
+    },
+    {
+      "id": "RED-X024",
+      "world_id": "SIM",
+      "title": "Prueba de competencia sin inventar progreso",
+      "module_ids": [
+        "RED-M30",
+        "RED-M42"
+      ],
+      "lab_ids": [
+        "RED-L16",
+        "RED-L20"
+      ],
+      "case_ids": [],
+      "learn_in_redes": "transferencia de criterio, evidencia en nuevos escenarios",
+      "reference_in_other_world": "progreso/XP de simulador solo si su sistema lo permite y se aprueba",
+      "knowledge_reused": "rúbrica de competencia vs narrativa gamificada",
+      "integration_practice": "Diseñar diagnóstico con test distinto de caso entrenado",
+      "observable_evidence": "Métrica correcta de habilidad independiente de XP y finalización",
+      "acceptance_criterion": "No cambia datos históricos/XP; no implica equivalencias automáticas",
+      "source_ids": [
+        "S24"
+      ],
+      "priority": "alta",
+      "execution_status": "propuesto_no_ejecutado",
+      "link_type": "curricular_reference_not_runtime_integration",
+      "source_claim_type": "recomendación curricular apoyada en referencias técnicas, no comprobación de plataforma",
+      "competency_ids": [
+        "NET-C002",
+        "NET-C004",
+        "NET-C008"
+      ]
+    },
+    {
+      "id": "RED-X025",
+      "world_id": "SIM",
+      "title": "Misión de recuperación verificable",
+      "module_ids": [
+        "RED-M31",
+        "RED-M35",
+        "RED-M41"
+      ],
+      "lab_ids": [
+        "RED-L20"
+      ],
+      "case_ids": [],
+      "learn_in_redes": "contención autorizada, rollback y recuperación",
+      "reference_in_other_world": "debrief y revisión de decisiones de simulador si soporta",
+      "knowledge_reused": "estados previo/post y evidencias",
+      "integration_practice": "Crear caso de falso positivo en política de egress y retest",
+      "observable_evidence": "Aprobación por continuidad, evidencia y reversión",
+      "acceptance_criterion": "No marca rollback ejecutado si es ejercicio de papel",
+      "source_ids": [
+        "S24"
+      ],
+      "priority": "alta",
+      "execution_status": "propuesto_no_ejecutado",
+      "link_type": "curricular_reference_not_runtime_integration",
+      "source_claim_type": "recomendación curricular apoyada en referencias técnicas, no comprobación de plataforma",
+      "competency_ids": [
+        "NET-C004",
+        "NET-C005",
+        "NET-C006",
+        "NET-C008"
+      ]
+    },
+    {
+      "id": "RED-X026",
+      "world_id": "PUR",
+      "title": "Alcance de prueba controlada",
+      "module_ids": [
+        "RED-M32",
+        "RED-M33"
+      ],
+      "lab_ids": [
+        "RED-L17",
+        "RED-L20"
+      ],
+      "case_ids": [
+        "S03"
+      ],
+      "learn_in_redes": "CIDR autorizado, ventana, activos, criterio de parada",
+      "reference_in_other_world": "reutilizar resultados en ramo SOC para clasificar eventos de prueba",
+      "knowledge_reused": "ROE y etiquetas de actividad de laboratorio",
+      "integration_practice": "Comparar lista de objetivos aprobados y 3 solicitudes fuera de alcance",
+      "observable_evidence": "Matriz permitidos/prohibidos y decisión de no ejecutar",
+      "acceptance_criterion": "Cualquier actividad fuera de alcance es fallo crítico",
+      "source_ids": [
+        "S24"
+      ],
+      "priority": "alta",
+      "execution_status": "propuesto_no_ejecutado",
+      "link_type": "curricular_reference_not_runtime_integration",
+      "source_claim_type": "recomendación curricular apoyada en referencias técnicas, no comprobación de plataforma",
+      "competency_ids": [
+        "NET-C005"
+      ]
+    },
+    {
+      "id": "RED-X027",
+      "world_id": "PUR",
+      "title": "Generación de actividad vs sensores",
+      "module_ids": [
+        "RED-M27",
+        "RED-M30",
+        "RED-M33"
+      ],
+      "lab_ids": [
+        "RED-L14",
+        "RED-L17",
+        "RED-L20"
+      ],
+      "case_ids": [
+        "S05"
+      ],
+      "learn_in_redes": "punto observación, falsas ausencias, NAT/segmentación",
+      "reference_in_other_world": "insumos de casos para analista SOC y verificación Red Team",
+      "knowledge_reused": "paquete/flow/alerta representan distintas cosas",
+      "integration_practice": "Emular escenarios offline de descubrimiento y comprobar qué fuente detectaría",
+      "observable_evidence": "Tabla actividad → sensor → señal esperada → señal no observable",
+      "acceptance_criterion": "No declara detección real ni cobertura sin datos",
+      "source_ids": [
+        "S03",
+        "S09",
+        "S20"
+      ],
+      "priority": "alta",
+      "execution_status": "propuesto_no_ejecutado",
+      "link_type": "curricular_reference_not_runtime_integration",
+      "source_claim_type": "recomendación curricular apoyada en referencias técnicas, no comprobación de plataforma",
+      "competency_ids": [
+        "NET-C001",
+        "NET-C002",
+        "NET-C004",
+        "NET-C005",
+        "NET-C008"
+      ]
+    },
+    {
+      "id": "RED-X028",
+      "world_id": "PUR",
+      "title": "Control permite/deniega y remediación",
+      "module_ids": [
+        "RED-M21",
+        "RED-M34",
+        "RED-M35"
+      ],
+      "lab_ids": [
+        "RED-L10",
+        "RED-L17",
+        "RED-L20"
+      ],
+      "case_ids": [
+        "S09"
+      ],
+      "learn_in_redes": "ACL, routing, IPsec/segmentación, prueba positiva y negativa",
+      "reference_in_other_world": "análisis SOC asociado, evidencia de firewall y retorno",
+      "knowledge_reused": "control distinto de telemetría",
+      "integration_practice": "Diseñar test de aislamiento entre 3 segmentos y comprobar retorno",
+      "observable_evidence": "Matriz de acceso antes/después + falsa alarma descartada",
+      "acceptance_criterion": "No declara fallo de control si una prueba falla por DNS/routing",
+      "source_ids": [
+        "S24",
+        "S15"
+      ],
+      "priority": "alta",
+      "execution_status": "propuesto_no_ejecutado",
+      "link_type": "curricular_reference_not_runtime_integration",
+      "source_claim_type": "recomendación curricular apoyada en referencias técnicas, no comprobación de plataforma",
+      "competency_ids": [
+        "NET-C003",
+        "NET-C005",
+        "NET-C006"
+      ]
+    },
+    {
+      "id": "RED-X029",
+      "world_id": "PUR",
+      "title": "Corrección/retorno y reporte conjunto",
+      "module_ids": [
+        "RED-M31",
+        "RED-M35",
+        "RED-M41"
+      ],
+      "lab_ids": [
+        "RED-L16",
+        "RED-L20"
+      ],
+      "case_ids": [],
+      "learn_in_redes": "causa raíz, cambio controlado, retest, recuperación",
+      "reference_in_other_world": "informe Purple Team, hallazgos, validación de detecciones",
+      "knowledge_reused": "atribución con incertidumbre y autorización",
+      "integration_practice": "Realizar en papel una corrección que preserve DNS/servicios y logging",
+      "observable_evidence": "Reporte SOC+Red con prueba de no regresión, criterios de rollback",
+      "acceptance_criterion": "Concluir solo al demostrar recuperación en entorno ejecutado",
+      "source_ids": [
+        "S24"
+      ],
+      "priority": "alta",
+      "execution_status": "propuesto_no_ejecutado",
+      "link_type": "curricular_reference_not_runtime_integration",
+      "source_claim_type": "recomendación curricular apoyada en referencias técnicas, no comprobación de plataforma",
+      "competency_ids": [
+        "NET-C004",
+        "NET-C005",
+        "NET-C006",
+        "NET-C008"
+      ]
+    }
+  ],
+  "module_hooks": [
+    {
+      "module_id": "RED-M01",
+      "stage": "E1",
+      "module_title": "Modelo de comunicaciones y diagnóstico físico",
+      "baseline_references": [
+        "LX"
+      ],
+      "validated_reference_links": [
+        "RED-X017"
+      ],
+      "world_link_groups": [
+        {
+          "world_id": "LX",
+          "link_ids": [
+            "RED-X017"
+          ]
+        }
+      ],
+      "depends_on": [],
+      "note": "vínculo conceptual; implementación no inspeccionada"
+    },
+    {
+      "module_id": "RED-M02",
+      "stage": "E1",
+      "module_title": "IPv4, CIDR, VLSM y plan de direccionamiento",
+      "baseline_references": [
+        "LX",
+        "SIM"
+      ],
+      "validated_reference_links": [],
+      "world_link_groups": [],
+      "depends_on": [
+        "RED-M01"
+      ],
+      "note": "sin vínculo directo propuesto; reutiliza fundamentos indirectamente"
+    },
+    {
+      "module_id": "RED-M03",
+      "stage": "E1",
+      "module_title": "IPv6, ND y autoconfiguración",
+      "baseline_references": [
+        "LX",
+        "SIM"
+      ],
+      "validated_reference_links": [
+        "RED-X017"
+      ],
+      "world_link_groups": [
+        {
+          "world_id": "LX",
+          "link_ids": [
+            "RED-X017"
+          ]
+        }
+      ],
+      "depends_on": [
+        "RED-M01",
+        "RED-M02"
+      ],
+      "note": "vínculo conceptual; implementación no inspeccionada"
+    },
+    {
+      "module_id": "RED-M04",
+      "stage": "E1",
+      "module_title": "TCP, UDP, MTU/MSS y transporte",
+      "baseline_references": [
+        "LX",
+        "SIM"
+      ],
+      "validated_reference_links": [],
+      "world_link_groups": [],
+      "depends_on": [
+        "RED-M01",
+        "RED-M02"
+      ],
+      "note": "sin vínculo directo propuesto; reutiliza fundamentos indirectamente"
+    },
+    {
+      "module_id": "RED-M05",
+      "stage": "E1",
+      "module_title": "Captura y evidencia de red inicial",
+      "baseline_references": [
+        "LX",
+        "SIM",
+        "MS",
+        "SPL"
+      ],
+      "validated_reference_links": [
+        "RED-X021"
+      ],
+      "world_link_groups": [
+        {
+          "world_id": "LX",
+          "link_ids": [
+            "RED-X021"
+          ]
+        }
+      ],
+      "depends_on": [
+        "RED-M01",
+        "RED-M02",
+        "RED-M04"
+      ],
+      "note": "vínculo conceptual; implementación no inspeccionada"
+    },
+    {
+      "module_id": "RED-M06",
+      "stage": "E1",
+      "module_title": "Servicios y protocolos empresariales observables",
+      "baseline_references": [
+        "AD",
+        "LX",
+        "MS",
+        "SPL"
+      ],
+      "validated_reference_links": [
+        "RED-X002",
+        "RED-X012",
+        "RED-X013",
+        "RED-X014",
+        "RED-X021"
+      ],
+      "world_link_groups": [
+        {
+          "world_id": "MS",
+          "link_ids": [
+            "RED-X002"
+          ]
+        },
+        {
+          "world_id": "AD",
+          "link_ids": [
+            "RED-X012",
+            "RED-X013",
+            "RED-X014"
+          ]
+        },
+        {
+          "world_id": "LX",
+          "link_ids": [
+            "RED-X021"
+          ]
+        }
+      ],
+      "depends_on": [
+        "RED-M04",
+        "RED-M05"
+      ],
+      "note": "vínculo conceptual; implementación no inspeccionada"
+    },
+    {
+      "module_id": "RED-M07",
+      "stage": "E2",
+      "module_title": "DNS, DHCP, NTP y resolución de fallos",
+      "baseline_references": [
+        "AD",
+        "LX",
+        "SIM",
+        "MS",
+        "SPL"
+      ],
+      "validated_reference_links": [
+        "RED-X001",
+        "RED-X002",
+        "RED-X007",
+        "RED-X010",
+        "RED-X012",
+        "RED-X016",
+        "RED-X020"
+      ],
+      "world_link_groups": [
+        {
+          "world_id": "MS",
+          "link_ids": [
+            "RED-X001",
+            "RED-X002"
+          ]
+        },
+        {
+          "world_id": "SPL",
+          "link_ids": [
+            "RED-X007",
+            "RED-X010"
+          ]
+        },
+        {
+          "world_id": "AD",
+          "link_ids": [
+            "RED-X012",
+            "RED-X016"
+          ]
+        },
+        {
+          "world_id": "LX",
+          "link_ids": [
+            "RED-X020"
+          ]
+        }
+      ],
+      "depends_on": [
+        "RED-M02",
+        "RED-M03",
+        "RED-M05"
+      ],
+      "note": "vínculo conceptual; implementación no inspeccionada"
+    },
+    {
+      "module_id": "RED-M08",
+      "stage": "E2",
+      "module_title": "Switching Ethernet, tablas MAC y descubrimiento",
+      "baseline_references": [
+        "LX",
+        "SIM"
+      ],
+      "validated_reference_links": [],
+      "world_link_groups": [],
+      "depends_on": [
+        "RED-M01",
+        "RED-M02"
+      ],
+      "note": "sin vínculo directo propuesto; reutiliza fundamentos indirectamente"
+    },
+    {
+      "module_id": "RED-M09",
+      "stage": "E2",
+      "module_title": "VLAN, 802.1Q, trunks e inter-VLAN",
+      "baseline_references": [
+        "LX",
+        "SIM"
+      ],
+      "validated_reference_links": [],
+      "world_link_groups": [],
+      "depends_on": [
+        "RED-M02",
+        "RED-M08"
+      ],
+      "note": "sin vínculo directo propuesto; reutiliza fundamentos indirectamente"
+    },
+    {
+      "module_id": "RED-M10",
+      "stage": "E2",
+      "module_title": "STP/RSTP/MSTP y LACP",
+      "baseline_references": [
+        "LX",
+        "SIM"
+      ],
+      "validated_reference_links": [],
+      "world_link_groups": [],
+      "depends_on": [
+        "RED-M08",
+        "RED-M09"
+      ],
+      "note": "sin vínculo directo propuesto; reutiliza fundamentos indirectamente"
+    },
+    {
+      "module_id": "RED-M11",
+      "stage": "E2",
+      "module_title": "Fundamentos Wi-Fi, RF y conectividad",
+      "baseline_references": [
+        "LX",
+        "SIM"
+      ],
+      "validated_reference_links": [],
+      "world_link_groups": [],
+      "depends_on": [
+        "RED-M02",
+        "RED-M03",
+        "RED-M07"
+      ],
+      "note": "sin vínculo directo propuesto; reutiliza fundamentos indirectamente"
+    },
+    {
+      "module_id": "RED-M12",
+      "stage": "E3",
+      "module_title": "Tablas de rutas y enrutamiento estático",
+      "baseline_references": [
+        "LX",
+        "SIM"
+      ],
+      "validated_reference_links": [
+        "RED-X012",
+        "RED-X017"
+      ],
+      "world_link_groups": [
+        {
+          "world_id": "AD",
+          "link_ids": [
+            "RED-X012"
+          ]
+        },
+        {
+          "world_id": "LX",
+          "link_ids": [
+            "RED-X017"
+          ]
+        }
+      ],
+      "depends_on": [
+        "RED-M02",
+        "RED-M03",
+        "RED-M09"
+      ],
+      "note": "vínculo conceptual; implementación no inspeccionada"
+    },
+    {
+      "module_id": "RED-M13",
+      "stage": "E3",
+      "module_title": "OSPFv2/v3 empresarial",
+      "baseline_references": [
+        "LX",
+        "SIM"
+      ],
+      "validated_reference_links": [],
+      "world_link_groups": [],
+      "depends_on": [
+        "RED-M12"
+      ],
+      "note": "sin vínculo directo propuesto; reutiliza fundamentos indirectamente"
+    },
+    {
+      "module_id": "RED-M14",
+      "stage": "E3",
+      "module_title": "BGP y políticas de rutas",
+      "baseline_references": [
+        "LX",
+        "SIM"
+      ],
+      "validated_reference_links": [],
+      "world_link_groups": [],
+      "depends_on": [
+        "RED-M12",
+        "RED-M13"
+      ],
+      "note": "sin vínculo directo propuesto; reutiliza fundamentos indirectamente"
+    },
+    {
+      "module_id": "RED-M15",
+      "stage": "E3",
+      "module_title": "Routing avanzado, VRF y redistribución",
+      "baseline_references": [
+        "LX",
+        "SIM"
+      ],
+      "validated_reference_links": [],
+      "world_link_groups": [],
+      "depends_on": [
+        "RED-M12",
+        "RED-M13",
+        "RED-M14"
+      ],
+      "note": "sin vínculo directo propuesto; reutiliza fundamentos indirectamente"
+    },
+    {
+      "module_id": "RED-M16",
+      "stage": "E3",
+      "module_title": "Gateway redundante y convergencia",
+      "baseline_references": [
+        "LX",
+        "SIM"
+      ],
+      "validated_reference_links": [],
+      "world_link_groups": [],
+      "depends_on": [
+        "RED-M09",
+        "RED-M10",
+        "RED-M12"
+      ],
+      "note": "sin vínculo directo propuesto; reutiliza fundamentos indirectamente"
+    },
+    {
+      "module_id": "RED-M17",
+      "stage": "E3",
+      "module_title": "NAT, PAT, proxies y asimetría",
+      "baseline_references": [
+        "LX",
+        "SIM",
+        "MS",
+        "SPL"
+      ],
+      "validated_reference_links": [
+        "RED-X003",
+        "RED-X008"
+      ],
+      "world_link_groups": [
+        {
+          "world_id": "MS",
+          "link_ids": [
+            "RED-X003"
+          ]
+        },
+        {
+          "world_id": "SPL",
+          "link_ids": [
+            "RED-X008"
+          ]
+        }
+      ],
+      "depends_on": [
+        "RED-M04",
+        "RED-M07",
+        "RED-M12"
+      ],
+      "note": "vínculo conceptual; implementación no inspeccionada"
+    },
+    {
+      "module_id": "RED-M18",
+      "stage": "E3",
+      "module_title": "WAN, VPN, IPsec, GRE, MPLS y SD-WAN",
+      "baseline_references": [
+        "LX",
+        "MS",
+        "SPL"
+      ],
+      "validated_reference_links": [],
+      "world_link_groups": [],
+      "depends_on": [
+        "RED-M12",
+        "RED-M17"
+      ],
+      "note": "sin vínculo directo propuesto; reutiliza fundamentos indirectamente"
+    },
+    {
+      "module_id": "RED-M19",
+      "stage": "E3",
+      "module_title": "QoS, multicast y calidad de experiencia",
+      "baseline_references": [
+        "LX",
+        "SIM"
+      ],
+      "validated_reference_links": [],
+      "world_link_groups": [],
+      "depends_on": [
+        "RED-M04",
+        "RED-M12",
+        "RED-M18"
+      ],
+      "note": "sin vínculo directo propuesto; reutiliza fundamentos indirectamente"
+    },
+    {
+      "module_id": "RED-M20",
+      "stage": "E4",
+      "module_title": "Diseño de campus, zonas y resiliencia",
+      "baseline_references": [
+        "LX",
+        "MS",
+        "SPL"
+      ],
+      "validated_reference_links": [
+        "RED-X019"
+      ],
+      "world_link_groups": [
+        {
+          "world_id": "LX",
+          "link_ids": [
+            "RED-X019"
+          ]
+        }
+      ],
+      "depends_on": [
+        "RED-M09",
+        "RED-M10",
+        "RED-M12",
+        "RED-M16"
+      ],
+      "note": "vínculo conceptual; implementación no inspeccionada"
+    },
+    {
+      "module_id": "RED-M21",
+      "stage": "E4",
+      "module_title": "ACL, firewall stateful y segmentación",
+      "baseline_references": [
+        "LX",
+        "MS",
+        "SPL",
+        "SIM"
+      ],
+      "validated_reference_links": [
+        "RED-X006",
+        "RED-X008",
+        "RED-X014",
+        "RED-X015",
+        "RED-X018",
+        "RED-X019",
+        "RED-X028"
+      ],
+      "world_link_groups": [
+        {
+          "world_id": "MS",
+          "link_ids": [
+            "RED-X006"
+          ]
+        },
+        {
+          "world_id": "SPL",
+          "link_ids": [
+            "RED-X008"
+          ]
+        },
+        {
+          "world_id": "AD",
+          "link_ids": [
+            "RED-X014",
+            "RED-X015"
+          ]
+        },
+        {
+          "world_id": "LX",
+          "link_ids": [
+            "RED-X018",
+            "RED-X019"
+          ]
+        },
+        {
+          "world_id": "PUR",
+          "link_ids": [
+            "RED-X028"
+          ]
+        }
+      ],
+      "depends_on": [
+        "RED-M09",
+        "RED-M12",
+        "RED-M17",
+        "RED-M20"
+      ],
+      "note": "vínculo conceptual; implementación no inspeccionada"
+    },
+    {
+      "module_id": "RED-M22",
+      "stage": "E4",
+      "module_title": "Planos, AAA y hardening de infraestructura",
+      "baseline_references": [
+        "LX",
+        "MS",
+        "SPL"
+      ],
+      "validated_reference_links": [
+        "RED-X018"
+      ],
+      "world_link_groups": [
+        {
+          "world_id": "LX",
+          "link_ids": [
+            "RED-X018"
+          ]
+        }
+      ],
+      "depends_on": [
+        "RED-M06",
+        "RED-M09",
+        "RED-M12"
+      ],
+      "note": "vínculo conceptual; implementación no inspeccionada"
+    },
+    {
+      "module_id": "RED-M23",
+      "stage": "E4",
+      "module_title": "Controles L2, 802.1X y NAC",
+      "baseline_references": [
+        "LX",
+        "SIM",
+        "MS"
+      ],
+      "validated_reference_links": [
+        "RED-X019"
+      ],
+      "world_link_groups": [
+        {
+          "world_id": "LX",
+          "link_ids": [
+            "RED-X019"
+          ]
+        }
+      ],
+      "depends_on": [
+        "RED-M07",
+        "RED-M09",
+        "RED-M22"
+      ],
+      "note": "vínculo conceptual; implementación no inspeccionada"
+    },
+    {
+      "module_id": "RED-M24",
+      "stage": "E4",
+      "module_title": "WLAN empresarial y seguridad inalámbrica",
+      "baseline_references": [
+        "LX",
+        "SIM",
+        "MS"
+      ],
+      "validated_reference_links": [],
+      "world_link_groups": [],
+      "depends_on": [
+        "RED-M11",
+        "RED-M21",
+        "RED-M23"
+      ],
+      "note": "sin vínculo directo propuesto; reutiliza fundamentos indirectamente"
+    },
+    {
+      "module_id": "RED-M25",
+      "stage": "E4",
+      "module_title": "Cloud networking e interconexión híbrida",
+      "baseline_references": [
+        "MS",
+        "SPL",
+        "LX"
+      ],
+      "validated_reference_links": [],
+      "world_link_groups": [],
+      "depends_on": [
+        "RED-M18",
+        "RED-M20",
+        "RED-M21",
+        "RED-M22"
+      ],
+      "note": "sin vínculo directo propuesto; reutiliza fundamentos indirectamente"
+    },
+    {
+      "module_id": "RED-M26",
+      "stage": "E5",
+      "module_title": "Syslog, SNMP, NTP y observabilidad de equipos",
+      "baseline_references": [
+        "MS",
+        "SPL",
+        "LX",
+        "SIM"
+      ],
+      "validated_reference_links": [
+        "RED-X001",
+        "RED-X005",
+        "RED-X007",
+        "RED-X011",
+        "RED-X015",
+        "RED-X020",
+        "RED-X022"
+      ],
+      "world_link_groups": [
+        {
+          "world_id": "MS",
+          "link_ids": [
+            "RED-X001",
+            "RED-X005"
+          ]
+        },
+        {
+          "world_id": "SPL",
+          "link_ids": [
+            "RED-X007",
+            "RED-X011"
+          ]
+        },
+        {
+          "world_id": "AD",
+          "link_ids": [
+            "RED-X015"
+          ]
+        },
+        {
+          "world_id": "LX",
+          "link_ids": [
+            "RED-X020"
+          ]
+        },
+        {
+          "world_id": "SIM",
+          "link_ids": [
+            "RED-X022"
+          ]
+        }
+      ],
+      "depends_on": [
+        "RED-M05",
+        "RED-M07",
+        "RED-M22"
+      ],
+      "note": "vínculo conceptual; implementación no inspeccionada"
+    },
+    {
+      "module_id": "RED-M27",
+      "stage": "E5",
+      "module_title": "IPFIX/NetFlow, IDS/IPS y NDR",
+      "baseline_references": [
+        "MS",
+        "SPL",
+        "SIM"
+      ],
+      "validated_reference_links": [
+        "RED-X003",
+        "RED-X008",
+        "RED-X009",
+        "RED-X027"
+      ],
+      "world_link_groups": [
+        {
+          "world_id": "MS",
+          "link_ids": [
+            "RED-X003"
+          ]
+        },
+        {
+          "world_id": "SPL",
+          "link_ids": [
+            "RED-X008",
+            "RED-X009"
+          ]
+        },
+        {
+          "world_id": "PUR",
+          "link_ids": [
+            "RED-X027"
+          ]
+        }
+      ],
+      "depends_on": [
+        "RED-M17",
+        "RED-M21",
+        "RED-M26"
+      ],
+      "note": "vínculo conceptual; implementación no inspeccionada"
+    },
+    {
+      "module_id": "RED-M28",
+      "stage": "E5",
+      "module_title": "Análisis PCAP avanzado y protocolos",
+      "baseline_references": [
+        "AD",
+        "LX",
+        "SIM",
+        "MS",
+        "SPL"
+      ],
+      "validated_reference_links": [
+        "RED-X002",
+        "RED-X004",
+        "RED-X010",
+        "RED-X013",
+        "RED-X021"
+      ],
+      "world_link_groups": [
+        {
+          "world_id": "MS",
+          "link_ids": [
+            "RED-X002",
+            "RED-X004"
+          ]
+        },
+        {
+          "world_id": "SPL",
+          "link_ids": [
+            "RED-X010"
+          ]
+        },
+        {
+          "world_id": "AD",
+          "link_ids": [
+            "RED-X013"
+          ]
+        },
+        {
+          "world_id": "LX",
+          "link_ids": [
+            "RED-X021"
+          ]
+        }
+      ],
+      "depends_on": [
+        "RED-M05",
+        "RED-M06",
+        "RED-M07",
+        "RED-M17"
+      ],
+      "note": "vínculo conceptual; implementación no inspeccionada"
+    },
+    {
+      "module_id": "RED-M29",
+      "stage": "E5",
+      "module_title": "Investigación SOC de hipótesis y cronologías",
+      "baseline_references": [
+        "MS",
+        "SPL",
+        "AD",
+        "LX",
+        "SIM"
+      ],
+      "validated_reference_links": [
+        "RED-X002",
+        "RED-X004",
+        "RED-X009",
+        "RED-X010",
+        "RED-X013",
+        "RED-X015",
+        "RED-X016",
+        "RED-X020",
+        "RED-X022",
+        "RED-X023"
+      ],
+      "world_link_groups": [
+        {
+          "world_id": "MS",
+          "link_ids": [
+            "RED-X002",
+            "RED-X004"
+          ]
+        },
+        {
+          "world_id": "SPL",
+          "link_ids": [
+            "RED-X009",
+            "RED-X010"
+          ]
+        },
+        {
+          "world_id": "AD",
+          "link_ids": [
+            "RED-X013",
+            "RED-X015",
+            "RED-X016"
+          ]
+        },
+        {
+          "world_id": "LX",
+          "link_ids": [
+            "RED-X020"
+          ]
+        },
+        {
+          "world_id": "SIM",
+          "link_ids": [
+            "RED-X022",
+            "RED-X023"
+          ]
+        }
+      ],
+      "depends_on": [
+        "RED-M26",
+        "RED-M27",
+        "RED-M28"
+      ],
+      "note": "vínculo conceptual; implementación no inspeccionada"
+    },
+    {
+      "module_id": "RED-M30",
+      "stage": "E5",
+      "module_title": "Correlación, normalización y detección",
+      "baseline_references": [
+        "MS",
+        "SPL",
+        "AD",
+        "LX",
+        "SIM"
+      ],
+      "validated_reference_links": [
+        "RED-X003",
+        "RED-X004",
+        "RED-X005",
+        "RED-X009",
+        "RED-X011",
+        "RED-X023",
+        "RED-X024",
+        "RED-X027"
+      ],
+      "world_link_groups": [
+        {
+          "world_id": "MS",
+          "link_ids": [
+            "RED-X003",
+            "RED-X004",
+            "RED-X005"
+          ]
+        },
+        {
+          "world_id": "SPL",
+          "link_ids": [
+            "RED-X009",
+            "RED-X011"
+          ]
+        },
+        {
+          "world_id": "SIM",
+          "link_ids": [
+            "RED-X023",
+            "RED-X024"
+          ]
+        },
+        {
+          "world_id": "PUR",
+          "link_ids": [
+            "RED-X027"
+          ]
+        }
+      ],
+      "depends_on": [
+        "RED-M26",
+        "RED-M27",
+        "RED-M29"
+      ],
+      "note": "vínculo conceptual; implementación no inspeccionada"
+    },
+    {
+      "module_id": "RED-M31",
+      "stage": "E5",
+      "module_title": "Respuesta a incidentes y recuperación de red",
+      "baseline_references": [
+        "MS",
+        "SPL",
+        "SIM"
+      ],
+      "validated_reference_links": [
+        "RED-X006",
+        "RED-X016",
+        "RED-X025",
+        "RED-X029"
+      ],
+      "world_link_groups": [
+        {
+          "world_id": "MS",
+          "link_ids": [
+            "RED-X006"
+          ]
+        },
+        {
+          "world_id": "AD",
+          "link_ids": [
+            "RED-X016"
+          ]
+        },
+        {
+          "world_id": "SIM",
+          "link_ids": [
+            "RED-X025"
+          ]
+        },
+        {
+          "world_id": "PUR",
+          "link_ids": [
+            "RED-X029"
+          ]
+        }
+      ],
+      "depends_on": [
+        "RED-M22",
+        "RED-M29",
+        "RED-M30"
+      ],
+      "note": "vínculo conceptual; implementación no inspeccionada"
+    },
+    {
+      "module_id": "RED-M32",
+      "stage": "E6",
+      "module_title": "Autorización, alcance y reglas de actuación",
+      "baseline_references": [
+        "SIM"
+      ],
+      "validated_reference_links": [
+        "RED-X026"
+      ],
+      "world_link_groups": [
+        {
+          "world_id": "PUR",
+          "link_ids": [
+            "RED-X026"
+          ]
+        }
+      ],
+      "depends_on": [
+        "RED-M01"
+      ],
+      "note": "vínculo conceptual; implementación no inspeccionada"
+    },
+    {
+      "module_id": "RED-M33",
+      "stage": "E6",
+      "module_title": "Descubrimiento y enumeración seguros",
+      "baseline_references": [
+        "LX",
+        "SIM",
+        "MS",
+        "SPL"
+      ],
+      "validated_reference_links": [
+        "RED-X014",
+        "RED-X026",
+        "RED-X027"
+      ],
+      "world_link_groups": [
+        {
+          "world_id": "AD",
+          "link_ids": [
+            "RED-X014"
+          ]
+        },
+        {
+          "world_id": "PUR",
+          "link_ids": [
+            "RED-X026",
+            "RED-X027"
+          ]
+        }
+      ],
+      "depends_on": [
+        "RED-M07",
+        "RED-M12",
+        "RED-M32"
+      ],
+      "note": "vínculo conceptual; implementación no inspeccionada"
+    },
+    {
+      "module_id": "RED-M34",
+      "stage": "E6",
+      "module_title": "Evaluación autorizada de controles de red",
+      "baseline_references": [
+        "LX",
+        "SIM",
+        "MS",
+        "SPL"
+      ],
+      "validated_reference_links": [
+        "RED-X014",
+        "RED-X018",
+        "RED-X028"
+      ],
+      "world_link_groups": [
+        {
+          "world_id": "AD",
+          "link_ids": [
+            "RED-X014"
+          ]
+        },
+        {
+          "world_id": "LX",
+          "link_ids": [
+            "RED-X018"
+          ]
+        },
+        {
+          "world_id": "PUR",
+          "link_ids": [
+            "RED-X028"
+          ]
+        }
+      ],
+      "depends_on": [
+        "RED-M23",
+        "RED-M24",
+        "RED-M33"
+      ],
+      "note": "vínculo conceptual; implementación no inspeccionada"
+    },
+    {
+      "module_id": "RED-M35",
+      "stage": "E6",
+      "module_title": "Validación conjunta, remediación y retest",
+      "baseline_references": [
+        "MS",
+        "SPL",
+        "SIM",
+        "LX"
+      ],
+      "validated_reference_links": [
+        "RED-X006",
+        "RED-X025",
+        "RED-X028",
+        "RED-X029"
+      ],
+      "world_link_groups": [
+        {
+          "world_id": "MS",
+          "link_ids": [
+            "RED-X006"
+          ]
+        },
+        {
+          "world_id": "SIM",
+          "link_ids": [
+            "RED-X025"
+          ]
+        },
+        {
+          "world_id": "PUR",
+          "link_ids": [
+            "RED-X028",
+            "RED-X029"
+          ]
+        }
+      ],
+      "depends_on": [
+        "RED-M30",
+        "RED-M31",
+        "RED-M34"
+      ],
+      "note": "vínculo conceptual; implementación no inspeccionada"
+    },
+    {
+      "module_id": "RED-M36",
+      "stage": "E7",
+      "module_title": "Python, datos y Git para operaciones de red",
+      "baseline_references": [
+        "LX",
+        "MS",
+        "SPL"
+      ],
+      "validated_reference_links": [
+        "RED-X011"
+      ],
+      "world_link_groups": [
+        {
+          "world_id": "SPL",
+          "link_ids": [
+            "RED-X011"
+          ]
+        }
+      ],
+      "depends_on": [
+        "RED-M05",
+        "RED-M07",
+        "RED-M12"
+      ],
+      "note": "vínculo conceptual; implementación no inspeccionada"
+    },
+    {
+      "module_id": "RED-M37",
+      "stage": "E7",
+      "module_title": "APIs, YANG y automatización de dispositivos",
+      "baseline_references": [
+        "LX"
+      ],
+      "validated_reference_links": [
+        "RED-X005"
+      ],
+      "world_link_groups": [
+        {
+          "world_id": "MS",
+          "link_ids": [
+            "RED-X005"
+          ]
+        }
+      ],
+      "depends_on": [
+        "RED-M22",
+        "RED-M26",
+        "RED-M36"
+      ],
+      "note": "vínculo conceptual; implementación no inspeccionada"
+    },
+    {
+      "module_id": "RED-M38",
+      "stage": "E7",
+      "module_title": "Cambios controlados, idempotencia y rollback",
+      "baseline_references": [
+        "LX",
+        "MS",
+        "SPL"
+      ],
+      "validated_reference_links": [],
+      "world_link_groups": [],
+      "depends_on": [
+        "RED-M21",
+        "RED-M25",
+        "RED-M36",
+        "RED-M37"
+      ],
+      "note": "sin vínculo directo propuesto; reutiliza fundamentos indirectamente"
+    },
+    {
+      "module_id": "RED-M39",
+      "stage": "E7",
+      "module_title": "Troubleshooting avanzado, capacidad y assurance",
+      "baseline_references": [
+        "LX",
+        "SIM"
+      ],
+      "validated_reference_links": [],
+      "world_link_groups": [],
+      "depends_on": [
+        "RED-M16",
+        "RED-M19",
+        "RED-M26",
+        "RED-M27"
+      ],
+      "note": "sin vínculo directo propuesto; reutiliza fundamentos indirectamente"
+    },
+    {
+      "module_id": "RED-M40",
+      "stage": "E8",
+      "module_title": "Proyecto final: diseño de red empresarial",
+      "baseline_references": [
+        "MS",
+        "SPL",
+        "LX",
+        "SIM"
+      ],
+      "validated_reference_links": [],
+      "world_link_groups": [],
+      "depends_on": [
+        "RED-M14",
+        "RED-M15",
+        "RED-M20",
+        "RED-M21",
+        "RED-M23",
+        "RED-M25",
+        "RED-M38",
+        "RED-M39"
+      ],
+      "note": "sin vínculo directo propuesto; reutiliza fundamentos indirectamente"
+    },
+    {
+      "module_id": "RED-M41",
+      "stage": "E8",
+      "module_title": "Proyecto final: operación SOC ↔ Red Team",
+      "baseline_references": [
+        "MS",
+        "SPL",
+        "AD",
+        "LX",
+        "SIM"
+      ],
+      "validated_reference_links": [
+        "RED-X025",
+        "RED-X029"
+      ],
+      "world_link_groups": [
+        {
+          "world_id": "SIM",
+          "link_ids": [
+            "RED-X025"
+          ]
+        },
+        {
+          "world_id": "PUR",
+          "link_ids": [
+            "RED-X029"
+          ]
+        }
+      ],
+      "depends_on": [
+        "RED-M31",
+        "RED-M35",
+        "RED-M40"
+      ],
+      "note": "vínculo conceptual; implementación no inspeccionada"
+    },
+    {
+      "module_id": "RED-M42",
+      "stage": "E8",
+      "module_title": "Defensa técnica, diagnóstico de egreso y plan de retención",
+      "baseline_references": [
+        "MS",
+        "SPL",
+        "SIM"
+      ],
+      "validated_reference_links": [
+        "RED-X024"
+      ],
+      "world_link_groups": [
+        {
+          "world_id": "SIM",
+          "link_ids": [
+            "RED-X024"
+          ]
+        }
+      ],
+      "depends_on": [
+        "RED-M40",
+        "RED-M41"
+      ],
+      "note": "vínculo conceptual; implementación no inspeccionada"
+    }
+  ],
+  "lab_hooks": [
+    {
+      "lab_id": "RED-L01",
+      "lab_title": "Modelo OSI/TCP-IP, enlace y direccionamiento IPv4",
+      "world_link_ids": [
+        "RED-X017"
+      ],
+      "linked_case_ids": [],
+      "status": "diseñado_no_ejecutado_no_validado",
+      "validity_note": "diseño no equivale a integración ejecutada"
+    },
+    {
+      "lab_id": "RED-L02",
+      "lab_title": "IPv6, Neighbor Discovery y MTU de extremo a extremo",
+      "world_link_ids": [
+        "RED-X017"
+      ],
+      "linked_case_ids": [],
+      "status": "diseñado_no_ejecutado_no_validado",
+      "validity_note": "diseño no equivale a integración ejecutada"
+    },
+    {
+      "lab_id": "RED-L03",
+      "lab_title": "TCP/UDP, DNS, HTTP, TLS y captura inicial",
+      "world_link_ids": [
+        "RED-X002",
+        "RED-X013",
+        "RED-X021"
+      ],
+      "linked_case_ids": [
+        "S01",
+        "S07"
+      ],
+      "status": "diseñado_no_ejecutado_no_validado",
+      "validity_note": "diseño no equivale a integración ejecutada"
+    },
+    {
+      "lab_id": "RED-L04",
+      "lab_title": "Switching, VLAN, trunks 802.1Q, STP y LACP",
+      "world_link_ids": [],
+      "linked_case_ids": [],
+      "status": "diseñado_no_ejecutado_no_validado",
+      "validity_note": "diseño no equivale a integración ejecutada"
+    },
+    {
+      "lab_id": "RED-L05",
+      "lab_title": "Servicios DNS/DHCP/NTP y dependencias AAA",
+      "world_link_ids": [
+        "RED-X012"
+      ],
+      "linked_case_ids": [],
+      "status": "diseñado_no_ejecutado_no_validado",
+      "validity_note": "diseño no equivale a integración ejecutada"
+    },
+    {
+      "lab_id": "RED-L06",
+      "lab_title": "Enrutamiento estático y OSPFv2/OSPFv3",
+      "world_link_ids": [
+        "RED-X017"
+      ],
+      "linked_case_ids": [],
+      "status": "diseñado_no_ejecutado_no_validado",
+      "validity_note": "diseño no equivale a integración ejecutada"
+    },
+    {
+      "lab_id": "RED-L07",
+      "lab_title": "BGP, filtros, políticas y redistribución segura",
+      "world_link_ids": [],
+      "linked_case_ids": [],
+      "status": "diseñado_no_ejecutado_no_validado",
+      "validity_note": "diseño no equivale a integración ejecutada"
+    },
+    {
+      "lab_id": "RED-L08",
+      "lab_title": "Gateway redundante, QoS y diagnóstico de convergencia",
+      "world_link_ids": [],
+      "linked_case_ids": [],
+      "status": "diseñado_no_ejecutado_no_validado",
+      "validity_note": "diseño no equivale a integración ejecutada"
+    },
+    {
+      "lab_id": "RED-L09",
+      "lab_title": "NAT/PAT, VPN y WAN híbrida sin salida externa",
+      "world_link_ids": [],
+      "linked_case_ids": [],
+      "status": "diseñado_no_ejecutado_no_validado",
+      "validity_note": "diseño no equivale a integración ejecutada"
+    },
+    {
+      "lab_id": "RED-L10",
+      "lab_title": "Campus segmentado: ACL, firewall, hardening y controles L2",
+      "world_link_ids": [
+        "RED-X014",
+        "RED-X015",
+        "RED-X018",
+        "RED-X019",
+        "RED-X028"
+      ],
+      "linked_case_ids": [
+        "S09"
+      ],
+      "status": "diseñado_no_ejecutado_no_validado",
+      "validity_note": "diseño no equivale a integración ejecutada"
+    },
+    {
+      "lab_id": "RED-L11",
+      "lab_title": "Wi-Fi corporativo, 802.1X/RADIUS y autenticación",
+      "world_link_ids": [],
+      "linked_case_ids": [],
+      "status": "diseñado_no_ejecutado_no_validado",
+      "validity_note": "diseño no equivale a integración ejecutada"
+    },
+    {
+      "lab_id": "RED-L12",
+      "lab_title": "Diseño de red cloud/híbrida y verificación offline",
+      "world_link_ids": [],
+      "linked_case_ids": [],
+      "status": "diseñado_no_ejecutado_no_validado",
+      "validity_note": "diseño no equivale a integración ejecutada"
+    },
+    {
+      "lab_id": "RED-L13",
+      "lab_title": "Telemetría Syslog/SNMP, UTC y calidad de observación",
+      "world_link_ids": [
+        "RED-X001",
+        "RED-X005",
+        "RED-X007",
+        "RED-X020",
+        "RED-X022"
+      ],
+      "linked_case_ids": [
+        "S01"
+      ],
+      "status": "diseñado_no_ejecutado_no_validado",
+      "validity_note": "diseño no equivale a integración ejecutada"
+    },
+    {
+      "lab_id": "RED-L14",
+      "lab_title": "NetFlow/IPFIX, Zeek, Suricata e IDS/NDR",
+      "world_link_ids": [
+        "RED-X003",
+        "RED-X008",
+        "RED-X009",
+        "RED-X027"
+      ],
+      "linked_case_ids": [
+        "S02",
+        "S05"
+      ],
+      "status": "diseñado_no_ejecutado_no_validado",
+      "validity_note": "diseño no equivale a integración ejecutada"
+    },
+    {
+      "lab_id": "RED-L15",
+      "lab_title": "Investigación SOC de PCAP con hipótesis y atribución",
+      "world_link_ids": [
+        "RED-X002",
+        "RED-X004",
+        "RED-X010",
+        "RED-X012",
+        "RED-X013",
+        "RED-X015",
+        "RED-X016",
+        "RED-X020",
+        "RED-X021",
+        "RED-X022",
+        "RED-X023"
+      ],
+      "linked_case_ids": [
+        "S01",
+        "S04",
+        "S07"
+      ],
+      "status": "diseñado_no_ejecutado_no_validado",
+      "validity_note": "diseño no equivale a integración ejecutada"
+    },
+    {
+      "lab_id": "RED-L16",
+      "lab_title": "Reglas de detección, normalización y respuesta SOC",
+      "world_link_ids": [
+        "RED-X001",
+        "RED-X003",
+        "RED-X004",
+        "RED-X005",
+        "RED-X006",
+        "RED-X008",
+        "RED-X009",
+        "RED-X010",
+        "RED-X011",
+        "RED-X016",
+        "RED-X023",
+        "RED-X024",
+        "RED-X029"
+      ],
+      "linked_case_ids": [
+        "S01",
+        "S02",
+        "S04",
+        "S05",
+        "S07"
+      ],
+      "status": "diseñado_no_ejecutado_no_validado",
+      "validity_note": "diseño no equivale a integración ejecutada"
+    },
+    {
+      "lab_id": "RED-L17",
+      "lab_title": "Alcance, descubrimiento mínimo y prueba de segmentación Red Team",
+      "world_link_ids": [
+        "RED-X014",
+        "RED-X018",
+        "RED-X026",
+        "RED-X027",
+        "RED-X028"
+      ],
+      "linked_case_ids": [
+        "S03",
+        "S05",
+        "S09"
+      ],
+      "status": "diseñado_no_ejecutado_no_validado",
+      "validity_note": "diseño no equivale a integración ejecutada"
+    },
+    {
+      "lab_id": "RED-L18",
+      "lab_title": "Automatización de inventario, YANG/APIs y rollback",
+      "world_link_ids": [
+        "RED-X005",
+        "RED-X011"
+      ],
+      "linked_case_ids": [],
+      "status": "diseñado_no_ejecutado_no_validado",
+      "validity_note": "diseño no equivale a integración ejecutada"
+    },
+    {
+      "lab_id": "RED-L19",
+      "lab_title": "Proyecto empresarial integrado: diseño, resiliencia y operación",
+      "world_link_ids": [],
+      "linked_case_ids": [],
+      "status": "diseñado_no_ejecutado_no_validado",
+      "validity_note": "diseño no equivale a integración ejecutada"
+    },
+    {
+      "lab_id": "RED-L20",
+      "lab_title": "Misión final Purple: actividad autorizada, SOC y retest",
+      "world_link_ids": [
+        "RED-X006",
+        "RED-X024",
+        "RED-X025",
+        "RED-X026",
+        "RED-X027",
+        "RED-X028",
+        "RED-X029"
+      ],
+      "linked_case_ids": [
+        "S03",
+        "S05",
+        "S09"
+      ],
+      "status": "diseñado_no_ejecutado_no_validado",
+      "validity_note": "diseño no equivale a integración ejecutada"
+    }
+  ],
+  "case_hooks": [
+    {
+      "case_id": "S01",
+      "title": "DNS anómalo vs aplicación legítima",
+      "related_link_ids": [
+        "RED-X002",
+        "RED-X010",
+        "RED-X022"
+      ],
+      "source_tanda4_status": "diseñado_no_ejecutado",
+      "simulator_adaptation_status": "pendiente de contrato y motor real"
+    },
+    {
+      "case_id": "S02",
+      "title": "Periodicidad de conexiones vs monitorización",
+      "related_link_ids": [
+        "RED-X003",
+        "RED-X008"
+      ],
+      "source_tanda4_status": "diseñado_no_ejecutado",
+      "simulator_adaptation_status": "pendiente de contrato y motor real"
+    },
+    {
+      "case_id": "S03",
+      "title": "Acceso remoto nuevo vs administración aprobada",
+      "related_link_ids": [
+        "RED-X026"
+      ],
+      "source_tanda4_status": "diseñado_no_ejecutado",
+      "simulator_adaptation_status": "pendiente de contrato y motor real"
+    },
+    {
+      "case_id": "S04",
+      "title": "Transferencia elevada vs copia de seguridad",
+      "related_link_ids": [
+        "RED-X004"
+      ],
+      "source_tanda4_status": "diseñado_no_ejecutado",
+      "simulator_adaptation_status": "pendiente de contrato y motor real"
+    },
+    {
+      "case_id": "S05",
+      "title": "Atribución tras NAT y DHCP",
+      "related_link_ids": [
+        "RED-X003",
+        "RED-X008",
+        "RED-X009",
+        "RED-X027"
+      ],
+      "source_tanda4_status": "diseñado_no_ejecutado",
+      "simulator_adaptation_status": "pendiente de contrato y motor real"
+    },
+    {
+      "case_id": "S06",
+      "title": "Sensor parcial o pérdida de captura",
+      "related_link_ids": [
+        "RED-X027"
+      ],
+      "source_tanda4_status": "diseñado_no_ejecutado",
+      "simulator_adaptation_status": "pendiente de contrato y motor real"
+    },
+    {
+      "case_id": "S07",
+      "title": "Descubrimiento de servicios autorizado",
+      "related_link_ids": [
+        "RED-X004",
+        "RED-X013",
+        "RED-X016"
+      ],
+      "source_tanda4_status": "diseñado_no_ejecutado",
+      "simulator_adaptation_status": "pendiente de contrato y motor real"
+    },
+    {
+      "case_id": "S08",
+      "title": "Prueba de segmentación allow/deny",
+      "related_link_ids": [
+        "RED-X026",
+        "RED-X028"
+      ],
+      "source_tanda4_status": "diseñado_no_ejecutado",
+      "simulator_adaptation_status": "pendiente de contrato y motor real"
+    },
+    {
+      "case_id": "S09",
+      "title": "Autenticaciones fallidas limitadas",
+      "related_link_ids": [
+        "RED-X014",
+        "RED-X028"
+      ],
+      "source_tanda4_status": "diseñado_no_ejecutado",
+      "simulator_adaptation_status": "pendiente de contrato y motor real"
+    },
+    {
+      "case_id": "S10",
+      "title": "VPN de administración legítima",
+      "related_link_ids": [
+        "RED-X022",
+        "RED-X023",
+        "RED-X025"
+      ],
+      "source_tanda4_status": "diseñado_no_ejecutado",
+      "simulator_adaptation_status": "pendiente de contrato y motor real"
+    },
+    {
+      "case_id": "S11",
+      "title": "802.1X / WLAN corporativa",
+      "related_link_ids": [
+        "RED-X026",
+        "RED-X028"
+      ],
+      "source_tanda4_status": "diseñado_no_ejecutado",
+      "simulator_adaptation_status": "pendiente de contrato y motor real"
+    },
+    {
+      "case_id": "S12",
+      "title": "Corrección y retest integrador",
+      "related_link_ids": [
+        "RED-X023",
+        "RED-X024",
+        "RED-X025"
+      ],
+      "source_tanda4_status": "diseñado_no_ejecutado",
+      "simulator_adaptation_status": "pendiente de contrato y motor real"
+    }
+  ],
+  "competencies": [
+    {
+      "id": "NET-C001",
+      "name": "Captura/visibilidad y semántica",
+      "evidence": "fuente, punto, protocolo y campos observables; ausencia declarada",
+      "modules": [
+        "RED-M05",
+        "RED-M26",
+        "RED-M27",
+        "RED-M28"
+      ]
+    },
+    {
+      "id": "NET-C002",
+      "name": "Cronología, normalización y atribución",
+      "evidence": "UTC, zona, NAT, DHCP, identidad y calidad temporal",
+      "modules": [
+        "RED-M07",
+        "RED-M17",
+        "RED-M29",
+        "RED-M30"
+      ]
+    },
+    {
+      "id": "NET-C003",
+      "name": "Diseño y verificación de controles",
+      "evidence": "matriz allow/deny, reglas, rutas y control negativo",
+      "modules": [
+        "RED-M20",
+        "RED-M21",
+        "RED-M23",
+        "RED-M34"
+      ]
+    },
+    {
+      "id": "NET-C004",
+      "name": "Decisión SOC basada en evidencia",
+      "evidence": "hipótesis alternativas, alcance, limitaciones y escalado",
+      "modules": [
+        "RED-M28",
+        "RED-M29",
+        "RED-M30",
+        "RED-M31"
+      ]
+    },
+    {
+      "id": "NET-C005",
+      "name": "Red Team acotado y reproducible",
+      "evidence": "ROE, mínimo necesario, actividad etiquetada y prueba reversibilidad",
+      "modules": [
+        "RED-M32",
+        "RED-M33",
+        "RED-M34",
+        "RED-M35"
+      ]
+    },
+    {
+      "id": "NET-C006",
+      "name": "Remediación y recuperación",
+      "evidence": "config antes/después, plan rollback, servicios no afectados, retest",
+      "modules": [
+        "RED-M31",
+        "RED-M35",
+        "RED-M38",
+        "RED-M41"
+      ]
+    },
+    {
+      "id": "NET-C007",
+      "name": "Automatización responsable",
+      "evidence": "scripts controlados, idempotencia, tests y aprobación de cambios",
+      "modules": [
+        "RED-M36",
+        "RED-M37",
+        "RED-M38"
+      ]
+    },
+    {
+      "id": "NET-C009",
+      "name": "Fundamentos de conectividad y diagnóstico",
+      "evidence": "topología, interfaces, rutas, servicios y causa raíz transferible",
+      "modules": [
+        "RED-M01",
+        "RED-M02",
+        "RED-M03",
+        "RED-M04",
+        "RED-M06",
+        "RED-M08",
+        "RED-M09",
+        "RED-M10",
+        "RED-M11",
+        "RED-M12",
+        "RED-M13",
+        "RED-M14",
+        "RED-M15",
+        "RED-M16",
+        "RED-M18",
+        "RED-M19",
+        "RED-M20",
+        "RED-M22",
+        "RED-M23",
+        "RED-M24",
+        "RED-M25",
+        "RED-M39",
+        "RED-M40"
+      ]
+    },
+    {
+      "id": "NET-C008",
+      "name": "Comunicación y transferencia de dominio",
+      "evidence": "explicación operacional en Microsoft, Splunk, Windows y Linux sin analogías falsas",
+      "modules": [
+        "RED-M29",
+        "RED-M30",
+        "RED-M40",
+        "RED-M41",
+        "RED-M42"
+      ]
+    }
+  ],
+  "pilot_practices": [
+    {
+      "id": "RED-P6-01",
+      "title": "DNS: misma historia con tres representaciones",
+      "links": [
+        "RED-X002",
+        "RED-X010",
+        "RED-X012"
+      ],
+      "labs": [
+        "RED-L05",
+        "RED-L15"
+      ],
+      "modules": [
+        "RED-M07",
+        "RED-M29"
+      ],
+      "input": "dataset DOCENTE sintético: DNS resolver, DHCP de cliente e IP de recursor; tablas simuladas ASIM/CIM solo si mapeos constan en contrato",
+      "task": "separar endpoint real, recursor y observación; presentar con un formato portable de evidencia",
+      "expected": "dos hipótesis; trazabilidad de cliente y hora; campo ausente marcado como null, no inventado",
+      "negative": "evento DNS con cliente == recursor no prueba host original",
+      "status": "diseñado"
+    },
+    {
+      "id": "RED-P6-02",
+      "title": "Firewall allow / IDS alert no equivalentes",
+      "links": [
+        "RED-X003",
+        "RED-X008",
+        "RED-X009"
+      ],
+      "labs": [
+        "RED-L14",
+        "RED-L16"
+      ],
+      "modules": [
+        "RED-M27",
+        "RED-M30"
+      ],
+      "input": "dos registros sintéticos de mismo 5-tuple: firewall allow e IDS alert",
+      "task": "reconciliar acciones, sensores y oportunidad de bloqueo",
+      "expected": "tres conclusiones diferenciadas: conexión permitida, coincidencia de firma y compromiso no demostrado",
+      "negative": "detector no suma IDS al total de bytes/sesiones",
+      "status": "diseñado"
+    },
+    {
+      "id": "RED-P6-03",
+      "title": "SMB/Kerberos: red vs identidad",
+      "links": [
+        "RED-X013",
+        "RED-X014",
+        "RED-X016"
+      ],
+      "labs": [
+        "RED-L15"
+      ],
+      "modules": [
+        "RED-M06",
+        "RED-M29"
+      ],
+      "input": "flow SMB, evento 4769 y 4624 sintéticos con desfase UTC y host equivocado",
+      "task": "distinguir solicitud de ticket, inicio sesión y acceso efectivo",
+      "expected": "informe cronológico con evidencia positiva/negativa y lagunas",
+      "negative": "4769 o 4624 aislado no confirma movimiento lateral",
+      "status": "diseñado"
+    },
+    {
+      "id": "RED-P6-04",
+      "title": "Linux firewall: falta de log ≠ conexión ausente",
+      "links": [
+        "RED-X018",
+        "RED-X020"
+      ],
+      "labs": [
+        "RED-L10",
+        "RED-L13"
+      ],
+      "modules": [
+        "RED-M21",
+        "RED-M26"
+      ],
+      "input": "reglas nftables y journald ficticios con política drop sin regla de logging",
+      "task": "explicar por qué falta evidencia y qué mediciones serían necesarias",
+      "expected": "diferencia config allow/deny vs log; control negativo trazable",
+      "negative": "sin syslog no significa sin paquete",
+      "status": "diseñado"
+    },
+    {
+      "id": "RED-P6-05",
+      "title": "Caso SOC portable para simulador",
+      "links": [
+        "RED-X022",
+        "RED-X023",
+        "RED-X024"
+      ],
+      "labs": [
+        "RED-L15",
+        "RED-L20"
+      ],
+      "modules": [
+        "RED-M29",
+        "RED-M42"
+      ],
+      "input": "S01 de T4 con hipótesis legítima y datos reducidos",
+      "task": "definir preguntas, decisiones, pistas, ground truth separado y rúbrica",
+      "expected": "manifest versionado y feedback explicable; sin persistir puntuación real",
+      "negative": "puntuar detección unívoca maliciosa es un fallo de diseño",
+      "status": "diseñado"
+    },
+    {
+      "id": "RED-P6-06",
+      "title": "Purple Team: corrección que no rompe producción ficticia",
+      "links": [
+        "RED-X026",
+        "RED-X027",
+        "RED-X028",
+        "RED-X029"
+      ],
+      "labs": [
+        "RED-L17",
+        "RED-L20"
+      ],
+      "modules": [
+        "RED-M31",
+        "RED-M35",
+        "RED-M41"
+      ],
+      "input": "topología aislada hipotética con DMZ, clientes y servidor DNS; ROE de prueba",
+      "task": "diseñar pruebas de aislamiento/retorno, correlación SOC y rollback",
+      "expected": "prueba positiva, negativa, decisión de parada, informe conjunto y retest condicionado",
+      "negative": "si la prueba falla por DNS no se etiqueta bypass de firewall",
+      "status": "diseñado"
+    }
+  ],
+  "contracts": {
+    "reference_contract": {
+      "id": "RED-X###",
+      "world_id": "MS|SPL|AD|LX|SIM|PUR",
+      "module_ids": "IDs T2 existentes",
+      "lab_ids": "IDs T5 existentes",
+      "case_ids": "IDs T4 existentes",
+      "learn_in_redes": "resultado de aprendizaje propio",
+      "reference_in_other_world": "responsabilidad del mundo destino",
+      "knowledge_reused": "competencias que evita repetir",
+      "source_ids": "fuentes y versión",
+      "acceptance_criterion": "observable, revisión humana",
+      "execution_status": "nunca equivale a runtime"
+    },
+    "competency_contract": {
+      "competency_id": "NET-C###",
+      "level": "no_evaluada|inicial|comprende|demuestra|transfiere",
+      "evidence_id": "ID estable y origen",
+      "assessor": "docente o evaluador autorizado",
+      "rubric_version": "version de rúbrica",
+      "assessed_at_utc": "ISO-8601 o null",
+      "confidence": "baja|media|alta",
+      "expires_policy": "reevaluación pedagógica propuesta, no TTL automático"
+    },
+    "artifact_contract": {
+      "artifact_id": "ID único en sistema futuro",
+      "scenario_id": "S## u otro",
+      "source_kind": "synthetic|simulated|lab_recorded|real_authorized",
+      "producer": "origen o colector",
+      "event_time_utc": "ISO 8601 o null",
+      "ingest_time_utc": "ISO 8601 o null",
+      "timezone_assumptions": "explicitar",
+      "observed_ip": "IP vista sin garantía de identidad",
+      "sensor_position": "punto observación",
+      "field_provenance": "mapa de campos/transformaciones",
+      "sha256": "sha256 si archivo materializado",
+      "visibility_limits": "campos/condiciones ausentes",
+      "ground_truth_visibility": "hidden_from_student|shared_after_assessment"
+    },
+    "case_contract": {
+      "case_id": "S##",
+      "version": "semver semántico curricular; no requisito técnico de UI",
+      "premise": "hipótesis y propósito",
+      "authorization": "scope/lab isolated/no real data",
+      "artifact_ids": "fuentes sintéticas etiquetadas",
+      "timeline_anchor": "UTC y sesgos controlados",
+      "alternative_hypotheses": "≥2",
+      "steps": "pistas y decisiones, sin requerir motor específico",
+      "expected_assertions": "oráculo separado",
+      "anti_assertions": "qué NO se puede inferir",
+      "rubric_id": "criterios vigentes",
+      "status": "designed|tested|validated + evidencia real",
+      "red_team_activity": "no usada fuera del laboratorio"
+    },
+    "integration_adapter_contract": {
+      "source_world": "MS|SPL|AD|LX|SIM",
+      "target_world": "RED",
+      "identifier_mapping": "tabla explícita; no alias en datos existentes",
+      "access_strategy": "referencia externa o recurso educativo enlazado, sin write",
+      "version_check": "manual al incorporar",
+      "permission_model": "sin pedir credenciales ni conexión durante investigación",
+      "rollback": "deshabilitar referencia nueva sin alterar progreso viejo",
+      "migration_approval": "separada; nunca automática"
+    },
+    "change_management": {
+      "no_automatic_modification": true,
+      "two_phase": "mapear/validar antes de implementar",
+      "legacy_progress": "preservar y no reescribir",
+      "user_approval": "requerida",
+      "no_sync_of_xp": "por defecto",
+      "audit_trail": "propuesta de logs de migración y versionado si implementación aprobada"
+    }
+  },
+  "risks": [
+    {
+      "id": "R01",
+      "severity": "CRÍTICA",
+      "finding": "Motor/código de los mundos actuales no inspeccionado",
+      "impact": "Enlaces podrían romper navegación/progreso o crear duplicados",
+      "missing_evidence": "modelo actual de IDs, rutas y datos; lectura aprobada por propietario",
+      "next_action": "revisar esquema/repositorio en etapa posterior, read-only, y definir adaptadores",
+      "status": "abierta"
+    },
+    {
+      "id": "R02",
+      "severity": "CRÍTICA",
+      "finding": "Equivalencia de campos ASIM ↔ CIM ↔ CEF falsa",
+      "impact": "Pérdida de significado e informes erróneos",
+      "missing_evidence": "fixtures crudos y prueba de mapeos 1:1 condicionados por fuente",
+      "next_action": "validar semántica y nulls por contrato y versión",
+      "status": "abierta"
+    },
+    {
+      "id": "R03",
+      "severity": "ALTA",
+      "finding": "Conectores/licencias de Microsoft no verificados en entorno",
+      "impact": "Ejercicios presentan tablas inexistentes",
+      "missing_evidence": "inventario de servicios habilitados/licencias y sample data consentidos",
+      "next_action": "mantener datasets sintéticos de aprendizaje y marcar rutas opcionales",
+      "status": "abierta"
+    },
+    {
+      "id": "R04",
+      "severity": "ALTA",
+      "finding": "SPL y estructura de índices/add-ons del mundo Splunk desconocidos",
+      "impact": "Referencias duplican curso o queries fallan",
+      "missing_evidence": "currículo exacto y sourcetypes instalados; lectura aprobada",
+      "next_action": "mapear lecciones reales sin generar SPL no verificado",
+      "status": "abierta"
+    },
+    {
+      "id": "R05",
+      "severity": "ALTA",
+      "finding": "Futuros mundos Windows y Linux podrían no publicarse",
+      "impact": "Enlaces rotos o bloqueos indebidos",
+      "missing_evidence": "roadmap y política de disponibilidad",
+      "next_action": "referencias soft y recursos fallback de Redes",
+      "status": "abierta"
+    },
+    {
+      "id": "R06",
+      "severity": "ALTA",
+      "finding": "Simulador SOC sin contrato de importación conocido",
+      "impact": "Datos no portables y XP corrompida si se fuerza",
+      "missing_evidence": "export/schema/API documentados y semántica de rúbricas",
+      "next_action": "usar fixtures externos y nunca mutar el simulador por ahora",
+      "status": "abierta"
+    },
+    {
+      "id": "R07",
+      "severity": "ALTA",
+      "finding": "Diferencias TimeGenerated/EventTime y hora de origen",
+      "impact": "Falsas cronologías y atribución equivocada",
+      "missing_evidence": "registros de ejemplo con timezone y forwarder",
+      "next_action": "test de desfase y registrar confidence por timestamp",
+      "status": "abierta"
+    },
+    {
+      "id": "R08",
+      "severity": "ALTA",
+      "finding": "Diferencia de semántica Flow vs IDS y contadores",
+      "impact": "Doble conteo y métricas inválidas",
+      "missing_evidence": "declaración sensor/campo y test de volumen",
+      "next_action": "separar conjuntos de eventos por EventType/modelo",
+      "status": "abierta"
+    },
+    {
+      "id": "R09",
+      "severity": "ALTA",
+      "finding": "NAT, DHCP y atribución de identidad no garantizados",
+      "impact": "Asignación falsa a usuario o host",
+      "missing_evidence": "lease histórico, timestamps, NAT logs y sensor",
+      "next_action": "permitir conclusiones desconocidas y confidence explícita",
+      "status": "abierta"
+    },
+    {
+      "id": "R10",
+      "severity": "MEDIA",
+      "finding": "Cambio de versiones y documentación dinámica",
+      "impact": "Lecciones envejecen, parsers cambian",
+      "missing_evidence": "source version/date/last_checked + changelog",
+      "next_action": "revisión periódica editorial, no afirmar reconfirmación sin acceso",
+      "status": "abierta"
+    },
+    {
+      "id": "R11",
+      "severity": "MEDIA",
+      "finding": "Sobrecarga de evaluación 42 módulos + 20 labs",
+      "impact": "Curso se vuelve impracticable",
+      "missing_evidence": "piloto de tiempos/relevancia y ratio rúbricas",
+      "next_action": "priorizar evidencias transferibles y rúbricas reutilizables",
+      "status": "abierta"
+    },
+    {
+      "id": "R12",
+      "severity": "CRÍTICA",
+      "finding": "Actividad Red Team fuera de alcance aislado",
+      "impact": "Riesgo legal y técnico, indisponibilidad o datos reales",
+      "missing_evidence": "ROE, test aislamiento, permiso, reversibilidad",
+      "next_action": "parada inmediata y fallo crítico; sin acciones en investigación",
+      "status": "abierta"
+    },
+    {
+      "id": "R13",
+      "severity": "ALTA",
+      "finding": "Confundir estado diseñado con validado/ejecutado",
+      "impact": "Falsa sensación de completitud",
+      "missing_evidence": "captura de ejecución, logs, versiones, aprobador",
+      "next_action": "estados separados con firmas y fecha UTC",
+      "status": "abierta"
+    },
+    {
+      "id": "R14",
+      "severity": "ALTA",
+      "finding": "Reflejo de progreso/XP del simulador en evidencias",
+      "impact": "Convalidaciones injustificadas y posible pérdida de progreso",
+      "missing_evidence": "modelo gamificado actual, consentimiento y reglas explícitas",
+      "next_action": "no conectar XP a dominio sin rúbrica y aprobación",
+      "status": "abierta"
+    }
+  ],
+  "future_incorporation_order": [
+    {
+      "order": 1,
+      "phase": "inventario y solo lectura de arquitectura existente",
+      "effort_estimate_person_days": "2–5",
+      "deliverable": "mapa de rutas, IDs, lecciones existentes y mecanismos de progreso",
+      "gate": "autorización del propietario para inspección; sin escribir"
+    },
+    {
+      "order": 2,
+      "phase": "validación de enlaces y no duplicación",
+      "effort_estimate_person_days": "3–6",
+      "deliverable": "crosswalk real lección↔competencia↔mundo; conflictos resueltos",
+      "gate": "revisión de responsables de MS, Splunk y simulador"
+    },
+    {
+      "order": 3,
+      "phase": "prototipo documental de contratos y fixtures",
+      "effort_estimate_person_days": "3–7",
+      "deliverable": "contratos, fixtures con ground truth y pruebas de schema",
+      "gate": "revision de documentación técnica y seguridad"
+    },
+    {
+      "order": 4,
+      "phase": "piloto de 3 puentes conceptuales en copia aislada (fase posterior)",
+      "effort_estimate_person_days": "5–10",
+      "deliverable": "informe piloto y regresión sin tocar datos de usuarios",
+      "gate": "permiso de implementación separado"
+    },
+    {
+      "order": 5,
+      "phase": "extensión futura si pilotos pasan",
+      "effort_estimate_person_days": "sin base fiable hasta inspeccionar motores",
+      "deliverable": "plan de implantación y migración no destructiva",
+      "gate": "aprobación explícita y test de rollback"
+    }
+  ],
+  "sources": [
+    {
+      "id": "S01",
+      "organization": "Microsoft",
+      "title": "Syslog and CEF AMA connectors — Microsoft Sentinel",
+      "version_or_date": "sin versión fija; documentación dinámica",
+      "url": "https://learn.microsoft.com/en-us/azure/sentinel/cef-syslog-ama-overview",
+      "supports": "CommonSecurityLog, Syslog, forwards, TimeGenerated/EventTime y posibles discrepancias",
+      "confidence": "alta",
+      "checked_on": "2026-10-18",
+      "availability": "página oficial pública consultada; versión de despliegue de la academia desconocida"
+    },
+    {
+      "id": "S02",
+      "organization": "Microsoft",
+      "title": "Data Collection Rules in Azure Monitor",
+      "version_or_date": "sin versión fija; documentación dinámica",
+      "url": "https://learn.microsoft.com/en-us/azure/azure-monitor/data-collection/data-collection-rule-overview",
+      "supports": "DCR/DCRA, selección, transformación y destinos; revisar permisos/configuración de verdad",
+      "confidence": "alta",
+      "checked_on": "2026-10-18",
+      "availability": "página oficial pública consultada; versión de despliegue de la academia desconocida"
+    },
+    {
+      "id": "S03",
+      "organization": "Microsoft",
+      "title": "The Advanced Security Information Model (ASIM) Network Session normalization schema",
+      "version_or_date": "sin versión fija; documentación dinámica",
+      "url": "https://learn.microsoft.com/en-us/azure/sentinel/normalization-schema-network",
+      "supports": "EventType NetworkSession/L2NetworkSession/Flow/EndpointNetworkSession/IDS; distinción de semántica",
+      "confidence": "alta",
+      "checked_on": "2026-10-18",
+      "availability": "página oficial pública consultada; versión de despliegue de la academia desconocida"
+    },
+    {
+      "id": "S04",
+      "organization": "Microsoft",
+      "title": "Using the Advanced Security Information Model (ASIM)",
+      "version_or_date": "sin versión fija; documentación dinámica",
+      "url": "https://learn.microsoft.com/en-us/azure/sentinel/normalization-about-parsers",
+      "supports": "parsers unificadores y normalización; verificar fuente habilitada",
+      "confidence": "alta",
+      "checked_on": "2026-10-18",
+      "availability": "página oficial pública consultada; versión de despliegue de la academia desconocida"
+    },
+    {
+      "id": "S05",
+      "organization": "Microsoft",
+      "title": "List of Microsoft Sentinel Advanced Security Information Model parsers",
+      "version_or_date": "sin versión fija; documentación dinámica",
+      "url": "https://learn.microsoft.com/en-us/azure/sentinel/normalization-parsers-list",
+      "supports": "matriz de parsers y fuentes de Network Session; no asumir instalación",
+      "confidence": "alta",
+      "checked_on": "2026-10-18",
+      "availability": "página oficial pública consultada; versión de despliegue de la academia desconocida"
+    },
+    {
+      "id": "S06",
+      "organization": "Microsoft",
+      "title": "DNS over AMA connector reference — available fields and normalization schema",
+      "version_or_date": "sin versión fija; documentación dinámica",
+      "url": "https://learn.microsoft.com/en-us/azure/sentinel/dns-ama-fields",
+      "supports": "ASimDnsActivityLog y campos Windows DNS; disponibilidad condicional",
+      "confidence": "alta",
+      "checked_on": "2026-10-18",
+      "availability": "página oficial pública consultada; versión de despliegue de la academia desconocida"
+    },
+    {
+      "id": "S07",
+      "organization": "Microsoft",
+      "title": "DeviceNetworkEvents table in the advanced hunting schema",
+      "version_or_date": "sin versión fija; documentación dinámica",
+      "url": "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-devicenetworkevents-table",
+      "supports": "conexiones endpoint; campos y prerrequisito Defender for Endpoint",
+      "confidence": "alta",
+      "checked_on": "2026-10-18",
+      "availability": "página oficial pública consultada; versión de despliegue de la academia desconocida"
+    },
+    {
+      "id": "S08",
+      "organization": "Microsoft",
+      "title": "Understand the advanced hunting schema",
+      "version_or_date": "sin versión fija; documentación dinámica",
+      "url": "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-schema-tables",
+      "supports": "DeviceNetworkEvents, DeviceProcessEvents y entidades; implementación condicional",
+      "confidence": "alta",
+      "checked_on": "2026-10-18",
+      "availability": "página oficial pública consultada; versión de despliegue de la academia desconocida"
+    },
+    {
+      "id": "S09",
+      "organization": "Splunk",
+      "title": "Common Information Model 6.1 — Network Traffic",
+      "version_or_date": "CIM 6.1; doc 2025-07-10",
+      "url": "https://help.splunk.com/en/splunk-cloud-platform/common-information-model/6.1/data-models/network-traffic",
+      "supports": "campos src, dest, action, transport, bytes; diferencia frente Intrusion Detection",
+      "confidence": "alta",
+      "checked_on": "2026-10-18",
+      "availability": "página oficial pública consultada; versión de despliegue de la academia desconocida"
+    },
+    {
+      "id": "S10",
+      "organization": "Splunk",
+      "title": "Common Information Model 6.1 — Intrusion Detection",
+      "version_or_date": "CIM 6.1; doc 2025-07-10",
+      "url": "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.1/data-models/intrusion-detection",
+      "supports": "distinción entre decisiones de conexión y alertas IDS",
+      "confidence": "alta",
+      "checked_on": "2026-10-18",
+      "availability": "página oficial pública consultada; versión de despliegue de la academia desconocida"
+    },
+    {
+      "id": "S11",
+      "organization": "Splunk",
+      "title": "Why source types matter",
+      "version_or_date": "Splunk Enterprise 10.0; doc 2025-07-18",
+      "url": "https://help.splunk.com/en/splunk-enterprise/get-started/get-data-in/10.0/configure-source-types/why-source-types-matter",
+      "supports": "sourcetype, event breaking y reconocimiento de timestamps",
+      "confidence": "alta",
+      "checked_on": "2026-10-18",
+      "availability": "página oficial pública consultada; versión de despliegue de la academia desconocida"
+    },
+    {
+      "id": "S12",
+      "organization": "Splunk",
+      "title": "Network Traffic Field Mapping",
+      "version_or_date": "CIM 6.1; doc 2025-07-10",
+      "url": "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.1/field-mappings/network-traffic-field-mapping",
+      "supports": "mapeos por fuente no automáticos ni 1:1",
+      "confidence": "alta",
+      "checked_on": "2026-10-18",
+      "availability": "página oficial pública consultada; versión de despliegue de la academia desconocida"
+    },
+    {
+      "id": "S13",
+      "organization": "Microsoft",
+      "title": "Audit Kerberos Service Ticket Operations",
+      "version_or_date": "documentación dinámica",
+      "url": "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-kerberos-service-ticket-operations",
+      "supports": "evento 4769 en DC, volumen y condiciones de auditoría",
+      "confidence": "alta",
+      "checked_on": "2026-10-18",
+      "availability": "página oficial pública consultada; versión de despliegue de la academia desconocida"
+    },
+    {
+      "id": "S14",
+      "organization": "Microsoft",
+      "title": "4624: An account was successfully logged on",
+      "version_or_date": "documentación dinámica",
+      "url": "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4624",
+      "supports": "evento 4624 y logon type; equipo donde se registra",
+      "confidence": "alta",
+      "checked_on": "2026-10-18",
+      "availability": "página oficial pública consultada; versión de despliegue de la academia desconocida"
+    },
+    {
+      "id": "S15",
+      "organization": "Microsoft",
+      "title": "Audit Filtering Platform Connection",
+      "version_or_date": "documentación dinámica",
+      "url": "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-filtering-platform-connection",
+      "supports": "5156/5157 éxito/fracaso y alto volumen potencial",
+      "confidence": "alta",
+      "checked_on": "2026-10-18",
+      "availability": "página oficial pública consultada; versión de despliegue de la academia desconocida"
+    },
+    {
+      "id": "S16",
+      "organization": "systemd / man-pages",
+      "title": "journald.conf(5)",
+      "version_or_date": "documentación dinámica de sistema",
+      "url": "https://www.man7.org/linux/man-pages/man5/journald.conf.5.html",
+      "supports": "retención y ForwardToSyslog dependiente de receptor/almacenamiento",
+      "confidence": "alta",
+      "checked_on": "2026-10-18",
+      "availability": "página oficial pública consultada; versión de despliegue de la academia desconocida"
+    },
+    {
+      "id": "S17",
+      "organization": "netfilter",
+      "title": "nftables wiki — Logging traffic",
+      "version_or_date": "documentación dinámica",
+      "url": "https://wiki.nftables.org/wiki-nftables/index.php/Logging_traffic",
+      "supports": "logging explícito y evaluación de reglas",
+      "confidence": "alta",
+      "checked_on": "2026-10-18",
+      "availability": "página oficial pública consultada; versión de despliegue de la academia desconocida"
+    },
+    {
+      "id": "S18",
+      "organization": "netfilter",
+      "title": "nftables wiki — Ruleset debug/tracing",
+      "version_or_date": "documentación dinámica",
+      "url": "https://wiki.nftables.org/wiki-nftables/index.php/Ruleset_debug/tracing",
+      "supports": "diagnóstico por nftrace en entornos propios; controlar volumen",
+      "confidence": "alta",
+      "checked_on": "2026-10-18",
+      "availability": "página oficial pública consultada; versión de despliegue de la academia desconocida"
+    },
+    {
+      "id": "S19",
+      "organization": "firewalld",
+      "title": "firewalld policies",
+      "version_or_date": "documentación dinámica",
+      "url": "https://firewalld.org/documentation/man-pages/firewalld.policies",
+      "supports": "políticas de zona, direccionalidad y activación",
+      "confidence": "alta",
+      "checked_on": "2026-10-18",
+      "availability": "página oficial pública consultada; versión de despliegue de la academia desconocida"
+    },
+    {
+      "id": "S20",
+      "organization": "MITRE",
+      "title": "ATT&CK — Detection Strategies",
+      "version_or_date": "documentación dinámica; marco posterior a v18",
+      "url": "https://attack.mitre.org/detectionstrategies/",
+      "supports": "estrategias de detección y su distinción respecto de evidencia",
+      "confidence": "alta",
+      "checked_on": "2026-10-18",
+      "availability": "página oficial pública consultada; versión de despliegue de la academia desconocida"
+    },
+    {
+      "id": "S21",
+      "organization": "MITRE",
+      "title": "ATT&CK — Data Components",
+      "version_or_date": "documentación dinámica",
+      "url": "https://attack.mitre.org/datacomponents/",
+      "supports": "componentes observables; no validan por sí solos una técnica",
+      "confidence": "alta",
+      "checked_on": "2026-10-18",
+      "availability": "página oficial pública consultada; versión de despliegue de la academia desconocida"
+    },
+    {
+      "id": "S22",
+      "organization": "MITRE",
+      "title": "ATT&CK — Data Sources deprecation",
+      "version_or_date": "v18, octubre 2025",
+      "url": "https://attack.mitre.org/datasources/",
+      "supports": "Data Sources legado deprecado, preferir nuevas referencias",
+      "confidence": "alta",
+      "checked_on": "2026-10-18",
+      "availability": "página oficial pública consultada; versión de despliegue de la academia desconocida"
+    },
+    {
+      "id": "S23",
+      "organization": "IETF",
+      "title": "RFC 5424 — The Syslog Protocol",
+      "version_or_date": "RFC 5424 (2009)",
+      "url": "https://www.rfc-editor.org/rfc/rfc5424",
+      "supports": "estructura Syslog para diferenciar formato en origen y parser",
+      "confidence": "alta",
+      "checked_on": "2026-10-18",
+      "availability": "página oficial pública consultada; versión de despliegue de la academia desconocida"
+    },
+    {
+      "id": "S24",
+      "organization": "NIST",
+      "title": "SP 800-61 Rev.3 Incident Response Recommendations",
+      "version_or_date": "Rev 3 final abril 2025",
+      "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+      "supports": "preparación, respuesta, mejora y coordinación organizativa",
+      "confidence": "alta",
+      "checked_on": "2026-10-18",
+      "availability": "página oficial pública consultada; versión de despliegue de la academia desconocida"
+    }
+  ],
+  "invariants": [
+    "no modificar mundos existentes ni fuentes",
+    "no instalar ni conectar cuentas",
+    "no reescribir XP o progreso",
+    "no lanzar escaneos",
+    "no presentar fixtures como telemetría real",
+    "no afirmar equivalencia oficial de modelos de datos",
+    "no desbloqueo por haber consumido contenido"
+  ],
+  "human_review_pending": [
+    "ruta real y unidades existentes MS/SPL",
+    "API/estructura de simulador SOC",
+    "licencias, permisos y escenarios de ejecución",
+    "validar dataset y labs",
+    "aprobar vínculo y versionado"
+  ]
+}

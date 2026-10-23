@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-10-L02",
+  "sourceHash": "7600ab46cfbb19b68de3caf8ee6e954bfa961d6964a600f59636f40a2a4d4160",
+  "questions": [
+    {
+      "id": "LNX-10-L02-Q01",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Puede activar unidades ante cambios o condiciones en rutas, ampliando la superficie de ejecución».\n\nUna unidad `.path` vigila una ruta y activa otra unidad cuando se cumple la condición, lo que amplía la superficie. No es una copia de un servicio, no se evalúa solo al instalar y no sustituye al gestor de usuario."
+    },
+    {
+      "id": "LNX-10-L02-Q02",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Porque indica si el gestor de usuario puede seguir activo sin una sesión interactiva».\n\n`Linger` determina si el gestor de usuario puede continuar sin sesión, dato clave para saber si una unidad de usuario sobrevive al cierre de sesión. No borra unidades, no las convierte en unidades de sistema y no bloquea a `systemd-run`."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "Faltaría inventariar por **tipo de unidad** y por **gestor**. Por tipo: `.service`, `.timer`, `.socket` y `.path`, además de los *drop-ins* que cambian la ejecución sin tocar el archivo base. Por gestor: las unidades del gestor de usuario en `~/.config/systemd/user/` y las unidades transitorias creadas con `systemd-run`, que no dejan archivo persistente.\n\nEl gestor de usuario se comprueba consultándolo por separado (`systemctl --user`) y verificando la propiedad `Linger` con `loginctl show-user USUARIO -p Linger`, que indica si puede continuar sin sesión interactiva.\n\nLímite: un inventario describe lo que se miró. Si es incompleto no demuestra ausencia, y aun completo sigue siendo un censo de superficies, no una prueba de ejecución.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Enumera superficies por tipo de unidad, no solo `.service`."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Menciona el gestor de usuario y la propiedad `Linger`."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Incluye unidades transitorias y *drop-ins*."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Reconoce que el inventario no prueba ejecución ni ausencia."
+      }
+    ]
+  },
+  "revision": "6eeb3934e9b6a2642cdef21b"
+}

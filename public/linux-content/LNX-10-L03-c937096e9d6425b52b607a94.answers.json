@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-10-L03",
+  "sourceHash": "392d2f43b7fe16166dcb8d1ac79ffdcca52eda74138bba37fa93c417480519c4",
+  "questions": [
+    {
+      "id": "LNX-10-L03-Q01",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Que la unidad fue personalizada en el sistema y no prueba por sí sola hostilidad».\n\nUn `FragmentPath` bajo `/etc` indica personalización administrativa, de un paquete o de una emulación, no hostilidad automática. No describe la firma del binario ni su procedencia, y no implica que el servicio deje de arrancar."
+    },
+    {
+      "id": "LNX-10-L03-Q02",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Puede deberse a retención, recolección incompleta, journal volátil o evasión, entre otras hipótesis».\n\nLa ausencia de registros es una carencia de visibilidad con varias explicaciones posibles; por eso no demuestra que no hubo ejecución ni confirma por sí sola un borrado. Correlacionar otras fuentes es necesario antes de concluir."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "Ninguno de los dos indicios prueba compromiso por sí solo. El `enable` en los registros solo indica que se preparó un enlace de arranque, no que la unidad se haya ejecutado; un archivo en `/etc` indica **personalización en el sistema** —de un administrador, de un paquete o de una emulación de laboratorio—, no hostilidad.\n\nCorrelacionaría propiedad y permisos del archivo, *drop-ins* (`DropInPaths`), ticket de cambio, hash del ejecutable, contexto del proceso (usuario efectivo, cgroup, padre) y ventana temporal respecto a la línea base. Con ese conjunto se decide si el cambio es esperado o anómalo.\n\nLímite: sin correlación, puedes describir el cambio, pero no afirmar su intención ni su efecto. Un `enable` y una ruta bajo `/etc` solo sostienen una hipótesis a contrastar.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Rechaza concluir compromiso a partir de un único indicio."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Explica qué prueba y qué no prueba un `enable`."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Interpreta `FragmentPath` bajo `/etc` como personalización, no como hostilidad."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Propone correlacionar varios datos y declara el límite de la conclusión."
+      }
+    ]
+  },
+  "revision": "c937096e9d6425b52b607a94"
+}

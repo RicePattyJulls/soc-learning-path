@@ -1,0 +1,39 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-20-L03",
+  "sourceHash": "8ecb09b7312ab75bf9345ffdcd343549ecb715f9f6d4ba6b46207f9c4de86352",
+  "questions": [
+    {
+      "id": "WAD-20-L03-Q01",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Disponer de la clave privada de la CA y de su base de datos respaldadas, y restaurarlas en el equipo previsto».\n\nRecuperar la CA exige volver a su misma clave privada y a su base de datos, porque con otra clave los certificados ya emitidos no encadenan. Emitir con un nombre distinto, publicar una lista vacía o desinstalar la autoridad rompen o falsean la cadena de confianza."
+    },
+    {
+      "id": "WAD-20-L03-Q02",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Verificar la resolución de nombres del dominio, la cadena y la revocación de certificados y la autenticación a través de la confianza».\n\nUna prueba de servicio recorre el camino completo —resolución, cadena y revocación, autenticación cruzada— y es lo que demuestra que las dependencias funcionan. Reiniciar y suponer, mirar solo el estado del servicio o revisar un único equipo no confirman el servicio de extremo a extremo."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "Primero se restaura la CA con su clave privada y su base de datos desde el respaldo correcto en el equipo previsto, porque con otra clave los certificados ya emitidos no encadenan. Después se estabiliza el DNS, base de la localización de servicios, antes de dar por buenas otras pruebas. Luego se aborda la confianza con el dominio hijo `hijo.ad.lab.test` y se comprueba la autenticación cruzada. Cada componente se valida con una prueba de servicio: resolver el nombre del dominio, validar la cadena y la revocación de un certificado y autenticar una identidad que cruza la confianza. Límite: cada prueba confirma un camino y un instante concretos, no una vigilancia continua ni dependencias no ejercitadas.",
+    "rubric": [
+      {
+        "criterion": "CA restaurada",
+        "evidence": "Restaura la clave privada y la base de datos de la CA desde el respaldo correcto."
+      },
+      {
+        "criterion": "DNS como base",
+        "evidence": "Estabiliza y valida la resolución de nombres antes de las demás pruebas."
+      },
+      {
+        "criterion": "Confianza",
+        "evidence": "Comprueba la confianza con el dominio hijo mediante autenticación cruzada."
+      },
+      {
+        "criterion": "Límite reconocido",
+        "evidence": "Declara que la prueba confirma un camino y un instante, no vigilancia continua."
+      }
+    ]
+  },
+  "revision": "75c093b466c668286fc0f14e"
+}

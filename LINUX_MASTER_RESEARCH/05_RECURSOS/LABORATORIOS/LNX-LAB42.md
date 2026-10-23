@@ -1,0 +1,136 @@
+# LNX-LAB42 — Purple Team final: detección y retest
+
+Guía de laboratorio **diseñada**, no ejecutada ni validada. Ejecútala solo sobre un host propio o un laboratorio aislado y autorizado. Todo el material es **sintético**: no reproduce una captura, una ejecución real ni datos personales.
+
+## Objetivo
+
+Ejecutar una secuencia **Purple Team** final con eventos **sintéticos y benignos** bajo el árbol del laboratorio —cambio de configuración ficticia de sudoers/PAM, canary de journal, manifiesto de contenedor inseguro y contexto de presión—, aplicar la lógica de detección **D05-02**, medir solo lo que se observe y producir un **informe SOC** y un **hallazgo RT** enlazados con pruebas positiva, negativa y retest (base documental: F02, F121, F122, F127, F131, F132, F134).
+
+## Competencia
+
+Ciclo Purple Team honesto: separar evento observado de evento simulado, mapear fuentes y sensores, no inventar latencias, remediar de forma simulada y verificar que la función legítima sigue funcionando.
+
+## Nivel y prerrequisitos
+
+Avanzado. Conviene haber recorrido la etapa `LNX-32` y tener `LNX-LAB37`, `LNX-LAB39`, `LNX-LAB40` y `LNX-LAB41` recomendados. Requiere `bash`, `journalctl`, `logger`, `sha256sum`, `stat` y lectura de `/proc/pressure`; `auditd`, `falco`, runtime de contenedores y `kubectl` son opcionales y su ausencia se declara. No se requieren privilegios administrativos.
+
+## Material sintético
+
+- VM de laboratorio aislada con nombre de ejemplo `lab-lnx-42`, cuenta sin privilegios `analista` y sin datos personales.
+- Las direcciones que aparezcan, si aparecen, pertenecen **solo** a rangos de documentación (`192.0.2.0/24`, `198.51.100.0/24`, `203.0.113.0/24` y `2001:db8::/32`). No se usan IPs reales. Para loopback se escribe literalmente `localhost`.
+- Configuración **ficticia** bajo `"$HOME/linux-lab/LAB42/config"`: archivos de `sudoers.d` y `pam.d` con comentarios y marcadores, **sin reglas aplicables**, nunca copiados a `/etc`.
+- Registros **sintéticos** en `logs/`, con cabecera visible `REGISTRO SINTÉTICO, NO ES UN LOG DEL SISTEMA`. No se presentan como evidencia del host.
+- Manifiestos ficticios `lab42-contenedor-inseguro.yaml` y `lab42-contenedor-endurecido.yaml`, nunca aplicados a un clúster.
+- Identificadores con plantilla no hexadecimal: `IR-LNX-AAAAMMDD-042`, `CHG-LNX-AAAAMMDD-001` y `RT-LNX-042`.
+- Directorio de trabajo aislado: `"$HOME/linux-lab/LAB42"` con subdirectorios `config`, `logs`, `evidencia`, `informe` y `retest`.
+
+## Procedimiento por pasos
+
+### Preparación
+
+1. Crea el árbol: `umask 077; mkdir -p "$HOME/linux-lab/LAB42"/{config/sudoers.d,config/pam.d,logs,evidencia,informe,retest}`.
+2. Haz el **inventario de sensores** antes de generar eventos: `date -u -Is; cat /proc/sys/kernel/random/boot_id; hostname; id; journalctl --disk-usage 2>/dev/null || true; stat -fc %T /sys/fs/cgroup; for c in journalctl logger sha256sum stat auditctl ausearch falco docker kubectl; do printf '%s=' "$c"; command -v "$c" || printf 'no-disponible\n'; done` → `"$HOME/linux-lab/LAB42/evidencia/lab42-sensores.txt"`. La tabla debe distinguir «disponible» de «observado»: una herramienta instalada no garantiza eventos.
+3. Crea la configuración ficticia, con comentarios y sin reglas reales: `printf '# SUDOERS SINTÉTICO LAB42\n# NO VÁLIDO, NO INSTALAR\n# estado base sin cambios\n' > "$HOME/linux-lab/LAB42/config/sudoers.d/lab42-mantenimiento"; printf '# PAM SINTÉTICO LAB42\n# NO VÁLIDO, NO INSTALAR\n# estado base sin cambios\n' > "$HOME/linux-lab/LAB42/config/pam.d/lab42-servicio"; chmod 0640 "$HOME/linux-lab/LAB42/config/sudoers.d/lab42-mantenimiento" "$HOME/linux-lab/LAB42/config/pam.d/lab42-servicio"`.
+4. Crea los registros sintéticos con cabecera inequívoca: `printf '# REGISTRO SINTÉTICO, NO ES UN LOG DEL SISTEMA\n# generado para LAB42\n' > "$HOME/linux-lab/LAB42/logs/sudo-sintetico.log"; printf '# REGISTRO SINTÉTICO, NO ES UN LOG DEL SISTEMA\n# contexto de presión, sin carga generada\n' > "$HOME/linux-lab/LAB42/logs/presion-sintetica.log"`.
+5. Escribe los dos manifiestos ficticios. El inseguro declara `runAsUser: 0`, `allowPrivilegeEscalation: true`, `readOnlyRootFilesystem: false`, `capabilities.add: ["NET_RAW"]` y `seccompProfile.type: Unconfined`; el endurecido declara `runAsNonRoot: true`, `runAsUser: 10001`, `allowPrivilegeEscalation: false`, `readOnlyRootFilesystem: true`, `capabilities.drop: ["ALL"]` y `seccompProfile.type: RuntimeDefault`. Ambos llevan la cabecera `# SINTÉTICO: no aplicar`; guárdalos como `config/lab42-contenedor-inseguro.yaml` y `config/lab42-contenedor-endurecido.yaml`. Un ejemplo mínimo de cada uno:
+
+```yaml
+# SINTÉTICO LAB42 — no aplicar
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lab42-inseguro
+spec:
+  containers:
+    - name: demo
+      image: lab42-demo:local
+      securityContext:
+        runAsUser: 0
+        allowPrivilegeEscalation: true
+        readOnlyRootFilesystem: false
+        capabilities:
+          add: ["NET_RAW"]
+        seccompProfile:
+          type: Unconfined
+```
+
+```yaml
+# SINTÉTICO LAB42 — no aplicar
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lab42-endurecido
+spec:
+  containers:
+    - name: demo
+      image: lab42-demo:local
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop: ["ALL"]
+        seccompProfile:
+          type: RuntimeDefault
+```
+
+6. Congela el estado inicial: `(cd "$HOME/linux-lab/LAB42/config" && find . -type f -print0 | sort -z | xargs -0 sha256sum > ../evidencia/config-antes.sha256); date -u +%FT%TZ > "$HOME/linux-lab/LAB42/evidencia/inicio-utc.txt"`.
+
+### Tarea (eventos, correlación y retest)
+
+7. Genera el **evento positivo**: registra `t0`, añade un comentario benigno al archivo ficticio no aprobado, emite el canary y registra `t1`: `t0=$(date -u +%FT%TZ); printf '# cambio sintético no aprobado %s\n' "$t0" >> "$HOME/linux-lab/LAB42/config/sudoers.d/lab42-mantenimiento"; logger -t t5-lab42 -- 'CANARY_LNX_T5_D05_02_POSITIVO'; t1=$(date -u +%FT%TZ); printf 't0=%s\nt1=%s\narchivo=config/sudoers.d/lab42-mantenimiento\n' "$t0" "$t1" > "$HOME/linux-lab/LAB42/evidencia/positivo.txt"`. El canary es una **marca de ventana**, no una alerta de detección. Si `logger` no está disponible, **no inventes** el canary: registra el hueco y usa solo el registro sintético.
+8. Genera el **evento negativo** con un ticket de cambio aprobado: `t2=$(date -u +%FT%TZ); printf '# cambio aprobado CHG-LNX-20261019-001 %s\n' "$t2" >> "$HOME/linux-lab/LAB42/config/sudoers.d/lab42-aprobado"; logger -t t5-lab42 -- 'CANARY_LNX_T5_D05_02_NEGATIVO'; t3=$(date -u +%FT%TZ); printf 't2=%s\nt3=%s\nticket=CHG-LNX-20261019-001\narchivo=config/sudoers.d/lab42-aprobado\n' "$t2" "$t3" > "$HOME/linux-lab/LAB42/evidencia/negativo.txt"; printf 'ticket=CHG-LNX-20261019-001\nestado=aprobado\nventana=sintetica\n' > "$HOME/linux-lab/LAB42/evidencia/ticket-CHG-LNX-20261019-001.md"`. El ticket es sintético y vive bajo el LAB. Si quieres cubrir también PAM, repite un cambio benigno en `config/pam.d/lab42-servicio` y trátalo como **D05-01** (archivo + ticket), sin mezclarlo con D05-02.
+9. Añade a `logs/sudo-sintetico.log` una línea **explícitamente simulada** de acción privilegiada, no un registro del sistema: `printf 'SIMULADO %s sudo user=svc-lab command=/bin/true\n' "$t1" >> "$HOME/linux-lab/LAB42/logs/sudo-sintetico.log"`. No ejecutes `sudo` ni cambies de identidad.
+10. Recupera el canary del journal y registra la hora local de la consulta: `tc0=$(date -u +%FT%TZ); journalctl -t t5-lab42 --since '15 minutes ago' --no-pager -o short-iso > "$HOME/linux-lab/LAB42/evidencia/journal.txt" 2>&1; rc_j=$?; tc1=$(date -u +%FT%TZ); printf 'consulta_inicio=%s\nconsulta_fin=%s\nexit=%s\n' "$tc0" "$tc1" "$rc_j" > "$HOME/linux-lab/LAB42/evidencia/journal-meta.txt"`. Si `journalctl` no existe o no aparece el canary, escribe «journal no observado» y no inventes el evento.
+11. Construye la tabla de **fuentes y sensores** con al menos siete filas: journald/canary; metadatos y SHA-256 del archivo (sustituto de FIM); `auditd`/ejecución; registro sudo sintético; manifiesto de contenedor; PSI/cgroup; ticket de cambio; `falco`/runtime si existe. Columnas: fuente, tipo (`observado`, `simulado`, `no disponible`), dato, hora UTC, confianza y límite → `"$HOME/linux-lab/LAB42/evidencia/lab42-fuentes.md"`. Al menos una fila debe quedar como **no disponible**.
+12. Aplica **D05-02 como lógica**, no como regla desplegada: escritura bajo una ruta de configuración vigilada **más** acción privilegiada en los siguientes 30 minutos **más** ausencia de ticket. Evalúa tres casos: positivo (escritura no aprobada + acción simulada), negativo (escritura aprobada + ticket) e indeterminado (solo escritura, sin acción). Registra `coincide`, `no coincide` o `no concluyente`, y explica que la mitad privilegiada es simulada → `"$HOME/linux-lab/LAB42/evidencia/lab42-d05-02.md"`.
+13. Compara los dos manifiestos de contenedor en seis controles (`runAsNonRoot`, `allowPrivilegeEscalation`, `readOnlyRootFilesystem`, `seccompProfile`, `capabilities`, privilegios de host) y marca la diferencia entre una revisión documental y un evento de runtime. Si no hay runtime, escribe «no se observó evento de contenedor» → `"$HOME/linux-lab/LAB42/evidencia/lab42-contenedor.md"`.
+14. Toma **tres muestras** de PSI, sin generar carga: `for i in 1 2 3; do date -u +%FT%TZ; cat /proc/pressure/cpu /proc/pressure/memory /proc/pressure/io 2>/dev/null || printf 'PSI no disponible\n'; sleep 1; done > "$HOME/linux-lab/LAB42/evidencia/psi.txt"`. No se provoca el incidente de rendimiento: se documenta un **contexto sintético** de presión y se distingue de una medición real. Añade una lectura sintética solo si la marcas como tal; no afirmes causalidad con el cambio de configuración.
+15. Redacta el **informe SOC** con resumen, alcance, timeline de al menos seis hechos, fuentes, resultado de D05-02, tres hipótesis alternativas, decisión, huecos y recomendaciones priorizadas → `"$HOME/linux-lab/LAB42/informe/lab42-informe-soc.md"`. Cada fila de la timeline debe indicar `observado`, `simulado` o `inferido`. Usa NIST SP 800-61r3 como marco de respuesta (F121) y NIST SP 800-92 para gestión y protección de logs (F122), sin reproducir procedimientos de producción. ATT&CK se usa como contexto, no como prueba de detección (F127).
+16. Redacta el **hallazgo RT-LNX-042** enlazado por identificadores de evidencia: el manifiesto ficticio de contenedor declara UID 0, escalada permitida y capabilities añadidas; la ruta ficticia de configuración representa una superficie sensible que en un sistema real no debe quedar editable por la identidad de servicio. Marca el activo como **simulado**, el impacto como **potencial** y la explotación como **no confirmada**; añade precondiciones, evidencia, remediación y límites → `"$HOME/linux-lab/LAB42/informe/lab42-hallazgo-rt.md"`. No presentes el manifiesto como un despliegue real ni el archivo del LAB como una configuración del host.
+17. Simula la **remediación** sin tocar el sistema: deja el manifiesto endurecido como referencia, mantén la configuración ficticia en `0640`, sustituye el manifiesto inseguro por el endurecido en el dossier y propone FIM/audit sobre rutas equivalentes y un control de admisión para el clúster. Documenta qué cambio sería real y qué es solo una recomendación → `"$HOME/linux-lab/LAB42/retest/lab42-remediacion.md"`.
+18. Ejecuta el **retest positivo**: crea un tercer archivo ficticio `config/sudoers.d/lab42-tercero`, añade un comentario benigno y emite `CANARY_LNX_T5_RETEST_POSITIVO`; la lógica D05-02 debe volver a coincidir con el caso no aprobado. Ejecuta el **retest negativo**: un cambio aprobado con ticket y canary `CANARY_LNX_T5_RETEST_NEGATIVO` no debe coincidir. Registra ambos con hora UTC → `"$HOME/linux-lab/LAB42/retest/lab42-retest.md"`.
+19. Haz la **comprobación funcional** que corresponda a este laboratorio: comprueba con `grep` que el manifiesto endurecido conserva los seis controles declarados y que la configuración ficticia sigue siendo legible por su propietario; no se inicia ningún servicio real. Escribe «función legítima comprobada a nivel documental, no ejecutada» si no hay servicio.
+20. Declara los **huecos**: ausencia de SIEM, `auditd`, `falco`, runtime o admisión real; falta de sincronización de reloj; eventos sintéticos; pérdida de eventos no medida; latencia extremo a extremo no medida; retención no verificada; regla no validada contra el esquema local; cobertura de red/egreso ausente → `"$HOME/linux-lab/LAB42/informe/lab42-huecos.md"`.
+21. Sella la evidencia y registra la custodia: `(cd "$HOME/linux-lab/LAB42" && find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS); (cd "$HOME/linux-lab/LAB42" && sha256sum -c SHA256SUMS);` y anota recolector, hora UTC, herramientas, orden y transferencias en `"$HOME/linux-lab/LAB42/informe/lab42-custodia.md"`.
+
+> **No** escribas en `/etc`, **no** ejecutes ataques reales y **no** presentes un registro sintético como log del sistema. La detección se prueba localmente; no se afirma una alerta SIEM inexistente.
+
+### Verificación y limpieza
+
+22. Revisa que **cada** fila de la timeline tenga fuente, tipo, hora y límite, y que ningún registro sintético se presente como log del sistema. La cabecera de `logs/` debe ser visible en el informe.
+23. Comprueba que hay al menos cinco fuentes/sensores mapeados, que su estado real (`observado`, `simulado`, `no disponible`) es coherente y que al menos un hueco está declarado.
+24. Verifica la latencia: si registraste `t0` y la hora de consulta, la diferencia es **latencia local de escritura/consulta**, no latencia de detección del SIEM. Si no hay sensor, escribe «no medida»; no inventes milisegundos ni ventanas.
+25. Confirma los tres resultados de D05-02 (positivo, negativo, indeterminado) y que la acción privilegiada solo existe en el registro sintético. Un evento de escritura sin acción posterior **no** demuestra D05-02.
+26. Confirma el retest positivo y el negativo, y que la remediación simulada no rompe la función declarada. Si no hay servicio real, la comprobación funcional es documental y así se etiqueta.
+27. Verifica que no se escribió en `/etc`: `find /etc/sudoers.d -maxdepth 1 -name 'lab42-*' 2>/dev/null; find /etc/pam.d -maxdepth 1 -name 'lab42-*' 2>/dev/null` no debe devolver rutas. Si no puedes leer esos directorios con la cuenta de laboratorio, declara la limitación y apóyate en que todas las escrituras del procedimiento apuntan al LAB. Comprueba también que `id` no cambió y que no se usó `sudo`.
+28. **Limpieza:** conserva el dossier, los hashes y la custodia. Elimina solo la configuración ficticia y los archivos de retest si decides no conservarlos, comprobando el prefijo `"$HOME/linux-lab/LAB42"`. No borres logs del sistema ni cambies la configuración real; la VM desechable es la limpieza final.
+
+## Evidencia a entregar
+
+- El **inventario de sensores** con disponibilidad y estado real de observación.
+- La **tabla de fuentes** (al menos cinco) y la **timeline** con observado/simulado/inferido.
+- La evaluación **D05-02** en sus tres casos, con la acción privilegiada marcada como simulada.
+- El **informe SOC** y el **hallazgo `RT-LNX-042`** enlazados por evidencia.
+- El **retest positivo/negativo**, la comprobación funcional documental, la lista de huecos y el manifiesto SHA-256 con custodia.
+
+## Criterios de aceptación
+
+- Dossier y fuentes (3): informe SOC y hallazgo RT enlazados; al menos cinco fuentes/sensores con estado real.
+- Detección (3): D05-02 aplicada como lógica, con positivo, negativo e indeterminado; sin afirmar una alerta SIEM inexistente.
+- Retest (2): remediación simulada, prueba positiva/negativa y función legítima verificada o declarada como no ejecutada.
+- Límites (2): separación observado/simulado, latencia solo si se midió, huecos de telemetría y hash verificable.
+- **Fallo crítico:** escribir en `/etc`, ejecutar un ataque real, inventar tiempos de detección, presentar un registro sintético como log del sistema o afirmar que hubo una alerta SIEM sin sensor que la respalde.
+
+## Autorización y límites
+
+Actividad **defensiva y Purple Team** sobre una VM propia con datos **sintéticos**. **Prohibido** escribir en `/etc`, modificar sudoers/PAM reales, ejecutar ataques fuera del LAB, generar carga o denegación de servicio, exfiltrar datos y presentar eventos sintéticos como evidencia del sistema. La detección es una **lógica documentada y probada localmente**, no una regla desplegada en un SIEM. La remediación es una **simulación** y no se aplica a infraestructura real.
+
+## Limpieza
+
+No hay cambios de host que revertir aparte de los archivos sintéticos bajo `"$HOME/linux-lab/LAB42"`. Conserva `informe/`, `retest/`, `evidencia/` y `SHA256SUMS` como dossier. Los canarios de journal son eventos benignos y quedan sujetos a la retención del sistema; no se manipula el journal. Elimina solo los archivos ficticios que decidas descartar, comprobando el prefijo de ruta y sin tocar `/etc`, logs del sistema ni servicios. Si la VM es desechable, su destrucción es la limpieza final.
+
+## Nota y estado declarado
+
+Este documento es un **diseño por ejecutar**: describe un laboratorio que aún no se ha corrido ni validado, y todo su contenido es sintético. La guía **no acredita** haber ejecutado el laboratorio ni certifica resultados.

@@ -1,0 +1,174 @@
+{
+  "schemaVersion": 1,
+  "courseId": "soc",
+  "id": "N1-11",
+  "sourceHash": "997321b8009733b4740a5baf7f8f05c52e6b44dd414ee3eb9152ae985efd154a",
+  "revision": "6d1a055b2a489cf3d57c5563",
+  "hipotesis": [
+    "Contraseña caducada o antigua guardada en un servicio, tarea, aplicación, unidad de red o Credential Manager.",
+    "Fuerza bruta contra una identidad concreta; posible bloqueo posterior o inicio de sesión exitoso.",
+    "Password spraying contra numerosas identidades; un mismo origen puede corresponder a NAT, VPN o proxy de autenticación.",
+    "Nombre de usuario inválido, cuenta deshabilitada, horario no autorizado o fallo de infraestructura (no equivale a un ataque).",
+    "Registros duplicados, distintos servidores que reflejan el mismo origen o errores de sincronización temporal."
+  ],
+  "pasos": [
+    {
+      "fase": "0. Confirmar integridad de la alerta",
+      "accion": "Identificar sensor, equipo que emitió cada 4625, rango temporal UTC y número de eventos únicos. Verificar si el DC o miembro recibe la solicitud: un 4625 se registra en el equipo donde falla el inicio de sesión, no necesariamente en el equipo del usuario."
+    },
+    {
+      "fase": "1. Extraer campos clave",
+      "accion": "Recuperar TargetUserName/TargetDomainName, IpAddress, IpPort, WorkstationName, LogonType, AuthenticationPackageName, LogonProcessName, Status y SubStatus. Revisar Account/SID y ProcessName si el evento los expone."
+    },
+    {
+      "fase": "2. Interpretar el tipo de logon",
+      "accion": "LogonType=2 es interactivo; 3, red; 4, batch; 5, servicio; 7, desbloqueo; 10, RemoteInteractive/RDP; 11, cached interactive. Es un contexto de autenticación, no una atribución automática de ataque."
+    },
+    {
+      "fase": "3. Interpretar códigos NTSTATUS",
+      "accion": "Distinguir 0xC000006A (contraseña incorrecta), 0xC0000064 (usuario inexistente), 0xC0000234 (bloqueo), 0xC0000072 (deshabilitada) y 0xC000005E (servidor de logon no disponible). Considerar pareja Status/SubStatus y versión del sistema."
+    },
+    {
+      "fase": "4. Medir distribución",
+      "accion": "Calcular fallos por usuario, origen, destino, tipo, código y ventana. Un usuario/muchos intentos sugiere una hipótesis distinta de muchos usuarios/pocos intentos cada uno."
+    },
+    {
+      "fase": "5. Correlacionar desenlace",
+      "accion": "Buscar 4624 en destino y usuario en la misma ventana, 4740 para bloqueos y 4771/4776 cuando la cobertura lo permita; 4624 aislado no prueba que el mismo actor accediera sin correlación suficiente."
+    },
+    {
+      "fase": "6. Resolver origen real",
+      "accion": "Validar inventario de 10.60.7.21, NAT/VPN, procesos/servicios asociados, usuario final, hostname, controladores implicados y ventana de cambios. IpAddress o WorkstationName pueden aparecer vacíos o no representar la IP final del cliente."
+    },
+    {
+      "fase": "7. Priorizar y escalar",
+      "accion": "Elevar si cuenta privilegiada, origen no autorizado, múltiples usuarios, éxitos tras fallos, bloqueos masivos o lateralidad; solicitar contención proporcional y autorizada al equipo responsable."
+    },
+    {
+      "fase": "8. Documentar",
+      "accion": "Anotar período, valoraciones verificadas, códigos, volumen, cuentas, fuentes, lagunas de telemetría, ticket, propietario y acciones de seguimiento."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "EventID 4625 y equipo emisor",
+      "lectura": "Confirma intento fallido registrado en ese equipo; no demuestra por sí mismo quién está detrás ni que una contraseña fue adivinada."
+    },
+    {
+      "dato": "TargetUserName y TargetDomainName",
+      "lectura": "Identidad destino; normalizar mayúsculas/dominio antes de agregar y no tratar cuentas de máquina como usuarios humanos."
+    },
+    {
+      "dato": "IpAddress, IpPort, WorkstationName",
+      "lectura": "Posible origen técnico; revisar IPv4 mapeada a IPv6, vacío/\"-\", NAT, saltos de autenticación y registros del concentrador."
+    },
+    {
+      "dato": "LogonType",
+      "lectura": "Explica clase de sesión solicitada; 3 no equivale siempre a SMB y 10 sugiere RDP/RemoteInteractive, sujeto a contexto."
+    },
+    {
+      "dato": "Status, SubStatus",
+      "lectura": "Códigos de fallo diferencian error de credenciales, cuenta deshabilitada, bloqueo o disponibilidad del dominio."
+    },
+    {
+      "dato": "4624, 4740, 4771, 4776",
+      "lectura": "Cruce para éxito, bloqueo y autenticaciones Kerberos/NTLM; la presencia y ubicación dependen de auditoría y protocolo."
+    },
+    {
+      "dato": "Cambios/servicios/tareas",
+      "lectura": "Corrobora job legítimo y contraseñas guardadas; comprobar autorizaciones sin modificar una cuenta en producción por intuición."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Sentinel / Log Analytics: 4625 agrupados por identidad, origen y código",
+      "entorno": "Tabla WindowsEvent con eventos Security colectados mediante AMA/DCR; comprobar que EventData se haya parseado",
+      "consulta": "WindowsEvent\n| where TimeGenerated > ago(2h) and EventID == 4625\n| extend D = EventData\n| extend Usuario=tostring(D.TargetUserName), IPOrigen=tostring(D.IpAddress),\n         LogonType=tostring(D.LogonType), Status=tostring(D.Status),\n         SubStatus=tostring(D.SubStatus), Estacion=tostring(D.WorkstationName)\n| summarize Fallos=count(), Primer=min(TimeGenerated), Ultimo=max(TimeGenerated),\n            Equipos=make_set(Computer, 10), Estaciones=make_set(Estacion, 10)\n  by Usuario, IPOrigen, LogonType, Status, SubStatus, bin(TimeGenerated, 15m)\n| where Fallos >= 5\n| order by Fallos desc",
+      "interpretacion": "Muestra concentraciones por cuenta/IP/tipo/motivo para formular hipótesis; el umbral 5/15 min solo es didáctico.",
+      "limitaciones": "WindowsEvent no equivale a SecurityEvent; EventData dinámico puede ser nulo o variar por proveedor. La IP registrada puede ser un intermediario."
+    },
+    {
+      "nombre": "Sentinel / Log Analytics: contrastar 4625 con 4624 y 4740",
+      "entorno": "WindowsEvent; requiere ingestión de eventos Security 4624, 4625 y 4740 en los equipos relevantes",
+      "consulta": "WindowsEvent\n| where TimeGenerated > ago(4h) and EventID in (4624, 4625, 4740)\n| extend D=EventData\n| extend Usuario=tostring(D.TargetUserName), Origen=tostring(D.IpAddress),\n         EquipoLlamante=tostring(D.CallerComputerName)\n| summarize Fallos=countif(EventID == 4625),\n            Exitos=countif(EventID == 4624), Bloqueos=countif(EventID == 4740),\n            Origenes=make_set(Origen, 20), EquiposLlamantes=make_set(EquipoLlamante, 20)\n    by Usuario, bin(TimeGenerated, 30m)\n| where Fallos > 0 or Bloqueos > 0\n| order by Bloqueos desc, Fallos desc",
+      "interpretacion": "Genera una visión por identidad para investigar éxitos próximos a muchos fallos y bloqueos.",
+      "limitaciones": "No vincula causalmente un 4624 con un 4625. Agrupación temporal puede mezclar orígenes y equipos; validar SID, origen, hora y contexto antes de afirmar compromiso."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk CIM Authentication: fallos por origen y usuario",
+      "entorno": "Modelo de datos CIM Authentication.Authentication correctamente mapeado (action=failure); sustituir ventana y umbral",
+      "consulta": "| tstats count as Fallos min(_time) as Primer max(_time) as Ultimo\n  from datamodel=Authentication.Authentication\n  where Authentication.action=\"failure\" earliest=-2h\n  by Authentication.user Authentication.src Authentication.dest _time span=15m\n| rename Authentication.* AS *\n| where Fallos >= 5\n| convert ctime(Primer) ctime(Ultimo)\n| sort - Fallos",
+      "interpretacion": "Busca anomalías de autenticación independientes del proveedor si el CIM está normalizado.",
+      "limitaciones": "Sin firma/ID de Windows filtrado, incluye otros sistemas de autenticación. Para aislar 4625 usar evento bruto normalizado o signature_id si está mapeado."
+    },
+    {
+      "nombre": "Splunk Windows Security: códigos y LogonType de 4625",
+      "entorno": "Índice ilustrativo windows con TA Windows y extracción de campos XML; adaptar a EventCode/EventID y sourcetype reales",
+      "consulta": "index=windows earliest=-2h (sourcetype=\"XmlWinEventLog:Security\" OR sourcetype=\"WinEventLog:Security\") EventCode=4625\n| eval Usuario=coalesce(TargetUserName, Account_Name),\n       Origen=coalesce(IpAddress, Source_Network_Address, WorkstationName),\n       Codigo=coalesce(SubStatus, Status)\n| stats count as Fallos values(Status) as Status\n        values(SubStatus) as SubStatus by Usuario Origen LogonType Codigo\n| sort - Fallos",
+      "interpretacion": "Muestra códigos y tipo de logon; útil para separar password incorrecta, usuario inválido y cuenta bloqueada.",
+      "limitaciones": "Los nombres Account_Name/Source_Network_Address son dependientes de TA; comprobar extracción real. En algunos despliegues el campo es EventID, no EventCode."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Windows — revisar 4625 recientes",
+      "proposito": "Consulta solo lectura en equipo autorizado; requiere privilegios para Security log.",
+      "comando": "Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4625; StartTime=(Get-Date).AddHours(-2)} -MaxEvents 20 | Select-Object TimeCreated, Id, MachineName, Message"
+    },
+    {
+      "entorno": "Windows — revisar bloqueos 4740",
+      "proposito": "Consulta de eventos disponibles en ese equipo; para AD consultar DCs relevantes.",
+      "comando": "Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4740; StartTime=(Get-Date).AddHours(-4)} -MaxEvents 30"
+    },
+    {
+      "entorno": "Linux — revisar autenticaciones locales si el origen resulta Linux",
+      "proposito": "Los nombres de unidad/archivo varían según distro; no sustituye registros Windows.",
+      "comando": "sudo journalctl --since '2 hours ago' | grep -Ei 'authentication failure|failed password|pam_' | head -n 40"
+    }
+  ],
+  "contencion": "En N1, no bloquear una dirección que podría pertenecer al proxy corporativo ni deshabilitar cuentas de servicio sin autorización. Si hay una cuenta privilegiada comprometida o éxitos tras intentos sospechosos, escalar urgente a IR/IAM para suspensión o revocación de sesión, controles condicionales o bloqueo del origen real según playbook. Verificar antes/después y evitar que un bloqueo masivo provoque una denegación de servicio.",
+  "escalation": [
+    "Éxito 4624 coherente en origen/identidad/ventana tras fallos maliciosos (requiere validar causalidad).",
+    "Cuentas privilegiadas/servicios críticos implicados, múltiples objetivos o velocidad propia de automatización.",
+    "Bloqueos sucesivos 4740 o impacto de disponibilidad sobre área de negocio.",
+    "Evidencia externa corroborada por VPN, VPN logs, EDR, WAF o telemetría de identidad.",
+    "Origen que no corresponde a infraestructura aprobada, o actividad fuera de ventana y usuario que desconoce el acceso."
+  ],
+  "falsos_positivos": [
+    "Servicio Windows con contraseña almacenada antigua tras rotación.",
+    "Outlook, móvil o recurso compartido intentando credenciales caducadas.",
+    "Tarea programada o pool de aplicaciones que usa cuenta de dominio.",
+    "Firewall/VPN que concentra diferentes usuarios bajo una IP compartida.",
+    "Error de dominio, DNS o controlador disponible causando fallos repetidos."
+  ],
+  "errores": [
+    "Decir que 4625 confirma fuerza bruta; indica fallo de logon, no causa.",
+    "Confundir cuenta que genera el evento (Subject) con cuenta atacada (Target).",
+    "Clasificar LogonType 3 como ataque SMB por defecto.",
+    "Bloquear la IP sin identificar NAT/VPN y sin confirmar autorización.",
+    "No buscar 4624/4740 ni valorar contexto, NTSTATUS y múltiples equipos.",
+    "Hacer reset de credenciales administrativas inmediatamente sin coordinación."
+  ],
+  "perspectiva_red_team": "Un atacante puede generar fuerza bruta sobre una sola cuenta o password spraying disperso sobre muchas. Ambas generan fallos, pero las distribuciones usuario/origen/tiempo difieren y pueden mezclarse con tráfico legítimo. Desde Blue Team interesa responder a ¿quién?, ¿desde dónde realmente?, ¿qué tipo de logon?, ¿por qué falla? y ¿hubo éxito posterior? MITRE T1110 representa una hipótesis, no evidencia de intrusión por el evento 4625.",
+  "respuesta_entrevista": "Comprobaría si los 4625 proceden de un DC o un equipo miembro y extraería TargetUserName, IpAddress, WorkstationName, LogonType, Status y SubStatus. Agruparía los eventos por usuario, origen y ventana para distinguir fallos de un servicio de fuerza bruta o spraying. Contrastaría 4624 y 4740, revisar 4771/4776 cuando aplique y validaría el origen a través de VPN/NAT y el inventario. Si observo accesos exitosos sospechosos, cuentas privilegiadas o bloqueo masivo, escalaría inmediatamente con evidencia; no bloquearía a ciegas.",
+  "criterios_evaluacion": [
+    "Identifica 4625 como fallo, 4624 como éxito y 4740 como bloqueo.",
+    "Diferencia TargetUserName de Subject, y LogonType de protocolo.",
+    "Interpreta códigos relevantes y no concluye fuerza bruta solo por volumen.",
+    "Correlaciona secuencia temporal, origen real e impacto empresarial.",
+    "Ofrece escalado, registro y contención autorizada."
+  ],
+  "mitre": [
+    "T1110",
+    "T1110.003",
+    "T1078"
+  ],
+  "fuentes": [
+    "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4625",
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/windowsevent",
+    "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.1/data-models/authentication",
+    "https://attack.mitre.org/techniques/T1110/"
+  ]
+}

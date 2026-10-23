@@ -1,0 +1,186 @@
+{
+  "id": "N1-16",
+  "nivel": "N1",
+  "bloque": "Procedimientos SOC y gestión de incidentes",
+  "titulo": "Alerta crítica sin evidencia suficiente: ¿investigar o escalar?",
+  "pregunta": "Tienes una alerta de severidad crítica, pero no encuentras suficiente evidencia para confirmar el compromiso. ¿La escalas o continúas investigando?",
+  "escenario": "A las 02:51, Sentinel muestra una alerta High de posible ejecución remota sobre un servidor de pagos etiquetado como activo crítico. El evento enlazado contiene host y marca de tiempo, pero el sensor EDR está retrasado y faltan eventos de proceso. Un analista N1 dispone de 10 minutos según el SLA de escalado crítico; no existe indicio corroborado de ejecución exitosa. El servicio sigue disponible.",
+  "objetivo": "Distinguir severidad, prioridad operacional y confianza de la evidencia; hacer triaje limitado en tiempo, preservar el estado «no confirmado» y escalar oportunamente sin afirmar que hay compromiso ni cerrar prematuramente.",
+  "hipotesis": [
+    "Ataque real en fase temprana; el EDR aún no ha enviado la evidencia relevante.",
+    "Detección verdadera de un intento bloqueado sin ejecución exitosa.",
+    "Falso positivo por mantenimiento o scanner autorizado cuya firma se confunde con ejecución remota.",
+    "Error de correlación: el evento corresponde a otro host o ventana por retraso/diferencia horaria.",
+    "Falta de visibilidad por cobertura incompleta, retención, permisos, retraso de ingestión o agente offline.",
+    "Alerta duplicada o parte de un incidente mayor que ya investiga N2."
+  ],
+  "pasos": [
+    {
+      "fase": "0. Determinar riesgo inmediato",
+      "accion": "Identificar criticidad del activo, posible impacto, propagación, credenciales privilegiadas y hora de inicio. Alta severidad no equivale por sí sola a compromiso confirmado, pero exige acción rápida."
+    },
+    {
+      "fase": "1. Registrar el reloj del SLA",
+      "accion": "Anotar hora UTC en que la alerta fue vista, límite de escalado, ID estable del evento y quién está de guardia. Investigar y avisar pueden ocurrir en paralelo."
+    },
+    {
+      "fase": "2. Validar el origen de la alerta",
+      "accion": "Revisar nombre/regla, proveedor, severidad, entidad, criterios disparadores, detección concreta, ventana de origen y estado del sensor. No confundir TimeGenerated con el instante de ejecución."
+    },
+    {
+      "fase": "3. Buscar prueba mínima independiente",
+      "accion": "Consultar logs de autenticación, EDR, procesos, firewall o red del activo en ±15–30 minutos. Preguntar: ¿existe proceso/hijo, logon exitoso, flujo sospechoso, archivo creado o control preventivo aplicado?"
+    },
+    {
+      "fase": "4. Medir lagunas de cobertura",
+      "accion": "Confirmar último heartbeat EDR, ingestión, DCR/conector, permisos, filtros y retención; «cero resultados» de una tabla ausente no equivale a «cero actividad»."
+    },
+    {
+      "fase": "5. Evaluar hipótesis alternativas",
+      "accion": "Cruzar inventario/propietario y mantenimiento autorizado, proxy/VPN y detecciones previas. Si un scanner legítimo explica el patrón, pedir evidencias de aprobación, no basarse solo en declaraciones."
+    },
+    {
+      "fase": "6. Tomar la decisión según tiempo y riesgo",
+      "accion": "Si el SLA vence, el activo es crítico, hay progresión o falta una fuente imprescindible, escalar como sospecha no confirmada. Un N1 no debería retrasar el escalado esperando certezas forenses."
+    },
+    {
+      "fase": "7. Comunicar de forma precisa",
+      "accion": "Enviar ID alerta, timestamps UTC, host/identidad, hecho observado, hipótesis, fuentes consultadas, lagunas, impacto plausible y acciones realizadas/no realizadas."
+    },
+    {
+      "fase": "8. Coordinar contención autorizada",
+      "accion": "Si el riesgo es inminente, activar playbook de respuesta y autorización correspondiente; no aislar producción, bloquear accesos o cerrar tickets arbitrariamente."
+    },
+    {
+      "fase": "9. Mantener seguimiento y actualización",
+      "accion": "Indicar siguiente consulta, owner, hora de revisión y criterios de re-priorización; añadir nueva evidencia al mismo incidente para evitar duplicados."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "SystemAlertId, AlertName, AlertSeverity, ProviderName",
+      "lectura": "Identifican alerta y proveedor; severidad es clasificación inicial, no veredicto."
+    },
+    {
+      "dato": "TimeGenerated, StartTime, EndTime",
+      "lectura": "Separan ingestión de actividad detectada: retraso temporal altera correlaciones."
+    },
+    {
+      "dato": "CompromisedEntity, Entities",
+      "lectura": "Permiten resolver host/cuenta/IP, pero entidades serializadas pueden estar incompletas."
+    },
+    {
+      "dato": "Heartbeat, último evento EDR, conectores/DCR",
+      "lectura": "Prueban visibilidad; ausencia de logs puede reflejar problema de cobertura."
+    },
+    {
+      "dato": "Proceso, autenticación, conexión o creación de fichero",
+      "lectura": "Corroboración independiente, con causalidad todavía por verificar."
+    },
+    {
+      "dato": "Inventario/CMDB y cambios autorizados",
+      "lectura": "Valor de negocio y explicación administrativa contrastable."
+    },
+    {
+      "dato": "SLA, ticket, hora de notificación y responsable",
+      "lectura": "Aseguran gestión diligente y trazabilidad incluso si la alerta resulta falsa."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Sentinel / Log Analytics: ficha de alertas High con tiempos y entidades",
+      "entorno": "SecurityAlert presente en workspace Sentinel; TimeGenerated es hora de registro/ingesta de alerta, revisar StartTime/EndTime; ajustar ventana e ID.",
+      "consulta": "SecurityAlert\n| where TimeGenerated > ago(6h)\n| where AlertSeverity =~ \"High\"\n| project TimeGenerated, StartTime, EndTime, SystemAlertId, AlertName,\n          AlertSeverity, CompromisedEntity, ProviderName, ProductName,\n          Entities, Description, Status\n| order by TimeGenerated desc",
+      "interpretacion": "Identifica activo, proveedor, intervalo real y campos disponibles para abrir el incidente adecuado.",
+      "limitaciones": "No concluye ejecución o compromiso. No todas las alertas contienen todas las entidades. El contenido de SecurityAlert varía según conectores."
+    },
+    {
+      "nombre": "Defender XDR Advanced Hunting: entidad afectada y fuentes de alerta",
+      "entorno": "Ejecutar en Microsoft Defender XDR Advanced Hunting (no asumir disponibilidad directa en el espacio Log Analytics). AlertInfo y AlertEvidence requieren servicios integrados.",
+      "consulta": "AlertInfo\n| where Timestamp > ago(6h)\n| where Severity =~ \"High\"\n| join kind=leftouter (\n    AlertEvidence\n    | where Timestamp > ago(6h)\n    | project AlertId, DeviceName, EntityType, EvidenceRole,\n              RemoteIP, FileName, ProcessCommandLine\n) on AlertId\n| project Timestamp, AlertId, Title, Severity, ServiceSource,\n          DeviceName, EntityType, EvidenceRole, RemoteIP, FileName, ProcessCommandLine\n| order by Timestamp desc",
+      "interpretacion": "Une alertas con artefactos para guiar búsquedas complementarias; no convierte evidencia asociada en compromiso confirmado.",
+      "limitaciones": "Los resultados pueden multiplicarse por número de evidencias por alerta. AlertInfo.Timest​​amp y AlertEvidence.Timestamp reflejan registros distintos; filtrar por una ventana amplia."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk: alerta crítica desde un índice normalizado de alertas",
+      "entorno": "Ejemplo con índice lógico index=security_alerts y campos mapeados severity, alert_id, dest, rule_name, status. NO es un índice ni esquema universal de Splunk ES.",
+      "consulta": "index=security_alerts earliest=-6h (severity=critical OR severity=high)\n| eval asset=coalesce(dest,host), alert=coalesce(rule_name,signature)\n| stats min(_time) as primero max(_time) as ultimo\n        values(status) as estados values(source) as fuentes\n        count as eventos by alert_id, asset, alert, severity\n| convert ctime(primero) ctime(ultimo)\n| sort - eventos",
+      "interpretacion": "Ayuda a reunir duplicados, conservar IDs y detectar si existe un incidente previo.",
+      "limitaciones": "Sustituir índice, field aliases y normalización por los campos del entorno. No presupone notables de Enterprise Security."
+    },
+    {
+      "nombre": "Splunk CIM Endpoint: actividad de procesos en un activo afectado",
+      "entorno": "CIM Endpoint.Processes disponible con procesos realmente ingeridos; ejemplo dest=SRV-PAGOS-01, ajustar FQDN.",
+      "consulta": "| tstats count min(_time) as primero max(_time) as ultimo\n  from datamodel=Endpoint.Processes\n  where earliest=-1h latest=now Endpoint.Processes.dest=\"SRV-PAGOS-01\"\n  by Endpoint.Processes.dest Endpoint.Processes.process_name\n     Endpoint.Processes.parent_process_name Endpoint.Processes.user\n| rename Endpoint.Processes.* as *\n| convert ctime(primero) ctime(ultimo)\n| sort - count",
+      "interpretacion": "Puede evidenciar ejecución y proceso padre en el activo mientras la alerta original carece de detalles.",
+      "limitaciones": "Un dataset vacío puede significar falta de Sysmon/EDR o mappings CIM; tstats no es prueba forense de ausencia."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Windows — lectura de procesos recientes",
+      "proposito": "Equipo autorizado; Security 4688 exige habilitar auditoría de creación de procesos; una ventana vacía puede ser falta de auditoría.",
+      "comando": "Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4688; StartTime=(Get-Date).AddMinutes(-45)} -MaxEvents 30 | Select-Object TimeCreated, MachineName, Id, Message"
+    },
+    {
+      "entorno": "Linux — proceso y sockets actuales",
+      "proposito": "Consulta puntual en el host autorizado; no ejecuta cambios; puede perder eventos históricos.",
+      "comando": "sudo ss -tunap | head -80"
+    },
+    {
+      "entorno": "Linux — servicio EDR/forwarder",
+      "proposito": "Sustituir el nombre por el agente realmente instalado; un servicio activo no demuestra ingesta.",
+      "comando": "systemctl --no-pager --type=service --state=running | grep -Ei \"audit|sensor|agent|forwarder\""
+    }
+  ],
+  "contencion": "No borrar ni silenciar detecciones, ni declarar falso positivo sin contraste. Si el activo es crítico o hay signos de continuidad del ataque, escalar antes de agotar el SLA; el SOC/IR determina aislamiento o revocaciones conforme al playbook. Registrar explícitamente evidencia ausente y justificación.",
+  "escalation": [
+    "Cualquier alerta High/Critical que alcance el umbral temporal del procedimiento sin posibilidad de confirmación o descarte fiable.",
+    "Activo esencial, cuenta privilegiada, múltiples hosts o movimiento lateral probable.",
+    "Indicadores independientes de ejecución, persistencia, exfiltración o controles desactivados.",
+    "Fallo de telemetría durante una amenaza activa o aparente manipulación de logs.",
+    "Evidencia contradictoria con incertidumbre de impacto alto; escalar como «sospecha» con nivel de confianza explícito."
+  ],
+  "falsos_positivos": [
+    "Escaneo de seguridad aprobado sin registro en la consola del SOC.",
+    "Regla mal calibrada para una herramienta administrativa.",
+    "Intento bloqueado confundido con ejecución exitosa.",
+    "Evento duplicado por múltiples productos o integración SIEM/XDR.",
+    "Diferencias de tiempo UTC y delay de ingestión que aparentan secuencia maliciosa."
+  ],
+  "errores": [
+    "Confundir prioridad High con certeza de compromiso.",
+    "Rebajar el incidente sin evaluar valor de negocio del activo.",
+    "Retrasar escalado más allá del SLA por buscar una confirmación perfecta.",
+    "Interpretar ausencia de eventos EDR como ausencia de actividad.",
+    "Cerrar el caso solo porque una llamada telefónica lo declara legítimo.",
+    "Omitir fuentes, horas UTC, hallazgos negativos y dudas en el ticket."
+  ],
+  "perspectiva_red_team": "El adversario busca ventanas de visibilidad baja y puede operar cuando el sensor no registra todos los procesos o el SIEM retrasa la ingesta. En defensa, separar detección, ejecución confirmada y límites de observabilidad impide tanto falsas atribuciones como demoras peligrosas; no presupone técnica concreta sin artefactos verificables.",
+  "respuesta_entrevista": "Realizaría triaje inmediato de la alerta y su activo, verificaría la regla, la línea temporal y al menos una fuente independiente. Si faltan logs o la criticidad y el SLA exigen decisión, escalaría como actividad sospechosa no confirmada, describiendo exactamente qué sé, qué no sé y qué comprobé. Mantendría el ticket y solicitaría contención solo a través del playbook; no la cerraría por ausencia de prueba.",
+  "criterios_evaluacion": [
+    "Diferencia severidad, probabilidad/confianza, impacto de negocio y prioridad.",
+    "Define comprobaciones rápidas con límite temporal y fuentes independientes.",
+    "Reconoce que la ausencia de telemetría no descarta compromiso.",
+    "Escala sin exagerar la certeza y con incident ID, hora y propietario.",
+    "No ejecuta cambios disruptivos fuera de su autoridad."
+  ],
+  "mitre": [
+    "T1078 (si se detecta abuso de cuenta; no confirmado)",
+    "T1059 (si evidencia muestra intérprete; no confirmado)"
+  ],
+  "fuentes": [
+    "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/securityalert",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-alertinfo-table",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-alertevidence-table",
+    "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.4/data-models/endpoint"
+  ],
+  "procedencia": {
+    "lote": "tanda-04",
+    "archivo": "SOC-RESPONSES_TANDA-04_N1-16_a_N1-20.json",
+    "fechaRevision": "2026-10-18"
+  }
+}

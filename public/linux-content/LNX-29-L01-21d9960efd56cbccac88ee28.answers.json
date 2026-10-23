@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-29-L01",
+  "sourceHash": "73583e867a58f0d2db25d7f5052343cc11e870a22a10d3444fbf1247e90b7678",
+  "questions": [
+    {
+      "id": "LNX-29-L01-Q01",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Que se perdieron eventos y existe una brecha de visibilidad que debe declararse».\n\n`lost` cuenta eventos no registrados por falta de recursos. No describe reglas mal escritas, modo inmutable ni borrado del archivo vigilado."
+    },
+    {
+      "id": "LNX-29-L01-Q02",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «La identidad de login, que puede persistir tras elevar privilegios».\n\n`auid` identifica la sesión de login y sobrevive a la elevación, a diferencia de `uid` o `euid`. El serial y el código de error son otros campos del evento."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "La ausencia de eventos no cierra el caso. Primero se comprueba cuándo se cargó la regla y qué permisos vigilaba: si el cambio ocurrió antes de la carga, la regla no podía verlo. Después se leen los contadores de `auditctl -s`: `lost` mayor que cero indica eventos que el kernel no pudo registrar, y `backlog` cerca del límite explica ráfagas. También se revisa el disco y el rate limit, porque un almacén lleno produce el mismo síntoma.\n\nLa conclusión correcta se formula como «no se registró en esta ventana con estas reglas y estos contadores», no como «no ocurrió». Para acercarse a lo ocurrido se correlaciona con journal, cambios de paquete, copias de configuración y otras fuentes de la etapa.\n\nLímite: audit registra operaciones que coinciden con filtros. No reconstruye intención, no ve el interior de un script y no cubre lo que quedó fuera de las reglas ni lo perdido por recursos.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Comprueba reglas cargadas y ventana de carga antes de interpretar una ausencia."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Lee `lost`, `backlog` y límite como parte de la evidencia."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Formula la conclusión como «no registrado», no como «no ocurrido»."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Declara que audit no cubre lo que no coincide con sus filtros."
+      }
+    ]
+  },
+  "revision": "21d9960efd56cbccac88ee28"
+}

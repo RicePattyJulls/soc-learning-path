@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-03-L03",
+  "title": "ACE/DACL/SACL e integridad",
+  "sourceHash": "801a6ab30af87e100cd2066c7d5802df26f6c8e57c10a1cd103b63b8fde69302",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-03-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nExplicar por qué una acción está permitida o denegada usando ACE, DACL, SACL e integridad, con prueba positiva y negativa.\n\nPrerrequisitos: `WAD-03-L02` (token, privilegios y UAC).\n\n## 2. Comprende el mecanismo\n\nTodo objeto protegible (un archivo, una clave, un servicio) lleva un **descriptor de seguridad** con cuatro piezas: el **propietario**, la **DACL**, la **SACL** y un **nivel de integridad**.\n\n- La **DACL** (discretionary ACL) es la lista que decide **quién puede qué**: permite o deniega.\n- La **SACL** (system ACL) no decide accesos: decide **qué se audita**. Si no está configurada, una acción puede ocurrir sin dejar registro; por eso «no hay evento» no es «no ocurrió».\n- Ambas son **ACL**: listas ordenadas de **ACE** (entradas de control de acceso). Cada ACE empareja una identidad (un SID) con un permiso y un efecto (permitir o denegar).\n\nEl **orden y el origen** de las ACE importan. Las denegaciones explícitas suelen evaluarse antes que las concesiones, y las entradas **heredadas** del objeto padre se suman a las propias. Una entrada heredada que no ves en el objeto puede estar decidiendo el resultado.\n\nEl **acceso efectivo** no sale de un único sitio: combina el **token** del proceso (sus SID), la **DACL** del objeto, los permisos del recurso compartido si es una carpeta de red, y el **nivel de integridad**. El resultado es la combinación **más restrictiva**: si una capa deniega, deniega.\n\nLa **integridad** actúa como control **obligatorio**, distinto del discrecional: aunque la DACL permita escribir, un proceso con integridad **menor** que el objeto no podrá modificarlo. Es la razón por la que una aplicación abierta sin elevar no puede escribir en una ubicación del sistema.\n\nPor todo esto, «¿por qué está denegado?» se responde **por capas**: identidad del token → ACE de la DACL (denegación explícita, ausencia de permiso, herencia) → permisos de recurso → integridad. Y se demuestra con una **prueba positiva** (A puede) y una **prueba negativa** (B no puede), en solo lectura cuando solo se está describiendo.\n\n### Vocabulario de apoyo\n\n- **Descriptor de seguridad**: conjunto de propietario, DACL, SACL e integridad de un objeto.\n- **ACL**: lista ordenada de entradas de control de acceso.\n- **DACL**: lista que concede o deniega acceso.\n- **SACL**: lista que determina qué se audita.\n- **ACE**: entrada de una ACL que empareja identidad, permiso y efecto.\n- **Herencia**: propagación de ACE desde un objeto padre a sus hijos.\n- **Acceso efectivo**: resultado combinado de token, DACL, recurso e integridad.\n- **Integridad**: etiqueta que impide escribir en objetos de integridad superior.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Algunos términos se retoman en las etapas de archivos y de auditoría.\n\n"
+    },
+    {
+      "id": "WAD-03-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: una carpeta de laboratorio permite escribir al grupo de soporte y, además, tiene una entrada que deniega explícitamente a un usuario que **también** pertenece a ese grupo. El equipo pregunta si «gana» el permiso o la denegación.\n\nCon los datos descritos, gana la **denegación explícita** para ese usuario: la DACL se evalúa por entradas y una denegación concreta pesa sobre una concesión de grupo. Pero la respuesta completa exige mirar las capas: ¿hay ACE heredadas que cambien el cuadro?, ¿el proceso del usuario corre con un token elevado o filtrado?, ¿el objeto está en una ruta cuyo nivel de integridad lo bloquea igualmente? La conclusión acota la zona —«denegación explícita al usuario, salvo que una capa superior lo cambie»— y se acompaña de una prueba positiva (otro miembro del grupo sí puede) y una negativa (ese usuario no puede).\n\n"
+    },
+    {
+      "id": "WAD-03-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Explicar un acceso denegado o permitido por capas, y no confundir «sin evento» con «sin acción».\n- Red Team autorizado: Comprender la evaluación de la DACL para auditar permisos en laboratorio; los cambios de ACL se hacen solo en un entorno autorizado y con reversión.\n- Evidencia de la etapa: Matriz identidad/objeto/permisos con prueba positiva y negativa, más la reversión del estado inicial.\n- Criterio de dominio: Explica por qué una acción está permitida o denegada y demuestra el caso con dos pruebas opuestas.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB02](../../05_RECURSOS/LABORATORIOS/WAD-LAB02.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **ACCESSCTRL**: [Access control overview](https://learn.microsoft.com/en-us/windows/win32/secauthz/access-control). Descriptores, DACL, ACE y evaluación de acceso.\n- **IL**: [Mandatory integrity control](https://learn.microsoft.com/en-us/windows/win32/secauthz/mandatory-integrity-control). El control obligatorio por niveles de integridad.\n- **GETACL**: [Get-Acl](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.security/get-acl). Lectura de descriptores de seguridad.\n- **ICACLS**: [icacls](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/icacls). Consulta de ACL de archivos y carpetas.\n- **WHOAMI**: [whoami](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/whoami). Identidad y grupos efectivos para interpretar una ACL.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-03-L03-P01",
+    "prompt": "Diseña la comprobación de una carpeta señuelo de laboratorio con dos usuarios: uno que debe poder escribir y otro al que debe denegarse, aunque pertenezca al mismo grupo. Enumera la matriz sujeto/objeto/permiso, la prueba positiva, la prueba negativa y una prueba de reversión del estado inicial, e indica qué parte del resultado es discrecional (DACL) y qué parte obligatoria (integridad).",
+    "markdown": "## 4. Práctica individual\n\nDiseña la comprobación de una carpeta señuelo de laboratorio con dos usuarios: uno que debe poder escribir y otro al que debe denegarse, aunque pertenezca al mismo grupo. Enumera la **matriz sujeto/objeto/permiso**, la **prueba positiva**, la **prueba negativa** y una **prueba de reversión** del estado inicial, e indica qué parte del resultado es discrecional (DACL) y qué parte obligatoria (integridad).\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber modificado permisos en un sistema real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-03-L03-Q01",
+      "prompt": "¿Qué describe mejor la relación entre ACL, DACL y ACE?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Son tres nombres del mismo concepto"
+        },
+        {
+          "id": "B",
+          "text": "La DACL es la lista que decide el acceso dentro del descriptor y contiene ACE ordenadas"
+        },
+        {
+          "id": "C",
+          "text": "La ACE es el propietario del objeto"
+        },
+        {
+          "id": "D",
+          "text": "La DACL solo se aplica a procesos, no a archivos"
+        }
+      ]
+    },
+    {
+      "id": "WAD-03-L03-Q02",
+      "prompt": "¿Para qué sirve la SACL?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Para denegar accesos de forma explícita"
+        },
+        {
+          "id": "B",
+          "text": "Para registrar (auditar) los intentos de acceso según una política"
+        },
+        {
+          "id": "C",
+          "text": "Para cifrar el contenido del objeto"
+        },
+        {
+          "id": "D",
+          "text": "Para asignar direcciones de red"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB02](../../05_RECURSOS/LABORATORIOS/WAD-LAB02.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **ACCESSCTRL**: [Access control overview](https://learn.microsoft.com/en-us/windows/win32/secauthz/access-control). Descriptores, DACL, ACE y evaluación de acceso.\n- **IL**: [Mandatory integrity control](https://learn.microsoft.com/en-us/windows/win32/secauthz/mandatory-integrity-control). El control obligatorio por niveles de integridad.\n- **GETACL**: [Get-Acl](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.security/get-acl). Lectura de descriptores de seguridad.\n- **ICACLS**: [icacls](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/icacls). Consulta de ACL de archivos y carpetas.\n- **WHOAMI**: [whoami](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/whoami). Identidad y grupos efectivos para interpretar una ACL.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "92d3067b461168f00bed04e3"
+}

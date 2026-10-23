@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-22-L03",
+  "title": "AD CS y evidencias de configuración",
+  "sourceHash": "c9effe9da847a703c02f690001cc8480f12ca3987eff34e89903b2b42578d569",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-22-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDocumentar la configuración de AD CS como evidencia, sin operar sobre la autoridad.\n\nPrerrequisitos: `WAD-22-L02` (SPN, NTLM y confianzas con lectura prudente).\n\n## 2. Comprende el mecanismo\n\nLa infraestructura de certificados (**AD CS**) merece un trato especial en un encargo autorizado, porque su producto —un certificado— es una credencial. Documentarla no es lo mismo que usarla, y confundir ambas cosas convierte una revisión en una operación no autorizada.\n\nLa pieza central es la **entidad de certificación (CA)**: emite, revoca y firma con su clave. Alrededor gira la **PKI**, formada por autoridades, plantillas, políticas y servicios. En un laboratorio como `ad.lab.test` esta infraestructura es sintética, pero el criterio profesional es el mismo: se observa sin operar.\n\nEl punto de observación principal son las **plantillas de certificado**. Una plantilla fija el propósito, el formato y quién puede inscribirse, y su **EKU** declara para qué usos sirve el certificado resultante. Leer una plantilla con permisos amplios es documentar una condición de configuración; no es haber obtenido un certificado.\n\nTambién se documentan los puntos de publicación. El **CDP** indica dónde se sirve la **CRL** de certificados revocados y el **AIA** dónde se obtiene el certificado de la autoridad emisora. Un punto inalcanzable es una debilidad de configuración que conviene registrar, pero no demuestra por sí solo que se haya emitido un certificado falso ni que alguien lo haya usado.\n\nHay operaciones que quedan fuera de un ejercicio de lectura: emitir, revocar, inscribirse y, sobre todo, manipular la clave privada de la CA. El respaldo y la restauración de esa clave son tareas de continuidad, con custodia formal, y nunca un paso de reconocimiento. Su valor no se documenta: se describe dónde se custodia y quién puede usarla, sin reproducirlo.\n\nVolvemos así a los tres niveles. Una plantilla amplia o un CDP inalcanzable son **riesgo teórico** o **condición explotable**, según lo comprobado; un **acceso probado** exigiría la evidencia de un certificado emitido y utilizado para autenticarse. La regla que cierra la lección y la etapa: **se documenta la configuración, no se opera sobre la autoridad**.\n\n### Vocabulario de apoyo\n\n- **Entidad de certificación (CA)**: componente que emite y revoca certificados y firma con su clave.\n- **Plantilla de certificado**: definición que fija el propósito, el formato y quién puede inscribirse.\n- **EKU (uso extendido de clave)**: extensión de un certificado que declara para qué propósitos puede usarse.\n- **CDP (punto de distribución de CRL)**: ubicación donde los clientes obtienen la lista de revocación.\n- **AIA (acceso a información de la autoridad)**: ubicación donde los clientes obtienen el certificado de la autoridad emisora.\n- **Revocación**: invalidación de un certificado antes de su vencimiento.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-22-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test` se revisan las plantillas de la autoridad de certificados y se observa una plantilla con permisos de inscripción amplios y un punto de distribución de CRL que no responde desde el segmento de administración.\n\nEl análisis separa dos hallazgos que no se refuerzan entre sí. La plantilla con inscripción amplia es una condición de configuración que hay que describir con su EKU, quién puede solicitar y qué control la limita; en sí misma no acredita que exista un certificado emitido. El CDP que no responde es una debilidad de publicación que puede dificultar la comprobación de revocación, pero no demuestra por sí sola una emisión fraudulenta. La evidencia útil es la definición de la plantilla, los permisos efectivos sobre ella y el resultado de la consulta al punto de publicación, todo con hora y sin inscribirse. La conclusión acota lo observado —«hay dos condiciones de configuración que revisar»— y reconoce su límite: entre la configuración y el acceso media la emisión y el uso real de un certificado, que aquí no se ha probado ni se ha intentado.\n\n"
+    },
+    {
+      "id": "WAD-22-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Documentar la configuración de la PKI y su publicación permite priorizar sin confundir una debilidad con un certificado en circulación.\n- Red Team autorizado: Observar sin operar sobre la autoridad respeta el límite entre reconocimiento y emisión dentro del encargo.\n- Evidencia de la etapa: Plantillas, EKU, permisos de inscripción y estado de los puntos de publicación de CRL y AIA, con hora y sin inscribirse.\n- Criterio de dominio: La autoridad se documenta desde fuera: no se emite, no se revoca y no se manipula su clave.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB16](../../05_RECURSOS/LABORATORIOS/WAD-LAB16.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **CERTMANAGE**: [Manage certificate templates](https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/manage-certificate-templates). Cómo se definen las plantillas y quién puede inscribirse en ellas.\n- **CRLCDP**: [Operate certificate revocation, CRL, and CDP](https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/operate-certificate-revocation-crl-cdp). Cómo se publica y se sirve la lista de revocación.\n- **CABACKUPKEY**: [Backing up and restoring the Certificate Services private key](https://learn.microsoft.com/en-us/windows/win32/seccrypto/backing-up-and-restoring-the-certificate-services-private-key). Tarea de continuidad de la clave de la autoridad, fuera del alcance de una revisión.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-22-L03-P01",
+    "prompt": "En `ad.lab.test` revisas la configuración de AD CS y encuentras una plantilla con permisos de inscripción amplios y un punto de publicación de CRL que no responde. Documenta ambos hallazgos como evidencia y clasifícalos por nivel de certeza.",
+    "markdown": "## 4. Práctica individual\n\nEn `ad.lab.test` revisas la configuración de AD CS y encuentras una plantilla con permisos de inscripción amplios y un punto de publicación de CRL que no responde. Documenta ambos hallazgos como evidencia y clasifícalos por nivel de certeza.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber emitido ni usado un certificado real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-22-L03-Q01",
+      "prompt": "Debes describir el estado de la entidad de certificación de `ad.lab.test` dentro del alcance autorizado. ¿Qué es lo apropiado?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Documentar plantillas, EKU y puntos de publicación de CRL y AIA como evidencia de configuración, sin emitir ni revocar certificados"
+        },
+        {
+          "id": "B",
+          "text": "Solicitar un certificado nuevo para comprobar si la autoridad responde"
+        },
+        {
+          "id": "C",
+          "text": "Restaurar la clave privada de la autoridad para verificar que existe"
+        },
+        {
+          "id": "D",
+          "text": "Revocar el certificado de la autoridad raíz para probar la cadena de confianza"
+        }
+      ]
+    },
+    {
+      "id": "WAD-22-L03-Q02",
+      "prompt": "¿Qué separa una configuración débil de AD CS de un certificado emitido y utilizado?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que una plantilla con permisos amplios equivale ya a un certificado emitido"
+        },
+        {
+          "id": "B",
+          "text": "Que un punto de publicación de CRL inalcanzable demuestra la emisión de un certificado falso"
+        },
+        {
+          "id": "C",
+          "text": "Que la configuración se observa sin operar sobre la autoridad, mientras que el uso exige la evidencia de una inscripción real y de un certificado vigente: entre una y otro media el acceso probado"
+        },
+        {
+          "id": "D",
+          "text": "Que basta con listar las plantillas para afirmar que la PKI está comprometida"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB16](../../05_RECURSOS/LABORATORIOS/WAD-LAB16.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **CERTMANAGE**: [Manage certificate templates](https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/manage-certificate-templates). Cómo se definen las plantillas y quién puede inscribirse en ellas.\n- **CRLCDP**: [Operate certificate revocation, CRL, and CDP](https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/operate-certificate-revocation-crl-cdp). Cómo se publica y se sirve la lista de revocación.\n- **CABACKUPKEY**: [Backing up and restoring the Certificate Services private key](https://learn.microsoft.com/en-us/windows/win32/seccrypto/backing-up-and-restoring-the-certificate-services-private-key). Tarea de continuidad de la clave de la autoridad, fuera del alcance de una revisión.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "7c558bb4c8c8a59c5092046c"
+}

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M12-L04",
+  "title": "Diagnóstico de camino ida/vuelta",
+  "sourceHash": "3992f29adb10b4c74c5802da21757687f557a88c551a5350602c0b2775c41b4e",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M12-L04-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDemostrar ida y retorno usando observaciones de ambos extremos.\n\nPrerrequisitos: [RED-M12-L03](../RED-E03/RED-M12-L03.md).\n\n## 2. Comprende el mecanismo\n\nUna petición y su respuesta pueden recorrer caminos diferentes. La existencia de la ruta de ida no instala automáticamente la de vuelta; también pueden intervenir políticas, NAT y filtros dependientes de estado. Traceroute muestra respuestas bajo un método concreto, no una prueba completa de todos los saltos ni de todos los protocolos. Un asterisco puede significar filtrado o falta de respuesta, no pérdida del tráfico de aplicación. Recoge direcciones efectivas, ruta seleccionada y observación del intento en origen y destino.\n\n### Vocabulario de apoyo\n\n- **RIB y FIB**: Tabla de decisiones de routing y estado utilizado para reenviar paquetes, respectivamente.\n- **Next hop y LPM**: Siguiente salto y selección del prefijo coincidente más largo entre rutas instaladas.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M12-L04-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Cliente 192.0.2.10 envía SYN; servidor 198.51.100.20 lo recibe y devuelve SYN/ACK por una default que lleva a otro segmento sin ruta al cliente.\n\nLa evidencia localiza un problema de retorno. Un firewall del cliente no debe darse por culpable sin observar dónde se interrumpe esa respuesta.\n\n"
+    },
+    {
+      "id": "RED-M12-L04-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Interpretar caminos aparentes en flows.\n- Red Team autorizado: Delimitar rutas por las que pasa el tráfico del ensayo.\n- Evidencia del módulo: Tablas, traceroute lab y justificación de selección.\n- Criterio del módulo: Determina ida y retorno en IPv4/IPv6.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L06](../../05_RECURSOS/LABORATORIOS/RED-L06.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **FRR-STATIC**: [STATIC](https://docs.frrouting.org/en/latest/static.html). Rutas estáticas y siguiente salto.\n- **RFC4632**: [RFC 4632: Classless Inter-domain Routing](https://www.rfc-editor.org/rfc/rfc4632.html). Prefijos y agregación IPv4.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M12-L04-P01",
+    "prompt": "El retorno llega al cliente, que envía RST. ¿Qué cambia en el diagnóstico?",
+    "markdown": "## 4. Práctica individual\n\nEl retorno llega al cliente, que envía RST. ¿Qué cambia en el diagnóstico?\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M12-L04-Q01",
+      "prompt": "Tras observar un paquete enviado hacia el servidor, ¿qué falta comprobar para una conversación completa?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que existió alguna decisión de salida para ese paquete ya enviado"
+        },
+        {
+          "id": "B",
+          "text": "Una ruta y política de retorno utilizables"
+        },
+        {
+          "id": "C",
+          "text": "Que el origen llegó a enviar ese paquete observado"
+        },
+        {
+          "id": "D",
+          "text": "Que el paquete llevaba una dirección destino"
+        }
+      ]
+    },
+    {
+      "id": "RED-M12-L04-Q02",
+      "prompt": "¿Qué evidencia sitúa el problema del caso?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Una consulta MX"
+        },
+        {
+          "id": "B",
+          "text": "Un cambio de nombre del servidor"
+        },
+        {
+          "id": "C",
+          "text": "SYN recibido y SYN/ACK encaminado por una salida sin retorno adecuado"
+        },
+        {
+          "id": "D",
+          "text": "Un asterisco aislado de otra traza"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L06](../../05_RECURSOS/LABORATORIOS/RED-L06.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **FRR-STATIC**: [STATIC](https://docs.frrouting.org/en/latest/static.html). Rutas estáticas y siguiente salto.\n- **RFC4632**: [RFC 4632: Classless Inter-domain Routing](https://www.rfc-editor.org/rfc/rfc4632.html). Prefijos y agregación IPv4.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "042c6993cc426145810cdb21"
+}

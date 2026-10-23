@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M04-L04",
+  "title": "MTU/MSS, fragmentación IPv4 y PMTUD",
+  "sourceHash": "0de58372df574014435476955f9c803f7daddfce453fc179d60bdc192c82c2ec",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M04-L04-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nCalcular un MSS orientativo y diagnosticar un agujero de PMTU.\n\nPrerrequisitos: [RED-M04-L03](../RED-E01/RED-M04-L03.md).\n\n## 2. Comprende el mecanismo\n\nMTU limita el tamaño del paquete que admite un enlace; MSS anuncia una cantidad máxima de datos TCP que el extremo está dispuesto a recibir en un segmento, sin contar cabeceras IP/TCP. Con IPv4 sin opciones y MTU 1500, la referencia habitual es MSS 1460. Opciones y encapsulaciones cambian el presupuesto real. En IPv4 el bit DF y los mensajes ICMP pertinentes participan en PMTUD; en IPv6 los routers no fragmentan en tránsito y Packet Too Big es esencial. Que un ping pequeño funcione no prueba el paso de paquetes grandes.\n\n### Vocabulario de apoyo\n\n- **Handshake**: Intercambio inicial que establece el estado de una conexión.\n- **5-tupla**: IP origen, IP destino, puerto origen, puerto destino y protocolo de transporte.\n- **MTU, MSS y PMTU**: Máximo paquete de un enlace, máximo dato TCP anunciado y menor MTU del camino, respectivamente.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M04-L04-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Camino docente: MTU inicial=1500; túnel reduce PMTU a 1400; handshake funciona; paquetes grandes con DF no avanzan; ICMP necesario filtrado.\n\nEl patrón es compatible con un agujero de PMTUD. Revisar MTU efectiva y mensajes de error antes de reducir MSS indiscriminadamente para todas las aplicaciones.\n\n"
+    },
+    {
+      "id": "RED-M04-L04-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Discriminar anomalías y degradación.\n- Red Team autorizado: Estimar alcance real de comunicaciones.\n- Evidencia del módulo: Filtros, secuencia TCP, hipótesis y límites.\n- Criterio del módulo: Distingue pérdida, reset, bloqueo y no observabilidad.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L02](../../05_RECURSOS/LABORATORIOS/RED-L02.md)\n- [Guía de laboratorio RED-L03](../../05_RECURSOS/LABORATORIOS/RED-L03.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC9293**: [RFC 9293: Transmission Control Protocol](https://www.rfc-editor.org/rfc/rfc9293.html). Bytes, handshake, secuencias, ventanas y estados TCP.\n- **RFC1191**: [RFC 1191: Path MTU Discovery](https://www.rfc-editor.org/rfc/rfc1191.html). PMTUD IPv4 y mensajes de error.\n- **RFC8201**: [RFC 8201: Path MTU Discovery for IPv6](https://www.rfc-editor.org/rfc/rfc8201.html). PMTU e ICMPv6 Packet Too Big.\n- **RFC9000**: [RFC 9000: QUIC: A UDP-Based Multiplexed and Secure Transport](https://www.rfc-editor.org/rfc/rfc9000.html). Transporte sobre UDP y límites de inferir fiabilidad desde UDP solo.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M04-L04-P01",
+    "prompt": "Sin opciones ni túneles adicionales, calcula el presupuesto TCP sobre IPv4 para MTU 1400 y explica qué dato real falta.",
+    "markdown": "## 4. Práctica individual\n\nSin opciones ni túneles adicionales, calcula el presupuesto TCP sobre IPv4 para MTU 1400 y explica qué dato real falta.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M04-L04-Q01",
+      "prompt": "¿Qué excluye el MSS?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Solo la dirección destino"
+        },
+        {
+          "id": "B",
+          "text": "Los datos de aplicación"
+        },
+        {
+          "id": "C",
+          "text": "Todos los bytes del transporte"
+        },
+        {
+          "id": "D",
+          "text": "Las cabeceras IP y TCP"
+        }
+      ]
+    },
+    {
+      "id": "RED-M04-L04-Q02",
+      "prompt": "¿Por qué falla la inferencia ping pequeño igual a PMTU correcta?",
+      "options": [
+        {
+          "id": "A",
+          "text": "IPv6 fragmenta en todos los routers"
+        },
+        {
+          "id": "B",
+          "text": "ICMP siempre usa TCP"
+        },
+        {
+          "id": "C",
+          "text": "No prueba el tránsito de paquetes grandes"
+        },
+        {
+          "id": "D",
+          "text": "Los túneles no añaden cabeceras"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L02](../../05_RECURSOS/LABORATORIOS/RED-L02.md)\n- [Guía de laboratorio RED-L03](../../05_RECURSOS/LABORATORIOS/RED-L03.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC9293**: [RFC 9293: Transmission Control Protocol](https://www.rfc-editor.org/rfc/rfc9293.html). Bytes, handshake, secuencias, ventanas y estados TCP.\n- **RFC1191**: [RFC 1191: Path MTU Discovery](https://www.rfc-editor.org/rfc/rfc1191.html). PMTUD IPv4 y mensajes de error.\n- **RFC8201**: [RFC 8201: Path MTU Discovery for IPv6](https://www.rfc-editor.org/rfc/rfc8201.html). PMTU e ICMPv6 Packet Too Big.\n- **RFC9000**: [RFC 9000: QUIC: A UDP-Based Multiplexed and Secure Transport](https://www.rfc-editor.org/rfc/rfc9000.html). Transporte sobre UDP y límites de inferir fiabilidad desde UDP solo.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "8a2d39c278faf87b7d419197"
+}

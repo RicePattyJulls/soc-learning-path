@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-12-L01",
+  "title": "GPO scope, orden y herencia",
+  "sourceHash": "c2da993dcce90b799557000d5210febfa506af987e17c636d65872986bf34271",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-12-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nPredecir a qué identidades se aplica una GPO según su vínculo, orden y herencia.\n\nPrerrequisitos: `WAD-10-L03` (delegación mínima y acceso efectivo) y `WAD-11-L03` (servicios y gMSA).\n\n## 2. Comprende el mecanismo\n\nUna **GPO (objeto de directiva de grupo)** es un conjunto de directivas con nombre propio. Por sí sola no hace nada: para que alcance a alguien debe estar **vinculada** a un sitio, a un dominio o a una OU. El **vínculo (link)** es lo que da alcance; la GPO es el contenido.\n\nCuando un equipo arranca o una persona inicia sesión, la directiva se procesa en un orden conocido:\n\n1. Directiva local del equipo.\n2. Directiva del sitio.\n3. Directiva del dominio.\n4. Directiva de cada OU, de la más cercana a la raíz a la más cercana al objeto.\n\nLo procesado **más tarde gana** sobre lo anterior, porque vuelve a fijar el mismo ajuste. Por eso una directiva de OU puede corregir lo que dejó fijado el dominio.\n\nEse orden tiene dos excepciones que conviene reconocer de inmediato:\n\n- **Forzar (enforced)** en un vínculo hace que esa directiva gane sobre las de niveles inferiores, aunque estas se procesen después.\n- **Bloquear herencia** en una OU impide que reciba los vínculos de los niveles superiores.\n\nEl **alcance** es la pregunta central de esta lección. No es «qué dice la GPO», sino «a qué identidades alcanza». Una GPO puede tener decenas de ajustes configurados y no llegar a nadie porque su vínculo apunta a una OU vacía, porque la OU bloquea la herencia o porque un filtro la restringe más adelante.\n\nDe ahí la regla que sostiene toda la etapa: **«configurado» no es «aplicado»**. Lo configurado describe la intención de quien administra; lo aplicado es lo que una identidad concreta recibe tras pasar por vínculos, orden y herencia.\n\n### Vocabulario de apoyo\n\n- **GPO (objeto de directiva de grupo)**: conjunto de directivas con nombre propio que se vincula en el directorio.\n- **Vínculo (link)**: asociación entre una GPO y un sitio, un dominio o una OU.\n- **Orden de vínculo**: secuencia en que se procesan los vínculos; lo procesado más tarde gana.\n- **Herencia de directiva**: recepción de los vínculos de niveles superiores.\n- **Bloquear herencia**: ajuste de una OU que detiene la herencia de niveles superiores.\n- **Forzar (enforced)**: marca de un vínculo que hace ganar su directiva sobre niveles inferiores.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-12-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test`, un ajuste que debía alcanzar solo a la OU `Servidores` aparece activo también en equipos de la OU `Puestos`. La GPO está vinculada una sola vez, a `Servidores`.\n\nEl ajuste no llega a `Puestos` por la GPO de `Servidores`, porque ese vínculo no alcanza a esa OU. Llega porque otra GPO define el mismo ajuste y está vinculada al **dominio**, y la OU `Puestos` no tiene **bloqueada la herencia**: recibe el vínculo superior. El alcance no lo decidió la GPO que se estaba mirando, sino el vínculo del dominio. La conclusión acota la zona —«el ajuste alcanza `Puestos` por herencia del dominio»— y reconoce su límite: sin la **política resultante** de cada equipo no se puede afirmar cuál de las dos GPO ganó en cada caso.\n\n"
+    },
+    {
+      "id": "WAD-12-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Saber a qué identidades alcanza una directiva evita atribuir un cambio al objeto equivocado.\n- Red Team autorizado: Leer el alcance real de una GPO permite describir qué controles cubren un host y cuáles no.\n- Evidencia de la etapa: Tabla de vínculos, orden de procesamiento y resultado esperado por identidad.\n- Criterio de dominio: La política se aplica solo a las identidades esperadas.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB06](../../05_RECURSOS/LABORATORIOS/WAD-LAB06.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **GPO**: [Group Policy overview](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-r2-and-2012/hh831791(v=ws.11)). Qué es una GPO y a qué contenedores se vincula.\n- **GPOPREC**: [Group Policy processing and precedence](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-r2-and-2012/dn581922(v=ws.11)). Orden de procesamiento, herencia y precedencia.\n- **SYSVOLMIG**: [Migrate SYSVOL replication to DFS Replication](https://learn.microsoft.com/en-us/windows-server/storage/dfs-replication/migrate-sysvol-to-dfsr). Replicación de la carpeta que sirve las GPO.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-12-L01-P01",
+    "prompt": "En `ad.lab.test`, la GPO `GPO-Puestos` está vinculada a la OU `Puestos` y la GPO `GPO-Lab` al dominio, y la OU `Puestos` no tiene bloqueada la herencia. Indica a qué identidades alcanza cada directiva, en qué orden se procesan y qué evidencia usarías para demostrar el alcance antes de concluir.",
+    "markdown": "## 4. Práctica individual\n\nEn `ad.lab.test`, la GPO `GPO-Puestos` está vinculada a la OU `Puestos` y la GPO `GPO-Lab` al dominio, y la OU `Puestos` no tiene bloqueada la herencia. Indica a qué identidades alcanza cada directiva, en qué orden se procesan y qué evidencia usarías para demostrar el alcance antes de concluir.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber aplicado una GPO en un sistema real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-12-L01-Q01",
+      "prompt": "Una GPO está vinculada a una OU y a ninguna otra ubicación. ¿Qué determina a qué identidades termina afectando?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El número de ajustes que contiene la GPO"
+        },
+        {
+          "id": "B",
+          "text": "La fecha en que se creó la GPO"
+        },
+        {
+          "id": "C",
+          "text": "El vínculo, el orden de procesamiento y la herencia que alcanzan a cada identidad"
+        },
+        {
+          "id": "D",
+          "text": "El nombre de la GPO y su descripción"
+        }
+      ]
+    },
+    {
+      "id": "WAD-12-L01-Q02",
+      "prompt": "Un ajuste aparece como «configurado» dentro de una GPO vinculada a una OU, pero un equipo de esa OU no lo refleja. ¿Cuál es la lectura más prudente?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que configurado no equivale a aplicado: hay que comprobar el alcance y el resultado efectivo en esa identidad"
+        },
+        {
+          "id": "B",
+          "text": "Que la GPO se ha eliminado del dominio"
+        },
+        {
+          "id": "C",
+          "text": "Que el ajuste se aplica igual y no procede revisar el equipo"
+        },
+        {
+          "id": "D",
+          "text": "Que todo ajuste configurado se aplica siempre a todo el dominio"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB06](../../05_RECURSOS/LABORATORIOS/WAD-LAB06.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **GPO**: [Group Policy overview](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-r2-and-2012/hh831791(v=ws.11)). Qué es una GPO y a qué contenedores se vincula.\n- **GPOPREC**: [Group Policy processing and precedence](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-r2-and-2012/dn581922(v=ws.11)). Orden de procesamiento, herencia y precedencia.\n- **SYSVOLMIG**: [Migrate SYSVOL replication to DFS Replication](https://learn.microsoft.com/en-us/windows-server/storage/dfs-replication/migrate-sysvol-to-dfsr). Replicación de la carpeta que sirve las GPO.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "45e7dda88ee79b7519470916"
+}

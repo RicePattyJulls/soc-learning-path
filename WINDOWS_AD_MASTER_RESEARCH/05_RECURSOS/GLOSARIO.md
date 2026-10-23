@@ -1,0 +1,297 @@
+# Glosario de Windows + Active Directory
+
+Términos de consulta. No hace falta memorizarlos antes de resolver una lección.
+
+- **Edición**: variante comercial de un producto Windows (Home, Pro, Enterprise, Standard, Datacenter).
+- **Rama / canal**: línea de versiones con su propio calendario de mantenimiento.
+- **Compilación (build)**: número exacto de versión del sistema.
+- **UBR**: revisión acumulada que acompaña a la compilación; refleja nivel de parcheo.
+- **DisplayVersion**: etiqueta de versión mostrada (por ejemplo, una rama de año).
+- **SKU**: identificación comercial que determina funciones y licencia.
+- **Server Core**: opción de instalación sin interfaz gráfica estándar, administrada con PowerShell, SConfig, WinRM o herramientas remotas.
+- **Desktop Experience**: opción de instalación de Windows Server con escritorio.
+- **UEFI**: firmware moderno que inicializa el hardware y arranca el sistema.
+- **Secure Boot**: función de UEFI que valida firmas de los componentes de arranque.
+- **TPM**: chip que almacena claves y mediciones de confianza.
+- **BitLocker**: cifrado de volumen protegido, entre otros, por TPM; exige custodia de la clave de recuperación.
+- **BCD**: almacén de configuración de arranque de Windows (Boot Configuration Data).
+- **Kernel**: núcleo del sistema que gestiona memoria, procesos y controladores.
+- **Controlador (driver)**: software en modo kernel que comunica el sistema con el hardware.
+- **Sesión 0**: espacio donde se ejecutan los servicios, separado de las sesiones de usuario.
+- **SCM (Service Control Manager)**: gestor de servicios del sistema.
+- **SID**: identificador de seguridad de una cuenta u objeto.
+- **SID conocido**: identificador reservado por el sistema para identidades o grupos integrados.
+- **SAM**: base de datos que gestiona las cuentas y grupos locales.
+- **Token de acceso**: estructura que describe la identidad y los derechos efectivos de un proceso.
+- **Token filtrado**: token reducido con el que corren por defecto los procesos de un administrador.
+- **Elevación (UAC)**: obtención de un token completo tras consentimiento del usuario.
+- **Privilegio**: capacidad concedida a una identidad, más allá de un objeto concreto.
+- **Permiso**: autorización sobre un recurso concreto.
+- **Descriptor de seguridad**: conjunto de propietario, DACL, SACL e integridad de un objeto.
+- **ACL**: lista ordenada de entradas de control de acceso.
+- **ACE**: entrada de una ACL que empareja identidad, permiso y efecto.
+- **DACL**: lista que concede o deniega el acceso a un objeto.
+- **SACL**: lista que determina qué se audita (no decide el acceso).
+- **Herencia**: propagación de ACE desde un objeto padre a sus objetos hijos.
+- **Acceso efectivo**: resultado combinado de token, DACL, permisos de recurso e integridad.
+- **Nivel de integridad**: etiqueta que impide escribir en objetos de integridad superior.
+- **NTFS**: sistema de archivos que aplica permisos por objeto.
+- **Propietario**: identidad con capacidad implícita de cambiar los permisos de un objeto.
+- **ACE explícita**: entrada de control de acceso definida en el propio objeto.
+- **ACE heredada**: entrada que proviene de un objeto contenedor.
+- **Permisos excesivos**: concesión más amplia que la necesaria para la función.
+- **Recurso compartido (share)**: carpeta publicada en red, con sus propios permisos.
+- **Permiso del recurso compartido**: permiso grueso aplicado al recurso compartido.
+- **Permiso efectivo**: resultado combinado y más restrictivo entre share y NTFS.
+- **Acceso local**: acceso desde el propio equipo; solo interviene NTFS.
+- **Acceso por red**: acceso a través del recurso compartido; intervienen share y NTFS.
+- **Inventario**: conjunto de datos de un host obtenido con un método definido.
+- **UTC**: tiempo universal coordinado; evita ambigüedades de zona horaria.
+- **CIM / WMI**: interfaz para consultar el sistema (sistema operativo, procesos, servicios).
+- **PID**: identificador de proceso; único en un instante, no en el tiempo.
+- **LSA / lsass.exe**: autoridad de seguridad local; su función es crítica.
+- **Modo kernel**: modo de ejecución con acceso privilegiado al hardware y a la memoria del sistema.
+- **Modo usuario**: modo de ejecución sin acceso directo al hardware; solicita recursos al kernel mediante llamadas controladas.
+- **Hilo (thread)**: unidad de ejecución dentro de un proceso.
+- **Handle**: referencia controlada a un objeto del kernel (archivo, clave, proceso).
+- **Árbol de procesos**: relación observada entre procesos y sus procesos padre.
+- **Tipo de inicio**: modo en que arranca un servicio (automático, automático retardado, manual o deshabilitado).
+- **Dependencia**: servicio o controlador que debe arrancar antes que otro.
+- **Tarea programada**: acción que se ejecuta por un disparador (hora, evento, inicio de sesión).
+- **Persistencia**: mecanismo que hace que algo se ejecute o sobreviva al reinicio.
+- **Registro**: base jerárquica de configuración del sistema y de las aplicaciones.
+- **Clave / valor del registro**: unidad de organización del registro y dato almacenado en ella.
+- **Hive**: archivo que respalda una rama del registro.
+- **Espacio de nombres WMI**: ruta de clases WMI, por ejemplo root\cimv2.
+- **Reversión (rollback)**: volver al estado previo a un cambio.
+- **Objeto (PowerShell)**: valor estructurado con propiedades y métodos.
+- **Pipeline**: encadenamiento que pasa objetos de un comando al siguiente.
+- **Propiedad**: dato con nombre dentro de un objeto.
+- **Cmdlet**: comando de PowerShell nombrado con convención Verbo-Sustantivo.
+- **Consulta (CIM)**: operación que devuelve estado sin cambiarlo.
+- **Método (CIM)**: operación que ejecuta una acción y puede cambiar estado.
+- **Sesión CIM**: contexto de conexión reutilizable para consultas.
+- **Servicio de administración remota**: servicio que atiende las operaciones remotas.
+- **Autorización**: permiso de una identidad autenticada para una operación.
+- **Idempotencia**: propiedad de repetir una operación sin efectos adicionales.
+- **Ejecución en seco (dry-run)**: mostrar el efecto previsto sin aplicarlo.
+- **Política de ejecución**: ajuste que gobierna la carga de scripts; no es una frontera de seguridad.
+- **Resolución de nombres**: traducción de un nombre a una dirección.
+- **Servidor de nombres**: servicio que responde a las consultas de traducción.
+- **Caché de resolución**: respuestas guardadas temporalmente en el cliente.
+- **Ruta**: camino definido hacia un destino.
+- **Puerto**: punto de servicio concreto en un equipo.
+- **Puerto a la escucha**: puerto que un servicio está atendiendo.
+- **Firewall**: filtro de tráfico basado en reglas.
+- **Perfil de red**: conjunto de reglas según el tipo de red.
+- **Regla de entrada**: regla que gobierna el tráfico que llega al equipo.
+- **Regla mínima**: regla que concede solo lo necesario para la función.
+- **Dirección de documentación**: rango de direcciones reservado para ejemplos, no enrutable en internet.
+- **Atribución**: poder asignar un efecto al cambio que lo produjo.
+- **Auditoría**: registro de accesos según una política definida.
+- **Política de auditoría**: configuración que habilita qué categorías se registran.
+- **Auditar éxito / fallo**: registrar accesos concedidos o intentos rechazados.
+- **Evento**: registro individual con hora, origen y cuenta.
+- **Registro de eventos**: registro donde el sistema acumula los eventos auditados.
+- **Retención**: periodo que un registro conserva antes de perder información.
+- **Rotación**: sobrescritura de los eventos más antiguos al llenarse el registro.
+- **Correlación**: relacionar eventos de varios equipos por hora y cuenta.
+- **Endurecimiento (hardening)**: reducir la superficie aplicando controles.
+- **Estado efectivo**: si un control se está aplicando de verdad, no solo si está configurado.
+- **Definiciones**: datos que la protección usa para reconocer amenazas.
+- **Exclusión**: ruta o proceso al que la protección no se aplica.
+- **Punto ciego**: zona sin cobertura de un control.
+- **Evidencia volátil**: información que desaparece al apagar o reiniciar.
+- **Preservación**: asegurar la evidencia antes de modificarla.
+- **Contención**: limitar el alcance del problema.
+- **Remediación**: eliminar la causa.
+
+## Active Directory
+
+Términos del directorio. Tampoco hace falta memorizarlos antes de resolver una lección.
+
+- **Bosque**: conjunto de dominios que comparten esquema y catálogo global; es el límite de seguridad de Active Directory.
+- **Dominio**: unidad de replicación y de administración dentro de un bosque; agrupa objetos bajo un mismo nombre.
+- **Unidad organizativa (OU)**: contenedor del dominio que sirve para organizar objetos, delegar tareas y aplicar política; no es una frontera de seguridad.
+- **Partición de directorio**: porción de datos que se replica como una unidad; las principales son la de esquema, la de configuración, la de dominio y la de aplicación.
+- **Esquema**: definición de las clases de objeto y de los atributos permitidos en el bosque.
+- **Catálogo global**: servicio que mantiene una réplica parcial de todos los dominios del bosque para búsquedas y pertenencias a grupos universales.
+- **LDAP**: protocolo de consulta y lectura de objetos del directorio.
+- **Nivel funcional**: versión de funciones del dominio o del bosque que habilita capacidades según el sistema mínimo soportado.
+- **Controlador de dominio (DC)**: servidor que aloja el directorio y responde a las autenticaciones del dominio.
+- **Registro SRV**: registro DNS que publica la ubicación de un servicio, como el controlador de dominio.
+- **Localizador de DC (DC Locator)**: mecanismo del cliente que consulta DNS para encontrar un controlador de dominio disponible.
+- **Servicio de hora**: componente que sincroniza el reloj de los equipos del dominio; una desviación grande rompe la autenticación.
+- **Cuenta de equipo**: objeto que representa a un equipo unido al dominio.
+- **Zona DNS**: área de nombres administrada por un servidor DNS donde se publican los registros del dominio.
+- **Atributo**: dato con nombre de un objeto del directorio, como el nombre de inicio de sesión.
+- **Nombre distinguido (DN)**: ruta única de un objeto en el árbol del directorio.
+- **Identificador de inicio de sesión (sAMAccountName)**: nombre corto con el que una cuenta inicia sesión.
+- **Grupo de seguridad**: grupo al que se pueden conceder permisos.
+- **Ámbito de grupo**: alcance de un grupo (global, local de dominio o universal) que determina dónde se puede usar y qué puede contener.
+- **Ciclo de vida de identidad**: recorrido de una cuenta desde su creación hasta su retirada, con estados intermedios reversibles o no.
+- **Delegación**: concesión de una tarea concreta sobre un conjunto concreto de objetos, con el permiso mínimo necesario.
+- **Kerberos**: protocolo de autenticación por tickets del dominio.
+- **TGT (ticket de concesión de tickets)**: ticket inicial que el centro de distribución de claves emite al cliente autenticado.
+- **TGS (ticket de servicio)**: ticket que permite acceder a un servicio concreto.
+- **SPN (nombre de entidad de seguridad de servicio)**: nombre que identifica la instancia de un servicio para que Kerberos le entregue el ticket correcto.
+- **NTLM**: mecanismo de autenticación heredado de desafío-respuesta que se usa cuando Kerberos no está disponible.
+- **Cuenta de servicio**: identidad bajo la que se ejecuta un servicio.
+- **gMSA (cuenta de servicio administrada de grupo)**: cuenta de servicio cuya contraseña gestiona y rota Active Directory.
+- **GPO (objeto de directiva de grupo)**: conjunto de directivas con nombre que se vincula a un sitio, dominio u organización.
+- **Vínculo (link)**: unión de una GPO con una ubicación del directorio que le da alcance.
+- **Orden de vínculo**: secuencia en la que se procesan varias GPO vinculadas al mismo contenedor.
+- **Herencia de directiva**: aplicación de la política de los contenedores superiores a los inferiores.
+- **Bloquear herencia**: opción que impide recibir la política de los contenedores superiores.
+- **Forzar (enforced)**: marca de un vínculo que hace prevalecer su política sobre la de los contenedores inferiores.
+- **Filtrado de seguridad**: restricción de una GPO a determinadas cuentas o grupos.
+- **Política resultante (RSOP)**: conjunto de ajustes que realmente se aplican a una identidad, con su origen.
+- **SYSVOL**: recurso compartido del dominio que aloja los archivos de las GPO y se replica entre controladores.
+- **Almacén central**: ubicación en SYSVOL donde se guardan las plantillas administrativas comunes.
+- **Replicación**: intercambio de cambios del directorio entre controladores de dominio.
+- **Sitio**: agrupación de equipos con buena conectividad interna que ordena cómo y cuándo se replica entre ubicaciones.
+- **Vínculo de sitio**: conexión definida entre dos sitios, con un coste y una programación.
+- **Conocimiento de la topología (KCC)**: proceso que calcula y mantiene las conexiones de replicación.
+- **Maestro de operaciones (FSMO)**: rol único de un controlador que atiende una operación concreta del bosque o del dominio.
+- **repadmin**: herramienta de línea de comandos para consultar y comprobar el estado de la replicación.
+- **Confianza (trust)**: relación entre dominios o bosques que permite autenticar identidades de uno en el otro.
+- **Dirección de confianza**: sentido en que una confianza permite el acceso (unidireccional o bidireccional).
+- **Transitividad**: propiedad de una confianza que extiende la relación a otros dominios de la cadena.
+- **Autenticación selectiva**: restricción de una confianza que exige autorizar a cada identidad antes de permitir su acceso.
+- **Filtrado de SID (SID filtering)**: control que descarta los identificadores de seguridad ajenos al dominio de origen.
+- **Cuarentena de confianza**: modo que aplica filtrado de SID y otras restricciones a una confianza.
+- **Tier 0**: nivel de máxima confianza que agrupa las identidades y los sistemas que controlan el directorio y sus credenciales.
+- **Modelo de niveles**: ordenación de la administración en planos según lo que cada identidad controla.
+- **Estación de acceso privilegiado**: equipo dedicado desde el que se realizan tareas de administración sensible.
+- **Ruta administrativa**: camino de accesos y pertenencias por el que una identidad alcanza un control.
+- **Usuario protegido**: grupo que aplica controles adicionales a las cuentas de administración para dificultar la captura de credenciales.
+- **Windows LAPS**: componente que administra, rota y custodia la contraseña de la cuenta de administrador local de un equipo.
+- **Rotación de credencial**: renovación periódica de una credencial para reducir la vigencia de una copia filtrada.
+- **Lectura autorizada**: recuperación de un valor custodiado solo por identidades con permiso explícito.
+- **DSRM (Modo de restauración de servicios de directorio)**: modo de arranque del controlador para reparar el directorio sin que esté en servicio.
+- **Contraseña de recuperación DSRM**: credencial local de un controlador que permite iniciar en DSRM; su valor no se documenta.
+- **Entidad de certificación (CA)**: componente que emite y revoca certificados y firma con su clave.
+- **PKI (infraestructura de clave pública)**: conjunto de autoridades, plantillas, políticas y servicios que gestionan certificados.
+- **Plantilla de certificado**: definición que fija el propósito, el formato y quién puede inscribirse en un certificado.
+- **EKU (uso extendido de clave)**: extensión de un certificado que declara para qué propósitos puede usarse.
+- **Inscripción (enrollment)**: solicitud y emisión de un certificado a una identidad autorizada.
+- **Certificado**: documento firmado que vincula una clave pública con una identidad y un uso.
+- **Cadena de confianza**: recorrido de un certificado hasta una autoridad raíz en la que se confía.
+- **Revocación**: invalidación de un certificado antes de su vencimiento.
+- **CRL (lista de revocación de certificados)**: lista firmada de certificados revocados que se publica periódicamente.
+- **CDP (punto de distribución de CRL)**: ubicación donde los clientes obtienen la lista de revocación.
+- **AIA (acceso a información de la autoridad)**: ubicación donde los clientes obtienen el certificado de la autoridad emisora.
+- **Síntoma**: señal observable que orienta una hipótesis sin confirmarla por sí sola.
+- **Hipótesis**: explicación provisional que se confirma o se descarta con una prueba.
+- **Línea base**: estado de referencia registrado antes de un cambio, que permite medir la regresión.
+- **BIA (análisis de impacto en el negocio)**: estudio que identifica qué procesos y servicios deben seguir funcionando y cuánto puede tolerarse su interrupción.
+- **Dependencia crítica**: componente del que dependen otros servicios, de modo que su fallo detiene a los demás.
+- **RPO (objetivo de punto de recuperación)**: cantidad máxima de datos que se acepta perder, expresada como el tiempo transcurrido entre copias.
+- **RTO (objetivo de tiempo de recuperación)**: tiempo máximo que se acepta para volver a operar tras un incidente.
+- **Copia confiable**: respaldo íntegro, verificado y apartado del original, del que se puede recuperar de verdad.
+- **Regla 3-2-1**: estrategia que mantiene tres copias, en dos medios distintos, con una fuera del sitio.
+- **Copia inmutable**: respaldo que no puede modificarse ni borrarse durante su periodo de retención.
+- **Copia fuera del sitio (offsite)**: respaldo guardado lejos del sistema original para sobrevivir a un desastre local.
+- **Instantánea (snapshot)**: estado puntual de un volumen; no sustituye a una copia pensada para recuperación ante desastres.
+- **Estado del sistema (System State)**: conjunto de datos de arranque y de rol de un servidor, incluido el directorio cuando es controlador.
+- **Copia de servidor completa**: respaldo de todo el servidor que permite recuperar también el sistema operativo.
+- **BMR (recuperación a metal desnudo)**: restauración completa del sistema sobre hardware vacío o equivalente.
+- **VSS (Servicio de instantáneas de volumen)**: mecanismo que toma una imagen coherente de los datos mientras el sistema sigue en marcha.
+- **Papelera de reciclaje de AD**: función que conserva los objetos eliminados y permite restaurarlos con sus atributos y pertenencias.
+- **Objeto eliminado (tombstone)**: objeto marcado como borrado que se conserva durante un tiempo antes de desaparecer.
+- **Restauración autoritativa**: recuperación que impone el estado restaurado sobre el resto de las réplicas.
+- **Restauración no autoritativa**: recuperación que deja que los datos se actualicen desde las demás réplicas tras restaurar.
+- **SYSVOL autoritativo**: estado de un controlador que fija la copia válida de SYSVOL ante los demás.
+- **DFSR (replicación del sistema de archivos distribuido)**: servicio que replica SYSVOL y otros datos entre controladores.
+- **Recuperación forestal**: proceso de reconstruir todo el bosque desde copias confiables, en red aislada.
+- **Recuperación en aislamiento**: recuperar en una red separada para evitar que un controlador restaurado se replique con uno comprometido.
+- **krbtgt**: cuenta del directorio que firma los vales Kerberos; su contraseña se restablece tras un compromiso.
+- **Limpieza de metadatos**: eliminación de las referencias a controladores que ya no existen en el directorio.
+- **USN rollback (retroceso de número de secuencia)**: divergencia que aparece cuando una réplica se revierte sin restaurar su estado de replicación.
+- **Divergencia de replicación**: situación en que dos réplicas sostienen estados distintos y no convergen.
+- **Tabletop (ejercicio de mesa)**: simulación documental de un incidente para probar un plan sin ejecutarlo.
+- **Runbook de crisis**: guía de pasos ordenados para actuar durante un incidente.
+- **Roles RACI**: reparto de responsabilidades (quién ejecuta, quién aprueba, a quién se consulta y a quién se informa).
+- **Clave privada de la CA**: clave con la que la autoridad de certificación firma certificados; sin ella la CA no recupera su identidad.
+- **ROE (reglas de enfrentamiento)**: documento que fija la autorización, el alcance, la ventana y las condiciones de parada de una prueba.
+- **Alcance autorizado**: conjunto de sistemas, objetos y acciones que la autorización permite tocar, con sus exclusiones.
+- **Condición de parada**: hecho que obliga a detener la prueba y pedir autorización antes de continuar.
+- **Superficie de ataque**: conjunto de puntos que un atacante podría aprovechar; se describe, no se explota.
+- **Enumeración**: recuento ordenado de objetos y propiedades con consultas de solo lectura.
+- **Consulta de solo lectura**: consulta que recupera información sin modificar el directorio.
+- **Registro de consultas**: anotación de qué se consultó, con qué identidad, a qué hora y para qué.
+- **Grafo de privilegios**: representación de identidades y recursos con las rutas de control que los conectan.
+- **Ruta de control**: secuencia de permisos y pertenencias por la que una identidad alcanza un recurso.
+- **Grado de certeza**: nivel de confianza de un hallazgo: riesgo teórico, condición explotable o acceso probado.
+- **Riesgo teórico**: posibilidad no comprobada de que una configuración permita un abuso.
+- **Condición explotable**: configuración que reúne los requisitos para un abuso, aún sin acceso demostrado.
+- **Acceso probado**: acceso efectivamente ejercido y registrado con evidencia.
+- **Contraprueba**: comprobación positiva que confirma o descarta una ruta de control sobre un objeto de prueba.
+- **Delegación excesiva**: permiso otorgado a una identidad que supera lo que su función necesita.
+- **Objeto señuelo**: objeto de prueba creado para comprobar un permiso sin tocar elementos reales.
+- **Movimiento lateral**: desplazamiento de una identidad entre equipos de la red.
+- **Ventana controlada**: periodo acordado en el que se autoriza ejecutar una prueba o un cambio.
+- **Prueba inocua**: comprobación acotada, reversible y sin efectos destructivos.
+- **Minimización de datos**: recoger solo los datos necesarios para la finalidad autorizada.
+- **Hallazgo**: descripción de una condición observada con su recurso, permiso, comprobación y límites.
+- **Retest**: repetición de la prueba tras la corrección para confirmar que el control quedó resuelto.
+- **Misconfiguración**: ajuste que se aparta de la configuración segura prevista.
+- **Equipo púrpura (Purple Team)**: colaboración entre las miradas ofensiva y defensiva para mejorar la detección.
+- **Cadena de custodia**: registro que documenta quién tuvo la evidencia y desde cuándo.
+- **Control compensatorio**: medida que reduce el riesgo cuando el control principal no puede aplicarse.
+
+## SOC y monitorización
+
+Términos de visibilidad y análisis. Tampoco hace falta memorizarlos antes de resolver una lección.
+
+- **Registro Security**: registro principal de eventos de seguridad, como inicios de sesión y uso de privilegios.
+- **Registro System**: registro de eventos del sistema operativo y de sus componentes.
+- **Registro Directory Service**: registro del servicio de directorio, presente en un controlador de dominio.
+- **Canal de eventos**: flujo con nombre donde un proveedor escribe sus eventos.
+- **Subcategoría de auditoría**: unidad fina de la política de auditoría que decide qué se registra.
+- **Cobertura efectiva**: visibilidad real conseguida tras aplicar la política, no la prevista.
+- **Pérdida de eventos**: eventos no registrados por filtros, permisos, tamaño o retención.
+- **Evento nativo**: evento que produce Windows por sí mismo, sin sensor adicional.
+- **Identificador de evento**: número que distingue un evento concreto dentro de un canal.
+- **Inicio de sesión correcto**: evento que documenta una autenticación aceptada.
+- **Inicio de sesión incorrecto**: evento que documenta una autenticación rechazada.
+- **Solicitud de servicio Kerberos (4769)**: petición de un ticket de servicio; por sí sola no prueba abuso.
+- **Kerberoasting**: abuso que solicita tickets de servicio para intentar descifrarlos fuera de línea.
+- **Línea de tiempo (timeline)**: orden de hechos por hora en UTC que reconstruye una secuencia.
+- **Hecho registrado**: dato que consta en el registro, sin interpretación añadida.
+- **Interpretación**: lectura que se da a los hechos y que debe separarse de ellos.
+- **Hipótesis alternativa**: explicación distinta de la misma secuencia que también hay que poner a prueba.
+- **Registro de PowerShell**: eventos que documentan la actividad de PowerShell.
+- **Bloque de script**: fragmento de código de PowerShell registrado al ejecutarse.
+- **Transcripción**: copia textual de una sesión de consola iniciada de forma explícita.
+- **Sysmon**: sensor que añade eventos de sistema con filtros configurables.
+- **Sensor**: componente que produce o recoge eventos para su análisis.
+- **Reenvío de eventos (WEF)**: mecanismo de Windows para enviar eventos a un recopilador.
+- **Recopilador de eventos (WEC)**: servicio que recibe y almacena los eventos reenviados.
+- **Suscripción de eventos**: configuración que decide qué eventos se reenvían y desde dónde.
+- **Origen e intervalo**: host emisor y periodo con el que llegan los eventos reenviados.
+- **Hueco de visibilidad**: actividad que no queda registrada por una limitación conocida.
+- **Integridad del registro**: garantía de que un registro no se ha alterado tras recogerse.
+- **Máquina desechable**: equipo de laboratorio que puede reinstalarse sin coste tras la prueba.
+
+## Integración y proyecto final
+
+Términos del ciclo púrpura y del proyecto final. Tampoco hace falta memorizarlos antes de resolver una lección.
+
+- **Hipótesis comprobable**: afirmación que se puede confirmar o descartar con una prueba concreta.
+- **Falso positivo**: coincidencia que parece maliciosa pero tiene una explicación inocua.
+- **Falso negativo**: actividad que ocurre sin que el control la registre o la señale.
+- **Acción controlada**: actividad acotada y reversible que se ejecuta solo para observar su efecto.
+- **Respuesta local**: medida acotada al recurso observado, sin extenderse a sistemas fuera de alcance.
+- **Matriz púrpura**: tabla que cruza técnicas con pruebas y controles, marcando lo probado y lo no cubierto.
+- **Reducción de ruido**: conjunto de ajustes que elimina eventos inútiles sin crear puntos ciegos.
+- **Ajuste de reglas**: cambio deliberado en una regla o un filtro para mejorar su precisión.
+- **Umbral de detección**: valor que decide cuándo una condición genera una señal.
+- **Control preventivo**: medida que impide que una acción ocurra.
+- **Control detectivo**: medida que registra o señala una acción cuando ocurre.
+- **Cambio aprobado**: modificación con autorización, ventana y reversión definida antes de ejecutarse.
+- **Prueba de regresión**: comprobación de que lo que ya funcionaba sigue funcionando tras un cambio.
+- **Expediente técnico**: conjunto ordenado de runbooks, evidencias y registros que documenta el proyecto.
+- **Separación de roles**: reparto de quién administra, quién audita y quién responde, sin concentrarlos.
+- **Falla sembrada**: avería introducida a propósito en el laboratorio para practicar su diagnóstico.
+- **Defensa oral**: explicación del trabajo y de sus límites ante otra persona, apoyada en evidencias.

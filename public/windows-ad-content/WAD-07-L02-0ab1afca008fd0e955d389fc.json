@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-07-L02",
+  "title": "Controles Defender/PowerShell",
+  "sourceHash": "57be537270ce41c98d3c602a4384e03a1d75c5f8d893e2206dd5ef4be0fc5d12",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-07-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nAplicar un control, verificar su efecto y comprobar que no rompe lo necesario.\n\nPrerrequisitos: `WAD-07-L01` (auditoría local y eventos).\n\n## 2. Comprende el mecanismo\n\n**Endurecer** un host no es marcar casillas: es aplicar un **control**, **medir** su efecto y comprobar que no ha roto lo necesario. Un control sin verificación es una suposición.\n\nEl ciclo de trabajo tiene cuatro pasos:\n\n1. **Anotar el estado inicial** del ajuste que se va a cambiar. Sin esto no hay vuelta atrás.\n2. **Aplicar el control** con el alcance mínimo.\n3. **Verificar el efecto**: una comprobación que muestre que el control está activo y actuando.\n4. **Contraprueba**: confirmar que la función legítima sigue disponible.\n\nLa protección contra software malicioso tiene dos estados que conviene no confundir: **configurado** y **en vigor**. Un control puede estar definido y no estar aplicándose; se comprueba su estado efectivo, y también si las firmas o definiciones están actualizadas, porque una protección con definiciones antiguas protege poco.\n\nLas **exclusiones** merecen un párrafo propio, y son el punto más interesante para un analista: excluir una ruta o un proceso del análisis crea un **punto ciego** donde la protección no mira. A veces está justificado por una aplicación concreta; casi nunca lo está de forma permanente y sin registro. Si se añade una exclusión, se minimiza su alcance, se documenta el motivo y se fija una fecha de revisión.\n\nEn **PowerShell** hay ajustes que aportan visibilidad: registro de bloques de script y de módulos, transcripción de sesiones. Y una advertencia ya vista: la **política de ejecución** gobierna la carga de scripts, pero **no es una frontera de seguridad**; un usuario con permisos puede ejecutar el mismo código por otras vías. La seguridad real viene de los permisos y de la visibilidad, no de esa política.\n\n### Vocabulario de apoyo\n\n- **Endurecimiento (hardening)**: reducir la superficie aplicando controles.\n- **Estado inicial**: valor previo del ajuste, necesario para revertir.\n- **Estado efectivo**: si el control se está aplicando de verdad.\n- **Definiciones**: datos que la protección usa para reconocer amenazas.\n- **Exclusión**: ruta o proceso al que la protección no se aplica.\n- **Punto ciego**: zona sin cobertura de un control.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-07-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: para que el análisis no interfiera con una carpeta de laboratorio, se propone añadir una exclusión permanente en la protección del host y dejarla sin documentar.\n\nEs un atajo costoso. La exclusión crea un **punto ciego** en esa ruta, y sin registro nadie sabrá después por qué está ahí ni quién la puso. La práctica correcta es justificar la necesidad, **minimizar** el alcance —una ruta concreta y no todo el volumen—, verificar antes y después el efecto, y dejar **documentados** motivo y fecha de revisión, con la seguridad de que puede retirarse. La conclusión acota la zona —«el riesgo es la exclusión, no la carpeta»— y conserva capacidad de marcha atrás.\n\n"
+    },
+    {
+      "id": "WAD-07-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Toda exclusión es una zona sin visibilidad; revisarla es parte del análisis del host.\n- Red Team autorizado: La política de ejecución no impide ejecutar código; la contención real son los permisos y la visibilidad.\n- Evidencia de la etapa: Estado inicial, verificación del control, contraprueba y registro del cambio.\n- Criterio de dominio: Distingue «configurado» de «en vigor» y verifica antes de dar por aplicado.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB04](../../05_RECURSOS/LABORATORIOS/WAD-LAB04.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **DEFENDER**: [Get-MpComputerStatus](https://learn.microsoft.com/en-us/powershell/module/defender/get-mpcomputerstatus). Estado efectivo de la protección y de sus definiciones.\n- **MPPREF**: [Get-MpPreference](https://learn.microsoft.com/en-us/powershell/module/defender/get-mppreference). Preferencias, incluidas las exclusiones.\n- **PSLOGGING**: [about_Logging_Windows](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_logging_windows). Registro de bloques de script y de módulos.\n- **EXECPOLICY**: [about_Execution_Policies](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies). Qué limita realmente la política de ejecución.\n- **AUDITPOL**: [auditpol](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/auditpol). Ajustes de auditoría asociados al control.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-07-L02-P01",
+    "prompt": "Propón un control mínimo para un host de laboratorio, de la protección contra software malicioso o de la visibilidad de PowerShell. Describe el estado inicial que anotarías, cómo verificarías que el control está en vigor, una contraprueba que confirme que no rompe lo necesario, y cómo registrarías el cambio para poder revertirlo. Explica también qué no usarías como frontera de seguridad y por qué.",
+    "markdown": "## 4. Práctica individual\n\nPropón un **control mínimo** para un host de laboratorio, de la protección contra software malicioso o de la visibilidad de PowerShell. Describe el **estado inicial** que anotarías, cómo **verificarías** que el control está en vigor, una **contraprueba** que confirme que no rompe lo necesario, y cómo **registrarías** el cambio para poder revertirlo. Explica también qué **no** usarías como frontera de seguridad y por qué.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber aplicado controles en un sistema real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-07-L02-Q01",
+      "prompt": "¿Qué implica aplicar un control de endurecimiento correctamente?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Configurarlo y darlo por aplicado"
+        },
+        {
+          "id": "B",
+          "text": "Configurarlo, verificar su efecto y comprobar que no rompe lo necesario"
+        },
+        {
+          "id": "C",
+          "text": "Retirar el control anterior sin anotarlo"
+        },
+        {
+          "id": "D",
+          "text": "Documentarlo sin verificarlo"
+        }
+      ]
+    },
+    {
+      "id": "WAD-07-L02-Q02",
+      "prompt": "¿Qué riesgo introduce una exclusión en la protección del host?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Ninguno, solo mejora el rendimiento"
+        },
+        {
+          "id": "B",
+          "text": "Un punto ciego donde la protección no analiza"
+        },
+        {
+          "id": "C",
+          "text": "Más memoria disponible sin coste"
+        },
+        {
+          "id": "D",
+          "text": "Que se desactive la política de auditoría"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB04](../../05_RECURSOS/LABORATORIOS/WAD-LAB04.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **DEFENDER**: [Get-MpComputerStatus](https://learn.microsoft.com/en-us/powershell/module/defender/get-mpcomputerstatus). Estado efectivo de la protección y de sus definiciones.\n- **MPPREF**: [Get-MpPreference](https://learn.microsoft.com/en-us/powershell/module/defender/get-mppreference). Preferencias, incluidas las exclusiones.\n- **PSLOGGING**: [about_Logging_Windows](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_logging_windows). Registro de bloques de script y de módulos.\n- **EXECPOLICY**: [about_Execution_Policies](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies). Qué limita realmente la política de ejecución.\n- **AUDITPOL**: [auditpol](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/auditpol). Ajustes de auditoría asociados al control.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "0ab1afca008fd0e955d389fc"
+}

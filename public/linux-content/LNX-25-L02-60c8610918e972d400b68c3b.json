@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-25-L02",
+  "title": "Auditoría de PAM sin cambiar políticas",
+  "sourceHash": "3b8fcbdc30dedc22221005a97d68eec9a2f71f3367a87be7e19917d814933ef0",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-25-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nAuditar una pila PAM en solo lectura, identificar invocaciones externas y dependencias de bloqueo, y proponer un cambio con rescate y rollback.\n\nPrerrequisitos: `LNX-25-L01` (Grupos de gestión y orden).\n\n## 2. Comprende el mecanismo\n\nAuditar PAM no es editar PAM. La diferencia no es de estilo: una política defectuosa puede impedir el inicio de sesión de todos los administradores a la vez, incluido el que iba a corregirla. Por eso la auditoría se hace en **solo lectura** y el cambio se planifica aparte, con consola fuera de banda y una sesión de rescate ya abierta.\n\nEl primer paso es identificar el **servicio y la ruta efectiva**. Un mismo host puede tener `/etc/pam.d` y un directorio del proveedor; la precedencia determina qué fichero se aplica. También conviene saber qué gestor administra la configuración: `authselect` en RHEL, `pam-auth-update` en Debian, u otro. Editar a mano un fichero generado por el gestor produce deriva que reaparece en la siguiente actualización.\n\nEl segundo paso es **inventariar** las líneas por grupo, sin publicar la configuración íntegra. Una lectura con `grep` acotado por los cuatro tipos de grupo basta para reconstruir la estructura. Lo que se documenta es la forma: qué grupos existen, qué módulos aparecen, qué controles y en qué orden. Los nombres internos y los parámetros pueden ser sensibles y no necesitan salir del host.\n\nEl tercer paso es buscar **invocaciones externas**. `pam_exec.so` ejecuta un comando; si ese comando vive en una ruta escribible por usuarios no confiables, o si recibe el token con `expose_authtok`, la política de autenticación se convierte en una vía de ejecución o de exposición de credenciales. Encontrar `pam_exec` no prueba persistencia maliciosa: puede ser legítimo. Lo que se documenta es ruta, propietario, permisos, argumentos y quién puede modificarlo.\n\nEl cuarto paso es evaluar el **riesgo de bloqueo**. Un `requisite` que apunta a un módulo ausente, una dependencia de red sin timeout, un `include` a un fichero que no existe o un cambio de orden pueden dejar el servicio inutilizable. El análisis se hace sobre copia: se compara la pila propuesta con la actual y se anota qué decisión cambia y para quién.\n\nEl quinto paso es el **plan de cambio**. Snapshot probado, copia y hash del fichero, consola de recuperación, cuenta de prueba, ventana aprobada, validación sintáctica, prueba de fallo y de éxito, rollback versionado y comparación de telemetría. Nada de `sed -i` sobre `/etc/pam.d` como receta general: sustituye texto sin entender el flujo y sin dejar rastro útil.\n\nLa regla de la lección: primero se lee y se documenta, después se propone, y solo en un entorno autorizado se cambia. El límite: una auditoría de solo lectura describe la configuración y sus riesgos; no demuestra que la política funcione ni que el cambio propuesto sea seguro sin probarlo en una VM desechable.\n\n### Vocabulario de apoyo\n\n- **Solo lectura**: inspección que no modifica ficheros ni recarga políticas.\n- **Ruta efectiva**: fichero de configuración que realmente se aplica tras la precedencia.\n- **`pam_exec`**: módulo que ejecuta un comando externo durante la pila.\n- **`expose_authtok`**: opción que entrega el token de autenticación al proceso invocado.\n- **Riesgo de bloqueo**: posibilidad de dejar sin acceso a todas las cuentas.\n- **Rollback**: restauración versionada de la configuración previa.\n- **Consola fuera de banda**: acceso alternativo independiente del servicio que se modifica.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-25-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: durante una revisión se detecta una línea `auth optional pam_exec.so /opt/scripts/check.sh` en el servicio SSH de una VM de laboratorio. El script pertenece a `analista`, es escribible por el grupo `soc` y no está versionado. El analista concluye que hay una puerta trasera y propone borrar la línea en producción durante el horario laboral.\n\nLa conclusión mezcla un hallazgo real con una respuesta imprudente. La línea es un riesgo configurado: un script modificable por un grupo amplio, invocado durante la autenticación, amplía la superficie. Pero eso no prueba persistencia maliciosa ni autoría; puede ser una comprobación legítima mal ubicada. Y borrar la línea en producción sin plan puede romper el acceso si el script hace algo de lo que depende la pila.\n\nLa lectura correcta documenta ruta, propietario, permisos, argumentos, versión y quién puede escribir; comprueba si el módulo se invoca en la ruta efectiva; y propone el cambio en una VM con snapshot, con prueba de fallo, prueba de éxito y rollback. El límite: sin historial de cambios ni ticket, la intención del script queda sin determinar, y la auditoría no acredita que el host esté o no comprometido.\n\n"
+    },
+    {
+      "id": "LNX-25-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Auditar PAM en solo lectura y tratar los cambios de política como eventos de alta criticidad.\n- Red Team autorizado: Documentar rutas invocadas y permisos de escritura sin modificar la política del host.\n- Evidencia de la etapa: Ruta efectiva, estructura por grupos, invocaciones externas y plan de cambio con rollback.\n- Criterio de dominio: Separa hallazgo, hipótesis y cambio planificado, y nunca deja el acceso sin vía de rescate.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB32](../../05_RECURSOS/LABORATORIOS/LNX-LAB32.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F101**: [Linux-PAM pam.d(5)](https://man7.org/linux/man-pages/man5/pam.d.5.html). Estructura de la pila y semántica de los controles.\n- **F102**: [Linux-PAM pam_exec(8)](https://man7.org/linux/man-pages/man8/pam_exec.8.html). Comando externo, entorno y opciones sensibles como `expose_authtok`.\n- **F105**: [Linux-PAM pam.conf(5)](https://man7.org/linux/man-pages/man5/pam.conf.5.html). Precedencia y resolución del fichero efectivo.\n- **F103**: [sudoers(5)](https://man7.org/linux/man-pages/man5/sudoers.5.html). Delegación posterior a la autenticación y revisión de reglas.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-25-L02-P01",
+    "prompt": "En una revisión aparece la línea `auth optional pam_exec.so /opt/scripts/check.sh` en el servicio SSH de una VM de laboratorio. El script pertenece a `analista`, es escribible por el grupo `soc` y no está versionado. El analista concluye que hay una puerta trasera y propone borrar la línea en producción durante el horario laboral. Explica qué documentarías en solo lectura, qué riesgos concretos ves y cómo plantearías el cambio con rescate y rollback.",
+    "markdown": "## 4. Práctica individual\n\nEn una revisión aparece la línea `auth optional pam_exec.so /opt/scripts/check.sh` en el servicio SSH de una VM de laboratorio. El script pertenece a `analista`, es escribible por el grupo `soc` y no está versionado. El analista concluye que hay una puerta trasera y propone borrar la línea en producción durante el horario laboral. Explica qué documentarías en solo lectura, qué riesgos concretos ves y cómo plantearías el cambio con rescate y rollback.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber auditado un host ni haber modificado PAM.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-25-L02-Q01",
+      "prompt": "¿Qué riesgo añade `pam_exec.so` en una pila de autenticación?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Sustituye a `pam_unix.so` y desactiva la comprobación de contraseña por diseño"
+        },
+        {
+          "id": "B",
+          "text": "Solo se aplica al grupo `password` y no interviene en el acceso"
+        },
+        {
+          "id": "C",
+          "text": "Ejecuta un comando externo y puede ampliar la superficie si ese comando o sus argumentos son modificables"
+        },
+        {
+          "id": "D",
+          "text": "Impide el uso de segundo factor en cualquier servicio"
+        }
+      ]
+    },
+    {
+      "id": "LNX-25-L02-Q02",
+      "prompt": "Antes de cambiar una política PAM en un host autorizado, ¿qué conjunto de medidas es razonable?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Editar el fichero con `sed -i` y reiniciar el servicio sin copia"
+        },
+        {
+          "id": "B",
+          "text": "Cambiar la política en horario laboral y avisar después si falla"
+        },
+        {
+          "id": "C",
+          "text": "Desactivar la autenticación por contraseña para simplificar la prueba"
+        },
+        {
+          "id": "D",
+          "text": "Snapshot probado, copia y hash del fichero, consola fuera de banda, cuenta de prueba, validación, rollback y comparación de telemetría"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB32](../../05_RECURSOS/LABORATORIOS/LNX-LAB32.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F101**: [Linux-PAM pam.d(5)](https://man7.org/linux/man-pages/man5/pam.d.5.html). Estructura de la pila y semántica de los controles.\n- **F102**: [Linux-PAM pam_exec(8)](https://man7.org/linux/man-pages/man8/pam_exec.8.html). Comando externo, entorno y opciones sensibles como `expose_authtok`.\n- **F105**: [Linux-PAM pam.conf(5)](https://man7.org/linux/man-pages/man5/pam.conf.5.html). Precedencia y resolución del fichero efectivo.\n- **F103**: [sudoers(5)](https://man7.org/linux/man-pages/man5/sudoers.5.html). Delegación posterior a la autenticación y revisión de reglas.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "60c8610918e972d400b68c3b"
+}

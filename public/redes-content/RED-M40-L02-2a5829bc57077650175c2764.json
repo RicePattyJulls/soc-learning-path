@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M40-L02",
+  "title": "Diseño L2/L3 y acceso",
+  "sourceHash": "6e8625a25bb4fc33ae1b3c4df8ab9f7cd37aa4f035e69cacd871d2cca95191ff",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M40-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nEntregar un diseño L2/L3 completo con prefijos y caminos.\n\nPrerrequisitos: [RED-M40-L01](../RED-E08/RED-M40-L01.md).\n\n## 2. Comprende el mecanismo\n\nDocumenta VLAN, prefijos IPv4/IPv6, gateway, trunk, root/instancias cuando aplique y routing entre dominios. Justifica rutas estáticas o protocolos elegidos por escala y necesidad. El proyecto puede comparar VRF, BGP e IPv6 mediante un diseño o laboratorio compatible; no exige simular funciones que la herramienta no soporta. Una red por VLAN necesita capacidad para hosts e interfaces, y un mapa bonito no detecta solapamientos. Conserva ida y retorno y los puntos donde se aplican políticas.\n\n### Vocabulario de apoyo\n\n- **Requisito y supuesto**: Condición que debe satisfacerse y dato provisional que necesita comprobación.\n- **RTO**: Objetivo de tiempo de recuperación para un servicio y fallo definidos, diferente de un resultado ya medido.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M40-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Asignación docente /24: empleados=.0/25; invitados=.128/26; servidores=.192/27; gestión=.224/27. Las capacidades convencionales son 126,62,30,30.\n\nLos bloques están alineados y no se solapan. Satisfacen los conteos básicos del caso, pero las reservas/gateways y crecimiento deben documentarse.\n\n"
+    },
+    {
+      "id": "RED-M40-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Definir cobertura de sensores realista.\n- Red Team autorizado: Verificar controles de arquitectura.\n- Evidencia del módulo: Topología, direccionamiento, políticas, pruebas, observabilidad.\n- Criterio del módulo: Supera revisión de seguridad, diseño y recuperación.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L19](../../05_RECURSOS/LABORATORIOS/RED-L19.md)\n- [Caso integrador Empresa-Lab](../../05_RECURSOS/EMPRESA-LAB.json)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC4632**: [RFC 4632: Classless Inter-domain Routing](https://www.rfc-editor.org/rfc/rfc4632.html). Prefijos y agregación IPv4.\n- **NIST-ZT**: [SP 800-207 Zero Trust Architecture](https://csrc.nist.gov/pubs/sp/800/207/final). Decisiones por recurso, identidad y contexto; no confianza automática por ubicación.\n- **FRR-BGP**: [BGP](https://docs.frrouting.org/en/latest/bgp.html). Selección de rutas, políticas, comunidades y operación.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M40-L02-P01",
+    "prompt": "Invitados crece a 80 equipos. Explica por qué el /26 ya no basta y qué artefactos deben revisarse al migrar.",
+    "markdown": "## 4. Práctica individual\n\nInvitados crece a 80 equipos. Explica por qué el /26 ya no basta y qué artefactos deben revisarse al migrar.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M40-L02-Q01",
+      "prompt": "¿Cuántos hosts convencionales admite el /26 del caso?",
+      "options": [
+        {
+          "id": "A",
+          "text": "30"
+        },
+        {
+          "id": "B",
+          "text": "62"
+        },
+        {
+          "id": "C",
+          "text": "126"
+        },
+        {
+          "id": "D",
+          "text": "64 utilizables siempre"
+        }
+      ]
+    },
+    {
+      "id": "RED-M40-L02-Q02",
+      "prompt": "¿Qué ocurre al pedir 80 invitados?",
+      "options": [
+        {
+          "id": "A",
+          "text": "IPv4 amplía automáticamente la subred"
+        },
+        {
+          "id": "B",
+          "text": "Cabe sin cambios porque 80 es menor que 128"
+        },
+        {
+          "id": "C",
+          "text": "Se supera la capacidad del /26 asignado"
+        },
+        {
+          "id": "D",
+          "text": "La VLAN elimina necesidad de direcciones"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L19](../../05_RECURSOS/LABORATORIOS/RED-L19.md)\n- [Caso integrador Empresa-Lab](../../05_RECURSOS/EMPRESA-LAB.json)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC4632**: [RFC 4632: Classless Inter-domain Routing](https://www.rfc-editor.org/rfc/rfc4632.html). Prefijos y agregación IPv4.\n- **NIST-ZT**: [SP 800-207 Zero Trust Architecture](https://csrc.nist.gov/pubs/sp/800/207/final). Decisiones por recurso, identidad y contexto; no confianza automática por ubicación.\n- **FRR-BGP**: [BGP](https://docs.frrouting.org/en/latest/bgp.html). Selección de rutas, políticas, comunidades y operación.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "2a5829bc57077650175c2764"
+}

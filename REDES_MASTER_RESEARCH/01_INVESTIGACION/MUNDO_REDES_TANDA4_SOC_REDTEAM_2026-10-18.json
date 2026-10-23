@@ -1,0 +1,1481 @@
+{
+  "title": "Mundo de Redes — Tanda 4: SOC y Red Team",
+  "date": "2026-10-18",
+  "status": "investigación_y_diseño_documental; no validación práctica; no aprobado",
+  "baseline": {
+    "t2_sha256": "32e677fc52531e31a21da9e71222e9296abdd02fb02c286a9e689fb74d69ef3e",
+    "t3_sha256": "891cfcce7d09d7c90e6ae09d109eab6e7b1c86a981c68fd624ba5796b4ac3367",
+    "modules_total_baseline": 42,
+    "focus_modules": [
+      "RED-M26",
+      "RED-M27",
+      "RED-M28",
+      "RED-M29",
+      "RED-M30",
+      "RED-M31",
+      "RED-M32",
+      "RED-M33",
+      "RED-M34",
+      "RED-M35"
+    ],
+    "total_hours_baseline": 592,
+    "hours_reestimated": false
+  },
+  "research_method": {
+    "roles": [
+      "RESEARCHER: contraste documental",
+      "CRITIC: búsqueda de brechas y afirmaciones no justificadas"
+    ],
+    "cycles_performed": 1,
+    "max_cycles": 5,
+    "scope": "Tanda 4: SOC e investigación, pruebas autorizadas y cruces de evidencias",
+    "types": {
+      "documentado": "Fuentes oficiales verificadas por búsqueda, sin validación local",
+      "inferencia": "Interpretaciones técnicas deducidas de estándares y esquemas",
+      "propuesta": "Diseño docente sin ensayo ni aprobación"
+    }
+  },
+  "sources": [
+    {
+      "id": "F01",
+      "org": "NIST",
+      "title": "SP 800-61 Rev. 3 — Incident Response Recommendations and Considerations for Cybersecurity Risk Management",
+      "version_date": "2025-04; final; sustituye Rev. 2",
+      "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+      "claims": "Gestión de respuesta, preparación, detección, respuesta, recuperación y mejora.",
+      "confidence": "alta",
+      "consulted_on": "2026-10-18"
+    },
+    {
+      "id": "F02",
+      "org": "NIST",
+      "title": "SP 800-115 — Technical Guide to Information Security Testing and Assessment",
+      "version_date": "2008-09; antigua, no sustituye ROE vigente ni asesoría legal",
+      "url": "https://www.nist.gov/publications/technical-guide-information-security-testing-and-assessment",
+      "claims": "Planificación, alcance, técnicas y límites de pruebas de seguridad.",
+      "confidence": "alta para contenido histórico/documentado; media para vigencia operativa",
+      "consulted_on": "2026-10-18"
+    },
+    {
+      "id": "F03",
+      "org": "IETF / RFC Editor",
+      "title": "RFC 7011 / STD 77 — Specification of the IPFIX Protocol",
+      "version_date": "2013-09; estándar de Internet",
+      "url": "https://www.rfc-editor.org/info/rfc7011/",
+      "claims": "Exportación de registros de flujo, puntos de observación, templates y procesos de medida.",
+      "confidence": "alta",
+      "consulted_on": "2026-10-18"
+    },
+    {
+      "id": "F04",
+      "org": "IETF / RFC Editor",
+      "title": "RFC 5424 — The Syslog Protocol",
+      "version_date": "2009-03; Proposed Standard",
+      "url": "https://www.rfc-editor.org/info/rfc5424/",
+      "claims": "Estructura del mensaje syslog y transporte independiente.",
+      "confidence": "alta",
+      "consulted_on": "2026-10-18"
+    },
+    {
+      "id": "F05",
+      "org": "IETF / RFC Editor",
+      "title": "RFC 9232 — Network Telemetry Framework",
+      "version_date": "2022; RFC informativo",
+      "url": "https://www.rfc-editor.org/info/rfc9232/",
+      "claims": "Arquitectura de generación, recolección, correlación y consumo de telemetría.",
+      "confidence": "alta",
+      "consulted_on": "2026-10-18"
+    },
+    {
+      "id": "F06",
+      "org": "Wireshark Foundation",
+      "title": "Wireshark filter manual",
+      "version_date": "Documentación viva; versión exacta del ejecutable no comprobada",
+      "url": "https://www.wireshark.org/docs/man-pages/wireshark-filter",
+      "claims": "Diferencia entre filtros de visualización y captura.",
+      "confidence": "alta",
+      "consulted_on": "2026-10-18"
+    },
+    {
+      "id": "F07",
+      "org": "Wireshark Foundation",
+      "title": "TShark manual",
+      "version_date": "Documentación viva; versión exacta del ejecutable no comprobada",
+      "url": "https://www.wireshark.org/docs/man-pages/tshark.html",
+      "claims": "Filtrado de captura -f vs visualización -Y; precauciones por pérdida en captura.",
+      "confidence": "alta",
+      "consulted_on": "2026-10-18"
+    },
+    {
+      "id": "F08",
+      "org": "Zeek Project",
+      "title": "Book of Zeek, conn.log",
+      "version_date": "Documentación 9.0.0 consultada; no instalación ni validación",
+      "url": "https://docs.zeek.org/en/current/reference/logs/conn.html",
+      "claims": "conn.log abarca flujos TCP/UDP y el significado de id.orig_h, id.resp_h, proto, uid, etc.",
+      "confidence": "alta",
+      "consulted_on": "2026-10-18"
+    },
+    {
+      "id": "F09",
+      "org": "Zeek Project",
+      "title": "Book of Zeek, core logs",
+      "version_date": "Documentación 9.0.0 consultada; no instalación ni validación",
+      "url": "https://docs.zeek.org/en/current/tutorial/logs.html",
+      "claims": "Conexiones, semántica de metadatos y procedencia en análisis de logs Zeek.",
+      "confidence": "alta",
+      "consulted_on": "2026-10-18"
+    },
+    {
+      "id": "F10",
+      "org": "OISF / Suricata",
+      "title": "Suricata 8.0.0 — EVE JSON Format",
+      "version_date": "v8.0.0, DNS EVE v3 por defecto; no asumir continuidad para 9.x",
+      "url": "https://docs.suricata.io/en/suricata-8.0.0/output/eve/eve-json-format.html",
+      "claims": "EVE para alertas y metadatos; cambios de esquema DNS entre versiones.",
+      "confidence": "alta",
+      "consulted_on": "2026-10-18"
+    },
+    {
+      "id": "F11",
+      "org": "MITRE ATT&CK",
+      "title": "Enterprise data sources, aviso de deprecación",
+      "version_date": "Data Sources deprecadas desde ATT&CK v18 (2025-10)",
+      "url": "https://attack.mitre.org/datasources/",
+      "claims": "No diseñar el currículo sobre listado DS como taxonomía vigente central.",
+      "confidence": "alta",
+      "consulted_on": "2026-10-18"
+    },
+    {
+      "id": "F12",
+      "org": "MITRE ATT&CK",
+      "title": "Data Components",
+      "version_date": "Página dinámica, consultada 2026-10-18",
+      "url": "https://attack.mitre.org/datacomponents/",
+      "claims": "Propiedades observables vinculadas a detección.",
+      "confidence": "alta",
+      "consulted_on": "2026-10-18"
+    },
+    {
+      "id": "F13",
+      "org": "MITRE ATT&CK",
+      "title": "DET0376 — Behavioral Detection Strategy for Network Service Discovery",
+      "version_date": "v1.0, modificada 2026-05-12",
+      "url": "https://attack.mitre.org/detectionstrategies/DET0376/",
+      "claims": "Detección de descubrimiento mediante proceso + conexiones y conducta de sondeo.",
+      "confidence": "alta",
+      "consulted_on": "2026-10-18"
+    },
+    {
+      "id": "F14",
+      "org": "MITRE ATT&CK",
+      "title": "T1046 — Network Service Discovery",
+      "version_date": "v3.2, modificado 2026-05-12",
+      "url": "https://attack.mitre.org/techniques/T1046/",
+      "claims": "Contexto ATT&CK para descubrimiento de servicios; no prueba del ataque.",
+      "confidence": "alta",
+      "consulted_on": "2026-10-18"
+    },
+    {
+      "id": "F15",
+      "org": "MITRE ATT&CK",
+      "title": "T1071.004 — Application Layer Protocol: DNS",
+      "version_date": "v1.4, modificado 2026-09-03",
+      "url": "https://attack.mitre.org/techniques/T1071/004/",
+      "claims": "Abuso potencial de DNS como C2; indicador no confirma técnica.",
+      "confidence": "alta",
+      "consulted_on": "2026-10-18"
+    },
+    {
+      "id": "F16",
+      "org": "MITRE ATT&CK",
+      "title": "T1021 — Remote Services",
+      "version_date": "v1.6, modificado 2025-10-24",
+      "url": "https://attack.mitre.org/techniques/T1021/",
+      "claims": "Acceso remoto legítimo/ilegítimo; requiere evidencia de contexto y autenticación.",
+      "confidence": "alta",
+      "consulted_on": "2026-10-18"
+    },
+    {
+      "id": "F17",
+      "org": "MITRE ATT&CK",
+      "title": "T1041 — Exfiltration Over C2 Channel",
+      "version_date": "v2.3, modificado 2026-05-12",
+      "url": "https://attack.mitre.org/techniques/T1041/",
+      "claims": "Contexto de exfiltración vía C2; volumen transmitido aislado no lo demuestra.",
+      "confidence": "alta",
+      "consulted_on": "2026-10-18"
+    },
+    {
+      "id": "F18",
+      "org": "Microsoft Learn",
+      "title": "Microsoft Sentinel — Syslog and CEF connectors with AMA",
+      "version_date": "Documentación viva, consultada 2026-10-18",
+      "url": "https://learn.microsoft.com/azure/sentinel/cef-syslog-ama-overview",
+      "claims": "DCR, AMA, Syslog/CommonSecurityLog y discrepancias TimeGenerated/EventTime; duplicados.",
+      "confidence": "alta",
+      "consulted_on": "2026-10-18"
+    },
+    {
+      "id": "F19",
+      "org": "Microsoft Learn",
+      "title": "Microsoft Sentinel — CEF key and CommonSecurityLog field mapping",
+      "version_date": "Documentación viva, consultada 2026-10-18",
+      "url": "https://learn.microsoft.com/azure/sentinel/cef-name-mapping",
+      "claims": "Relación publicada entre claves CEF y campos CommonSecurityLog.",
+      "confidence": "alta",
+      "consulted_on": "2026-10-18"
+    },
+    {
+      "id": "F20",
+      "org": "Microsoft Learn",
+      "title": "Microsoft Sentinel — ASIM Network Session normalization schema",
+      "version_date": "Página actualizada 2026-09-16",
+      "url": "https://learn.microsoft.com/en-us/azure/sentinel/normalization-schema-network",
+      "claims": "Semántica del esquema de sesiones; no implica que todas las fuentes estén presentes.",
+      "confidence": "alta",
+      "consulted_on": "2026-10-18"
+    },
+    {
+      "id": "F21",
+      "org": "Microsoft Learn",
+      "title": "Microsoft Sentinel — ASIM DNS normalization schema",
+      "version_date": "Documentación viva, consultada 2026-10-18",
+      "url": "https://learn.microsoft.com/en-us/azure/sentinel/normalization-schema-dns",
+      "claims": "Semántica de campos DNS normalizados y aliases.",
+      "confidence": "alta",
+      "consulted_on": "2026-10-18"
+    },
+    {
+      "id": "F22",
+      "org": "Microsoft Learn",
+      "title": "Microsoft Defender XDR — DeviceNetworkEvents advanced hunting schema",
+      "version_date": "Página con fecha 2026-06-22",
+      "url": "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-devicenetworkevents-table",
+      "claims": "Eventos de conexiones relacionados con el endpoint; depende de producto/habilitación.",
+      "confidence": "alta",
+      "consulted_on": "2026-10-18"
+    },
+    {
+      "id": "F23",
+      "org": "Splunk",
+      "title": "Common Information Model 6.1 — Network Traffic",
+      "version_date": "CIM 6.1; documento actualizado 2025-07-10",
+      "url": "https://help.splunk.com/en/splunk-cloud-platform/common-information-model/6.1/data-models/network-traffic",
+      "claims": "Modelo de red All_Traffic, tipos y campos src/dest/puertos/NAT.",
+      "confidence": "alta",
+      "consulted_on": "2026-10-18"
+    },
+    {
+      "id": "F24",
+      "org": "Microsoft Learn",
+      "title": "ASIM parser list for Microsoft Sentinel",
+      "version_date": "Documentación viva, consultada 2026-10-18",
+      "url": "https://learn.microsoft.com/azure/sentinel/normalization-parsers-list",
+      "claims": "Parsers de múltiples fuentes de Network Session; disponibilidad condicionada a implementación.",
+      "confidence": "alta",
+      "consulted_on": "2026-10-18"
+    }
+  ],
+  "telemetry": [
+    {
+      "id": "T01",
+      "name": "PCAP / pcapng",
+      "collection_location": "Captura en interfaz o TAP/SPAN",
+      "can_observe": "5-tupla visible, secuencia de paquetes, TCP flags, DNS en claro, handshake TLS observable en casos",
+      "limits": "Cifrado, SPAN sobresuscrito, captura truncada, offloading, ruta asimétrica, retención",
+      "modules": [
+        "RED-M05",
+        "RED-M28"
+      ],
+      "sources": [
+        "F06",
+        "F07"
+      ]
+    },
+    {
+      "id": "T02",
+      "name": "IPFIX/NetFlow",
+      "collection_location": "Exportador en router, switch, sonda o virtual network",
+      "can_observe": "Punto/dominio de observación, inicio/fin flujo, 5-tupla si exportada, bytes/paquetes si exportados",
+      "limits": "Muestreo, templates, bidireccionalidad variable, delay, NAT, ausencia de payload",
+      "modules": [
+        "RED-M27"
+      ],
+      "sources": [
+        "F03"
+      ]
+    },
+    {
+      "id": "T03",
+      "name": "Syslog (RFC 5424 y variantes)",
+      "collection_location": "Equipos de red, colector y transportes configurados",
+      "can_observe": "facility, severity, timestamp, hostname, mensaje, structured data si existe",
+      "limits": "Reloj emisor, zona, transporte, truncamiento, pérdidas, formatos heterogéneos",
+      "modules": [
+        "RED-M26"
+      ],
+      "sources": [
+        "F04",
+        "F18"
+      ]
+    },
+    {
+      "id": "T04",
+      "name": "Firewall/ACL",
+      "collection_location": "Firewall o router de borde/segmento",
+      "can_observe": "Regla, interfaz/zona, src/dst y puertos, allow/deny si emitidos, información de sesión",
+      "limits": "Logs no habilitados, estado/NAT pre/post no equivalente, tráfico fuera de sensor",
+      "modules": [
+        "RED-M21",
+        "RED-M27"
+      ],
+      "sources": [
+        "F18",
+        "F19",
+        "F20"
+      ]
+    },
+    {
+      "id": "T05",
+      "name": "DNS resolver",
+      "collection_location": "Resolver, sensor o servicio DNS",
+      "can_observe": "consultas/respuestas, nombre, tipo, rcode si existe, cliente observado",
+      "limits": "Cache, DoH/DoT, split horizon, resolvers externos, ausencia de resolución en PCAP",
+      "modules": [
+        "RED-M07",
+        "RED-M28"
+      ],
+      "sources": [
+        "F21",
+        "F15"
+      ]
+    },
+    {
+      "id": "T06",
+      "name": "DHCP",
+      "collection_location": "Servidor DHCP / relay",
+      "can_observe": "lease IP-MAC y duración, identificador de cliente si existe",
+      "limits": "Rotación, datos incompletos, DHCPv6/SLAAC fuera de DHCPv4, hora de consulta",
+      "modules": [
+        "RED-M07",
+        "RED-M29"
+      ],
+      "sources": [
+        "F18"
+      ]
+    },
+    {
+      "id": "T07",
+      "name": "Zeek conn/dns/ssl/http (según configuración)",
+      "collection_location": "Sensor Zeek, punto observado",
+      "can_observe": "uid, originator/responder, duración, servicio inferido, logs aplicables por protocolo",
+      "limits": "Servicio inferido no prueba proceso, flow UDP no significa handshake, pérdida de paquetes",
+      "modules": [
+        "RED-M27",
+        "RED-M28"
+      ],
+      "sources": [
+        "F08",
+        "F09"
+      ]
+    },
+    {
+      "id": "T08",
+      "name": "Suricata EVE",
+      "collection_location": "Sensor IDS/IPS configurado",
+      "can_observe": "event_type, flow_id y datos específicos DNS/TLS/alerta según versión/config",
+      "limits": "Regla firma no demuestra incidente, diferencias v7/v8 de DNS, reglas ausentes, pérdida",
+      "modules": [
+        "RED-M27",
+        "RED-M30"
+      ],
+      "sources": [
+        "F10"
+      ]
+    },
+    {
+      "id": "T09",
+      "name": "Proxy / web gateway",
+      "collection_location": "Proxy explícito/transparente o gateway",
+      "can_observe": "host, URL/path en ciertos modelos, HTTP status, acción de política",
+      "limits": "HTTPS y privacy, bypass, caché, cuentas compartidas, encadenamiento proxy",
+      "modules": [
+        "RED-M28",
+        "RED-M29"
+      ],
+      "sources": [
+        "F20"
+      ]
+    },
+    {
+      "id": "T10",
+      "name": "VPN/ZTNA",
+      "collection_location": "Gateway VPN o broker de identidad",
+      "can_observe": "identidad, inicio/fin, túnel, asignación IP, geografía aproximada si reportada",
+      "limits": "NAT, sesión compartida, MFA/contexto externo, reloj, evidencia de uso posterior",
+      "modules": [
+        "RED-M29",
+        "RED-M31"
+      ],
+      "sources": [
+        "F01",
+        "F18"
+      ]
+    },
+    {
+      "id": "T11",
+      "name": "MDE DeviceNetworkEvents",
+      "collection_location": "Sensor Microsoft Defender for Endpoint en dispositivo soportado",
+      "can_observe": "proceso iniciador y conexión/evento conforme a esquema e instrumentación",
+      "limits": "No equivale a PCAP íntegro, depende de despliegue/licencias/telemetría, cobertura de endpoints",
+      "modules": [
+        "RED-M29",
+        "RED-M30"
+      ],
+      "sources": [
+        "F22"
+      ]
+    },
+    {
+      "id": "T12",
+      "name": "Sentinel Syslog/CEF/ASIM",
+      "collection_location": "AMA, DCR, colecciones y parsers configurados",
+      "can_observe": "Syslog/CommonSecurityLog; ASIM Network Session/DNS cuando los parsers y fuentes existen",
+      "limits": "Duplicados, TimeGenerated vs EventTime, parsing, mapeo incompleto, DCR filtrante",
+      "modules": [
+        "RED-M26",
+        "RED-M30"
+      ],
+      "sources": [
+        "F18",
+        "F19",
+        "F20",
+        "F21",
+        "F24"
+      ]
+    },
+    {
+      "id": "T13",
+      "name": "Splunk CIM Network Traffic",
+      "collection_location": "Ingesta y normalización de origen",
+      "can_observe": "All_Traffic: src,dest,action,puertos,bytes, NAT si configurados y poblados",
+      "limits": "CIM es contrato de campo, no origen ni prueba de recepción; dependencias add-on/sourcetype",
+      "modules": [
+        "RED-M30"
+      ],
+      "sources": [
+        "F23"
+      ]
+    },
+    {
+      "id": "T14",
+      "name": "Autenticación Windows/Linux/AD/Entra",
+      "collection_location": "Logs de sistema, servicios y directorio",
+      "can_observe": "eventos de logon, método, resultado, identidad y host donde disponible",
+      "limits": "No demuestran por sí solos transmisión de payload; correlación con red requiere tiempo/host",
+      "modules": [
+        "RED-M29",
+        "RED-M30"
+      ],
+      "sources": [
+        "F01",
+        "F16"
+      ]
+    },
+    {
+      "id": "T15",
+      "name": "Wi-Fi controladora / RADIUS / NAC",
+      "collection_location": "AP/controladora/servidor AAA",
+      "can_observe": "asociación, autenticación, autorización, asignación VLAN cuando se registra",
+      "limits": "Problemas RF sin log, roaming, relojes, identidad incompleta, dispositivo cambiante",
+      "modules": [
+        "RED-M24",
+        "RED-M34"
+      ],
+      "sources": [
+        "F02",
+        "F05"
+      ]
+    },
+    {
+      "id": "T16",
+      "name": "SNMP / telemetría de equipo",
+      "collection_location": "Agente/collector y plano de gestión",
+      "can_observe": "contadores, estado de interfaces, traps, condiciones de pérdida",
+      "limits": "Polling intervalo, wraps, agentes no fiables, ausencia de detalle del paquete",
+      "modules": [
+        "RED-M26",
+        "RED-M39"
+      ],
+      "sources": [
+        "F05"
+      ]
+    }
+  ],
+  "module_improvements": [
+    {
+      "id": "RED-M26",
+      "gap": "No existe contrato explícito de procedencia y calidad para cada registro ni ensayo de hora de evento frente a hora de ingesta.",
+      "objectives": [
+        "Distinguir emisor, colector, transformaciones, hora de evento y hora de ingesta en ≥3 fuentes.",
+        "Identificar al menos dos causas de huecos o duplicados e impedir que se conviertan en cronología falsamente precisa."
+      ],
+      "practices": [
+        "Ordenar una cronología con tres relojes y registros repetidos; documentar la incertidumbre por fuente.",
+        "Auditar una cadena hipotética dispositivo → forwarder → AMA/DCR → SIEM sin afirmar ingestión real."
+      ],
+      "acceptance": [
+        "Cronología UTC reproducible, dejando explícita la incertidumbre.",
+        "Ficha de procedencia y calidad por fuente; no equiparar TimeGenerated a hora original."
+      ],
+      "sources": [
+        "F01",
+        "F04",
+        "F18"
+      ]
+    },
+    {
+      "id": "RED-M27",
+      "gap": "No distingue suficientemente observación de paquetes, flujos IPFIX, sesiones Zeek, alertas Suricata y decisiones de firewall.",
+      "objectives": [
+        "Interpretar al menos 4 tipos de registros con límites propios.",
+        "Corroborar o refutar una hipótesis usando ≥2 sensores independientes, incluyendo casos negativos."
+      ],
+      "practices": [
+        "Conciliar IPFIX, Zeek conn, EVE alert y denegación de firewall; explicar por qué las cuentas de bytes divergen.",
+        "Ejecutar revisión documental de sesgos por muestreo, NAT y sensor unilateral."
+      ],
+      "acceptance": [
+        "Matriz campo-fuente-semántica; al menos una explicación causal de discrepancia.",
+        "Nunca afirmar volumen exacto o intrusión solo por un flujo/alerta."
+      ],
+      "sources": [
+        "F03",
+        "F08",
+        "F10",
+        "F05"
+      ]
+    },
+    {
+      "id": "RED-M28",
+      "gap": "Falta un umbral observable de comprensión de protocolos y práctica con PCAP parcial/cifrado.",
+      "objectives": [
+        "Aplicar correctamente filtros de captura y visualización en ejemplos documentados.",
+        "Reconstruir una conversación observable y señalar explícitamente los campos ocultos por TLS."
+      ],
+      "practices": [
+        "Analizar PCAP sintético con retransmisión TCP, DNS y TLS; anotar paquetes que sostienen cada conclusión.",
+        "Comparar dos ubicaciones de sensor: antes/después de NAT o en un único extremo."
+      ],
+      "acceptance": [
+        "Captura/paquetes citados por índice o tiempo y límites del sensor.",
+        "No extraer contenidos cifrados que no se ven; comprobar falsos checksums por offload."
+      ],
+      "sources": [
+        "F06",
+        "F07",
+        "F08"
+      ]
+    },
+    {
+      "id": "RED-M29",
+      "gap": "La investigación carece de plantilla exigible para hipótesis alternativas, grado de confianza y atribución tras NAT.",
+      "objectives": [
+        "Formular ≥2 hipótesis plausibles para una alerta y obtener evidencia a favor/en contra.",
+        "Reconstruir cronología con incertidumbres y determinar la necesidad de logs DHCP/NAT/VPN."
+      ],
+      "practices": [
+        "Caso periódico tipo beacon vs monitor legítimo y caso movimiento lateral vs administración aprobada.",
+        "Establecer plan de pivotes red ↔ endpoint ↔ identidad sin suponer que la correlación existe."
+      ],
+      "acceptance": [
+        "Informe diferencia observaciones, hipótesis y conclusiones; justifica confianza.",
+        "Escala con petición concreta de evidencia faltante cuando no hay base para cierre."
+      ],
+      "sources": [
+        "F01",
+        "F13",
+        "F16",
+        "F17"
+      ]
+    },
+    {
+      "id": "RED-M30",
+      "gap": "Riesgo de equiparar CIM, ASIM, CEF y MDE y de usar ATT&CK Data Sources como taxonomía activa.",
+      "objectives": [
+        "Construir contrato de datos canónico propio con campo original, parser y pérdida semántica documentada.",
+        "Probar una detección con positivos, benignos parecidos, negativos y una degradación de telemetría."
+      ],
+      "practices": [
+        "Diseñar una especificación de detección neutral a SIEM, luego dos mapeos documentales ASIM/CIM sin inventar query funcional.",
+        "Auditar FPR/FNR sobre dataset sintético etiquetado y registrar ATT&CK como contexto."
+      ],
+      "acceptance": [
+        "Resultados con TP/FP/TN/FN y explicación de cobertura del dataset sin extrapolar a producción.",
+        "Ninguna consulta KQL/SPL se declara validada sin ejecutarla en una fase posterior."
+      ],
+      "sources": [
+        "F11",
+        "F12",
+        "F18",
+        "F19",
+        "F20",
+        "F21",
+        "F22",
+        "F23",
+        "F24"
+      ]
+    },
+    {
+      "id": "RED-M31",
+      "gap": "Falta comparar mitigaciones de conectividad con continuidad del servicio y la autorización concreta.",
+      "objectives": [
+        "Elegir y justificar contención reversible y proporcional a disponibilidad/criticidad.",
+        "Separar el acto recomendado del efectivamente autorizado, ejecutado y verificado."
+      ],
+      "practices": [
+        "Tabletop: bloqueo de IP, segmentación temporal, aislamiento host, recogida de evidencia, restauración.",
+        "Describir plan de rollback, comunicaciones, evidencias conservadas y criterios de no acción."
+      ],
+      "acceptance": [
+        "Matriz riesgo-impacto-autorización y plan de recuperación; ninguna acción sobre sistemas reales."
+      ],
+      "sources": [
+        "F01",
+        "F05"
+      ]
+    },
+    {
+      "id": "RED-M32",
+      "gap": "ROE exige reglas de parada y gestión de datos verificables, no solo un documento genérico.",
+      "objectives": [
+        "Redactar autorización, CIDR propios, servicios, ventanas, límites, responsables, detención, datos y limpieza.",
+        "Detectar cuatro casos de fuera de alcance mediante escenarios escritos."
+      ],
+      "practices": [
+        "Crear ficha de ensayo contra direcciones/documentos ficticios; revisión cruzada CRITIC."
+      ],
+      "acceptance": [
+        "Sin alcance aprobado no hay acciones de sondeo; STOP prevalece sobre logro técnico."
+      ],
+      "sources": [
+        "F02"
+      ]
+    },
+    {
+      "id": "RED-M33",
+      "gap": "Falta conexión causal entre tipo de actividad controlada, volumen/ritmo seguro y detectabilidad por sensor.",
+      "objectives": [
+        "Inventariar solamente hosts y puertos de un laboratorio definido, minimizando tráfico.",
+        "Relacionar al menos dos tipos de sondeo con trazas de endpoint, flow y firewall hipotéticas."
+      ],
+      "practices": [
+        "Comparar datos de sondeo de baja intensidad previamente diseñados y registros esperados, sin escaneos externos."
+      ],
+      "acceptance": [
+        "Evidencia acotada a objetivo, hora, herramienta aprobada, resultado, cobertura del sensor.",
+        "Se evita convertir una falta de alerta en afirmación de invisibilidad."
+      ],
+      "sources": [
+        "F02",
+        "F13",
+        "F14"
+      ]
+    },
+    {
+      "id": "RED-M34",
+      "gap": "Pruebas de segmentación solo son válidas si hay oráculos de allow/deny y rutas de retorno.",
+      "objectives": [
+        "Definir matriz de flujos esperados y observados con origen, destino, puerto, regla, tiempo y evidencia.",
+        "Diferenciar ACL, firewall stateful, routing, DNS y autenticación como causas alternativas."
+      ],
+      "practices": [
+        "Caso lab de dos zonas: comprobar conexiones de un servicio docente permitido y otro denegado.",
+        "Wi-Fi/NAC únicamente sobre infraestructura propia aislada; usar registros ficticios cuando falte hardware."
+      ],
+      "acceptance": [
+        "Prueba positiva y negativa + evidencia del camino y retorno; ningún flooding/DoS ni red de terceros."
+      ],
+      "sources": [
+        "F02",
+        "F05",
+        "F20"
+      ]
+    },
+    {
+      "id": "RED-M35",
+      "gap": "La validación conjunta carece de criterios de aprobación independiente de Red Team y SOC.",
+      "objectives": [
+        "Realizar cadena planeada objetivo→evento→ingesta→normalización→detección→triage→corrección→retest.",
+        "Distinguir eficacia del control preventivo y detectivo, y medir cobertura observable."
+      ],
+      "practices": [
+        "Diseñar dos iteraciones: estado previo y corregido, con verificación del control y de la alerta."
+      ],
+      "acceptance": [
+        "Evidencias separadas Blue/Red, límites y retest tras remediación; ninguna acción se marca ejecutada."
+      ],
+      "sources": [
+        "F01",
+        "F02",
+        "F13",
+        "F20",
+        "F23"
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "id": "S01",
+      "title": "DNS anómalo vs aplicación legítima",
+      "branch": "SOC",
+      "simulated_activity_or_indicator": "Consultas de nombres con longitud/frecuencia inusual en un dataset sintético",
+      "benign_alternative": "Actualizador empresarial o prueba DNS/monitor legítimo",
+      "required_corrob": "DNS resolver + endpoint + inventario; DNS en PCAP si visible",
+      "mitre_scope": "T1071.004 como hipótesis, no confirmación",
+      "modules": [
+        "RED-M07",
+        "RED-M28",
+        "RED-M29",
+        "RED-M30"
+      ],
+      "sources": [
+        "F15",
+        "F21"
+      ],
+      "success": "Analista clasifica con evidencia y límites; no afirma túnel DNS sin payload/contexto",
+      "status": "diseñado_no_ejecutado"
+    },
+    {
+      "id": "S02",
+      "title": "Periodicidad de conexiones vs monitorización",
+      "branch": "SOC",
+      "simulated_activity_or_indicator": "Conexiones HTTPS regulares a servidor de laboratorio",
+      "benign_alternative": "Health check, backup o cron autorizado",
+      "required_corrob": "IPFIX/Zeek conn + calendario de jobs + endpoint",
+      "mitre_scope": "No asignar T1071 sin corroboración",
+      "modules": [
+        "RED-M27",
+        "RED-M29",
+        "RED-M30"
+      ],
+      "sources": [
+        "F03",
+        "F08"
+      ],
+      "success": "Compara intervalos, dispersión, destino y proceso iniciador; dos hipótesis",
+      "status": "diseñado_no_ejecutado"
+    },
+    {
+      "id": "S03",
+      "title": "Acceso remoto nuevo vs administración aprobada",
+      "branch": "SOC",
+      "simulated_activity_or_indicator": "RDP/SSH/SMB entre dos segmentos docentes",
+      "benign_alternative": "Mantenimiento planificado",
+      "required_corrob": "Firewall + autenticación + proceso de origen + cambios",
+      "mitre_scope": "T1021 contexto condicionado a actividad de movimiento",
+      "modules": [
+        "RED-M06",
+        "RED-M29",
+        "RED-M30"
+      ],
+      "sources": [
+        "F16",
+        "F22"
+      ],
+      "success": "Distingue permiso de conexión de autenticación exitosa y uso interactivo",
+      "status": "diseñado_no_ejecutado"
+    },
+    {
+      "id": "S04",
+      "title": "Transferencia elevada vs copia de seguridad",
+      "branch": "SOC",
+      "simulated_activity_or_indicator": "Volumen de tráfico atípico en flow sintético",
+      "benign_alternative": "Backup, patching o réplica",
+      "required_corrob": "IPFIX/Zeek + inventario + horario de backup + endpoint",
+      "mitre_scope": "T1041 solo si se acredita canal C2 y exfil",
+      "modules": [
+        "RED-M27",
+        "RED-M29"
+      ],
+      "sources": [
+        "F03",
+        "F17"
+      ],
+      "success": "No interpreta bytes de flujo como datos exfiltrados confirmados",
+      "status": "diseñado_no_ejecutado"
+    },
+    {
+      "id": "S05",
+      "title": "Atribución tras NAT y DHCP",
+      "branch": "SOC",
+      "simulated_activity_or_indicator": "Múltiples endpoints comparten IP pública observada",
+      "benign_alternative": "Tráfico de usuario legítimo y reasignación DHCP",
+      "required_corrob": "NAT translation + DHCP lease + DNS + VPN con UTC",
+      "mitre_scope": "Sin etiqueta ATT&CK",
+      "modules": [
+        "RED-M17",
+        "RED-M26",
+        "RED-M29"
+      ],
+      "sources": [
+        "F03",
+        "F18"
+      ],
+      "success": "Ofrece atribución provisional; explicita cuándo faltan puertos y tiempo",
+      "status": "diseñado_no_ejecutado"
+    },
+    {
+      "id": "S06",
+      "title": "Sensor parcial o pérdida de captura",
+      "branch": "SOC",
+      "simulated_activity_or_indicator": "Paquetes ausentes y flujos discordantes",
+      "benign_alternative": "Capture loss, SPAN saturado, ruta asimétrica",
+      "required_corrob": "PCAP punto A/B + sensores + contadores de interfaz",
+      "mitre_scope": "Sin etiqueta ATT&CK",
+      "modules": [
+        "RED-M27",
+        "RED-M28"
+      ],
+      "sources": [
+        "F05",
+        "F07"
+      ],
+      "success": "Concluye visibilidad insuficiente, no ausencia de evento",
+      "status": "diseñado_no_ejecutado"
+    },
+    {
+      "id": "S07",
+      "title": "Descubrimiento de servicios autorizado",
+      "branch": "Blue↔Red",
+      "simulated_activity_or_indicator": "Probes de baja intensidad de hosts propios y rango acotado del laboratorio",
+      "benign_alternative": "Escaneo de inventario del equipo de IT",
+      "required_corrob": "Flujos + firewall + proceso + cambio aprobado",
+      "mitre_scope": "T1046 / DET0376 como referencia de conducta",
+      "modules": [
+        "RED-M32",
+        "RED-M33",
+        "RED-M30"
+      ],
+      "sources": [
+        "F13",
+        "F14"
+      ],
+      "success": "ROE completo, cobertura de detectores y lista de paquetes/servicios esperados",
+      "status": "diseñado_no_ejecutado"
+    },
+    {
+      "id": "S08",
+      "title": "Prueba de segmentación allow/deny",
+      "branch": "Blue↔Red",
+      "simulated_activity_or_indicator": "Un flujo permitido y otro bloqueado en dos zonas de laboratorio",
+      "benign_alternative": "ACL mal aplicada, DNS erróneo, falta de ruta de retorno",
+      "required_corrob": "Matriz de políticas + firewall + PCAP + rutas",
+      "mitre_scope": "Sin etiqueta ATT&CK",
+      "modules": [
+        "RED-M21",
+        "RED-M32",
+        "RED-M34"
+      ],
+      "sources": [
+        "F02",
+        "F20"
+      ],
+      "success": "Correlaciona 2 resultados opuestos, conoce error de falso negativo",
+      "status": "diseñado_no_ejecutado"
+    },
+    {
+      "id": "S09",
+      "title": "Autenticaciones fallidas limitadas",
+      "branch": "Blue↔Red",
+      "simulated_activity_or_indicator": "Tres eventos de fallo de credenciales ficticias/preparadas",
+      "benign_alternative": "Error humano por contraseña expirada",
+      "required_corrob": "AAA/RADIUS o sistema, VPN, firewall",
+      "mitre_scope": "No asignar fuerza bruta por tres fallos",
+      "modules": [
+        "RED-M24",
+        "RED-M29",
+        "RED-M34"
+      ],
+      "sources": [
+        "F01",
+        "F02"
+      ],
+      "success": "Sin intentos masivos; distingue autenticación fallida de red inaccesible",
+      "status": "diseñado_no_ejecutado"
+    },
+    {
+      "id": "S10",
+      "title": "VPN de administración legítima",
+      "branch": "Blue↔Red",
+      "simulated_activity_or_indicator": "Sesión VPN de identidad docente previamente aprobada",
+      "benign_alternative": "Salida de red compartida, IP variable",
+      "required_corrob": "VPN gateway + identidad + control de acceso + logs de actividad",
+      "mitre_scope": "No asignar ATT&CK sin evidencia",
+      "modules": [
+        "RED-M18",
+        "RED-M29",
+        "RED-M31"
+      ],
+      "sources": [
+        "F01",
+        "F18"
+      ],
+      "success": "Identidad, túnel e IP mapeados con hora; privacidad y límite declarados",
+      "status": "diseñado_no_ejecutado"
+    },
+    {
+      "id": "S11",
+      "title": "802.1X / WLAN corporativa",
+      "branch": "Blue↔Red",
+      "simulated_activity_or_indicator": "Conexión permitida de dispositivo del laboratorio y autenticación rechazada",
+      "benign_alternative": "Error de certificado o configuración RADIUS",
+      "required_corrob": "RADIUS/AAA + AP controlador + DHCP + segmentos",
+      "mitre_scope": "Sin etiqueta ATT&CK",
+      "modules": [
+        "RED-M24",
+        "RED-M32",
+        "RED-M34"
+      ],
+      "sources": [
+        "F02",
+        "F05"
+      ],
+      "success": "Evidencia de autenticación, asignación VLAN y causa de fallo; sin tocar redes ajenas",
+      "status": "diseñado_no_ejecutado"
+    },
+    {
+      "id": "S12",
+      "title": "Corrección y retest integrador",
+      "branch": "Blue↔Red",
+      "simulated_activity_or_indicator": "Control mal configurado, prueba mínima, alerta e intervención aprobada",
+      "benign_alternative": "Fallo operacional no malicioso",
+      "required_corrob": "Config diff + logs pre/post + pcaps sintéticos + detector tests",
+      "mitre_scope": "ATT&CK solo si conducta queda respaldada",
+      "modules": [
+        "RED-M30",
+        "RED-M31",
+        "RED-M35",
+        "RED-M41"
+      ],
+      "sources": [
+        "F01",
+        "F02",
+        "F13"
+      ],
+      "success": "Dos iteraciones reproducibles, rollback, efecto secundario y separación acción/recomendación",
+      "status": "diseñado_no_ejecutado"
+    }
+  ],
+  "cross_worlds": [
+    {
+      "world": "Microsoft Sentinel",
+      "focus_modules": "RED-M26/27/29/30",
+      "learn_here": "Procedencia, Syslog/CEF, ASIM Network Session/DNS; AMA+DCR y posibles duplicados",
+      "reference_other_world": "Se referencia al Mundo Microsoft para KQL y conectores desplegados; no replicar curso KQL",
+      "sources": [
+        "F18",
+        "F19",
+        "F20",
+        "F21",
+        "F24"
+      ]
+    },
+    {
+      "world": "Defender XDR",
+      "focus_modules": "RED-M29/30",
+      "learn_here": "Enriquecimiento con proceso/endpoint desde DeviceNetworkEvents cuando disponible",
+      "reference_other_world": "Se referencia hunting, esquemas y licenciamiento al Mundo Microsoft; cobertura por endpoint",
+      "sources": [
+        "F22"
+      ]
+    },
+    {
+      "world": "Splunk SOC",
+      "focus_modules": "RED-M26/27/29/30",
+      "learn_here": "Modelo CIM Network Traffic y validación del mapping de campos",
+      "reference_other_world": "Se referencia SPL, datamodels y pipelines al Mundo Splunk; no prometer equivalente 1:1 ASIM",
+      "sources": [
+        "F23"
+      ]
+    },
+    {
+      "world": "Windows / Active Directory",
+      "focus_modules": "RED-M28/29/30",
+      "learn_here": "SMB/RDP/Kerberos/DNS observables y logs de logon para contexto",
+      "reference_other_world": "Lecciones de administración AD se reservan a futuro Mundo Windows/AD",
+      "sources": [
+        "F16"
+      ]
+    },
+    {
+      "world": "Linux",
+      "focus_modules": "RED-M26/28/33",
+      "learn_here": "tcpdump/TShark, syslog/journald, interfaces, nftables y SSH como contexto",
+      "reference_other_world": "Administración detallada y comandos al futuro Mundo Linux",
+      "sources": [
+        "F06",
+        "F07"
+      ]
+    },
+    {
+      "world": "Simulador SOC",
+      "focus_modules": "RED-M29/30/31/35",
+      "learn_here": "Casos docentes con evidencia sintética y anotación de procedencia",
+      "reference_other_world": "Se referencia a casos, veredictos y cronologías, sin alterar el simulador",
+      "sources": [
+        "F01",
+        "F13"
+      ]
+    }
+  ],
+  "critical_issues": [
+    {
+      "id": "C01",
+      "priority": "crítico",
+      "gap": "Confundir alerta, comportamiento sospechoso e incidente confirmado",
+      "modules": [
+        "RED-M27",
+        "RED-M29",
+        "RED-M30"
+      ],
+      "action": "Evaluación con alternativas y corroboración obligatoria",
+      "sources": [
+        "F01",
+        "F08",
+        "F10"
+      ]
+    },
+    {
+      "id": "C02",
+      "priority": "crítico",
+      "gap": "Presentar KQL/SPL no probados o datasets sintéticos como producción",
+      "modules": [
+        "RED-M30"
+      ],
+      "action": "Etiqueta sintético/no ejecutado y requiere ambiente en tanda posterior",
+      "sources": [
+        "F18",
+        "F23"
+      ]
+    },
+    {
+      "id": "C03",
+      "priority": "alto",
+      "gap": "Falta caracterizar pérdida/sampling y zonas ciegas",
+      "modules": [
+        "RED-M27",
+        "RED-M28"
+      ],
+      "action": "Incluir prueba de visibilidad y mapa de sensores",
+      "sources": [
+        "F03",
+        "F05",
+        "F07"
+      ]
+    },
+    {
+      "id": "C04",
+      "priority": "alto",
+      "gap": "NAT/DHCP/VPN insuficientes para atribución de usuario",
+      "modules": [
+        "RED-M29"
+      ],
+      "action": "Cadena de asignación con timestamp, NAT puertos y confianza",
+      "sources": [
+        "F03",
+        "F18"
+      ]
+    },
+    {
+      "id": "C05",
+      "priority": "alto",
+      "gap": "Uso obsoleto de MITRE ATT&CK Data Sources como taxonomía central",
+      "modules": [
+        "RED-M30"
+      ],
+      "action": "Actualizar a Detection Strategies / Data Components y revisar vigencia",
+      "sources": [
+        "F11",
+        "F12",
+        "F13"
+      ]
+    },
+    {
+      "id": "C06",
+      "priority": "alto",
+      "gap": "Campos ASIM/CIM/CEF/MDE no equivalentes por defecto",
+      "modules": [
+        "RED-M30"
+      ],
+      "action": "Contrato de normalización con pérdidas y pruebas de parser",
+      "sources": [
+        "F19",
+        "F20",
+        "F21",
+        "F22",
+        "F23"
+      ]
+    },
+    {
+      "id": "C07",
+      "priority": "alto",
+      "gap": "Confundir timestamps de emisor, colector e ingesta",
+      "modules": [
+        "RED-M26",
+        "RED-M29"
+      ],
+      "action": "Dos o más relojes y diferencia UTC ± incertidumbre",
+      "sources": [
+        "F18"
+      ]
+    },
+    {
+      "id": "C08",
+      "priority": "alto",
+      "gap": "Modelo ROE débil sin STOP, daños y datos",
+      "modules": [
+        "RED-M32"
+      ],
+      "action": "Documento ROE obligatorio y rechazo automático de casos fuera alcance",
+      "sources": [
+        "F02"
+      ]
+    },
+    {
+      "id": "C09",
+      "priority": "alto",
+      "gap": "Seguridad L2/Wi-Fi fuera de hardware propio",
+      "modules": [
+        "RED-M34"
+      ],
+      "action": "Lab aislado o datasets, prohibidas redes ajenas",
+      "sources": [
+        "F02"
+      ]
+    },
+    {
+      "id": "C10",
+      "priority": "medio",
+      "gap": "Escaneo benigno indistinguible de descubrimiento malicioso",
+      "modules": [
+        "RED-M33",
+        "RED-M30"
+      ],
+      "action": "Control de mantenimiento/asset inventory como hard negative",
+      "sources": [
+        "F13",
+        "F14"
+      ]
+    },
+    {
+      "id": "C11",
+      "priority": "medio",
+      "gap": "Retest evalúa solo bloqueo o solo alerta",
+      "modules": [
+        "RED-M35"
+      ],
+      "action": "Valida prevención, detección, disponibilidad y rollback",
+      "sources": [
+        "F01",
+        "F02"
+      ]
+    },
+    {
+      "id": "C12",
+      "priority": "medio",
+      "gap": "Cambio de EVE DNS Suricata v8 ignorado",
+      "modules": [
+        "RED-M27",
+        "RED-M30"
+      ],
+      "action": "Pruebas de compatibilidad y esquema por versión",
+      "sources": [
+        "F10"
+      ]
+    },
+    {
+      "id": "C13",
+      "priority": "medio",
+      "gap": "Zeek conn UDP interpretado como estado TCP",
+      "modules": [
+        "RED-M27",
+        "RED-M28"
+      ],
+      "action": "Evaluar semántica conn_state por protocolo",
+      "sources": [
+        "F08"
+      ]
+    },
+    {
+      "id": "C14",
+      "priority": "medio",
+      "gap": "Ausencia de dato interpretada como ausencia de evento",
+      "modules": [
+        "RED-M28",
+        "RED-M29"
+      ],
+      "action": "Estado indeterminado por cobertura incompleta",
+      "sources": [
+        "F05",
+        "F07"
+      ]
+    }
+  ],
+  "rubrics": [
+    {
+      "branch": "SOC",
+      "points": 100,
+      "dimensions": [
+        {
+          "dimension": "Inventario y procedencia de evidencia",
+          "points": 20
+        },
+        {
+          "dimension": "Interpretación correcta de red y visibilidad",
+          "points": 20
+        },
+        {
+          "dimension": "Cronología UTC y atribución sin excesos",
+          "points": 15
+        },
+        {
+          "dimension": "Hipótesis, alternativas y corroboración",
+          "points": 20
+        },
+        {
+          "dimension": "Decisión de triage, contención propuesta y escalado",
+          "points": 15
+        },
+        {
+          "dimension": "Comunicación reproducible y preservación",
+          "points": 10
+        }
+      ],
+      "fatal_failures": [
+        "Atribución maliciosa sin evidencia",
+        "Presentar datos sintéticos como reales",
+        "Alterar evidencia sin dejar traza"
+      ]
+    },
+    {
+      "branch": "Red Team autorizado",
+      "points": 100,
+      "dimensions": [
+        {
+          "dimension": "Autorización y cumplimiento del ROE",
+          "points": 25
+        },
+        {
+          "dimension": "Diseño de prueba mínima y reversible",
+          "points": 15
+        },
+        {
+          "dimension": "Resultados y evidencia reproducibles",
+          "points": 20
+        },
+        {
+          "dimension": "Validación de controles y límites",
+          "points": 20
+        },
+        {
+          "dimension": "Remediación, comunicación y retest",
+          "points": 20
+        }
+      ],
+      "fatal_failures": [
+        "Cualquier prueba fuera del alcance",
+        "DoS o interrupción intencional",
+        "Manipulación o extracción de datos reales"
+      ]
+    },
+    {
+      "branch": "Validación conjunta Blue↔Red",
+      "points": 100,
+      "dimensions": [
+        {
+          "dimension": "Objetivo y permiso documentados",
+          "points": 15
+        },
+        {
+          "dimension": "Ground truth de la acción aprobada",
+          "points": 15
+        },
+        {
+          "dimension": "Visibilidad/telemetría efectiva",
+          "points": 20
+        },
+        {
+          "dimension": "Análisis SOC con hipótesis alternativas",
+          "points": 20
+        },
+        {
+          "dimension": "Control reparado y retest",
+          "points": 20
+        },
+        {
+          "dimension": "Rollback y lecciones documentadas",
+          "points": 10
+        }
+      ],
+      "fatal_failures": [
+        "Reclamar detección exitosa sin eventos",
+        "Falta de evidencia del retest",
+        "Uso de sistemas externos o de producción"
+      ]
+    }
+  ],
+  "sample_practices": [
+    {
+      "id": "P4-01",
+      "name": "Investigación multi-sensor de supuesto descubrimiento",
+      "module_ids": [
+        "RED-M27",
+        "RED-M29",
+        "RED-M30",
+        "RED-M33"
+      ],
+      "estimated_hours": 4,
+      "prereqs": [
+        "RED-M05",
+        "RED-M17",
+        "RED-M26",
+        "RED-M32"
+      ],
+      "setup": "Dataset sintético etiquetado con flows + firewall + proceso e inventario; no se genera tráfico real en investigación",
+      "task": "Separar enumeración autorizada, herramienta IT y patrón desconocido; producir cronología y recomendaciones",
+      "evidence": [
+        "traza de fuentes",
+        "matriz observación/hipótesis",
+        "TP/FP/TN/FN de criterio docente",
+        "alcance ROE"
+      ],
+      "success": "Sin atribución maliciosa gratuita; detector informado con hard negatives",
+      "recovery": "Ningún sistema modificado; limpieza no aplicable",
+      "status": "diseñado_no_ejecutado"
+    },
+    {
+      "id": "P4-02",
+      "name": "Zona ciega de visibilidad y reloj",
+      "module_ids": [
+        "RED-M26",
+        "RED-M27",
+        "RED-M28",
+        "RED-M29"
+      ],
+      "estimated_hours": 3,
+      "prereqs": [
+        "RED-M05",
+        "RED-M07",
+        "RED-M17"
+      ],
+      "setup": "PCAP parcial y eventos sintéticos con desfase de NTP y campos de ingestión distintos",
+      "task": "Reordenar hechos; medir incertidumbre; distinguir ausencias de paquetes y de logs",
+      "evidence": [
+        "timeline UTC",
+        "matriz cobertura",
+        "anotación diferencia timestamp",
+        "hipótesis no descartables"
+      ],
+      "success": "No inventa paquetes ni atribución exacta",
+      "recovery": "Ningún sistema modificado; limpieza no aplicable",
+      "status": "diseñado_no_ejecutado"
+    },
+    {
+      "id": "P4-03",
+      "name": "Contrato ASIM/CIM de eventos de red",
+      "module_ids": [
+        "RED-M26",
+        "RED-M30"
+      ],
+      "estimated_hours": 4,
+      "prereqs": [
+        "RED-M26",
+        "RED-M27"
+      ],
+      "setup": "Eventos de ejemplo sintéticos tipo firewall, CEF, Zeek y flow; documentación oficial de schemas",
+      "task": "Mapear src/dest/action/bytes, zona y NAT a esquema canónico con supuestos y campos perdidos",
+      "evidence": [
+        "tabla mapeo",
+        "test de consistencia",
+        "source registry",
+        "campo nulo en ausencia de dato"
+      ],
+      "success": "No inventa mapeos directos ni ejecuta KQL/SPL ficticio",
+      "recovery": "Ningún sistema modificado; limpieza no aplicable",
+      "status": "diseñado_no_ejecutado"
+    },
+    {
+      "id": "P4-04",
+      "name": "Matriz de segmentación ofensiva/defensiva",
+      "module_ids": [
+        "RED-M21",
+        "RED-M32",
+        "RED-M34",
+        "RED-M35"
+      ],
+      "estimated_hours": 5,
+      "prereqs": [
+        "RED-M21",
+        "RED-M32",
+        "RED-M33"
+      ],
+      "setup": "Topología de laboratorio hipotética, aislada con zonas CLIENT/APP/DB; IPs RFC5737 de documentación",
+      "task": "Diseñar conexiones permitidas/denegadas y controles observables, incluyendo ruta retorno",
+      "evidence": [
+        "ROE",
+        "política esperada",
+        "evidencia sintética pre/post",
+        "matriz accesos",
+        "rollback"
+      ],
+      "success": "Verifica control y cobertura de logs en dos sentidos, sin sondear nada real",
+      "recovery": "Restauración propuesta para tanda 5; no aplicada",
+      "status": "diseñado_no_ejecutado"
+    },
+    {
+      "id": "P4-05",
+      "name": "Ciclo de remediación y retest",
+      "module_ids": [
+        "RED-M29",
+        "RED-M30",
+        "RED-M31",
+        "RED-M35"
+      ],
+      "estimated_hours": 6,
+      "prereqs": [
+        "RED-M30",
+        "RED-M31",
+        "RED-M34"
+      ],
+      "setup": "Escenario documental + logs sintéticos antes/después de regla de firewall",
+      "task": "Evaluar dos decisiones de contención, seleccionar reversibilidad, retest y impacto",
+      "evidence": [
+        "plan de cambio",
+        "notificación y autorización",
+        "prueba red",
+        "prueba detector",
+        "retorno al servicio"
+      ],
+      "success": "No declara ejecutado cambio o retest sin ejecución",
+      "recovery": "Rollback documental; aplicación real pendiente de la fase permitida",
+      "status": "diseñado_no_ejecutado"
+    }
+  ],
+  "non_claims": [
+    "Los ejemplos docentes están diseñados, no ejecutados.",
+    "No se afirma ingestión Sentinel/Splunk ni compatibilidad de consultas de búsqueda.",
+    "No se afirma que las 592 horas sean suficientes tras ampliar el diseño.",
+    "No se afirma que ATT&CK identifique una intrusión por sí solo.",
+    "No se infiere equivalencia entre EVE, Zeek, IPFIX, ASIM, CIM, CEF y MDE.",
+    "No se proporcionan instrucciones de sondeo contra objetivos externos."
+  ],
+  "handoff_tanda5": [
+    "Especificar topologías, direcciones, versiones y herramientas en inventario reproducible.",
+    "Revisar licencias y coste con fecha y ubicación antes de declarar reproducibilidad.",
+    "Definir datasets PCAP/JSON con ground truth, usos permitidos y hashes.",
+    "Verificar cada regla/sintaxis en motor real o marcarla como pseudocódigo.",
+    "Ejecutar laboratorios solo después de aprobación explícita; marcar diseñado/ejecutado/validado por separado."
+  ]
+}

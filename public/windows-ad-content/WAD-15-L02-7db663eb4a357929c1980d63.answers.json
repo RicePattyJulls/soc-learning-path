@@ -1,0 +1,39 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-15-L02",
+  "sourceHash": "c0f82bb69f550e227543b79ac19ec073959206f66ef5d6e26fc43cc30c85752d",
+  "questions": [
+    {
+      "id": "WAD-15-L02-Q01",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Que el permiso se limite a restablecer la contraseña y solo sobre las cuentas de esa OU».\n\nLo mínimo necesario es que el permiso coincida con la tarea y se aplique solo al conjunto de objetos previsto. Extenderlo al dominio o sumar al grupo a Administradores del dominio amplía el control, y elegir desde qué consola se ejecuta no cambia el permiso concedido."
+    },
+    {
+      "id": "WAD-15-L02-Q02",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Que el grupo puede alcanzar Tier 0 y conviene reducir o retirar ese permiso».\n\nEl control total sobre una OU con un objeto protegido de Tier 0 permite modificar ese objeto o sus permisos, así que la ruta llega al plano de control. La OU no detiene el permiso, la pertenencia a Administradores del dominio no es lo que crea el exceso y ampliarlo lo agravaría."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "La delegación no coincide con la tarea: control total sobre la OU `Equipos` permite crear y modificar objetos y cambiar sus permisos, lo que excede lo que necesita una ayuda a usuarios, mientras que el permiso para restablecer contraseñas en la OU `Servicios` es razonable si esa es la función. La ruta administrativa une al grupo de soporte con niveles superiores porque quien puede cambiar permisos de una OU puede concederse acceso a los objetos que viven dentro. El recorte es quitar el control total y dejar solo los permisos necesarios: lectura de los atributos que se consultan y restablecimiento de contraseñas sobre las cuentas previstas. La evidencia es la lista de control de acceso antes y después, leída con `dsacls`, más la comprobación del acceso efectivo del grupo a un objeto que no debe administrar. El límite: se corrige la ruta revisada y afirmar que no queda otra exige analizar todos los permisos y derechos del entorno.",
+    "rubric": [
+      {
+        "criterion": "Tarea frente a permiso",
+        "evidence": "Distingue la tarea delegada del permiso concreto que la implementa."
+      },
+      {
+        "criterion": "Exceso identificado",
+        "evidence": "Señala el control total sobre la OU como exceso respecto a la función."
+      },
+      {
+        "criterion": "Ruta administrativa",
+        "evidence": "Explica que cambiar permisos permite alcanzar objetos de niveles superiores."
+      },
+      {
+        "criterion": "Evidencia y límite",
+        "evidence": "Comprueba con la ACL y el acceso efectivo, y acota el alcance de la conclusión."
+      }
+    ]
+  },
+  "revision": "7db663eb4a357929c1980d63"
+}

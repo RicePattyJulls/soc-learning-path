@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-13-L02",
+  "title": "Inodos, enlaces y tiempos como evidencia",
+  "sourceHash": "192cd7691d2abce7574e2210e902ada00d8c20b62e542ec60bb7d7cefbcab790",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-13-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nInterpretar inodos, enlaces y marcas temporales como pistas de evidencia y reconocer sus límites forenses.\n\nPrerrequisitos: `LNX-13-L01` (Metadatos que `cp`/`tar`/`rsync` pierden).\n\n## 2. Comprende el mecanismo\n\nEn un sistema de archivos tipo Unix, el directorio asocia **nombre → objeto**. El objeto es el **inodo**, que guarda metadatos —propietario, modo, tamaño, tiempos y referencias a bloques— pero no el nombre completo del archivo. Por eso el número de inodo, por sí solo, no identifica universalmente un archivo: hay que combinarlo con el dispositivo o sistema de archivos y con el contexto temporal, y puede reutilizarse tras un borrado.\n\nExisten tres ideas que conviene no mezclar. Un **hard link** es un segundo nombre al mismo inodo: dos rutas comparten contenido y metadatos, y modificar por una se ve por la otra. Un **enlace simbólico** es un archivo cuyo contenido es una ruta; puede apuntar fuera del árbol o quedar colgante. Un **bind mount** presenta un árbol en otra ruta, pero no es un enlace: cambia la visibilidad y puede ocultar contenido previo.\n\nLas **marcas temporales** son pistas, no verdades. `mtime` cambia al modificar el contenido; `ctime` cambia cuando cambia el estado del inodo —metadatos o datos— y **no** es la fecha de creación; `atime` registra acceso, sujeto a políticas como `relatime` o `noatime`, cachés y plataforma; la fecha de creación (`birth`/`crtime`) solo existe cuando la plataforma la soporta.\n\nEstas marcas pueden alterarse. `touch` fija `mtime` y `atime` de forma autorizada, y un host comprometido puede manipular más señales. Que `ctime` sea posterior a `mtime` indica un cambio de estado, no una creación; y `ctime` tampoco es un reloj inviolable frente a restauraciones o cambios privilegiados.\n\n**Borrar no es hacer desaparecer al instante.** Retirar un nombre con `unlink` no libera el objeto mientras existan otras referencias, como otro hard link o un descriptor abierto. Localizar ficheros abiertos sin nombre accesible exige privilegios suficientes, y el objeto puede esfumarse al cerrar el último descriptor. La recuperación de archivos borrados es incierta, sobre todo con copia en escritura, cifrado y unidades con descarte.\n\nLa conclusión razonable usa inodo, enlaces y tiempos como indicios que se refuerzan entre sí y se comparan con una línea base. El límite: ninguna marca aislada atribuye autoría ni fecha exacta, y el número de inodo puede reutilizarse.\n\n### Vocabulario de apoyo\n\n- **Inodo**: estructura que guarda metadatos y referencias a bloques, sin el nombre completo del archivo.\n- **Hard link**: nombre adicional que comparte el mismo inodo que otro nombre.\n- **Enlace simbólico**: archivo cuyo contenido es una ruta hacia otro objeto.\n- **`mtime`**: marca de última modificación del contenido.\n- **`ctime`**: marca de último cambio de estado del inodo; no es la fecha de creación.\n- **Descriptor abierto**: referencia que mantiene vivo un objeto aunque se retire su nombre.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-13-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un archivo muestra un `ctime` posterior a su `mtime`. El analista concluye que el archivo fue creado en el instante marcado por ese `ctime`.\n\nLa conclusión no se sostiene. `ctime` registra un cambio de estado del inodo, no su creación: pudo actualizarse al renombrar, cambiar permisos o modificar metadatos. Sin la fecha de nacimiento —cuando la plataforma la ofrece— y sin una línea base, no hay base para fechar la creación.\n\nLa razón correcta distingue `mtime` (contenido) de `ctime` (estado) y busca `birth`/`crtime` si está disponible. El límite: incluso con esas marcas, un host comprometido puede alterarlas y ninguna de ellas atribuye por sí sola quién hizo el cambio.\n\n"
+    },
+    {
+      "id": "LNX-13-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Correlacionar inodo, enlaces y tiempos como indicios, nunca como prueba de autoría.\n- Red Team autorizado: Distinguir la identidad de un objeto (inodo) de los nombres que lo referencian.\n- Evidencia de la etapa: Ficha con dispositivo, inodo, número de enlaces y las cuatro marcas temporales.\n- Criterio de dominio: Explica qué indica cada marca y por qué ninguna fecha atribuye autoría.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB14](../../05_RECURSOS/LABORATORIOS/LNX-LAB14.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F45**: [Linux stat(2) y semántica de metadatos](https://man7.org/linux/man-pages/man2/stat.2.html). Definición y semántica de inodo y marcas temporales.\n- **F46**: [GNU coreutils, manual stat](https://www.gnu.org/software/coreutils/manual/html_node/stat-invocation.html). Lectura de inodo, enlaces y tiempos desde la línea de comandos.\n- **F62**: [NIST SP 800-86, Guide to Integrating Forensic Techniques into Incident Response (2006)](https://csrc.nist.gov/pubs/sp/800/86/final). Límites de la evidencia de estado antes del análisis.\n- **F66**: [MITRE ATT&CK, T1070.004 File Deletion](https://attack.mitre.org/techniques/T1070/004/). Borrado de archivos como técnica y sus señales, sin concluir por un solo indicio.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-13-L02-P01",
+    "prompt": "Observas que el `ctime` de un archivo es posterior a su `mtime` y concluyes que el archivo se creó en ese instante. Explica qué significa realmente cada marca, qué dato buscarías para fechar la creación y cuál es el límite de tu conclusión.",
+    "markdown": "## 4. Práctica individual\n\nObservas que el `ctime` de un archivo es posterior a su `mtime` y concluyes que el archivo se creó en ese instante. Explica qué significa realmente cada marca, qué dato buscarías para fechar la creación y cuál es el límite de tu conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber manipulado ni fechado archivos reales.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-13-L02-Q01",
+      "prompt": "Dos rutas muestran el mismo dispositivo e inodo. ¿Qué describe mejor esa relación?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Son el mismo archivo duplicado y pueden borrarse indistintamente"
+        },
+        {
+          "id": "B",
+          "text": "Una es un enlace simbólico que apunta a la otra"
+        },
+        {
+          "id": "C",
+          "text": "Son dos nombres (hard links) al mismo objeto, que comparten contenido y metadatos del inodo"
+        },
+        {
+          "id": "D",
+          "text": "Son dos archivos distintos cuyo contenido coincide por casualidad"
+        }
+      ]
+    },
+    {
+      "id": "LNX-13-L02-Q02",
+      "prompt": "Un `ctime` posterior a un `mtime`. ¿Qué permite concluir el `ctime`?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que el archivo fue creado exactamente en ese momento"
+        },
+        {
+          "id": "B",
+          "text": "Que el contenido se leyó por última vez en ese instante"
+        },
+        {
+          "id": "C",
+          "text": "Que cambió el estado del inodo (metadatos o datos), no que el archivo se creara en ese instante"
+        },
+        {
+          "id": "D",
+          "text": "Que el archivo es inmutable desde ese momento"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB14](../../05_RECURSOS/LABORATORIOS/LNX-LAB14.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F45**: [Linux stat(2) y semántica de metadatos](https://man7.org/linux/man-pages/man2/stat.2.html). Definición y semántica de inodo y marcas temporales.\n- **F46**: [GNU coreutils, manual stat](https://www.gnu.org/software/coreutils/manual/html_node/stat-invocation.html). Lectura de inodo, enlaces y tiempos desde la línea de comandos.\n- **F62**: [NIST SP 800-86, Guide to Integrating Forensic Techniques into Incident Response (2006)](https://csrc.nist.gov/pubs/sp/800/86/final). Límites de la evidencia de estado antes del análisis.\n- **F66**: [MITRE ATT&CK, T1070.004 File Deletion](https://attack.mitre.org/techniques/T1070/004/). Borrado de archivos como técnica y sus señales, sin concluir por un solo indicio.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "7d4f17feb22feebeaa899ae1"
+}

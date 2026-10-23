@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-15-L03",
+  "sourceHash": "a538e817b272eafe7de4bc04a67deee576e0af55159eecda3d631da0278ef113",
+  "questions": [
+    {
+      "id": "LNX-15-L03-Q01",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Confidencialidad en reposo frente al medio apagado; no controla el acceso de un proceso al volumen abierto».\n\ndm-crypt protege el contenido con el medio apagado o bloqueado, pero una vez abierto el volumen es legible por procesos privilegiados. No verifica integridad por bloque y no conserva versiones anteriores."
+    },
+    {
+      "id": "LNX-15-L03-Q02",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Porque con una contraseña válida en el momento del backup puede permitir acceso aunque después se cambie o elimine ese secreto».\n\nLa copia conserva las claves derivadas del momento del backup; con una contraseña válida entonces, permite el acceso aunque el secreto cambie después. No desactiva el cifrado en reposo, no se resuelve comprimiéndola ni permite prescindir de toda contraseña."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "La copia de cabecera LUKS conserva la cabecera y el **área de keyslots** tal como estaban en el momento del backup. Si alguien dispone de esa copia junto con una contraseña válida en ese momento, puede desbloquear el volumen con independencia de los cambios posteriores del secreto. Cambiar la contraseña actual no convierte automáticamente en inocua la copia histórica.\n\nLímite: sin saber qué secreto protegía la copia y a quién ha estado expuesta, no se puede afirmar que sea inofensiva ni que esté bajo control; requiere custodia restringida y política de recuperación.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Explica que la cabecera contiene keyslots y no solo metadatos."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Relaciona el riesgo con una contraseña válida del momento del backup."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Distingue el cambio de contraseña de la inocuidad de la copia."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Reconoce que sin política de custodia no puede afirmarse control."
+      }
+    ]
+  },
+  "revision": "821a941b647c178f2e6d9d1b"
+}

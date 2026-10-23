@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M17-L02",
+  "title": "Tablas de estado",
+  "sourceHash": "5f6777e4742d9764f80bb8a7eb4ee1ff5a42f8ce18608186db250bf86f216c3c",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M17-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nInterpretar estado de conexión y agotamiento de recursos NAT.\n\nPrerrequisitos: [RED-M17-L01](../RED-E03/RED-M17-L01.md).\n\n## 2. Comprende el mecanismo\n\nLas traducciones dinámicas y controles stateful conservan estado durante tiempos definidos. Un paquete que llega después de caducar puede no corresponder ya a una entrada válida. El espacio de puertos y recursos de tabla es finito; muchas conexiones o temporizadores pueden agotarlo sin que fallen todas las rutas. Contadores de asignación, expiración y errores ayudan a diferenciar saturación de NAT, rechazo de firewall y caída remota. El estado debe interpretarse según protocolo y dirección.\n\n### Vocabulario de apoyo\n\n- **SNAT, DNAT y PAT**: Traducción del origen, del destino y de direcciones con distinción de puertos.\n- **Proxy y backend**: Intermediario que atiende o reenvía peticiones y servicio situado detrás de él.\n- **Asimetría**: Uso de caminos diferentes para los sentidos de una comunicación.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M17-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Métrica docente: nuevas conexiones fallan; sesiones existentes continúan; tabla NAT al límite; aumenta contador de asignación fallida.\n\nEl patrón y el contador apoyan agotamiento de traducciones. Reiniciar clientes o cambiar DNS no aborda por sí solo el recurso agotado.\n\n"
+    },
+    {
+      "id": "RED-M17-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Construir pivotes temporales con NAT.\n- Red Team autorizado: Validar una regla NAT de alcance delimitado.\n- Evidencia del módulo: Tabla pre/post traducción con UTC y grado de confianza.\n- Criterio del módulo: No atribuye persona solo por IP pública.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L09](../../05_RECURSOS/LABORATORIOS/RED-L09.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC3022**: [RFC 3022: Traditional IP Network Address Translator](https://www.rfc-editor.org/rfc/rfc3022.html). Traducción de direcciones y puertos; referencia conceptual, no guía de despliegue.\n- **RFC3704**: [RFC 3704: Ingress Filtering for Multihomed Networks](https://www.rfc-editor.org/rfc/rfc3704.html). uRPF y compromisos ante caminos asimétricos.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M17-L02-P01",
+    "prompt": "Tras reducir una carga docente, disminuyen errores y vuelven nuevas conexiones. ¿Qué queda por verificar?",
+    "markdown": "## 4. Práctica individual\n\nTras reducir una carga docente, disminuyen errores y vuelven nuevas conexiones. ¿Qué queda por verificar?\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M17-L02-Q01",
+      "prompt": "¿Por qué puede fallar una conexión nueva y no una existente?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Las rutas solo se usan una vez"
+        },
+        {
+          "id": "B",
+          "text": "DNS elimina todas las sesiones activas"
+        },
+        {
+          "id": "C",
+          "text": "NAT autentica al primer usuario solamente"
+        },
+        {
+          "id": "D",
+          "text": "La asignación de nuevo estado puede agotar recursos"
+        }
+      ]
+    },
+    {
+      "id": "RED-M17-L02-Q02",
+      "prompt": "¿Qué evidencia apoya el diagnóstico del caso?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Una tabla de rutas sin cambios, tomada como prueba de capacidad NAT ilimitada"
+        },
+        {
+          "id": "B",
+          "text": "Un pico DNS sin errores de traducción correlacionados"
+        },
+        {
+          "id": "C",
+          "text": "Que una sesión antigua siga funcionando, sin medir nuevas asignaciones"
+        },
+        {
+          "id": "D",
+          "text": "Tabla al límite y contador de asignación fallida"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L09](../../05_RECURSOS/LABORATORIOS/RED-L09.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC3022**: [RFC 3022: Traditional IP Network Address Translator](https://www.rfc-editor.org/rfc/rfc3022.html). Traducción de direcciones y puertos; referencia conceptual, no guía de despliegue.\n- **RFC3704**: [RFC 3704: Ingress Filtering for Multihomed Networks](https://www.rfc-editor.org/rfc/rfc3704.html). uRPF y compromisos ante caminos asimétricos.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "01fc10a94473149e30cb5e8c"
+}

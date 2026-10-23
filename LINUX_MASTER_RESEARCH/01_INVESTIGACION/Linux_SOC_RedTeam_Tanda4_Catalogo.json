@@ -1,0 +1,1902 @@
+{
+  "schema_version": "1.0.0",
+  "project": "Linux para SOC + Red Team",
+  "batch": 4,
+  "total_batches": 5,
+  "title": "Red del host, SSH y firewalls",
+  "language": "es-ES",
+  "research_date": "2026-10-18",
+  "based_on": {
+    "original_scope_file": "linux(1).txt",
+    "original_scope_section": "Red del host, SSH y firewalls.",
+    "previous_batch": "Tanda 3: Almacenamiento, sistemas de archivos, backups, restauración y recuperación"
+  },
+  "companion_markdown": "Linux_SOC_RedTeam_Tanda4_Informe.md",
+  "companion_markdown_sha256": "71fed6fd4e2a7c71f295e0deef3ba968a1b8861a8decd98d79e7b8a5103c92f3",
+  "source_outline": [
+    {
+      "section": 1,
+      "heading": "Resultados de aprendizaje y criterios profesionales"
+    },
+    {
+      "section": 2,
+      "heading": "Modelo de red que evita conclusiones falsas [DOC:N01–N05]"
+    },
+    {
+      "section": 3,
+      "heading": "Inventario inicial reproducible, sin cambios [DOC:N01–N04]"
+    },
+    {
+      "section": 4,
+      "heading": "Interfaces, direcciones, ARP/NDP y problemas L2 [DOC:N01,N05]"
+    },
+    {
+      "section": 5,
+      "heading": "Rutas, policy routing y asimetría [DOC:N01,N12]"
+    },
+    {
+      "section": 6,
+      "heading": "TCP, UDP, ICMP e ICMPv6: interpretación de síntomas"
+    },
+    {
+      "section": 7,
+      "heading": "DNS: aplicación, NSS, stub y fugas [DOC:N07,N08]"
+    },
+    {
+      "section": 8,
+      "heading": "Servicios escuchando, socket activation y namespaces [DOC:N03,N04,N09]"
+    },
+    {
+      "section": 9,
+      "heading": "SSH: arquitectura, identidad y flujo de confianza [DOC:N13–N17]"
+    },
+    {
+      "section": 10,
+      "heading": "Túneles SSH: uso legítimo, abuso posible y visibilidad [DOC:N13,N16]"
+    },
+    {
+      "section": 11,
+      "heading": "nftables/Netfilter: flujo de decisión [DOC:N18–N22]"
+    },
+    {
+      "section": 12,
+      "heading": "Stateful firewall, conntrack y NAT [DOC:N20–N23]"
+    },
+    {
+      "section": 13,
+      "heading": "UFW, firewalld, iptables: gestores y compatibilidad [DOC:N24–N26]"
+    },
+    {
+      "section": 14,
+      "heading": "Política de egreso, bloqueo de IP y respuesta a exfiltración"
+    },
+    {
+      "section": 15,
+      "heading": "Captura de tráfico y límites forenses [DOC:N10,N27]"
+    },
+    {
+      "section": 16,
+      "heading": "SSH y firewall: registros SOC y semántica [DOC:N13,N24]"
+    },
+    {
+      "section": 17,
+      "heading": "Detecciones SOC con hipótesis, datos, prueba y límites"
+    },
+    {
+      "section": 18,
+      "heading": "Protocolo Red Team autorizado: evaluar red sin interrumpir servicio"
+    },
+    {
+      "section": 19,
+      "heading": "Laboratorio base aislado con dos network namespaces [DOC:N04,N05]"
+    },
+    {
+      "section": 20,
+      "heading": "Catálogo de 10 laboratorios evaluables"
+    },
+    {
+      "section": 21,
+      "heading": "Runbooks de troubleshooting por síntoma (orden de verificación)"
+    },
+    {
+      "section": 22,
+      "heading": "Errores habituales de examen y de producción"
+    },
+    {
+      "section": 23,
+      "heading": "Cuestionario de 30 preguntas — nivel SOC N1/N2 + RT"
+    },
+    {
+      "section": 24,
+      "heading": "Caso integral trabajado: «salida masiva inesperada a las 03:00»"
+    },
+    {
+      "section": 25,
+      "heading": "Prerrequisitos y conexión con la Tanda 5"
+    },
+    {
+      "section": 26,
+      "heading": "Documentación oficial, manuales y referencias"
+    },
+    {
+      "section": 27,
+      "heading": "Hoja de entrega y trazabilidad"
+    }
+  ],
+  "learning_objectives": [
+    "Diagnosticar red Linux desde interfaz hasta socket/proceso/namespace y ruta.",
+    "Resolver problemas IPv4/IPv6, DNS, routing y TCP sin atribuciones erróneas.",
+    "Validar SSH con identidad de servidor, configuración efectiva y control de acceso.",
+    "Diseñar y comprobar nftables, comprender conntrack/NAT y gestores UFW/firewalld/iptables.",
+    "Distinguir observación del host y del perímetro con NAT, proxy, VPN y contenedores.",
+    "Preservar evidencia mínima de red/SSH/PCAP y ejecutar runbook de egress anómalo.",
+    "Realizar pruebas Red Team inocuas autorizadas para valorar exposición y segmentación.",
+    "Validar detecciones SOC con positivos/negativos, cobertura y falsas atribuciones."
+  ],
+  "execution_policy": {
+    "authorized_scope_only": true,
+    "default_execution_target": "VM descartable + namespaces de red aisladas",
+    "deny_list": [
+      "host remoto de producción sin procedimiento",
+      "infraestructura no autorizada",
+      "captura de secretos reales",
+      "nft flush ruleset en host",
+      "iptables -F en host",
+      "perder sesión SSH de administración",
+      "scans hacia terceros"
+    ],
+    "safe_mode": "Observación primero, validación sintáctica, cambio solo en lab, prueba doble y rollback.",
+    "evidence": "UTC, versiones, 5-tuple cuando aplique, sensor, alcance, limitaciones, hash y custodia.",
+    "operational_note": "Los ejemplos no fueron ejecutados ni constituyen comprobación de configuración en el equipo del usuario."
+  },
+  "labs": [
+    {
+      "id": "T4-L01",
+      "title": "Inventario de red, rutas y DNS del host",
+      "category": "network_inventory",
+      "difficulty": "básico",
+      "duration_minutes_estimate": 45,
+      "score_points": 8,
+      "prerequisites": [
+        "T1: navegación Bash",
+        "Acceso shell de VM descartable"
+      ],
+      "scope": "Solo inventario pasivo de la VM de laboratorio. Sin tráfico a destinos externos.",
+      "safety_constraints": [
+        "Prohibido cambiar interfaces o rutas de la VM usada para conectividad real.",
+        "Usar rangos de documentación como destinos de ip route get; este comando no manda paquetes."
+      ],
+      "procedure": [
+        {
+          "step": 1,
+          "action": "Registrar UTC, distro, kernel y versiones de iproute2."
+        },
+        {
+          "step": 2,
+          "action": "Ejecutar ip -br link; ip -br -4 addr; ip -br -6 addr; ip -j address y guardar salida."
+        },
+        {
+          "step": 3,
+          "action": "Ejecutar ip route show table all, ip rule, ip route get 192.0.2.80 y repetir con IPv6 si hay ruta."
+        },
+        {
+          "step": 4,
+          "action": "Comparar /etc/resolv.conf, /etc/nsswitch.conf, getent ahosts localhost y resolvectl status si está activo."
+        },
+        {
+          "step": 5,
+          "action": "Dibujar camino proceso→socket→namespace→ruta→interfaz→destino, identificando datos desconocidos."
+        }
+      ],
+      "deliverables": [
+        "Inventario.json o TXT",
+        "Tabla interfaz/ruta/DNS",
+        "3 hipótesis y pruebas de falsación",
+        "Hash y fecha UTC"
+      ],
+      "acceptance_criteria": [
+        "No confunde dirección listen con exposición externa.",
+        "Explica cómo policy routing puede cambiar ruta.",
+        "No atribuye DNS stub local a servidor remoto sin validarlo."
+      ],
+      "rubric": [
+        {
+          "criterion": "Técnica",
+          "points": 3
+        },
+        {
+          "criterion": "Interpretación y límites",
+          "points": 2
+        },
+        {
+          "criterion": "Evidencia",
+          "points": 2
+        },
+        {
+          "criterion": "Seguridad y reversión",
+          "points": 1
+        }
+      ],
+      "cleanup_and_rollback": [
+        "No hubo cambios intencionados.",
+        "Eliminar únicamente evidencias temporales si su conservación no es requerida."
+      ],
+      "references": [
+        "N01",
+        "N02",
+        "N06",
+        "N07",
+        "N08",
+        "N11"
+      ],
+      "mitre_attack": [],
+      "soc_interpretation": "Correlacionar baseline con cambios de VPN/DHCP y no confundir capacidad de ruta con entrega.",
+      "red_team_authorized_perspective": "Identificar rutas y superficies accesibles solo de alcance aprobado."
+    },
+    {
+      "id": "T4-L02",
+      "title": "Sockets y procesos: LISTEN, ESTAB y límites",
+      "category": "socket_triage",
+      "difficulty": "intermedio",
+      "duration_minutes_estimate": 60,
+      "score_points": 10,
+      "prerequisites": [
+        "T4-L01",
+        "Conocer PID/FD/cgroup de T1/T2"
+      ],
+      "scope": "HTTP efímero controlado en VM o namespace, sin puertos privilegiados del host.",
+      "safety_constraints": [
+        "No levantar servicios reales externos.",
+        "Usar datos ficticios y reducir exposición de listener a namespace."
+      ],
+      "procedure": [
+        {
+          "step": 1,
+          "action": "Crear fichero HTML ficticio y arrancar python3 -m http.server 8080 dentro del namespace de pruebas."
+        },
+        {
+          "step": 2,
+          "action": "Observar ss -lntup y ss -tanop antes, durante y después de un curl autorizado."
+        },
+        {
+          "step": 3,
+          "action": "Relacionar PID, servicio, puerto y dirección mediante sudo lsof -nP -iTCP -sTCP:LISTEN si disponible."
+        },
+        {
+          "step": 4,
+          "action": "Comparar instantáneas con segundos de separación; observar la ventana en que ya no aparece una sesión."
+        },
+        {
+          "step": 5,
+          "action": "Explicar por qué un puerto en LISTEN no implica exposición de Internet ni atribución histórica."
+        }
+      ],
+      "deliverables": [
+        "Tabla de sockets por momento",
+        "PID/usuario/servicio para listener",
+        "Cronología UTC",
+        "Limitaciones explicadas"
+      ],
+      "acceptance_criteria": [
+        "Identifica puerto/estado correcto en 2 muestras.",
+        "Documenta el efecto de privilegios sobre ss -p.",
+        "No extrapola ausencia de socket a ausencia de incidente."
+      ],
+      "rubric": [
+        {
+          "criterion": "Técnica",
+          "points": 4
+        },
+        {
+          "criterion": "Interpretación y límites",
+          "points": 2
+        },
+        {
+          "criterion": "Evidencia",
+          "points": 3
+        },
+        {
+          "criterion": "Seguridad y reversión",
+          "points": 1
+        }
+      ],
+      "cleanup_and_rollback": [
+        "Detener servidor con Ctrl+C; comprobar desaparición de proceso.",
+        "No alterar reglas del host."
+      ],
+      "references": [
+        "N03",
+        "N04",
+        "N09"
+      ],
+      "mitre_attack": [],
+      "soc_interpretation": "Un sensor de conexiones históricas es necesario para cubrir conexiones efímeras.",
+      "red_team_authorized_perspective": "Validar exposición real solo desde cliente incluido en el alcance."
+    },
+    {
+      "id": "T4-L03",
+      "title": "Topología aislada veth + dos network namespaces",
+      "category": "network_namespace",
+      "difficulty": "intermedio",
+      "duration_minutes_estimate": 75,
+      "score_points": 10,
+      "prerequisites": [
+        "Consola local de VM descartable",
+        "Permiso CAP_NET_ADMIN",
+        "iproute2"
+      ],
+      "scope": "Namespaces t4cli y t4srv conectados exclusivamente entre sí, sin bridge/NIC externa.",
+      "safety_constraints": [
+        "Nunca ejecutar en host productivo.",
+        "No asociar veth a interfaces reales o bridges del hipervisor.",
+        "No sobreescribir namespaces con nombres existentes."
+      ],
+      "procedure": [
+        {
+          "step": 1,
+          "action": "Verificar que nombres t4cli y t4srv no están en uso con ip netns list."
+        },
+        {
+          "step": 2,
+          "action": "Crear namespaces, veth t4c↔t4s y asignar 10.44.0.1/24 y 10.44.0.2/24 (sección 19)."
+        },
+        {
+          "step": 3,
+          "action": "Levantar loopback y veth de ambas namespaces."
+        },
+        {
+          "step": 4,
+          "action": "Demostrar con ip route get y ping -c 2 comunicación dentro de la topología."
+        },
+        {
+          "step": 5,
+          "action": "Comparar ip netns exec t4srv ss -lnt y ss -lnt del host; explicar aislamiento."
+        },
+        {
+          "step": 6,
+          "action": "Parar procesos y eliminar solo namespaces creadas; comprobar que desaparecieron."
+        }
+      ],
+      "deliverables": [
+        "Captura de topología y rutas",
+        "Ping y hora UTC",
+        "Prueba de separación de namespaces",
+        "Salida de cleanup"
+      ],
+      "acceptance_criteria": [
+        "No hay ruta exterior/host no se ha modificado.",
+        "La conectividad t4cli↔t4srv funciona.",
+        "La limpieza no afecta a otras namespaces."
+      ],
+      "rubric": [
+        {
+          "criterion": "Técnica",
+          "points": 4
+        },
+        {
+          "criterion": "Interpretación y límites",
+          "points": 2
+        },
+        {
+          "criterion": "Evidencia",
+          "points": 2
+        },
+        {
+          "criterion": "Seguridad y reversión",
+          "points": 2
+        }
+      ],
+      "cleanup_and_rollback": [
+        "Detener procesos listados con ip netns pids t4srv/t4cli.",
+        "sudo ip netns del t4cli; sudo ip netns del t4srv; validar ip netns list."
+      ],
+      "references": [
+        "N04",
+        "N05",
+        "N11"
+      ],
+      "mitre_attack": [],
+      "soc_interpretation": "Una vista del host no incluye todas las escuchas de namespace diferente.",
+      "red_team_authorized_perspective": "Comparar superficie de prueba en red privada sin escanear redes externas."
+    },
+    {
+      "id": "T4-L04",
+      "title": "nftables stateful en namespace: allow/deny/rollback",
+      "category": "firewall_policy",
+      "difficulty": "avanzado",
+      "duration_minutes_estimate": 100,
+      "score_points": 14,
+      "prerequisites": [
+        "T4-L03 activo",
+        "nftables instalado",
+        "Entender hooks input/output"
+      ],
+      "scope": "Solo cadena inet t4lab input dentro de t4srv; prohibido flush del ruleset del host.",
+      "safety_constraints": [
+        "Prohibido nft flush ruleset en host/namespace con otras tablas de negocio.",
+        "Mantener consola OOB por si se comete un error.",
+        "No combinar gestores UFW/firewalld/nft en el mismo ejercicio."
+      ],
+      "procedure": [
+        {
+          "step": 1,
+          "action": "Crear /tmp/t4-input-lab.nft con la configuración exacta de la sección 11.2, sin flush ruleset."
+        },
+        {
+          "step": 2,
+          "action": "Validar: sudo ip netns exec t4srv nft -c -f /tmp/t4-input-lab.nft."
+        },
+        {
+          "step": 3,
+          "action": "Guardar baseline del namespace y aplicar: sudo ip netns exec t4srv nft -f /tmp/t4-input-lab.nft."
+        },
+        {
+          "step": 4,
+          "action": "Probar HTTP t4cli→t4srv:8080; verificar contadores nft y tráfico establecido."
+        },
+        {
+          "step": 5,
+          "action": "Probar otro puerto no permitido con un listener de prueba controlado o demostrar drop mediante contador; no confundir RST del puerto cerrado con drop."
+        },
+        {
+          "step": 6,
+          "action": "Contrastar reglas input vs output y comprobar ausencia de regla en host."
+        },
+        {
+          "step": 7,
+          "action": "Eliminar solo table inet t4lab en t4srv, comprobar retorno al baseline."
+        }
+      ],
+      "deliverables": [
+        "Archivo .nft",
+        "Salida de nft -c",
+        "2 tests (aceptación/denegación) con tiempos",
+        "Contadores y sha256",
+        "Verificación de rollback"
+      ],
+      "acceptance_criteria": [
+        "HTTP autorizado funciona sin modificar el host.",
+        "Un flujo no autorizado es denegado con prueba adecuada.",
+        "Entiende por qué accept no es garantía en otras base chains.",
+        "Rollback restaura estado comprobable."
+      ],
+      "rubric": [
+        {
+          "criterion": "Técnica",
+          "points": 6
+        },
+        {
+          "criterion": "Interpretación y límites",
+          "points": 3
+        },
+        {
+          "criterion": "Evidencia",
+          "points": 3
+        },
+        {
+          "criterion": "Seguridad y reversión",
+          "points": 2
+        }
+      ],
+      "cleanup_and_rollback": [
+        "sudo ip netns exec t4srv nft delete table inet t4lab",
+        "Comprobar nft -a list ruleset dentro de namespace y fuera (solo lectura)."
+      ],
+      "references": [
+        "N18",
+        "N19",
+        "N20",
+        "N21",
+        "N22"
+      ],
+      "mitre_attack": [],
+      "soc_interpretation": "Validar si realmente cambian counters por dirección/hook.",
+      "red_team_authorized_perspective": "Identificar regla de exceso de exposición y documentar corrección sin tocar producción."
+    },
+    {
+      "id": "T4-L05",
+      "title": "SSH: identidad, claves y configuración efectiva",
+      "category": "ssh_hardening",
+      "difficulty": "avanzado",
+      "duration_minutes_estimate": 100,
+      "score_points": 10,
+      "prerequisites": [
+        "VM servidor SSH de laboratorio",
+        "Cliente de lab",
+        "Consola OOB o snapshot accesible",
+        "T2 systemd"
+      ],
+      "scope": "SSH de VM descartable controlada: no realizar endurecimiento en servidor remoto real.",
+      "safety_constraints": [
+        "Nunca compartir clave privada, passphrase o archivo de configuración sensible completo.",
+        "No modificar sshd en el host de trabajo sin vía OOB verificada."
+      ],
+      "procedure": [
+        {
+          "step": 1,
+          "action": "Registrar ssh -V y sshd -V si está disponible."
+        },
+        {
+          "step": 2,
+          "action": "Generar clave ed25519 con passphrase de laboratorio; conservar privado local protegido y entregar solo pública."
+        },
+        {
+          "step": 3,
+          "action": "Verificar fingerprint de host key por canal independiente del servidor de laboratorio y no usar StrictHostKeyChecking=no."
+        },
+        {
+          "step": 4,
+          "action": "Ejecutar sshd -t, sshd -T y sshd -T -C con cuenta/origen del laboratorio; registrar Match pertinente."
+        },
+        {
+          "step": 5,
+          "action": "Documentar política de PermitRootLogin, KbdInteractiveAuthentication, PasswordAuthentication, AllowUsers/AllowGroups, AllowTcpForwarding."
+        },
+        {
+          "step": 6,
+          "action": "Probar sesión nueva manteniendo la existente; validar rollback y rotación de clave."
+        }
+      ],
+      "deliverables": [
+        "Matriz config declarativa/efectiva",
+        "Fingerprint verificado",
+        "Prueba de login autorizado",
+        "Plan de rescate",
+        "Sin archivos de clave privada en entrega"
+      ],
+      "acceptance_criteria": [
+        "Diferencia host key de user key.",
+        "Reconoce coexistencia de password y keyboard-interactive/PAM.",
+        "Prueba `sshd -T -C` con Match y conserva acceso seguro."
+      ],
+      "rubric": [
+        {
+          "criterion": "Técnica",
+          "points": 4
+        },
+        {
+          "criterion": "Interpretación y límites",
+          "points": 3
+        },
+        {
+          "criterion": "Evidencia",
+          "points": 2
+        },
+        {
+          "criterion": "Seguridad y reversión",
+          "points": 1
+        }
+      ],
+      "cleanup_and_rollback": [
+        "Restaurar copia de sshd_config si se alteró.",
+        "sshd -t; reload según distro; verificar sesión.",
+        "Revocar/retirar solo clave de prueba de authorized_keys."
+      ],
+      "references": [
+        "N13",
+        "N14",
+        "N15",
+        "N16",
+        "N17"
+      ],
+      "mitre_attack": [
+        "T1021.004"
+      ],
+      "soc_interpretation": "Correlacionar login, clave permitida, origen, comandos y canales SSH.",
+      "red_team_authorized_perspective": "Probar límites de acceso de cuenta autorizada sin elevar privilegios."
+    },
+    {
+      "id": "T4-L06",
+      "title": "Túnel SSH autorizado: comprender qué ven sensores",
+      "category": "ssh_tunnel_observability",
+      "difficulty": "avanzado",
+      "duration_minutes_estimate": 90,
+      "score_points": 10,
+      "prerequisites": [
+        "T4-L05",
+        "Dos VM o bastión SSH de laboratorio autorizado",
+        "Servicio de prueba HTTP con datos inertes"
+      ],
+      "scope": "Solo infraestructura propia, cuentas propias y servicios de laboratorio sin redes externas.",
+      "safety_constraints": [
+        "No reutilizar SSH de trabajo ni bastiones empresariales.",
+        "No abrir puertos de reenvío a redes públicas.",
+        "No emplear túneles para burlar controles."
+      ],
+      "procedure": [
+        {
+          "step": 1,
+          "action": "Definir arquitectura cliente↔bastión↔HTTP de laboratorio y aprobación explícita."
+        },
+        {
+          "step": 2,
+          "action": "Crear un túnel ssh -L bajo supervisión según la sintaxis oficial, usando puertos no privilegiados y sin GatewayPorts."
+        },
+        {
+          "step": 3,
+          "action": "Desde cliente acceder a recurso sintético y registrar el listener local, proceso ssh y flujo cifrado al bastión."
+        },
+        {
+          "step": 4,
+          "action": "Contrastar logs de sshd y observación en punto cliente/bastión; documentar lo que no muestra cada punto."
+        },
+        {
+          "step": 5,
+          "action": "Cerrar el túnel y comprobar desaparición del listener."
+        }
+      ],
+      "deliverables": [
+        "Diagrama de salto",
+        "Logs SSH seleccionados",
+        "ss/PCAP con redacción de datos sensibles",
+        "Tabla de visibilidad por sensor",
+        "Comprobación de cierre"
+      ],
+      "acceptance_criteria": [
+        "No hay tráfico hacia terceros.",
+        "Se separa el tráfico cifrado del HTTP de laboratorio al final del túnel.",
+        "No etiqueta como malicioso un túnel por sí mismo."
+      ],
+      "rubric": [
+        {
+          "criterion": "Técnica",
+          "points": 4
+        },
+        {
+          "criterion": "Interpretación y límites",
+          "points": 3
+        },
+        {
+          "criterion": "Evidencia",
+          "points": 2
+        },
+        {
+          "criterion": "Seguridad y reversión",
+          "points": 1
+        }
+      ],
+      "cleanup_and_rollback": [
+        "Cerrar cliente SSH/túnel controladamente.",
+        "Comprobar ss y procesos en ambos extremos.",
+        "Retirar listener HTTP si se creó."
+      ],
+      "references": [
+        "N13",
+        "N16",
+        "N17"
+      ],
+      "mitre_attack": [
+        "T1572"
+      ],
+      "soc_interpretation": "Un túnel puede ocultar a la red el destino final; correlacionar proceso, origen y destino desde múltiples niveles.",
+      "red_team_authorized_perspective": "Validar controles de forward en alcance autorizado, sin uso evasivo."
+    },
+    {
+      "id": "T4-L07",
+      "title": "Captura PCAP corta y custodia mínima",
+      "category": "network_forensics",
+      "difficulty": "intermedio",
+      "duration_minutes_estimate": 75,
+      "score_points": 10,
+      "prerequisites": [
+        "T4-L03",
+        "tcpdump en VM o sudo",
+        "Datos sintéticos"
+      ],
+      "scope": "Captura sobre veth del namespace t4srv exclusivamente, con filtro 10.44.0.1:8080.",
+      "safety_constraints": [
+        "Solo datos de prueba y permiso para capturar.",
+        "Un snaplen 128 aún puede recoger datos sensibles; proteger el PCAP."
+      ],
+      "procedure": [
+        {
+          "step": 1,
+          "action": "Anotar fecha UTC, interfaz t4s y namespace; registrar comando exacto."
+        },
+        {
+          "step": 2,
+          "action": "Capturar hasta 25 paquetes con tcpdump -i t4s -nn -s 128 -c 25 -w /tmp/t4-lab.pcap host 10.44.0.1 and tcp port 8080 desde t4srv."
+        },
+        {
+          "step": 3,
+          "action": "Generar peticiones HTTP inocuas dentro del laboratorio mientras captura."
+        },
+        {
+          "step": 4,
+          "action": "Calcular sha256sum y conservar hash separado del archivo original."
+        },
+        {
+          "step": 5,
+          "action": "Leer PCAP con tcpdump -nn -r sin modificar; identificar SYN, SYN/ACK, ACK y FIN/RST cuando estén capturados."
+        },
+        {
+          "step": 6,
+          "action": "Registrar posibles paquetes perdidos/truncados y límites de PID/identidad/payload."
+        }
+      ],
+      "deliverables": [
+        "PCAP restringido de laboratorio",
+        "Bitácora de adquisición",
+        "SHA-256",
+        "Tabla de 5-tuple y flags",
+        "Declaración de límites"
+      ],
+      "acceptance_criteria": [
+        "La captura procede solo de veth autorizada.",
+        "Hash y metadatos concuerdan.",
+        "No hay afirmaciones de usuario/intent sin evidencia adicional."
+      ],
+      "rubric": [
+        {
+          "criterion": "Técnica",
+          "points": 4
+        },
+        {
+          "criterion": "Interpretación y límites",
+          "points": 2
+        },
+        {
+          "criterion": "Evidencia",
+          "points": 3
+        },
+        {
+          "criterion": "Seguridad y reversión",
+          "points": 1
+        }
+      ],
+      "cleanup_and_rollback": [
+        "Detener tcpdump por -c o Ctrl+C; retirar PCAP según política.",
+        "Si es evidencia en ejercicio, conservar en carpeta con acceso limitado."
+      ],
+      "references": [
+        "N10",
+        "N27"
+      ],
+      "mitre_attack": [
+        "T1040"
+      ],
+      "soc_interpretation": "PCAP complementa, no sustituye, sensor de procesos.",
+      "red_team_authorized_perspective": "Mostrar qué se puede inferir del tráfico propio sin vigilar terceros."
+    },
+    {
+      "id": "T4-L08",
+      "title": "Diagnóstico DNS vs rutas vs TLS/IPv6",
+      "category": "dns_troubleshooting",
+      "difficulty": "intermedio",
+      "duration_minutes_estimate": 60,
+      "score_points": 8,
+      "prerequisites": [
+        "T4-L01",
+        "Cliente con getent, curl y opcional resolvectl"
+      ],
+      "scope": "Comparaciones en VM aislada con localhost/servicio local; sin consultas a dominios sensibles.",
+      "safety_constraints": [
+        "No cambiar resolv.conf de la VM para «probar» en vivo sin snapshot.",
+        "No generar DNS hacia servicios públicos sin necesidad."
+      ],
+      "procedure": [
+        {
+          "step": 1,
+          "action": "Verificar /etc/nsswitch.conf, /etc/resolv.conf y, si procede, resolvectl status."
+        },
+        {
+          "step": 2,
+          "action": "Comparar getent ahosts localhost, getent hosts localhost y resolvectl query localhost si disponible."
+        },
+        {
+          "step": 3,
+          "action": "Comparar ip -4 e ip -6 route get para direcciones de prueba; marcar ausencia de ruta como hallazgo de configuración del lab."
+        },
+        {
+          "step": 4,
+          "action": "Verificar curl --max-time 3 contra servicio local por nombre e IP, anotando si el fallo ocurre en DNS, conexión, TLS o aplicación."
+        },
+        {
+          "step": 5,
+          "action": "Redactar árbol de decisión y contraejemplos al argumento ping fallido = servicio caído."
+        }
+      ],
+      "deliverables": [
+        "Matriz de comandos/resultados",
+        "Árbol diagnóstico",
+        "Tres falsos supuestos descartados",
+        "Fecha y entorno"
+      ],
+      "acceptance_criteria": [
+        "Separa resolución de conectividad y negociación TLS.",
+        "No infiere que ausencia de resolvectl significa DNS averiado.",
+        "Demuestra criterio IPv4/IPv6."
+      ],
+      "rubric": [
+        {
+          "criterion": "Técnica",
+          "points": 3
+        },
+        {
+          "criterion": "Interpretación y límites",
+          "points": 2
+        },
+        {
+          "criterion": "Evidencia",
+          "points": 2
+        },
+        {
+          "criterion": "Seguridad y reversión",
+          "points": 1
+        }
+      ],
+      "cleanup_and_rollback": [
+        "Laboratorio pasivo: no hay cambios de configuración.",
+        "Cerrar cliente o servicio de prueba."
+      ],
+      "references": [
+        "N07",
+        "N08",
+        "N01",
+        "N30"
+      ],
+      "mitre_attack": [],
+      "soc_interpretation": "DNS query y flujo conectado son eventos distintos; investigar con correlación.",
+      "red_team_authorized_perspective": "Comprobar fuga DNS sólo mediante configuración y pruebas inocuas autorizadas."
+    },
+    {
+      "id": "T4-L09",
+      "title": "Simulación de egreso sospechoso y contención reversible",
+      "category": "incident_response",
+      "difficulty": "avanzado",
+      "duration_minutes_estimate": 95,
+      "score_points": 10,
+      "prerequisites": [
+        "T4-L03",
+        "T4-L04",
+        "Playbook de ejercicio y autoridad definida"
+      ],
+      "scope": "Egreso simulado t4cli→t4srv 8080 con payload literal T4 LAB; nunca exfiltración real.",
+      "safety_constraints": [
+        "Prohibido matar procesos arbitrarios o borrar cron/systemd del host.",
+        "Nunca mover datos reales ni credenciales reales."
+      ],
+      "procedure": [
+        {
+          "step": 1,
+          "action": "Redactar alerta simulada con hora, bytes ficticios, sensor, host y destino de lab."
+        },
+        {
+          "step": 2,
+          "action": "Conservar snapshot de sockets, rutas, procesos y reglas de ambas namespaces sin datos secretos."
+        },
+        {
+          "step": 3,
+          "action": "Elegir contención proporcionada según alcance: filtro de salida en namespace de cliente o aislamiento de servicio de lab, con plan de reversión."
+        },
+        {
+          "step": 4,
+          "action": "Anotar alternativa a bloqueo IP si el «atacante» cambia destino (segmentación/identidad de carga/EDR)."
+        },
+        {
+          "step": 5,
+          "action": "Demostrar fin del flujo sintético y ausencia de conectividad indebida al host real."
+        },
+        {
+          "step": 6,
+          "action": "Revertir y probar conectividad funcional recuperada."
+        }
+      ],
+      "deliverables": [
+        "Ticket y cronología",
+        "Decisión de contención y justificación",
+        "Evidencia pre/post",
+        "Plan de rollback y verificación",
+        "Limitaciones del sensor"
+      ],
+      "acceptance_criteria": [
+        "Contención aplicada solo al lab y verificada.",
+        "No equipara bloquear IP con erradicar intrusión.",
+        "Preserva evidencia mínima y decide continuidad."
+      ],
+      "rubric": [
+        {
+          "criterion": "Técnica",
+          "points": 3
+        },
+        {
+          "criterion": "Interpretación y límites",
+          "points": 3
+        },
+        {
+          "criterion": "Evidencia",
+          "points": 2
+        },
+        {
+          "criterion": "Seguridad y reversión",
+          "points": 2
+        }
+      ],
+      "cleanup_and_rollback": [
+        "Eliminar solo regla o tabla creada para el ejercicio en namespace.",
+        "Comprobar servicio sintético tras reversión."
+      ],
+      "references": [
+        "N18",
+        "N19",
+        "N23",
+        "N24"
+      ],
+      "mitre_attack": [
+        "T1041"
+      ],
+      "soc_interpretation": "Contención no es recuperación; medir cumplimiento desde host y perímetro.",
+      "red_team_authorized_perspective": "Validar si defensa limita únicamente canales ficticios autorizados."
+    },
+    {
+      "id": "T4-L10",
+      "title": "Correlación SOC, pruebas negativas y retest",
+      "category": "soc_detection_validation",
+      "difficulty": "avanzado",
+      "duration_minutes_estimate": 95,
+      "score_points": 10,
+      "prerequisites": [
+        "T4-L01 a L09 recomendados",
+        "Logs SSH/network de laboratorio o registros sintéticos etiquetados"
+      ],
+      "scope": "Detecciones sobre simulación con datos propios/sintéticos, sin ingestión no autorizada.",
+      "safety_constraints": [
+        "No enviar alertas a SOC real ni cargar PCAP sensible.",
+        "Datos sintéticos marcados como tales."
+      ],
+      "procedure": [
+        {
+          "step": 1,
+          "action": "Seleccionar T4-D01, T4-D02 y T4-D03 (o justificar cambio)."
+        },
+        {
+          "step": 2,
+          "action": "Especificar hipótesis, fuente, campos mínimos, ventana, supuestos de normalidad y contramedida."
+        },
+        {
+          "step": 3,
+          "action": "Crear casos positivos/negativos sintéticos claramente etiquetados (backup legítimo, administrador, conexión no autorizada)."
+        },
+        {
+          "step": 4,
+          "action": "Construir una matriz TP/FP/TN/FN con limitaciones de cobertura y métrica de latencia."
+        },
+        {
+          "step": 5,
+          "action": "Ejecutar pruebas en lab, ajustar correlación y repetir retest con cambios."
+        },
+        {
+          "step": 6,
+          "action": "Entregar informe de cobertura y una hipótesis que permaneció sin resolver."
+        }
+      ],
+      "deliverables": [
+        "Tres fichas de detección",
+        "Dataset sintético etiquetado",
+        "Matriz de confusión",
+        "Resultados de retest",
+        "Lista de fuentes ausentes"
+      ],
+      "acceptance_criteria": [
+        "No promueve IP desconocida como prueba suficiente de malicia.",
+        "Incluye caso negativo y retest.",
+        "Compara sensor host y sensor red."
+      ],
+      "rubric": [
+        {
+          "criterion": "Técnica",
+          "points": 4
+        },
+        {
+          "criterion": "Interpretación y límites",
+          "points": 3
+        },
+        {
+          "criterion": "Evidencia",
+          "points": 2
+        },
+        {
+          "criterion": "Seguridad y reversión",
+          "points": 1
+        }
+      ],
+      "cleanup_and_rollback": [
+        "No se modifica producción.",
+        "Eliminar datasets de pruebas solo si no hay necesidad de conservarlos."
+      ],
+      "references": [
+        "N03",
+        "N10",
+        "N13",
+        "N20",
+        "N27"
+      ],
+      "mitre_attack": [],
+      "soc_interpretation": "El valor de una detección depende de cobertura y resultados positivos/negativos.",
+      "red_team_authorized_perspective": "Ejecutar pruebas ofensivas inocuas dentro del ROE para validar detección."
+    }
+  ],
+  "labs_count": 10,
+  "labs_points_total": 100,
+  "assessment": {
+    "questions": [
+      {
+        "id": "Q01",
+        "question": "¿Por qué una escucha en 0.0.0.0 no demuestra exposición en Internet?",
+        "answer_guide": "Bind en todas las IPv4 del namespace; ruta y firewalls de host/red/cloud aún pueden impedir acceso. Medir desde origen autorizado."
+      },
+      {
+        "id": "Q02",
+        "question": "¿Qué cambia entre ip route show main e ip route get DEST?",
+        "answer_guide": "show lista tabla; get ejecuta lookup para destino y atributos, sin enviar paquete. Policy routing y origen importan."
+      },
+      {
+        "id": "Q03",
+        "question": "¿Cómo diagnosticar IPv4 bien e IPv6 mal sin desactivar IPv6?",
+        "answer_guide": "Comparar direcciones/rutas IPv6, resolver AAAA, firewall ip6/inet, ICMPv6 y origen de aplicación."
+      },
+      {
+        "id": "Q04",
+        "question": "¿Qué distinguen LISTEN, ESTAB, CLOSE-WAIT, TIME-WAIT?",
+        "answer_guide": "Espera de conexión, conexión establecida, cierre remoto esperando app y retención de estado TCP, respectivamente."
+      },
+      {
+        "id": "Q05",
+        "question": "¿Por qué ss del host no detecta una escucha accesible?",
+        "answer_guide": "Otra namespace (contenedor) o proceso de forwarding/proxy que publica escucha en otro contexto; ss también necesita permisos."
+      },
+      {
+        "id": "Q06",
+        "question": "¿Por qué un DNS query no confirma conexión a IP resuelta?",
+        "answer_guide": "Resolución puede quedar cacheada/no usarse; app utiliza otra dirección, proxy, CDN o reintenta."
+      },
+      {
+        "id": "Q07",
+        "question": "¿Por qué getent, resolvectl y dig pueden diferir?",
+        "answer_guide": "NSS, /etc/hosts y resolvectl por interfaz frente a consulta DNS directa de dig."
+      },
+      {
+        "id": "Q08",
+        "question": "Cuatro causas de timeout con listener activo.",
+        "answer_guide": "Fallo ruta, drop host, drop red/cloud, pérdida/retorno asimétrico o namespace equivocado."
+      },
+      {
+        "id": "Q09",
+        "question": "Distinguir asimetría vs filtro stateful.",
+        "answer_guide": "Captura en ambos extremos, ip rule/rutas por dirección, contadores de cadena, conntrack y rp_filter."
+      },
+      {
+        "id": "Q10",
+        "question": "Relación de MTU con overlay/VPN.",
+        "answer_guide": "Encapsular añade overhead; PMTUD/ICMP funcionan para evitar blackholes, sobre todo con filtros estrictos."
+      },
+      {
+        "id": "Q11",
+        "question": "Diferencia host key y user key.",
+        "answer_guide": "Primera vincula identidad de servidor con cliente, segunda autentica usuario autorizado ante servidor."
+      },
+      {
+        "id": "Q12",
+        "question": "Por qué ssh-keyscan no basta.",
+        "answer_guide": "Obtiene clave observada, pero no certifica que corresponda al servidor legítimo; comparar por canal confiable."
+      },
+      {
+        "id": "Q13",
+        "question": "Qué aporta sshd -t, -T y -T -C.",
+        "answer_guide": "Sintaxis/llaves, configuración efectiva, y configuración considerando Match de una conexión hipotética."
+      },
+      {
+        "id": "Q14",
+        "question": "Por qué PasswordAuthentication no aislado no prueba ausencia de password.",
+        "answer_guide": "Pueden quedar métodos keyboard-interactive y PAM; verificar configuración efectiva y flujo MFA."
+      },
+      {
+        "id": "Q15",
+        "question": "Evidencias ante nueva clave en authorized_keys.",
+        "answer_guide": "Hash/cambio de archivo, propietario, proceso/cuenta autora, change ticket, evento de autenticación, sesión y flujos posteriores."
+      },
+      {
+        "id": "Q16",
+        "question": "Qué puede ver SOC de ssh -L.",
+        "answer_guide": "Cliente: listener local y ssh al bastión; red: conexión cifrada; destino interior requiere visión del bastión y aplicación."
+      },
+      {
+        "id": "Q17",
+        "question": "Diferencia cadena base nft vs regular.",
+        "answer_guide": "La primera se registra en hook; la segunda requiere salto desde reglas para evaluar paquetes."
+      },
+      {
+        "id": "Q18",
+        "question": "Por qué accept no necesariamente vence.",
+        "answer_guide": "Otra cadena base posterior del mismo hook todavía puede emitir drop."
+      },
+      {
+        "id": "Q19",
+        "question": "Por qué NAT no constituye autorización.",
+        "answer_guide": "Reescribe origen/destino/puerto; no garantiza que el flujo sea permitido ni benigno."
+      },
+      {
+        "id": "Q20",
+        "question": "Cómo identificar propietario de política firewall.",
+        "answer_guide": "systemctl + ufw/firewall-cmd/nft/ip(6)tables-save, IaC y configuración persistente. No combinar gestores."
+      },
+      {
+        "id": "Q21",
+        "question": "Qué medir antes/después de contener.",
+        "answer_guide": "Bytes y conexiones por workload, rutas/IPv6, alertas, impacto empresarial y disponibilidad de canales IR."
+      },
+      {
+        "id": "Q22",
+        "question": "Cuándo bloquear segmento/workload vs IP.",
+        "answer_guide": "Cuando el riesgo es cambiante/múltiples destinos, y hay segmentación/identidad de workload disponible con rollback."
+      },
+      {
+        "id": "Q23",
+        "question": "Por qué kill -9 degrada investigación.",
+        "answer_guide": "Pierde proceso/FD/memoria y puede ser reiniciado por servicio; no retira credenciales ni persistencia."
+      },
+      {
+        "id": "Q24",
+        "question": "Contador nft vs log persistente.",
+        "answer_guide": "Contador agregado refleja paquetes/bytes en regla; por sí solo no registra identidad o cada evento/UTC."
+      },
+      {
+        "id": "Q25",
+        "question": "Metadatos mínimos PCAP.",
+        "answer_guide": "Quién/cuándo/por qué, interfaz/namespace, BPF, snaplen, zona temporal, herramienta, hash, custodia."
+      },
+      {
+        "id": "Q26",
+        "question": "Datos sensibles en -s 128.",
+        "answer_guide": "IP/puertos/tiempos y posible inicio de payload de aplicación; restringir captura y almacenamiento."
+      },
+      {
+        "id": "Q27",
+        "question": "Probar regla solo en namespace.",
+        "answer_guide": "Ejecutar nft desde ip netns exec t4srv; comparar rulesets host vs namespace antes/después."
+      },
+      {
+        "id": "Q28",
+        "question": "FP y FN de detección D02.",
+        "answer_guide": "FP: backup/CDN normal no inventariado; FN: egress por proxy o conexión efímera no registrada."
+      },
+      {
+        "id": "Q29",
+        "question": "Pruebas para afirmar SSH bien configurado.",
+        "answer_guide": "Claves/host verificados, sshd -t/-T -C, auth real, métodos alternativos, logs, accesos y rollback."
+      },
+      {
+        "id": "Q30",
+        "question": "Diferencia de host y perimetral tras NAT.",
+        "answer_guide": "Distintas IP/puertos por traducción, distinta granularidad, sin PID en perímetro; correlacionar tiempo y tabla NAT."
+      }
+    ],
+    "questions_count": 30,
+    "passing_score_points": 80,
+    "max_score_points": 100,
+    "grading_criteria": [
+      "Enfoque basado en evidencia",
+      "Seguridad operacional sin fallos críticos",
+      "Diagnóstico explicado más allá de comandos",
+      "Trazabilidad para controles SOC y hallazgos Red Team",
+      "Pruebas positivas y negativas/retest"
+    ],
+    "critical_failures": [
+      "Cualquier prueba fuera de ROE/scope",
+      "Modificar firewall del host o producción por accidente",
+      "Interrumpir administración SSH sin vía de rescate",
+      "Capturar/compartir datos de terceros sin permiso",
+      "No ejecutar rollback o no documentar evidencia de contención"
+    ],
+    "lab_scoring_method": "Cada rúbrica detalla puntos; sumar sobre 100. Falta crítica suspende aunque la suma sea ≥80."
+  },
+  "detections": [
+    {
+      "id": "T4-D01",
+      "hypothesis": "Listener nuevo en interfaz no prevista",
+      "minimum_telemetry": "ss listeners + PID/service baseline + change management",
+      "mitre_attack": [
+        "T1046"
+      ],
+      "alternate_explanations": [
+        "Nuevo despliegue",
+        "socket activation",
+        "contenedor/proxy"
+      ],
+      "automatic_remediation": "No preconfigurada; requiere evaluación del riesgo e intervención conforme playbook.",
+      "required_validation": [
+        "Control positivo sintético con timestamp y proceso conocido",
+        "Caso negativo normal equivalente",
+        "Comprobación de huecos de sensores/retención",
+        "Medir TP, FP, FN y latencia",
+        "Probar IPv4/IPv6, NAT/proxy y namespace cuando correspondan"
+      ],
+      "confidence_warning": "Una única señal no confirma actividad maliciosa; elevar con correlación host+red+contexto."
+    },
+    {
+      "id": "T4-D02",
+      "hypothesis": "Egreso saliente no inventariado o atípico",
+      "minimum_telemetry": "flujo bytes + PID/cgroup/usuario + DNS/resolved + política egress",
+      "mitre_attack": [
+        "T1041"
+      ],
+      "alternate_explanations": [
+        "Backup",
+        "actualización",
+        "CDN",
+        "telemetría"
+      ],
+      "automatic_remediation": "No preconfigurada; requiere evaluación del riesgo e intervención conforme playbook.",
+      "required_validation": [
+        "Control positivo sintético con timestamp y proceso conocido",
+        "Caso negativo normal equivalente",
+        "Comprobación de huecos de sensores/retención",
+        "Medir TP, FP, FN y latencia",
+        "Probar IPv4/IPv6, NAT/proxy y namespace cuando correspondan"
+      ],
+      "confidence_warning": "Una única señal no confirma actividad maliciosa; elevar con correlación host+red+contexto."
+    },
+    {
+      "id": "T4-D03",
+      "hypothesis": "SSH exitoso desde origen o cuenta fuera de baseline",
+      "minimum_telemetry": "sshd auth success + user + source + inventario VPN/jump host",
+      "mitre_attack": [
+        "T1078"
+      ],
+      "alternate_explanations": [
+        "VPN móvil",
+        "administrador nuevo",
+        "rotación"
+      ],
+      "automatic_remediation": "No preconfigurada; requiere evaluación del riesgo e intervención conforme playbook.",
+      "required_validation": [
+        "Control positivo sintético con timestamp y proceso conocido",
+        "Caso negativo normal equivalente",
+        "Comprobación de huecos de sensores/retención",
+        "Medir TP, FP, FN y latencia",
+        "Probar IPv4/IPv6, NAT/proxy y namespace cuando correspondan"
+      ],
+      "confidence_warning": "Una única señal no confirma actividad maliciosa; elevar con correlación host+red+contexto."
+    },
+    {
+      "id": "T4-D04",
+      "hypothesis": "Burst SSH fallido seguido de éxito",
+      "minimum_telemetry": "auth fail + success por usuario/host + tiempo + MFA",
+      "mitre_attack": [
+        "T1110"
+      ],
+      "alternate_explanations": [
+        "test aprobado",
+        "contraseña expirada",
+        "IP NAT compartida"
+      ],
+      "automatic_remediation": "No preconfigurada; requiere evaluación del riesgo e intervención conforme playbook.",
+      "required_validation": [
+        "Control positivo sintético con timestamp y proceso conocido",
+        "Caso negativo normal equivalente",
+        "Comprobación de huecos de sensores/retención",
+        "Medir TP, FP, FN y latencia",
+        "Probar IPv4/IPv6, NAT/proxy y namespace cuando correspondan"
+      ],
+      "confidence_warning": "Una única señal no confirma actividad maliciosa; elevar con correlación host+red+contexto."
+    },
+    {
+      "id": "T4-D05",
+      "hypothesis": "authorized_keys cambia y hay nueva sesión",
+      "minimum_telemetry": "integridad archivo + identidad que cambió + sshd + ticket",
+      "mitre_attack": [
+        "T1098.004"
+      ],
+      "alternate_explanations": [
+        "rotación prevista",
+        "alta autorizada",
+        "automatización"
+      ],
+      "automatic_remediation": "No preconfigurada; requiere evaluación del riesgo e intervención conforme playbook.",
+      "required_validation": [
+        "Control positivo sintético con timestamp y proceso conocido",
+        "Caso negativo normal equivalente",
+        "Comprobación de huecos de sensores/retención",
+        "Medir TP, FP, FN y latencia",
+        "Probar IPv4/IPv6, NAT/proxy y namespace cuando correspondan"
+      ],
+      "confidence_warning": "Una única señal no confirma actividad maliciosa; elevar con correlación host+red+contexto."
+    },
+    {
+      "id": "T4-D06",
+      "hypothesis": "Reducción de controles firewall o logging",
+      "minimum_telemetry": "nft manager drift + cambios de servicio + audit trail + ticket",
+      "mitre_attack": [
+        "T1562.004"
+      ],
+      "alternate_explanations": [
+        "cambio urgente aprobado",
+        "update de distro"
+      ],
+      "automatic_remediation": "No preconfigurada; requiere evaluación del riesgo e intervención conforme playbook.",
+      "required_validation": [
+        "Control positivo sintético con timestamp y proceso conocido",
+        "Caso negativo normal equivalente",
+        "Comprobación de huecos de sensores/retención",
+        "Medir TP, FP, FN y latencia",
+        "Probar IPv4/IPv6, NAT/proxy y namespace cuando correspondan"
+      ],
+      "confidence_warning": "Una única señal no confirma actividad maliciosa; elevar con correlación host+red+contexto."
+    },
+    {
+      "id": "T4-D07",
+      "hypothesis": "SSH saliente con forwarding o nuevo listener local",
+      "minimum_telemetry": "proceso ssh + argv autorizado + sockets + destino + change ticket",
+      "mitre_attack": [
+        "T1572"
+      ],
+      "alternate_explanations": [
+        "túnel administrativo",
+        "IDE remoto"
+      ],
+      "automatic_remediation": "No preconfigurada; requiere evaluación del riesgo e intervención conforme playbook.",
+      "required_validation": [
+        "Control positivo sintético con timestamp y proceso conocido",
+        "Caso negativo normal equivalente",
+        "Comprobación de huecos de sensores/retención",
+        "Medir TP, FP, FN y latencia",
+        "Probar IPv4/IPv6, NAT/proxy y namespace cuando correspondan"
+      ],
+      "confidence_warning": "Una única señal no confirma actividad maliciosa; elevar con correlación host+red+contexto."
+    },
+    {
+      "id": "T4-D08",
+      "hypothesis": "DNS atípico más volumen de salida inusual",
+      "minimum_telemetry": "DNS queries + flow bytes + app identity + backup inventory",
+      "mitre_attack": [
+        "T1071.004"
+      ],
+      "alternate_explanations": [
+        "migración",
+        "CDN",
+        "actualización"
+      ],
+      "automatic_remediation": "No preconfigurada; requiere evaluación del riesgo e intervención conforme playbook.",
+      "required_validation": [
+        "Control positivo sintético con timestamp y proceso conocido",
+        "Caso negativo normal equivalente",
+        "Comprobación de huecos de sensores/retención",
+        "Medir TP, FP, FN y latencia",
+        "Probar IPv4/IPv6, NAT/proxy y namespace cuando correspondan"
+      ],
+      "confidence_warning": "Una única señal no confirma actividad maliciosa; elevar con correlación host+red+contexto."
+    },
+    {
+      "id": "T4-D09",
+      "hypothesis": "Cambio inesperado de ruta, DNS o interfaz",
+      "minimum_telemetry": "NM/resolved events + route diffs + DHCP/VPN + approved change",
+      "mitre_attack": [
+        "T1016"
+      ],
+      "alternate_explanations": [
+        "VPN",
+        "failover DHCP",
+        "migración NIC"
+      ],
+      "automatic_remediation": "No preconfigurada; requiere evaluación del riesgo e intervención conforme playbook.",
+      "required_validation": [
+        "Control positivo sintético con timestamp y proceso conocido",
+        "Caso negativo normal equivalente",
+        "Comprobación de huecos de sensores/retención",
+        "Medir TP, FP, FN y latencia",
+        "Probar IPv4/IPv6, NAT/proxy y namespace cuando correspondan"
+      ],
+      "confidence_warning": "Una única señal no confirma actividad maliciosa; elevar con correlación host+red+contexto."
+    },
+    {
+      "id": "T4-D10",
+      "hypothesis": "Caídas netfilter/conntrack coinciden con degradación",
+      "minimum_telemetry": "counters + conntrack util + kernel/netfilter messages + legitimate load",
+      "mitre_attack": [],
+      "alternate_explanations": [
+        "alta concurrencia",
+        "escaneo autorizado",
+        "saturación normal"
+      ],
+      "automatic_remediation": "No preconfigurada; requiere evaluación del riesgo e intervención conforme playbook.",
+      "required_validation": [
+        "Control positivo sintético con timestamp y proceso conocido",
+        "Caso negativo normal equivalente",
+        "Comprobación de huecos de sensores/retención",
+        "Medir TP, FP, FN y latencia",
+        "Probar IPv4/IPv6, NAT/proxy y namespace cuando correspondan"
+      ],
+      "confidence_warning": "Una única señal no confirma actividad maliciosa; elevar con correlación host+red+contexto."
+    }
+  ],
+  "detection_count": 10,
+  "network_tool_matrix": [
+    {
+      "tool": "iproute2 (ip)",
+      "purpose": "interfaces, direcciones, rutas, policy routing, namespaces",
+      "read_only_examples": [
+        "ip -br addr",
+        "ip -j route show table all",
+        "ip rule",
+        "ip route get 192.0.2.80"
+      ],
+      "limits": "No prueba entrega extremo a extremo",
+      "references": [
+        "N01",
+        "N02",
+        "N05",
+        "N06"
+      ]
+    },
+    {
+      "tool": "ss/lsof",
+      "purpose": "sockets y procesos visibles",
+      "read_only_examples": [
+        "ss -lntup",
+        "ss -tanop",
+        "lsof -nP -iTCP -sTCP:LISTEN"
+      ],
+      "limits": "Snapshot, privilegios, namespace",
+      "references": [
+        "N03"
+      ]
+    },
+    {
+      "tool": "resolvectl/getent",
+      "purpose": "DNS y NSS",
+      "read_only_examples": [
+        "getent ahosts localhost",
+        "resolvectl status"
+      ],
+      "limits": "No muestra DoH de aplicaciones o toda la caché",
+      "references": [
+        "N07",
+        "N08"
+      ]
+    },
+    {
+      "tool": "OpenSSH",
+      "purpose": "servidor SSH y verificación efectiva",
+      "read_only_examples": [
+        "sshd -t",
+        "sshd -T -C user=adminlab,host=lab.local,addr=192.0.2.10,laddr=192.0.2.20,lport=22"
+      ],
+      "limits": "No reemplaza prueba de conexión y MFA real",
+      "references": [
+        "N13",
+        "N14"
+      ]
+    },
+    {
+      "tool": "nftables",
+      "purpose": "filtrado por hooks/estado",
+      "read_only_examples": [
+        "nft -a -nn list ruleset",
+        "nft -c -f /ruta/lab.nft"
+      ],
+      "limits": "Hay otras chains/managers, no equivale a cloud firewall",
+      "references": [
+        "N18",
+        "N19",
+        "N20"
+      ]
+    },
+    {
+      "tool": "tcpdump",
+      "purpose": "PCAP delimitado",
+      "read_only_examples": [
+        "tcpdump -nn -r /tmp/t4-lab.pcap"
+      ],
+      "limits": "Puede incluir datos sensibles, no identifica PID",
+      "references": [
+        "N10"
+      ]
+    },
+    {
+      "tool": "UFW/firewalld/iptables",
+      "purpose": "inspección de policy declarativa y backend",
+      "read_only_examples": [
+        "ufw status verbose",
+        "firewall-cmd --get-active-zones",
+        "iptables -V"
+      ],
+      "limits": "No asumir que un gestor representa reglas de otros",
+      "references": [
+        "N24",
+        "N25",
+        "N26"
+      ]
+    }
+  ],
+  "protocol_matrix": [
+    {
+      "protocol": "TCP",
+      "indicators": [
+        "LISTEN",
+        "SYN-SENT",
+        "ESTAB",
+        "CLOSE-WAIT",
+        "TIME-WAIT"
+      ],
+      "common_false_inference": "Estado TCP por sí solo equivale a ataque"
+    },
+    {
+      "protocol": "UDP",
+      "indicators": [
+        "Socket UDP actual",
+        "Consulta DNS",
+        "QUIC"
+      ],
+      "common_false_inference": "UDP tiene handshake/state igual a TCP"
+    },
+    {
+      "protocol": "ICMPv4/ICMPv6",
+      "indicators": [
+        "PMTUD",
+        "error de red",
+        "NDP en IPv6"
+      ],
+      "common_false_inference": "Bloquear ICMP completamente es seguro"
+    },
+    {
+      "protocol": "SSH",
+      "indicators": [
+        "Login aceptado",
+        "Clave pública",
+        "Forwarding",
+        "Egress SSH"
+      ],
+      "common_false_inference": "No hubo usuario interactivo = no hubo sesión ni extracción"
+    }
+  ],
+  "soc_incident_runbook": [
+    {
+      "phase": "T0-alerta",
+      "sequence": 1,
+      "actions": [
+        "Confirmar origen de alertas y bytes, UTC y host",
+        "Evaluar playbook y activar respuesta"
+      ]
+    },
+    {
+      "phase": "T1-contención",
+      "sequence": 2,
+      "actions": [
+        "Seleccionar control egress/EDR/hipervisor preautorizado",
+        "Comprobar IPv4/IPv6, NAT y canal IR",
+        "Verificar caída del flujo anómalo"
+      ]
+    },
+    {
+      "phase": "T2-evidencia",
+      "sequence": 3,
+      "actions": [
+        "Capturar mínimo volátil si seguro",
+        "Preservar stdout/PCAP/logs selectivos y hashes",
+        "Correlacionar proceso/servicio/usuario"
+      ]
+    },
+    {
+      "phase": "T3-análisis",
+      "sequence": 4,
+      "actions": [
+        "Probar hipótesis backup vs uso indebido",
+        "Verificar cambio de destinos y otros workloads",
+        "Delimitar alcance y causa raíz"
+      ]
+    },
+    {
+      "phase": "T4-remediación",
+      "sequence": 5,
+      "actions": [
+        "Eliminar causa y revisar credenciales",
+        "Recuperar rutas permitidas con plan",
+        "Re-test y aumentar detecciones"
+      ]
+    }
+  ],
+  "case_studies": [
+    {
+      "id": "T4-C01",
+      "title": "Pico de salida a las 03:00",
+      "hypotheses": [
+        "backup permitido",
+        "exfiltración",
+        "error métrico"
+      ],
+      "first_checks": [
+        "sensor bytes y política",
+        "ruta/namespace/IPv6",
+        "PID, usuario y registros",
+        "control de egreso"
+      ],
+      "unsafe_shortcut": "kill PID y borrar crontab sin evidencia ni autorización"
+    },
+    {
+      "id": "T4-C02",
+      "title": "SSH dejó de aceptar conexiones tras aplicar firewall",
+      "hypotheses": [
+        "policy drop en input",
+        "puerto/bind distinto",
+        "firewall cloud",
+        "IPv6/MFA"
+      ],
+      "first_checks": [
+        "consola OOB",
+        "nft manager y counter",
+        "sshd -t/-T -C",
+        "listener/rutas"
+      ],
+      "unsafe_shortcut": "flush global para recuperar SSH"
+    },
+    {
+      "id": "T4-C03",
+      "title": "DNS funciona pero curl falla",
+      "hypotheses": [
+        "rutas",
+        "TLS/SNI",
+        "proxy",
+        "IPv6",
+        "filtro salida"
+      ],
+      "first_checks": [
+        "getent/resolvectl",
+        "curl -4/-6",
+        "rutas",
+        "PCAP mínimo"
+      ],
+      "unsafe_shortcut": "deshabilitar IPv6 y DNSSEC globalmente"
+    },
+    {
+      "id": "T4-C04",
+      "title": "Nueva escucha local con túnel SSH",
+      "hypotheses": [
+        "administración prevista",
+        "debug remoto",
+        "movimiento no autorizado"
+      ],
+      "first_checks": [
+        "ssh process y flags",
+        "bastión/CMDB",
+        "ticket",
+        "logs servidor",
+        "egress"
+      ],
+      "unsafe_shortcut": "bloquear todo puerto 22 sin identificar las operaciones"
+    },
+    {
+      "id": "T4-C05",
+      "title": "IP bloqueada pero el egreso continúa",
+      "hypotheses": [
+        "otra IP/v6",
+        "proxy",
+        "otro namespace",
+        "control en hook equivocado"
+      ],
+      "first_checks": [
+        "contadores nft",
+        "rutas/namespaces",
+        "logs proxy/EDR",
+        "5-tuple posNAT"
+      ],
+      "unsafe_shortcut": "asegurar contención total tras una regla de IP"
+    }
+  ],
+  "soc_evidence_template": {
+    "fields": [
+      "incident_id",
+      "host_id",
+      "timestamp_utc",
+      "timezone_and_clock_sync",
+      "collection_tool_version",
+      "collector",
+      "authorization_scope",
+      "namespace",
+      "interface",
+      "protocol",
+      "source_ip_port",
+      "dest_ip_port",
+      "process_pid_executable",
+      "user_id",
+      "rule_or_sensor",
+      "pcap_or_log_hash",
+      "retention_window",
+      "uncertainty",
+      "alternate_hypotheses",
+      "containment_actions",
+      "retest_result",
+      "custody"
+    ],
+    "interpretation_guardrails": [
+      "Distinguir observado de inferido",
+      "No imprimir secretos",
+      "Permisos mínimos para copias",
+      "Sin garantía de cobertura 100%"
+    ]
+  },
+  "references": [
+    {
+      "id": "N01",
+      "title": "ip-route(8) — iproute2/man7",
+      "url": "https://man7.org/linux/man-pages/man8/ip-route.8.html"
+    },
+    {
+      "id": "N02",
+      "title": "ip-address(8) — iproute2/man7",
+      "url": "https://man7.org/linux/man-pages/man8/ip-address.8.html"
+    },
+    {
+      "id": "N03",
+      "title": "ss(8) — iproute2/man7",
+      "url": "https://man7.org/linux/man-pages/man8/ss.8.html"
+    },
+    {
+      "id": "N04",
+      "title": "network_namespaces(7) — man7",
+      "url": "https://man7.org/linux/man-pages/man7/network_namespaces.7.html"
+    },
+    {
+      "id": "N05",
+      "title": "ip-netns(8) — iproute2/man7",
+      "url": "https://man7.org/linux/man-pages/man8/ip-netns.8.html"
+    },
+    {
+      "id": "N06",
+      "title": "ip-rule(8) — man7",
+      "url": "https://man7.org/linux/man-pages/man8/ip-rule.8.html"
+    },
+    {
+      "id": "N07",
+      "title": "resolvectl — systemd",
+      "url": "https://www.freedesktop.org/software/systemd/man/257/resolvectl.html"
+    },
+    {
+      "id": "N08",
+      "title": "systemd-resolved.service — systemd",
+      "url": "https://www.freedesktop.org/software/systemd/man/257/systemd-resolved.service.html"
+    },
+    {
+      "id": "N09",
+      "title": "systemd.socket — systemd",
+      "url": "https://www.freedesktop.org/software/systemd/man/257/systemd.socket.html"
+    },
+    {
+      "id": "N10",
+      "title": "tcpdump(8) — manual",
+      "url": "https://man7.org/linux/man-pages/man8/tcpdump.8.html"
+    },
+    {
+      "id": "N11",
+      "title": "ip-link(8) — iproute2",
+      "url": "https://man7.org/linux/man-pages/man8/ip-link.8.html"
+    },
+    {
+      "id": "N12",
+      "title": "IP sysctl — Linux kernel",
+      "url": "https://docs.kernel.org/networking/ip-sysctl.html"
+    },
+    {
+      "id": "N13",
+      "title": "sshd_config(5) — OpenSSH/OpenBSD",
+      "url": "https://man.openbsd.org/sshd_config.5"
+    },
+    {
+      "id": "N14",
+      "title": "sshd(8) — OpenSSH/OpenBSD",
+      "url": "https://man.openbsd.org/sshd.8"
+    },
+    {
+      "id": "N15",
+      "title": "authorized_keys / sshd(8) — OpenSSH",
+      "url": "https://man.openbsd.org/sshd.8"
+    },
+    {
+      "id": "N16",
+      "title": "ssh(1) — OpenSSH/OpenBSD",
+      "url": "https://man.openbsd.org/ssh.1"
+    },
+    {
+      "id": "N17",
+      "title": "ssh_config(5) — OpenSSH/OpenBSD",
+      "url": "https://man.openbsd.org/ssh_config.5"
+    },
+    {
+      "id": "N18",
+      "title": "Quick reference — nftables wiki",
+      "url": "https://wiki.nftables.org/wiki-nftables/index.php/Quick_reference-nftables_in_10_minutes"
+    },
+    {
+      "id": "N19",
+      "title": "Configuring chains — nftables wiki",
+      "url": "https://wiki.nftables.org/wiki-nftables/index.php/Configuring_chains"
+    },
+    {
+      "id": "N20",
+      "title": "Netfilter hooks — nftables wiki",
+      "url": "https://wiki.nftables.org/wiki-nftables/index.php/Netfilter_hooks"
+    },
+    {
+      "id": "N21",
+      "title": "Sets — nftables wiki",
+      "url": "https://wiki.nftables.org/wiki-nftables/index.php/Sets"
+    },
+    {
+      "id": "N22",
+      "title": "nft(8) — netfilter manual",
+      "url": "https://netfilter.org/projects/nftables/manpage.html"
+    },
+    {
+      "id": "N23",
+      "title": "conntrack — Netfilter",
+      "url": "https://conntrack-tools.netfilter.org/"
+    },
+    {
+      "id": "N24",
+      "title": "Firewall — Ubuntu Server",
+      "url": "https://documentation.ubuntu.com/server/how-to/security/firewalls/index.html"
+    },
+    {
+      "id": "N25",
+      "title": "firewalld — RHEL 9",
+      "url": "https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/configuring_firewalls_and_packet_filters/using-and-configuring-firewalld_firewall-packet-filters"
+    },
+    {
+      "id": "N26",
+      "title": "Ubuntu Security — Linux Firewall",
+      "url": "https://documentation.ubuntu.com/security/security-features/network/firewall/"
+    },
+    {
+      "id": "N27",
+      "title": "Wireshark — referencia TCP",
+      "url": "https://www.wireshark.org/docs/dfref/t/tcp.html"
+    },
+    {
+      "id": "N28",
+      "title": "RFC 5737 — IPv4 documentación",
+      "url": "https://www.rfc-editor.org/rfc/rfc5737"
+    },
+    {
+      "id": "N29",
+      "title": "RFC 3849 — IPv6 documentación",
+      "url": "https://www.rfc-editor.org/rfc/rfc3849"
+    },
+    {
+      "id": "N30",
+      "title": "RFC 8200 — IPv6",
+      "url": "https://www.rfc-editor.org/rfc/rfc8200"
+    },
+    {
+      "id": "N31",
+      "title": "RFC 8446 — TLS 1.3",
+      "url": "https://www.rfc-editor.org/rfc/rfc8446"
+    },
+    {
+      "id": "N32",
+      "title": "tcp(7) — man7",
+      "url": "https://man7.org/linux/man-pages/man7/tcp.7.html"
+    }
+  ],
+  "references_count": 32,
+  "limitations": [
+    "No existe una configuración firewall/SSH universal para todas las distribuciones.",
+    "Los comandos no fueron ejecutados en máquinas reales.",
+    "La inspección en host no representa toda la infraestructura NAT/cloud/VPN/proxy.",
+    "La atribución de tráfico cifrado o efímero requiere correlación con sensor adicional.",
+    "Este bloque es networking; PAM/auditd/eBPF/SELinux/AppArmor avanzados quedan para la T5.",
+    "Los mapeos ATT&CK son aproximaciones temáticas y requieren confirmar técnica, versión y evidencia."
+  ],
+  "quality_assurance": {
+    "companion_md_exists": true,
+    "companion_md_sha256_validated": true,
+    "json_syntax": "validated_by_python_json",
+    "lab_ids_unique": true,
+    "questions_count_expected": 30,
+    "lab_points_total_expected": 100,
+    "all_rubrics_sum_correct": true,
+    "all_references_resolve": true,
+    "research_status": "documentation_researched; lab_commands_proposed_not_executed",
+    "modelled_scope": "SOC N1/N2 + Red Team autorizado"
+  },
+  "status": "ready_for_study_not_executed",
+  "next_batch": "Tanda 5 de 5 — PAM, SELinux/AppArmor, hardening, auditd/journald/telemetría, troubleshooting, contenedores y evaluación integral"
+}

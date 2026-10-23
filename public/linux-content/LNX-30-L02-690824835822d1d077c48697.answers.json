@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-30-L02",
+  "sourceHash": "65dc80274a88c759e25350fee288e59f014af44c36a76b24c9ecfe9332be295d",
+  "questions": [
+    {
+      "id": "LNX-30-L02-Q01",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Que ese pod fue admitido; no demuestra que un pod no conforme sea rechazado».\n\nUn pod conforme que arranca confirma compatibilidad con la política, no capacidad de discriminación. Para demostrar control hace falta una prueba negativa que confirme el rechazo o el registro del caso prohibido."
+    },
+    {
+      "id": "LNX-30-L02-Q02",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Restricted».\n\n`Restricted` añade a `Baseline` las condiciones estrictas de ejecución sin root, `allowPrivilegeEscalation: false`, seccomp adecuado y eliminación de capabilities salvo excepciones. `Privileged` no restringe y `Audit` es un modo de aplicación, no un nivel."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "La comprobación empieza por el **namespace**: nivel aplicado, modo de enforcement y exenciones. Un namespace en modo `warn` o `audit` registra incumplimientos sin bloquearlos, y una exención deja fuera justo los espacios donde suelen persistir configuraciones heredadas. Después se revisa el **pod admitido**, no solo el manifiesto: su `securityContext` efectivo, el UID con el que arranca y el perfil seccomp aplicado.\n\nLa prueba debe tener dos mitades. La **positiva** despliega en un namespace de laboratorio un workload legítimo y confirma que funciona con la política. La **negativa** intenta una configuración prohibida —por ejemplo, un pod que pide privilegios o ejecuta como root— y verifica que es rechazada en modo `enforce` o registrada en los modos de advertencia. El resultado se documenta con namespace, versión, mecanismo de admisión y evento observado.\n\nLímite: la conclusión se refiere a ese namespace y a esa versión del clúster. No certifica el resto de namespaces, no cubre la seguridad del nodo ni la red, y una política de admisión no sustituye la detección en runtime.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Comprueba modo de enforcement y exenciones, no solo la etiqueta del namespace."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Contrasta el manifiesto con el `securityContext` efectivo del pod admitido."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Diseña una prueba positiva y otra negativa, con resultado y fuente declarados."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Acota la conclusión al namespace y la versión probados."
+      }
+    ]
+  },
+  "revision": "690824835822d1d077c48697"
+}

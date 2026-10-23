@@ -1,0 +1,203 @@
+{
+  "id": "N1-15",
+  "nivel": "N1",
+  "bloque": "Windows, Linux y Active Directory",
+  "titulo": "Usuario ejecuta un EXE recibido por correo sin alerta del antivirus",
+  "pregunta": "Un usuario ejecutó un archivo .exe recibido por correo y Defender no generó ninguna alerta. ¿Qué registros y evidencias consultarías?",
+  "escenario": "Un empleado de finanzas informa a las 11:30 que descargó y ejecutó `factura_octubre.exe` desde un mensaje con supuesto PDF convertido a instalador. El archivo mostró una pantalla en blanco y desapareció. Microsoft Defender no registra detección en la consola. El equipo FIN-WS-04 está incorporado a Defender for Endpoint; Security Events y proxy están parcialmente disponibles. Aún no hay prueba de infección ni exfiltración.",
+  "objetivo": "Reconstruir descarga, ejecución, procesos hijos, conexiones, efectos sobre archivos/persistencia y controles de seguridad aun en ausencia de alerta AV. Determinar nivel de certeza y riesgo para contener a tiempo, preservar evidencia y orientar la respuesta N2/IR.",
+  "hipotesis": [
+    "Archivo ejecutable benigno no reconocido por el usuario, firmado y distribuido mediante proceso autorizado, aunque la entrega por correo es atípica.",
+    "Ejecución maliciosa inicial no detectada (ausencia de firma, retraso, políticas, exclusiones, evasión o falta de telemetría).",
+    "Archivo se ejecutó pero falló inmediatamente; puede haber creado procesos hijos, modificado claves o establecido persistencia antes de salir.",
+    "El usuario abrió un enlace/acceso directo distinto de un EXE, o el correo adjunto fue renombrado: requiere confirmación de evidencia.",
+    "La consola EDR no muestra alerta debido a salud del agente, alcance de retención, visibilidad o falta de reglas de detección."
+  ],
+  "pasos": [
+    {
+      "fase": "0. Asegurar la respuesta temprana",
+      "accion": "Confirmar hora, usuario, hostname, criticidad, ubicación del archivo y si el proceso sigue vivo. Si hay evidencia de actividad activa, coordinar aislamiento EDR aprobado; no esperar indefinidamente a una alerta automática."
+    },
+    {
+      "fase": "1. Preservar correo y contexto",
+      "accion": "Conservar ID del mensaje, remitente, encabezados, URL/adjunto, hash de la muestra en repositorio seguro, hora de entrega y acciones del usuario; no reenviar el EXE a terceros ni ejecutarlo en máquinas de producción."
+    },
+    {
+      "fase": "2. Verificar ejecución real",
+      "accion": "En Defender XDR DeviceProcessEvents buscar FileName, ruta, SHA1, ProcessCommandLine, InitiatingProcess*, AccountName, ProcessId y tiempo. En Windows buscar 4688 o Sysmon Event 1 si existen; no asumir que el archivo se ejecutó por haber sido descargado."
+    },
+    {
+      "fase": "3. Reconstruir árbol de procesos",
+      "accion": "Correlacionar PID con hora de creación, DeviceId, padres e hijos, y comprobar si abrió PowerShell, cmd, rundll32, mshta, wscript, servicios o procesos inesperados. El PID se reutiliza y no debe emparejarse sin ventana de tiempo."
+    },
+    {
+      "fase": "4. Revisar operaciones de archivo",
+      "accion": "Investigar DeviceFileEvents: origen de descarga (si está disponible), creación/escritura de nuevos binarios, ficheros en ProgramData/AppData/Temp y cambios de hash. Un SHA256 de MDE puede no estar poblado; usar SHA1 del sensor cuando exista, y SHA256 local para cadena de custodia."
+    },
+    {
+      "fase": "5. Correlacionar red e identidad",
+      "accion": "Buscar DeviceNetworkEvents por proceso/hash, DNS/proxy/firewall y posteriores inicios de sesión o permisos. Tráfico HTTPS no es automáticamente malicioso ni seguro; inspeccionar destino y volumen donde esté autorizado."
+    },
+    {
+      "fase": "6. Revisar persistencia y evasión",
+      "accion": "Comprobar tareas, Run keys, servicios, WMI, Defender DeviceEvents y salud del agente: estado de protección, alertas, exclusiones y modificaciones. No desactivar herramientas para testear el malware."
+    },
+    {
+      "fase": "7. Investigar alcance",
+      "accion": "Buscar SHA1/nombre/ruta/indicadores en otros dispositivos, otros destinatarios de correo, URLs y dominios relacionados; identificar si varios empleados abrieron el adjunto."
+    },
+    {
+      "fase": "8. Escalar y contener de forma proporcionada",
+      "accion": "Si hay proceso sospechoso, persistencia, detección TI fiable o conexiones de exfiltración, escalar urgente a N2/IR y solicitar aislamiento del equipo y bloqueo de indicadores validados. Preservar telemetría y garantizar medidas de recuperación."
+    },
+    {
+      "fase": "9. Validar remediación y cierre",
+      "accion": "Mantener el caso abierto hasta comprobar proceso, mecanismos persistentes, otras estaciones, integridad del agente y acciones posteriores del atacante. Documentar alcance, confianza, qué se sabe y qué falta; ausencia de alertas no es cierre."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "Mensaje original, cabeceras y URL",
+      "lectura": "Origen de entrega y otros destinatarios; no fiarse solo de la dirección From visible."
+    },
+    {
+      "dato": "DeviceProcessEvents / 4688 / Sysmon 1",
+      "lectura": "Confirma creación de proceso con tiempo, usuario, línea y padre si telemetría disponible; descargado ≠ ejecutado."
+    },
+    {
+      "dato": "DeviceFileEvents y orígenes",
+      "lectura": "Descargas, copias y cambios de archivos; FileOriginUrl puede faltar, no es garantía de atribución."
+    },
+    {
+      "dato": "SHA1 de MDE y SHA256 local",
+      "lectura": "Correlación e integridad; campos SHA256 de MDE pueden venir vacíos. La mera coincidencia de hash no dicta por sí sola intención."
+    },
+    {
+      "dato": "DeviceNetworkEvents / DNS / proxy",
+      "lectura": "Revela comunicaciones del proceso u otros relacionados; puertos normales no implican ausencia de C2."
+    },
+    {
+      "dato": "Registro, servicios, tareas",
+      "lectura": "Indicadores de persistencia o cambios posteriores a la ejecución; coordinar acciones con N2."
+    },
+    {
+      "dato": "Defender salud y control",
+      "lectura": "Estado de protección, sensores, exclusiones, alertas y cambios. Falta de alerta no prueba que el archivo sea inocuo."
+    },
+    {
+      "dato": "Alcance por host/usuario",
+      "lectura": "Otros archivos ejecutados con mismo hash, equipos, destinatarios del mensaje y cuentas con indicios relacionados."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Defender XDR: ejecución y cadena de origen del EXE",
+      "entorno": "DeviceProcessEvents de Defender for Endpoint en el endpoint; sustituir nombre/host y ventana temporal por datos del caso",
+      "consulta": "DeviceProcessEvents\n| where Timestamp > ago(3d)\n| where DeviceName startswith \"FIN-WS-04\"\n| where FileName =~ \"factura_octubre.exe\"\n      or ProcessCommandLine contains \"factura_octubre.exe\"\n| project Timestamp, DeviceId, DeviceName, FileName, FolderPath, SHA1,\n          ProcessId, ProcessCreationTime, ProcessCommandLine, AccountName,\n          InitiatingProcessFileName, InitiatingProcessCommandLine,\n          InitiatingProcessId, InitiatingProcessCreationTime\n| order by Timestamp asc",
+      "interpretacion": "Confirma si el ejecutable se lanzó, con contexto de usuario, ruta, hash y proceso iniciador.",
+      "limitaciones": "Nombre y ruta pueden cambiar. No reconstruye por sí solo toda la descendencia; correlacionar DeviceId + ProcessId + creación temporal y datos relacionados para evitar reutilización de PID."
+    },
+    {
+      "nombre": "Defender XDR: comunicaciones de un proceso sospechoso",
+      "entorno": "DeviceNetworkEvents con MDE; filtrar equipo y nombre de proceso ilustrativo; comparar con SHA1/tiempo cuando estén disponibles",
+      "consulta": "DeviceNetworkEvents\n| where Timestamp > ago(3d)\n| where DeviceName startswith \"FIN-WS-04\"\n| where InitiatingProcessFileName =~ \"factura_octubre.exe\"\n| project Timestamp, DeviceName, RemoteIP, RemoteUrl, RemotePort,\n          ActionType, InitiatingProcessFileName, InitiatingProcessFolderPath,\n          InitiatingProcessCommandLine, InitiatingProcessSHA1,\n          InitiatingProcessId, InitiatingProcessCreationTime\n| order by Timestamp asc",
+      "interpretacion": "Muestra conexiones que MDE atribuye al EXE; revisar reputación e inventario de cada destino y tiempo respecto a ejecución.",
+      "limitaciones": "Un proceso hijo o inyección podría generar red bajo otro nombre; ausencia de resultados no confirma que no haya habido comunicación."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk CIM Endpoint: proceso EXE y padres observados",
+      "entorno": "CIM Endpoint.Processes mapeado de EDR o Sysmon; filtrar por nombre sin ejecutar la muestra",
+      "consulta": "| tstats count as Ejecuciones values(Processes.process) as Comandos\n         values(Processes.process_path) as Rutas\n         values(Processes.parent_process_name) as Padres\n         values(Processes.process_hash) as Hashes\n  from datamodel=Endpoint.Processes earliest=-3d\n  where Processes.process_name=\"factura_octubre.exe\"\n  by Processes.dest Processes.user _time span=1h\n| rename Processes.* AS *\n| sort 0 _time",
+      "interpretacion": "Permite ver si proceso se creó, dónde y desde qué proceso padre en varios endpoints.",
+      "limitaciones": "El modelo no conserva siempre parent-child individual tras agrupar; para reconstrucción exacta usar eventos originales y process_guid o PID + hora si no existe GUID."
+    },
+    {
+      "nombre": "Splunk Security 4688: creación de procesos próximos al incidente",
+      "entorno": "Índice windows con 4688 auditado; requiere política de Process Creation y extracción del campo CommandLine para capturar argumentos",
+      "consulta": "index=windows earliest=-3d (sourcetype=\"XmlWinEventLog:Security\" OR sourcetype=\"WinEventLog:Security\") EventCode=4688\n| search host=\"FIN-WS-04*\"\n| eval Imagen=coalesce(NewProcessName, New_Process_Name),\n       Comando=coalesce(CommandLine, Process_Command_Line),\n       Padre=coalesce(ParentProcessName, Creator_Process_Name)\n| where like(lower(Imagen), \"%factura_octubre.exe%\")\n       OR like(lower(Comando), \"%factura_octubre.exe%\")\n| table _time host SubjectUserName Imagen Padre Comando NewProcessId\n| sort 0 _time",
+      "interpretacion": "Busca ejecuciones/llamadas relacionadas con el nombre de archivo en Security 4688; sirve como contraste de EDR.",
+      "limitaciones": "La línea de comandos de 4688 viene vacía sin auditoría apropiada; en determinadas fuentes nombres de campo cambian y hay que normalizar hostname."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Windows — comprobar hash del archivo en custodia",
+      "proposito": "Solo si existe copia preservada y autorización; calcular hash NO requiere ejecutar el binario.",
+      "comando": "Get-FileHash -Algorithm SHA256 'C:\\IR\\muestras\\factura_octubre.exe'"
+    },
+    {
+      "entorno": "Windows — buscar 4688 recientes",
+      "proposito": "Requiere permisos de lectura Security y auditoría de creación de procesos habilitada.",
+      "comando": "Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4688; StartTime=(Get-Date).AddHours(-6)} -MaxEvents 50"
+    },
+    {
+      "entorno": "Windows — comprobar estado AV local sin alterar configuración",
+      "proposito": "Solo lectura; revisar si dispositivos consultados coinciden con host afectado.",
+      "comando": "Get-MpComputerStatus | Select-Object AMServiceEnabled,AntivirusEnabled,RealTimeProtectionEnabled,AntispywareEnabled,AMEngineVersion"
+    },
+    {
+      "entorno": "Windows — revisar exclusiones AV localmente (autorizado)",
+      "proposito": "Evitar difundir rutas sensibles de toda la organización y no modificar exclusiones.",
+      "comando": "Get-MpPreference | Select-Object ExclusionPath,ExclusionProcess,ExclusionExtension"
+    },
+    {
+      "entorno": "Windows — revisar tareas registradas",
+      "proposito": "Pista de persistencia; la ausencia de tarea no descarta otras técnicas.",
+      "comando": "Get-ScheduledTask | Select-Object TaskName,TaskPath,State,Actions,Principal"
+    }
+  ],
+  "contencion": "La ausencia de alerta Defender no autoriza cerrar el ticket. Si las primeras evidencias muestran actividad activa sospechosa o datos sensibles en riesgo, pedir aislamiento EDR o restricciones de salida aprobadas mientras se conserva telemetría. No ejecutar ni abrir la muestra fuera de sandbox autorizado, ni usar servicios públicos de análisis de muestras sin aprobación y valoración de datos sensibles. No borrar el EXE como primera acción ni confiar solo en escaneo antivirus: investigar procesos, persistencia, red, identidad y extensión.",
+  "escalation": [
+    "Hay ejecución confirmada de binario no autorizado más actividad secundaria sospechosa.",
+    "Se detecta conexión de C2, exfiltración, descarga de componentes, persistencia o cambios de seguridad.",
+    "Los procesos fueron lanzados con permisos elevados, tareas o servicios nuevos y acceso a secretos.",
+    "Varios dispositivos recibieron/ejecutaron el mismo hash o remitente sospechoso.",
+    "Defender deshabilitado, agentes con fallos de salud o políticas modificadas coincidentes con la ejecución.",
+    "El activo tiene acceso a sistemas de alto impacto y faltan registros esenciales para descartar compromiso."
+  ],
+  "falsos_positivos": [
+    "Archivo legítimo de proveedor distribuido de forma irregular pero respaldado por ticket y firma válida.",
+    "El usuario ejecutó instalador permitido y la consola no genera detecciones benignas.",
+    "El ejecutable falló al iniciar sin efectos posteriores, pero debe verificarse.",
+    "El fichero fue renombrado: el nombre no corresponde al payload real del correo.",
+    "Telemetría tardía, retención insuficiente o endpoint desconectado de EDR."
+  ],
+  "errores": [
+    "Cerrar como falso positivo porque Defender no alertó.",
+    "Volver a ejecutar el EXE para comprobar qué hace.",
+    "Borrar inmediatamente el archivo y perder contexto de hash/metadata.",
+    "Buscar solo el nombre del EXE y no árbol de procesos, hashes o procesos hijos.",
+    "Confundir detección/prevención AV con registro de cada ejecución: las tecnologías y coberturas difieren.",
+    "Subir archivos internos a servicios públicos sin autorización.",
+    "Emparejar procesos únicamente por PID sin DeviceId ni tiempo de creación."
+  ],
+  "perspectiva_red_team": "La ejecución de un archivo entregado por ingeniería social puede encajar en T1204.002 (Malicious File) si se acredita acción del usuario y naturaleza maliciosa. Los adversarios pueden lanzar procesos hijos, usar intérpretes legítimos y cambiar nombre/ruta para eludir detección; sin embargo una ausencia de alerta no demuestra evasión efectiva. Para el Blue Team, la secuencia entrega → descarga → ejecución → comportamiento → alcance es el núcleo del caso.",
+  "respuesta_entrevista": "No cerraría el incidente porque Defender no haya alertado. Confirmaría el mensaje original y la hora de ejecución, guardaría el hash y revisaría MDE DeviceProcessEvents y, si está auditado, Windows 4688 o Sysmon 1. Reconstruiría padre, hijos y ruta, revisaría DeviceFileEvents, red, servicios y tareas programadas; también el estado de protección y exclusiones. Si observo actividad maliciosa o riesgo activo, escalaría para aislamiento autorizado y búsqueda de otros equipos. Guardaría evidencia antes de remediar y verificaría la cobertura del EDR.",
+  "criterios_evaluacion": [
+    "Comprende que ausencia de alertas no prueba inocuidad.",
+    "Distingue correo recibido, archivo descargado y ejecución demostrada.",
+    "Correlaciona procesos, padre/hijo, ficheros, red, identidad y persistencia.",
+    "Preserva hashes y evidencia sin ejecutar muestra ni filtrarla públicamente.",
+    "Propone contención autorizada y búsqueda de alcance."
+  ],
+  "mitre": [
+    "T1204.002",
+    "T1059",
+    "T1105"
+  ],
+  "fuentes": [
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-deviceprocessevents-table",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-devicefileevents-table",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-devicenetworkevents-table",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-deviceevents-table",
+    "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4688",
+    "https://attack.mitre.org/techniques/T1204/002/"
+  ],
+  "procedencia": {
+    "lote": "tanda-03",
+    "archivo": "SOC-RESPONSES_TANDA-03_N1-11_a_N1-15.json",
+    "fechaRevision": "2026-10-18"
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-02-L03",
+  "title": "Registro, WMI y cambios reversibles",
+  "sourceHash": "c6f66925644e95fd55e2652b478f98834d3b7ca2550d72da5fbfa8e1816822d4",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-02-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nLeer el estado de configuración con herramientas de solo lectura y describir cómo revertir un cambio controlado con evidencia.\n\nPrerrequisitos: `WAD-02-L02` (servicios, tareas y dependencias).\n\n## 2. Comprende el mecanismo\n\nEl **Registro** de Windows es una base jerárquica de **claves y valores** donde el sistema y las aplicaciones guardan configuración: servicios, controladores, políticas, asociaciones de archivos y también puntos de arranque automático. No es «la carpeta del malware»: es configuración, y precisamente por eso es útil para entender un sistema y para auditar **persistencia**.\n\n**WMI/CIM** ofrece un modelo para consultar el sistema (procesos, servicios, discos, sistema operativo) mediante clases en espacios de nombres como `root\\cimv2`. Es cómodo para inventario porque devuelve objetos comparables. Aquí conviene una distinción tajante:\n\n- **Consultar** (leer) no cambia el sistema.\n- **Invocar métodos** que cambian estado (crear, detener, modificar) sí lo cambia, exige autorización y un plan de reversión.\n\nUn cambio **reversible** no es improvisar: es un procedimiento con estado inicial y final definidos.\n\n1. **Estado inicial**: anota la configuración actual (valor, clave, ruta) y guarda una copia del objeto afectado.\n2. **Reversión definida**: decide de antemano cómo volver atrás (restaurar el valor guardado o recuperar una instantánea de la máquina virtual).\n3. **Cambio controlado**: aplícalo en un laboratorio aislado y con el alcance mínimo.\n4. **Verificación**: comprueba el efecto observado, distinguiéndolo de lo que solo **infieres**.\n5. **Reversión y re-verificación**: revierte y confirma que el sistema quedó como al principio.\n\nDos cautelas. Primero, el registro puede contener **material sensible** (credenciales, claves), así que no se exportan ramas completas ni se publican. Segundo, parte del registro está protegida o exige privilegios elevados: «no verlo» no significa «no existir».\n\n### Vocabulario de apoyo\n\n- **Registro**: base jerárquica de configuración del sistema y de las aplicaciones.\n- **Clave / valor**: unidad de organización del registro y dato almacenado en ella.\n- **Hive**: archivo que respalda una rama del registro.\n- **WMI/CIM**: modelo para consultar —y, con métodos, modificar— objetos del sistema.\n- **Espacio de nombres**: ruta de clases WMI, por ejemplo `root\\cimv2`.\n- **Reversión (rollback)**: volver al estado previo a un cambio.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites; los leerás de nuevo en las etapas de recuperación.\n\n"
+    },
+    {
+      "id": "WAD-02-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: para habilitar una función de diagnóstico, un compañero propone cambiar un valor del registro en un host de producción y pide «hacerlo rápido, total es una clave pequeña».\n\nEl tamaño de la clave no mide el riesgo. Antes de tocar nada: se lee y se anota el valor actual (y se guarda la clave), se define la reversión (restaurar el valor o revertir una instantánea), se aplica primero en una **máquina virtual con instantánea**, se verifica el efecto observado y, por último, se revierte y se confirma el estado inicial. En producción, si el cambio no es imprescindible y no hay ventana ni autorización, la respuesta correcta es **no aplicarlo todavía** y dejar documentado el plan.\n\n"
+    },
+    {
+      "id": "WAD-02-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Leer configuración y puntos de arranque sin alterarlos, para correlacionarlos después con los eventos.\n- Red Team autorizado: Documentar puntos de persistencia como hipótesis en laboratorio; no modificar sistemas fuera del alcance acordado.\n- Evidencia de la etapa: Estado de configuración guardado + árbol proceso-servicio + prueba de reversión.\n- Criterio de dominio: Consulta sin modificar y demuestra la reversión de un cambio controlado con evidencia.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB01](../../05_RECURSOS/LABORATORIOS/WAD-LAB01.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **REG**: [Registry](https://learn.microsoft.com/en-us/windows/win32/sysinfo/registry). Estructura del registro y su uso para configuración.\n- **CIM**: [Get-CimInstance](https://learn.microsoft.com/en-us/powershell/module/cimcmdlets/get-ciminstance). Consulta de clases del sistema sin modificar estado.\n- **AUTORUNS**: [Autoruns](https://learn.microsoft.com/en-us/sysinternals/downloads/autoruns). Revisión de puntos de arranque y persistencia.\n- **SCHTASKS**: [schtasks](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/schtasks). Consulta de tareas programadas.\n- **F12**: [Process Explorer](https://learn.microsoft.com/en-us/sysinternals/downloads/process-explorer). Contexto de procesos y servicios asociados.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-02-L03-P01",
+    "prompt": "Describe el plan de un cambio reversible en el registro sobre una máquina virtual de laboratorio con instantánea: enumera los pasos desde el estado inicial hasta la verificación tras revertir, e indica qué evidencia guardarías en cada punto.",
+    "markdown": "## 4. Práctica individual\n\nDescribe el plan de un cambio **reversible** en el registro sobre una máquina virtual de laboratorio con instantánea: enumera los pasos desde el estado inicial hasta la verificación tras revertir, e indica qué evidencia guardarías en cada punto.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber modificado ni revertido un sistema real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-02-L03-Q01",
+      "prompt": "¿Qué es el Registro de Windows?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Un archivo de texto con los documentos del usuario"
+        },
+        {
+          "id": "B",
+          "text": "Una base jerárquica de claves y valores donde el sistema y las aplicaciones guardan configuración"
+        },
+        {
+          "id": "C",
+          "text": "Una copia de seguridad automática de todos los archivos del disco"
+        },
+        {
+          "id": "D",
+          "text": "La lista de los procesos en ejecución en cada momento"
+        }
+      ]
+    },
+    {
+      "id": "WAD-02-L03-Q02",
+      "prompt": "¿Cuál es la diferencia entre consultar WMI/CIM y modificar el sistema con WMI?",
+      "options": [
+        {
+          "id": "A",
+          "text": "No hay diferencia: consultar ya cambia el sistema"
+        },
+        {
+          "id": "B",
+          "text": "Consultar es una lectura; invocar métodos que cambian estado exige autorización y un plan de reversión"
+        },
+        {
+          "id": "C",
+          "text": "Consultar solo es posible en modo kernel"
+        },
+        {
+          "id": "D",
+          "text": "Modificar por WMI no deja rastro en el sistema"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB01](../../05_RECURSOS/LABORATORIOS/WAD-LAB01.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **REG**: [Registry](https://learn.microsoft.com/en-us/windows/win32/sysinfo/registry). Estructura del registro y su uso para configuración.\n- **CIM**: [Get-CimInstance](https://learn.microsoft.com/en-us/powershell/module/cimcmdlets/get-ciminstance). Consulta de clases del sistema sin modificar estado.\n- **AUTORUNS**: [Autoruns](https://learn.microsoft.com/en-us/sysinternals/downloads/autoruns). Revisión de puntos de arranque y persistencia.\n- **SCHTASKS**: [schtasks](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/schtasks). Consulta de tareas programadas.\n- **F12**: [Process Explorer](https://learn.microsoft.com/en-us/sysinternals/downloads/process-explorer). Contexto de procesos y servicios asociados.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "b26731a1070e5405d46a3c94"
+}

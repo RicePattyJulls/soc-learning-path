@@ -10,6 +10,33 @@ Para continuar dentro de meses o años, leer primero esos tres documentos y cont
 
 ---
 
+## Checkpoint cierre de revisión Linux y Windows + AD, y limpieza · 19/10/2026
+
+**Guardia de revisión del propietario montada en Linux y Windows + AD (sin declarar).** Mismo patrón que el Mundo SOC: registro + declaración + guardia. Ambos siguen en `draft_pending_owner_review` y **no existe** su `REVISION-PROPIETARIO.json`: la revisión humana de las 96 + 84 lecciones sigue siendo del propietario.
+
+- **Guardia:** `scripts/prepare-linux.mjs` y `scripts/prepare-windows-ad.mjs` fallan si el catálogo declara `owner_review_complete` sin registro, si el registro no coincide con el catálogo o con sus cambios, o si `evidence.lessonsDigest` (SHA-256 de `«<id>=<sha256 de la lección>»` unidos por `:`, ordenados por id) no cuadra con las lecciones. Probado en una copia aislada (cierre válido, lección alterada, declaración sin registro y registro falseado).
+- **Herramienta:** `scripts/owner-review.mjs <linux|windows-ad>` diagnostica sin escribir; con `--close --date AAAA-MM-DD [--changes <ids de lección>]` escribe registro y declaración. Hoja de trabajo: `docs/CHECKLIST-REVISION-PROPIETARIO.md`. Prueba: `tests/owner-review.test.ts`.
+- **Limpieza:** capturas históricas (607 ficheros de `output/playwright/`) archivadas en `output/archivo-capturas-historicas.tar.zst` (verificado con `tar -d`; ver `output/archivo-capturas-historicas.md`). Borrados `dist/`, la caché `tsconfig.tsbuildinfo` y `.aws/.codex/.git` vacíos. Los 27 archivos únicos de la carpeta de trabajo del Desktop (herramientas de autoría, especificaciones, prompts) están en `references/origen-mundos-3-6/`; las 422 notas fuente siguen en `~/Documentos/HACKING`.
+- **Respaldo previo:** `output/owner-review-guard-2026-10-19/respaldo/` (incluye RETOMAR, manifiesto de conciliación y `simulator-reconciliation.mjs` anteriores).
+- **Verificación:** 14/14 guardias, `tsc -b`, `npm test` **129/129**, build.
+- **Pendiente:** revisión del propietario de Linux y Windows + AD; revisión educativa independiente de todos los mundos; ejecución real de consultas KQL/SPL y laboratorios (`practicalStatus: not_assessed`).
+
+---
+
+## Checkpoint Mundo SOC y los seis mundos · 19/10/2026
+
+**Integrados Redes, Windows + AD, Linux y el Mundo SOC; revisión del propietario del Mundo SOC cerrada.** El inventario vigente es [MAPA-MUNDOS.md](MAPA-MUNDOS.md): seis cursos y el simulador, con conteos y estado de revisión verificados contra el disco. Los tramos anteriores de este traspaso son del 17/10 y describen solo tres áreas.
+
+- **Mundo SOC** (`#/soc/...`): 40 casos de entrevista/triaje N1/N2 en 8 bloques. Se responde en texto libre, se revela la respuesta modelo (KQL/SPL) y se autoevalúa con rúbrica. Tablero filtrable sin bloqueos, progreso propio (`soc-learning-path:soc:learning:v1`) y cola de repaso espaciado (`#/soc/repaso`). Rutas: `#/soc/ruta`, `#/soc/caso/<id>`, `#/soc/repaso`, `#/soc/fuentes`, `#/soc/progreso`.
+- **Aislamiento:** ruta, payloads (`public/soc-content`: 40 casos + 40 respuestas), clave de progreso y generadores propios; no comparte nada con los otros mundos. Las respuestas modelo viven solo en los `.answers.json`, separadas del payload del estudiante.
+- **Contrato de integridad:** carpeta maestra `SOC_MASTER_RESEARCH/`, manifiesto de 60 hashes y verificación SHA-256 en el cliente. El generador (`scripts/prepare-soc.mjs`) rechaza la revisión si su `casesDigest` no coincide con los 40 casos publicados; el registro vive en `SOC_MASTER_RESEARCH/VALIDACION/REVISION-PROPIETARIO.json`.
+- **Revisión:** propietario **aprobada sin cambios** el 19/10/2026 (59/59 hashes de fuente intactos). Pendientes declarados: revisión **independiente** (`independent: false`) y **ejecución real** de comandos/consultas (`practicalStatus: not_assessed`, `commandsExecuted: false`). Contenido 100 % sintético de laboratorio.
+- **Reinicio corregido:** el corte duro (`resetAt`) descarta al fusionar cualquier dato escrito en o antes del reinicio; antes resucitaba lo borrado al unir con la copia en disco.
+- **Verificación del cierre:** `npm run prepare:soc` (40 casos, 0 redacciones), `npx tsc -b`, `npm test` **127/127**, **14/14** guardias y **52/52** comprobaciones de navegador. Docs: `docs/soc/PLAN-INTEGRACION.md`, `docs/soc/REPASO-ESPACIADO.md` y `docs/soc/REVISION-PROPIETARIO.md`.
+- **No repetir:** Redes, Windows + AD, Linux y el Mundo SOC están integrados y verificados; no reconstruir esas fases. Los otros mundos conservan su revisión pendiente (`draft_pending_owner_review` / `pending_independent_review`).
+
+---
+
 ## SOC Simulator V1.0 · 17/10/2026
 
 **Implementado y validado offline; fase pendiente de navegador, no cerrada.** Leer [SOC-SIMULATOR-V1.md](SOC-SIMULATOR-V1.md). Cuatro simulaciones funcionales: Microsoft acceso sospechoso y actividad legítima (N1), Splunk identidades (N1) y escalado con evidencia incompleta/ingesta tardía (N2). Un motor, 50 eventos sintéticos; CSV originales reutilizados sin cambios.

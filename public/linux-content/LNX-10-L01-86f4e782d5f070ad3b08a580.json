@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-10-L01",
+  "title": "Servicios, sockets y timers",
+  "sourceHash": "8de30f1710446ea7c1fcc5a036a9c649ac6ef856721a60abddda0141d825e4a8",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-10-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nComprender que un servicio puede activarse por socket o por timer, y que «inactive» no siempre significa que la superficie esté cerrada.\n\nPrerrequisitos: `LNX-09-L03` (Precedencia y `daemon-reload`).\n\n## 2. Comprende el mecanismo\n\nUna unidad no siempre se activa porque alguien escriba «start». systemd admite formas de activación no evidentes: un `.socket` que escucha por el servicio y lo arranca cuando llega demanda, o un `.timer` que programa su activación. Por eso el estado de un `.service` es una parte del cuadro, no el cuadro completo.\n\nEl **servicio** (`.service`) describe *cómo* ejecutar un proceso: su comando, su identidad y sus dependencias. El **socket** (`.socket`) separa la escucha del proceso de negocio: el gestor mantiene el puerto o el socket y activa la unidad asociada cuando aparece demanda. El **timer** (`.timer`) programa la activación de otra unidad, por defecto la `.service` del mismo nombre; `Unit=` permite apuntar a otra.\n\nLa consecuencia práctica es inmediata: un `.service` en estado `inactive` no demuestra que el puerto esté cerrado si su `.socket` sigue `active`, ni que no haya ejecuciones periódicas si su `.timer` está activo. Al revés, un proceso puede abrir su propio puerto sin que exista un `.socket`; la ausencia de `.socket` tampoco cierra nada por sí sola.\n\nLos timers mezclan dos lógicas distintas. `OnCalendar=` usa **reloj real** (calendario) y `OnBootSec=` o `OnUnitActiveSec=` usan temporización **monotónica** respecto a un evento. `Persistent=true` aplica a calendarios y permite cierta recuperación de activaciones perdidas tras inactividad, pero no reconstruye *cada* ocurrencia. Confundir reloj real con monotónico lleva a conclusiones erróneas sobre «cuándo» debía ejecutarse algo.\n\nAntes de concluir, conviene preguntar **qué dispara qué**. La consulta del socket expone su escucha y las unidades que activa (`Listen`, `Triggers`); la consulta del servicio, quién lo dispara (`TriggeredBy`). El nombre suele sugerir la relación, pero `Unit=` puede apuntar a un servicio distinto del que el nombre insinúa.\n\nEl límite de la conclusión: una activación por socket o por timer describe un **mecanismo habilitado**, no una ejecución observada ni su efecto. Ver el disparador no es ver el resultado.\n\n### Vocabulario de apoyo\n\n- **Unidad**: definición que el gestor usa para administrar un recurso (servicio, socket, timer, path).\n- **Activación por socket**: el gestor escucha y arranca el servicio cuando llega demanda.\n- **Timer**: unidad que programa la activación de otra, por defecto la `.service` homónima.\n- **`TriggeredBy` / `Triggers`**: propiedades que muestran qué activa a qué.\n- **Reloj real frente a monotónico**: calendario de hora real frente a cuenta relativa a un evento.\n- **`Persistent`**: opción de calendario para cierta recuperación de activaciones perdidas.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-10-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un analista consulta `censos.service`, lo ve `inactive` y concluye que el servicio no está en ejecución, que su puerto está cerrado y que no hay tareas periódicas asociadas.\n\nLa conclusión es incompleta. El estado `inactive` del servicio solo describe al proceso, no a los mecanismos que pueden activarlo. Si `censos.socket` está `active`, el gestor puede mantener la escucha y arrancar el servicio cuando llegue demanda; si `censos.timer` está activo, puede haber activaciones programadas. El analista no miró esas unidades.\n\nPara sostener la conclusión tendría que consultar los disparadores —qué unidades activan a `censos.service` y qué activa cada una— y comprobar si hay escucha o programación pendiente. El límite: aun viendo un socket y un timer activos, demuestras que existe una **superficie habilitada**, no que se haya producido una ejecución ni cuál fue su efecto.\n\n"
+    },
+    {
+      "id": "LNX-10-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Mirar siempre los disparadores (socket, timer) antes de afirmar que un servicio no ejecuta.\n- Red Team autorizado: Distinguir un mecanismo de activación habilitado de una ejecución observada y su efecto.\n- Evidencia de la etapa: Disparadores de la unidad consultada y estado de cada unidad relacionada.\n- Criterio de dominio: Explica qué dispara qué y acota la conclusión a la superficie habilitada.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB09](../../05_RECURSOS/LABORATORIOS/LNX-LAB09.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F23**: [systemd: systemd.service](https://www.freedesktop.org/software/systemd/man/257/systemd.service.html). Definición del servicio y de su arranque como proceso.\n- **F24**: [systemd: systemd.socket](https://www.freedesktop.org/software/systemd/man/257/systemd.socket.html). Escucha separada del proceso y activación por demanda.\n- **F25**: [systemd: systemd.timer](https://www.freedesktop.org/software/systemd/man/257/systemd.timer.html). Programación por reloj real o monotónico y opción `Persistent`.\n- **F21**: [systemd: systemctl](https://www.freedesktop.org/software/systemd/man/257/systemctl.html). Consulta de estados y de relaciones entre unidades.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-10-L01-P01",
+    "prompt": "Un servicio figura como `inactive`, pero su `.socket` y su `.timer` aparecen activos. Explica por qué «inactive» no cierra la superficie, qué datos consultarías para ver los disparadores y cuál es el límite de tu conclusión.",
+    "markdown": "## 4. Práctica individual\n\nUn servicio figura como `inactive`, pero su `.socket` y su `.timer` aparecen activos. Explica por qué «inactive» no cierra la superficie, qué datos consultarías para ver los disparadores y cuál es el límite de tu conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber activado servicios, sockets ni timers reales.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-10-L01-Q01",
+      "prompt": "Un servicio figura como `inactive`, pero su `.socket` aparece `active`. ¿Qué implica esto con más precisión?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El socket puede mantener la escucha y activar el servicio cuando llegue demanda"
+        },
+        {
+          "id": "B",
+          "text": "El servicio se reinicia automáticamente cada minuto"
+        },
+        {
+          "id": "C",
+          "text": "El puerto está cerrado porque el servicio no está corriendo"
+        },
+        {
+          "id": "D",
+          "text": "El socket sustituye al proceso y ejecuta internamente su lógica"
+        }
+      ]
+    },
+    {
+      "id": "LNX-10-L01-Q02",
+      "prompt": "Una unidad `.timer` está activa y dispara un `.service` que figura deshabilitado. ¿Qué describe mejor la situación?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El servicio no puede ejecutarse nunca mientras esté deshabilitado"
+        },
+        {
+          "id": "B",
+          "text": "Un temporizador activo puede activar el servicio aunque la unidad no esté habilitada"
+        },
+        {
+          "id": "C",
+          "text": "El timer y el socket son el mismo mecanismo con distinto nombre"
+        },
+        {
+          "id": "D",
+          "text": "El timer solo funciona si el equipo se reinicia manualmente"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB09](../../05_RECURSOS/LABORATORIOS/LNX-LAB09.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F23**: [systemd: systemd.service](https://www.freedesktop.org/software/systemd/man/257/systemd.service.html). Definición del servicio y de su arranque como proceso.\n- **F24**: [systemd: systemd.socket](https://www.freedesktop.org/software/systemd/man/257/systemd.socket.html). Escucha separada del proceso y activación por demanda.\n- **F25**: [systemd: systemd.timer](https://www.freedesktop.org/software/systemd/man/257/systemd.timer.html). Programación por reloj real o monotónico y opción `Persistent`.\n- **F21**: [systemd: systemctl](https://www.freedesktop.org/software/systemd/man/257/systemctl.html). Consulta de estados y de relaciones entre unidades.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "86f4e782d5f070ad3b08a580"
+}

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-25-L01",
+  "title": "Evento de identidad y contexto",
+  "sourceHash": "35decc5240af5cabc161b8f6aa1dacdd413d43be1f62d031bb44550833499261",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-25-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nReconstruir un evento de identidad con su contexto, sin inferir malicia por sí solo.\n\nPrerrequisitos: `WAD-11-L03` (Servicios y gMSA) y `WAD-24-L03` (Cobertura efectiva y pérdida).\n\n## 2. Comprende el mecanismo\n\nLa auditoría de identidad produce **eventos**: cada uno registra un hecho con su hora, su origen y la cuenta implicada. El error más común al leerlos es saltar del dato a la conclusión: ver un inicio de sesión correcto a una hora rara y llamarlo intrusión. Esta lección separa el **hecho registrado** de su **interpretación**.\n\nUn evento de inicio de sesión, como el 4624, describe que una cuenta se autenticó correctamente. En sus campos aparecen el **tipo de inicio de sesión** (interactivo, de red, de servicio, entre otros), el equipo o la dirección de origen, la identidad y la hora. Ese conjunto es el hecho: lo que el sistema dejó escrito, no lo que uno supone.\n\nLa **autenticación** del dominio se apoya en **Kerberos**: el cliente obtiene un ticket y lo presenta al servicio. Un inicio de sesión correcto puede corresponder a una tarea legítima, a una sesión de servicio o a una automatización, y también a un uso indebido. El evento no decide cuál de esas cosas es; solo aporta datos.\n\nReconstruir con **contexto** significa reunir los eventos vecinos en el tiempo y en la identidad: intentos fallidos cercanos, el mismo origen, la misma cuenta o un servicio que depende de ella. La **política de auditoría**, configurada con `auditpol`, determina qué se registra; si una categoría no estaba habilitada, la ausencia de eventos no prueba que no ocurriera nada.\n\nEl método es siempre el mismo: **primero el hecho, después la interpretación**. Se anota qué dice el evento, con su hora en UTC y su identidad, y solo después se formula una hipótesis sobre su significado, señalando qué evidencia falta para confirmarla.\n\nLa regla que cierra la lección: **un evento aislado no demuestra malicia; la interpretación se sostiene con contexto y se declara como hipótesis**. Todo se practica sobre `ad.lab.test`, un laboratorio aislado.\n\n### Vocabulario de apoyo\n\n- **Hecho registrado**: dato que el sistema escribió en un evento, con su hora e identidad.\n- **Interpretación**: significado que se atribuye a un hecho y que exige contexto.\n- **Tipo de inicio de sesión**: clase de acceso (interactivo, de red, de servicio) que describe cómo se autenticó una cuenta.\n- **Contexto**: eventos vecinos en el tiempo o la identidad que ayudan a leer un evento.\n- **Kerberos**: protocolo de autenticación por tickets del dominio.\n- **Política de auditoría**: configuración que habilita qué categorías se registran.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-25-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test`, `SRV02` (192.0.2.11) registra un inicio de sesión correcto de la cuenta de servicio a las 03:12, precedido por dos intentos fallidos con la misma cuenta a las 03:07 y 03:08 desde `WKS01` (192.0.2.10).\n\nEl hecho registrado son tres eventos: dos fallos y un acierto, con hora, cuenta y origen. La interpretación inicial —«un acceso no autorizado»— no se sostiene con esos datos solos, porque el mismo patrón aparece cuando una tarea de mantenimiento reintenta tras un fallo transitorio de credencial o de hora. Lo que aporta contexto es el tipo de inicio de sesión, si `WKS01` es el equipo desde el que corre la tarea y qué otros eventos comparten esa ventana. La conclusión acota lo observable —«hubo dos fallos y un acierto desde un mismo origen»— y reconoce su límite: sin confirmar la tarea legítima y sin el resto de la línea de tiempo, es una hipótesis razonada, no una intrusión demostrada.\n\n"
+    },
+    {
+      "id": "WAD-25-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Separar el hecho de la interpretación evita escalar un evento normal y centra el análisis en la evidencia.\n- Red Team autorizado: Conocer qué registra cada evento permite describir el alcance de una prueba sin atribuir malicia.\n- Evidencia de la etapa: Evento registrado con hora, identidad y origen, más los eventos vecinos que forman su contexto.\n- Criterio de dominio: La interpretación se declara como hipótesis y se sostiene con contexto, no con un evento aislado.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB17](../../05_RECURSOS/LABORATORIOS/WAD-LAB17.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **LOGONEVENTS**: [4624: An account was successfully logged on](https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4624). Campos de un inicio de sesión correcto y su contexto.\n- **KERB**: [Kerberos authentication overview](https://learn.microsoft.com/en-us/windows-server/security/kerberos/kerberos-authentication-overview). Cómo se autentica una identidad del dominio por tickets.\n- **AUDITPOL**: [auditpol](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/auditpol). Consulta y configuración de las categorías de auditoría.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-25-L01-P01",
+    "prompt": "En el laboratorio `ad.lab.test`, `SRV02` (192.0.2.11) registra un inicio de sesión correcto de la cuenta de servicio a las 03:12, precedido por dos intentos fallidos a las 03:07 y 03:08 desde `WKS01` (192.0.2.10). Reconstruye el evento de identidad con su contexto y explica cómo distingues el hecho registrado de tu interpretación, sin inferir malicia por sí solo.",
+    "markdown": "## 4. Práctica individual\n\nEn el laboratorio `ad.lab.test`, `SRV02` (192.0.2.11) registra un inicio de sesión correcto de la cuenta de servicio a las 03:12, precedido por dos intentos fallidos a las 03:07 y 03:08 desde `WKS01` (192.0.2.10). Reconstruye el evento de identidad con su contexto y explica cómo distingues el hecho registrado de tu interpretación, sin inferir malicia por sí solo.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber investigado un incidente real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-25-L01-Q01",
+      "prompt": "Un inicio de sesión correcto aparece en el registro Security de un servidor a una hora poco habitual. ¿Qué lectura es correcta?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El evento por sí solo demuestra actividad maliciosa"
+        },
+        {
+          "id": "B",
+          "text": "Un inicio de sesión correcto no aporta información útil al análisis"
+        },
+        {
+          "id": "C",
+          "text": "El evento registra un hecho de identidad; interpretar si es esperado exige contrastarlo con el contexto y el resto de eventos"
+        },
+        {
+          "id": "D",
+          "text": "Basta con el nombre de la cuenta para atribuir la acción a una persona concreta"
+        }
+      ]
+    },
+    {
+      "id": "WAD-25-L01-Q02",
+      "prompt": "Para reconstruir un evento de identidad y acotar su interpretación, ¿qué conviene reunir?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El hecho registrado con su hora, el tipo de inicio de sesión, el origen y la identidad, junto con el contexto de otros eventos relacionados"
+        },
+        {
+          "id": "B",
+          "text": "Solo el nombre de la cuenta, sin hora ni origen"
+        },
+        {
+          "id": "C",
+          "text": "La impresión personal de quien revisa el registro, sin datos del evento"
+        },
+        {
+          "id": "D",
+          "text": "Una lista de cuentas sospechosas sin relación con el evento observado"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB17](../../05_RECURSOS/LABORATORIOS/WAD-LAB17.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **LOGONEVENTS**: [4624: An account was successfully logged on](https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4624). Campos de un inicio de sesión correcto y su contexto.\n- **KERB**: [Kerberos authentication overview](https://learn.microsoft.com/en-us/windows-server/security/kerberos/kerberos-authentication-overview). Cómo se autentica una identidad del dominio por tickets.\n- **AUDITPOL**: [auditpol](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/auditpol). Consulta y configuración de las categorías de auditoría.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "ef42b4b97e9504a04a6c4af6"
+}

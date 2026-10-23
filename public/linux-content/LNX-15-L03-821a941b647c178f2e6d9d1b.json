@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-15-L03",
+  "title": "LUKS/dm-crypt: confidencialidad ≠ integridad",
+  "sourceHash": "a538e817b272eafe7de4bc04a67deee576e0af55159eecda3d631da0278ef113",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-15-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDiferenciar la confidencialidad en reposo que ofrece dm-crypt de la integridad y de la recuperabilidad, y valorar el riesgo de la copia de cabecera LUKS.\n\nPrerrequisitos: `LNX-15-L02` (RAID ≠ backup).\n\n## 2. Comprende el mecanismo\n\n**dm-crypt** es el componente del kernel que cifra y descifra bloques de forma transparente: el sistema de archivos cree trabajar sobre un dispositivo normal, mientras cada bloque se transforma al pasar por el mapeador. **LUKS** es el formato de cabecera que estandariza cómo se guardan las claves derivadas y los *keyslots* que desbloquean ese dispositivo.\n\nLa propiedad que aportan es la **confidencialidad en reposo**. Cuando el medio está apagado o bloqueado, su contenido no es legible sin el secreto correcto. Esa es la amenaza que atacan: la exposición del disco a quien no tiene la clave. Es una protección valiosa, pero concreta y no universal.\n\nEl límite de esa protección es tan importante como la protección misma. Una vez el volumen está **desbloqueado y abierto**, es un dispositivo de bloque como cualquier otro: cualquier proceso privilegiado que lo vea puede leer su contenido en claro. LUKS no controla qué hace una aplicación con los datos abiertos, ni distingue un acceso legítimo de uno malicioso. No es un control de acceso a nivel de aplicación.\n\nTampoco aporta **integridad** por sí solo. Cifrar no es lo mismo que verificar. dm-crypt en su modo habitual protege la confidencialidad, no detecta necesariamente la manipulación de bloques. Comprobar que un bloque no fue alterado y garantizar que un dato es auténtico son objetivos distintos, que requieren otras técnicas; un volumen cifrado puede seguir siendo objeto de corrupción lógica.\n\nLa **copia de cabecera LUKS** es un punto de riesgo que suele pasarse por alto. `luksHeaderBackup` genera una copia binaria que contiene la cabecera y el área de keyslots. Si alguien obtiene esa copia **junto con una contraseña válida en el momento del backup**, puede acceder al volumen aunque después se eliminara o cambiara ese secreto. La copia conserva estados históricos de desbloqueo.\n\nPor eso la cabecera se custodia como material altamente sensible, con acceso restringido y bajo una política de recuperación segura. Es necesaria para la recuperabilidad —sin cabecera no se accede al volumen— pero a la vez es una llave potencial. Protección y riesgo conviven en el mismo objeto.\n\nAntes de concluir, separa tres preguntas: ¿qué amenaza cubre dm-crypt?, ¿qué no cubre? y ¿dónde viven las claves y las cabeceras? El límite: cifrar en reposo no demuestra integridad ni controla a un proceso con el volumen ya abierto.\n\n### Vocabulario de apoyo\n\n- **dm-crypt**: mapeador del kernel que cifra y descifra bloques de forma transparente.\n- **LUKS**: formato de cabecera que gestiona claves y keyslots de un volumen cifrado.\n- **Confidencialidad en reposo**: propiedad de no ser legible sin la clave con el medio apagado o bloqueado.\n- **Integridad**: propiedad de detectar alteraciones; distinta de mantener el contenido en secreto.\n- **Keyslot**: ranura de cabecera que guarda una clave derivada para desbloquear el volumen.\n- **Cabecera LUKS**: estructura que, respaldada, puede permitir el acceso histórico al volumen.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-15-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un equipo guarda una copia de la cabecera LUKS de un servidor en un directorio de respaldo junto a otros archivos. Años después, la contraseña del servidor se cambió. Un analista concluye que la copia antigua «ya no sirve para nada», porque la contraseña actual es distinta.\n\nLa conclusión pasa por alto cómo funciona la cabecera. La copia conserva el área de keyslots tal como estaba en el momento del backup. Si alguien dispone de esa copia y de una contraseña válida **en ese momento**, puede desbloquear el volumen en su estado correspondiente, con independencia de los cambios posteriores del secreto.\n\nRazonar así separa dos afirmaciones: «la contraseña actual cambió» y «la copia histórica dejó de ser peligrosa». La segunda no se sigue de la primera. El límite de la conclusión: sin conocer qué secreto protegía esa copia y a quién ha estado expuesta, no puedes afirmar que sea inocua; y sin política de custodia, tampoco puedes afirmar que esté controlada.\n\n"
+    },
+    {
+      "id": "LNX-15-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Vigilar el acceso a cabeceras LUKS y archivos de claves como eventos de máxima sensibilidad.\n- Red Team autorizado: Comprobar el aislamiento de secretos y cabeceras sin intentar exfiltrarlos.\n- Evidencia de la etapa: Ubicación y permisos de las copias de cabecera, y política de recuperación asociada.\n- Criterio de dominio: Separa confidencialidad, integridad y recuperabilidad al describir un volumen cifrado.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB16](../../05_RECURSOS/LABORATORIOS/LNX-LAB16.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F41**: [util-linux `lsblk(8)`](https://man7.org/linux/man-pages/man8/lsblk.8.html). Identificación de mapeadores y dispositivos subyacentes de un volumen cifrado.\n- **F55**: [kernel Linux: dm-crypt](https://docs.kernel.org/admin-guide/device-mapper/dm-crypt.html). Cifrado de bloques transparente y sus garantías.\n- **F56**: [cryptsetup `luksHeaderBackup(8)`](https://man7.org/linux/man-pages/man8/cryptsetup-luksheaderbackup.8.html). Contenido de la copia de cabecera y su carácter sensible.\n- **F69**: [util-linux: `losetup(8)` y riesgos de loop](https://man7.org/linux/man-pages/man8/losetup.8.html). Uso de dispositivos loop en montajes y pruebas controladas.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-15-L03-P01",
+    "prompt": "Una copia antigua de la cabecera LUKS de un servidor queda guardada junto a otros archivos de respaldo, y después se cambia la contraseña del volumen. Un analista concluye que la copia ya no sirve. Explica qué conserva la cabecera, de qué depende su riesgo y cuál es el límite de la conclusión.",
+    "markdown": "## 4. Práctica individual\n\nUna copia antigua de la cabecera LUKS de un servidor queda guardada junto a otros archivos de respaldo, y después se cambia la contraseña del volumen. Un analista concluye que la copia ya no sirve. Explica qué conserva la cabecera, de qué depende su riesgo y cuál es el límite de la conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber creado ni restaurado volúmenes cifrados reales.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-15-L03-Q01",
+      "prompt": "¿Qué aporta LUKS/dm-crypt a un host ya desbloqueado y en marcha?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Impide que cualquier proceso privilegiado lea el volumen abierto"
+        },
+        {
+          "id": "B",
+          "text": "Confidencialidad en reposo frente al medio apagado; no controla el acceso de un proceso al volumen abierto"
+        },
+        {
+          "id": "C",
+          "text": "Verifica la integridad de cada bloque con un checksum criptográfico"
+        },
+        {
+          "id": "D",
+          "text": "Conserva versiones anteriores de los datos frente a un borrado lógico"
+        }
+      ]
+    },
+    {
+      "id": "LNX-15-L03-Q02",
+      "prompt": "¿Por qué una copia de la cabecera LUKS debe custodiarse como material crítico?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Porque sin ella el volumen deja de estar cifrado en reposo"
+        },
+        {
+          "id": "B",
+          "text": "Porque ocupa gran espacio y debe comprimirse antes de guardarla"
+        },
+        {
+          "id": "C",
+          "text": "Porque con una contraseña válida en el momento del backup puede permitir acceso aunque después se cambie o elimine ese secreto"
+        },
+        {
+          "id": "D",
+          "text": "Porque permite leer el volumen sin conocer nunca la contraseña actual"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB16](../../05_RECURSOS/LABORATORIOS/LNX-LAB16.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F41**: [util-linux `lsblk(8)`](https://man7.org/linux/man-pages/man8/lsblk.8.html). Identificación de mapeadores y dispositivos subyacentes de un volumen cifrado.\n- **F55**: [kernel Linux: dm-crypt](https://docs.kernel.org/admin-guide/device-mapper/dm-crypt.html). Cifrado de bloques transparente y sus garantías.\n- **F56**: [cryptsetup `luksHeaderBackup(8)`](https://man7.org/linux/man-pages/man8/cryptsetup-luksheaderbackup.8.html). Contenido de la copia de cabecera y su carácter sensible.\n- **F69**: [util-linux: `losetup(8)` y riesgos de loop](https://man7.org/linux/man-pages/man8/losetup.8.html). Uso de dispositivos loop en montajes y pruebas controladas.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "821a941b647c178f2e6d9d1b"
+}

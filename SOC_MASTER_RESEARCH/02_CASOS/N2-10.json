@@ -1,0 +1,175 @@
+{
+  "id": "N2-10",
+  "nivel": "N2",
+  "bloque": "Active Directory y movimiento lateral",
+  "titulo": "Cuenta de servicio con sesión interactiva sobre DC a las 02:00",
+  "pregunta": "Una cuenta de servicio realiza un inicio de sesión interactivo en un controlador de dominio a las 02:00. ¿Cómo determinarías si existe un compromiso?",
+  "escenario": "DC01 emite un Security Event 4624 a las 02:04 de la cuenta novashop\\svc-backup, con LogonType 10 (RemoteInteractive) y origen 10.60.10.77, un equipo que no figura en la CMDB. A las 02:06 aparece 4672 y a las 02:09 una tarea programada nueva. El responsable de backups dice que el servicio normalmente solo ejecuta tareas automáticas desde BCK01. Queda por comprobar si el evento fue correctamente parseado y quién autorizó el acceso.",
+  "objetivo": "Distinguir inicios de sesión esperados de cuenta servicio —servicio 5, batch 4 o red 3— de logon interactivo 2 o RDP 10 no autorizado, evaluar el privilegio real, la cadena de actividad y posible persistencia, y coordinar contención preservando continuidad de backups.",
+  "hipotesis": [
+    "Credenciales de servicio expuestas usadas por un adversario para iniciar una sesión interactiva y realizar operaciones sobre DC.",
+    "Mantenimiento excepcional autorizado a través de RDP por técnico (aun así puede violar la política de cuentas de servicio).",
+    "Error de normalización: evento tipo 3 clasificado como interactive por una regla externa o nombre de logon incoherente.",
+    "Identidad administrada gMSA o cuenta tradicional con políticas distintas; no asumir que toda cuenta con prefijo svc- tiene los mismos permisos.",
+    "4624 exitoso + 4672 no demuestra por sí solo persistencia; la nueva tarea debe asociarse a identidad, LogonId, host, proceso y ventana real."
+  ],
+  "pasos": [
+    {
+      "fase": "1 · Confirmar el evento bruto y la clase de acceso",
+      "accion": "Revisar 4624 del DC con TargetUserName, LogonType, IpAddress, WorkstationName, AuthenticationPackageName, LogonId y hora UTC; 2=Interactive, 10=RemoteInteractive, 3=Network, 4=Batch y 5=Service. No depender de etiqueta de alerta."
+    },
+    {
+      "fase": "2 · Comparar con la política del principal",
+      "accion": "Consultar AD: tipo de cuenta, SPN, host autorizados, flags de delegación, restricciones logon hours, membresías y políticas deny log on locally / deny log on through RDP. Confirmar propietario y finalidad del servicio."
+    },
+    {
+      "fase": "3 · Investigar fuente y ruta de conexión",
+      "accion": "Resolver 10.60.10.77 con DHCP, VPN, CMDB, NAC y EDR; confirmar si es jump server aprobado. Analizar sesiones RDP y uso PAM/MFA donde sea aplicable."
+    },
+    {
+      "fase": "4 · Unir eventos por sesión en el mismo DC",
+      "accion": "Correlacionar 4624 TargetLogonId con 4672 SubjectLogonId, 4688, 4698 y, si aplica, 4720/4728/4732, GPO/registro y eventos de Directory Service; validar timestamps y otros usuarios concurrentes."
+    },
+    {
+      "fase": "5 · Investigar tarea nueva y procesos",
+      "accion": "Extraer 4698 XML, autor, ubicación, acción programada, binario firmado, comando y árbol EDR. Una tarea que aparece luego del logon no se atribuye automáticamente a la cuenta sin unión de sesión o proceso."
+    },
+    {
+      "fase": "6 · Medir radio de daño",
+      "accion": "Determinar privilegios efectivos de svc-backup, si tiene backup privileges o acceso a secretos, si se ha usado en otros DC, SQL, archivos o repositorios, y si se observa alteración de grupos o auditoría."
+    },
+    {
+      "fase": "7 · Contener sin romper backups",
+      "accion": "Si hay acceso no autorizado: contener equipo de origen/terminal, coordinar revocación de sesiones y cambios de credenciales, restringir logon interactivo de servicio y revisar tareas nuevas. Plan de sustitución o rotación de cuenta con equipo de backup."
+    },
+    {
+      "fase": "8 · Validar recuperación",
+      "accion": "Comprobar cese de nuevas sesiones, integridad de backup, eliminación/revisión forense de persistencia, privilegios reducidos, pruebas funcionales y documentación de la incidencia. Mantener seguimiento por si recurre."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "4624 en DC: tipo 2 o 10, usuario y origen",
+      "lectura": "Es la distinción principal respecto a 3/4/5; comprobar evento real antes de decidir."
+    },
+    {
+      "dato": "4672 unido por LogonId/host",
+      "lectura": "Indica privilegios especiales asignados a sesión; no prueba por sí solo actividad maliciosa."
+    },
+    {
+      "dato": "4698 y detalles de tarea",
+      "lectura": "Puede demostrar persistencia u operación autorizada; comparar cuenta y proceso responsable."
+    },
+    {
+      "dato": "AD: privilegios y restricciones del principal",
+      "lectura": "Diferencia cuenta servicio limitada, gMSA y servicio con permisos innecesarios."
+    },
+    {
+      "dato": "Eventos RDP, PAM, CMDB/VPN/DHCP",
+      "lectura": "Atribuye estación y justificación; cambios autorizados deben estar registrados."
+    },
+    {
+      "dato": "EDR: procesos e inicio remoto sobre DC",
+      "lectura": "Prueba acciones reales durante la sesión, necesaria para evaluar impacto."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Sentinel / SecurityEvent · logons interactivos de cuentas servicio en DC",
+      "entorno": "SecurityEvent ingerido de los DC. Lista estática de DC solo demostrativa; sustituir por inventario/watchlist. LogonType es entero.",
+      "consulta": "let dcs = dynamic([\"DC01\", \"DC02\", \"DC01.novashop.local\", \"DC02.novashop.local\"]);\nSecurityEvent\n| where TimeGenerated > ago(7d) and EventID == 4624\n| where LogonType in (2, 10)\n| where Computer in~ (dcs)\n| where TargetUserName startswith \"svc-\"\n| project TimeGenerated, Computer, TargetUserName, TargetDomainName,\n          LogonType, IpAddress, WorkstationName, AuthenticationPackageName,\n          TargetLogonId, SubjectUserName\n| order by TimeGenerated desc",
+      "interpretacion": "Permite hallar sesiones interactivas de identidades clasificadas como servicio en DC.",
+      "limitaciones": "No todos los servicios empiezan svc-. La clasificación correcta usa inventario AD; la lista DC debe contener el mismo formato FQDN/NetBIOS que Computer y refrescarse. No confundir LogonType 3 con interactivo."
+    },
+    {
+      "nombre": "Sentinel / SecurityEvent · sesión específica y actividades posteriores",
+      "entorno": "DC tiene logs 4624/4672/4698/4688; TargetLogonId y SubjectLogonId poblados según evento. Reemplazar sesión y host tras observar 4624; posible falta de join directo en 4698.",
+      "consulta": "let equipo = \"DC01\";\nlet sesion = \"0x123abc\";\nSecurityEvent\n| where TimeGenerated > ago(12h)\n| where Computer startswith equipo\n| where EventID in (4624, 4672, 4688, 4698)\n| extend LoginSesion=iff(EventID == 4624,\n                          tostring(TargetLogonId), tostring(SubjectLogonId))\n| where LoginSesion =~ sesion or (EventID == 4698 and SubjectUserName =~ \"svc-backup\")\n| project TimeGenerated, EventID, Computer, SubjectUserName,\n          TargetUserName, LoginSesion, IpAddress, ProcessName, CommandLine, EventData\n| order by TimeGenerated asc",
+      "interpretacion": "Reúne eventos de sesión conocidos y tareas creadas por principal de interés para inspección manual.",
+      "limitaciones": "EventData en SecurityEvent es STRING, no estructura dinámica; 4698 puede no incluir LogonId. Esta búsqueda no prueba que todos los eventos pertenezcan a una misma sesión: validar EventRecordId, timestamps y entidad."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk Windows Security 4624 · cuenta de servicio en DC y horario",
+      "entorno": "Ingesta 4624 de todos los DC y extracción LogonType, TargetUserName, IpAddress; lista de DC de ejemplo.",
+      "consulta": "index=wineventlog earliest=-7d (EventCode=4624 OR EventID=4624)\n(host=DC01 OR host=DC02)\n| eval tipo=coalesce(LogonType,Logon_Type),\n       usuario=coalesce(TargetUserName,Account_Name,AccountName),\n       origen=coalesce(IpAddress,Source_Network_Address,src_ip),\n       sesion=coalesce(TargetLogonId,Logon_ID)\n| where tostring(tipo) IN (\"2\",\"10\") AND like(lower(usuario),\"svc-%\")\n| table _time host usuario tipo origen sesion AuthenticationPackageName\n| sort _time",
+      "interpretacion": "Detecta sesiones interactivo/RDP de cuentas con prefijo de servicio.",
+      "limitaciones": "No sustituye inventario de cuentas. Los nombres de campo dependen del TA Windows y el evento no prueba por sí solo compromiso."
+    },
+    {
+      "nombre": "Splunk Security eventos del DC · actividad posterior a 4624",
+      "entorno": "Logs Windows 4624/4672/4698/4688/4728 de DC; ajustar nombre de cuenta por inventario y ventana de alerta.",
+      "consulta": "index=wineventlog earliest=-4h latest=now host=DC01\n(EventCode=4624 OR EventCode=4672 OR EventCode=4698 OR EventCode=4688 OR EventCode=4728\n OR EventID=4624 OR EventID=4672 OR EventID=4698 OR EventID=4688 OR EventID=4728)\n| eval actor=coalesce(SubjectUserName,TargetUserName,Account_Name,AccountName)\n| search actor=\"svc-backup\"\n| table _time host EventCode EventID actor LogonType IpAddress\n        SubjectLogonId TargetLogonId TaskName NewProcessName CommandLine\n| sort _time",
+      "interpretacion": "Construye línea temporal inicial de la identidad y eventos próximos sobre DC.",
+      "limitaciones": "Otros eventos podrían tener el actor como campo diferente o proceso cuenta SYSTEM: ampliar búsqueda por LogonId y telemetría EDR. Un mismo actor no asegura relación causal."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Windows PowerShell — solo lectura / AD",
+      "proposito": "Examinar cuenta sin mostrar secretos; RSAT requerido.",
+      "comando": "Get-ADUser -Identity 'svc-backup' -Properties Enabled,MemberOf,LastLogonDate,\n  ServicePrincipalName,PasswordLastSet,AccountNotDelegated,LogonWorkstations |\n  Select-Object SamAccountName,Enabled,MemberOf,LastLogonDate,ServicePrincipalName,\n    PasswordLastSet,AccountNotDelegated,LogonWorkstations"
+    },
+    {
+      "entorno": "Windows PowerShell — solo lectura / DC",
+      "proposito": "Leer 4624 y revisar event XML para la sesión en cuestión.",
+      "comando": "Get-WinEvent -ComputerName DC01 -FilterHashtable @{LogName='Security';Id=4624;StartTime=(Get-Date).AddHours(-8)} -MaxEvents 150 |\n  Where-Object { $_.Message -match 'svc-backup' } |\n  Select-Object TimeCreated,Id,RecordId,Message"
+    },
+    {
+      "entorno": "Windows PowerShell — solo lectura / DC",
+      "proposito": "Leer creaciones de tareas 4698 antes de decidir erradicación.",
+      "comando": "Get-WinEvent -ComputerName DC01 -FilterHashtable @{LogName='Security';Id=4698;StartTime=(Get-Date).AddHours(-8)} -MaxEvents 40 |\n  Select-Object TimeCreated,Id,RecordId,Message"
+    }
+  ],
+  "contencion": "No deshabilitar `svc-backup` sin coordinar respaldos, consistencia de backups y dependencia en otros sistemas. Si se confirma uso ilegítimo en DC, aplicar el plan de incidentes: contención del origen, restricción de acceso al DC, revisión de cuenta/credenciales con su propietario y preservación de evidencia, mientras se establecen sustitución y pruebas de recuperabilidad. Para cuentas de servicio, imponer denegación de logon interactivo/RDP cuando sea compatible y validado; usar gMSA/identidades administradas donde proceda.",
+  "escalation": [
+    "Cuenta de servicio tiene inicio 4624 tipo 2 o 10 en un DC fuera de política.",
+    "Origen desconocido, sin PAM o fuera de jump host autorizado.",
+    "4672, 4698 u otro cambio sensible asociado por sesión y proceso.",
+    "Cuenta puede acceder a backups, secretos o privilegios altos.",
+    "Se observan otros DC, reautenticaciones o persistencia."
+  ],
+  "falsos_positivos": [
+    "Soporte de emergencia y sesión RDP por administrador autorizado, pero en infracción de políticas de cuentas.",
+    "Script de mantenimiento que usa runas o cuenta mal inventariada.",
+    "La regla interpretó 4624 tipo 3 de red como inicio interactivo.",
+    "CMDB y nombre de equipo incompletos; origen conocido tras resolver VPN/PAM.",
+    "Cuenta de servicio nombrada svc- pero usada formalmente como cuenta de usuario (riesgo organizativo)."
+  ],
+  "errores": [
+    "Tratar LogonType=3 como inicio de sesión interactivo en el DC.",
+    "Afirmar que 4672 es compromiso confirmado.",
+    "Relacionar 4698 posterior con la sesión sin LogonId y proceso.",
+    "Deshabilitar cuenta crítica antes de coordinar recuperación de backups.",
+    "No revisar otros DC ni las restricciones de logon de cuenta.",
+    "Cerrar porque el dueño dice que es una cuenta servicio, sin investigar el origen RDP."
+  ],
+  "perspectiva_red_team": "Las cuentas técnicas tradicionales pueden tener contraseñas de larga vida, permisos amplios y pocas restricciones de logon. Un adversario que obtiene la credencial puede intentar usarla interactiva o remotamente, aunque nunca sea necesario para ejecutar el servicio original. Un control sólido separa identidades de ejecución, restringe logons, elimina privilegios innecesarios y detecta desviaciones de host/horario.",
+  "respuesta_entrevista": "Confirmaría primero que el 4624 del DC sea realmente tipo 2 o 10 y no tipo 3, y consultaría origen, cuenta y LogonId. Contrastaré la política de la cuenta de servicio, los equipos autorizados y PAM. Correlacionaría 4672 y tareas 4698 con esa sesión, la actividad EDR y otras sesiones en DC. Si no existe justificación técnica ni ticket y hay persistencia, activaría IR, contendría el origen y coordinaría la restricción/rotación de la cuenta sin romper los backups. El criterio no es solo la hora, sino la identidad, equipo y acciones.",
+  "criterios_evaluacion": [
+    "Distingue Windows LogonType 2/10 vs 3/4/5.",
+    "Comprueba 4624 y eventos de privilegios 4672 de forma correlacionada.",
+    "Reconstruye tarea nueva 4698 y prueba atribución.",
+    "Verifica origen con PAM, ticket y CMDB.",
+    "Investiga privilegios efectivos y otros DC.",
+    "Contiene sin invalidar backups de forma irreflexiva."
+  ],
+  "mitre": [
+    "T1078.002 — Domain Accounts (si uso ilegítimo)",
+    "T1053.005 — Scheduled Task (si tarea maliciosa)",
+    "T1021.001 — Remote Desktop Protocol (si logon tipo 10 corroborado)"
+  ],
+  "fuentes": [
+    "https://learn.microsoft.com/windows/security/threat-protection/auditing/event-4624",
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/securityevent",
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/windowsevent",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-devicelogonevents-table",
+    "https://csrc.nist.gov/pubs/sp/800/61/r3/final"
+  ],
+  "procedencia": {
+    "lote": "tanda-06",
+    "archivo": "SOC-RESPONSES_TANDA-06_N2-06_a_N2-10.json",
+    "fechaRevision": "2026-10-18"
+  }
+}

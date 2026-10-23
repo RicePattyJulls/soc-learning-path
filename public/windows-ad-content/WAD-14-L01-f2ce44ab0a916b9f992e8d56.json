@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-14-L01",
+  "title": "Dirección/transitividad de trust",
+  "sourceHash": "0577a29f8bddbc92bcd2521482c0892ef8f999a54866f51bbe7286055328b8d1",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-14-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDescribir la dirección y la transitividad de una relación de confianza y sus consecuencias de acceso.\n\nPrerrequisitos: `WAD-11-L03` (servicios y gMSA) y `WAD-13-L03` (dcdiag/repadmin y fallos seguros).\n\n## 2. Comprende el mecanismo\n\nUna **relación de confianza (trust)** es un acuerdo entre dos dominios —o entre dos bosques— por el que uno acepta las autenticaciones que emite el otro. Es una puerta para la **autenticación**, no una concesión de acceso: quien la crea no entrega permisos, solo habilita que las identidades del otro lado puedan ser reconocidas. En el laboratorio trabajamos con `ad.lab.test` y `socio.lab.test`.\n\nToda confianza de una sola vía distingue dos papeles. El **dominio de confianza (trusting)** es el que confía: acepta las identidades del otro lado y puede concederles acceso a sus recursos. El **dominio confiado (trusted)** es la fuente de esas identidades. La **dirección** responde a la pregunta «¿en qué sentido puede concederse el acceso?»; una confianza de una sola vía solo permite concederlo hacia el dominio de confianza. Una confianza **bidireccional** equivale a dos confianzas de una vía en sentidos opuestos.\n\nLa **transitividad** responde a otra pregunta: «¿hasta dónde alcanza la confianza?». Una confianza **transitiva** se extiende a los dominios en los que ya confía el dominio confiado. Dentro de un bosque, las confianzas entre dominio primario y secundario (padre-hijo) y entre raíces de árbol son bidireccionales y transitivas por defecto, de modo que todos los dominios del bosque se confían entre sí. Una **confianza de bosque** es transitiva y alcanza a todos los dominios de ambos bosques.\n\nNo toda confianza es transitiva. Una **confianza externa** es puntual, entre dos dominios concretos, y no se extiende a los demás dominios del socio. Una **confianza de acceso directo (shortcut)** es transitiva dentro de un bosque y solo acorta el camino entre dos de sus dominios.\n\nDirección y transitividad se combinan y producen consecuencias distintas. La dirección limita **quién** puede recibir acceso; la transitividad limita **hasta dónde** llega ese alcance. Una confianza externa y no transitiva entre `ad.lab.test` y `socio.lab.test` conecta solo esos dos dominios: un tercer dominio del bosque de `socio.lab.test` queda fuera de la autenticación. La misma pareja de dominios, unida por una confianza de bosque transitiva, incluiría a todos los dominios de ambos lados.\n\nDe aquí sale la regla que ordena la etapa: **«hay confianza» no es «hay acceso»**. La confianza abre la autenticación en un sentido y hasta cierto alcance; el acceso efectivo depende además de los permisos que el dominio receptor conceda. Por eso, antes de concluir, hay que leer dirección, transitividad y restricciones, y reconocer que sin la evidencia de permisos solo se describe el alcance posible, no el acceso real.\n\n### Vocabulario de apoyo\n\n- **Relación de confianza (trust)**: acuerdo entre dominios o bosques por el que uno acepta la autenticación del otro.\n- **Dominio de confianza (trusting)**: dominio que confía y acepta las identidades del otro lado.\n- **Dominio confiado (trusted)**: dominio que aporta las identidades en las que se confía.\n- **Confianza de una vía / bidireccional**: dirección en la que puede concederse el acceso; una vía o ambas.\n- **Transitividad**: propiedad por la que una confianza se extiende a los dominios en los que ya confía el confiado.\n- **Confianza externa**: confianza puntual y no transitiva entre dos dominios concretos.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-14-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test` se crea una confianza de una sola vía con `socio.lab.test`, donde `ad.lab.test` es el dominio de confianza y `socio.lab.test` el confiado. Una persona de `otro.socio.lab.test` —un dominio secundario del bosque de `socio.lab.test`— informa que no puede acceder a un recurso compartido de `ad.lab.test`, mientras que una persona de `socio.lab.test` sí lo consigue.\n\nLa persona de `socio.lab.test` puede autenticarse en `ad.lab.test` porque la confianza es de una vía hacia el dominio de confianza, que es `ad.lab.test`. La persona de `otro.socio.lab.test` no llega porque se trata de una confianza **externa** y **no transitiva**: alcanza solo al dominio nombrado, no a los demás dominios del bosque del socio. La conclusión acota lo que los datos permiten —«la confianza no se extiende a `otro.socio.lab.test`»— y reconoce su límite: el acceso de la primera persona describe alcance de autenticación; confirmar el acceso efectivo exigiría, además, la evidencia de los permisos concedidos sobre el recurso.\n\n"
+    },
+    {
+      "id": "WAD-14-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Distinguir dirección y transitividad evita atribuir un acceso cruzado a una confianza que en realidad no lo permite.\n- Red Team autorizado: Leer el alcance real de una confianza permite describir qué identidades pueden cruzar y hasta dónde.\n- Evidencia de la etapa: Tabla de confianzas con su dirección, su transitividad y los dominios alcanzados.\n- Criterio de dominio: Se identifica correctamente quién puede autenticarse y hasta dónde alcanza la confianza.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB24](../../05_RECURSOS/LABORATORIOS/WAD-LAB24.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **NTTRUST**: [netdom trust](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/netdom-trust). Cómo se consulta y administra una confianza y su dirección.\n- **AUTONOMY**: [Autonomy vs. isolation](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/autonomy-vs.-isolation). Cómo la confianza entre dominios equilibra autonomía y aislamiento.\n- **FORESTS**: [Determining the number of forests required](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/determining-the-number-of-forests-required). Por qué el número de bosques define el alcance de las confianzas.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-14-L01-P01",
+    "prompt": "En `ad.lab.test` existe una confianza de una sola vía con `socio.lab.test`, donde `ad.lab.test` es el dominio de confianza (trusting) y `socio.lab.test`, el confiado (trusted). Describe qué identidades pueden recibir acceso en cada sentido, si esa confianza alcanza a otros dominios del bosque de `socio.lab.test` y qué evidencia usarías para afirmarlo.",
+    "markdown": "## 4. Práctica individual\n\nEn `ad.lab.test` existe una confianza de una sola vía con `socio.lab.test`, donde `ad.lab.test` es el dominio de confianza (trusting) y `socio.lab.test`, el confiado (trusted). Describe qué identidades pueden recibir acceso en cada sentido, si esa confianza alcanza a otros dominios del bosque de `socio.lab.test` y qué evidencia usarías para afirmarlo.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber creado ni modificado una confianza en un entorno real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-14-L01-Q01",
+      "prompt": "En una confianza de una sola vía, `ad.lab.test` es el dominio de confianza (trusting) y `socio.lab.test` el confiado (trusted). ¿Qué permite esa dirección?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que las identidades de `ad.lab.test` accedan a recursos de `socio.lab.test` sin que nadie conceda permisos"
+        },
+        {
+          "id": "B",
+          "text": "Que ambos dominios accedan mutuamente a sus recursos, porque toda confianza es bidireccional"
+        },
+        {
+          "id": "C",
+          "text": "Que `socio.lab.test` deje de autenticar a sus propias identidades"
+        },
+        {
+          "id": "D",
+          "text": "Que las identidades de `socio.lab.test` puedan recibir acceso a recursos de `ad.lab.test`, pero no al revés por esa confianza"
+        }
+      ]
+    },
+    {
+      "id": "WAD-14-L01-Q02",
+      "prompt": "¿Qué significa que una relación de confianza sea transitiva?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que solo alcanza al dominio que la creó y a ningún otro"
+        },
+        {
+          "id": "B",
+          "text": "Que se extiende a los dominios en los que ya confía el dominio confiado, ampliando el alcance de la autenticación"
+        },
+        {
+          "id": "C",
+          "text": "Que toda identidad del dominio confiado obtiene automáticamente privilegios de administrador"
+        },
+        {
+          "id": "D",
+          "text": "Que la confianza caduca y debe recrearse cada cierto tiempo"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB24](../../05_RECURSOS/LABORATORIOS/WAD-LAB24.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **NTTRUST**: [netdom trust](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/netdom-trust). Cómo se consulta y administra una confianza y su dirección.\n- **AUTONOMY**: [Autonomy vs. isolation](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/autonomy-vs.-isolation). Cómo la confianza entre dominios equilibra autonomía y aislamiento.\n- **FORESTS**: [Determining the number of forests required](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/determining-the-number-of-forests-required). Por qué el número de bosques define el alcance de las confianzas.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "f2ce44ab0a916b9f992e8d56"
+}

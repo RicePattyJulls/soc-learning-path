@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M04-L02",
+  "title": "Handshake, estados y ventanas",
+  "sourceHash": "049cabe80ec884491d6c55558a1ce07418f64debc226d415900f97bf177aa071",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M04-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nInterpretar handshake y ventanas sin confundir negociación con salud completa.\n\nPrerrequisitos: [RED-M04-L01](../RED-E01/RED-M04-L01.md).\n\n## 2. Comprende el mecanismo\n\nSYN, SYN/ACK y ACK forman el establecimiento TCP habitual. Los números de secuencia y confirmación permiten ordenar bytes; el SYN consume un número de secuencia. La ventana anunciada limita cuánto puede recibir el extremo, mientras el control de congestión considera el camino; no son la misma ventana. Una ventana cero indica que el receptor no anuncia capacidad disponible en ese momento. Un handshake correcto no garantiza que el servidor complete una petición después ni que el camino soporte paquetes mayores.\n\n### Vocabulario de apoyo\n\n- **Handshake**: Intercambio inicial que establece el estado de una conexión.\n- **5-tupla**: IP origen, IP destino, puerto origen, puerto destino y protocolo de transporte.\n- **MTU, MSS y PMTU**: Máximo paquete de un enlace, máximo dato TCP anunciado y menor MTU del camino, respectivamente.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M04-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Secuencia docente: C SYN seq=100; S SYN/ACK seq=500 ack=101; C ACK ack=501; más tarde S anuncia win=0.\n\nLas confirmaciones incluyen los SYN. La ventana cero apunta al extremo receptor y su capacidad de recibir; no demuestra por sí sola pérdida de enlace.\n\n"
+    },
+    {
+      "id": "RED-M04-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Discriminar anomalías y degradación.\n- Red Team autorizado: Estimar alcance real de comunicaciones.\n- Evidencia del módulo: Filtros, secuencia TCP, hipótesis y límites.\n- Criterio del módulo: Distingue pérdida, reset, bloqueo y no observabilidad.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L02](../../05_RECURSOS/LABORATORIOS/RED-L02.md)\n- [Guía de laboratorio RED-L03](../../05_RECURSOS/LABORATORIOS/RED-L03.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC9293**: [RFC 9293: Transmission Control Protocol](https://www.rfc-editor.org/rfc/rfc9293.html). Bytes, handshake, secuencias, ventanas y estados TCP.\n- **RFC1191**: [RFC 1191: Path MTU Discovery](https://www.rfc-editor.org/rfc/rfc1191.html). PMTUD IPv4 y mensajes de error.\n- **RFC8201**: [RFC 8201: Path MTU Discovery for IPv6](https://www.rfc-editor.org/rfc/rfc8201.html). PMTU e ICMPv6 Packet Too Big.\n- **RFC9000**: [RFC 9000: QUIC: A UDP-Based Multiplexed and Secure Transport](https://www.rfc-editor.org/rfc/rfc9000.html). Transporte sobre UDP y límites de inferir fiabilidad desde UDP solo.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M04-L02-P01",
+    "prompt": "El servidor vuelve a anunciar ventana positiva y la transferencia continúa. Explica qué hipótesis gana apoyo.",
+    "markdown": "## 4. Práctica individual\n\nEl servidor vuelve a anunciar ventana positiva y la transferencia continúa. Explica qué hipótesis gana apoyo.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M04-L02-Q01",
+      "prompt": "¿Qué confirma ack=101 frente a SYN seq=100?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Cien bytes de HTTP obligatorios"
+        },
+        {
+          "id": "B",
+          "text": "Una dirección IPv6"
+        },
+        {
+          "id": "C",
+          "text": "El SYN, que consume un número de secuencia"
+        },
+        {
+          "id": "D",
+          "text": "La autenticación del usuario"
+        }
+      ]
+    },
+    {
+      "id": "RED-M04-L02-Q02",
+      "prompt": "¿Qué significa win=0 en el caso?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El receptor no anuncia espacio disponible en ese momento"
+        },
+        {
+          "id": "B",
+          "text": "El enlace físico está necesariamente caído"
+        },
+        {
+          "id": "C",
+          "text": "El handshake nunca ocurrió"
+        },
+        {
+          "id": "D",
+          "text": "El puerto cambió de UDP a TCP"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L02](../../05_RECURSOS/LABORATORIOS/RED-L02.md)\n- [Guía de laboratorio RED-L03](../../05_RECURSOS/LABORATORIOS/RED-L03.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC9293**: [RFC 9293: Transmission Control Protocol](https://www.rfc-editor.org/rfc/rfc9293.html). Bytes, handshake, secuencias, ventanas y estados TCP.\n- **RFC1191**: [RFC 1191: Path MTU Discovery](https://www.rfc-editor.org/rfc/rfc1191.html). PMTUD IPv4 y mensajes de error.\n- **RFC8201**: [RFC 8201: Path MTU Discovery for IPv6](https://www.rfc-editor.org/rfc/rfc8201.html). PMTU e ICMPv6 Packet Too Big.\n- **RFC9000**: [RFC 9000: QUIC: A UDP-Based Multiplexed and Secure Transport](https://www.rfc-editor.org/rfc/rfc9000.html). Transporte sobre UDP y límites de inferir fiabilidad desde UDP solo.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "8a20bfa4942188c1af69ae02"
+}

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-23-L01",
+  "title": "Herramientas y campos para correlación",
+  "sourceHash": "163c98ad2c28f911ccdb1c8436335c1e78fb2e9356d2e10eee8e9ceeec6494a1",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-23-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nElegir qué campo aporta cada fuente de observación de red y correlacionarlas para sostener una conclusión con evidencia.\n\nPrerrequisitos: `LNX-22-L03` (Bloquear un destino no es contener el incidente).\n\n## 2. Comprende el mecanismo\n\nNinguna fuente de observación describe por sí sola un flujo completo. Cada una aporta **campos** distintos y deja fuera otros. Correlacionar es reunir esas partes y declarar qué sostiene cada una, sin pedirle a un sensor lo que no puede dar.\n\n`ss` aporta **protocolo, direcciones, puertos, estado y, cuando los privilegios lo permiten, PID y usuario**. Su límite es que es una **instantánea** de sockets vivos y puede no mostrar procesos de otros usuarios sin privilegios. Un **PCAP** aporta la 5-tupla, los tiempos, las banderas, los tamaños y el handshake, pero no la atribución al proceso y queda opaco si el tráfico está cifrado.\n\nLa información de **DNS** aporta la consulta, la respuesta, el TTL, el resolver y la interfaz usada, pero la caché, DoH o un proxy alteran la correspondencia, y una consulta **no** prueba la conexión posterior a la IP resuelta. Los registros de **SSH** (journal o auth.log) aportan usuario, método, origen, estado y sesión, no el propósito de esa sesión.\n\nLos **contadores y el estado de nft/conntrack** aportan decisiones y estado del flujo, pero el registro no siempre está activado y NAT cambia lo que se ve. La telemetría de **EDR o eBPF** aporta PID, ejecutable y usuario, siempre que exista sensor y su cobertura sea correcta. Los **logs de firewall o cloud** aportan flujos agregados y controles de perímetro, pero a menudo no incluyen proceso ni carga.\n\nCorrelacionar significa cruzar esa evidencia: **proceso y usuario**, **volumen medido** desde una fuente fiable, **consultas DNS**, **política** vigente y **ventana temporal**. Un flujo establecido con muchos bytes es relevante, pero podría ser una copia de seguridad, replicación o una descarga legítima; la atribución exige más que el volumen.\n\nEsto se concreta en diseños de **detección** contrastables. Una hipótesis como «egreso a un destino no inventariado» exige correlacionar proceso, usuario, bytes, DNS y política, y admite falsos positivos (copias, CDN, telemetría). Antes de convertirla en SIEM, se mapea al esquema real y se ensaya la cobertura.\n\nLa regla es elegir la fuente por el campo que se necesita. El límite: sin una segunda fuente que confirme, una observación aislada sostiene una hipótesis, no una conclusión de causa o intención.\n\n### Vocabulario de apoyo\n\n- **Correlación**: cruzar campos de varias fuentes para sostener una conclusión.\n- **Instantánea**: captura del estado actual, sin histórico.\n- **Atribución al proceso**: relacionar un flujo con un PID, usuario o ejecutable.\n- **TTL**: tiempo de vida de un registro DNS en caché.\n- **Contador de firewall**: cuenta de coincidencias de una regla, sin payload.\n- **Telemetría EDR/eBPF**: eventos de proceso y sistema según la cobertura del sensor.\n- **Falso positivo**: coincidencia legítima que dispara una detección.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-23-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un analista observa un flujo `ESTAB` hacia `198.51.100.20:443` con muchos bytes salientes y concluye que hubo exfiltración. No correlaciona el proceso, el usuario, el destino real ni la ventana; tampoco comprueba si coincide con una copia de seguridad programada.\n\nLa conclusión se apoya en un solo campo: el volumen. Un flujo establecido con muchos bytes es relevante, pero el mismo patrón lo produce una copia de seguridad, una réplica o una descarga legítima. Sin correlacionar **proceso, usuario, DNS, política y horario**, el volumen no distingue lo anómalo de lo esperado.\n\nLa lectura correcta cruza fuentes: qué proceso y usuario abren el flujo, qué nombre se consultó, qué política lo permite y en qué ventana ocurre. El límite: sin una segunda fuente que confirme, el flujo sostiene una hipótesis de exfiltración, no una conclusión; quedan falsos positivos por descartar.\n\n"
+    },
+    {
+      "id": "LNX-23-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Elegir la fuente por el campo necesario y correlacionar antes de concluir.\n- Red Team autorizado: Documentar la cobertura de cada fuente en un entorno de laboratorio propio.\n- Evidencia de la etapa: Campos aportados por cada fuente y cruce con proceso, DNS, política y ventana.\n- Criterio de dominio: Declara qué demuestra cada fuente y qué queda como hipótesis.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB28](../../05_RECURSOS/LABORATORIOS/LNX-LAB28.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F73**: [ss(8) — iproute2/man7](https://man7.org/linux/man-pages/man8/ss.8.html). Sockets, estado y atribución según privilegios.\n- **F79**: [tcpdump(8) — manual](https://man7.org/linux/man-pages/man8/tcpdump.8.html). Campos de la captura y su alcance.\n- **F77**: [resolvectl — systemd](https://www.freedesktop.org/software/systemd/man/257/resolvectl.html). Consulta DNS: consulta, respuesta y resolver.\n- **F90**: [nft(8) — netfilter manual](https://netfilter.org/projects/nftables/manpage.html). Decisiones y contadores de la política.\n- **F81**: [IP sysctl — Linux kernel](https://docs.kernel.org/networking/ip-sysctl.html). Parámetros que afectan al comportamiento observado.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-23-L01-P01",
+    "prompt": "Observas un flujo `ESTAB` hacia `198.51.100.20:443` con muchos bytes salientes y concluyes que hubo exfiltración, sin correlacionar el proceso, el usuario, el destino real ni la ventana, ni comprobar si coincide con una copia de seguridad. Explica qué aporta cada fuente, cómo correlacionarías y cuál es el límite de tu conclusión.",
+    "markdown": "## 4. Práctica individual\n\nObservas un flujo `ESTAB` hacia `198.51.100.20:443` con muchos bytes salientes y concluyes que hubo exfiltración, sin correlacionar el proceso, el usuario, el destino real ni la ventana, ni comprobar si coincide con una copia de seguridad. Explica qué aporta cada fuente, cómo correlacionarías y cuál es el límite de tu conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber ejecutado herramientas ni haber investigado un incidente real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-23-L01-Q01",
+      "prompt": "¿Qué campo aporta `ss` que un PCAP de red no aporta por sí solo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El contenido cifrado del flujo"
+        },
+        {
+          "id": "B",
+          "text": "La atribución al proceso visible (PID y usuario) cuando los privilegios lo permiten"
+        },
+        {
+          "id": "C",
+          "text": "La marca del cable de red"
+        },
+        {
+          "id": "D",
+          "text": "El TTL de las respuestas DNS"
+        }
+      ]
+    },
+    {
+      "id": "LNX-23-L01-Q02",
+      "prompt": "¿Por qué conviene correlacionar varias fuentes ante una conexión saliente anómala?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Porque una sola fuente basta si muestra muchos bytes"
+        },
+        {
+          "id": "B",
+          "text": "Porque el firewall siempre registra el proceso de origen"
+        },
+        {
+          "id": "C",
+          "text": "Porque cada fuente ve una parte (socket/proceso, PCAP, DNS, firewall, EDR) y ninguna demuestra por sí sola la causa ni la intención"
+        },
+        {
+          "id": "D",
+          "text": "Porque el PCAP revela el usuario de la aplicación"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB28](../../05_RECURSOS/LABORATORIOS/LNX-LAB28.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F73**: [ss(8) — iproute2/man7](https://man7.org/linux/man-pages/man8/ss.8.html). Sockets, estado y atribución según privilegios.\n- **F79**: [tcpdump(8) — manual](https://man7.org/linux/man-pages/man8/tcpdump.8.html). Campos de la captura y su alcance.\n- **F77**: [resolvectl — systemd](https://www.freedesktop.org/software/systemd/man/257/resolvectl.html). Consulta DNS: consulta, respuesta y resolver.\n- **F90**: [nft(8) — netfilter manual](https://netfilter.org/projects/nftables/manpage.html). Decisiones y contadores de la política.\n- **F81**: [IP sysctl — Linux kernel](https://docs.kernel.org/networking/ip-sysctl.html). Parámetros que afectan al comportamiento observado.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "131c7942b61ddd1844086cb3"
+}

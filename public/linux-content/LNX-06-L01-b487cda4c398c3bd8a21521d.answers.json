@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-06-L01",
+  "sourceHash": "cc67556c5e375361597faa1a9739e6a5a339747969f7b26468af4636e0a7598d",
+  "questions": [
+    {
+      "id": "LNX-06-L01-Q01",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «La shell sustituye `$HOME` por su valor y el programa recibe el texto ya expandido».\n\nLa shell expande el parámetro antes de lanzar el programa, que recibe el texto resultante y no ve el `$`. El programa no expande la cadena, el kernel no consulta `/etc/passwd` para sustituirla y la expansión no ocurre después de terminar."
+    },
+    {
+      "id": "LNX-06-L01-Q02",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «El entorno heredado es distinto, porque cada proceso recibe su propio entorno al iniciarse».\n\nCada proceso recibe su bloque de entorno al arrancar, y servicio y terminal pueden diferir en `PATH`, directorio y variables. No cambia la versión del intérprete, el kernel no reordena la evaluación y la shell del servicio no ignora las comillas del script."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "La diferencia está en el **entorno heredado** y el contexto de ejecución, no en el código del script. Al iniciarse, cada proceso recibe su propio bloque de entorno: una tarea programada puede arrancar con un `PATH` más corto —de modo que un nombre deja de resolverse—, con otro directorio de trabajo —de modo que una ruta relativa apunta a otro sitio— y sin las variables que existían en la sesión interactiva.\n\nEl dato que registraría es, para cada ejecución, el `PATH`, el directorio de trabajo y la identidad efectiva, junto con la salida producida. Esas piezas separan «qué se escribió» de «con qué contexto se ejecutó» y convierten la intuición en una observación repetible.\n\nLímite: sin registrar esos datos puedes afirmar *que* difieren los resultados, pero no *qué* supuesto implícito se rompió en este caso concreto.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Ubica la diferencia en el entorno heredado y el contexto, no en el código."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Menciona `PATH` y el directorio de trabajo como supuestos implícitos."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Propone registrar entorno, directorio e identidad de cada ejecución."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Reconoce que sin esos datos no puede identificar qué supuesto se rompió."
+      }
+    ]
+  },
+  "revision": "b487cda4c398c3bd8a21521d"
+}

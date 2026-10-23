@@ -1,0 +1,181 @@
+{
+  "schemaVersion": 1,
+  "courseId": "soc",
+  "id": "N2-04",
+  "sourceHash": "6299814b4fb06bfa7a11c0bf921ad5b899e3725f56068642c3d156ee38f98708",
+  "revision": "c87f8c69b863a7b33f4f89b3",
+  "hipotesis": [
+    "Robo de credenciales y uso interactivo o remoto de cuenta privilegiada.",
+    "Uso de ticket Kerberos, hash NTLM o sesión reutilizada; contraseña cambiada no invalida siempre artefactos existentes de inmediato.",
+    "Host administrativo comprometido que recreará sesiones si solo se rota la contraseña.",
+    "Actividad legítima fuera de ventana desde estación no registrada; confirmar por canal independiente.",
+    "Alteración de grupos privilegiados, políticas, delegaciones o mecanismos de persistencia AD.",
+    "Compromiso potencial del DC/krbtgt; esto cambia radicalmente alcance y estrategia de recuperación, pero NO se presume por un solo inicio de sesión."
+  ],
+  "pasos": [
+    {
+      "fase": "0. Activa respuesta mayor y asegúrate de tener canal seguro",
+      "accion": "Escalar a IR/identidad/CISO; usar cuentas y comunicaciones conocidas limpias, preferiblemente fuera de banda si existe riesgo de lectura de correo corporativo por el atacante."
+    },
+    {
+      "fase": "1. Establece alcance mínimo en paralelo",
+      "accion": "Extraer horas/host/origen, LogonType, 4624/4672/4648, privilegios, Kerberos/NTLM y actividad de la cuenta. Validar con el titular de manera independiente; revisar otros endpoints usados."
+    },
+    {
+      "fase": "2. Asegura el punto de mando antes del cambio",
+      "accion": "Preparar acceso administrativo limpio de emergencia, privilegios separados y canal de coordinación, verificando que existen administradores de respaldo; evitar que una rotación precipitada deje a la organización sin gestión."
+    },
+    {
+      "fase": "3. Contener simultáneamente cuenta y estaciones",
+      "accion": "Con autoridad y plan previo: limitar/deshabilitar temporalmente la cuenta, restringir accesos VPN/PAW/RDP y aislar endpoints comprometidos. Sincronizar revocación de sesiones/tokens cloud cuando aplique, cambio de credenciales y bloqueo de puntos de entrada."
+    },
+    {
+      "fase": "4. Asumir persistencia hasta descartarla",
+      "accion": "Buscar cambios en membresías privilegiadas, nuevas cuentas, GPO, permisos, delegación, servicios, tareas y acceso a DCs; revisar la línea temporal desde el primer evento sospechoso."
+    },
+    {
+      "fase": "5. Evaluar exposición de secretos y tickets",
+      "accion": "La rotación de contraseña puede no invalidar inmediatamente ciertos tickets, sesiones o hashes capturados; establecer condiciones de expiración/revocación y comprobar nuevas autenticaciones con socios de identidad."
+    },
+    {
+      "fase": "6. Si hay indicios de krbtgt/DC afectado, cambiar de playbook",
+      "accion": "Elevar a especialistas de recuperación AD: el doble reseteo de krbtgt es un procedimiento de alto impacto, y NO se realiza automáticamente por sospecha de una sola cuenta. Exige comprender replicación, política de lifetime de tickets, dependencias y secuencia de recuperación; en la guía de forest recovery Microsoft indica dos resets separados al menos por la vigencia de tickets configurada (10 h por defecto)."
+    },
+    {
+      "fase": "7. Preservar antes de erradicar de forma destructiva",
+      "accion": "Guardar eventos de DC, EDR, configuración y cambios, cronología y trazabilidad de acciones. Los operadores de IR deciden adquisición de memoria y disco según prioridad y estabilidad."
+    },
+    {
+      "fase": "8. Recuperación y seguimiento",
+      "accion": "Restaurar privilegios usando identidad limpia, auditar persistencia, revisar credenciales y confianza, aplicar hardening (PAW/PIM, MFA resistente al phishing donde aplique, reducción de admin permanente) y monitorizar actividad por varios ciclos."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "SecurityEvent 4624, 4672, 4648 y 4625",
+      "lectura": "Vincula autenticación y privilegios; 4672 indica privilegios especiales en inicio de sesión, NO prueba exclusiva de Domain Admin."
+    },
+    {
+      "dato": "SecurityEvent 4720, 4728/4732, 4738, 4739, 4670 y 5136 si auditados",
+      "lectura": "Señales de altas, membresías, cambios de cuenta/directorio/permisos; hay que interpretar sujeto/objeto y qué se auditó."
+    },
+    {
+      "dato": "IdentityLogonEvents / Defender for Identity",
+      "lectura": "Complementa usuario, origen, destino y protocolos si la solución está desplegada."
+    },
+    {
+      "dato": "Inventario de PAW, estaciones y conexiones VPN",
+      "lectura": "Ayuda a determinar estación no autorizada y rutas de acceso privilegiado."
+    },
+    {
+      "dato": "Cronología de cambios GPO/grupos/ACL y baselines",
+      "lectura": "Identifica persistencia o escalada; cambios aprobados pueden parecer similares."
+    },
+    {
+      "dato": "Hash/ticket/token/secretos sospechosos (sin copiarlos al ticket)",
+      "lectura": "Distingue credencial comprometida de sesión viva; los secretos se preservan en repositorio seguro si resulta necesario."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Sentinel / Log Analytics · eventos de seguridad relacionados con cuenta administrativa",
+      "entorno": "Tabla SecurityEvent ingerida desde DCs y estaciones; ajustar cuenta adm-ops y dominio; 4624/4672 no son universales en todos los destinos.",
+      "consulta": "let cuenta=\"adm-ops\";\nSecurityEvent\n| where TimeGenerated > ago(24h)\n| where EventID in (4624, 4625, 4648, 4672, 4720, 4728, 4732, 4738, 5136)\n| where Account has cuenta or SubjectAccount has cuenta or TargetAccount has cuenta\n| project TimeGenerated, Computer, EventID, Activity, Account,\n          SubjectAccount, TargetAccount, IpAddress, LogonType\n| order by TimeGenerated asc",
+      "interpretacion": "Construye línea temporal inicial de uso, privilegios y cambios potencialmente vinculados a la cuenta.",
+      "limitaciones": "La auditoría de AD DS y el parser condicionan columnas y cobertura. Para cambios de terceros realizados POR adm-ops, el campo SubjectAccount puede diferir del TargetAccount."
+    },
+    {
+      "nombre": "Defender XDR Advanced Hunting · logons de identidad y destinos alcanzados",
+      "entorno": "IdentityLogonEvents requiere Defender for Identity/servicios que la rellenen; validar ActionType y campos en schema.",
+      "consulta": "IdentityLogonEvents\n| where Timestamp > ago(24h)\n| where AccountName =~ \"adm-ops\"\n| summarize eventos=count(), inicio=min(Timestamp), fin=max(Timestamp),\n            destinos=make_set(DestinationDeviceName, 50),\n            protocolos=make_set(Protocol, 20)\n  by AccountUpn, IPAddress, DeviceName, ActionType, LogonType\n| order by fin desc",
+      "interpretacion": "Revela nuevos orígenes, protocolos y alcance de la cuenta y permite priorizar máquinas para contención.",
+      "limitaciones": "No inferir desde ActionType por una sola cadena que todas las autenticaciones fueron exitosas; ver detalles. Cobertura varía; para sign-ins cloud complementar con logs de Entra."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk CIM Authentication · patrón de logon de cuenta privilegiada",
+      "entorno": "CIM Authentication con user, src, dest y action mapeados desde eventos Windows/AD; ajustar cuenta.",
+      "consulta": "| tstats count min(_time) as primera max(_time) as ultima\n  from datamodel=Authentication.Authentication\n  where earliest=-24h latest=now Authentication.user=\"adm-ops\"\n  by Authentication.src Authentication.dest Authentication.action Authentication.app\n| rename Authentication.* as *\n| convert ctime(primera) ctime(ultima)\n| sort - ultima",
+      "interpretacion": "Compara orígenes, destino y éxito/fallo normalizados para revisar acceso fuera de baseline.",
+      "limitaciones": "El CIM Authentication no registra por sí solo membresías AD; exige fuentes Windows específicas. Campos app/action pueden estar vacíos."
+    },
+    {
+      "nombre": "Splunk · Windows Security EventCode de cambios AD (sourcetype real)",
+      "entorno": "Ejemplo con sourcetype=WinEventLog:Security; confirmar si tu colector usa XmlWinEventLog:Security u otro, y nombres Account_Name/SubjectUserName según TA.",
+      "consulta": "sourcetype=\"WinEventLog:Security\" earliest=-24h latest=now\n(EventCode=4720 OR EventCode=4728 OR EventCode=4732 OR EventCode=4738 OR EventCode=5136)\n| table _time host EventCode SubjectUserName TargetUserName MemberName ObjectDN\n| sort _time",
+      "interpretacion": "Detecta ventanas con cambios privilegiados para correlación posterior por usuario, objeto y aprobación.",
+      "limitaciones": "No todos los eventos generan los mismos campos ni están auditados. Esta consulta omite un filtro por cuenta porque los nombres de campo cambian entre TAs; añadirlo después de validar muestras."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Windows — solo lectura",
+      "proposito": "Enumerar grupos del usuario sin introducir cambios. Requiere RSAT/módulo ActiveDirectory y permisos.",
+      "comando": "Get-ADPrincipalGroupMembership -Identity \"adm-ops\" | Select-Object Name, DistinguishedName"
+    },
+    {
+      "entorno": "Windows — solo lectura",
+      "proposito": "Examinar logons y privilegios recientes en DC con derechos adecuados.",
+      "comando": "Get-WinEvent -FilterHashtable @{LogName=\"Security\"; Id=4624,4672,4728,4732; StartTime=(Get-Date).AddHours(-6)} -MaxEvents 200 | Select-Object TimeCreated,Id,Message"
+    },
+    {
+      "entorno": "Windows — solo lectura",
+      "proposito": "Revisar estado y última modificación de cuenta en directorio autorizado.",
+      "comando": "Get-ADUser -Identity \"adm-ops\" -Properties Enabled,LastLogonDate,PasswordLastSet,MemberOf | Select-Object SamAccountName,Enabled,LastLogonDate,PasswordLastSet,MemberOf"
+    },
+    {
+      "entorno": "Windows — solo lectura",
+      "proposito": "Ver grupos locales privilegiados de una estación autorizada; no implica privilegios de dominio.",
+      "comando": "Get-LocalGroupMember -Group Administrators"
+    }
+  ],
+  "contencion": "No basar la estrategia en mantener al atacante desinformado a costa de permitirle continuar. Planificar acciones paralelas, rápidas, por canales seguros: cierre de accesos, aislamiento de estaciones, suspensión o limitación de cuentas, rotación de secretos y validación de autenticación posterior. Deshabilitar una cuenta NO equivale a invalidar instantáneamente todas las sesiones/tickets. Para krbtgt, solo plan específico de especialistas de AD; la guía de forest recovery de Microsoft describe doble reset con espera apropiada, NO un comando rutinario tras cualquier incidente de administrador. Nunca apagar DCs indiscriminadamente.",
+  "escalation": [
+    "Toda confirmación razonable de uso no autorizado de cuenta Domain Admin.",
+    "Cambios no aprobados en AD, políticas, grupos privilegiados o delegaciones.",
+    "Indicios de acceso a DC, DCSync, dumping de secretos o krbtgt afectado.",
+    "Autenticaciones siguen después de contención/rotación planificada.",
+    "Hay riesgo de pérdida de funciones AD o identidad de emergencia durante recuperación."
+  ],
+  "falsos_positivos": [
+    "Mantenimiento fuera de horario realizado por PAW o salto de administración conocido.",
+    "Integración legítima con PAM/bastion que origina IP no obvia.",
+    "Evento 4672 habitual en servicios privilegiados, sin ataque confirmado.",
+    "Inicio de sesión de servicio o tarea con nombre parecido a la cuenta investigada.",
+    "Evento de grupo autorizado bajo cambio de seguridad registrado."
+  ],
+  "errores": [
+    "Esperar días para «no alertar» al atacante con acceso Domain Admin.",
+    "Rotar contraseña sin aislar estaciones comprometidas ni evaluar sesiones activas.",
+    "Ejecutar doble reset de krbtgt de inmediato sin evidencia y sin coordinación de AD.",
+    "Apagar controladores de dominio indiscriminadamente.",
+    "Confundir 4672 con prueba definitiva de Domain Admin y de intrusión.",
+    "Usar el portátil o cuenta supuestamente comprometidos para coordinar el incidente.",
+    "Cerrar caso tras un cambio de contraseña sin revisar persistencia en GPO/ACL/grupos."
+  ],
+  "perspectiva_red_team": "El acceso a privilegios de dominio permite al adversario mantener sesiones, pivotar y preparar persistencia en el directorio. El defensor debe suponer que la simple rotación de contraseña puede no cerrar todas las rutas, porque existe una diferencia entre credencial, ticket, sesión y control del endpoint. La colaboración con equipos de identidad y operaciones reduce ventanas de acceso y riesgos de caída por cambios de gran alcance.",
+  "respuesta_entrevista": "Lo trataría como un incidente mayor. Primero aseguraría canales de coordinación y acceso administrativo limpio; después coordinaría contención casi simultánea de la cuenta, estaciones usadas y sesiones pertinentes, documentando los riesgos de alertar al atacante y de indisponibilidad. Buscaría autenticaciones, cambios en grupos/GPO/ACL y señales de exposición de secretos. No asumiría que resetear contraseña invalida todos los tickets ni tocaría krbtgt sin evidencia y un plan formal de recuperación de AD. Validaría el resultado con nuevos logs y hunting de persistencia.",
+  "criterios_evaluacion": [
+    "Activa IR/identidad y coordina canales fuera de banda cuando corresponde.",
+    "Contiene cuenta, sesión y endpoint; no solo contraseña.",
+    "Conoce diferencias entre tickets, sesiones, secretos y rotación.",
+    "No confunde 4672 con compromiso de Domain Admin.",
+    "Evita procedimientos peligrosos de krbtgt/DC sin evidencia.",
+    "Revisa persistencia en grupos, GPO, ACL y delegación."
+  ],
+  "mitre": [
+    "T1078.002 (Valid Accounts: Domain Accounts, hipótesis)",
+    "T1098 (Account Manipulation, si hubo cambios)",
+    "T1558 (Steal or Forge Kerberos Tickets, si hay pruebas)",
+    "T1003.006 (DCSync, solo si corroborado)"
+  ],
+  "fuentes": [
+    "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+    "https://learn.microsoft.com/en-us/defender-for-identity/remediation-actions",
+    "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-reset-the-krbtgt-password",
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/securityevent",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-identitylogonevents-table",
+    "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.1/data-models/authentication"
+  ]
+}

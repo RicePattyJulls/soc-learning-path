@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M09-L04",
+  "title": "Inter-VLAN y troubleshooting",
+  "sourceHash": "865082959af840bfbfa90eee1d391ba819de95b5618d8ff65324ea8065fb2da8",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M09-L04-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDistinguir routing inter-VLAN, gateway y política de acceso.\n\nPrerrequisitos: [RED-M09-L03](../RED-E02/RED-M09-L03.md).\n\n## 2. Comprende el mecanismo\n\nDos VLAN necesitan una función L3, como SVI o subinterfaces, para intercambiar tráfico encaminado. Cada host debe usar dirección, prefijo y gateway coherentes con su segmento. La SVI puede depender de que su VLAN tenga puertos activos según plataforma; revisar estado real importa. Una vez existe ruta, ACL o firewall pueden permitir solo ciertos servicios. El diagnóstico debe recorrer ida y retorno y separar fallo de VLAN, ausencia de ruta y denegación de política; ninguna etiqueta VLAN verifica por sí sola una autorización.\n\n### Vocabulario de apoyo\n\n- **Access y trunk**: Puerto de acceso para una VLAN de datos y enlace que transporta varias VLAN, según configuración.\n- **802.1Q y VLAN nativa**: Etiquetado de VLAN y tratamiento configurado para tráfico sin etiqueta en ciertos trunks.\n- **SVI**: Interfaz de capa 3 asociada a una VLAN para funciones IP.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M09-L04-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Cliente VLAN10 llega a su gateway. Servidor VLAN20 recibe SYN, pero envía la respuesta a un gateway antiguo.\n\nEl tráfico de ida alcanza al servidor; el retorno usa una salida incorrecta. Cambiar el trunk que ya transportó el SYN no explica esa evidencia.\n\n"
+    },
+    {
+      "id": "RED-M09-L04-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Correlacionar VLAN con zonas y rutas.\n- Red Team autorizado: Comprobar de forma mínima el aislamiento entre segmentos.\n- Evidencia del módulo: Matriz VLAN, config/estado y flujos permitidos.\n- Criterio del módulo: Aislamiento y conectividad autorizada comprobados.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L04](../../05_RECURSOS/LABORATORIOS/RED-L04.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **BRIDGE**: [Ethernet Bridging](https://docs.kernel.org/networking/bridge.html). Learning, forwarding, VLAN y controles de bridge; kAPI no se presenta como estable.\n- **STP**: [Understand Rapid Spanning Tree Protocol](https://www.cisco.com/c/en/us/support/docs/lan-switching/spanning-tree-protocol/24062-146.html). Roles, estados y comparación de convergencia RSTP.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M09-L04-P01",
+    "prompt": "El retorno es correcto y el firewall registra deny para TCP/445. Explica el nuevo diagnóstico.",
+    "markdown": "## 4. Práctica individual\n\nEl retorno es correcto y el firewall registra deny para TCP/445. Explica el nuevo diagnóstico.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M09-L04-Q01",
+      "prompt": "¿Qué aporta una SVI?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Una respuesta DNS autoritativa"
+        },
+        {
+          "id": "B",
+          "text": "Una interfaz L3 asociada a una VLAN"
+        },
+        {
+          "id": "C",
+          "text": "Cifrado obligatorio de todas las tramas"
+        },
+        {
+          "id": "D",
+          "text": "Un reemplazo universal de 802.1X"
+        }
+      ]
+    },
+    {
+      "id": "RED-M09-L04-Q02",
+      "prompt": "¿Qué está demostrado en el ejemplo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Existe camino de ida hasta el servidor y retorno mal configurado"
+        },
+        {
+          "id": "B",
+          "text": "Todos los trunks están caídos"
+        },
+        {
+          "id": "C",
+          "text": "El SYN nunca salió del cliente"
+        },
+        {
+          "id": "D",
+          "text": "La VLAN20 no existe"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L04](../../05_RECURSOS/LABORATORIOS/RED-L04.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **BRIDGE**: [Ethernet Bridging](https://docs.kernel.org/networking/bridge.html). Learning, forwarding, VLAN y controles de bridge; kAPI no se presenta como estable.\n- **STP**: [Understand Rapid Spanning Tree Protocol](https://www.cisco.com/c/en/us/support/docs/lan-switching/spanning-tree-protocol/24062-146.html). Roles, estados y comparación de convergencia RSTP.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "2d654eb448a4f8c83bb2cbea"
+}

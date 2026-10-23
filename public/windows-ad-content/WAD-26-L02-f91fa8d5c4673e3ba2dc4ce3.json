@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-26-L02",
+  "title": "WEF/WEC, canal y transporte",
+  "sourceHash": "b17cbb82858a65d9d287e8e82c3d9281281435a58c3da3b00f758fddbc70aa8a",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-26-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDiseñar el reenvío de eventos (WEF/WEC) y comprobar el transporte.\n\nPrerrequisitos: `WAD-26-L01` (Capacidades y filtros de Sysmon).\n\n## 2. Comprende el mecanismo\n\nRegistrar en cada equipo sirve de poco si nadie reúne los eventos. Si el equipo se apaga, si su registro rota o si alguien lo reinstala, la evidencia se pierde y la correlación entre varios hosts se vuelve imposible. El **reenvío de eventos de Windows (WEF)** resuelve eso: recoge los eventos de muchos equipos y los centraliza.\n\nEl flujo tiene dos extremos. El **origen** es el equipo que genera y **reenvía** sus eventos; el **recopilador** es el servidor que los recibe y los guarda en un canal propio, el registro de **eventos reenviados**. El servicio que atiende esa recepción se conoce como **WEC**.\n\nQué se reenvía no es «todo»: lo define la **suscripción**, que contiene una consulta con los canales y las condiciones que deben cumplir los eventos. Igual que en Sysmon, lo que la consulta no admita no se reenvía, y no hay forma de recuperarlo después. Diseñar la suscripción es, por tanto, una decisión de cobertura.\n\nExisten dos modos de suscripción. En la **iniciada por el origen**, cada equipo de origen se configura para enviar al recopilador y este acepta los orígenes autorizados. En la iniciada por el recopilador, es el recopilador el que contacta con los orígenes. La elección depende de cómo se administra la flota y de cómo se autentica cada extremo.\n\nEl **transporte** se apoya en el servicio de administración remota (**WinRM / WS-Man**), que atiende un puerto y puede protegerse con cifrado. Si ese servicio no responde en el origen o el tráfico está bloqueado por el filtro de red, los eventos no llegan aunque la suscripción esté bien escrita.\n\nComprobar el canal es un paso obligado y también acotado. Que el transporte responda demuestra que el canal está **disponible**; no demuestra que la suscripción cubra todo lo que interesa ni que los eventos lleguen en todos los casos. La regla que cierra la lección: **un evento demostrado en destino, con el canal comprobado**; nada se da por cubierto sin esa prueba. Todo se practica sobre `ad.lab.test`, un laboratorio aislado.\n\n### Vocabulario de apoyo\n\n- **WEF (reenvío de eventos)**: mecanismo que centraliza eventos de varios equipos en un recopilador.\n- **Recopilador (WEC)**: servidor que recibe y almacena los eventos reenviados.\n- **Suscripción**: definición que indica qué eventos se reenvían y desde qué orígenes.\n- **Suscripción iniciada por el origen**: modo en que cada equipo de origen envía sus eventos al recopilador.\n- **Transporte (WinRM / WS-Man)**: canal remoto por el que viajan los eventos hasta el recopilador.\n- **Eventos reenviados**: canal del recopilador donde se acumulan los eventos recibidos.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-26-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test` se configura el reenvío de los inicios de sesión de `WKS01` hacia un recopilador en `192.0.2.20`, con una suscripción que toma el canal de seguridad. Al revisar el recopilador aparecen eventos del canal de eventos reenviados.\n\nLa llegada de esos eventos demuestra que el transporte funciona y que al menos un origen está reenviando: la suscripción admite el canal declarado y el canal responde. La conclusión acota lo observable —«el reenvío está operativo para los eventos comprobados»— y reconoce su límite: que llegue una muestra no demuestra que todos los eventos de interés se estén cubriendo, ni que la hora de recolección coincida con la hora original del origen. Para afirmar cobertura hace falta comprobar qué eventos concretos deberían llegar y contrastarlos con los recibidos.\n\n"
+    },
+    {
+      "id": "WAD-26-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Centralizar los eventos en un recopilador permite correlacionar varios equipos y conservar evidencia fuera del origen.\n- Red Team autorizado: Conocer el transporte y la suscripción ayuda a describir qué se recolecta sin alterar el entorno.\n- Evidencia de la etapa: Suscripción definida, canal comprobado y al menos un evento demostrado en el recopilador.\n- Criterio de dominio: La recolección se respalda con eventos observados en destino, no con la sola configuración.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB18](../../05_RECURSOS/LABORATORIOS/WAD-LAB18.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **WEF**: [Windows Event Collector](https://learn.microsoft.com/en-us/windows/win32/wec/windows-event-collector). Arquitectura del recopilador y de las suscripciones de reenvío.\n- **WEFSUB**: [Setting up a source-initiated subscription](https://learn.microsoft.com/en-us/windows/win32/wec/setting-up-a-source-initiated-subscription). Configuración de una suscripción iniciada por el origen.\n- **WSMAN**: [Test-WSMan](https://learn.microsoft.com/en-us/powershell/module/microsoft.wsman.management/test-wsman). Comprobación de que el servicio de administración remota responde.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-26-L02-P01",
+    "prompt": "En `ad.lab.test`, diseñas el reenvío de eventos de `WKS01` hacia un recopilador. Describe el canal, la suscripción y cómo compruebas el transporte, y señala el límite de esa comprobación.",
+    "markdown": "## 4. Práctica individual\n\nEn `ad.lab.test`, diseñas el reenvío de eventos de `WKS01` hacia un recopilador. Describe el canal, la suscripción y cómo compruebas el transporte, y señala el límite de esa comprobación.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado un reenvío real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-26-L02-Q01",
+      "prompt": "En un diseño de reenvío de eventos, ¿qué papel cumple el recopilador y qué transporta los eventos hasta él?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El recopilador guarda solo copias locales y el reenvío ocurre por un aviso manual del administrador"
+        },
+        {
+          "id": "B",
+          "text": "El recopilador reinicia los equipos de origen para forzar la recolección"
+        },
+        {
+          "id": "C",
+          "text": "El recopilador recibe y almacena los eventos según la suscripción, y el transporte se apoya en el servicio de administración remota (WinRM / WS-Man)"
+        },
+        {
+          "id": "D",
+          "text": "El recopilador sustituye la política de auditoría y genera los eventos que faltan"
+        }
+      ]
+    },
+    {
+      "id": "WAD-26-L02-Q02",
+      "prompt": "Al comprobar el transporte de una suscripción de reenvío, ¿qué demuestra que el canal funciona y qué no demuestra?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que el servicio de administración remota responda demuestra que el canal está disponible, pero no que todos los eventos de interés se estén reenviando"
+        },
+        {
+          "id": "B",
+          "text": "Que un evento llegue al recopilador demuestra que toda la auditoría del dominio está completa"
+        },
+        {
+          "id": "C",
+          "text": "Que el canal responda demuestra que la suscripción incluye todos los eventos posibles"
+        },
+        {
+          "id": "D",
+          "text": "Que el recopilador esté encendido demuestra que el transporte está cifrado y autenticado"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB18](../../05_RECURSOS/LABORATORIOS/WAD-LAB18.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **WEF**: [Windows Event Collector](https://learn.microsoft.com/en-us/windows/win32/wec/windows-event-collector). Arquitectura del recopilador y de las suscripciones de reenvío.\n- **WEFSUB**: [Setting up a source-initiated subscription](https://learn.microsoft.com/en-us/windows/win32/wec/setting-up-a-source-initiated-subscription). Configuración de una suscripción iniciada por el origen.\n- **WSMAN**: [Test-WSMan](https://learn.microsoft.com/en-us/powershell/module/microsoft.wsman.management/test-wsman). Comprobación de que el servicio de administración remota responde.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "f91fa8d5c4673e3ba2dc4ce3"
+}

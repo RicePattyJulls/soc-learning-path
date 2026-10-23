@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M28-L01",
+  "title": "Filtros avanzados",
+  "sourceHash": "b5a52750ac971cf24578690833fed520220e10b2f89e6afc689c1cd0b6eb5159",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M28-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nConstruir filtros avanzados preservando alcance y reproducibilidad.\n\nPrerrequisitos: [RED-M05-L04](../RED-E01/RED-M05-L04.md), [RED-M06-L04](../RED-E01/RED-M06-L04.md), [RED-M07-L04](../RED-E02/RED-M07-L04.md), [RED-M17-L04](../RED-E03/RED-M17-L04.md).\n\n## 2. Comprende el mecanismo\n\nUn filtro visual combina campos y operadores de su lenguaje; paréntesis y tipos importan. En Wireshark, tcp.port == 443 compara cualquier extremo TCP de ese puerto; especificar origen o destino reduce el conjunto. Un tcp.stream identifica una conversación dentro del archivo y análisis, no un identificador universal entre sensores. Guardar filtro, archivo y versión permite reproducir selecciones. Un filtro puede esconder evidencia contraria si se aplica solo a la IP sospechosa sin estudiar respuestas y contexto.\n\n### Vocabulario de apoyo\n\n- **Stream y request ID**: Conversación en un archivo analizado e identificador de petición en un contexto de aplicación.\n- **Offload**: Trabajo delegado a la interfaz de red que puede completarse después del punto de captura local.\n- **DC y ticket de servicio**: Controlador de dominio y credencial Kerberos para un servicio; no equivalen a autorización final del recurso.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M28-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Selección docente: ip.addr == 192.0.2.10 && tcp.port == 443. Incluye tráfico del host con ese puerto en cualquiera de los extremos.\n\nNo equivale a seleccionar exclusivamente peticiones cuyo destino es 443. La semántica del campo debe corresponder a la pregunta analítica.\n\n"
+    },
+    {
+      "id": "RED-M28-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Análisis en profundidad de sesión sospechosa.\n- Red Team autorizado: Confirmar visibilidad de ensayo mínimo.\n- Evidencia del módulo: Flujos reconstruidos, hechos y límites de visibilidad.\n- Criterio del módulo: Localiza evidencia favorable y contraria.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L15](../../05_RECURSOS/LABORATORIOS/RED-L15.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **WIRESHARK**: [Wireshark User’s Guide](https://www.wireshark.org/docs/wsug_html_chunked/). Filtros, captura, streams, metadatos y límites de observación.\n- **CHECKSUM**: [Checksums](https://www.wireshark.org/docs/wsug_html_chunked/ChAdvChecksums.html). Artefactos de checksum y offload.\n- **RFC4120**: [RFC 4120: Kerberos Network Authentication Service V5](https://www.rfc-editor.org/rfc/rfc4120.html). Tickets, tiempo y separación de autenticación y acceso al recurso.\n- **EV4769**: [4769: A Kerberos service ticket was requested](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4769). Solicitud de ticket y resultado; nota de actualización de evento desde enero 2025.\n- **SMB**: [SMB Security Enhancements](https://learn.microsoft.com/en-us/windows-server/storage/file-server/smb-security). Diferencia entre firma y cifrado; condiciones por versión.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M28-L01-P01",
+    "prompt": "Quieres estudiar solo TCP con destino 443 del cliente .10. Escribe la intención del filtro sin usar sintaxis de captura.",
+    "markdown": "## 4. Práctica individual\n\nQuieres estudiar solo TCP con destino 443 del cliente .10. Escribe la intención del filtro sin usar sintaxis de captura.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M28-L01-Q01",
+      "prompt": "¿Qué significa tcp.port == 443?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Solo destino 443"
+        },
+        {
+          "id": "B",
+          "text": "Solo origen 443"
+        },
+        {
+          "id": "C",
+          "text": "Coincidencia del puerto TCP en cualquiera de los extremos"
+        },
+        {
+          "id": "D",
+          "text": "Todo UDP cifrado"
+        }
+      ]
+    },
+    {
+      "id": "RED-M28-L01-Q02",
+      "prompt": "¿Qué identifica tcp.stream con mayor precisión?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Una firma global de malware"
+        },
+        {
+          "id": "B",
+          "text": "Un ID de dispositivo permanente"
+        },
+        {
+          "id": "C",
+          "text": "El mismo usuario en todas las fuentes"
+        },
+        {
+          "id": "D",
+          "text": "Una conversación en el contexto del archivo analizado"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L15](../../05_RECURSOS/LABORATORIOS/RED-L15.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **WIRESHARK**: [Wireshark User’s Guide](https://www.wireshark.org/docs/wsug_html_chunked/). Filtros, captura, streams, metadatos y límites de observación.\n- **CHECKSUM**: [Checksums](https://www.wireshark.org/docs/wsug_html_chunked/ChAdvChecksums.html). Artefactos de checksum y offload.\n- **RFC4120**: [RFC 4120: Kerberos Network Authentication Service V5](https://www.rfc-editor.org/rfc/rfc4120.html). Tickets, tiempo y separación de autenticación y acceso al recurso.\n- **EV4769**: [4769: A Kerberos service ticket was requested](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4769). Solicitud de ticket y resultado; nota de actualización de evento desde enero 2025.\n- **SMB**: [SMB Security Enhancements](https://learn.microsoft.com/en-us/windows-server/storage/file-server/smb-security). Diferencia entre firma y cifrado; condiciones por versión.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "1020bf2cb2a6d42692eb9c64"
+}

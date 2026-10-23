@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-30-L03",
+  "sourceHash": "595c2d8f338b92a0bd085655c13deb150f21e8129f24b89718ca4bb91a766618",
+  "questions": [
+    {
+      "id": "LNX-30-L03-Q01",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «La exposición describe una capacidad potencial verificada en la configuración; el compromiso exige evidencia de un efecto observado dentro del alcance autorizado».\n\nLa exposición se sostiene con la configuración efectiva; el compromiso requiere eventos y artefactos que muestren un efecto. Un contenedor privilegiado, por sí solo, no prueba que se haya usado ni que exista un escape."
+    },
+    {
+      "id": "LNX-30-L03-Q02",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Documentar configuración, propietario y ticket; contener o retirar el contenedor con aprobación y preservar evidencia».\n\nLa primera acción es reducir el alcance sin destruir la evidencia ni ampliar el impacto. Ejecutar un escape o montar el socket multiplica el riesgo, y borrar logs elimina precisamente lo que permitiría investigar."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "El hallazgo se construye sobre la **configuración efectiva**. Se registra el nombre del contenedor, `Privileged: true`, los montajes con su ruta de origen y modo, `hostPID`, la variable de entorno con el token sintético, la fecha UTC y el ticket vencido. Cada dato se acompaña de su fuente —inspección del runtime, eventos de creación o línea base— y de una comparación con lo aprobado.\n\nLa descripción correcta habla de **exposición**: el contenedor conserva capacidades que exceden su propósito, alcanza datos del host y mantiene un secreto en el entorno fuera de la ventana autorizada. No se ejecuta un escape, no se monta el socket y no se extraen datos reales. La respuesta propone contener o retirar el contenedor con aprobación, preservar la evidencia y coordinar la rotación del token; después se verifica que esa configuración ya no se admite.\n\nLímite: la configuración demuestra una capacidad potencial y un fallo de gobierno y mínimo privilegio. No demuestra que alguien la haya usado, ni un escape, ni una intrusión; para eso haría falta evidencia de efecto dentro del alcance autorizado.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Reúne configuración, fecha UTC, propietario, ticket y línea base como evidencia."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Distingue exposición verificada de compromiso demostrado."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Propone contención y remediación sin destruir evidencia ni ampliar el impacto."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Incluye un retest negativo de la configuración corregida."
+      }
+    ]
+  },
+  "revision": "e314b115b09e995a0e4cb53c"
+}

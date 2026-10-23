@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-23-L01",
+  "sourceHash": "163c98ad2c28f911ccdb1c8436335c1e78fb2e9356d2e10eee8e9ceeec6494a1",
+  "questions": [
+    {
+      "id": "LNX-23-L01-Q01",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «La atribución al proceso visible (PID y usuario) cuando los privilegios lo permiten».\n\n`ss` relaciona el socket con el proceso local cuando hay privilegios, algo que un PCAP no aporta por sí solo. No da contenido cifrado, ni la marca del cable, ni el TTL de las respuestas DNS."
+    },
+    {
+      "id": "LNX-23-L01-Q02",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Porque cada fuente ve una parte (socket/proceso, PCAP, DNS, firewall, EDR) y ninguna demuestra por sí sola la causa ni la intención».\n\nCada fuente cubre un campo distinto y ninguna basta por separado. El volumen no demuestra exfiltración, el firewall no siempre registra el proceso y el PCAP no revela el usuario."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "Cada fuente aporta campos distintos. `ss` da protocolo, direcciones, puertos, estado y, con privilegios suficientes, **PID y usuario**. El PCAP da la 5-tupla, tiempos, banderas y tamaños, pero no la atribución al proceso. El DNS da consulta, respuesta, TTL y resolver. Los registros de SSH dan usuario, método y origen. nft/conntrack dan decisiones y estado. La telemetría de EDR o eBPF da proceso y usuario si la cobertura es correcta.\n\nCorrelacionar es cruzar **proceso y usuario**, **volumen medido**, **consultas DNS**, **política** y **ventana temporal**. Un flujo establecido con muchos bytes puede ser copia de seguridad, replicación o descarga legítima, así que el volumen por sí solo no distingue lo anómalo.\n\nLímite: sin una segunda fuente que confirme, el flujo sostiene una hipótesis de exfiltración, no una conclusión; quedan falsos positivos por descartar.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Enumera el campo principal de cada fuente y su límite."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Propone cruzar proceso, usuario, bytes, DNS, política y ventana."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Reconoce falsos positivos legítimos por volumen."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Declara que una observación aislada no concluye causa ni intención."
+      }
+    ]
+  },
+  "revision": "131c7942b61ddd1844086cb3"
+}

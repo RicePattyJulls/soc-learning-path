@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-16-L02",
+  "title": "`tar` y `rsync`: alcance y límites",
+  "sourceHash": "3a31df0e2581e44c55b6ae59f1054faced66ad268f8531a68475b7e076f3cab5",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-16-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDelimitar qué conservan y qué pierden `tar` y `rsync`, y reconocer por qué un espejo no es un repositorio versionado.\n\nPrerrequisitos: `LNX-16-L01` (RPO/RTO, consistencia y threat model).\n\n## 2. Comprende el mecanismo\n\n`tar` y `rsync` resuelven problemas vecinos pero distintos, y confundir su alcance es un error frecuente. `tar` **empaqueta** un árbol en un archivo —o en un flujo— con los nombres y metadatos que decide capturar. `rsync` **sincroniza** un árbol origen con un destino, comparando y transfiriendo solo lo necesario. Uno produce un artefacto portable; el otro, una copia de trabajo actualizada.\n\nEmpecemos por los metadatos, que son la parte que más se pierde sin darse cuenta. Un hash del **contenido** puede coincidir y aun así diferir el estado de permisos o los xattrs. `tar` dispone de opciones para ACL, xattrs y propietarios numéricos, pero capturarlos **sin garantizar la restauración** en un sistema de archivos destino compatible puede ser engañoso: crees haber conservado algo que el destino no puede representar.\n\nLa situación es más marcada con `rsync`. El modificador `-a` significa *archive* y agrupa recursión, enlaces, permisos, tiempos, grupo y propietario, pero **no incluye** por sí solo las ACL (`-A`), los xattrs (`-X`) ni los enlaces duros (`-H`). Un espejo hecho con `-a` a secas puede perder justo lo que hacía especial al árbol. Sin privilegios, además, puede no restaurar propietarios ni atributos privilegiados, y conviene revisar los mensajes y el código de salida.\n\nHay dos detalles de `rsync` que cambian resultados y no se ven a simple vista. El primero es la **barra final** en el origen: copiar `source/` traslada el contenido al destino, mientras que copiar `source` puede crear un directorio `source` dentro del destino. Distinto punto de partida, distinto árbol. El segundo es `--delete`, que hace que el destino refleje exactamente el origen **eliminando** lo que ya no está allí. Es potente y peligroso: replica borrados accidentales o maliciosos.\n\nDe ahí la idea que ordena todo. `tar` y `rsync` no llevan retención de múltiples versiones por sí mismos. Un espejo `rsync` refleja el estado actual; si el origen se corrompe o se borra, el espejo puede reflejar esa pérdida. Versionar, retener y proteger contra el borrado requiere una arquitectura aparte, no un modificador.\n\nTambién importa el **origen no confiable**. Restaurar un archivo ajeno con privilegios sobre un árbol valioso es arriesgado: puede contener enlaces o rutas que escapan del destino. `tar` almacena nombres, no verifica por sí mismo la autenticidad del emisor. La precaución razonable es extraer en rutas aisladas y sin privilegios, inspeccionando antes lo que contiene.\n\nAntes de concluir, declara qué metadatos quieres conservar, qué herramienta los captura y qué destino puede representarlos. El límite: sin comprobar la restauración real, «hice la copia» solo describe la operación, no el resultado recuperable.\n\n### Vocabulario de apoyo\n\n- **`tar`**: empaqueta un árbol en un único archivo o flujo, con los metadatos que se le indiquen.\n- **`rsync`**: sincroniza un origen con un destino transfiriendo solo lo que cambió.\n- **Modo archive (`-a`)**: conjunto de opciones de `rsync` que no incluye ACL, xattrs ni hard links.\n- **Barra final**: distingue copiar el contenido de un directorio o crear el directorio dentro del destino.\n- **`--delete`**: elimina en el destino lo que ya no existe en el origen, replicando borrados.\n- **xattrs/ACL**: metadatos extendidos que pueden perderse si la herramienta o el destino no los soportan.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-16-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un analista copia un árbol con `rsync -a` hacia un espejo y comprueba que los hashes de contenido de los archivos coinciden. Concluye que la copia conserva íntegramente el árbol original y que puede usarse como respaldo.\n\nLa conclusión no se sostiene sin matizar. Los hashes de contenido demuestran que los bytes de los archivos coinciden; no dicen nada sobre ACL, xattrs, enlaces duros ni propietarios, que `-a` puede no haber conservado. El árbol puede coincidir en contenido y diferir en permisos y atributos, y eso puede bastar para que una aplicación no funcione tras la restauración.\n\nRazonar así separa «los datos son iguales» de «el estado es equivalente». Y añade un segundo límite: aun con todos los metadatos correctos, un espejo `rsync` refleja el estado actual, no un historial; si el origen se borró o se corrompió antes de la última sincronización, el espejo puede haber recibido esa pérdida. Sin versionado ni un destino independiente, no es un respaldo recuperable por sí mismo.\n\n"
+    },
+    {
+      "id": "LNX-16-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Verificar qué metadatos captura y restaura cada herramienta antes de aceptar una copia como válida.\n- Red Team autorizado: Evaluar si una identidad puede propagar borrados al destino mediante sincronización.\n- Evidencia de la etapa: Comparación de contenido, permisos, ACL/xattrs y enlaces entre origen y copia.\n- Criterio de dominio: Explica qué conserva y qué no cada herramienta, y por qué un espejo no versiona.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB17](../../05_RECURSOS/LABORATORIOS/LNX-LAB17.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F45**: [Linux `stat(2)` y semántica de metadatos](https://man7.org/linux/man-pages/man2/stat.2.html). Qué metadatos define el sistema y cuáles pueden perderse al copiar.\n- **F46**: [GNU coreutils, manual `stat`](https://www.gnu.org/software/coreutils/manual/html_node/stat-invocation.html). Comprobación de UID/GID, modo y tiempos tras una copia.\n- **F61**: [GNU tar manual, backups e incrementales](https://www.gnu.org/software/tar/manual/tar.html). Empaquetado, metadatos soportados e incrementales.\n- **F67**: [rsync: manual oficial y modelo de seguridad](https://download.samba.org/pub/rsync/rsync.1). Opciones de sincronización, barra final y `--delete`.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-16-L02-P01",
+    "prompt": "Un analista copia un árbol con `rsync -a`, ve que los hashes de contenido coinciden y concluye que la copia conserva íntegramente el original. Explica qué metadatos pueden diferir, por qué el espejo no es versionado y cuál es el límite de la conclusión.",
+    "markdown": "## 4. Práctica individual\n\nUn analista copia un árbol con `rsync -a`, ve que los hashes de contenido coinciden y concluye que la copia conserva íntegramente el original. Explica qué metadatos pueden diferir, por qué el espejo no es versionado y cuál es el límite de la conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber ejecutado copias ni restauraciones reales.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-16-L02-Q01",
+      "prompt": "¿Qué opciones de `rsync` no están incluidas por `-a` (archive)?",
+      "options": [
+        {
+          "id": "A",
+          "text": "La recursión y la conservación de tiempos"
+        },
+        {
+          "id": "B",
+          "text": "La conservación de permisos y grupo"
+        },
+        {
+          "id": "C",
+          "text": "ACL (`-A`), xattrs (`-X`) y hard links (`-H`)"
+        },
+        {
+          "id": "D",
+          "text": "La copia de enlaces simbólicos dentro del árbol"
+        }
+      ]
+    },
+    {
+      "id": "LNX-16-L02-Q02",
+      "prompt": "¿Qué riesgo describe mejor el uso de `rsync --delete` hacia un espejo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Cifra el destino y vuelve ilegible el espejo"
+        },
+        {
+          "id": "B",
+          "text": "Replica en el destino borrados accidentales o maliciosos del origen"
+        },
+        {
+          "id": "C",
+          "text": "Convierte el espejo en un repositorio versionado"
+        },
+        {
+          "id": "D",
+          "text": "Impide conservar permisos y propietarios"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB17](../../05_RECURSOS/LABORATORIOS/LNX-LAB17.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F45**: [Linux `stat(2)` y semántica de metadatos](https://man7.org/linux/man-pages/man2/stat.2.html). Qué metadatos define el sistema y cuáles pueden perderse al copiar.\n- **F46**: [GNU coreutils, manual `stat`](https://www.gnu.org/software/coreutils/manual/html_node/stat-invocation.html). Comprobación de UID/GID, modo y tiempos tras una copia.\n- **F61**: [GNU tar manual, backups e incrementales](https://www.gnu.org/software/tar/manual/tar.html). Empaquetado, metadatos soportados e incrementales.\n- **F67**: [rsync: manual oficial y modelo de seguridad](https://download.samba.org/pub/rsync/rsync.1). Opciones de sincronización, barra final y `--delete`.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "6e38914782ea711bd719f8d6"
+}

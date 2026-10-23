@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-18-L02",
+  "sourceHash": "b62d3469bcb1d82700db4205d4ded3eef86f8419a500ab6022b08e45a0136076",
+  "questions": [
+    {
+      "id": "LNX-18-L02-Q01",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Porque el estado de red puede cambiar entre los comandos y no se captura un único instante».\n\nLos comandos se ejecutan en momentos distintos y el estado (sockets, rutas, vecinos) puede cambiar entre ellos. No es un problema de hashes ni de familia IP, ni exige apagar el equipo."
+    },
+    {
+      "id": "LNX-18-L02-Q02",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Aporta integridad del paquete, pero no custodia completa ni se incluye a sí mismo».\n\nEl manifiesto permite detectar cambios posteriores en los archivos listados, pero no registra quién manipuló el paquete ni cubre el propio archivo de hashes. No aporta la hora exacta de cada comando ni es un sustituto de la custodia."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "La recogida descrita tiene tres debilidades. No es **atómica**: las salidas se toman en instantes distintos y no describen un único estado de red. No es **completa**: falta IPv6, la tabla de policy routing y cualquier namespace de contenedor. Y no tiene **contexto**: un archivo plano sin hora UTC, operador ni hashes no permite sostener después que el dato analizado es el original.\n\nPara convertirla en evidencia básica útil hay que registrar la hora UTC, separar cada salida, calcular hashes, anotar versiones de las herramientas y el motivo de la recogida, y revisar la exposición de datos sensibles. También conviene declarar el alcance: qué familias, tablas y espacios de red se observaron.\n\nLímite: una única instantánea no atómica permite describir un estado verosímil, pero no reconstruir un flujo pasado ni probar su propósito.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Señala que la recogida no es atómica y que el estado cambia entre comandos."
+      },
+      {
+        "criterion": "Identifica datos ausentes",
+        "evidence": "IPv6, policy routing y namespaces."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Propone registrar UTC, versiones, hashes y contexto de custodia."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Declara que la instantánea no prueba flujos pasados ni intención."
+      }
+    ]
+  },
+  "revision": "2bacc4e70bc62dca649ccb15"
+}

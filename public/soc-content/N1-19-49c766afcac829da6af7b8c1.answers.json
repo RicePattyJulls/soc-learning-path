@@ -1,0 +1,183 @@
+{
+  "schemaVersion": 1,
+  "courseId": "soc",
+  "id": "N1-19",
+  "sourceHash": "5bf5a8da6b49570c7deb862dcdb33ee0a58be405ab9bad7644696d426591b3ae",
+  "revision": "49c766afcac829da6af7b8c1",
+  "hipotesis": [
+    "La actividad fue bloqueada y requiere confirmación de alcance.",
+    "El equipo sigue comprometido o puede volver a comunicarse con un destino remoto.",
+    "Se ejecutó una herramienta legítima de soporte con telemetría mal interpretada.",
+    "Hay segunda máquina o identidad afectada aún sin investigar.",
+    "El evento es parte de un incidente mayor gestionado por IR/N2.",
+    "El relevo carece de permisos/visibilidad y necesita un punto de contacto."
+  ],
+  "pasos": [
+    {
+      "fase": "0. Comunicar riesgo inmediatamente si está activo",
+      "accion": "Si se confirma infección activa, propagación o exfiltración, avisar y escalar antes de esperar el relevo. El traspaso no sustituye una respuesta de emergencia."
+    },
+    {
+      "fase": "1. Entregar identificación exacta",
+      "accion": "Ticket/incidente IDs, versión, prioridad, clasificación actual (sospecha/no confirmado), hora de primera detección UTC, quién investiga y canal de comunicaciones."
+    },
+    {
+      "fase": "2. Resumir impacto y alcance",
+      "accion": "Hosts, identidades, unidad de negocio, criticidad, sistemas conectados, usuarios informados y posibles implicaciones de disponibilidad o datos sensibles."
+    },
+    {
+      "fase": "3. Exponer hechos e hipótesis separadas",
+      "accion": "Hechos: nombre del proceso, PID/ProcessGuid si existe, hash, parent, ruta, IP, puertos y eventos. Hipótesis: infección/C2/mantenimiento. Confianza explícita."
+    },
+    {
+      "fase": "4. Construir la cronología mínima",
+      "accion": "Evento inicial, autenticaciones, ejecución, comunicaciones, alertas, acciones, cambios y último indicador, siempre en UTC, con fuentes y vínculos."
+    },
+    {
+      "fase": "5. Estado de controles y decisiones",
+      "accion": "¿Host aislado? ¿Proceso detenido? ¿Conexión bloqueada? ¿Acción ejecutada, autorizada o solo sugerida? Confirmar resultados y señalar efectos secundarios."
+    },
+    {
+      "fase": "6. Indicar búsquedas hechas y ausencias",
+      "accion": "Consultas y filtros utilizados, qué dio resultado, qué no, qué log faltaba o llevaba retraso; no presentar «sin resultados» como «sin riesgo»."
+    },
+    {
+      "fase": "7. Ordenar próximos pasos accionables",
+      "accion": "Ejemplo: comprobar 24h de proceso y red, validar hash y propietario, correlacionar otras máquinas, decisión de IR sobre aislamiento y revisar backups si procede."
+    },
+    {
+      "fase": "8. Precisar responsables, deadlines y contactos",
+      "accion": "Asignar cada tarea al nuevo analista/N2/IT; incluir SLA, próxima revisión, aprobadores, dependencias y vías de escalado."
+    },
+    {
+      "fase": "9. Confirmar recepción y continuidad",
+      "accion": "Hacer entrega verbal breve con ticket actualizado, solicitar read-back de 2–3 tareas críticas y traspasar titularidad del incidente."
+    },
+    {
+      "fase": "10. Dejar evidencia preservada",
+      "accion": "Relacionar exportaciones, hashes de ficheros, capturas, eventos y cadena de custodia en repositorio autorizado; evitar adjuntar secretos o PII sin control."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "Ticket SOC-7421, ID de alerta y estado",
+      "lectura": "Permite al relevo retomar la investigación correcta y no crear incidentes duplicados."
+    },
+    {
+      "dato": "Primera/última detección en UTC",
+      "lectura": "Permite correlación temporal y manejo de SLA."
+    },
+    {
+      "dato": "Host, IP, usuario, PID/ProcessGuid, parent, hash",
+      "lectura": "Entidades para pivotar; PID puede reutilizarse, el timestamp distingue instancias."
+    },
+    {
+      "dato": "Observables de red",
+      "lectura": "IP/dominio/puertos y dirección; reputación y exfiltración aún pueden no estar confirmadas."
+    },
+    {
+      "dato": "Acciones efectuadas y verificadas",
+      "lectura": "No es lo mismo «orden de aislamiento emitida» que «aislamiento confirmado». Guardar aprobador."
+    },
+    {
+      "dato": "Ausencias, limitaciones y decisiones pendientes",
+      "lectura": "Evita suponer que una búsqueda incompleta exonera al activo."
+    },
+    {
+      "dato": "Propietario, plazo, stakeholders y siguiente paso",
+      "lectura": "Convierte la entrega en continuidad operativa verificable."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Sentinel / Log Analytics: ficha breve para traspaso por activo",
+      "entorno": "SecurityAlert disponible. Buscar por CompromisedEntity o usar SystemAlertId del ticket si el host no aparece.",
+      "consulta": "SecurityAlert\n| where TimeGenerated > ago(24h)\n| where CompromisedEntity contains \"FIN-WS-07\"\n| project TimeGenerated, StartTime, EndTime, SystemAlertId, AlertName,\n          AlertSeverity, Status, ProductName, CompromisedEntity,\n          Entities, Description\n| order by TimeGenerated desc",
+      "interpretacion": "Recupera IDs/ventanas de alertas para incluir en la nota de relevo.",
+      "limitaciones": "No es el estado completo del incidente ni confirma que el equipo esté aislado; consultar entidad/incidente y consola EDR."
+    },
+    {
+      "nombre": "Defender XDR: conexiones recientes del equipo para el relevo",
+      "entorno": "DeviceNetworkEvents en Defender XDR. Ajustar FQDN/alias del host; correlacionar con DeviceProcessEvents si hay iniciador sospechoso.",
+      "consulta": "DeviceNetworkEvents\n| where Timestamp > ago(4h)\n| where DeviceName startswith \"FIN-WS-07\"\n| summarize Eventos=count(), Primera=min(Timestamp), Ultima=max(Timestamp),\n            Puertos=make_set(RemotePort, 15),\n            Procesos=make_set(InitiatingProcessFileName, 15)\n  by DeviceName, RemoteIP, RemoteUrl, ActionType\n| order by Ultima desc",
+      "interpretacion": "Produce una tabla compacta de destinos, volumen de eventos y procesos para que el relevo priorice.",
+      "limitaciones": "Eventos no representan sesiones únicas ni bytes y no permiten declarar C2 sin contexto. Verificar que la conexión fue realmente permitida."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk CIM Endpoint: resumen de procesos observados durante el turno",
+      "entorno": "Modelo Endpoint.Processes poblado; el destino debe corresponder al hostname normalizado FIN-WS-07.",
+      "consulta": "| tstats count min(_time) as Primero max(_time) as Ultimo\n  from datamodel=Endpoint.Processes\n  where earliest=-8h latest=now Endpoint.Processes.dest=\"FIN-WS-07\"\n  by Endpoint.Processes.process_name Endpoint.Processes.parent_process_name\n     Endpoint.Processes.user\n| rename Endpoint.Processes.* as *\n| convert ctime(Primero) ctime(Ultimo)\n| sort - Ultimo",
+      "interpretacion": "Lista procesos y padres para priorizar pivotes y anotar búsquedas pendientes.",
+      "limitaciones": "Es resumen de eventos de creación, no inventario de procesos vivos. Requiere normalización CIM."
+    },
+    {
+      "nombre": "Splunk CIM Network Traffic: conexiones salientes para el estado del relevo",
+      "entorno": "CIM Network_Traffic.All_Traffic y src como IP del host ficticio 10.60.5.7; no inferir causalidad con PID.",
+      "consulta": "| tstats count sum(All_Traffic.bytes_out) as BytesSalida\n  from datamodel=Network_Traffic.All_Traffic\n  where earliest=-8h latest=now All_Traffic.src=\"10.60.5.7\"\n  by All_Traffic.dest All_Traffic.dest_port All_Traffic.action\n| rename All_Traffic.* as *\n| sort - BytesSalida",
+      "interpretacion": "Presenta destinos, acciones y bytes observados por sensores de red.",
+      "limitaciones": "BytesSalida puede estar ausente; fuentes NAT/proxy pueden usar IP del gateway, no de la estación."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Windows — ventana de últimos logs locales",
+      "proposito": "Lectura orientativa de eventos Security, requiere permisos; no cubre fuente EDR.",
+      "comando": "Get-WinEvent -FilterHashtable @{LogName='Security'; StartTime=(Get-Date).AddHours(-2)} -MaxEvents 25 | Select-Object TimeCreated, Id, MachineName, Message"
+    },
+    {
+      "entorno": "Windows — datos del sistema para identificar correctamente el equipo",
+      "proposito": "Lectura de nombre, OS y dominio; no es un IOC de infección.",
+      "comando": "Get-ComputerInfo | Select-Object CsName,CsDomain,WindowsProductName,OsVersion"
+    },
+    {
+      "entorno": "Linux — línea de tiempo de autenticación reciente",
+      "proposito": "En activo Linux autorizado con journald; no confundir hora local con UTC del ticket.",
+      "comando": "sudo journalctl --since \"2 hours ago\" --no-pager -n 60"
+    }
+  ],
+  "contencion": "El traspaso no debe interrumpir una contención urgente. Si existe riesgo activo, mantener al N2/IR en conferencia y confirmar quién tiene autoridad sobre aislamiento, revocación de credenciales o bloqueo. No enviar dumps, credenciales o información sensible a canales no aprobados.",
+  "escalation": [
+    "Contención no verificada y señal de daño activo (encriptación, exfiltración, desplazamiento lateral).",
+    "Infección potencial en servidor de alta criticidad o identidad privilegiada.",
+    "Plazo de reporte/escalado vencido o sin propietario de guardia.",
+    "Falta de cobertura crítica que impide valorar alcance y obliga a IR a decidir.",
+    "Desacuerdo entre análisis de turno anterior y nuevas pruebas del relevo."
+  ],
+  "falsos_positivos": [
+    "Script de despliegue empresarial legítimo ejecutado a primera hora.",
+    "Actualizador que conecta a infraestructura de proveedores.",
+    "Reputación transitoria de IP cloud compartida.",
+    "Eventos duplicados por sensores distintos.",
+    "Proceso suspendido que ya no existe cuando llega el relevo."
+  ],
+  "errores": [
+    "Decir «revisa el ticket» sin una prioridad ni próximo paso concreto.",
+    "No comunicar si el host está aislado realmente.",
+    "Omitir incertidumbres y presentar «posible malware» como infección confirmada.",
+    "Registrar solo hora local sin zona horaria.",
+    "Abandonar una emergencia esperando al turno siguiente.",
+    "No asignar dueño/tiempo límite o perder evidencias al finalizar sesión."
+  ],
+  "perspectiva_red_team": "La actividad adversaria no cambia de turno cuando lo hace el SOC. Los atacantes pueden prolongar sesiones o ejecutar acciones en horario de baja supervisión. La defensa eficaz exige continuidad de indicadores, entidades, evidencias y decisiones entre analistas, con objetivos y tiempos explícitos; un relevo deficiente crea brechas operativas.",
+  "respuesta_entrevista": "Entregaría ticket, clasificación y certeza, cronología UTC, activos y cuentas afectados, IoCs/IoAs, evidencia y fuentes consultadas, medidas de contención realmente verificadas y riesgos abiertos. Definiría las tres próximas acciones con responsables y vencimientos, escalaría antes si hay actividad en curso y pediría confirmación verbal de recepción al relevo.",
+  "criterios_evaluacion": [
+    "Incluye identificadores, horas, activos, hechos y dudas.",
+    "Especifica estado real de contención y aprobaciones.",
+    "No ignora escalado urgente durante cambio de turno.",
+    "Asigna tareas con dueño y plazo.",
+    "Demuestra disciplina de documentación y transferencia de evidencia."
+  ],
+  "mitre": [
+    "T1059 (si se verifica ejecución mediante intérprete)",
+    "T1071 (si hay comunicación de protocolo de aplicación; no confirmado)"
+  ],
+  "fuentes": [
+    "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/securityalert",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-devicenetworkevents-table",
+    "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.4/data-models/endpoint",
+    "https://help.splunk.com/en/splunk-cloud-platform/common-information-model/6.1/data-models/network-traffic"
+  ]
+}

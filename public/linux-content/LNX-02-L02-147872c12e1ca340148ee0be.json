@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-02-L02",
+  "title": "Enlaces, inodos y marcas temporales",
+  "sourceHash": "b5073bd7f6411c31b10bfccbada20586d3add786b59d67bc199afe162de370d3",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-02-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDistinguir inodos, enlaces duros y simbólicos, y leer mtime, ctime y atime sin confundir qué cambió y qué no.\n\nPrerrequisitos: `LNX-02-L01` (Rutas y jerarquía).\n\n## 2. Comprende el mecanismo\n\nUn **inodo** es la estructura donde el sistema de ficheros describe un objeto: su tipo, tamaño, propietario, permisos, marcas temporales y la ubicación de sus datos. El **nombre** que ves en un directorio es una entrada que apunta a un inodo. Fichero e inodo no son lo mismo: un inodo puede tener **varios nombres**.\n\nUn **enlace duro** es precisamente eso: otro nombre de directorio que apunta al mismo inodo. Todos los nombres comparten contenido, permisos y metadatos. Borrar un nombre solo reduce el contador de enlaces; el inodo desaparece cuando el contador llega a cero. Por eso los enlaces duros normalmente no cruzan sistemas de ficheros.\n\nUn **enlace simbólico** es distinto: es un objeto con su propio inodo cuyo contenido es una ruta a otro objeto. El kernel, al abrirlo, sigue esa ruta. Puede apuntar a algo inexistente, cruzar sistemas de ficheros y crear cadenas o bucles. Que un nombre sea «un enlace» no basta para saber a qué inodo termina apuntando.\n\nLas **marcas temporales** describen eventos distintos y hay que leerlas con cuidado. `mtime` cambia cuando cambia el **contenido**; `ctime` cambia cuando cambian los **metadatos del inodo** (también al escribir contenido, porque el tamaño es un metadato); `atime` cambia al **leerse**. `ctime` no es «la fecha de creación»: es la última vez que cambió el inodo.\n\nDe ahí una trampa frecuente: ver `mtime` antiguo y `ctime` reciente y concluir que «el fichero se recreó». Un cambio de permisos o de propietario basta para mover `ctime` sin tocar el contenido. Metadatos y contenido son planos distintos.\n\nAntes de concluir, separa **dos preguntas**: cuántos nombres comparten el objeto y qué evento cambió qué marca. Sin comprobar la identidad del inodo, atribuir causa a una diferencia de fechas es una suposición.\n\n### Vocabulario de apoyo\n\n- **Inodo**: estructura que describe un objeto del sistema de ficheros, con sus metadatos.\n- **Enlace duro**: nombre de directorio que apunta al mismo inodo que otro nombre.\n- **Enlace simbólico**: objeto cuyo contenido es una ruta hacia otro objeto.\n- **`mtime`**: última modificación del contenido.\n- **`ctime`**: último cambio de metadatos del inodo (no es la creación).\n- **`atime`**: último acceso de lectura.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-02-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en un laboratorio, `informe.pdf` y `copia-informe.pdf` muestran el mismo número de inodo, y `config.ini` muestra `mtime` de hace semanas con `ctime` de esta mañana y contenido idéntico a la referencia. El analista concluye: «`informe.pdf` fue copiado y `config.ini` fue manipulado hoy».\n\nLa primera parte se sostiene: dos nombres con el mismo inodo comparten objeto, y eso es compatible con un enlace duro entre ellos. La segunda parte no se sostiene tal cual. Un `ctime` reciente indica un cambio en los **metadatos del inodo**, no necesariamente en el contenido: un ajuste de permisos o de propietario produce ese mismo patrón con el contenido intacto.\n\nEl error es tratar `ctime` como prueba de manipulación de contenido. El límite de la conclusión: con estos datos puedes afirmar *que* los metadatos cambiaron, pero no *qué* metadato cambió ni *quién* lo hizo; eso exigiría una fuente adicional, como un registro de auditoría del sistema.\n\n"
+    },
+    {
+      "id": "LNX-02-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Separar cambios de contenido de cambios de metadatos antes de calificar un evento como manipulación.\n- Red Team autorizado: Recordar que un enlace es un nombre, no una copia, y que las marcas temporales no prueban intención.\n- Evidencia de la etapa: Tabla con inodo, contador de enlaces y marcas temporales por objeto.\n- Criterio de dominio: Distingue qué marca temporal cambió y qué evento la movió, sin extrapolar.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB02](../../05_RECURSOS/LABORATORIOS/LNX-LAB02.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F05**: [Linux inode(7)](https://man7.org/linux/man-pages/man7/inode.7.html). Inodos, contador de enlaces y semántica de `atime`, `mtime`, `ctime` y `btime`.\n- **F45**: [Linux `stat(2)` y semántica de metadatos](https://man7.org/linux/man-pages/man2/stat.2.html). Estructura de metadatos que el kernel devuelve por objeto.\n- **F46**: [GNU coreutils, manual `stat`](https://www.gnu.org/software/coreutils/manual/html_node/stat-invocation.html). Consulta de inodo, tamaño y marcas temporales desde la línea de comandos.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-02-L02-P01",
+    "prompt": "Un listado muestra dos nombres con el mismo número de inodo, un tercer nombre cuyo contenido es una ruta, y un cuarto con `mtime` antiguo y `ctime` reciente. Explica qué relación describe cada caso, qué dato lo confirmaría y qué no puedes afirmar todavía.",
+    "markdown": "## 4. Práctica individual\n\nUn listado muestra dos nombres con el mismo número de inodo, un tercer nombre cuyo contenido es una ruta, y un cuarto con `mtime` antiguo y `ctime` reciente. Explica qué relación describe cada caso, qué dato lo confirmaría y qué no puedes afirmar todavía.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber creado enlaces ni modificado metadatos reales.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-02-L02-Q01",
+      "prompt": "Dos nombres de directorio comparten el mismo número de inodo. ¿Qué describe correctamente esa observación?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Cada nombre tiene su propio inodo y solo coinciden por casualidad"
+        },
+        {
+          "id": "B",
+          "text": "Son necesariamente el mismo fichero duplicado en dos discos distintos"
+        },
+        {
+          "id": "C",
+          "text": "Comparten el mismo inodo, de modo que contenido y metadatos son comunes a ambos nombres"
+        },
+        {
+          "id": "D",
+          "text": "El segundo nombre es siempre un enlace simbólico"
+        }
+      ]
+    },
+    {
+      "id": "LNX-02-L02-Q02",
+      "prompt": "Un fichero aparece con `mtime` antiguo y `ctime` reciente, y su contenido coincide con la copia de referencia. ¿Qué explica mejor la observación?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El `ctime` siempre es posterior al `mtime`, así que no hay nada que explicar"
+        },
+        {
+          "id": "B",
+          "text": "El reloj del sistema se adelantó durante la copia de referencia"
+        },
+        {
+          "id": "C",
+          "text": "Algo cambió los metadatos del inodo, como permisos o propietario, sin tocar el contenido"
+        },
+        {
+          "id": "D",
+          "text": "El fichero fue necesariamente reemplazado por otro inodo nuevo"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB02](../../05_RECURSOS/LABORATORIOS/LNX-LAB02.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F05**: [Linux inode(7)](https://man7.org/linux/man-pages/man7/inode.7.html). Inodos, contador de enlaces y semántica de `atime`, `mtime`, `ctime` y `btime`.\n- **F45**: [Linux `stat(2)` y semántica de metadatos](https://man7.org/linux/man-pages/man2/stat.2.html). Estructura de metadatos que el kernel devuelve por objeto.\n- **F46**: [GNU coreutils, manual `stat`](https://www.gnu.org/software/coreutils/manual/html_node/stat-invocation.html). Consulta de inodo, tamaño y marcas temporales desde la línea de comandos.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "147872c12e1ca340148ee0be"
+}

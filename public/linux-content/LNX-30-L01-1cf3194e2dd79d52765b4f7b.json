@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-30-L01",
+  "title": "Riesgos y auditoría defensiva",
+  "sourceHash": "b461401dfc93342387ce0ba7964d6e6196a0c6e123358f9044138c07e1c1fd34",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-30-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nExplicar el modelo de riesgo de un contenedor y auditar de forma defensiva su configuración, distinguiendo daemon, runtime y workload sin ejecutar escapes.\n\nPrerrequisitos: `LNX-29-L03` (Runbooks y timeline de triaje).\n\n## 2. Comprende el mecanismo\n\nUn contenedor no es una máquina virtual pequeña. Comparte el **kernel** con el host y obtiene aislamiento de **namespaces**, contabilidad de **cgroups**, filtrado de **syscalls** con seccomp y restricciones de **LSM** como AppArmor o SELinux. Cada una de esas capas reduce superficie; ninguna convierte el contenedor en una frontera equivalente a un hipervisor. El riesgo de un contenedor se lee, por tanto, en la configuración efectiva y no en la etiqueta de la imagen.\n\nHay tres niveles que conviene no mezclar. El **daemon** o runtime es el plano de control: recibe instrucciones, crea contenedores y, si es *rootful*, opera con privilegios sobre el host. El **workload** es el proceso dentro del contenedor, con su UID, sus capabilities y sus montajes. La **imagen** es el contenido de partida, con su procedencia y sus vulnerabilidades. Un hallazgo en cualquiera de los tres niveles no se explica por los otros dos.\n\nEl caso más citado es el **socket del daemon**. Montar el socket de Docker dentro de un contenedor entrega a ese contenedor la capacidad de hablar con el plano de control; quien controla el daemon puede crear contenedores con montajes del host, entre otras operaciones potentes. Por eso el socket se trata como una delegación de control sensible y no como un simple archivo. La alternativa **rootless** ejecuta daemon y contenedores en el contexto de un usuario no root, con prerrequisitos y límites propios; mejora el modelo, pero no vuelve invulnerable al runtime ni corrige un montaje excesivo.\n\nLa auditoría defensiva empieza por la **inspección pasiva** de un contenedor propio y preaprobado: usuario configurado, privilegios, capabilities añadidas o eliminadas, perfiles de seccomp y LSM, montajes, red, límites de recursos y namespaces. Herramientas como `docker inspect` devuelven la configuración declarada y el estado del contenedor; esa lectura se contrasta con lo que el proceso muestra en ejecución. Inspeccionar no es explotar: no se monta el socket, no se usa `--privileged` y no se intenta salir del contenedor.\n\nEl riesgo se pondera con cuatro preguntas: qué puede hacer la configuración, quién la alcanza, qué controles la compensan y qué evidencia lo sostiene. Un contenedor como root con una capability añadida y un montaje de escritura sobre datos del host es más grave que el mismo contenedor sin montajes y con el sistema de archivos de solo lectura. La gravedad no se deduce de una única casilla, sino de la combinación y del entorno.\n\nTambién importan los **límites de recursos**. Sin límites de memoria o CPU, un contenedor puede degradar al host y a sus vecinos; los cgroups permiten acotar y observar consumo, aunque un límite mal dimensionado produce reinicios por OOM que se confunden con ataques. La auditoría anota el límite y su ausencia como datos distintos.\n\nLa regla de la lección: modelo de tres niveles, inspección pasiva y riesgo contextualizado. El límite: una configuración riesgosa demuestra exposición potencial; no demuestra que alguien la haya aprovechado ni que exista un escape efectivo.\n\n### Vocabulario de apoyo\n\n- **Daemon (runtime)**: servicio que crea y gestiona contenedores; su modo rootful o rootless cambia el alcance de su poder.\n- **Rootless**: ejecución del daemon y de los contenedores bajo un usuario no root, con límites y prerrequisitos propios.\n- **Capability**: privilegio del kernel delimitado que puede añadirse o quitarse a un proceso.\n- **Seccomp**: filtro que restringe las llamadas al sistema disponibles para un proceso.\n- **Montaje (bind mount)**: ruta del host expuesta dentro del contenedor, con un modo de lectura o escritura.\n- **Namespace**: vista aislada de un recurso (PID, red, montajes, usuario) que no constituye por sí sola una frontera de seguridad.\n- **Inspección pasiva**: lectura de configuración y estado sin ejecutar acciones que amplíen el impacto.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-30-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en un laboratorio, un contenedor llamado `api-lab` se inspecciona y muestra `Config.User` vacío, `Privileged: false`, `CapAdd: [\"NET_ADMIN\"]`, un montaje de `/srv/app` en `/app` con escritura, `ReadonlyRootfs: false` y ningún límite de memoria. El equipo concluye que el contenedor es seguro porque no es privilegiado.\n\nLa conclusión es demasiado amplia. `Privileged: false` solo indica que no se concedió el conjunto completo de privilegios; no dice nada sobre el usuario efectivo ni sobre las capabilities añadidas. Un `Config.User` vacío significa que el proceso corre como root dentro del contenedor, y `NET_ADMIN` permite operaciones de red que van más allá de lo que la aplicación suele necesitar. El montaje de escritura sobre datos del host amplía el impacto de cualquier fallo de la aplicación, y la ausencia de límites deja al host expuesto a un consumo descontrolado.\n\nLa lectura correcta separa los tres niveles: el workload corre como root y con una capability extra; el montaje conecta el contenedor con datos del host; el runtime no muestra privilegios completos. Ninguno de esos datos prueba un escape ni un incidente. El límite: sin conocer la aplicación, el propietario, la red y los controles del host, la inspección describe una exposición concreta, no un compromiso.\n\n"
+    },
+    {
+      "id": "LNX-30-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Clasificar hallazgos de contenedor por configuración efectiva, alcance y controles compensatorios, no por la etiqueta de la imagen.\n- Red Team autorizado: Inspeccionar solo contenedores propios y preaprobados; documentar exposición sin ejecutar escapes ni montar el socket del daemon.\n- Evidencia de la etapa: Usuario, privilegios, capabilities, seccomp/LSM, montajes, red y límites, con la fuente de cada dato.\n- Criterio de dominio: Distingue daemon, workload e imagen, y declara la exposición sin afirmar un compromiso.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB40](../../05_RECURSOS/LABORATORIOS/LNX-LAB40.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F128**: [Docker Engine security](https://docs.docker.com/engine/security/). Superficie del daemon, socket y montajes.\n- **F129**: [Docker rootless mode](https://docs.docker.com/engine/security/rootless/). Alcance y límites de un daemon sin root.\n- **F130**: [Docker seccomp profiles](https://docs.docker.com/engine/security/seccomp/). Filtrado de syscalls y perfil por defecto.\n- **F133**: [Docker resource constraints](https://docs.docker.com/engine/containers/resource_constraints/). Límites de CPU y memoria y su efecto en el host.\n- **F139**: [Docker inspect](https://docs.docker.com/reference/cli/docker/inspect/). Lectura de la configuración declarada y del estado del contenedor.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-30-L01-P01",
+    "prompt": "Un contenedor propio de laboratorio se ejecuta como root, conserva una capability añadida, monta un directorio del host en lectura y escritura y no declara límites de memoria. Explica qué riesgos introduce cada elemento, cómo lo verificarías con inspección pasiva y cuál es el límite de tu conclusión.",
+    "markdown": "## 4. Práctica individual\n\nUn contenedor propio de laboratorio se ejecuta como root, conserva una capability añadida, monta un directorio del host en lectura y escritura y no declara límites de memoria. Explica qué riesgos introduce cada elemento, cómo lo verificarías con inspección pasiva y cuál es el límite de tu conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber inspeccionado un contenedor real ni haber ejecutado un escape.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-30-L01-Q01",
+      "prompt": "¿Por qué montar el socket del daemon de Docker en un contenedor se trata como un riesgo grave?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Porque cifra los volúmenes del host y oculta su contenido"
+        },
+        {
+          "id": "B",
+          "text": "Porque obliga al contenedor a ejecutarse en modo rootless"
+        },
+        {
+          "id": "C",
+          "text": "Porque quien controla el daemon puede operar con privilegios sobre el host, más allá del aislamiento del contenedor"
+        },
+        {
+          "id": "D",
+          "text": "Porque impide que el contenedor use perfiles de seccomp"
+        }
+      ]
+    },
+    {
+      "id": "LNX-30-L01-Q02",
+      "prompt": "Un contenedor propio se inspecciona y muestra `Config.User` vacío, `Privileged: false` y `CapAdd: [\"NET_ADMIN\"]`. ¿Qué conclusión es defendible?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El contenedor equivale a una máquina virtual y está aislado del kernel del host"
+        },
+        {
+          "id": "B",
+          "text": "El proceso corre como root dentro del contenedor y conserva una capability añadida; el riesgo real depende del resto de la configuración y del host"
+        },
+        {
+          "id": "C",
+          "text": "La capability añadida demuestra que ya se produjo un escape al host"
+        },
+        {
+          "id": "D",
+          "text": "`Privileged: false` garantiza que no existe ningún riesgo asociado"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB40](../../05_RECURSOS/LABORATORIOS/LNX-LAB40.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F128**: [Docker Engine security](https://docs.docker.com/engine/security/). Superficie del daemon, socket y montajes.\n- **F129**: [Docker rootless mode](https://docs.docker.com/engine/security/rootless/). Alcance y límites de un daemon sin root.\n- **F130**: [Docker seccomp profiles](https://docs.docker.com/engine/security/seccomp/). Filtrado de syscalls y perfil por defecto.\n- **F133**: [Docker resource constraints](https://docs.docker.com/engine/containers/resource_constraints/). Límites de CPU y memoria y su efecto en el host.\n- **F139**: [Docker inspect](https://docs.docker.com/reference/cli/docker/inspect/). Lectura de la configuración declarada y del estado del contenedor.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "1cf3194e2dd79d52765b4f7b"
+}

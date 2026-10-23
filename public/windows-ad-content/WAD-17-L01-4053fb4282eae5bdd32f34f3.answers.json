@@ -1,0 +1,39 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-17-L01",
+  "sourceHash": "2a5fc704f1129b7adf37294873fc13a901c43b5a917dd3afee8b1f136e33827c",
+  "questions": [
+    {
+      "id": "WAD-17-L01-Q01",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Comprobar primero la resolución de nombres —los registros de servicio y la zona del dominio— y después la autenticación y la hora».\n\nEl localizador de DC y la replicación dependen de los registros publicados en la zona, así que un fallo de nombres explica ambos síntomas y debe comprobarse antes que lo demás. Reiniciar sin datos, reescribir la zona sin registrar el estado o suponer un fallo de hardware no se sostienen con la evidencia disponible."
+    },
+    {
+      "id": "WAD-17-L01-Q02",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Conviene revisar el origen de hora y el orden de sincronización, porque un desfase grande rompe la autenticación».\n\nKerberos usa la hora en su comprobación, de modo que un desfase grande invalida el ticket aunque la credencial sea correcta. La hora sí influye, reiniciar un servicio sin medir no corrige el origen y borrar objetos del directorio no tiene relación con el desfase."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "Primero se fija el síntoma con precisión: autenticación intermitente en `Win11` y controladores que no localizan a sus socios, una combinación que apunta a la cadena de nombres antes que a las cuentas. La primera hipótesis se comprueba sin cambiar nada, consultando los registros de servicio del dominio y la zona de `ad.lab.test` y anotando la respuesta con su hora. La segunda es la autenticación, contrastada con el error exacto del inicio de sesión y su código, sin reiniciar servicios. La tercera es la hora, midiendo el desfase entre `Win11`, `DC01` y `DC02` frente al origen de sincronización. La evidencia —cada consulta, error y marca de tiempo— se recoge antes de decidir. El límite: el orden orienta el diagnóstico, pero hasta confirmar cada hipótesis con su resultado es una sospecha razonada y no una causa demostrada.",
+    "rubric": [
+      {
+        "criterion": "Orden de hipótesis",
+        "evidence": "Sitúa la resolución de nombres primero y después la autenticación y la hora."
+      },
+      {
+        "criterion": "Comprobaciones no destructivas",
+        "evidence": "Propone consultar y medir antes de cambiar o reiniciar nada."
+      },
+      {
+        "criterion": "Evidencia con hora",
+        "evidence": "Registra la consulta de registros, el error de sesión y el desfase de reloj con marca de tiempo."
+      },
+      {
+        "criterion": "Límite reconocido",
+        "evidence": "Admite que sin confirmar cada hipótesis la conclusión es provisional."
+      }
+    ]
+  },
+  "revision": "4053fb4282eae5bdd32f34f3"
+}

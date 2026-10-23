@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-13-L03",
+  "title": "dcdiag/repadmin y fallos seguros",
+  "sourceHash": "16b5b3ce33385be50f9d547e7ce5a67782134380daf8f22121bb901424863ff4",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-13-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDiagnosticar un fallo de replicación con lectura y evidencia, y describir una recuperación segura.\n\nPrerrequisitos: `WAD-13-L02` (FSMO y GC).\n\n## 2. Comprende el mecanismo\n\nCuando la replicación no llega, el directorio no se arregla adivinando: se diagnostica leyendo. Para eso están dos herramientas clásicas. **`dcdiag`** ejecuta un conjunto de comprobaciones sobre un controlador —conectividad, resolución de nombres, servicios, roles y replicación— y devuelve un informe con cada prueba y su resultado. **`repadmin`** mira la replicación directamente: muestra el estado de las relaciones, los errores del último intento y permite comparar el estado entre dos controladores.\n\nEl diagnóstico correcto se apoya en evidencia, no en suposiciones. El orden prudente es: primero describir el estado —qué relación falla, con qué error y desde cuándo—, después acotar si el fallo es de una relación, de una partición o de un controlador, y solo entonces decidir. Cada comando de lectura deja rastro y **ninguno de esos pasos cambia la configuración**.\n\nHay una diferencia clave entre leer y forzar. Los comandos que **fuerzan** una replicación o que **restablecen** una relación modifican estado. Forzar una réplica puede parecer inofensivo, pero si el origen del fallo es la resolución de nombres, un servicio detenido o un reloj desajustado, solo provoca otro fallo y ensucia la línea de tiempo. Antes de forzar hay que entender por qué no replicó por sí sola.\n\nLa recuperación segura sigue un guion sencillo:\n\n1. **Aislar**: confirmar qué componente falla (resolución de nombres, servicio, hora o la propia conexión).\n2. **Corregir la causa**: arreglar ese componente, no la replicación entera.\n3. **Verificar**: volver a leer el estado y comprobar que la relación se recuperó.\n4. **Registrar**: dejar constancia de qué se observó, qué se cambió y qué resultado hubo.\n\nSi el caso exige retirar el controlador, un enfoque habitual y seguro es **degradarlo con cuidado** —quitar el rol de catálogo global y, si procede, transferir los roles— antes de retirarlo, para no dejar el dominio apuntando a una máquina que ya no estará. Apagar un controlador sin ese paso deja referencias colgando y suele generar más errores que los que se querían resolver.\n\nLa regla de la lección: primero se **lee**, después se **acota**, después se **corrige la causa** y todo se **registra**. Un fallo de replicación se resuelve con evidencia, no con fuerza bruta.\n\n### Vocabulario de apoyo\n\n- **`dcdiag`**: herramienta que ejecuta comprobaciones de estado sobre un controlador de dominio.\n- **`repadmin`**: herramienta que muestra y opera sobre el estado de la replicación.\n- **Forzar replicación**: solicitar una réplica inmediata; cambia estado y no sustituye el diagnóstico.\n- **Metadatos**: referencias que el directorio conserva sobre un controlador ya retirado.\n- **Recuperación segura**: corregir la causa y verificar antes de forzar o retirar.\n- **Línea de tiempo**: secuencia ordenada de observaciones y cambios registrados.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-13-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test`, `DC02` lleva sin replicar con `DC01` desde una ventana de mantenimiento. La primera reacción propuesta es forzar la replicación de todas las particiones.\n\nForzar sin entender el origen solo añade ruido. Lo correcto es leer la relación con `repadmin` para ver el último error y confirmar con `dcdiag` que los servicios, la resolución de nombres y el reloj del controlador están bien; si el error apunta a resolución de nombres o a hora, ese es el componente a corregir. La conclusión acota lo observable —«el fallo está en esa relación y ese componente»— y reconoce un límite: una lectura puntual no garantiza que no reaparezca, así que hay que verificar y registrar.\n\n"
+    },
+    {
+      "id": "WAD-13-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Diagnosticar con lectura distingue un fallo de replicación real de una interpretación apresurada.\n- Red Team autorizado: Un diagnóstico que no modifica nada preserva el estado para la evidencia.\n- Evidencia de la etapa: Informe de `dcdiag` y `repadmin` con la relación y el error observados.\n- Criterio de dominio: El fallo se aísla y se corrige la causa antes de forzar o retirar.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB08](../../05_RECURSOS/LABORATORIOS/WAD-LAB08.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **DCDIAG**: [dcdiag](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/dcdiag). Comprobaciones de estado sobre un controlador de dominio.\n- **REPLTROUB**: [Troubleshooting Active Directory replication problems](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/troubleshoot/troubleshooting-active-directory-replication-problems). Pasos para diagnosticar la replicación.\n- **ADDREPL**: [Troubleshoot AD replication](https://learn.microsoft.com/en-us/troubleshoot/windows-server/active-directory/troubleshoot-adreplication-guidance). Guía de errores y recuperación de la replicación.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-13-L03-P01",
+    "prompt": "En `ad.lab.test`, `DC02` deja de replicar con `DC01` tras una intervención. Describe cómo diagnosticarías el fallo con lectura y evidencia —qué comprobarías y en qué orden— y qué recuperación segura aplicarías antes de forzar nada.",
+    "markdown": "## 4. Práctica individual\n\nEn `ad.lab.test`, `DC02` deja de replicar con `DC01` tras una intervención. Describe cómo diagnosticarías el fallo con lectura y evidencia —qué comprobarías y en qué orden— y qué recuperación segura aplicarías antes de forzar nada.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber diagnosticado ni recuperado un controlador en un sistema real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-13-L03-Q01",
+      "prompt": "Ante un fallo de replicación entre dos controladores, ¿cuál es la primera actuación prudente?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Reunir evidencia de solo lectura —estado y errores de replicación— y localizar el origen antes de cambiar nada"
+        },
+        {
+          "id": "B",
+          "text": "Forzar la replicación de todas las particiones a la vez"
+        },
+        {
+          "id": "C",
+          "text": "Retirar el controlador que falla del dominio"
+        },
+        {
+          "id": "D",
+          "text": "Deshabilitar la replicación hasta que se resuelva el origen"
+        }
+      ]
+    },
+    {
+      "id": "WAD-13-L03-Q02",
+      "prompt": "Una comprobación de replicación muestra un error de un controlador con otro, y el resto de relaciones están correctas. ¿Qué conclusión es más sólida?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que todo el dominio ha perdido la replicación"
+        },
+        {
+          "id": "B",
+          "text": "Que hay que retirar y reinstalar ambos controladores"
+        },
+        {
+          "id": "C",
+          "text": "Que el fallo está acotado a esa relación concreta y conviene aislarla antes de concluir"
+        },
+        {
+          "id": "D",
+          "text": "Que el error no importa porque los protocolos se corrigen solos"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB08](../../05_RECURSOS/LABORATORIOS/WAD-LAB08.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **DCDIAG**: [dcdiag](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/dcdiag). Comprobaciones de estado sobre un controlador de dominio.\n- **REPLTROUB**: [Troubleshooting Active Directory replication problems](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/troubleshoot/troubleshooting-active-directory-replication-problems). Pasos para diagnosticar la replicación.\n- **ADDREPL**: [Troubleshoot AD replication](https://learn.microsoft.com/en-us/troubleshoot/windows-server/active-directory/troubleshoot-adreplication-guidance). Guía de errores y recuperación de la replicación.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "f33d64997b669afb2e4fb8c8"
+}

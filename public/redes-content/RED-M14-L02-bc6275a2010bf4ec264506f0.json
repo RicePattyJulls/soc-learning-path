@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M14-L02",
+  "title": "Atributos y best-path",
+  "sourceHash": "3bd757e38b7926c1f18df79b2caf6dac467ef906d467e7122aef1cff06f36146",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M14-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nJustificar una selección BGP sin inventar un orden universal de atributos.\n\nPrerrequisitos: [RED-M14-L01](../RED-E03/RED-M14-L01.md).\n\n## 2. Comprende el mecanismo\n\nBGP selecciona caminos mediante atributos y decisiones locales; detalles y prioridades adicionales dependen de la implementación. Local preference expresa una preferencia dentro del AS; un valor mayor suele favorecerse. AS_PATH informa de AS atravesados y ayuda a prevenir bucles, pero el camino más corto no gana siempre frente a una política local previa. MED tiene reglas y alcance de comparación específicos. No aplicar una lista de best-path de un fabricante como si fuera normativa idéntica de todas las plataformas.\n\n### Vocabulario de apoyo\n\n- **AS y BGP**: Sistema autónomo de routing y protocolo que intercambia alcanzabilidad y atributos entre sistemas.\n- **Local preference y AS_PATH**: Preferencia de política interna y secuencia de AS del camino anunciado.\n- **Comunidad y ROV**: Etiqueta interpretada por políticas y validación del origen mediante autorizaciones RPKI.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M14-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Dos rutas docentes al mismo prefijo: A local-pref=200 AS_PATH de 3 AS; B local-pref=100 AS_PATH de 1 AS; resto compatible.\n\nUna política que compara local-pref antes que longitud de AS_PATH favorece A. Menos AS no equivale necesariamente a ruta seleccionada.\n\n"
+    },
+    {
+      "id": "RED-M14-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Leer decisiones de camino que afectan visibilidad.\n- Red Team autorizado: Validar filtrado de prefijos en entorno aislado.\n- Evidencia del módulo: RIB, anuncios, políticas y prueba antes/después.\n- Criterio del módulo: No hay anuncios no autorizados; selección explicada.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L07](../../05_RECURSOS/LABORATORIOS/RED-L07.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC4271**: [RFC 4271: Border Gateway Protocol 4](https://www.rfc-editor.org/rfc/rfc4271.html). Sesiones, atributos y distribución de rutas BGP.\n- **FRR-BGP**: [BGP](https://docs.frrouting.org/en/latest/bgp.html). Selección de rutas, políticas, comunidades y operación.\n- **RFC7454**: [RFC 7454: BGP Operations and Security](https://www.rfc-editor.org/rfc/rfc7454.html). Filtrado, límites y operación defensiva BGP.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M14-L02-P01",
+    "prompt": "El operador cambia local-pref de B a 250. Predice el resultado bajo esa misma regla y qué debe verificarse.",
+    "markdown": "## 4. Práctica individual\n\nEl operador cambia local-pref de B a 250. Predice el resultado bajo esa misma regla y qué debe verificarse.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M14-L02-Q01",
+      "prompt": "¿Qué refleja local preference?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Una medida exacta de latencia"
+        },
+        {
+          "id": "B",
+          "text": "El número de puertos del switch"
+        },
+        {
+          "id": "C",
+          "text": "Una preferencia de política dentro del AS"
+        },
+        {
+          "id": "D",
+          "text": "Una MAC de origen"
+        }
+      ]
+    },
+    {
+      "id": "RED-M14-L02-Q02",
+      "prompt": "¿Qué ruta favorece el criterio del ejemplo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Las dos necesariamente sin política"
+        },
+        {
+          "id": "B",
+          "text": "B siempre por AS_PATH más corto"
+        },
+        {
+          "id": "C",
+          "text": "Ninguna por usar AS privados docentes"
+        },
+        {
+          "id": "D",
+          "text": "A por local-pref 200 frente a 100"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L07](../../05_RECURSOS/LABORATORIOS/RED-L07.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC4271**: [RFC 4271: Border Gateway Protocol 4](https://www.rfc-editor.org/rfc/rfc4271.html). Sesiones, atributos y distribución de rutas BGP.\n- **FRR-BGP**: [BGP](https://docs.frrouting.org/en/latest/bgp.html). Selección de rutas, políticas, comunidades y operación.\n- **RFC7454**: [RFC 7454: BGP Operations and Security](https://www.rfc-editor.org/rfc/rfc7454.html). Filtrado, límites y operación defensiva BGP.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "bc6275a2010bf4ec264506f0"
+}

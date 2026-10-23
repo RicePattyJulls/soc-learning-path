@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-17-L03",
+  "title": "Impacto operacional y evidencias",
+  "sourceHash": "595d4cae3f33624374de77c2e97343ddc7bcc1d20ef5225c27b78176380bf774",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-17-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nEvaluar el impacto operacional, decidir la remediación y documentar evidencia y regresión.\n\nPrerrequisitos: `WAD-17-L02` (Replicación/GPO y causa raíz).\n\n## 2. Comprende el mecanismo\n\nDiagnosticar no termina cuando aparece la causa. Termina cuando el servicio vuelve y queda constancia de que volvió. Esta lección cierra la etapa con tres pasos que se suelen saltar: medir el **impacto**, decidir la **remediación** y documentar **evidencia** y **regresión**.\n\nEl **impacto operacional** es lo que deja de funcionar mientras dura el fallo. No es lo mismo un controlador lento que un dominio que no autentica a los puestos: el primero se tolera, el segundo detiene el trabajo. Medirlo primero evita remediar a ciegas y permite decidir con qué urgencia y en qué orden se actúa.\n\nLa **remediación** es la acción que elimina la causa, y se elige después de contener. **Contener** limita el alcance —por ejemplo, dirigir a los clientes a un controlador sano— mientras se prepara el arreglo; remediar sin contener puede dejar el fallo creciendo. Las comprobaciones previas se apoyan en herramientas del directorio que informan del estado de los controladores y de la directiva.\n\nCada paso deja **evidencia**: el estado antes, la acción aplicada y el estado después, con hora y en la identidad concreta que se observa. Una evidencia sin marca de tiempo no permite reconstruir la secuencia.\n\nLa **regresión** es la comprobación de que la remediación no rompió otra cosa. Después de arreglar, se vuelve a medir: el servicio responde, la replicación progresa y la directiva se aplica donde debía. Si algo que antes funcionaba deja de funcionar, aparece una regresión y el caso no está cerrado.\n\nLa regla que cierra la lección y la etapa: **un caso se cierra con el servicio restablecido, la causa demostrada y la ausencia de regresión documentada**. Todo se practica sobre `ad.lab.test` con fallos sembrados y nunca con cambios destructivos en un DNS productivo.\n\n### Vocabulario de apoyo\n\n- **Contención**: limitar el alcance del problema.\n- **Remediación**: eliminar la causa.\n- **Reversión (rollback)**: volver al estado previo a un cambio.\n- **Estado efectivo**: si un control se está aplicando de verdad, no solo si está configurado.\n- **Evidencia volátil**: información que desaparece al apagar o reiniciar.\n- **Hipótesis**: explicación provisional que se puede probar.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-17-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test`, un fallo del directorio impide autenticarse a los puestos. La causa ya se identificó en la lección anterior; queda decidir el arreglo y cerrar el caso.\n\nEl primer paso es medir el impacto: cuántos puestos no autentican, desde cuándo y qué servicios dependen de ello, para saber si hay que contener antes de remediar. La contención puede dirigir a las identidades hacia un controlador sano mientras se corrige la causa. La evidencia se recoge antes y después con hora: el estado de los controladores, el progreso de la replicación y la directiva efectiva donde debía aplicarse. La regresión se comprueba volviendo a medir lo que ya funcionaba antes del fallo. La conclusión acota lo demostrado —«el servicio se restableció y no hay regresión en lo observado»— y reconoce su límite: la ausencia de regresión se afirma sobre las identidades y el periodo comprobados, no sobre todo el dominio para siempre.\n\n"
+    },
+    {
+      "id": "WAD-17-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Medir el impacto y comprobar la regresión permite informar qué se restableció y qué quedó observado.\n- Red Team autorizado: Documentar evidencia antes y después demuestra disciplina y respeta el alcance autorizado.\n- Evidencia de la etapa: Estado antes y después con hora, acción de remediación y prueba de recuperación sin regresión.\n- Criterio de dominio: El caso se cierra con el servicio restablecido, la causa demostrada y la regresión descartada.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB11](../../05_RECURSOS/LABORATORIOS/WAD-LAB11.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **DCDIAG**: [dcdiag](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/dcdiag). Comprobación del estado de los controladores y de sus servicios.\n- **ADDREPL**: [Troubleshoot AD replication](https://learn.microsoft.com/en-us/troubleshoot/windows-server/active-directory/troubleshoot-adreplication-guidance). Guía para comprobar el progreso de la replicación.\n- **GPRESULT**: [gpresult](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/gpresult). Resultado de directiva aplicado a una identidad concreta.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-17-L03-P01",
+    "prompt": "En `ad.lab.test` un fallo del directorio impide autenticarse a los puestos. Evalúa el impacto operacional, decide la remediación y describe la evidencia y la comprobación de regresión con las que cierras el caso.",
+    "markdown": "## 4. Práctica individual\n\nEn `ad.lab.test` un fallo del directorio impide autenticarse a los puestos. Evalúa el impacto operacional, decide la remediación y describe la evidencia y la comprobación de regresión con las que cierras el caso.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber remediado un dominio real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-17-L03-Q01",
+      "prompt": "Ante un fallo de Active Directory que impide autenticarse a los puestos, ¿en qué orden conviene trabajar?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Remediar primero y evaluar el impacto después, sin recoger evidencia"
+        },
+        {
+          "id": "B",
+          "text": "Documentar solo al final, cuando ya no queden síntomas"
+        },
+        {
+          "id": "C",
+          "text": "Medir el impacto, contener si hace falta, remediar la causa y comprobar la recuperación con evidencia"
+        },
+        {
+          "id": "D",
+          "text": "Aplicar a la vez todos los cambios posibles para acelerar el arreglo"
+        }
+      ]
+    },
+    {
+      "id": "WAD-17-L03-Q02",
+      "prompt": "Tras remediar un fallo de Active Directory, ¿qué cierra correctamente el caso?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Un resumen sin datos ni hora de las acciones"
+        },
+        {
+          "id": "B",
+          "text": "La evidencia antes y después por identidad, la causa demostrada y la comprobación de recuperación y de ausencia de regresión"
+        },
+        {
+          "id": "C",
+          "text": "Un listado de comandos ejecutados sin su salida"
+        },
+        {
+          "id": "D",
+          "text": "La confirmación verbal de que el servicio ya funciona"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB11](../../05_RECURSOS/LABORATORIOS/WAD-LAB11.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **DCDIAG**: [dcdiag](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/dcdiag). Comprobación del estado de los controladores y de sus servicios.\n- **ADDREPL**: [Troubleshoot AD replication](https://learn.microsoft.com/en-us/troubleshoot/windows-server/active-directory/troubleshoot-adreplication-guidance). Guía para comprobar el progreso de la replicación.\n- **GPRESULT**: [gpresult](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/gpresult). Resultado de directiva aplicado a una identidad concreta.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "c26f5d60b7356859b6bb29e0"
+}

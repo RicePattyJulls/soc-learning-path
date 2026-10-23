@@ -1,0 +1,193 @@
+{
+  "id": "N1-10",
+  "nivel": "N1",
+  "bloque": "Redes y tráfico sospechoso",
+  "titulo": "Equipo lento con numerosas conexiones HTTPS externas",
+  "pregunta": "Un usuario reporta lentitud y encuentras numerosas conexiones HTTPS hacia servidores externos. ¿Cómo distinguirías tráfico legítimo de tráfico sospechoso?",
+  "escenario": "PC-RRHH-03 funciona lentamente desde las 09:15. El firewall registra numerosos flujos TCP/443 hacia servicios de nube y el endpoint indica alta CPU y disco. No se conoce si coinciden una actualización de Teams/navegador, sincronización de backup, subida no autorizada o C2. Algunos registros reflejan cantidades de bytes; el EDR refleja procesos y destinos, pero no necesariamente tamaño de cada transferencia.",
+  "objetivo": "Determinar si el problema es de rendimiento legítimo, sincronización intensa, posible malware o exfiltración mediante TLS sin tratar “443” como prueba de seguridad ni intentar descifrar contenido sin autorización.",
+  "hipotesis": [
+    "Actualización legítima de Windows, navegador, EDR, software corporativo, sincronización OneDrive/backup u otro SaaS.",
+    "Navegador con muchas pestañas/extensiones, streaming o descarga/upload intenso por aplicación aprobada.",
+    "Exfiltración por HTTPS: grandes salidas hacia almacenamiento o API no aprobados.",
+    "Beaconing C2 sobre HTTPS: conexiones de bajo volumen, posiblemente periódicas, iniciadas por proceso anómalo.",
+    "Malware/cryptojacking que causa CPU elevada; la actividad HTTPS puede ser asociada o incidental.",
+    "Problema local de rendimiento (disco, antivirus, memoria, DNS, proxy) sin relación causal con el tráfico externo."
+  ],
+  "pasos": [
+    {
+      "fase": "0. Separar hechos y síntomas",
+      "accion": "Recoger hora UTC del reporte, activo, criticidad, si la lentitud es CPU/RAM/disco/red, síntomas observados, usuario y afectación a más equipos. Evitar asumir causalidad del tráfico."
+    },
+    {
+      "fase": "1. Medir flujos reales",
+      "accion": "En firewall/NetFlow, separar entradas y salidas con datos de bytes, duración, tasa y estado, NAT y posibles retransmisiones. Verificar si los contadores están disponibles y qué significan para cada dispositivo."
+    },
+    {
+      "fase": "2. Identificar destinos y normalidad",
+      "accion": "Agrupar dominio/SNI/URL/remote IP, ASN o categoría de destino si son fiables; cruzar con inventario de SaaS, proxy y línea base histórica del mismo host. CDNs y direcciones compartidas no identifican una aplicación por sí solas."
+    },
+    {
+      "fase": "3. Identificar proceso de red",
+      "accion": "Con EDR correlacionar DeviceNetworkEvents con iniciador, cmdline, hash, firma y padre. La relación proceso↔conexión es más fuerte que puerto 443 aislado."
+    },
+    {
+      "fase": "4. Correlacionar rendimiento y actividad",
+      "accion": "Usar herramienta de rendimiento local o telemetría EDR para CPU/disco/memoria. Ver si el período de lentitud coincide con procesos y transferencia; un `chrome.exe` con alto tráfico podría ser legítimo o contener extensión peligrosa."
+    },
+    {
+      "fase": "5. Buscar indicadores adicionales",
+      "accion": "Examinar procesos nuevos o fuera de ruta, scripts, cambios de archivos, alertas DLP, accesos a datos sensibles, cambios de permisos, login anómalo, conexiones a storage personal, tasas de bytes no habituales y persistencia."
+    },
+    {
+      "fase": "6. Evaluar cifrado y política",
+      "accion": "TCP/443 NO confirma que el protocolo sea HTTPS ni que el destino sea confiable. TLS protege contenido frente a observadores; proxy corporativo autorizado puede aportar URL/método, pero sin inspección no se infiere contenido del payload."
+    },
+    {
+      "fase": "7. Preguntar al usuario y administrador",
+      "accion": "Confirmar si se ejecutó backup, videollamada, subida legítima, actualización o transferencia empresarial sin entregar datos de investigación al posible actor."
+    },
+    {
+      "fase": "8. Priorizar y escalar",
+      "accion": "Si hay salida alta no justificada desde un activo sensible, proceso malicioso, indicios de robo o destino no autorizado, escalar N2/IR y activar contención aprobada. Si es actualización legítima, documentar medidas de rendimiento."
+    },
+    {
+      "fase": "9. Verificar cierre y métricas",
+      "accion": "Confirmar reducción de síntomas y del tráfico tras medida autorizada, sin borrar la evidencia ni destruir procesos preventivamente. Documentar UTC, comparación con base y propietario."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "TCP 443 vs HTTPS/TLS",
+      "lectura": "Un puerto no identifica necesariamente un protocolo; HTTPS no equivale a seguridad de la actividad."
+    },
+    {
+      "dato": "SentBytes/ReceivedBytes o bytes_out/in",
+      "lectura": "Volumen útil para analizar posible fuga; validar perspectiva del appliance/firewall y si hay contadores por sesión o duplicación."
+    },
+    {
+      "dato": "DeviceNetworkEvents proceso/RemoteUrl",
+      "lectura": "Contexto de proceso, URL/FQDN cuando está disponible; no extraer bytes inexistentes de este evento."
+    },
+    {
+      "dato": "Proxy/SNI/TLS metadata",
+      "lectura": "Dominio/host, resultado y otros metadatos si se capturan; SNI puede ocultarse mediante ECH y no debe darse por disponible."
+    },
+    {
+      "dato": "Tiempo, duración y patrones",
+      "lectura": "Relación entre pico, duración, proceso y ventana de usuario, junto con línea base."
+    },
+    {
+      "dato": "DLP, nube aprobada, contenido de archivos",
+      "lectura": "La posible fuga exige evidencias de destino, sensibilidad y movimientos de datos; el total de bytes por sí solo no prueba exfiltración."
+    },
+    {
+      "dato": "CPU/RAM/disco y errores locales",
+      "lectura": "Permite explicar lentitud no causada por red o coexistente con tráfico normal."
+    },
+    {
+      "dato": "Riesgo de endpoint e identidad",
+      "lectura": "Alertas EDR, sesión de usuario anómala, padre/proceso poco habitual o actividad fuera de horario."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Defender XDR: proceso que inicia conexiones al puerto remoto 443",
+      "entorno": "Microsoft Defender XDR Advanced Hunting — DeviceNetworkEvents (no es fuente de bytes)",
+      "consulta": "DeviceNetworkEvents\n| where Timestamp > ago(3h)\n| where DeviceName =~ \"PC-RRHH-03\"\n| where RemotePort == 443\n| summarize Eventos=count(), Destinos=dcount(RemoteIP),\n            IPs=make_set(RemoteIP, 15),\n            Dominios=make_set(RemoteUrl, 15),\n            Primera=min(Timestamp), Ultima=max(Timestamp)\n    by InitiatingProcessFileName, InitiatingProcessCommandLine,\n       InitiatingProcessParentFileName, InitiatingProcessAccountName\n| order by Eventos desc",
+      "interpretacion": "Prioriza el proceso/usuario y muestra qué destinos contacta; investigar intérpretes o procesos nuevos y compararlos con software instalado.",
+      "limitaciones": "Requiere Defender for Endpoint. No hay bytes salientes en este esquema; `RemoteUrl` puede faltar. Agrupar por línea de comandos produce mucha cardinalidad y no equivale a número de sesiones únicas."
+    },
+    {
+      "nombre": "Sentinel: salidas HTTPS/443 y volumen por IP",
+      "entorno": "Microsoft Sentinel/Log Analytics — CommonSecurityLog con campos de bytes mapeados por firewall CEF",
+      "consulta": "CommonSecurityLog\n| where TimeGenerated > ago(3h)\n| where DestinationPort == 443\n| where isnotempty(SourceIP) and isnotempty(DestinationIP)\n| summarize Registros=count(), BytesSalientes=sum(SentBytes),\n            BytesEntrantes=sum(ReceivedBytes),\n            Acciones=make_set(DeviceAction, 10)\n    by SourceIP, DestinationIP, bin(TimeGenerated, 15m)\n| extend MiBSalientes=round(BytesSalientes/1024.0/1024.0,2)\n| order by MiBSalientes desc",
+      "interpretacion": "Identifica comunicaciones con mayor carga saliente según firewall, para investigar si están justificadas por transferencias legítimas.",
+      "limitaciones": "SentBytes/ReceivedBytes dependen de cómo el sensor orienta src/dst, NAT y el registro del flujo. No sumar indiscriminadamente logs duplicados o de conexión no finalizada. Un valor 0 puede significar campo no poblado. Puerto 443 no confirma HTTPS."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk CIM: flujos 443 ordenados por salida",
+      "entorno": "Splunk — CIM Network Traffic; requiere All_Traffic.bytes_out correctamente mapeado",
+      "consulta": "| tstats sum(All_Traffic.bytes_out) as BytesSalientes\n    sum(All_Traffic.bytes_in) as BytesEntrantes\n    count as Registros\n    from datamodel=Network_Traffic.All_Traffic\n    where All_Traffic.dest_port=443\n    by All_Traffic.src All_Traffic.dest _time span=15m\n| rename All_Traffic.* AS *\n| eval MiBSalientes=round(BytesSalientes/1024/1024,2)\n| sort - MiBSalientes",
+      "interpretacion": "Prioriza los flujos TCP/443 con mayor transmisión desde la perspectiva del sensor; cruzar con dueño, programa, categoría del destino y DLP.",
+      "limitaciones": "La orientación bytes_out/bytes_in depende del origen y del mapeo. Puede faltar volumen o haber contadores acumulativos/duplicados; se deben filtrar tipos de evento antes de sumar."
+    },
+    {
+      "nombre": "Splunk CIM: comparar un host por franjas horarias",
+      "entorno": "Splunk — CIM Network Traffic; sustituir la IP por equipo real observado",
+      "consulta": "| tstats sum(All_Traffic.bytes_out) as BytesOut\n    dc(All_Traffic.dest) as Destinos count as Registros\n    from datamodel=Network_Traffic.All_Traffic\n    where All_Traffic.src=\"10.60.5.77\" AND All_Traffic.dest_port=443\n    by _time span=1h\n| eval MiBOut=round(BytesOut/1024/1024,2)\n| timechart span=1h sum(MiBOut) as MiBOut max(Destinos) as Destinos",
+      "interpretacion": "Muestra tendencia horaria para diferenciar picos aislados de transferencias sostenidas, comparando con historial real.",
+      "limitaciones": "La ventana predeterminada del buscador debe cubrir días suficientes para línea base; el `timechart` suma los bins de tstats y no mide velocidad de forma continua. No se infiere exfiltración solo por pico."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Windows — conexiones activas",
+      "proposito": "Mostrar propietario PID y destinos sin depender de nombre de puerto.",
+      "comando": "Get-NetTCPConnection -State Established | Select-Object LocalAddress,LocalPort,RemoteAddress,RemotePort,OwningProcess"
+    },
+    {
+      "entorno": "Windows — procesos costosos",
+      "proposito": "Encontrar procesos con CPU acumulada; completar con monitor actual de rendimiento.",
+      "comando": "Get-Process | Sort-Object CPU -Descending | Select-Object -First 15 ProcessName,Id,CPU,WorkingSet64"
+    },
+    {
+      "entorno": "Linux — sockets actuales",
+      "proposito": "Ver IP, puerto y programa en caso de un servidor Linux implicado.",
+      "comando": "sudo ss -tunap"
+    },
+    {
+      "entorno": "Linux — carga general",
+      "proposito": "Comparar hipótesis de cuello de botella de CPU/ram/IO.",
+      "comando": "top -b -n 1 | head -35"
+    }
+  ],
+  "contencion": "No bloquear globalmente 443 ni matar navegador, servicio de nube o agente corporativo por número de conexiones. Si la correlación sugiere compromiso o fuga activa, solicitar aislamiento EDR o restricción de egreso por aplicaciones/destinos aprobados; evaluar DLP, credenciales y protección de datos con IR. Si la causa es legítima (sync/actualización), trabajar con soporte y usuario para resolver rendimiento sin alterar evidencia de un incidente descartado.",
+  "escalation": [
+    "Transferencia saliente elevada hacia destino no aprobado asociada a datos sensibles.",
+    "Proceso malicioso/atípico que abre conexiones 443, padres sospechosos o persistencia.",
+    "DLP activa, datos confidenciales fuera de dominio empresarial o señales de acceso no autorizado.",
+    "Tráfico inexplicable desde una identidad privilegiada, servidor de alto valor o varios hosts.",
+    "Posible exfiltración en curso que exige contención urgente y alcance de datos."
+  ],
+  "falsos_positivos": [
+    "Sincronización OneDrive, backups y archivos multimedia de trabajo.",
+    "Actualizaciones de Windows, MDE, navegador u otras aplicaciones.",
+    "Videollamadas, streaming empresarial y numerosas pestañas del navegador.",
+    "Cifrado TLS, retransmisiones y CDN/proxy concentrando conexiones."
+  ],
+  "errores": [
+    "Asumir que todo 443 es seguro, o que todo 443 frecuente es malicioso.",
+    "Pretender calcular bytes de exfiltración en DeviceNetworkEvents cuando esos campos no existen.",
+    "Interpretar bytes_out/bytes_in sin revisar perspectiva del firewall.",
+    "Suponer que TLS expone el contenido, URL completa o SNI en todos los casos.",
+    "Bloquear HTTPS para toda la organización o interrumpir servicios sin autorización."
+  ],
+  "perspectiva_red_team": "HTTPS y otros protocolos web son canales atractivos para C2 y transferencia de archivos porque el tráfico ordinario es abundante. Un atacante podría usar infraestructura de nube o dominios aparentemente legítimos; la defensa no se limita a listas de IP. Importa el comportamiento de procesos, los destinos no habituales, volumen saliente, horarios, identidad y acciones sobre archivos. La hipótesis de exfiltración corresponde a técnicas de salida de datos solo cuando existe evidencia concreta; ver 443 no basta.",
+  "respuesta_entrevista": "Verificaría primero si la lentitud coincide con CPU/disco/red y revisaría la ventana temporal. Con registros firewall o NetFlow mediría bytes salientes y entrantes, destinos y duración; con Defender enlazaría conexiones a procesos, usuarios y árboles de ejecución. Comprobaría actualizaciones, sincronización, SaaS autorizado y baseline del equipo. El puerto 443 no implica que el tráfico sea benigno ni asegura que sea HTTPS, y sin visibilidad adicional no sabría el contenido cifrado. Si hay salida de datos sospechosa o un proceso comprometido, escalaría a IR para contención autorizada y preservación de evidencia; si es legítimo, documentaría la causa de rendimiento.",
+  "criterios_evaluacion": [
+    "Relaciona síntomas de rendimiento con evidencias, sin asumir causalidad.",
+    "Distingue telemetría EDR de contadores de flujo de red.",
+    "Comprende limitaciones del cifrado y SNI.",
+    "Evalúa volumen real, proceso, activo, nube/servicio y baseline.",
+    "No bloquea 443 indiscriminadamente."
+  ],
+  "mitre": [
+    "T1071.001",
+    "T1041"
+  ],
+  "fuentes": [
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-devicenetworkevents-table",
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/commonsecuritylog",
+    "https://help.splunk.com/en/splunk-cloud-platform/common-information-model/6.1/data-models/network-traffic",
+    "https://attack.mitre.org/techniques/T1071/001/",
+    "https://attack.mitre.org/techniques/T1041/"
+  ],
+  "procedencia": {
+    "lote": "tanda-02",
+    "archivo": "SOC-RESPONSES_TANDA-02_N1-06_a_N1-10.json",
+    "fechaRevision": "2026-10-18"
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-06-L01",
+  "title": "Orden de evaluación, parámetros y entorno",
+  "sourceHash": "cc67556c5e375361597faa1a9739e6a5a339747969f7b26468af4636e0a7598d",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-06-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDescribir el orden con que la shell evalúa una línea y el origen del entorno, para explicar resultados que dependen de dónde y cómo se ejecuta un script.\n\nPrerrequisitos: `LNX-05-L03` (Señales y respuesta controlada).\n\n## 2. Comprende el mecanismo\n\nCuando escribes una línea, la shell no la entrega tal cual al programa. La **lee, la parte en palabras y la expande** en un orden fijo. Ese orden es la clave para entender por qué el mismo texto produce resultados distintos según el contexto.\n\nLa secuencia simplificada es: primero se reconoce la estructura (comandos, tuberías, redirecciones), después se expande el **contenido**: llaves, `~`, parámetros (`$var`), sustitución de comandos, aritmética; luego la **división en palabras** según `IFS` y la **expansión de comodines**; al final se quitan las comillas y se ejecuta. Cambiar el orden mentalmente es la causa más común de diagnósticos equivocados.\n\nUn **parámetro** es un nombre con un valor: los posicionales (`$1`, `$2`), los especiales (`$#`, `$@`, `$?`) y las variables con nombre. La shell los sustituye antes de lanzar el programa, así que el programa recibe **texto ya expandido**; no ve el `$` ni sabe de dónde salió.\n\nEl **entorno** es distinto de las variables de la shell. Una variable interna existe solo en esa shell; una variable **exportada** se copia al entorno de los procesos hijos. Al arrancar un proceso, el kernel le entrega un bloque de entorno cuyo contenido se fija en ese momento y no cambia aunque la shell siga modificando sus propias variables.\n\nEse detalle explica por qué un script «funciona en la terminal» y «falla en un servicio»: no cambió el script, cambió el **entorno heredado**. Un servicio puede arrancar con un `PATH` reducido, sin tu `HOME`, con otro directorio de trabajo y sin las variables que tú tenías en la sesión interactiva.\n\nTambién importa **quién** ejecuta. Dos procesos idénticos con identidades distintas obtienen resultados distintos porque el kernel autoriza comparando credenciales; el entorno y las credenciales son dos fuentes de variación que a menudo se confunden.\n\nAntes de concluir nada, separa cuatro cosas: qué texto se escribió, cómo se expandió, qué entorno recibió el proceso y con qué identidad corrió. Registrar esas cuatro piezas convierte una intuición en una observación repetible.\n\n### Vocabulario de apoyo\n\n- **Parámetro**: nombre asociado a un valor que la shell sustituye antes de ejecutar.\n- **Expansión**: etapa en la que la shell reemplaza parámetros, comodines y sustituciones por su resultado.\n- **Variable exportada**: variable que se copia al entorno de los procesos hijos.\n- **Entorno (`environ`)**: bloque de pares nombre=valor que el proceso recibe al iniciarse y que no se actualiza después.\n- **`IFS`**: separador que la shell usa al dividir en palabras; por omisión espacio, tabulador y salto de línea.\n- **`PATH`**: lista de directorios donde se busca un programa cuando no se da una ruta.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-06-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un script de inventario imprime correctamente cuando un analista lo ejecuta a mano, pero al ejecutarse como tarea programada falla con «orden no encontrada» y además no lee un fichero de configuración que sí encontraba antes.\n\nLa conclusión «el script está roto» no se sostiene: el mismo archivo produjo dos resultados. Lo que cambió fue el **contexto de ejecución**. Es probable que la tarea programada arranque con un `PATH` más corto (de modo que el nombre de un programa ya no se resuelve) y con un directorio de trabajo distinto (de modo que una ruta relativa apunta a otro sitio). Ninguna de esas diferencias está en el script.\n\nLa lectura correcta es: el script **depende de supuestos implícitos** (que `PATH` contiene ciertos directorios, que el directorio actual es el esperado). El límite de la conclusión: sin registrar el `PATH` y el directorio de trabajo de cada ejecución, puedes afirmar *que* difieren los resultados, pero no *qué* supuesto se rompió en este caso concreto.\n\n"
+    },
+    {
+      "id": "LNX-06-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Registrar entorno, directorio de trabajo e identidad antes de interpretar una ejecución anómala.\n- Red Team autorizado: Reconocer que un script sin supuestos declarados es un punto ciego de repetibilidad.\n- Evidencia de la etapa: Registro de una ejecución con `PATH`, directorio actual, identidad y salida.\n- Criterio de dominio: Explica un resultado distinto por el contexto de ejecución y no por el código, y nombra el dato que lo demuestra.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB05](../../05_RECURSOS/LABORATORIOS/LNX-LAB05.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F02**: [GNU Bash Reference Manual](https://www.gnu.org/software/bash/manual/bash.html). Orden de expansión, parámetros, entorno y opciones del intérprete.\n- **F14**: [POSIX.1-2024, Shell Command Language](https://pubs.opengroup.org/onlinepubs/9799919799/utilities/V3_chap02.html). Semántica normativa de expansión y sustitución.\n- **F12**: [Linux proc_pid_environ(5)](https://man7.org/linux/man-pages/man5/proc_pid_environ.5.html). Naturaleza inicial del entorno y sus límites.\n- **F03**: [Linux credentials(7)](https://man7.org/linux/man-pages/man7/credentials.7.html). Identidad real y efectiva que acompaña a cada ejecución.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-06-L01-P01",
+    "prompt": "Un script que funciona en la terminal produce un resultado distinto al ejecutarse como tarea programada. Explica qué parte del entorno puede explicar esa diferencia y qué dato registrarías para sostenerlo.",
+    "markdown": "## 4. Práctica individual\n\nUn script que funciona en la terminal produce un resultado distinto al ejecutarse como tarea programada. Explica qué parte del entorno puede explicar esa diferencia y qué dato registrarías para sostenerlo.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber modificado el entorno de un servicio real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-06-L01-Q01",
+      "prompt": "Antes de ejecutar un programa, la shell realiza varias etapas. ¿Cuál describe mejor lo que ocurre con `echo $HOME`?",
+      "options": [
+        {
+          "id": "A",
+          "text": "La shell entrega la cadena literal `$HOME` y el programa la expande"
+        },
+        {
+          "id": "B",
+          "text": "La shell sustituye `$HOME` por su valor y el programa recibe el texto ya expandido"
+        },
+        {
+          "id": "C",
+          "text": "El kernel reemplaza `$HOME` consultando `/etc/passwd`"
+        },
+        {
+          "id": "D",
+          "text": "La expansión ocurre después de que el programa termina, al mostrar la salida"
+        }
+      ]
+    },
+    {
+      "id": "LNX-06-L01-Q02",
+      "prompt": "Un script obtiene resultados distintos al ejecutarse desde una terminal y desde un servicio. ¿Cuál es la explicación más precisa?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El servicio ejecuta otra versión del intérprete"
+        },
+        {
+          "id": "B",
+          "text": "El kernel reordena la evaluación según quién lanza el proceso"
+        },
+        {
+          "id": "C",
+          "text": "El entorno heredado es distinto, porque cada proceso recibe su propio entorno al iniciarse"
+        },
+        {
+          "id": "D",
+          "text": "La shell del servicio ignora las comillas simples del script"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB05](../../05_RECURSOS/LABORATORIOS/LNX-LAB05.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F02**: [GNU Bash Reference Manual](https://www.gnu.org/software/bash/manual/bash.html). Orden de expansión, parámetros, entorno y opciones del intérprete.\n- **F14**: [POSIX.1-2024, Shell Command Language](https://pubs.opengroup.org/onlinepubs/9799919799/utilities/V3_chap02.html). Semántica normativa de expansión y sustitución.\n- **F12**: [Linux proc_pid_environ(5)](https://man7.org/linux/man-pages/man5/proc_pid_environ.5.html). Naturaleza inicial del entorno y sus límites.\n- **F03**: [Linux credentials(7)](https://man7.org/linux/man-pages/man7/credentials.7.html). Identidad real y efectiva que acompaña a cada ejecución.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "b487cda4c398c3bd8a21521d"
+}

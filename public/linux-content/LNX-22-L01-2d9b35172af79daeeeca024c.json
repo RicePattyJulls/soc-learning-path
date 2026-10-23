@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-22-L01",
+  "title": "Orden y efectos de las reglas",
+  "sourceHash": "f6385f79e83f70b466e47d0e4de0f9c887d6a7a889f4b424dbb4cba67429e6bb",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-22-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nExplicar cómo se ordenan y cómo actúan las reglas de nftables según hook y prioridad, y por qué un `accept` no siempre autoriza el flujo.\n\nPrerrequisitos: `LNX-21-L03` (Captura PCAP corta y custodia mínima).\n\n## 2. Comprende el mecanismo\n\nConviene separar dos piezas. **Netfilter** es el mecanismo del kernel que intercepta paquetes en puntos definidos de su recorrido. **nftables** es la sintaxis e infraestructura moderna para declarar reglas sobre ese mecanismo. Una tabla agrupa cadenas; una cadena agrupa reglas.\n\nEl recorrido importa tanto como la regla. Los paquetes atraviesan **hooks**: `prerouting`, `input`, `forward`, `output` y `postrouting`, en ese orden lógico. Una **cadena base** se registra en un hook con un `type`, una `priority` y una `policy`. Las cadenas **normales** no ven tráfico salvo que se salte a ellas desde otra cadena.\n\nLa **prioridad** ordena dentro del mismo hook: se evalúa antes el número **menor**. Varias cadenas base pueden coexistir en el mismo hook, y a **igual prioridad** el orden relativo no está garantizado. Por eso el resultado depende del conjunto, no de una sola cadena leída de forma aislada.\n\nEl efecto de las sentencias no es simétrico. Un `accept` en una cadena base **no** equivale a autorización final: una cadena posterior en el mismo hook todavía puede hacer `drop`. En cambio, `drop` sí termina el procesamiento del paquete en ese recorrido. Leer solo la cadena propia y concluir que el flujo pasa es un error frecuente.\n\nTambién hay matices de tipo. Una cadena de tipo `nat` no se usa para filtrar tráfico general: evalúa el primer paquete que establece una asociación NAT, y los posteriores siguen el estado registrado por **conntrack**. Y `ct state established,related` describe el seguimiento de la conexión, no la legitimidad del tráfico ni el usuario.\n\nLos efectos prácticos se ven en una política `drop`. Una política `drop` sin reglas que permitan loopback, mensajes ICMP/ICMPv6 necesarios, conexiones establecidas y accesos aprobados puede interrumpir la conectividad. Un conjunto que «funciona» en una máquina sencilla puede fallar con contenedores, VPN o cloud.\n\nLa regla es leer el conjunto de tablas, familias, hooks y prioridades, no una regla suelta. El límite: `nft list ruleset` es una **instantánea** del estado en ese momento; puede haber cambios dinámicos y otros gestores que persistan la política.\n\n### Vocabulario de apoyo\n\n- **Netfilter**: mecanismo del kernel que intercepta paquetes en su recorrido.\n- **Cadena base**: cadena registrada en un hook con `type`, `priority` y `policy`.\n- **Hook**: punto del recorrido del paquete donde se evalúa una cadena.\n- **Prioridad**: número que ordena las cadenas de un mismo hook; menor se evalúa antes.\n- **`policy`**: decisión por defecto de una cadena base cuando ninguna regla decide.\n- **conntrack**: registro de estado de los flujos que usa el filtrado stateful.\n- **Instantánea**: lectura del estado actual, no un histórico de cambios.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-22-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un administrador añade una regla `accept` en una cadena de tipo `filter` de su tabla y comprueba que «la política ya permite el tráfico». Sin embargo, el flujo sigue sin llegar. En el mismo hook existe otra cadena base, registrada con una prioridad posterior, que descarta el paquete.\n\nEl razonamiento se apoya en una lectura incompleta. El `accept` de la primera cadena no es autorización final: la segunda cadena base del mismo hook todavía evalúa el paquete y puede aplicar `drop`, que sí termina el recorrido. Ver la regla propia «permitir» no describe el resultado del conjunto.\n\nLa lectura correcta lista todas las tablas, familias, hooks y prioridades implicadas y determina el orden real. El límite de la conclusión: un `nft list ruleset` es una instantánea; si otro gestor mantiene reglas en el mismo hook, el resultado efectivo depende de todas ellas y puede cambiar.\n\n"
+    },
+    {
+      "id": "LNX-22-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Leer el conjunto de tablas, hooks y prioridades antes de concluir sobre un flujo.\n- Red Team autorizado: Verificar el efecto real de una regla en un namespace de laboratorio, con rollback.\n- Evidencia de la etapa: Familias, cadenas base, prioridades y política implicadas en el flujo evaluado.\n- Criterio de dominio: Explica el recorrido y no confunde un `accept` local con autorización final.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB24](../../05_RECURSOS/LABORATORIOS/LNX-LAB24.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F87**: [Configuring chains — nftables wiki](https://wiki.nftables.org/wiki-nftables/index.php/Configuring_chains). Cadenas base, hooks, prioridad y `accept`.\n- **F88**: [Netfilter hooks — nftables wiki](https://wiki.nftables.org/wiki-nftables/index.php/Netfilter_hooks). Recorrido del paquete por los hooks.\n- **F90**: [nft(8) — netfilter manual](https://netfilter.org/projects/nftables/manpage.html). Sintaxis de tablas, cadenas y reglas.\n- **F86**: [Quick reference — nftables wiki](https://wiki.nftables.org/wiki-nftables/index.php/Quick_reference-nftables_in_10_minutes). Familias, tablas y reglas de referencia.\n- **F91**: [conntrack — Netfilter](https://conntrack-tools.netfilter.org/). Estado de los flujos que usa el filtrado stateful.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-22-L01-P01",
+    "prompt": "Añades una regla `accept` en una cadena de tu tabla y concluyes que la política ya permite el tráfico; sin embargo, el flujo sigue sin llegar porque en el mismo hook hay otra cadena base, de prioridad posterior, que descarta el paquete. Explica cómo se ordenan las cadenas y por qué tu `accept` no bastó, y cuál es el límite de la conclusión.",
+    "markdown": "## 4. Práctica individual\n\nAñades una regla `accept` en una cadena de tu tabla y concluyes que la política ya permite el tráfico; sin embargo, el flujo sigue sin llegar porque en el mismo hook hay otra cadena base, de prioridad posterior, que descarta el paquete. Explica cómo se ordenan las cadenas y por qué tu `accept` no bastó, y cuál es el límite de la conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber aplicado reglas ni haber modificado un firewall real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-22-L01-Q01",
+      "prompt": "¿Qué determina el orden de evaluación de dos cadenas base en el mismo hook?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El tamaño del archivo de reglas"
+        },
+        {
+          "id": "B",
+          "text": "El nombre de la interfaz de salida"
+        },
+        {
+          "id": "C",
+          "text": "El número de contadores que acumula la regla"
+        },
+        {
+          "id": "D",
+          "text": "La `priority`: dentro del mismo hook se evalúa antes el número menor, y a igual prioridad el orden no está garantizado"
+        }
+      ]
+    },
+    {
+      "id": "LNX-22-L01-Q02",
+      "prompt": "¿Por qué un `accept` en una cadena base no siempre autoriza el flujo completo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Porque una cadena posterior en el mismo hook todavía puede hacer `drop`; solo `drop` termina el procesamiento en ese recorrido"
+        },
+        {
+          "id": "B",
+          "text": "Porque `accept` es sinónimo de `drop`"
+        },
+        {
+          "id": "C",
+          "text": "Porque convierte el paquete en IPv6"
+        },
+        {
+          "id": "D",
+          "text": "Porque reinicia el servicio de red"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB24](../../05_RECURSOS/LABORATORIOS/LNX-LAB24.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F87**: [Configuring chains — nftables wiki](https://wiki.nftables.org/wiki-nftables/index.php/Configuring_chains). Cadenas base, hooks, prioridad y `accept`.\n- **F88**: [Netfilter hooks — nftables wiki](https://wiki.nftables.org/wiki-nftables/index.php/Netfilter_hooks). Recorrido del paquete por los hooks.\n- **F90**: [nft(8) — netfilter manual](https://netfilter.org/projects/nftables/manpage.html). Sintaxis de tablas, cadenas y reglas.\n- **F86**: [Quick reference — nftables wiki](https://wiki.nftables.org/wiki-nftables/index.php/Quick_reference-nftables_in_10_minutes). Familias, tablas y reglas de referencia.\n- **F91**: [conntrack — Netfilter](https://conntrack-tools.netfilter.org/). Estado de los flujos que usa el filtrado stateful.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "2d9b35172af79daeeeca024c"
+}

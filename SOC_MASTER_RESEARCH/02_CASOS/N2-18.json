@@ -1,0 +1,183 @@
+{
+  "id": "N2-18",
+  "nivel": "N2",
+  "bloque": "Cloud, identidad y ataques avanzados",
+  "titulo": "Reenvío externo no autorizado en Microsoft 365: ¿configuración legítima o fuga?",
+  "pregunta": "Detectas que una cuenta comprometida ha creado nuevas reglas de reenvío de correo en Microsoft 365. ¿Cómo investigarías una posible exfiltración de información?",
+  "escenario": "A las 11:24 el equipo de seguridad recibe una alerta de creación de regla Inbox para la cuenta de facturación. El destino parece externo, pero el nombre de regla es «Invoices Sync». El día anterior existió un inicio de sesión desde una IP no conocida. El responsable de negocio señala que contabilidad a veces reenvía mensajes a un asesor autorizado. Necesitas comprobar si la regla realmente reenvía, desde cuándo, qué mensajes salieron y si el cambio proviene de la cuenta, un delegado, aplicación o administrador.",
+  "objetivo": "Determinar mecanismo de reenvío, actor que creó/modificó la configuración, mensajes afectados y exposición real; evitar confundir configuración maliciosa con envío efectivo y contener cuentas, reglas o accesos abusivos preservando el registro de auditoría.",
+  "hipotesis": [
+    "Un atacante con acceso al buzón crea New-InboxRule/Set-InboxRule para auto-reenviar o redirigir datos (T1114.003).",
+    "Un administrador usa Set-Mailbox con ForwardingSmtpAddress/ForwardingAddress o cambia DeliverToMailboxAndForward.",
+    "Una regla legítima fue aprobada por facturación y el dominio de destino pertenece a un proveedor conocido.",
+    "La política outbound anti-spam bloquea reenvío externo: regla existente no demuestra mensajes entregados.",
+    "Acceso delegado, API o app OAuth comprometida explica el cambio, no necesariamente un inicio interactivo del propietario."
+  ],
+  "pasos": [
+    {
+      "fase": "1 · Delimitar correo y riesgo",
+      "accion": "Abrir incidente, identificar buzón, UPN, tipo (compartido/individual), criticidad y fecha UTC de alerta. Preservar audit record y alert evidence; no reenviar correos afectados a investigadores por email."
+    },
+    {
+      "fase": "2 · Examinar estado actual",
+      "accion": "Consultar Get-InboxRule -Mailbox para acciones ForwardTo, RedirectTo, ForwardAsAttachmentTo y condiciones; Get-Mailbox para ForwardingSmtpAddress/ForwardingAddress y DeliverToMailboxAndForward. Diferenciar reglas Inbox de reenvío del buzón y transport rules organizativas."
+    },
+    {
+      "fase": "3 · Reconstruir cambios",
+      "accion": "Consultar OfficeActivity/Purview por New-InboxRule, Set-InboxRule, Remove-InboxRule, Set-Mailbox; extraer Parameters, UserId, ClientIP y Resource/MailboxOwnerUPN cuando disponibles. Registrar cambios posteriores a creación."
+    },
+    {
+      "fase": "4 · Identificar actor efectivo",
+      "accion": "Correlacionar SigninLogs, roles del usuario, delegados, aplicaciones/consentimientos OAuth y audit activity del admin. Un cambio hecho por «SYSTEM» o servicio requiere validación adicional; no asumir que el propietario del buzón lo hizo."
+    },
+    {
+      "fase": "5 · Validar entrega y alcance",
+      "accion": "Usar Message Trace/Extended Message Trace (según ventana y permisos), reportes Auto forwarded messages y políticas outbound para comprobar mensajes realmente enviados o bloqueados. La mera creación de regla no demuestra exfiltración."
+    },
+    {
+      "fase": "6 · Clasificar información",
+      "accion": "Con privacidad/DLP, determinar remitentes, fechas, volumen y clasificación de los mensajes potencialmente reenviados. Evitar descargar contenido innecesario. Revisar reglas que oculten, borren o muevan respuestas y otras bandejas impactadas."
+    },
+    {
+      "fase": "7 · Buscar escalamiento y extensión",
+      "accion": "Comparar reglas similares en otros buzones y cambios de permisos, consentimientos, delegaciones y modificaciones de políticas de reenvío externo. Buscar mailboxes compartidos y cuentas de alta sensibilidad."
+    },
+    {
+      "fase": "8 · Contener y recuperar",
+      "accion": "Si se confirma abuso, bloquear reenvío externo por políticas adecuadas, desactivar reglas no autorizadas, cerrar accesos de cuenta/aplicaciones y revocar sesiones. Hacer cambios con evidencia preservada, aprobación y plan de restauración para destinos legítimos."
+    },
+    {
+      "fase": "9 · Verificar y reportar",
+      "accion": "Comprobar configuración actual, entregas posteriores y nuevas creaciones; documentar correo afectado, actor probable, destinatario externo, mensajes confirmados/posibles y obligaciones legales/contractuales."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "OfficeActivity: Operation, UserId, ClientIP, Parameters, ResultStatus",
+      "lectura": "Cambios auditados en InboxRule o buzón; no implica necesariamente que el reenvío haya tenido éxito."
+    },
+    {
+      "dato": "Get-InboxRule, Get-Mailbox (estado actual)",
+      "lectura": "Identifica acciones y destinos actuales; el estado puede haberse alterado desde el momento del incidente."
+    },
+    {
+      "dato": "Exchange message trace / Extended Message Trace",
+      "lectura": "Prueba transmisión y rechazo de mensajes según retención/visibilidad, sin garantizar lectura por destino."
+    },
+    {
+      "dato": "Auto forwarded messages report y outbound spam policies",
+      "lectura": "Distingue reenvío configurado, permitido y efectivamente enviado; controles pueden bloquearlo."
+    },
+    {
+      "dato": "SigninLogs / auditoría de delegación y consentimientos",
+      "lectura": "Atribución contextual de quien cambió configuración, incluyendo posibles cuentas/apps con permisos."
+    },
+    {
+      "dato": "Purview DLP / etiquetas y clasificación",
+      "lectura": "Permite evaluar sensibilidad e impacto; no compartir muestras de correo sin autorización."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Sentinel · cambios de reglas Inbox y forwarding",
+      "entorno": "OfficeActivity de Microsoft 365 audit connector; Operation y Parameters son columnas documentadas. No confundir con Defender XDR.",
+      "consulta": "OfficeActivity\n| where TimeGenerated >= ago(14d)\n| where Operation in~ (\"New-InboxRule\", \"Set-InboxRule\", \"Remove-InboxRule\", \"Set-Mailbox\")\n| project TimeGenerated, OfficeWorkload, Operation, UserId,\n          MailboxOwnerUPN, ClientIP, ResultStatus,\n          Parameters, OfficeObjectId\n| order by TimeGenerated desc",
+      "interpretacion": "Permite localizar quién modificó reglas/configuración, cuándo y con qué parámetros. Profundizar en Set-Mailbox para discriminar cambios de reenvío de otros cambios.",
+      "limitaciones": "El conector y auditoría deben estar habilitados; Parameters es un campo de texto variable; permisos y retención varían por licencia."
+    },
+    {
+      "nombre": "Sentinel · indicios de forwarding en parámetros",
+      "entorno": "OfficeActivity con parámetros completos auditados. Búsqueda de cadena para triage, no detector definitivo.",
+      "consulta": "OfficeActivity\n| where TimeGenerated >= ago(30d)\n| where Operation in~ (\"New-InboxRule\", \"Set-InboxRule\", \"Set-Mailbox\")\n| where Parameters has_any (\"ForwardTo\", \"RedirectTo\", \"ForwardingSmtpAddress\",\n                             \"ForwardingAddress\", \"ForwardAsAttachmentTo\")\n| project TimeGenerated, UserId, MailboxOwnerUPN, Operation,\n          ClientIP, Parameters, ResultStatus\n| order by TimeGenerated desc",
+      "interpretacion": "Reduce ruido de operaciones no relacionadas con reenvío; revisar parámetros literales y configuración de reglas.",
+      "limitaciones": "`has_any` tokeniza texto; puede omitir representaciones fragmentadas/JSON o cambios de parámetros no expuestos. No indica emails entregados."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk · altas y cambios de reglas Exchange",
+      "entorno": "index=o365_audit ejemplo, Operation y Parameters extraídos de Unified Audit Log; adaptar TA Microsoft 365.",
+      "consulta": "index=o365_audit earliest=-14d\n(Operation=\"New-InboxRule\" OR Operation=\"Set-InboxRule\"\n OR Operation=\"Remove-InboxRule\" OR Operation=\"Set-Mailbox\")\n| table _time UserId MailboxOwnerUPN Operation ClientIP ResultStatus Parameters\n| sort 0 -_time",
+      "interpretacion": "Identifica actores, correos y configuraciones alteradas; pivotar a usuario y sesión.",
+      "limitaciones": "Campos pueden estar anidados en AuditData y requerir `spath`; falta de resultados no demuestra ausencia de regla."
+    },
+    {
+      "nombre": "Splunk · parámetros de reenvío",
+      "entorno": "index=o365_audit con operación/parametrización extraídas y eventos completos.",
+      "consulta": "index=o365_audit earliest=-30d\n(Operation=\"New-InboxRule\" OR Operation=\"Set-InboxRule\" OR Operation=\"Set-Mailbox\")\n| eval parametros=coalesce(Parameters,AuditData)\n| where match(parametros,\"(?i)(ForwardTo|RedirectTo|ForwardingSmtpAddress|ForwardingAddress|ForwardAsAttachmentTo)\")\n| table _time UserId Operation ClientIP parametros\n| sort 0 -_time",
+      "interpretacion": "Detecta cambios que mencionan acciones de forwarding para posterior inspección.",
+      "limitaciones": "No garantiza que el dato aparezca exactamente así en tu export. Debe verificarse contra estado actual y mail trace."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Exchange Online PowerShell / lectura",
+      "proposito": "Consultar reglas y acciones por buzón antes de cambiar configuración.",
+      "comando": "Get-InboxRule -Mailbox 'billing@empresa.example' |\n  Select-Object Name,Enabled,Priority,ForwardTo,RedirectTo,\n                ForwardAsAttachmentTo,MoveToFolder,DeleteMessage"
+    },
+    {
+      "entorno": "Exchange Online PowerShell / lectura",
+      "proposito": "Revisar reenvío a nivel buzón (distinto de reglas Inbox).",
+      "comando": "Get-Mailbox -Identity 'billing@empresa.example' |\n  Select-Object DisplayName,ForwardingSmtpAddress,\n                ForwardingAddress,DeliverToMailboxAndForward"
+    },
+    {
+      "entorno": "Microsoft Purview PowerShell / lectura",
+      "proposito": "Consultar cambios de reglas en Audit Log, si la sesión y licencia lo permiten.",
+      "comando": "Search-UnifiedAuditLog -StartDate (Get-Date).AddDays(-7) `\n  -EndDate (Get-Date) -Operations New-InboxRule,Set-InboxRule,Set-Mailbox `\n  -ResultSize 200"
+    },
+    {
+      "entorno": "Control de cambio / NO ejecutar sin aprobación",
+      "proposito": "Quitar o desactivar una regla maliciosa solo después de preservar evidencia y verificar el nombre.",
+      "comando": "# CAMBIO DE ESTADO, NO ejecutarlo durante triage exploratorio\n# Disable-InboxRule -Mailbox 'billing@empresa.example' -Identity 'Invoices Sync'"
+    }
+  ],
+  "contencion": "Preservar primero la regla y evidencia de auditoría; si el reenvío no autorizado está activo, desactivarlo y aplicar política de bloqueo de reenvío externo coordinada con Exchange, sin destruir pruebas. Revocar sesiones y revisar apps/roles/delegados si hay acceso comprometido. Confirmar por trazas que no continúan entregas no autorizadas. Informar a DPO/Legal de posible exposición según sensibilidad y mensajes efectivamente afectados.",
+  "escalation": [
+    "Regla encaminada a tercero desconocido y entregas confirmadas.",
+    "Cuenta financiera, ejecutiva o buzón compartido de alta sensibilidad.",
+    "Múltiples buzones con reglas iguales o consentimientos sospechosos.",
+    "Persisten envíos tras neutralización de regla.",
+    "El usuario niega la actividad y hay inicios anómalos correlacionados."
+  ],
+  "falsos_positivos": [
+    "Reenvío a despacho contable autorizado y contrato vigente.",
+    "Automatización de helpdesk/CRM que usa reglas legítimas.",
+    "Migración de buzones o delegación temporal aprobada.",
+    "Regla creada pero política outbound la bloquea y no hubo entregas.",
+    "Modificación inocua Set-Mailbox sin parámetro de reenvío."
+  ],
+  "errores": [
+    "Cerrar solo porque la regla fue eliminada, sin revisar mensajes previos.",
+    "Confundir InboxRule, mailbox forwarding y transport rules.",
+    "Confundir regla creada con exfiltración confirmada.",
+    "Olvidar reglas similares en otros buzones o acceso delegado.",
+    "Ignorar política de reenvío externo y message trace.",
+    "Compartir correos potencialmente confidenciales durante investigación."
+  ],
+  "perspectiva_red_team": "El control de un buzón permite crear mecanismos de recolección de correo para persistir acceso a mensajes futuros. La técnica puede incluir reglas de redirección, reenvío de adjuntos o manipulación para ocultar correspondencia. Blue Team debe demostrar causalidad entre compromiso, configuración, entrega y contenido afectado: la simple existencia de una regla no es prueba de fuga efectiva.",
+  "respuesta_entrevista": "Primero identificaría la regla, destinatario y configuración actual mediante Get-InboxRule y Get-Mailbox. Consultaría OfficeActivity/Purview para New-InboxRule, Set-InboxRule y Set-Mailbox, sus parámetros, autor y IP. Correlacionaría identidad/delegados y sign-ins, y usaría Message Trace y el reporte de auto forwarding para comprobar si los correos salieron realmente. Preservaría evidencias; si es no autorizado, detendría reenvío, revocaría accesos y revisaría otros buzones. Informaría del alcance real, diferenciando intentos, configuración y entrega.",
+  "criterios_evaluacion": [
+    "Identifica tres vías de reenvío: Inbox, mailbox y transport.",
+    "Usa OfficeActivity con Operation/Parameters reales.",
+    "Verifica envío en Message Trace, no infiere exfiltración.",
+    "Correlaciona delegados, app OAuth y sesiones.",
+    "Preserva regla/auditoría antes de neutralizarla.",
+    "Evalúa impacto de datos y privacidad."
+  ],
+  "mitre": [
+    "T1114.003 — Email Collection: Email Forwarding Rule (hipótesis)"
+  ],
+  "fuentes": [
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/officeactivity",
+    "https://learn.microsoft.com/en-us/purview/audit-log-activities",
+    "https://learn.microsoft.com/en-us/defender-xdr/alert-grading-playbook-inbox-forwarding-rules",
+    "https://learn.microsoft.com/en-us/defender-office-365/outbound-spam-policies-external-email-forwarding",
+    "https://learn.microsoft.com/en-us/purview/audit-log-identify-mailboxes",
+    "https://csrc.nist.gov/pubs/sp/800/61/r3/final"
+  ],
+  "procedencia": {
+    "lote": "tanda-08",
+    "archivo": "SOC-RESPONSES_TANDA-08_N2-16_a_N2-20.json",
+    "fechaRevision": "2026-10-18"
+  }
+}

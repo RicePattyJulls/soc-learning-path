@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-17-L02",
+  "sourceHash": "792a32e7a577ee6a248976661f2f14a34824625777128b50a1ba3abd615a8f31",
+  "questions": [
+    {
+      "id": "LNX-17-L02-Q01",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Que el contenido medido coincide byte a byte; no acredita autoría ni ACL».\n\nEl hash resume el contenido y detecta cambios en los bytes, pero no identifica quién modificó ni refleja permisos o xattrs, ni demuestra que el sistema estuviese libre de compromiso al calcularlo."
+    },
+    {
+      "id": "LNX-17-L02-Q02",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Metadatos (UID/GID, modo, ACL/xattrs) y comparación del comportamiento de la aplicación».\n\nEl estado —propietario, modo, ACL y xattrs— debe acompañar a los hashes, y la prueba funcional confirma que el servicio se comporta igual. Un listado de snapshots sin versiones, la fecha del repositorio o el tamaño del manifiesto no cubren esa comprobación."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "Un hash SHA-256 acredita que el **contenido medido coincide** byte a byte con la referencia; no acredita autoría, identidad del cambio, ACL ni xattrs, ni el estado de compromiso del sistema. Lo que faltaba en el manifiesto era el **estado**: modo, propietario, grupo y, si procedía, ACL y atributos extendidos. Un archivo con los mismos bytes y otros permisos sigue siendo una discrepancia relevante.\n\nLímite: hashes coincidentes no prueban que se conservó el estado ni que la restauración sea completa; sin metadatos y sin probar el funcionamiento de la aplicación, la conclusión es parcial.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Precisa que el hash mide contenido, no autoría ni permisos."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Añade metadatos (UID/GID, modo, ACL/xattrs) al manifiesto."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Reconoce el estado intermedio y las ambigüedades de nombres."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Distingue integridad por archivo de recuperabilidad."
+      }
+    ]
+  },
+  "revision": "7fbbc8c39717885d6eac7f5f"
+}

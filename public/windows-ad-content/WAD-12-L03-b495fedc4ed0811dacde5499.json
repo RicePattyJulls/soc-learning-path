@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-12-L03",
+  "title": "SYSVOL, políticas y cambio inocuo",
+  "sourceHash": "2ef86a34d98302bd115b48e21f9f6ce6f851b17e1d2853d8ed0931697c15c5ff",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-12-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nAplicar un cambio de política inocuo, demostrar su alcance y revertirlo.\n\nPrerrequisitos: `WAD-12-L02` (filtros y RSOP/gpresult).\n\n## 2. Comprende el mecanismo\n\n**SYSVOL** es la carpeta compartida del dominio donde viven los archivos de las GPO: el contenido que los clientes leen al procesar la directiva. Como un dominio suele tener varios controladores, SYSVOL se **replica**: cada controlador sirve una copia y todas deben coincidir. Si la replicación se retrasa o se rompe, dos equipos pueden recibir versiones distintas de la misma directiva.\n\nEn esa misma carpeta se ubica, cuando existe, el **almacén central**: una ubicación única para las plantillas administrativas del dominio. Tener una sola copia de las plantillas evita que cada consola trabaje con una versión distinta y es lo que hace que lo que se ve al editar una GPO sea lo mismo en cualquier equipo.\n\nUn cambio de política es un cambio en el sistema y se trata como tal. La práctica de la etapa propone el ciclo completo con un ajuste **inocuo y reversible**:\n\n1. Elegir un ajuste visible pero inofensivo —por ejemplo, uno que cambie un elemento de la interfaz— en una OU de laboratorio.\n2. Registrar el estado previo: qué muestra la identidad antes del cambio.\n3. Aplicar el cambio en la GPO del laboratorio.\n4. Demostrar el alcance: comprobar que solo lo reciben las identidades esperadas y que quien no debía recibirlo no lo recibe.\n5. **Revertir** el ajuste y confirmar que el estado vuelve al inicial.\n\nEl paso de demostrar el alcance es el que da valor a la práctica. Aplicar no basta: hay que probar a quién alcanzó y a quién no, y para eso se usan las herramientas de resultados de política de la lección anterior. Un ajuste que aparece en un equipo que no estaba en la previsión es un hallazgo, no un detalle.\n\nEl paso de revertir cierra el ciclo. Un cambio que se queda aplicado deja el laboratorio en un estado que ya no refleja lo documentado, y la siguiente persona que lo revise dará por bueno algo que nadie decidió mantener. Revertir y comprobar la reversión es parte del cambio, no un extra.\n\n### Vocabulario de apoyo\n\n- **SYSVOL**: carpeta compartida del dominio que aloja y replica los archivos de las GPO.\n- **Almacén central**: ubicación única de las plantillas administrativas del dominio.\n- **GPO (objeto de directiva de grupo)**: conjunto de directivas con nombre propio que se vincula en el directorio.\n- **Política resultante (RSOP)**: conjunto de ajustes que una identidad recibe tras el procesamiento.\n- **Vínculo (link)**: asociación entre una GPO y un sitio, un dominio o una OU.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Cierra aquí el recorrido de la etapa de directivas de grupo.\n\n"
+    },
+    {
+      "id": "WAD-12-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un ajuste inocuo se aplicó en la GPO de la OU `Puestos` para probar el ciclo de cambio. Dos días después, un equipo de la OU `Servidores` también lo muestra y nadie recuerda haber modificado esa OU.\n\nEl ajuste llegó a `Servidores` porque la GPO modificada también estaba **vinculada al dominio**: su alcance era mayor que la OU prevista, y la OU `Servidores` recibió el vínculo por **herencia**. La evidencia necesaria es la **política resultante** de un equipo de cada OU, con el origen del ajuste, más la comprobación de que el cambio se **revirtió** en la GPO y de que SYSVOL replicó la reversión. La conclusión acota lo observable —«el alcance real era el dominio, no la OU»— y reconoce un límite importante: atribuir el cambio a una persona depende de la auditoría habilitada; sin ella solo se puede describir el alcance y el estado, no la autoría.\n\n"
+    },
+    {
+      "id": "WAD-12-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Comprobar el alcance antes de dar un cambio por bueno evita sorpresas en otros contenedores del dominio.\n- Red Team autorizado: Un cambio documentado y revertido demuestra disciplina en una prueba autorizada.\n- Evidencia de la etapa: Estado antes y después por identidad, con la reversión confirmada.\n- Criterio de dominio: La política se aplica solo a las identidades esperadas.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB06](../../05_RECURSOS/LABORATORIOS/WAD-LAB06.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **SYSVOLMIG**: [Migrate SYSVOL replication to DFS Replication](https://learn.microsoft.com/en-us/windows-server/storage/dfs-replication/migrate-sysvol-to-dfsr). Cómo se replica la carpeta que sirve las GPO.\n- **CENTRALSTORE**: [Create and manage the Central Store](https://learn.microsoft.com/en-us/troubleshoot/windows-client/group-policy/create-and-manage-central-store). Almacén central de plantillas administrativas.\n- **GPO**: [Group Policy overview](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-r2-and-2012/hh831791(v=ws.11)). Qué es una GPO y a qué contenedores se vincula.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-12-L03-P01",
+    "prompt": "En una OU de laboratorio de `ad.lab.test` vas a aplicar un cambio de política inocuo y reversible. Describe el ajuste elegido, cómo demuestras que alcanza solo a las identidades esperadas, con qué evidencia y cómo confirmas que lo revertiste.",
+    "markdown": "## 4. Práctica individual\n\nEn una OU de laboratorio de `ad.lab.test` vas a aplicar un cambio de política inocuo y reversible. Describe el ajuste elegido, cómo demuestras que alcanza solo a las identidades esperadas, con qué evidencia y cómo confirmas que lo revertiste.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber modificado directivas en un entorno real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-12-L03-Q01",
+      "prompt": "¿Qué guarda SYSVOL en relación con las GPO y por qué importa que se replique entre controladores?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Los archivos de las GPO, que deben replicarse de forma coherente para que todos los controladores sirvan la misma directiva"
+        },
+        {
+          "id": "B",
+          "text": "Las contraseñas de las cuentas del dominio en un formato legible"
+        },
+        {
+          "id": "C",
+          "text": "Únicamente los registros de eventos generados en el dominio"
+        },
+        {
+          "id": "D",
+          "text": "Las claves de recuperación de los equipos cliente"
+        }
+      ]
+    },
+    {
+      "id": "WAD-12-L03-Q02",
+      "prompt": "Tras aplicar un cambio de política inocuo en una OU de laboratorio y comprobar su alcance, ¿cuál es el cierre correcto?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Dejarlo aplicado para no perder el cambio"
+        },
+        {
+          "id": "B",
+          "text": "Ampliar el cambio a todo el dominio"
+        },
+        {
+          "id": "C",
+          "text": "Eliminar la GPO sin registrar nada"
+        },
+        {
+          "id": "D",
+          "text": "Revertirlo y registrar la evidencia del alcance observado antes y después"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB06](../../05_RECURSOS/LABORATORIOS/WAD-LAB06.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **SYSVOLMIG**: [Migrate SYSVOL replication to DFS Replication](https://learn.microsoft.com/en-us/windows-server/storage/dfs-replication/migrate-sysvol-to-dfsr). Cómo se replica la carpeta que sirve las GPO.\n- **CENTRALSTORE**: [Create and manage the Central Store](https://learn.microsoft.com/en-us/troubleshoot/windows-client/group-policy/create-and-manage-central-store). Almacén central de plantillas administrativas.\n- **GPO**: [Group Policy overview](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-r2-and-2012/hh831791(v=ws.11)). Qué es una GPO y a qué contenedores se vincula.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "b495fedc4ed0811dacde5499"
+}

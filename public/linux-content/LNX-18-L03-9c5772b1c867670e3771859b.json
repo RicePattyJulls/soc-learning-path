@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-18-L03",
+  "title": "Inventario de red, rutas y DNS del host",
+  "sourceHash": "19389424d64d3112f0bfff2a46197cc92ddb7e4ac3dce977dfeddbad0e4e1b0e",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-18-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nInventariar interfaces, direcciones, rutas, policy routing y DNS de un host, separando hechos de interpretaciones.\n\nPrerrequisitos: `LNX-18-L02` (Evidencia básica con mínima exposición).\n\n## 2. Comprende el mecanismo\n\nEl inventario describe el estado actual del host —interfaces, direcciones, rutas y resolución— con comandos de solo lectura. Su valor está en separar hechos de interpretaciones: qué interfaces existen, qué direcciones tienen, qué rutas conoce el kernel y cómo resuelve nombres.\n\nLas rutas principales no son todas las rutas. `ip rule` puede seleccionar otra tabla por origen, marca, interfaz o VRF; por eso `ip route show table main` no ve el *policy routing*. Consultar `ip route get DESTINO` muestra la decisión del kernel para ese destino sin enviar paquetes, y depende también de origen, marca y reglas cuando se especifican.\n\nEn IPv6 hay matices que cambian la lectura. Una dirección link-local `fe80::/10` suele necesitar ámbito (`%interfaz`). La ausencia de una dirección global no prueba que IPv6 esté inactivo: conviene revisar la link-local y las rutas IPv6 antes de concluir.\n\nLa resolución de nombres pasa por `/etc/hosts`, NSS (`/etc/nsswitch.conf`), `systemd-resolved`, resolvers de las bibliotecas y la configuración de cada aplicación. `dig` consulta DNS con su propia lógica; `getent ahosts` sigue la resolución del sistema. Que difieran no es una paradoja, sino una divergencia de rutas de resolución.\n\nEn muchos sistemas `/etc/resolv.conf` apunta a una dirección de loopback que corresponde al *stub* de `systemd-resolved`, y no a un servidor remoto. Conviene leer el enlace real con `readlink -f` y consultar el estado con `resolvectl status` para ver qué resolvers usa cada interfaz.\n\nLa regla es usar rangos de documentación en los ejemplos y registrar qué tabla, familia y resolver se observó. Antes de concluir, identifica el límite: un inventario local no prueba entrega extremo a extremo ni quién inició un flujo.\n\n### Vocabulario de apoyo\n\n- **Inventario de red**: conjunto de interfaces, direcciones, rutas y resolutores de un host.\n- **Policy routing**: selección de una tabla de rutas según origen, marca, interfaz o VRF.\n- **`ip route get`**: consulta de la decisión de encaminamiento sin enviar paquetes.\n- **Link-local**: dirección IPv6 de ámbito local (`fe80::/10`) que suele requerir interfaz.\n- **Stub resolver**: resolver local en loopback que reenvía consultas a otros servidores.\n- **NSS**: orden de fuentes de resolución de nombres definido en `nsswitch.conf`.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-18-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en un host, `ip -4 route show table main` muestra una ruta por defecto y el analista concluye que todo el tráfico sale por esa interfaz; además, `dig` responde bien y da por hecho que la aplicación resuelve igual.\n\nHay dos saltos de más. La tabla `main` no incluye el *policy routing*: una regla `ip rule` podría enviar parte del tráfico por otra tabla según origen, marca o interfaz. Y la resolución de `dig` no es necesariamente la de la aplicación: `getent` y la resolución del sistema pueden usar `/etc/hosts`, NSS y un *stub* distinto.\n\nLa lectura correcta añade `ip rule show`, `ip route show table all` y `ip route get` con el origen correcto, y compara `getent ahosts` frente a `resolvectl` o `dig`. El límite de la conclusión: un inventario local describe decisiones del kernel en ese host, pero no prueba entrega extremo a extremo ni la política de los intermediarios.\n\n"
+    },
+    {
+      "id": "LNX-18-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Levantar un inventario coherente y declarar qué familia, tabla y resolver se observó.\n- Red Team autorizado: Comprobar rutas y resolvers reales antes de inferir conectividad o exposición.\n- Evidencia de la etapa: Salidas de `ip rule`, rutas, `resolvectl` y comparación `getent` frente a `dig`.\n- Criterio de dominio: Distingue la tabla `main` del conjunto de tablas y la resolución del sistema de la de una herramienta.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB21](../../05_RECURSOS/LABORATORIOS/LNX-LAB21.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F71**: [ip-route(8) — iproute2/man7](https://man7.org/linux/man-pages/man8/ip-route.8.html). Rutas y consulta de decisión por destino.\n- **F72**: [ip-address(8) — iproute2/man7](https://man7.org/linux/man-pages/man8/ip-address.8.html). Direcciones locales por familia y ámbito.\n- **F76**: [ip-rule(8) — man7](https://man7.org/linux/man-pages/man8/ip-rule.8.html). Reglas de policy routing y selección de tablas.\n- **F77**: [resolvectl — systemd](https://www.freedesktop.org/software/systemd/man/257/resolvectl.html). Consulta del estado de resolución por interfaz.\n- **F78**: [systemd-resolved.service — systemd](https://www.freedesktop.org/software/systemd/man/257/systemd-resolved.service.html). Stub resolver local y ámbito de su configuración.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-18-L03-P01",
+    "prompt": "En un host, `ip -4 route show table main` muestra una ruta por defecto y se concluye que todo el tráfico sale por esa interfaz; además, `dig` responde y se asume que la aplicación resuelve igual. Explica qué falta en ese inventario y cuál es el límite de la conclusión.",
+    "markdown": "## 4. Práctica individual\n\nEn un host, `ip -4 route show table main` muestra una ruta por defecto y se concluye que todo el tráfico sale por esa interfaz; además, `dig` responde y se asume que la aplicación resuelve igual. Explica qué falta en ese inventario y cuál es el límite de la conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber modificado rutas, resolvers ni haber ejecutado diagnósticos sobre redes reales.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-18-L03-Q01",
+      "prompt": "¿Qué añade `ip rule show` a un inventario que solo usa `ip route show table main`?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Las reglas de policy routing que pueden seleccionar otras tablas de rutas"
+        },
+        {
+          "id": "B",
+          "text": "Nada: las reglas son cosméticas"
+        },
+        {
+          "id": "C",
+          "text": "Los hashes de los paquetes enviados"
+        },
+        {
+          "id": "D",
+          "text": "El estado de los sockets TCP"
+        }
+      ]
+    },
+    {
+      "id": "LNX-18-L03-Q02",
+      "prompt": "¿Por qué `dig` y `getent ahosts` pueden dar resultados distintos para el mismo nombre?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Porque `dig` siempre está desactualizado"
+        },
+        {
+          "id": "B",
+          "text": "Porque `getent` solo funciona en IPv6"
+        },
+        {
+          "id": "C",
+          "text": "Porque los nombres no se pueden resolver dos veces seguidas"
+        },
+        {
+          "id": "D",
+          "text": "Porque siguen rutas de resolución distintas: `dig` consulta DNS con su lógica y `getent` usa la resolución del sistema"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB21](../../05_RECURSOS/LABORATORIOS/LNX-LAB21.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F71**: [ip-route(8) — iproute2/man7](https://man7.org/linux/man-pages/man8/ip-route.8.html). Rutas y consulta de decisión por destino.\n- **F72**: [ip-address(8) — iproute2/man7](https://man7.org/linux/man-pages/man8/ip-address.8.html). Direcciones locales por familia y ámbito.\n- **F76**: [ip-rule(8) — man7](https://man7.org/linux/man-pages/man8/ip-rule.8.html). Reglas de policy routing y selección de tablas.\n- **F77**: [resolvectl — systemd](https://www.freedesktop.org/software/systemd/man/257/resolvectl.html). Consulta del estado de resolución por interfaz.\n- **F78**: [systemd-resolved.service — systemd](https://www.freedesktop.org/software/systemd/man/257/systemd-resolved.service.html). Stub resolver local y ámbito de su configuración.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "9c5772b1c867670e3771859b"
+}

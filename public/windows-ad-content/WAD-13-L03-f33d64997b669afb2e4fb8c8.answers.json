@@ -1,0 +1,39 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-13-L03",
+  "sourceHash": "16b5b3ce33385be50f9d547e7ce5a67782134380daf8f22121bb901424863ff4",
+  "questions": [
+    {
+      "id": "WAD-13-L03-Q01",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Reunir evidencia de solo lectura —estado y errores de replicación— y localizar el origen antes de cambiar nada».\n\nEl primer paso es leer el estado y el error para localizar el origen. Forzar todas las particiones, retirar el controlador o deshabilitar la replicación cambia el estado antes de entender el fallo y destruye la evidencia."
+    },
+    {
+      "id": "WAD-13-L03-Q02",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Que el fallo está acotado a esa relación concreta y conviene aislarla antes de concluir».\n\nSi el resto de relaciones están correctas, el fallo está acotado a esa relación y hay que aislarla antes de concluir. Dar el dominio por perdido, reinstalar controladores o ignorar el error no se sostienen con la evidencia."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "El diagnóstico empieza con lectura: `repadmin` para describir la relación entre `DC01` y `DC02` —el último error y desde cuándo— y `dcdiag` para comprobar conectividad, resolución de nombres, servicios, reloj y replicación. Con ese informe se acota si el fallo es de una relación, de una partición o del controlador; un error en una sola relación apunta a ese enlace, no al dominio completo. La recuperación segura es aislar el componente que falla, corregir la causa según lo observado, verificar volviendo a leer el estado y registrar lo observado y lo cambiado. Solo después se valora forzar una réplica; si el caso exigiera retirar el controlador, se lo degradaría —catálogo global y roles— antes de apagarlo. El límite: la lectura puntual documenta el estado actual y no garantiza que el fallo no reaparezca.",
+    "rubric": [
+      {
+        "criterion": "Lectura primero",
+        "evidence": "Empieza por `repadmin` y `dcdiag` sin modificar la configuración."
+      },
+      {
+        "criterion": "Acotar el fallo",
+        "evidence": "Distingue si es de una relación, una partición o un controlador."
+      },
+      {
+        "criterion": "Corregir la causa",
+        "evidence": "Propone arreglar el componente concreto en lugar de forzar la replicación."
+      },
+      {
+        "criterion": "Límite reconocido",
+        "evidence": "Admite que una lectura puntual no garantiza que el fallo no reaparezca."
+      }
+    ]
+  },
+  "revision": "f33d64997b669afb2e4fb8c8"
+}

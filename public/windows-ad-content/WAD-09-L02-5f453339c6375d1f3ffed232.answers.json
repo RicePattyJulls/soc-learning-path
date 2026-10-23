@@ -1,0 +1,43 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-09-L02",
+  "sourceHash": "b4bf369c3eeaa410801d85adb86b8fe33d74f8cb37faf977eeef316dbf228233",
+  "questions": [
+    {
+      "id": "WAD-09-L02-Q01",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Consultando en DNS los registros SRV publicados para el dominio».\n\nEl Localizador de DC obtiene del DNS el nombre del DC y el puerto del servicio. El archivo de hosts, una consulta por difusión o la caché local no contienen esa publicación del dominio."
+    },
+    {
+      "id": "WAD-09-L02-Q02",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Porque Kerberos rechaza la autenticación cuando la diferencia de hora supera la tolerancia».\n\nLa autenticación exige que las horas sean coherentes dentro de unos minutos. La desviación no cambia direcciones, no invalida la zona DNS ni expulsa al equipo del dominio."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "El cliente no conoce la dirección del DC de antemano: el Localizador de DC consulta en DNS los registros SRV publicados en la zona del dominio, con nombres del estilo `_ldap._tcp.dc._msdcs.ad.lab.test`, y de la respuesta obtiene el nombre del DC y el puerto. Si apunta a un servidor DNS que no conoce la zona `ad.lab.test`, podrá resolver nombres de internet y aun así no localizar el DC: hay conectividad, pero no resolución correcta, y la corrección es apuntar el DNS del cliente al DC del laboratorio. La autenticación añade una segunda condición: Kerberos compara la hora del cliente con la del DC y rechaza el intento cuando la diferencia supera una tolerancia de pocos minutos, por lo que el servicio de hora del cliente debe sincronizar con el del DC. El límite: resolver el nombre no demuestra que el reloj sea coherente, así que ambas comprobaciones se hacen por separado y se registran.",
+    "rubric": [
+      {
+        "criterion": "Localización por SRV",
+        "evidence": "Identifica los registros SRV y la zona del dominio como vía de localización del DC."
+      },
+      {
+        "criterion": "DNS correcto",
+        "evidence": "Explica que la conectividad no sustituye a un DNS que resuelva la zona del dominio."
+      },
+      {
+        "criterion": "Reloj y Kerberos",
+        "evidence": "Relaciona la desviación de reloj con el rechazo de la autenticación."
+      },
+      {
+        "criterion": "Comprobación de hora",
+        "evidence": "Propone comprobar el servicio de hora además de la resolución."
+      },
+      {
+        "criterion": "Límite reconocido",
+        "evidence": "Admite que resolver el nombre no prueba la coherencia del reloj."
+      }
+    ]
+  },
+  "revision": "5f453339c6375d1f3ffed232"
+}

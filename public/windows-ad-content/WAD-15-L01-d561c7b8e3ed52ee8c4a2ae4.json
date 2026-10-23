@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-15-L01",
+  "title": "Tier 0 y separación de identidades",
+  "sourceHash": "b015fb49d3ad671e38cb359b0783518708a3918b29c4f258b6d4cd48c2d67236",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-15-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nSituar las identidades y los sistemas Tier 0 y explicar por qué se separan del resto.\n\nPrerrequisitos: `WAD-10-L03` (Delegación mínima y acceso efectivo) y `WAD-12-L03` (SYSVOL, políticas y cambio inocuo).\n\n## 2. Comprende el mecanismo\n\nUn directorio no se protege solo con buenas contraseñas. Lo que decide el riesgo es **qué identidad administra qué sistema**. Un modelo de niveles ordena el entorno según eso: quién puede controlar a quién.\n\nEl **modelo de niveles** propone tres planos:\n\n- **Tier 0**: el plano de control. Active Directory, sus controladores de dominio y las cuentas, grupos y equipos capaces de administrarlos.\n- **Tier 1**: los servidores y las aplicaciones que dan servicio, sin controlar el directorio.\n- **Tier 2**: los puestos de trabajo y las cuentas de usuario final.\n\nTier 0 es el nivel que hay que proteger primero porque es el que **administra a todos los demás**. Quien controla un controlador de dominio puede crear cuentas, cambiar permisos y alterar la política de todo el bosque. No hay un nivel por encima del directorio al que apelar.\n\nDe ahí sale la regla que sostiene la separación: una identidad o un equipo de un nivel administra **su nivel o los inferiores**, nunca los superiores. Un administrador Tier 1 puede operar sobre servidores, pero no debe poder tocar el directorio; un administrador Tier 2 atiende puestos, pero no los servidores.\n\nEsta separación no es una preferencia estética, es contención. Si una cuenta Tier 0 inicia sesión en un equipo Tier 2 y ese equipo se compromete, el atacante ya no obtiene un puesto: obtiene una credencial con la que alcanzar el plano de control. El mismo cuidado vale al revés: una cuenta de puesto con permisos sobre objetos Tier 0 convierte un puesto comprometido en una ruta hacia el directorio.\n\nEn la práctica la separación se traduce en decisiones concretas: cuentas de administración distintas de las cuentas de uso diario, equipos dedicados para administrar Tier 0 y restricciones de inicio de sesión que impidan que una identidad privilegiada se use donde no corresponde. Cuanto menor sea la superficie donde aparece una credencial Tier 0, menor es la oportunidad de capturarla.\n\nLa conclusión tiene un límite claro: el modelo ordena el diseño, no demuestra por sí solo que el entorno esté separado. Para afirmarlo hay que revisar qué permisos tiene cada identidad sobre los objetos Tier 0, y eso es trabajo de las lecciones siguientes.\n\n### Vocabulario de apoyo\n\n- **Tier 0**: plano de control del directorio: Active Directory, sus controladores y las identidades capaces de administrarlos.\n- **Tier 1**: nivel de los servidores y aplicaciones que dan servicio sin controlar el directorio.\n- **Tier 2**: nivel de los puestos de trabajo y las cuentas de usuario final.\n- **Plano de control**: conjunto de sistemas e identidades que gobiernan la configuración y la seguridad del entorno.\n- **Identidad privilegiada**: cuenta o grupo cuyos permisos permiten administrar sistemas o el propio directorio.\n- **Separación de identidades**: práctica de no usar una credencial de un nivel en sistemas de un nivel inferior.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-15-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test`, la cuenta `svc-operador`, miembro de `Administradores del dominio`, se usa también para iniciar sesión en el equipo `Win11` del equipo de soporte, porque así «todo queda a mano». El puesto está publicado y una persona lo usa para navegar.\n\nLa cuenta pertenece a Tier 0 —puede administrar el directorio— y su uso en un equipo Tier 2 expuesta la coloca donde puede ser capturada, ya sea por una sesión descuidada o por software que se ejecute en ese puesto. La lectura correcta no es «una cuenta potente está en uso», sino «una credencial Tier 0 vive en un sistema Tier 2, y la separación de identidades está rota». La conclusión acota lo observable: se puede afirmar que la credencial está expuesta en ese equipo; no se puede afirmar que ya haya sido capturada sin revisar los inicios de sesión y la auditoría. El límite es que el diseño señala el riesgo, no confirma el incidente.\n\n"
+    },
+    {
+      "id": "WAD-15-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Reconocer qué identidades son Tier 0 permite dar prioridad a los eventos que las involucran.\n- Red Team autorizado: Identificar dónde aparece una credencial de nivel superior describe una ruta hacia el directorio.\n- Evidencia de la etapa: Tabla de identidades y sistemas con su nivel y el uso previsto.\n- Criterio de dominio: Cada identidad privilegiada opera solo en los sistemas de su nivel o inferiores.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB09](../../05_RECURSOS/LABORATORIOS/WAD-LAB09.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **TIERMODEL**: [Active Directory tier model](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/tier-model). Cómo se ordena un entorno en niveles según lo que cada identidad controla.\n- **TIER0**: [Privileged access access model](https://learn.microsoft.com/en-us/security/privileged-access-workstations/privileged-access-access-model). Modelos de acceso privilegiado y estaciones dedicadas.\n- **IMPLMODEL**: [Implementing least-privilege administrative models](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/implementing-least-privilege-administrative-models). Buenas prácticas para reducir la administración de privilegio amplio.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-15-L01-P01",
+    "prompt": "En `ad.lab.test` dispones de tres cuentas: una en `Administradores del dominio` que se usa a diario en un equipo `Win11`, otra que administra solo los servidores de la OU `Servidores` y otra de ayuda a usuarios finales. Indica a qué nivel corresponde cada una y qué cambiarías para que la separación de identidades se sostenga.",
+    "markdown": "## 4. Práctica individual\n\nEn `ad.lab.test` dispones de tres cuentas: una en `Administradores del dominio` que se usa a diario en un equipo `Win11`, otra que administra solo los servidores de la OU `Servidores` y otra de ayuda a usuarios finales. Indica a qué nivel corresponde cada una y qué cambiarías para que la separación de identidades se sostenga.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber reconfigurado un directorio real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-15-L01-Q01",
+      "prompt": "¿Qué caracteriza a las identidades y los sistemas Tier 0 en un modelo de niveles?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Son los puestos de trabajo y las cuentas de usuario final del dominio"
+        },
+        {
+          "id": "B",
+          "text": "Son los servidores de aplicaciones que prestan servicio a los usuarios"
+        },
+        {
+          "id": "C",
+          "text": "Son el plano de control: Active Directory, sus controladores de dominio y las cuentas capaces de administrarlos"
+        },
+        {
+          "id": "D",
+          "text": "Es cualquier identidad que se autentique contra el dominio con su contraseña"
+        }
+      ]
+    },
+    {
+      "id": "WAD-15-L01-Q02",
+      "prompt": "Una persona usa a diario una cuenta de administración del dominio para iniciar sesión en un equipo `Win11` de su puesto. ¿Cuál es la lectura correcta?",
+      "options": [
+        {
+          "id": "A",
+          "text": "La credencial Tier 0 queda expuesta en un sistema Tier 2 y se rompe la separación de identidades"
+        },
+        {
+          "id": "B",
+          "text": "Es aceptable si el equipo solo se usa dentro de la red interna"
+        },
+        {
+          "id": "C",
+          "text": "No importa mientras el sistema tenga las actualizaciones al día"
+        },
+        {
+          "id": "D",
+          "text": "Es correcto porque acelera las tareas de administración"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB09](../../05_RECURSOS/LABORATORIOS/WAD-LAB09.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **TIERMODEL**: [Active Directory tier model](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/tier-model). Cómo se ordena un entorno en niveles según lo que cada identidad controla.\n- **TIER0**: [Privileged access access model](https://learn.microsoft.com/en-us/security/privileged-access-workstations/privileged-access-access-model). Modelos de acceso privilegiado y estaciones dedicadas.\n- **IMPLMODEL**: [Implementing least-privilege administrative models](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/implementing-least-privilege-administrative-models). Buenas prácticas para reducir la administración de privilegio amplio.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "d561c7b8e3ed52ee8c4a2ae4"
+}

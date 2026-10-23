@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M14-L01",
+  "title": "Sesiones eBGP/iBGP",
+  "sourceHash": "9fb16f707c3322e06a67b179c9acf12b2d54f9b1c2fdd9d528a75bdf82b22e65",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M14-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nSeparar sesión BGP de intercambio y uso de prefijos.\n\nPrerrequisitos: [RED-M12-L04](../RED-E03/RED-M12-L04.md), [RED-M13-L04](../RED-E03/RED-M13-L04.md).\n\n## 2. Comprende el mecanismo\n\nBGP intercambia alcanzabilidad y atributos entre sistemas; eBGP conecta AS diferentes e iBGP comunica dentro del mismo AS. Una sesión Established indica que se completó su establecimiento, no que se aceptaron rutas ni que sus next hops sean alcanzables. iBGP tiene reglas de propagación que requieren una topología apropiada, como malla o reflectores; añadir un vecino no elimina esas reglas. Un reflector reduce sesiones, pero añade decisiones de diseño y no debe confundirse con un gateway de datos obligatorio.\n\n### Vocabulario de apoyo\n\n- **AS y BGP**: Sistema autónomo de routing y protocolo que intercambia alcanzabilidad y atributos entre sistemas.\n- **Local preference y AS_PATH**: Preferencia de política interna y secuencia de AS del camino anunciado.\n- **Comunidad y ROV**: Etiqueta interpretada por políticas y validación del origen mediante autorizaciones RPKI.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M14-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Sesión docente AS65010-AS65020=Established; prefijos recibidos=10; aceptados por política=0.\n\nEl transporte y sesión funcionan, pero la política impide instalar esas rutas. Reabrir TCP/179 no resolvería la ausencia observada de prefijos aceptados.\n\n"
+    },
+    {
+      "id": "RED-M14-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Leer decisiones de camino que afectan visibilidad.\n- Red Team autorizado: Validar filtrado de prefijos en entorno aislado.\n- Evidencia del módulo: RIB, anuncios, políticas y prueba antes/después.\n- Criterio del módulo: No hay anuncios no autorizados; selección explicada.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L07](../../05_RECURSOS/LABORATORIOS/RED-L07.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC4271**: [RFC 4271: Border Gateway Protocol 4](https://www.rfc-editor.org/rfc/rfc4271.html). Sesiones, atributos y distribución de rutas BGP.\n- **FRR-BGP**: [BGP](https://docs.frrouting.org/en/latest/bgp.html). Selección de rutas, políticas, comunidades y operación.\n- **RFC7454**: [RFC 7454: BGP Operations and Security](https://www.rfc-editor.org/rfc/rfc7454.html). Filtrado, límites y operación defensiva BGP.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M14-L01-P01",
+    "prompt": "Se aceptan prefijos, pero el next hop es inalcanzable. ¿Por qué todavía puede fallar el tráfico?",
+    "markdown": "## 4. Práctica individual\n\nSe aceptan prefijos, pero el next hop es inalcanzable. ¿Por qué todavía puede fallar el tráfico?\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M14-L01-Q01",
+      "prompt": "¿Qué distingue eBGP de iBGP?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Ser IPv4 frente a IPv6 necesariamente"
+        },
+        {
+          "id": "B",
+          "text": "Tener cifrado de usuario frente a no tenerlo"
+        },
+        {
+          "id": "C",
+          "text": "La relación entre AS diferentes o el mismo AS"
+        },
+        {
+          "id": "D",
+          "text": "Usar siempre UDP frente a TCP"
+        }
+      ]
+    },
+    {
+      "id": "RED-M14-L01-Q02",
+      "prompt": "¿Qué explica cero prefijos aceptados en el ejemplo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "La ausencia de todos los mensajes BGP"
+        },
+        {
+          "id": "B",
+          "text": "Un error obligatorio de ARP en cada host"
+        },
+        {
+          "id": "C",
+          "text": "La política aplicada a rutas recibidas"
+        },
+        {
+          "id": "D",
+          "text": "Un handshake TCP inexistente demostrado"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L07](../../05_RECURSOS/LABORATORIOS/RED-L07.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC4271**: [RFC 4271: Border Gateway Protocol 4](https://www.rfc-editor.org/rfc/rfc4271.html). Sesiones, atributos y distribución de rutas BGP.\n- **FRR-BGP**: [BGP](https://docs.frrouting.org/en/latest/bgp.html). Selección de rutas, políticas, comunidades y operación.\n- **RFC7454**: [RFC 7454: BGP Operations and Security](https://www.rfc-editor.org/rfc/rfc7454.html). Filtrado, límites y operación defensiva BGP.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "b2afd96d9483a73e3dc763fb"
+}

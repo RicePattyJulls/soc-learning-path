@@ -1,0 +1,39 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-04-L02",
+  "sourceHash": "51b07c6d25913ceef7cc5084e7498f973af5e4ee7a14e78aaa3e44a53b9666e7",
+  "questions": [
+    {
+      "id": "WAD-04-L02-Q01",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Por la combinación más restrictiva entre el permiso del recurso compartido y el de NTFS».\n\nLas dos capas se aplican a la vez en el acceso por red; basta con que una no conceda para que el resultado se deniegue."
+    },
+    {
+      "id": "WAD-04-L02-Q02",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Porque el permiso del recurso compartido solo se aplica en el acceso por red».\n\nEl share es una capa del acceso por red; en la ruta local no interviene y solo manda NTFS."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "En el acceso local solo interviene NTFS, así que el primer usuario escribe porque su ACL se lo permite. En el acceso por red se añade el permiso del recurso compartido y el permiso efectivo es la combinación más restrictiva: si el share está en lectura, la escritura se deniega aunque NTFS la permita. El segundo usuario no escribe en ninguna de las dos rutas porque le falta NTFS en ambas; su límite está en la capa fina. La evidencia recoge la matriz identidad/objeto/capa, el permiso efectivo calculado por local y por red, y dos pruebas por ruta para separar las capas. La corrección toca solo la capa que falla, al nivel mínimo de «cambio», y se acompaña de su reversión al estado inicial confirmada.",
+    "rubric": [
+      {
+        "criterion": "Capas por ruta",
+        "evidence": "Diferencia acceso local (solo NTFS) de acceso por red (share ∩ NTFS)."
+      },
+      {
+        "criterion": "Permiso efectivo",
+        "evidence": "Calcula el permiso efectivo como la combinación más restrictiva."
+      },
+      {
+        "criterion": "Evidencia por ruta",
+        "evidence": "Recoge evidencia por ruta para separar las capas."
+      },
+      {
+        "criterion": "Corrección acotada",
+        "evidence": "Corrige solo la capa que falla y documenta la reversión."
+      }
+    ]
+  },
+  "revision": "9a1712dc7d3bc5c63a9f5128"
+}

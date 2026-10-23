@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-26-L01",
+  "title": "SELinux: investigar una denegación",
+  "sourceHash": "d045b6cfd7c4cca82257fec679e6642f6bfd595c79f03e2199d58c237070c08a",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-26-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nInvestigar una denegación de SELinux con modo, contexto y eventos AVC, y decidir la causa sin desactivar la política.\n\nPrerrequisitos: `LNX-25-L03` (PAM/sudoers como superficie de identidad).\n\n## 2. Comprende el mecanismo\n\n**SELinux** es un control de acceso obligatorio (**MAC**) que evalúa etiquetas además de los permisos DAC. Una operación puede tener modo y ACL correctos y aun así ser denegada porque el tipo del proceso no está autorizado sobre el tipo del objeto. Cuando eso ocurre, el kernel emite un evento **AVC** y el servicio falla sin que el propietario del archivo explique nada.\n\nEl primer dato es el **modo**. `getenforce` y `sestatus` indican si la política está en `Enforcing`, `Permissive` o deshabilitada. En `Permissive` las denegaciones se registran pero no se bloquean; por eso un sistema permisivo puede parecer sano y acumular eventos que se manifestarán al volver a enforcing. Confundir «no falla» con «no deniega» es el error más común de esta etapa.\n\nEl segundo dato es el **contexto**, con la forma `usuario:rol:tipo:nivel`. `ls -Z` muestra el del objeto, `ps -eZ` el del proceso e `id -Z` el de la sesión. La comparación relevante es entre el tipo del dominio que ejecuta y el tipo del recurso que se toca. Un archivo movido desde otro directorio conserva su etiqueta original: el contenido es el mismo, el tipo no, y la política decide con el tipo.\n\nEl tercer dato es el **evento**. `ausearch` con los mensajes `AVC`, `USER_AVC` y `SELINUX_ERR` devuelve las denegaciones de una ventana. El evento incluye la operación denegada, los contextos de origen y destino, la clase de objeto y el permiso. Leerlo completo evita atribuir la denegación al archivo cuando el problema está en el proceso, o al proceso cuando el objeto tiene una etiqueta heredada de un traslado.\n\nEl cuarto dato es lo que **no** aparece. Las reglas `dontaudit` suprimen ciertas denegaciones del registro, de modo que la ausencia de AVC no demuestra que no haya habido bloqueo. También hay que confirmar que la auditoría está operativa y que la ventana consultada es la correcta. «No hay eventos» es una observación sobre la telemetría, no sobre el sistema.\n\nLa corrección se decide por la causa. Si el contexto es incorrecto por un traslado, procede reevaluar la etiqueta; si la ruta no está contemplada por la política, se valora una regla o un cambio de ubicación; si existe un boolean adecuado, se revisa su efecto. Aceptar sin análisis la salida de `audit2allow` convierte una denegación en un permiso permanente y ensancha la política más de lo necesario.\n\nLa regla de la lección: modo, contexto y evento antes de proponer un cambio, y nunca desactivar SELinux como solución. El límite: sin el evento completo y sin conocer la política aplicada, la causa es una hipótesis; el diagnóstico no demuestra intención maliciosa ni descarta otras capas.\n\n### Vocabulario de apoyo\n\n- **MAC**: control de acceso obligatorio que se aplica además del DAC.\n- **AVC**: evento de denegación de acceso de SELinux.\n- **Contexto**: etiqueta `usuario:rol:tipo:nivel` de un proceso u objeto.\n- **Dominio**: tipo asociado a un proceso en ejecución.\n- **`Permissive`**: modo que registra denegaciones sin bloquearlas.\n- **`dontaudit`**: regla que suprime del registro ciertas denegaciones.\n- **`audit2allow`**: herramienta que propone reglas a partir de eventos; no decide la causa.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-26-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un servicio de laboratorio deja de escribir en su directorio de datos después de que alguien mueva el directorio desde `/var/lib/servicio` a `/srv/servicio`. Los permisos siguen siendo `750` y el propietario no cambió. El operador ejecuta `setenforce 0`, el servicio vuelve a funcionar y cierra el incidente como «problema de SELinux».\n\nLa última frase es cierta y la conclusión es falsa. El servicio funciona porque se ha eliminado el control, no porque se haya corregido la causa. El traslado cambió la ruta pero no la etiqueta del directorio: el tipo del objeto ya no corresponde al que la política espera para esa ubicación. Poner la política en permisivo oculta el síntoma y deja el sistema sin MAC.\n\nLa lectura correcta compara el contexto del proceso con el del objeto, busca el AVC de la ventana y determina si el problema es de etiqueta, de ruta o de política. Después se corrige la causa y se vuelve a enforcing con prueba positiva y negativa. El límite: sin el evento y sin la etiqueta observada, solo se sabe que desactivar el control hace que el servicio funcione, lo que no identifica la causa ni mide el riesgo asumido.\n\n"
+    },
+    {
+      "id": "LNX-26-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Registrar modo, contexto y evento AVC antes de proponer cualquier ajuste de política.\n- Red Team autorizado: Documentar una denegación reproducible en VM propia sin desactivar el control.\n- Evidencia de la etapa: `getenforce`, contexto de proceso y objeto, y evento AVC de la ventana.\n- Criterio de dominio: Identifica la causa de la denegación y mantiene la política activa tras la corrección.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB34](../../05_RECURSOS/LABORATORIOS/LNX-LAB34.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F107**: [Red Hat RHEL 9 Using SELinux](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/pdf/using_selinux/troubleshooting-problems-related-to-selinux_using-selinux). AVC, contextos y método de diagnóstico.\n- **F137**: [Red Hat: policy SELinux y diagnósticos](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/10/html/using_selinux/troubleshooting-problems-related-to-selinux). Identificación de denegaciones y corrección de etiquetas.\n- **F106**: [Linux Kernel: LSM usage](https://cdn.kernel.org/doc/html/latest/admin-guide/LSM/index.html). Qué LSM está activo y cómo se encadenan los controles.\n- **F104**: [ACL(5)](https://man7.org/linux/man-pages/man5/acl.5.html). Capa DAC que debe descartarse antes de atribuir la denegación a MAC.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-26-L01-P01",
+    "prompt": "Un servicio de laboratorio deja de escribir en su directorio de datos después de moverlo de `/var/lib/servicio` a `/srv/servicio`; los permisos y el propietario no cambiaron. El operador ejecuta `setenforce 0`, el servicio vuelve a funcionar y cierra el caso como «problema de SELinux». Explica qué datos de modo, contexto y evento revisarías, por qué desactivar la política no es una corrección y cuál es el límite de tu conclusión.",
+    "markdown": "## 4. Práctica individual\n\nUn servicio de laboratorio deja de escribir en su directorio de datos después de moverlo de `/var/lib/servicio` a `/srv/servicio`; los permisos y el propietario no cambiaron. El operador ejecuta `setenforce 0`, el servicio vuelve a funcionar y cierra el caso como «problema de SELinux». Explica qué datos de modo, contexto y evento revisarías, por qué desactivar la política no es una corrección y cuál es el límite de tu conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber operado SELinux ni haber corregido una denegación real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-26-L01-Q01",
+      "prompt": "Un archivo se mueve a otra ruta y el servicio deja de acceder a él aunque el modo y el propietario no cambian. ¿Cuál es la hipótesis más directa en SELinux?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que el modo del archivo se corrompió durante el traslado"
+        },
+        {
+          "id": "B",
+          "text": "Que la ACL perdió su máscara efectiva"
+        },
+        {
+          "id": "C",
+          "text": "Que el archivo conservó su etiqueta de origen y el tipo no corresponde a la nueva ubicación"
+        },
+        {
+          "id": "D",
+          "text": "Que la umask del servicio cambió al reiniciarse"
+        }
+      ]
+    },
+    {
+      "id": "LNX-26-L01-Q02",
+      "prompt": "¿Qué implica encontrar una denegación en modo `Permissive`?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que la política está desactivada y no se generan eventos"
+        },
+        {
+          "id": "B",
+          "text": "Que el objeto tiene una etiqueta correcta por definición"
+        },
+        {
+          "id": "C",
+          "text": "Que la denegación no volverá a aparecer al pasar a `Enforcing`"
+        },
+        {
+          "id": "D",
+          "text": "Que la operación se registró pero no se bloqueó, y el evento sigue siendo evidencia útil"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB34](../../05_RECURSOS/LABORATORIOS/LNX-LAB34.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F107**: [Red Hat RHEL 9 Using SELinux](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/pdf/using_selinux/troubleshooting-problems-related-to-selinux_using-selinux). AVC, contextos y método de diagnóstico.\n- **F137**: [Red Hat: policy SELinux y diagnósticos](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/10/html/using_selinux/troubleshooting-problems-related-to-selinux). Identificación de denegaciones y corrección de etiquetas.\n- **F106**: [Linux Kernel: LSM usage](https://cdn.kernel.org/doc/html/latest/admin-guide/LSM/index.html). Qué LSM está activo y cómo se encadenan los controles.\n- **F104**: [ACL(5)](https://man7.org/linux/man-pages/man5/acl.5.html). Capa DAC que debe descartarse antes de atribuir la denegación a MAC.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "1e183f195a693a660f7d757d"
+}

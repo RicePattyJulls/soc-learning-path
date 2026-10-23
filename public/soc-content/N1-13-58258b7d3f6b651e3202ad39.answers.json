@@ -1,0 +1,183 @@
+{
+  "schemaVersion": 1,
+  "courseId": "soc",
+  "id": "N1-13",
+  "sourceHash": "03852535832c5e2aa16cdb3ec8c3d9f97f32656a6c5b2e8287b41b1215160014",
+  "revision": "58258b7d3f6b651e3202ad39",
+  "hipotesis": [
+    "Un auténtico kernel worker thread está procesando colas del kernel, debido a driver, hardware, interrupciones, filesystem, I/O o una regresión.",
+    "Proceso de usuario malicioso usa nombre parecido a kworker para camuflar minería, persistencia o comunicaciones.",
+    "Un proceso legítimo de usuario tiene nombre engañosamente parecido; debe confirmarse con inventario, ruta y empaquetado.",
+    "Un servicio de infraestructura creó carga real que activa trabajos del kernel; el trabajador afectado no es el origen del problema.",
+    "Interpretación errónea del porcentaje de CPU por hilo/núcleo, contenedor o muestreo; valor alto no demuestra malware."
+  ],
+  "pasos": [
+    {
+      "fase": "0. Validar alerta y alcance",
+      "accion": "Confirmar host, distribución/kernel, uptime, 95 % de qué métrica (núcleo, total, hilo), carga histórica, fecha de parches y efectos sobre disponibilidad."
+    },
+    {
+      "fase": "1. Identificar PID/TID y representación",
+      "accion": "Ejecutar `ps` y `top -H` para observar PID, PPID, STAT, comm y args. Los hilos auténticos suelen presentarse entre corchetes, por ejemplo `[kworker/2:1-events]`; la grafía sola es falsificable."
+    },
+    {
+      "fase": "2. Diferenciar kernel thread de proceso usuario",
+      "accion": "Inspeccionar `/proc/<PID>/exe`, `cmdline`, `status` y `maps` en lectura. Un kernel thread auténtico generalmente carece de ejecutable de espacio de usuario y de línea de comandos; un ejecutable sospechoso podría mostrar ruta real o estar borrado. Ausencia de exe no es prueba definitiva."
+    },
+    {
+      "fase": "3. Revisar parentage",
+      "accion": "Mirar PPID y genealogía. Kernel threads suelen estar asociados a `kthreadd` (PID 2) o gestionados por kernel; un padre tipo `bash`, `python`, `systemd` o un shell de webapp justifica atención si el nombre aparenta un worker de kernel. PPID por sí solo no prueba compromiso."
+    },
+    {
+      "fase": "4. Observar red y archivos sin alterar",
+      "accion": "Consultar sockets de procesos de usuario con `ss -tunap` y `lsof -p PID` cuando corresponda; kernel threads no son ejecutables de usuario normales. Revisar archivos temporales, permisos y cambios de servicios autorizados, sin descargar/ejecutar muestras."
+    },
+    {
+      "fase": "5. Revisar kernel y rendimiento",
+      "accion": "Consultar `journalctl -k`, errores de I/O, driver, interrupciones y cambios recientes de kernel. Si es worker auténtico, escalar a SRE/Linux y evitar kill -9, reinicio o cambios de módulo sin evaluación."
+    },
+    {
+      "fase": "6. Correlacionar EDR y logs",
+      "accion": "Buscar creación de procesos de usuario que coincidan con `kworker` en DeviceProcessEvents o CIM Endpoint.Processes. La ausencia de un registro para un hilo de kernel genuino es esperable; no equivale a host limpio."
+    },
+    {
+      "fase": "7. Determinar riesgo",
+      "accion": "Si hay binario de usuario con ruta temporal, hash desconocido, conexión externa, persistencia o cadena padre anómala, registrar evidencia y elevar a N2/IR; si es kernel legítimo con señales de driver, transferir a Infra/SRE con datos."
+    },
+    {
+      "fase": "8. Verificar y documentar",
+      "accion": "Medir carga tras intervención aprobada; preservar hora, PID/TID, PPID, ejecutable si existe, hash si procede, red, logs de kernel, cambios y responsable."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "PID, TID, PPID, STAT, cmd/comm",
+      "lectura": "Permiten saber qué se está midiendo y si parece un hilo del kernel o proceso de usuario. El nombre es editable por adversario."
+    },
+    {
+      "dato": "`/proc/<PID>/exe`, `cmdline`, `maps`",
+      "lectura": "Un hilo kernel genuino normalmente carece de exe/cmdline de usuario; proceso de usuario suele ofrecer ruta y argumentos, con excepciones y permisos."
+    },
+    {
+      "dato": "PPID 2 (kthreadd) y corchetes",
+      "lectura": "Orientan a kernel thread, no constituyen verificación criptográfica ni descartan anomalías más profundas."
+    },
+    {
+      "dato": "Conexiones y ficheros abiertos",
+      "lectura": "Proceso de usuario sospechoso podría comunicarse o leer archivos; no atribuir conexiones a un kernel thread solo por coincidencia de nombre."
+    },
+    {
+      "dato": "Logs del kernel, driver, I/O, IRQ",
+      "lectura": "Ayudan a investigar actividad normal de kworker y regresiones; no confundir carga con compromiso."
+    },
+    {
+      "dato": "EDR DeviceProcessEvents / auditd",
+      "lectura": "Captura ejecución de binarios de usuario; un verdadero kworker no tiene por qué generar evento de creación de proceso como un ejecutable."
+    },
+    {
+      "dato": "Cambio de kernel, servicio, update",
+      "lectura": "Correlación temporal con mantenimiento puede orientar, pero no certifica benignidad."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Defender XDR: ejecutables de usuario con nombre kworker",
+      "entorno": "DeviceProcessEvents desde Defender for Endpoint para Linux correctamente incorporado",
+      "consulta": "DeviceProcessEvents\n| where Timestamp > ago(7d)\n| where FileName startswith \"kworker\" or ProcessCommandLine contains \"kworker\"\n| project Timestamp, DeviceName, DeviceId, FileName, FolderPath,\n          ProcessCommandLine, AccountName, ProcessId,\n          InitiatingProcessFileName, InitiatingProcessCommandLine, SHA1\n| order by Timestamp desc",
+      "interpretacion": "Identifica programas de usuario cuyo nombre o comando simula procesos del kernel; revisar ruta, padre y hash.",
+      "limitaciones": "No representa la actividad interna de hilos kernel ni mide su porcentaje de CPU. La visibilidad depende de sensor y retención."
+    },
+    {
+      "nombre": "Defender XDR: actividad de red atribuida a ejecutable llamado kworker",
+      "entorno": "DeviceNetworkEvents de endpoints Linux con MDE; puede ser vacío en worker kernel genuino",
+      "consulta": "DeviceNetworkEvents\n| where Timestamp > ago(7d)\n| where InitiatingProcessFileName startswith \"kworker\"\n| project Timestamp, DeviceName, InitiatingProcessFileName,\n          InitiatingProcessFolderPath, InitiatingProcessCommandLine,\n          RemoteIP, RemotePort, ActionType, InitiatingProcessSHA1\n| order by Timestamp desc",
+      "interpretacion": "Si aparece actividad de red originada por un proceso de usuario llamado kworker, investigar posible suplantación.",
+      "limitaciones": "La ausencia de eventos no demuestra inocuidad; muchos hosts Linux no están incorporados a MDE, y el sensor no instrumenta todo el kernel."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk CIM Endpoint: procesos con nombres semejantes a kworker",
+      "entorno": "CIM Endpoint.Processes mapeado desde auditd, Sysmon for Linux o EDR; requiere campo process_name",
+      "consulta": "| tstats count as Ejecuciones values(Processes.process) as Lineas\n         values(Processes.process_path) as Rutas\n         values(Processes.parent_process_name) as Padres\n  from datamodel=Endpoint.Processes earliest=-7d\n  where Processes.process_name=\"kworker*\"\n  by Processes.dest Processes.process_name\n| rename Processes.* AS *\n| sort - Ejecuciones",
+      "interpretacion": "Agrupa ejecutables de usuario con nombre sospechosamente parecido a kworker para comparar rutas y padres.",
+      "limitaciones": "No mide CPU ni incluye necesariamente hilos kernel. `tstats` requiere que campos estén presentes en el datamodel y en fuentes mapeadas."
+    },
+    {
+      "nombre": "Splunk auditd: búsquedas de ejecución de binarios kworker",
+      "entorno": "Ejemplo de búsqueda sobre logs auditd con crudos completos ingestados en índice linux; adaptar sourcetype y registros EXECVE/PATH",
+      "consulta": "index=linux earliest=-7d (sourcetype=\"linux:audit\" OR sourcetype=\"auditd\")\n(\"kworker\" OR \"kworker/\")\n| table _time host type msg exe comm proctitle _raw\n| sort 0 -_time",
+      "interpretacion": "Busca pistas de ejecución usuario/auditd y deja contexto del mensaje crudo para validar.",
+      "limitaciones": "La simple aparición de la palabra kworker en mensajes no demuestra malware. auditd puede no estar instalado, ni registrar hilos del kernel ni todos los argumentos."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Linux — listar procesos e hilos por CPU",
+      "proposito": "Lectura; la utilidad `ps` puede truncar args según terminal.",
+      "comando": "ps -eLo pid,tid,ppid,stat,comm,pcpu,args --sort=-pcpu | head -n 25"
+    },
+    {
+      "entorno": "Linux — metadatos de un PID",
+      "proposito": "Cambiar PID solo después de identificarlo. readlink puede fallar de forma esperable para hilos kernel.",
+      "comando": "PID=1234  # Sustituir por el PID observado\nps -p \"$PID\" -o pid,ppid,user,stat,comm,args\nsudo readlink \"/proc/$PID/exe\" || true\nsudo cat \"/proc/$PID/status\" | head -n 20"
+    },
+    {
+      "entorno": "Linux — línea de comandos de un proceso de usuario",
+      "proposito": "En worker kernel puede venir vacía; mostrar byte nulo como separador legible.",
+      "comando": "PID=1234\nsudo tr '\\0' ' ' < \"/proc/$PID/cmdline\"; echo"
+    },
+    {
+      "entorno": "Linux — mensajes recientes del kernel",
+      "proposito": "Revisión de hardware/driver/I/O y correlación temporal.",
+      "comando": "sudo journalctl -k --since \"2 hours ago\" --no-pager | tail -n 100"
+    },
+    {
+      "entorno": "Linux — conexiones salientes",
+      "proposito": "Ver conexiones y procesos disponibles; evita matar PID por nombre.",
+      "comando": "sudo ss -tunap"
+    }
+  ],
+  "contencion": "No ejecutar `kill -9` sobre un supuesto kworker: si es kernel thread, además de no ser una solución fiable, la operación puede desestabilizar el sistema; si es malware, perderías contexto de investigación. Para proceso de usuario claramente malicioso, pedir contención aprobada vía EDR o restricción de red, recoger evidencia antes cuando sea viable, y coordinar con Infra si la carga afecta producción. Para kernel thread genuino, derivar al equipo del kernel/hardware y seguir diagnóstico seguro.",
+  "escalation": [
+    "Se confirma ejecutable de usuario haciéndose pasar por kworker, en ruta no autorizada o con persistencia.",
+    "Existen comunicaciones externas, lectura de secretos, modificación de cuentas o escritura de archivos asociadas.",
+    "CPU elevada produce caída de un sistema crítico o aumento sostenido de latencias.",
+    "La creación del proceso no coincide con actividades de mantenimiento autorizadas.",
+    "Se detectan alteraciones de herramientas de monitorización, EDR u ocultación de procesos."
+  ],
+  "falsos_positivos": [
+    "Kernel worker real después de actualizar un controlador o módulo.",
+    "Eventos intensos de I/O, filesystem, discos o interrupciones de red.",
+    "Aplicaciones legítimas que usan etiquetas internas kworker (no habituales, pero posibles).",
+    "Top presenta 95 % de un núcleo, no del sistema completo.",
+    "Una cadena de texto kworker aparece en logs sin proceso ejecutable correspondiente."
+  ],
+  "errores": [
+    "Asumir que 95 % de CPU equivale a cryptominer.",
+    "Matar todos los procesos de nombre parecido a kworker.",
+    "Creer que corchetes y PPID 2 hacen imposible el engaño.",
+    "Afirmar que MDE `DeviceProcessEvents` captura todos los kthreads de kernel.",
+    "No verificar ruta, parentage, `/proc`, drivers, kernel logs y conexiones.",
+    "Reiniciar producción sin recopilar indicadores y sin permiso."
+  ],
+  "perspectiva_red_team": "El masquerading T1036 puede utilizar nombres cercanos a servicios legítimos o kernel workers. Un ejecutable de usuario puede cambiar su nombre visible o lanzar procesos con ruta/argv engañosos, lo que exige contrastar /proc, procesos, origen de creación y archivos. En paralelo un kworker real alto puede ser síntoma de hardware, no de atacante. El Blue Team distingue identidad real de un proceso frente a su etiqueta.",
+  "respuesta_entrevista": "Primero verificaría qué significa el 95 % de CPU y si `kworker` es un hilo real del kernel. Haría `ps` para PID/PPID/STAT, luego comprobaría `/proc/PID/exe` y `cmdline`, sabiendo que un kernel thread suele carecer de ejecutable de usuario. Revisaría logs del kernel, actualización de drivers y el servicio nuevo, además de EDR, conexiones y ruta si existe un proceso de usuario. No lo mataría por el nombre: si es carga legítima derivaría a Infra; si aparece un binario camuflado con actividad no autorizada escalaría a IR.",
+  "criterios_evaluacion": [
+    "Distingue hilo kernel de ejecutable de usuario y límites de top/ps.",
+    "Sabe interpretar PPID/comm/cmdline y /proc con cautela.",
+    "Usa evidencia de cambios, I/O, kernel, EDR y red.",
+    "No propone kill indiscriminado ni atribución solo por CPU.",
+    "Escala por compromiso o disponibilidad y documenta."
+  ],
+  "mitre": [
+    "T1036",
+    "T1036.004"
+  ],
+  "fuentes": [
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-deviceprocessevents-table",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-devicenetworkevents-table",
+    "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.4/data-models/endpoint",
+    "https://attack.mitre.org/techniques/T1036/"
+  ]
+}

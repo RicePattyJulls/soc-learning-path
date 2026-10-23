@@ -1,0 +1,208 @@
+# Redes: lecciones redactadas
+
+168 lecciones de estudio y análisis documental, 336 preguntas y 168 prácticas con solucionarios separados. Revisión educativa del autor completada con correcciones; revisión independiente pendiente. Las 20 guías de laboratorio conservan estado de diseño sin ejecución.
+
+## Recorrido
+
+### RED-E01 — Fundamentos, direccionamiento y lectura de tráfico
+
+- [RED-M01-L01: OSI frente a TCP/IP](02_LECCIONES/RED-E01/RED-M01-L01.md)
+- [RED-M01-L02: Medios, interfaces y velocidad/dúplex](02_LECCIONES/RED-E01/RED-M01-L02.md)
+- [RED-M01-L03: Encapsulación y Ethernet](02_LECCIONES/RED-E01/RED-M01-L03.md)
+- [RED-M01-L04: Errores y límites del modelo](02_LECCIONES/RED-E01/RED-M01-L04.md)
+- [RED-M02-L01: Direcciones, máscaras y CIDR](02_LECCIONES/RED-E01/RED-M02-L01.md)
+- [RED-M02-L02: Subredes y VLSM](02_LECCIONES/RED-E01/RED-M02-L02.md)
+- [RED-M02-L03: Sumarización y asignación](02_LECCIONES/RED-E01/RED-M02-L03.md)
+- [RED-M02-L04: Diagnóstico de direcciones](02_LECCIONES/RED-E01/RED-M02-L04.md)
+- [RED-M03-L01: Formato IPv6 y tipos](02_LECCIONES/RED-E01/RED-M03-L01.md)
+- [RED-M03-L02: ICMPv6, ND y RA](02_LECCIONES/RED-E01/RED-M03-L02.md)
+- [RED-M03-L03: SLAAC, DAD y DHCPv6](02_LECCIONES/RED-E01/RED-M03-L03.md)
+- [RED-M03-L04: IPv6 y control de acceso](02_LECCIONES/RED-E01/RED-M03-L04.md)
+- [RED-M04-L01: TCP y UDP](02_LECCIONES/RED-E01/RED-M04-L01.md)
+- [RED-M04-L02: Handshake, estados y ventanas](02_LECCIONES/RED-E01/RED-M04-L02.md)
+- [RED-M04-L03: Retransmisiones y resets](02_LECCIONES/RED-E01/RED-M04-L03.md)
+- [RED-M04-L04: MTU/MSS, fragmentación IPv4 y PMTUD](02_LECCIONES/RED-E01/RED-M04-L04.md)
+- [RED-M05-L01: Captura frente a filtro visual](02_LECCIONES/RED-E01/RED-M05-L01.md)
+- [RED-M05-L02: Interfaces y puntos de observación](02_LECCIONES/RED-E01/RED-M05-L02.md)
+- [RED-M05-L03: PCAP y metadatos](02_LECCIONES/RED-E01/RED-M05-L03.md)
+- [RED-M05-L04: Primeras consultas DNS/TCP/TLS](02_LECCIONES/RED-E01/RED-M05-L04.md)
+- [RED-M06-L01: HTTP/HTTPS y TLS](02_LECCIONES/RED-E01/RED-M06-L01.md)
+- [RED-M06-L02: Administración SSH/RDP](02_LECCIONES/RED-E01/RED-M06-L02.md)
+- [RED-M06-L03: SMB y directorio LDAP/Kerberos](02_LECCIONES/RED-E01/RED-M06-L03.md)
+- [RED-M06-L04: Qué revela u oculta el cifrado](02_LECCIONES/RED-E01/RED-M06-L04.md)
+
+### RED-E02 — Servicios, campus básico y redes inalámbricas
+
+- [RED-M07-L01: Resolución recursiva y caches](02_LECCIONES/RED-E02/RED-M07-L01.md)
+- [RED-M07-L02: DHCPv4 y DHCPv6/SLAAC](02_LECCIONES/RED-E02/RED-M07-L02.md)
+- [RED-M07-L03: Sincronía y UTC](02_LECCIONES/RED-E02/RED-M07-L03.md)
+- [RED-M07-L04: Fallos de servicio y dependencia](02_LECCIONES/RED-E02/RED-M07-L04.md)
+- [RED-M08-L01: Aprendizaje MAC y ARP](02_LECCIONES/RED-E02/RED-M08-L01.md)
+- [RED-M08-L02: Dominios de broadcast](02_LECCIONES/RED-E02/RED-M08-L02.md)
+- [RED-M08-L03: LLDP y CDP](02_LECCIONES/RED-E02/RED-M08-L03.md)
+- [RED-M08-L04: Errores de puertos y documentación](02_LECCIONES/RED-E02/RED-M08-L04.md)
+- [RED-M09-L01: VLAN y access ports](02_LECCIONES/RED-E02/RED-M09-L01.md)
+- [RED-M09-L02: Etiquetado 802.1Q/nativa](02_LECCIONES/RED-E02/RED-M09-L02.md)
+- [RED-M09-L03: Trunks y propagación](02_LECCIONES/RED-E02/RED-M09-L03.md)
+- [RED-M09-L04: Inter-VLAN y troubleshooting](02_LECCIONES/RED-E02/RED-M09-L04.md)
+- [RED-M10-L01: STP/RSTP/MSTP](02_LECCIONES/RED-E02/RED-M10-L01.md)
+- [RED-M10-L02: Root bridge y convergencia](02_LECCIONES/RED-E02/RED-M10-L02.md)
+- [RED-M10-L03: Guardias y protecciones](02_LECCIONES/RED-E02/RED-M10-L03.md)
+- [RED-M10-L04: LACP/port channels](02_LECCIONES/RED-E02/RED-M10-L04.md)
+- [RED-M11-L01: 802.11, bandas y canales](02_LECCIONES/RED-E02/RED-M11-L01.md)
+- [RED-M11-L02: Interferencia y capacidad](02_LECCIONES/RED-E02/RED-M11-L02.md)
+- [RED-M11-L03: Roaming](02_LECCIONES/RED-E02/RED-M11-L03.md)
+- [RED-M11-L04: Diagnóstico de cliente inalámbrico](02_LECCIONES/RED-E02/RED-M11-L04.md)
+
+### RED-E03 — Routing empresarial, WAN y rendimiento
+
+- [RED-M12-L01: Conectadas y estáticas](02_LECCIONES/RED-E03/RED-M12-L01.md)
+- [RED-M12-L02: Default route](02_LECCIONES/RED-E03/RED-M12-L02.md)
+- [RED-M12-L03: Longest-prefix match y AD](02_LECCIONES/RED-E03/RED-M12-L03.md)
+- [RED-M12-L04: Diagnóstico de camino ida/vuelta](02_LECCIONES/RED-E03/RED-M12-L04.md)
+- [RED-M13-L01: Vecinos y áreas](02_LECCIONES/RED-E03/RED-M13-L01.md)
+- [RED-M13-L02: Estados, LSDB y SPF](02_LECCIONES/RED-E03/RED-M13-L02.md)
+- [RED-M13-L03: OSPFv2/v3 y autenticación aplicable](02_LECCIONES/RED-E03/RED-M13-L03.md)
+- [RED-M13-L04: Sumarización y averías](02_LECCIONES/RED-E03/RED-M13-L04.md)
+- [RED-M14-L01: Sesiones eBGP/iBGP](02_LECCIONES/RED-E03/RED-M14-L01.md)
+- [RED-M14-L02: Atributos y best-path](02_LECCIONES/RED-E03/RED-M14-L02.md)
+- [RED-M14-L03: Políticas, filtros y comunidades](02_LECCIONES/RED-E03/RED-M14-L03.md)
+- [RED-M14-L04: Diagnóstico y controles operativos](02_LECCIONES/RED-E03/RED-M14-L04.md)
+- [RED-M15-L01: Rutas y filtrado](02_LECCIONES/RED-E03/RED-M15-L01.md)
+- [RED-M15-L02: Redistribución y route maps](02_LECCIONES/RED-E03/RED-M15-L02.md)
+- [RED-M15-L03: VRF-Lite y PBR](02_LECCIONES/RED-E03/RED-M15-L03.md)
+- [RED-M15-L04: uRPF, EIGRP/IS-IS comparados](02_LECCIONES/RED-E03/RED-M15-L04.md)
+- [RED-M16-L01: FHRP y elección](02_LECCIONES/RED-E03/RED-M16-L01.md)
+- [RED-M16-L02: BFD y monitoreo](02_LECCIONES/RED-E03/RED-M16-L02.md)
+- [RED-M16-L03: Convergencia L2/L3](02_LECCIONES/RED-E03/RED-M16-L03.md)
+- [RED-M16-L04: Pruebas de fallo y recuperación](02_LECCIONES/RED-E03/RED-M16-L04.md)
+- [RED-M17-L01: SNAT/DNAT/PAT](02_LECCIONES/RED-E03/RED-M17-L01.md)
+- [RED-M17-L02: Tablas de estado](02_LECCIONES/RED-E03/RED-M17-L02.md)
+- [RED-M17-L03: Proxies y balanceadores](02_LECCIONES/RED-E03/RED-M17-L03.md)
+- [RED-M17-L04: Rutas asimétricas y atribución](02_LECCIONES/RED-E03/RED-M17-L04.md)
+- [RED-M18-L01: WAN y proveedores](02_LECCIONES/RED-E03/RED-M18-L01.md)
+- [RED-M18-L02: IPsec/TLS y GRE](02_LECCIONES/RED-E03/RED-M18-L02.md)
+- [RED-M18-L03: MPLS como servicio](02_LECCIONES/RED-E03/RED-M18-L03.md)
+- [RED-M18-L04: SD-WAN y políticas](02_LECCIONES/RED-E03/RED-M18-L04.md)
+- [RED-M19-L01: Latencia/jitter/pérdida](02_LECCIONES/RED-E03/RED-M19-L01.md)
+- [RED-M19-L02: Colas y marking](02_LECCIONES/RED-E03/RED-M19-L02.md)
+- [RED-M19-L03: Multicast conceptos](02_LECCIONES/RED-E03/RED-M19-L03.md)
+- [RED-M19-L04: Baselines de voz/vídeo](02_LECCIONES/RED-E03/RED-M19-L04.md)
+
+### RED-E04 — Arquitectura y seguridad de la red
+
+- [RED-M20-L01: Modelo jerárquico](02_LECCIONES/RED-E04/RED-M20-L01.md)
+- [RED-M20-L02: Dominios de fallo](02_LECCIONES/RED-E04/RED-M20-L02.md)
+- [RED-M20-L03: Zonas y DMZ](02_LECCIONES/RED-E04/RED-M20-L03.md)
+- [RED-M20-L04: Alta disponibilidad y crecimiento](02_LECCIONES/RED-E04/RED-M20-L04.md)
+- [RED-M21-L01: ACL y orden](02_LECCIONES/RED-E04/RED-M21-L01.md)
+- [RED-M21-L02: Stateful vs stateless](02_LECCIONES/RED-E04/RED-M21-L02.md)
+- [RED-M21-L03: DMZ y egress](02_LECCIONES/RED-E04/RED-M21-L03.md)
+- [RED-M21-L04: Microsegmentación/Zero Trust](02_LECCIONES/RED-E04/RED-M21-L04.md)
+- [RED-M22-L01: Planos de red](02_LECCIONES/RED-E04/RED-M22-L01.md)
+- [RED-M22-L02: AAA, SSH y roles](02_LECCIONES/RED-E04/RED-M22-L02.md)
+- [RED-M22-L03: NTP, backup y control de cambios](02_LECCIONES/RED-E04/RED-M22-L03.md)
+- [RED-M22-L04: CoPP y administración fuera de banda](02_LECCIONES/RED-E04/RED-M22-L04.md)
+- [RED-M23-L01: Port security y DHCP snooping](02_LECCIONES/RED-E04/RED-M23-L01.md)
+- [RED-M23-L02: DAI/IP Source Guard](02_LECCIONES/RED-E04/RED-M23-L02.md)
+- [RED-M23-L03: 802.1X y RADIUS/TACACS+](02_LECCIONES/RED-E04/RED-M23-L03.md)
+- [RED-M23-L04: Políticas NAC y excepciones](02_LECCIONES/RED-E04/RED-M23-L04.md)
+- [RED-M24-L01: WPA2/WPA3 y PMF](02_LECCIONES/RED-E04/RED-M24-L01.md)
+- [RED-M24-L02: RADIUS/802.1X](02_LECCIONES/RED-E04/RED-M24-L02.md)
+- [RED-M24-L03: SSID-VLAN y roaming](02_LECCIONES/RED-E04/RED-M24-L03.md)
+- [RED-M24-L04: Visibilidad defensiva y errores RF](02_LECCIONES/RED-E04/RED-M24-L04.md)
+- [RED-M25-L01: VNet/VPC, subredes y tablas](02_LECCIONES/RED-E04/RED-M25-L01.md)
+- [RED-M25-L02: SG/NSG/NACL conceptuales](02_LECCIONES/RED-E04/RED-M25-L02.md)
+- [RED-M25-L03: DNS, VPN y peering](02_LECCIONES/RED-E04/RED-M25-L03.md)
+- [RED-M25-L04: Telemetría y costes estimados pendientes](02_LECCIONES/RED-E04/RED-M25-L04.md)
+
+### RED-E05 — Observabilidad e investigación SOC
+
+- [RED-M26-L01: Syslog y facility/severity](02_LECCIONES/RED-E05/RED-M26-L01.md)
+- [RED-M26-L02: SNMP y polling/traps](02_LECCIONES/RED-E05/RED-M26-L02.md)
+- [RED-M26-L03: UTC/NTP y delay](02_LECCIONES/RED-E05/RED-M26-L03.md)
+- [RED-M26-L04: Pérdidas, retención y duplicados](02_LECCIONES/RED-E05/RED-M26-L04.md)
+- [RED-M27-L01: 5-tupla y plantillas IPFIX](02_LECCIONES/RED-E05/RED-M27-L01.md)
+- [RED-M27-L02: Muestreo y asimetría](02_LECCIONES/RED-E05/RED-M27-L02.md)
+- [RED-M27-L03: IDS/IPS firmas y anomalías](02_LECCIONES/RED-E05/RED-M27-L03.md)
+- [RED-M27-L04: NDR y falsos positivos](02_LECCIONES/RED-E05/RED-M27-L04.md)
+- [RED-M28-L01: Filtros avanzados](02_LECCIONES/RED-E05/RED-M28-L01.md)
+- [RED-M28-L02: TCP/DNS/HTTP/TLS](02_LECCIONES/RED-E05/RED-M28-L02.md)
+- [RED-M28-L03: SMB/Kerberos visibles](02_LECCIONES/RED-E05/RED-M28-L03.md)
+- [RED-M28-L04: Captura parcial, checksum/offload](02_LECCIONES/RED-E05/RED-M28-L04.md)
+- [RED-M29-L01: Hipótesis versus hecho](02_LECCIONES/RED-E05/RED-M29-L01.md)
+- [RED-M29-L02: Cronología UTC](02_LECCIONES/RED-E05/RED-M29-L02.md)
+- [RED-M29-L03: Pivotes DNS/flow/identidad](02_LECCIONES/RED-E05/RED-M29-L03.md)
+- [RED-M29-L04: Alcance y niveles de certeza](02_LECCIONES/RED-E05/RED-M29-L04.md)
+- [RED-M30-L01: Campos y procedencia](02_LECCIONES/RED-E05/RED-M30-L01.md)
+- [RED-M30-L02: Normalización CIM/CEF/DCR](02_LECCIONES/RED-E05/RED-M30-L02.md)
+- [RED-M30-L03: Correlación con endpoint/identidad](02_LECCIONES/RED-E05/RED-M30-L03.md)
+- [RED-M30-L04: Ruido, FPR/FNR y ATT&CK](02_LECCIONES/RED-E05/RED-M30-L04.md)
+- [RED-M31-L01: Triage y escalado](02_LECCIONES/RED-E05/RED-M31-L01.md)
+- [RED-M31-L02: Preservación](02_LECCIONES/RED-E05/RED-M31-L02.md)
+- [RED-M31-L03: Contención y disponibilidad](02_LECCIONES/RED-E05/RED-M31-L03.md)
+- [RED-M31-L04: Restauración y lessons learned](02_LECCIONES/RED-E05/RED-M31-L04.md)
+
+### RED-E06 — Red Team de redes autorizado
+
+- [RED-M32-L01: Autorización escrita](02_LECCIONES/RED-E06/RED-M32-L01.md)
+- [RED-M32-L02: Scope, ventanas y activos](02_LECCIONES/RED-E06/RED-M32-L02.md)
+- [RED-M32-L03: Riesgo de disponibilidad y datos](02_LECCIONES/RED-E06/RED-M32-L03.md)
+- [RED-M32-L04: Criterios de parada y reporte](02_LECCIONES/RED-E06/RED-M32-L04.md)
+- [RED-M33-L01: Inventario y descubrimiento](02_LECCIONES/RED-E06/RED-M33-L01.md)
+- [RED-M33-L02: Enumeración limitada](02_LECCIONES/RED-E06/RED-M33-L02.md)
+- [RED-M33-L03: Verificación manual](02_LECCIONES/RED-E06/RED-M33-L03.md)
+- [RED-M33-L04: Registro de comandos y resultados](02_LECCIONES/RED-E06/RED-M33-L04.md)
+- [RED-M34-L01: Casos permitidos/negados](02_LECCIONES/RED-E06/RED-M34-L01.md)
+- [RED-M34-L02: Pruebas L2 y L3](02_LECCIONES/RED-E06/RED-M34-L02.md)
+- [RED-M34-L03: Wi-Fi y policy](02_LECCIONES/RED-E06/RED-M34-L03.md)
+- [RED-M34-L04: Indicios versus vulnerabilidad confirmada](02_LECCIONES/RED-E06/RED-M34-L04.md)
+- [RED-M35-L01: Plan compartido Blue/Red](02_LECCIONES/RED-E06/RED-M35-L01.md)
+- [RED-M35-L02: Telemetría por actividad](02_LECCIONES/RED-E06/RED-M35-L02.md)
+- [RED-M35-L03: Informe y mitigación](02_LECCIONES/RED-E06/RED-M35-L03.md)
+- [RED-M35-L04: Retest y efectos secundarios](02_LECCIONES/RED-E06/RED-M35-L04.md)
+
+### RED-E07 — Automatización, cambio y operaciones
+
+- [RED-M36-L01: Python básico y parsing](02_LECCIONES/RED-E07/RED-M36-L01.md)
+- [RED-M36-L02: JSON/YAML](02_LECCIONES/RED-E07/RED-M36-L02.md)
+- [RED-M36-L03: Git y pruebas](02_LECCIONES/RED-E07/RED-M36-L03.md)
+- [RED-M36-L04: Manejo de errores](02_LECCIONES/RED-E07/RED-M36-L04.md)
+- [RED-M37-L01: REST y autenticación](02_LECCIONES/RED-E07/RED-M37-L01.md)
+- [RED-M37-L02: YANG/NETCONF/RESTCONF](02_LECCIONES/RED-E07/RED-M37-L02.md)
+- [RED-M37-L03: Ansible y estados deseados](02_LECCIONES/RED-E07/RED-M37-L03.md)
+- [RED-M37-L04: Errores, secretos y logging](02_LECCIONES/RED-E07/RED-M37-L04.md)
+- [RED-M38-L01: Pre-checks y diffs](02_LECCIONES/RED-E07/RED-M38-L01.md)
+- [RED-M38-L02: Idempotencia](02_LECCIONES/RED-E07/RED-M38-L02.md)
+- [RED-M38-L03: Canary/despliegue gradual](02_LECCIONES/RED-E07/RED-M38-L03.md)
+- [RED-M38-L04: Rollback y auditoría](02_LECCIONES/RED-E07/RED-M38-L04.md)
+- [RED-M39-L01: Baselines](02_LECCIONES/RED-E07/RED-M39-L01.md)
+- [RED-M39-L02: SLA, pérdida y jitter](02_LECCIONES/RED-E07/RED-M39-L02.md)
+- [RED-M39-L03: Telemetría comparativa](02_LECCIONES/RED-E07/RED-M39-L03.md)
+- [RED-M39-L04: Diagnóstico transversal](02_LECCIONES/RED-E07/RED-M39-L04.md)
+
+### RED-E08 — Proyectos finales y defensa técnica
+
+- [RED-M40-L01: Requisitos y restricciones](02_LECCIONES/RED-E08/RED-M40-L01.md)
+- [RED-M40-L02: Diseño L2/L3 y acceso](02_LECCIONES/RED-E08/RED-M40-L02.md)
+- [RED-M40-L03: Seguridad/observabilidad](02_LECCIONES/RED-E08/RED-M40-L03.md)
+- [RED-M40-L04: Pruebas y documentación](02_LECCIONES/RED-E08/RED-M40-L04.md)
+- [RED-M41-L01: Plan de ensayo](02_LECCIONES/RED-E08/RED-M41-L01.md)
+- [RED-M41-L02: Generación controlada y fuentes](02_LECCIONES/RED-E08/RED-M41-L02.md)
+- [RED-M41-L03: Investigación e informe](02_LECCIONES/RED-E08/RED-M41-L03.md)
+- [RED-M41-L04: Corrección, retest y conclusiones](02_LECCIONES/RED-E08/RED-M41-L04.md)
+- [RED-M42-L01: Defensa de arquitectura](02_LECCIONES/RED-E08/RED-M42-L01.md)
+- [RED-M42-L02: Incidente alternativo](02_LECCIONES/RED-E08/RED-M42-L02.md)
+- [RED-M42-L03: Fallos sembrados nuevos](02_LECCIONES/RED-E08/RED-M42-L03.md)
+- [RED-M42-L04: Plan de repaso espaciado](02_LECCIONES/RED-E08/RED-M42-L04.md)
+
+## Recursos
+
+- [Glosario de apoyo](05_RECURSOS/GLOSARIO.md).
+- [Fuentes consultadas](05_RECURSOS/FUENTES.json).
+- [Caso integrador Empresa-Lab](05_RECURSOS/EMPRESA-LAB.json).
+- [Fixture para métricas de detección](05_RECURSOS/DETECCION-120.json).
+- [Catálogo editorial y procedencia](VALIDACION/CATALOGO-EDITORIAL.json).
+- [Revisión educativa por lección](VALIDACION/REVISION-EDUCATIVA.json).
+
+El banco de respuestas, los solucionarios y datos de solución son material de revisión; no deben servirse como parte visible de un intento de evaluación. La preparación del mundo web será una fase posterior.

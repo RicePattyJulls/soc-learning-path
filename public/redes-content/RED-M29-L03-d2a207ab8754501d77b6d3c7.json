@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M29-L03",
+  "title": "Pivotes DNS/flow/identidad",
+  "sourceHash": "a7eafd11cad8e43174dd3f76b11ed453523f0016d8b3dcbb00b1450c9e09dfd5",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M29-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nCorroborar identidad usando concesiones, traducciones y sesiones.\n\nPrerrequisitos: [RED-M29-L02](../RED-E05/RED-M29-L02.md).\n\n## 2. Comprende el mecanismo\n\nDNS, DHCP, NAT, VPN y endpoint aportan relaciones distintas entre nombres, direcciones e identidades. Sus registros deben coincidir en tiempo y alcance; una concesión no prueba qué persona ejecutó un proceso y una IP de VPN puede ser compartida o reasignada. Usa pivotes explícitos con su calidad, no uniones que multiplican filas y aparentan más evidencia. Cuando faltan logs NAT o precisión temporal, registra varios candidatos si corresponde. Dos tablas derivadas del mismo mensaje no son dos fuentes independientes.\n\n### Vocabulario de apoyo\n\n- **Hipótesis discriminante**: Explicación con una observación prevista que la distingue de otras alternativas.\n- **Pivote y cardinalidad**: Clave para relacionar fuentes y número de correspondencias que produce esa relación.\n- **Incertidumbre temporal**: Intervalo admisible de la hora real según resolución y precisión del reloj.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M29-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso docente: DHCP asigna .10 a equipo A hasta 10:00; equipo B desde 10:05; alerta externa solo indica 10:00 ±10 min.\n\nLa incertidumbre temporal abarca candidatos distintos. No es defendible atribuir de forma exclusiva al equipo A usando solo la primera concesión encontrada.\n\n"
+    },
+    {
+      "id": "RED-M29-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Competencia central de investigación.\n- Red Team autorizado: Formular prueba adicional mínima y autorizada.\n- Evidencia del módulo: Timeline, alternativas, alcance y solicitud de datos.\n- Criterio del módulo: Decisión reproducible basada en evidencias.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L15](../../05_RECURSOS/LABORATORIOS/RED-L15.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **NIST-IR**: [SP 800-61 Rev. 3](https://csrc.nist.gov/pubs/sp/800/61/r3/final). Contexto de preparación, detección, respuesta y recuperación.\n- **ZEEK-DNS**: [dns.log](https://docs.zeek.org/en/current/reference/logs/dns.html). Registros DNS y significado de campos por versión.\n- **RFC3022**: [RFC 3022: Traditional IP Network Address Translator](https://www.rfc-editor.org/rfc/rfc3022.html). Traducción de direcciones y puertos; referencia conceptual, no guía de despliegue.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M29-L03-P01",
+    "prompt": "El endpoint B registra la conexión exacta a 10:07 y NAT confirma puerto. ¿Qué nueva relación queda respaldada?",
+    "markdown": "## 4. Práctica individual\n\nEl endpoint B registra la conexión exacta a 10:07 y NAT confirma puerto. ¿Qué nueva relación queda respaldada?\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M29-L03-Q01",
+      "prompt": "¿Qué relación aporta DHCP de manera más directa?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Validación criptográfica del proceso"
+        },
+        {
+          "id": "B",
+          "text": "Concesión de dirección a un cliente durante un período"
+        },
+        {
+          "id": "C",
+          "text": "Intención humana de cada conexión"
+        },
+        {
+          "id": "D",
+          "text": "Payload completo de toda sesión"
+        }
+      ]
+    },
+    {
+      "id": "RED-M29-L03-Q02",
+      "prompt": "¿Qué limita la atribución exclusiva en el caso?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El uso de una dirección IPv4"
+        },
+        {
+          "id": "B",
+          "text": "Los equipos tienen nombres diferentes"
+        },
+        {
+          "id": "C",
+          "text": "Hay una hora en el registro"
+        },
+        {
+          "id": "D",
+          "text": "La ventana temporal abarca reasignaciones"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L15](../../05_RECURSOS/LABORATORIOS/RED-L15.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **NIST-IR**: [SP 800-61 Rev. 3](https://csrc.nist.gov/pubs/sp/800/61/r3/final). Contexto de preparación, detección, respuesta y recuperación.\n- **ZEEK-DNS**: [dns.log](https://docs.zeek.org/en/current/reference/logs/dns.html). Registros DNS y significado de campos por versión.\n- **RFC3022**: [RFC 3022: Traditional IP Network Address Translator](https://www.rfc-editor.org/rfc/rfc3022.html). Traducción de direcciones y puertos; referencia conceptual, no guía de despliegue.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "d2a207ab8754501d77b6d3c7"
+}

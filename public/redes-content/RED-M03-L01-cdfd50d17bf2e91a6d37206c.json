@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M03-L01",
+  "title": "Formato IPv6 y tipos",
+  "sourceHash": "af435f53f20ead51a32b175a0914bdfb7851aea64fa1e3805e688a4ad8b5986f",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M03-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDistinguir tipos de direcciones IPv6 y comprimirlas sin perder información.\n\nPrerrequisitos: [RED-M01-L04](../RED-E01/RED-M01-L04.md), [RED-M02-L04](../RED-E01/RED-M02-L04.md).\n\n## 2. Comprende el mecanismo\n\nIPv6 utiliza 128 bits expresados como ocho grupos hexadecimales. Se pueden omitir ceros iniciales y comprimir una única secuencia de grupos cero con ::; hacerlo dos veces sería ambiguo. Las direcciones link-local se utilizan en el enlace y no se encaminan como destinos globales. ULA permite direccionamiento local, sin implicar conectividad pública. Anycast usa una dirección unicast asignada a varios nodos y el routing selecciona un destino. No toda interfaz usa EUI-64: existen identificadores estables y temporales con otras propiedades de privacidad.\n\n### Vocabulario de apoyo\n\n- **Link-local**: Dirección IPv6 válida dentro del enlace, que requiere identificar ese ámbito.\n- **ND, RA y DAD**: Neighbor Discovery agrupa funciones de vecindad; RA anuncia routers y DAD busca duplicidad de direcciones.\n- **SLAAC**: Autoconfiguración de direcciones mediante información anunciada en el enlace.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M03-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Dirección docente: 2001:0db8:0000:0000:0000:0000:0000:0010. Forma comprimida: 2001:db8::10.\n\nLa compresión mantiene los mismos 128 bits. El prefijo 2001:db8::/32 se reserva para documentación; no representa un servidor público a consultar.\n\n"
+    },
+    {
+      "id": "RED-M03-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Analizar telemetría IPv6 sin analogías falsas con ARP.\n- Red Team autorizado: Verificar segmentación IPv6 en alcance aislado.\n- Evidencia del módulo: Plan de prefijos dual stack, trazas y causa raíz.\n- Criterio del módulo: Identifica dependencia ND/ICMPv6 y corrección.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L02](../../05_RECURSOS/LABORATORIOS/RED-L02.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC4291**: [RFC 4291: IPv6 Addressing Architecture](https://www.rfc-editor.org/rfc/rfc4291.html). Formato, ámbitos y tipos de direcciones IPv6.\n- **RFC8200**: [RFC 8200: Internet Protocol, Version 6](https://www.rfc-editor.org/rfc/rfc8200.html). Cabecera IPv6 y fragmentación por origen.\n- **RFC4861**: [RFC 4861: Neighbor Discovery for IPv6](https://www.rfc-editor.org/rfc/rfc4861.html). Vecinos, routers y mensajes ICMPv6.\n- **RFC4862**: [RFC 4862: IPv6 Stateless Address Autoconfiguration](https://www.rfc-editor.org/rfc/rfc4862.html). SLAAC y detección de direcciones duplicadas.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M03-L01-P01",
+    "prompt": "Expande 2001:db8:1::5 y explica por qué fe80::1 necesita contexto de interfaz cuando hay varios enlaces.",
+    "markdown": "## 4. Práctica individual\n\nExpande 2001:db8:1::5 y explica por qué fe80::1 necesita contexto de interfaz cuando hay varios enlaces.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M03-L01-Q01",
+      "prompt": "¿Cuántas veces puede aparecer :: en una dirección válida?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Una como máximo"
+        },
+        {
+          "id": "B",
+          "text": "Ocho como máximo"
+        },
+        {
+          "id": "C",
+          "text": "Dos siempre"
+        },
+        {
+          "id": "D",
+          "text": "Una por cada interfaz"
+        }
+      ]
+    },
+    {
+      "id": "RED-M03-L01-Q02",
+      "prompt": "¿Qué implica anycast?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Varios nodos pueden compartir la dirección y el routing elige destino"
+        },
+        {
+          "id": "B",
+          "text": "Un identificador EUI-64 obligatorio"
+        },
+        {
+          "id": "C",
+          "text": "Cifrado obligatorio del contenido"
+        },
+        {
+          "id": "D",
+          "text": "Un broadcast a todos los hosts"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L02](../../05_RECURSOS/LABORATORIOS/RED-L02.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC4291**: [RFC 4291: IPv6 Addressing Architecture](https://www.rfc-editor.org/rfc/rfc4291.html). Formato, ámbitos y tipos de direcciones IPv6.\n- **RFC8200**: [RFC 8200: Internet Protocol, Version 6](https://www.rfc-editor.org/rfc/rfc8200.html). Cabecera IPv6 y fragmentación por origen.\n- **RFC4861**: [RFC 4861: Neighbor Discovery for IPv6](https://www.rfc-editor.org/rfc/rfc4861.html). Vecinos, routers y mensajes ICMPv6.\n- **RFC4862**: [RFC 4862: IPv6 Stateless Address Autoconfiguration](https://www.rfc-editor.org/rfc/rfc4862.html). SLAAC y detección de direcciones duplicadas.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "cdfd50d17bf2e91a6d37206c"
+}

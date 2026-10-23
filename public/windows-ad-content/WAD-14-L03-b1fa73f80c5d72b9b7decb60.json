@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-14-L03",
+  "title": "Mapa de rutas de control",
+  "sourceHash": "e36597567a15bf90ebeb9ee6ea2c10307c5a8cbd4e2d786275fc120ff30db882",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-14-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nTrazar un mapa de rutas de control entre dominios a partir de confianzas y pertenencias.\n\nPrerrequisitos: `WAD-14-L02` (autenticación selectiva y SID filtering).\n\n## 2. Comprende el mecanismo\n\nUn **mapa de rutas de control** representa, como grafo, quién podría llegar a controlar qué. Los nodos son dominios, grupos, cuentas y recursos del laboratorio —`ad.lab.test`, `socio.lab.test`, sus grupos y sus equipos—; las aristas son las relaciones que permiten moverse de un nodo a otro: confianzas, pertenencias a grupos, delegaciones y entradas de historial de SID. El mapa no dice qué ocurrió, sino qué caminos quedan abiertos según los datos.\n\nPara que exista una ruta de control hacen falta dos condiciones a la vez. La primera es el **alcance de autenticación**: la dirección, la transitividad y las restricciones de la confianza deben permitir que la identidad cruce hacia el otro dominio. La segunda es la **autorización**: en el destino debe existir una pertenencia, una delegación o un permiso que conceda privilegio. Una confianza sola es una carretera sin destino; una pertenencia sola es un privilegio sin camino para llegar a él.\n\nEl **límite de seguridad** ordena la lectura del mapa. Dentro del mismo bosque, los dominios están unidos por confianzas bidireccionales y transitivas y comparten esquema y catálogo global: el bosque es el límite de seguridad, no cada dominio. Por eso, una identidad con privilegios en un dominio del bosque suele encontrar camino hacia los demás, y un compromiso en un dominio puede alcanzar al resto. Cruzar hacia otro bosque es distinto: implica una confianza de bosque o externa que puede restringirse con autenticación selectiva y filtrado de SID.\n\nDibujar el mapa sigue un método repetible. Primero se listan los dominios y, entre ellos, las confianzas con su dirección, su transitividad y sus restricciones. Después se buscan las pertenencias o delegaciones que conceden privilegio en el destino y se marcan como rutas candidatas. Luego se añaden las aristas de historial de SID, de delegación y de confianza dentro del bosque. Por último se anota, para cada ruta, la evidencia que la sostiene y las partes que quedan sin confirmar.\n\nAl leer el mapa, una ruta es **potencial** hasta que una identidad concreta la posee. Las rutas de mayor riesgo son las que combinan un alcance de autenticación alcanzable con una pertenencia que concede administración sobre el otro lado. Pero la ruta se establece por **correlación** de datos —confianza y pertenencia—, no por un dato aislado: una confianza sin pertenencia, o una pertenencia inalcanzable, no constituyen control.\n\nEl mapa describe caminos posibles según los datos documentados y reconoce su límite: no demuestra que alguna identidad haya recorrido la ruta, ni cubre pertenencias creadas después o permisos no documentados. Es una herramienta para ordenar hipótesis y dirigir la verificación, no una prueba de compromiso.\n\n### Vocabulario de apoyo\n\n- **Ruta de control**: camino por el que una identidad podría llegar a un privilegio sobre otro objeto.\n- **Alcance de autenticación**: hasta dónde permite llegar una confianza según dirección, transitividad y restricciones.\n- **Pertenencia (membership)**: inclusión de una identidad en un grupo.\n- **Delegación**: concesión de una tarea concreta sobre un conjunto concreto de objetos.\n- **Historial de SID (SID history)**: SIDs previos que un objeto conserva, por ejemplo tras una migración.\n- **Avenidas de compromiso**: caminos conocidos por los que un entorno puede ser alcanzado.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-14-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test` el grupo `Admins Delegados` tiene control total sobre un servidor. Una cuenta de `socio.lab.test` es miembro de ese grupo, y la confianza entre ambos dominios es bidireccional y transitiva. Se pregunta si esa cuenta puede administrar el servidor.\n\nEl mapa da una ruta candidata: la cuenta de `socio.lab.test` cruza hacia `ad.lab.test` porque la confianza es bidireccional y transitiva —alcance de autenticación— y, al ser miembro de `Admins Delegados`, obtiene el privilegio que ese grupo tiene sobre el servidor —autorización—. Las dos condiciones se cumplen, así que la ruta es plausible. La conclusión acota lo observable —«existe una ruta de control según las confianzas y las pertenencias registradas»— y reconoce un límite: el mapa no prueba que la cuenta haya ejercido el privilegio ni confirma el permiso efectivo del grupo sobre el recurso; eso exige revisar los permisos y los registros.\n\n"
+    },
+    {
+      "id": "WAD-14-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Ordenar las rutas posibles entre dominios ayuda a priorizar qué confianzas y pertenencias vigilar.\n- Red Team autorizado: El mapa acota por dónde puede avanzar una prueba autorizada y qué evidencia la respalda.\n- Evidencia de la etapa: Grafo de dominios, confianzas y pertenencias con cada ruta candidata marcada.\n- Criterio de dominio: Se distingue una ruta potencial de una ruta recorrida y se documenta la evidencia.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB24](../../05_RECURSOS/LABORATORIOS/WAD-LAB24.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **AVENUES**: [Avenues to compromise](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/avenues-to-compromise). Caminos conocidos por los que un entorno puede ser alcanzado.\n- **SECIDENT**: [Security identifiers](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/understand-security-identifiers). Qué identifica un SID y por qué su procedencia importa al trazar rutas.\n- **FORESTS**: [Determining the number of forests required](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/determining-the-number-of-forests-required). Por qué el bosque marca el límite de seguridad.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-14-L03-P01",
+    "prompt": "Con los datos de `ad.lab.test` y `socio.lab.test` —una confianza bidireccional y transitiva entre ambos y una cuenta de `socio.lab.test` miembro de un grupo que administra un servidor de `ad.lab.test`— traza la ruta de control hacia ese servidor e indica qué condición de autenticación y qué condición de autorización la sostienen.",
+    "markdown": "## 4. Práctica individual\n\nCon los datos de `ad.lab.test` y `socio.lab.test` —una confianza bidireccional y transitiva entre ambos y una cuenta de `socio.lab.test` miembro de un grupo que administra un servidor de `ad.lab.test`— traza la ruta de control hacia ese servidor e indica qué condición de autenticación y qué condición de autorización la sostienen.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber recorrido ni explotado una ruta de control en un entorno real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-14-L03-Q01",
+      "prompt": "Al trazar un mapa de rutas de control entre `ad.lab.test` y `socio.lab.test`, ¿qué combinación de datos es imprescindible?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Solo la lista de controladores de dominio de cada dominio"
+        },
+        {
+          "id": "B",
+          "text": "La confianza entre los dominios, con su dirección, transitividad y restricciones, y las pertenencias o delegaciones que conceden privilegio sobre el otro lado"
+        },
+        {
+          "id": "C",
+          "text": "El inventario de equipos y su fabricante en cada dominio"
+        },
+        {
+          "id": "D",
+          "text": "Las direcciones de los servidores DNS de cada dominio"
+        }
+      ]
+    },
+    {
+      "id": "WAD-14-L03-Q02",
+      "prompt": "¿Qué lectura es correcta sobre el límite de seguridad en un bosque con varios dominios?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Cada dominio del bosque es un límite de seguridad totalmente independiente"
+        },
+        {
+          "id": "B",
+          "text": "Las identidades de un dominio nunca pueden afectar a otro dominio del mismo bosque"
+        },
+        {
+          "id": "C",
+          "text": "Las unidades organizativas funcionan como límite de seguridad entre dominios"
+        },
+        {
+          "id": "D",
+          "text": "El bosque es el límite de seguridad: los dominios comparten confianzas internas y un compromiso en uno puede alcanzar a los demás del mismo bosque"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB24](../../05_RECURSOS/LABORATORIOS/WAD-LAB24.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **AVENUES**: [Avenues to compromise](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/avenues-to-compromise). Caminos conocidos por los que un entorno puede ser alcanzado.\n- **SECIDENT**: [Security identifiers](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/understand-security-identifiers). Qué identifica un SID y por qué su procedencia importa al trazar rutas.\n- **FORESTS**: [Determining the number of forests required](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/determining-the-number-of-forests-required). Por qué el bosque marca el límite de seguridad.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "b1fa73f80c5d72b9b7decb60"
+}

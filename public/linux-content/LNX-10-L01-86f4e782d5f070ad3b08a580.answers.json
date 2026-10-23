@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-10-L01",
+  "sourceHash": "8de30f1710446ea7c1fcc5a036a9c649ac6ef856721a60abddda0141d825e4a8",
+  "questions": [
+    {
+      "id": "LNX-10-L01-Q01",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «El socket puede mantener la escucha y activar el servicio cuando llegue demanda».\n\nLa activación por socket separa la escucha del proceso de negocio: el gestor mantiene el socket y arranca el servicio cuando llega demanda. El servicio `inactive` no implica puerto cerrado, y el socket no ejecuta por sí mismo la lógica del proceso."
+    },
+    {
+      "id": "LNX-10-L01-Q02",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Un temporizador activo puede activar el servicio aunque la unidad no esté habilitada».\n\nUn `.timer` activo programa la activación de su unidad asociada sin que esta tenga que estar habilitada para el arranque. Estar deshabilitado no equivale a «nunca ejecuta», y el timer y el socket son mecanismos distintos."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "`inactive` describe solo al proceso del `.service`, no a los mecanismos que pueden activarlo. Con un `.socket` `active`, el gestor puede mantener la escucha y arrancar el servicio cuando llegue demanda; con un `.timer` activo, puede haber activaciones programadas. La superficie sigue habilitada aunque el proceso no esté corriendo en ese momento.\n\nDatos a consultar: las propiedades que relacionan disparadores y unidades —`TriggeredBy` en el servicio; `Listen` y `Triggers` en el socket; `Unit=` y la próxima activación en el timer—. Con ellas se ve qué puede activar a qué.\n\nLímite: ver un socket o un timer activos demuestra que existe un mecanismo habilitado, no que se haya producido una ejecución ni cuál fue su efecto.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "No equipara `inactive` del servicio con ausencia de ejecución o de escucha."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Nombra socket y timer como mecanismos de activación."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Propone consultar los disparadores (`TriggeredBy`, `Triggers`, `Unit=`)."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Distingue mecanismo habilitado de ejecución observada."
+      }
+    ]
+  },
+  "revision": "86f4e782d5f070ad3b08a580"
+}

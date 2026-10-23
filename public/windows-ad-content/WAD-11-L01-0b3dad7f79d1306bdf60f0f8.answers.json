@@ -1,0 +1,39 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-11-L01",
+  "sourceHash": "80d9c1fac0b56ce7dd9858ce4e42c02c8b98fe206a182121c4c17930e7df7762",
+  "questions": [
+    {
+      "id": "WAD-11-L01-Q01",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Identifica la instancia concreta de servicio para la que el cliente pide el ticket de servicio».\n\nEl SPN es el nombre de destino que el cliente usa para pedir el ticket de servicio al dominio. No cifra el ticket, no reemplaza a la credencial de la cuenta y no determina el nivel de integridad del recurso."
+    },
+    {
+      "id": "WAD-11-L01-Q02",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Nada concluyente por sí sola: corresponde al flujo normal y necesita contexto».\n\nEl TGT se emite al autenticarse ante el dominio, de modo que su presencia es esperable y no prueba compromiso. Tampoco indica que el equipo esté fuera del dominio ni que se haya usado el mecanismo heredado: un TGT pertenece justamente al flujo de Kerberos."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "El TGT demuestra que la cuenta se autenticó ante el dominio y obtuvo el ticket inicial; el TGS, que con ese TGT se pidió acceso a un servicio concreto identificado por su SPN, que es el segundo paso normal del flujo Kerberos. La caída del servicio minutos después es una observación independiente que puede deberse a un fallo, a un cambio de configuración o a un uso indebido, y los tickets no permiten elegir entre esas explicaciones. Antes de hablar de ataque pediría el resultado de la conexión, la actividad posterior de la cuenta, el equipo de origen, si el SPN seguía siendo único y el estado del servicio. La conclusión se limita a «autenticación Kerberos correcta para ese SPN en esa ventana horaria»: el ticket no informa de intención ni de lo que ocurrió después.",
+    "rubric": [
+      {
+        "criterion": "Lectura correcta de cada dato",
+        "evidence": "Atribuye al TGT la acreditación de identidad y al TGS la solicitud de acceso a un servicio concreto por su SPN."
+      },
+      {
+        "criterion": "Contexto del flujo normal",
+        "evidence": "Sitúa ambos tickets en la secuencia AS-REQ/AS-REP y TGS-REQ/TGS-REP sin tratarlos como señal de ataque."
+      },
+      {
+        "criterion": "Evidencia adicional pertinente",
+        "evidence": "Pide resultado de la conexión, actividad posterior, equipo de origen, unicidad del SPN o estado del servicio."
+      },
+      {
+        "criterion": "Límite reconocido",
+        "evidence": "Explicita que un ticket no demuestra intención ni actividad posterior y que la caída del servicio queda sin explicar."
+      }
+    ]
+  },
+  "revision": "0b3dad7f79d1306bdf60f0f8"
+}

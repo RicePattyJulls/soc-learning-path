@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-26-L01",
+  "sourceHash": "d045b6cfd7c4cca82257fec679e6642f6bfd595c79f03e2199d58c237070c08a",
+  "questions": [
+    {
+      "id": "LNX-26-L01-Q01",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Que el archivo conservó su etiqueta de origen y el tipo no corresponde a la nueva ubicación».\n\nEl traslado no cambia la etiqueta del objeto, y la política evalúa tipos. El modo, la ACL y la umask no explican un fallo que aparece justo al cambiar de ruta sin cambiar de permisos."
+    },
+    {
+      "id": "LNX-26-L01-Q02",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Que la operación se registró pero no se bloqueó, y el evento sigue siendo evidencia útil».\n\nEn `Permissive` la política registra la denegación sin impedir la operación. El evento conserva valor diagnóstico y anticipa lo que ocurrirá al volver a `Enforcing`; no significa que la política esté desactivada ni que el contexto sea correcto."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "El primer dato es el **modo**: `getenforce` y `sestatus` indican si la política bloquea o solo registra. El segundo es el **contexto**: `ls -Z` sobre el directorio y `ps -eZ` sobre el proceso muestran si el tipo del objeto corresponde a la nueva ubicación. Un traslado conserva la etiqueta de origen, de modo que el contenido es el mismo y el tipo ya no coincide con el que la política espera.\n\nEl tercer dato es el **evento**: `ausearch` con `AVC`, `USER_AVC` y `SELINUX_ERR` en la ventana devuelve la operación, los contextos y el permiso denegado. Con esos tres datos se decide si la causa es etiqueta, ruta o política. `setenforce 0` elimina el control y hace que el servicio funcione, pero no corrige nada y deja el sistema sin MAC.\n\nLímite: sin el evento completo y sin la política aplicada, la causa es una hipótesis; el diagnóstico no demuestra intención maliciosa ni descarta otras capas como el sandbox del servicio.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Comprueba el modo antes de interpretar el fallo."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Compara contexto del proceso y del objeto, no solo permisos."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Localiza el evento AVC en una ventana acotada."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Rechaza desactivar la política como corrección y declara el límite."
+      }
+    ]
+  },
+  "revision": "1e183f195a693a660f7d757d"
+}

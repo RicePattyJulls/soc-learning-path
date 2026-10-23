@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-15-L02",
+  "title": "Control delegación y rutas administrativas",
+  "sourceHash": "c0f82bb69f550e227543b79ac19ec073959206f66ef5d6e26fc43cc30c85752d",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-15-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nEvaluar una delegación y una ruta administrativa para reducir un privilegio excesivo.\n\nPrerrequisitos: `WAD-15-L01` (Tier 0 y separación de identidades).\n\n## 2. Comprende el mecanismo\n\nUna **delegación** entrega una tarea concreta sobre un conjunto concreto de objetos. Bien hecha, permite que el equipo de soporte restablezca contraseñas sin ser administrador del dominio. Mal hecha, entrega un control más amplio del que la tarea necesita, y con él una ruta hacia niveles superiores.\n\nEl problema no se ve en la tarea, se ve en el **permiso** que la implementa. «Restablecer la contraseña» puede concederse como ese único permiso sobre las cuentas de una OU, o como control total sobre la OU entera. Las dos versiones «dejan trabajar»; solo la primera se mantiene dentro de lo mínimo necesario.\n\nLos objetos de Tier 0 añaden una regla propia. Ciertos grupos y cuentas están **protegidos**: el directorio restablece periódicamente sus permisos y rechaza que se les delegue control sobre ellos. Conceder a un grupo de soporte permiso sobre uno de esos objetos es una vía directa para escalar, aunque el permiso se haya dado sin mala intención.\n\nUna **ruta administrativa** es el camino completo por el que una identidad llega a controlar un sistema. No basta mirar la pertenencia a grupos: también cuentan el control sobre una OU, los derechos de inicio de sesión en un equipo, el permiso para ejecutar tareas programadas o para administrar un servicio. Cualquiera de esos tramos puede unir un puesto común con el plano de control.\n\nPara evaluar una ruta se pregunta, tramo a tramo, qué gana la identidad en cada paso y si esa ganancia es la imprescindible. Cuando un tramo concede más de lo que la función exige, la ruta es excesiva aunque sus componentes parezcan razonables por separado.\n\nLa comprobación se apoya en la lectura de las listas de control de acceso de los objetos del directorio. Herramientas como `dsacls` muestran qué identidad tiene qué permiso sobre un objeto, y esa lectura es la que convierte una impresión en un dato. Sin mirar la ACL no se afirma que una delegación sea mínima: se supone.\n\nEl cierre de esta lección es reducir. Identificada la ruta, el objetivo es recortar el permiso al tramo que la función realmente necesita y volver a comprobar el acceso efectivo. El límite: se evalúa lo que el directorio documenta; una ruta que use otro mecanismo no visible en esas listas queda fuera de la conclusión.\n\n### Vocabulario de apoyo\n\n- **Delegación**: concesión de una tarea concreta sobre un conjunto concreto de objetos, con el permiso mínimo necesario.\n- **Ruta administrativa**: camino completo por el que una identidad llega a controlar un sistema.\n- **Cuenta protegida**: cuenta o grupo cuyos permisos el directorio restablece y protege de la delegación.\n- **ACL**: lista ordenada de entradas de control de acceso de un objeto.\n- **Acceso efectivo**: resultado combinado de token, DACL, permisos de recurso e integridad.\n- **Permisos excesivos**: concesión más amplia que la necesaria para la función.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-15-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test` el grupo `GRP-Soporte` debía restablecer contraseñas de la OU `Puestos`. Al leer su lista de control de acceso se observa que tiene control total sobre esa OU, y que dentro de ella vive el grupo `Admins-Directorio`, marcado como protegido.\n\nLa tarea pedía restablecer contraseñas sobre cuentas de una OU; el permiso concedido es control total sobre la OU, así que `GRP-Soporte` puede modificar objetos y, con ellos, alcanzar un objeto protegido del nivel superior. La ruta administrativa une un grupo de soporte con Tier 0 a través de un permiso más amplio de lo necesario. La corrección es recortar el permiso al restablecimiento de contraseñas sobre las cuentas previstas y volver a leer la ACL para confirmarlo. La conclusión acota el hallazgo —«la delegación excede la función y crea una ruta hacia Tier 0»— y reconoce su límite: sin revisar el resto de permisos y derechos de inicio de sesión no se puede afirmar que sea la única ruta existente.\n\n"
+    },
+    {
+      "id": "WAD-15-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Leer qué identidades tienen permisos sobre objetos protegidos explica eventos que de otro modo parecen aislados.\n- Red Team autorizado: Describir la ruta completa con la ACL como evidencia demuestra rigor en una prueba autorizada.\n- Evidencia de la etapa: Lista de control de acceso antes y después, con el permiso recortado y el acceso efectivo comprobado.\n- Criterio de dominio: Ninguna delegación ni ruta concede más control del que la función exige.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB09](../../05_RECURSOS/LABORATORIOS/WAD-LAB09.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **APPC**: [Appendix C: Protected accounts and groups in Active Directory](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/appendix-c--protected-accounts-and-groups-in-active-directory). Qué objetos protege el directorio y por qué no deben delegarse.\n- **IMPLMODEL**: [Implementing least-privilege administrative models](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/implementing-least-privilege-administrative-models). Cómo repartir la administración con el permiso mínimo.\n- **DSACLS**: [Dsacls](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-r2-and-2012/cc771525(v=ws.11)). Lectura y modificación de listas de control de acceso de objetos del directorio.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-15-L02-P01",
+    "prompt": "En `ad.lab.test`, el grupo `GRP-Ayuda` tiene control total sobre la OU `Equipos` y además permiso para restablecer contraseñas de las cuentas de la OU `Servicios`. Evalúa la delegación y la ruta administrativa, señala qué permiso recortarías y con qué evidencia comprobarías el cambio.",
+    "markdown": "## 4. Práctica individual\n\nEn `ad.lab.test`, el grupo `GRP-Ayuda` tiene control total sobre la OU `Equipos` y además permiso para restablecer contraseñas de las cuentas de la OU `Servicios`. Evalúa la delegación y la ruta administrativa, señala qué permiso recortarías y con qué evidencia comprobarías el cambio.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber modificado permisos en un directorio real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-15-L02-Q01",
+      "prompt": "Una delegación permite a `GRP-Soporte` restablecer la contraseña de las cuentas de la OU `Puestos`. ¿Qué mantiene esa delegación dentro de lo mínimo necesario?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que se conceda también sobre el resto del dominio para evitar cuentas bloqueadas"
+        },
+        {
+          "id": "B",
+          "text": "Que el grupo se agregue a Administradores del dominio para resolver cualquier incidencia"
+        },
+        {
+          "id": "C",
+          "text": "Que la tarea se realice desde una consola instalada en el controlador de dominio"
+        },
+        {
+          "id": "D",
+          "text": "Que el permiso se limite a restablecer la contraseña y solo sobre las cuentas de esa OU"
+        }
+      ]
+    },
+    {
+      "id": "WAD-15-L02-Q02",
+      "prompt": "Al revisar una ruta administrativa, un grupo de soporte tiene control total sobre una OU que contiene un grupo protegido de Tier 0. ¿Qué implica esta situación?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que la OU es una frontera de seguridad y el permiso no cruza a otros niveles"
+        },
+        {
+          "id": "B",
+          "text": "Que el grupo puede alcanzar Tier 0 y conviene reducir o retirar ese permiso"
+        },
+        {
+          "id": "C",
+          "text": "Que el permiso es inocuo mientras el grupo no sea miembro de Administradores del dominio"
+        },
+        {
+          "id": "D",
+          "text": "Que se debe ampliar el permiso al resto de las OU para unificar la administración"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB09](../../05_RECURSOS/LABORATORIOS/WAD-LAB09.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **APPC**: [Appendix C: Protected accounts and groups in Active Directory](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/appendix-c--protected-accounts-and-groups-in-active-directory). Qué objetos protege el directorio y por qué no deben delegarse.\n- **IMPLMODEL**: [Implementing least-privilege administrative models](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/implementing-least-privilege-administrative-models). Cómo repartir la administración con el permiso mínimo.\n- **DSACLS**: [Dsacls](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-r2-and-2012/cc771525(v=ws.11)). Lectura y modificación de listas de control de acceso de objetos del directorio.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "7db663eb4a357929c1980d63"
+}

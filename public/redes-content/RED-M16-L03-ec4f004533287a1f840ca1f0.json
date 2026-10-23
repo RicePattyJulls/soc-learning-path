@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M16-L03",
+  "title": "Convergencia L2/L3",
+  "sourceHash": "29e11a08f1979b0bfe2087bf3b8116a7bbbf6677a76e6ad7f18731c040e2fe94",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M16-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nMedir componentes de convergencia sin sumar tiempos incompatibles.\n\nPrerrequisitos: [RED-M16-L02](../RED-E03/RED-M16-L02.md).\n\n## 2. Comprende el mecanismo\n\nLa recuperación puede requerir detección, decisión del protocolo, actualización de RIB/FIB y adaptación de sesiones. Parte de estos procesos puede solaparse; no sumar temporizadores nominales como si todos se ejecutaran siempre en serie. Una topología L2 y una L3 pueden converger con mecanismos distintos y afectar rutas asimétricas. Define el servicio y criterio de éxito: primer ping, flujo continuo o transacción completa no tienen el mismo significado. Compara el mismo método antes y después de optimizar.\n\n### Vocabulario de apoyo\n\n- **FHRP**: Familia de protocolos de redundancia del gateway de primer salto, como VRRP o HSRP.\n- **BFD**: Mecanismo de detección de continuidad integrado con otras funciones de routing.\n- **Preemption**: Recuperación del rol preferido cuando vuelve un candidato mejor, según protocolo y configuración.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M16-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Ensayo docente: primer ping recuperado en 0,8 s; transacción de aplicación en 3,2 s; mediciones con relojes sincronizados.\n\nAmbos números pueden ser correctos y medir propiedades diferentes. Declarar recuperación del servicio a 0,8 s ocultaría su dependencia de aplicación.\n\n"
+    },
+    {
+      "id": "RED-M16-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Separar fallo previsto de anomalía.\n- Red Team autorizado: Evaluar rutas alternativas bajo fallo autorizado.\n- Evidencia del módulo: Cronología de reconvergencia, tablas y reporte.\n- Criterio del módulo: Recuperación funcional y medida; no ocultar fallos.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L08](../../05_RECURSOS/LABORATORIOS/RED-L08.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC9568**: [RFC 9568: Virtual Router Redundancy Protocol Version 3](https://www.rfc-editor.org/rfc/rfc9568.html). Gateway virtual y redundancia IPv4/IPv6.\n- **RFC5880**: [RFC 5880: Bidirectional Forwarding Detection](https://www.rfc-editor.org/rfc/rfc5880.html). Detección de continuidad; no cálculo de ruta.\n- **STP**: [Understand Rapid Spanning Tree Protocol](https://www.cisco.com/c/en/us/support/docs/lan-switching/spanning-tree-protocol/24062-146.html). Roles, estados y comparación de convergencia RSTP.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M16-L03-P01",
+    "prompt": "Un informe compara ping de un cambio con HTTP de otro y afirma que el segundo empeoró. Identifica el defecto del método.",
+    "markdown": "## 4. Práctica individual\n\nUn informe compara ping de un cambio con HTTP de otro y afirma que el segundo empeoró. Identifica el defecto del método.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M16-L03-Q01",
+      "prompt": "¿Qué exige comparar dos medidas de convergencia?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Usar solo el mejor resultado"
+        },
+        {
+          "id": "B",
+          "text": "Un criterio de éxito y método comparables"
+        },
+        {
+          "id": "C",
+          "text": "Ignorar la aplicación"
+        },
+        {
+          "id": "D",
+          "text": "Sumar cualquier temporizador disponible"
+        }
+      ]
+    },
+    {
+      "id": "RED-M16-L03-Q02",
+      "prompt": "¿Qué acredita el ping a 0,8 s?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Ausencia futura de fallos"
+        },
+        {
+          "id": "B",
+          "text": "Recuperación de esa prueba ICMP en ese instante"
+        },
+        {
+          "id": "C",
+          "text": "Todas las sesiones preservadas"
+        },
+        {
+          "id": "D",
+          "text": "Éxito de la transacción a 0,8 s"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L08](../../05_RECURSOS/LABORATORIOS/RED-L08.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC9568**: [RFC 9568: Virtual Router Redundancy Protocol Version 3](https://www.rfc-editor.org/rfc/rfc9568.html). Gateway virtual y redundancia IPv4/IPv6.\n- **RFC5880**: [RFC 5880: Bidirectional Forwarding Detection](https://www.rfc-editor.org/rfc/rfc5880.html). Detección de continuidad; no cálculo de ruta.\n- **STP**: [Understand Rapid Spanning Tree Protocol](https://www.cisco.com/c/en/us/support/docs/lan-switching/spanning-tree-protocol/24062-146.html). Roles, estados y comparación de convergencia RSTP.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "ec4f004533287a1f840ca1f0"
+}

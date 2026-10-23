@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-24-L03",
+  "sourceHash": "330fe9e610a1cfe592eece303d81d9f54e3ff6a9086c12a448a8e523d7f01ad9",
+  "questions": [
+    {
+      "id": "LNX-24-L03-Q01",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Porque falta el permiso de travesía en el directorio padre y, además, el modo del archivo no concede lectura al resto».\n\nEl acceso exige atravesar cada directorio del camino y, después, una clase que conceda lectura. La umask no se aplica retroactivamente, el SGID no anula la lectura y el modo `600` por sí solo no explica el bloqueo sin considerar la travesía."
+    },
+    {
+      "id": "LNX-24-L03-Q02",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Limita el permiso efectivo de las entradas nombradas y del grupo propietario».\n\nLa máscara acota el máximo efectivo de las entradas nombradas y del grupo propietario. No duplica permisos, no convierte la ACL en MAC y no restablece la umask del proceso creador."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "El `+` en el modo indica una **ACL extendida**, y el primer dato que hay que leer es la **máscara**. Una entrada de grupo `r--` con `#effective:---` no concede nada, aunque el modo nominal parezca suficiente. `getfacl` muestra la entrada y la máscara, y `id` confirma los grupos suplementarios de la identidad que intenta el acceso.\n\nEl segundo dato es la **travesía**. `namei -l` recorre todos los directorios del camino y muestra dónde falta el bit `x`. Un directorio sin travesía corta el acceso con independencia del modo del archivo final. Por eso `chmod 640` no corrigió el caso: actuaba sobre una capa que no era la que denegaba.\n\nLímite: el cálculo sobre metadatos predice el resultado esperado del DAC. Si hay MAC, capabilities o sandbox de servicio, el cálculo puede ser correcto y el acceso seguir denegado; solo una prueba positiva y otra negativa con la identidad real cierran la conclusión.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Revisa la travesía en todos los directorios del camino."
+      },
+      {
+        "criterion": "Lee la ACL junto con su máscara y la línea `#effective",
+        "evidence": "`."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Comprueba los grupos suplementarios antes de asignar la clase."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Reconoce que un cambio de modo no corrige una denegación de otra capa."
+      }
+    ]
+  },
+  "revision": "c794e90f93f8b9398d7853b8"
+}

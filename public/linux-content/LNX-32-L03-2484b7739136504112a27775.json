@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-32-L03",
+  "title": "Purple Team: retest extremo a extremo",
+  "sourceHash": "53f8126e9f6bf724c59870575c28c820d8f6ef8ed461887c2555fa3ada5fe7db",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-32-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nCerrar una evaluación integrada demostrando con retest positivo, negativo y de detección que la remediación corrige la causa y que la cobertura declarada sigue siendo válida.\n\nPrerrequisitos: `LNX-32-L02` (Purple Team: detección).\n\n## 2. Comprende el mecanismo\n\nUn retest no es «volver a pasar la herramienta». Es repetir el mismo escenario, con las mismas cuentas y los mismos sensores, para comparar el estado anterior y el posterior. Si cambian el alcance, la ventana o la telemetría, la comparación pierde sentido y el cierre se apoya en una impresión.\n\nAntes de remediar se conserva una **línea base** del hallazgo: configuración, evidencia, ruta, propietario y fecha. Después se aplica el cambio mínimo y se documenta qué se modificó y cómo se revierte. El retest empieza por el **caso positivo**: la función legítima sigue operando. Una remediación que bloquea el abuso pero rompe el servicio no es un cierre, es un incidente nuevo.\n\nEl **caso negativo** comprueba que la ruta de abuso ya no prospera: la escritura no autorizada falla, la capability ya no está, el montaje dejó de ser de escritura o el contenedor ya no se ejecuta como root. La evidencia debe mostrar el bloqueo, no solo la ausencia de un efecto. Un «no pasó nada» sin una comprobación dirigida no demuestra que el control funcione.\n\nEl tercer eje es la **detección**. Si la remediación cambia el nombre de un campo, la ruta de un binario o la identidad del contenedor, la regla puede dejar de alertar sin que nadie lo note. El retest vuelve a generar el estímulo sintético y verifica que la alerta sigue llegando con contexto suficiente. Si no llega, se declara el hueco y se investiga antes de cerrar.\n\nLa **regresión** es parte del método. Un cambio de propietario puede romper una tarea programada; una política más estricta puede impedir un montaje necesario; un perfil de seccomp puede bloquear una llamada legítima. El retest busca esos efectos, comprueba que la evidencia anterior sigue íntegra y verifica que el rollback está probado. El **cierre** es una decisión documentada, no una promesa. El expediente reúne alcance, hipótesis, evidencia, remediación, retest positivo, retest negativo, resultado de detección, riesgo residual, propietario y fecha. Distingue lo corregido, lo mitigado y lo que sigue abierto. Un riesgo residual aceptado debe tener responsable y fecha de revisión.\n\nEsta lección cierra el recorrido Linux con una **evaluación integrada**: se espera que el estudiante conecte identidad, permisos, hardening, auditoría, contenedores, método y detección en un solo caso. No se emite ninguna certificación ni se acredita un resultado real; el producto es un expediente coherente y honesto sobre sus límites.\n\nEl límite: un retest es una muestra en una configuración concreta. La cobertura de detección es parcial, el riesgo residual puede persistir y la ausencia de alerta no prueba ausencia de actividad. Cerrar bien es declarar exactamente eso.\n\n### Vocabulario de apoyo\n\n- **Retest extremo a extremo**: repetición completa del escenario que compara función, abuso y detección antes y después.\n- **Prueba positiva**: comprobación de que la función legítima sigue operando tras la remediación.\n- **Prueba negativa**: comprobación dirigida de que la ruta de abuso ya no prospera.\n- **Regresión**: efecto secundario no previsto que rompe una función o un control existente.\n- **Riesgo residual**: riesgo que permanece después de la remediación y que debe aceptarse o revisarse.\n- **Cierre documentado**: decisión con evidencia, propietario, fecha y límites declarados.\n- **Evaluación integrada**: caso final que conecta identidad, hardening, auditoría, contenedores, método y detección.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-32-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: el hallazgo sobre `/srv/lab/mantenimiento.sh` se corrige con propietario root, escritura denegada al grupo y ejecución bajo una identidad dedicada. El retest positivo confirma que la tarea programada sigue generando su salida. El retest negativo confirma que la cuenta no administradora ya no puede escribir el script. La regla de detección, sin embargo, deja de alertar porque el campo de identidad cambió de nombre en el colector.\n\nEl resultado es mixto y así debe presentarse. La causa de la exposición está corregida y la función legítima se conserva; el control de detección ya no observa el comportamiento con el contexto anterior. Cerrar el caso como «resuelto» ocultaría un hueco de telemetría y debilitaría el retest.\n\nEl expediente declara: remediación aplicada y revertible, evidencia del bloqueo, prueba positiva, prueba negativa, cambio de campo en el colector, hueco de detección abierto, propietario del ajuste y fecha de revisión. Se repite el estímulo sintético tras corregir la regla y se conserva la comparación. El límite: la exposición se corrigió en ese host y esa configuración; el riesgo residual y la cobertura parcial siguen siendo parte de la conclusión.\n\n"
+    },
+    {
+      "id": "LNX-32-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Verificar que la detección sigue llegando con contexto tras la remediación y declarar los huecos que queden.\n- Red Team autorizado: Repetir solo el escenario aprobado, sin ampliar el impacto, y entregar la contraprueba del bloqueo.\n- Evidencia de la etapa: Línea base, cambio aplicado, rollback, retest positivo, retest negativo, resultado de detección y riesgo residual.\n- Criterio de dominio: Cierra con un expediente que distingue lo corregido, lo mitigado y lo que sigue abierto.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB42](../../05_RECURSOS/LABORATORIOS/LNX-LAB42.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F121**: [NIST SP 800-61 Rev.3 (2025)](https://csrc.nist.gov/pubs/sp/800/61/r3/final). Recuperación, lecciones aprendidas y criterios de cierre.\n- **F122**: [NIST SP 800-92 (log management)](https://csrc.nist.gov/pubs/sp/800/92/final). Integridad y retención de la evidencia que sostiene el retest.\n- **F127**: [MITRE ATT&CK Data Sources (deprecated)](https://attack.mitre.org/datasources/). Lenguaje para contrastar cobertura y declarar lo que no se observa.\n- **F132**: [Falco official project](https://github.com/falcosecurity/falco). Verificación de que la detección en runtime sigue produciendo eventos útiles.\n- **F139**: [Docker inspect](https://docs.docker.com/reference/cli/docker/inspect/). Comprobación de la configuración efectiva después de la remediación.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-32-L03-P01",
+    "prompt": "Cierras un ejercicio integrado: la exposición se corrigió, la función legítima sigue operando, pero la regla de detección ya no produce la alerta esperada. Explica cómo ejecutarías el retest extremo a extremo y qué declararías antes de cerrar el caso.",
+    "markdown": "## 4. Práctica individual\n\nCierras un ejercicio integrado: la exposición se corrigió, la función legítima sigue operando, pero la regla de detección ya no produce la alerta esperada. Explica cómo ejecutarías el retest extremo a extremo y qué declararías antes de cerrar el caso.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber ejecutado un retest real ni haber cerrado un caso de producción.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-32-L03-Q01",
+      "prompt": "¿Qué hace válido un retest extremo a extremo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Volver a ejecutar la herramienta de escaneo y comprobar que no muestra hallazgos"
+        },
+        {
+          "id": "B",
+          "text": "Repetir el mismo escenario y las mismas condiciones, comparar antes y después y verificar función legítima, bloqueo y detección"
+        },
+        {
+          "id": "C",
+          "text": "Confirmar que el propietario del activo firma el cierre sin revisar la evidencia"
+        },
+        {
+          "id": "D",
+          "text": "Ampliar el alcance para probar una ruta más grave que la original"
+        }
+      ]
+    },
+    {
+      "id": "LNX-32-L03-Q02",
+      "prompt": "Tras corregir la exposición, la regla de detección deja de alertar. ¿Qué corresponde hacer?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Declarar el hueco de detección, investigar el cambio de fuente o de campo y repetir la prueba antes de cerrar"
+        },
+        {
+          "id": "B",
+          "text": "Cerrar el caso porque la exposición ya no existe"
+        },
+        {
+          "id": "C",
+          "text": "Desactivar la regla para evitar falsos positivos"
+        },
+        {
+          "id": "D",
+          "text": "Afirmar que la ausencia de alerta demuestra que el abuso ya no ocurre"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB42](../../05_RECURSOS/LABORATORIOS/LNX-LAB42.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F121**: [NIST SP 800-61 Rev.3 (2025)](https://csrc.nist.gov/pubs/sp/800/61/r3/final). Recuperación, lecciones aprendidas y criterios de cierre.\n- **F122**: [NIST SP 800-92 (log management)](https://csrc.nist.gov/pubs/sp/800/92/final). Integridad y retención de la evidencia que sostiene el retest.\n- **F127**: [MITRE ATT&CK Data Sources (deprecated)](https://attack.mitre.org/datasources/). Lenguaje para contrastar cobertura y declarar lo que no se observa.\n- **F132**: [Falco official project](https://github.com/falcosecurity/falco). Verificación de que la detección en runtime sigue produciendo eventos útiles.\n- **F139**: [Docker inspect](https://docs.docker.com/reference/cli/docker/inspect/). Comprobación de la configuración efectiva después de la remediación.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "2484b7739136504112a27775"
+}

@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-05-L03",
+  "sourceHash": "1e0915bfefd25db3436dd93273e5061ff8abf6ae9fb6da5404b32ed6405f3f68",
+  "questions": [
+    {
+      "id": "LNX-05-L03-Q01",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «El proceso puede tener un manejador para esa señal o hallarse en un estado en el que no la atiende».\n\nUna señal capturable puede ser manejada, bloqueada o no atendida hasta salir de cierta operación, así que sobrevivir no prueba resistencia. El kernel no descarta señales por falta de privilegios del emisor salvo por la identidad del objetivo, y repetirla o suponer otro PID inventa causas que los datos no muestran."
+    },
+    {
+      "id": "LNX-05-L03-Q02",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «`SIGTERM` es una petición que el proceso puede manejar o ignorar, mientras que `SIGKILL` no puede capturarse, bloquearse ni ignorarse».\n\n`SIGTERM` admite disposición propia, de modo que el programa puede gestionarla o ignorarla; `SIGKILL` es la excepción del kernel y siempre termina el proceso. Las opciones A y C confunden la señal con una identidad o con un proceso, y B iguala dos comportamientos que son distintos."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "Que el proceso siga vivo no exige malicia: cada proceso fija su **disposición** ante cada señal y puede haber registrado un **manejador** que la atienda sin terminar, o hallarse en un estado que no la procesa hasta completar una operación. La señal se entregó, pero su efecto depende del programa, no del emisor.\n\nEl dato a comprobar es la tabla de señales del propio proceso (manejadores y señales bloqueadas, visibles en su estado) junto con el estado instantáneo y la identidad del observador y del proceso, todo anotado con su hora. Solo así se distingue «no pudo atenderla» de «la atendió sin terminar».\n\nLímite: sin esa disposición y sin una fuente que conserve tiempo no puede afirmarse intención; y confirmar el cierre con una señal no capturable detendría el proceso, pero destruiría la memoria, los descriptores y el estado que se pretendía analizar.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Explica que cada proceso define la disposición de la señal (omisión, captura o bloqueo)."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Nombra el manejador o el estado que no atiende señales como causa posible."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Propone comprobar la tabla de señales y el estado, anotando hora e identidad."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Reconoce que la señal enviada no prueba el efecto ni la intención, y que forzar el cierre elimina evidencia."
+      }
+    ]
+  },
+  "revision": "f81afb6ccb2f518e533fd1fc"
+}

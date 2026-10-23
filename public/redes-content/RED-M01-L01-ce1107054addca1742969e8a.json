@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M01-L01",
+  "title": "OSI frente a TCP/IP",
+  "sourceHash": "03cb24550da9981db6311f0e150d60e58031682236a37f816786dfc21075a720",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M01-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nLocalizar una avería por función, sin confundir una capa con una causa.\n\nPrerrequisitos: ninguno; puedes comenzar desde cero.\n\n## 2. Comprende el mecanismo\n\nOSI describe siete funciones: física, enlace, red, transporte, sesión, presentación y aplicación. TCP/IP agrupa funciones de otra forma: acceso al medio, Internet, transporte y aplicación. Son modelos para razonar, no siete dispositivos que cada paquete deba atravesar. Ethernet entrega tramas en un enlace; IP permite encaminarlas entre redes; TCP entrega un flujo de bytes a un proceso. Una aplicación puede fallar aunque sus capas inferiores funcionen. Un ping utiliza ICMP, no prueba por sí solo el establecimiento de TCP ni una respuesta HTTP.\n\n### Vocabulario de apoyo\n\n- **Host**: Equipo conectado que origina o recibe comunicaciones.\n- **Gateway**: Router que el host utiliza como siguiente salto hacia otras redes.\n- **IP y MAC**: IP identifica un extremo en el encaminamiento; MAC se utiliza en el enlace local.\n- **DNS y HTTP**: DNS consulta información de nombres; HTTP intercambia peticiones y respuestas de aplicación.\n- **Puerto y servicio**: El puerto identifica un extremo de transporte; el servicio es la función ofrecida por una aplicación.\n- **CRC y PoE**: CRC permite detectar corrupción en tramas; PoE suministra energía por un enlace Ethernet compatible.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M01-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: enlace=activo; ping al gateway=respuesta; conexión TCP/443=establecida; respuesta HTTP=503.\n\nEl 503 aporta una respuesta de aplicación. Hay conectividad suficiente para ese intercambio; revisar el servicio o su intermediario es más informativo que cambiar el cable por intuición.\n\n"
+    },
+    {
+      "id": "RED-M01-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Identificar causas de desconexión.\n- Red Team autorizado: Distinguir exposición de conectividad real.\n- Evidencia del módulo: Diagrama, síntomas, pruebas y causa raíz.\n- Criterio del módulo: Identifica correctamente capa, evidencia y corrección.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L01](../../05_RECURSOS/LABORATORIOS/RED-L01.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC1122**: [RFC 1122: Requirements for Internet Hosts — Communication Layers](https://www.rfc-editor.org/rfc/rfc1122.html). Funciones de comunicación y separación de capas; no equivalencia rígida entre modelos.\n- **BRIDGE**: [Ethernet Bridging](https://docs.kernel.org/networking/bridge.html). Learning, forwarding, VLAN y controles de bridge; kAPI no se presenta como estable.\n- **PHY**: [Troubleshoot Switch Port and Interface Problems](https://www.cisco.com/c/en/us/support/docs/switches/catalyst-6500-series-switches/12027-53.html). Dúplex, CRC, contadores y diagnóstico de interfaces; procedimientos dependientes de familia.\n- **POE**: [Troubleshoot Power over Ethernet on Catalyst 9000](https://www.cisco.com/c/en/us/support/docs/switches/catalyst-9200-series-switches/215636-troubleshooting-power-over-ethernet-poe.html). Demanda de potencia, presupuesto y diagnóstico PoE.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M01-L01-P01",
+    "prompt": "El mismo servidor devuelve HTTP 200 pero la página informa un error de permisos. Identifica la función que sí funciona y una comprobación pertinente.",
+    "markdown": "## 4. Práctica individual\n\nEl mismo servidor devuelve HTTP 200 pero la página informa un error de permisos. Identifica la función que sí funciona y una comprobación pertinente.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M01-L01-Q01",
+      "prompt": "¿Qué entrega TCP a una aplicación?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Tramas Ethernet a todos los puertos"
+        },
+        {
+          "id": "B",
+          "text": "Direcciones MAC nuevas"
+        },
+        {
+          "id": "C",
+          "text": "Un flujo de bytes"
+        },
+        {
+          "id": "D",
+          "text": "Solo mensajes ICMP"
+        }
+      ]
+    },
+    {
+      "id": "RED-M01-L01-Q02",
+      "prompt": "¿Qué acredita el HTTP 503 observado?",
+      "options": [
+        {
+          "id": "A",
+          "text": "La causa exacta del fallo interno"
+        },
+        {
+          "id": "B",
+          "text": "Un cable físicamente desconectado"
+        },
+        {
+          "id": "C",
+          "text": "Que todos los usuarios tienen acceso"
+        },
+        {
+          "id": "D",
+          "text": "Una respuesta de aplicación para esa petición"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L01](../../05_RECURSOS/LABORATORIOS/RED-L01.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC1122**: [RFC 1122: Requirements for Internet Hosts — Communication Layers](https://www.rfc-editor.org/rfc/rfc1122.html). Funciones de comunicación y separación de capas; no equivalencia rígida entre modelos.\n- **BRIDGE**: [Ethernet Bridging](https://docs.kernel.org/networking/bridge.html). Learning, forwarding, VLAN y controles de bridge; kAPI no se presenta como estable.\n- **PHY**: [Troubleshoot Switch Port and Interface Problems](https://www.cisco.com/c/en/us/support/docs/switches/catalyst-6500-series-switches/12027-53.html). Dúplex, CRC, contadores y diagnóstico de interfaces; procedimientos dependientes de familia.\n- **POE**: [Troubleshoot Power over Ethernet on Catalyst 9000](https://www.cisco.com/c/en/us/support/docs/switches/catalyst-9200-series-switches/215636-troubleshooting-power-over-ethernet-poe.html). Demanda de potencia, presupuesto y diagnóstico PoE.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "ce1107054addca1742969e8a"
+}

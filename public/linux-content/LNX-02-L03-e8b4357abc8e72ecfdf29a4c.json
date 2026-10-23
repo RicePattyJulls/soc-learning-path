@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-02-L03",
+  "title": "Buscar sin provocar daños",
+  "sourceHash": "79a3756d17c3b129cc8e48f5547742786c45056d3c90b991a0a8c00320775fc6",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-02-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nConstruir búsquedas acotadas y de solo lectura y limitar la conclusión a lo que el predicado realmente demuestra.\n\nPrerrequisitos: `LNX-02-L02` (Enlaces, inodos y marcas temporales).\n\n## 2. Comprende el mecanismo\n\nBuscar es **recorrer** el árbol y **evaluar** una condición sobre cada objeto. Cada parte de una búsqueda cumple una función: dónde empieza el recorrido, qué condición se evalúa y qué se hace con lo que la cumple. Confundir esas partes produce dos errores opuestos: buscar demasiado y no encontrar nada, o buscar de más y actuar sobre lo primero que aparece.\n\nLa **acotación** empieza por la ruta. Recorrer desde `/` es legítimo pero costoso, y suele arrastrar directorios virtuales o ajenos al caso. Limitar el punto de partida a un subárbol reduce ruido y es la primera defensa contra conclusiones apresuradas.\n\nDespués viene el **predicado**: la condición concreta. Puede referirse al nombre, al tipo, al tamaño, al propietario o a las marcas temporales que ya conoces (por ejemplo, «modificado en las últimas 24 horas»). Un predicado amplio devuelve mucho; eso no significa que haya mucho malo, sino que la condición era poco selectiva.\n\nLa búsqueda debe ser de **solo lectura**. Listar y evaluar no cambia el sistema; cualquier acción que escriba, renombre o borre convierte la observación en intervención y contamina la evidencia. Si necesitas marcar candidatos, hazlo en un registro aparte, nunca moviendo los originales.\n\nPor último, el resultado de una búsqueda es un **conjunto de candidatos**, no un veredicto. Que un fichero cumpla el predicado solo dice que satisface esa condición. Para atribuir intención hace falta **correlacionar** con otras fuentes: qué proceso lo tocó, con qué identidad y en qué contexto.\n\nAntes de concluir, deja claro **desde dónde** buscaste, **qué condición** aplicaste y **qué no** demuestra el resultado por sí solo.\n\n### Vocabulario de apoyo\n\n- **Predicado**: condición que se evalúa sobre cada objeto durante el recorrido.\n- **Acotación**: limitar el punto de partida y el alcance de la búsqueda.\n- **Solo lectura**: operación que observa sin modificar el sistema ni los objetos.\n- **Candidato**: objeto que cumple el predicado, pendiente de corroboración.\n- **Correlación**: contrastar el hallazgo con otras fuentes antes de concluir.\n- **Ruido**: resultados que cumplen el predicado pero no son relevantes al caso.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-02-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un analista quiere hallar ficheros recientes en un directorio de laboratorio. Lanza una búsqueda con predicado temporal desde la raíz, obtiene 40 rutas, y concluye que «hay 40 ficheros comprometidos; procedo a borrarlos para limpiar».\n\nEl enfoque es incorrecto en dos planos. Primero, el **predicado** solo selecciona objetos por su marca temporal: todo lo que cumple la ventana aparece, incluidos ficheros legítimos. Segundo, borrar destruye la evidencia que se pretendía analizar; la búsqueda deja de ser de solo lectura.\n\nUn enfoque defendible acota el punto de partida al subárbol del caso, aplica el predicado temporal y **registra** las 40 rutas como candidatos. Después correlaciona con otras fuentes antes de atribuir cualquier intención.\n\nEl límite de la conclusión: con la búsqueda sola puedes afirmar que esos objetos cumplen el predicado, no que sean maliciosos ni que pertenezcan a un mismo incidente.\n\n"
+    },
+    {
+      "id": "LNX-02-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Diseñar búsquedas acotadas y de solo lectura, y presentar los resultados como candidatos correlacionables.\n- Red Team autorizado: Recordar que enumerar no es intervenir y que la cobertura de una búsqueda depende de su acotación.\n- Evidencia de la etapa: Búsqueda documentada con punto de partida, predicado y criterio de descarte.\n- Criterio de dominio: Justifica la acotación y el predicado, y distingue candidato de hallazgo confirmado.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB02](../../05_RECURSOS/LABORATORIOS/LNX-LAB02.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F16**: [Linux find(1)](https://man7.org/linux/man-pages/man1/find.1.html). Predicados de búsqueda, acotación del recorrido y límites.\n- **F05**: [Linux inode(7)](https://man7.org/linux/man-pages/man7/inode.7.html). Marcas temporales del inodo sobre las que se apoya el predicado.\n- **F46**: [GNU coreutils, manual `stat`](https://www.gnu.org/software/coreutils/manual/html_node/stat-invocation.html). Consulta de metadatos para verificar un candidato sin modificarlo.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-02-L03-P01",
+    "prompt": "Necesitas localizar ficheros candidatos en un directorio de laboratorio sin modificar nada. Describe la búsqueda que usarías, cómo la acotas y qué puedes y qué no puedes concluir con sus resultados.",
+    "markdown": "## 4. Práctica individual\n\nNecesitas localizar ficheros candidatos en un directorio de laboratorio sin modificar nada. Describe la búsqueda que usarías, cómo la acotas y qué puedes y qué no puedes concluir con sus resultados.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber ejecutado una búsqueda real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-02-L03-Q01",
+      "prompt": "Quieres localizar ficheros modificados en las últimas 24 horas sin alterar el sistema. ¿Qué enfoque es correcto?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Renombrar masivamente los candidatos para marcarlos antes de analizarlos"
+        },
+        {
+          "id": "B",
+          "text": "Borrar el primer fichero sospechoso para confirmar que era el correcto"
+        },
+        {
+          "id": "C",
+          "text": "Buscar desde `/` con el predicado más amplio posible, porque más resultados siempre ayuda"
+        },
+        {
+          "id": "D",
+          "text": "Acotar el punto de partida y aplicar un predicado de solo lectura, registrando los resultados como candidatos"
+        }
+      ]
+    },
+    {
+      "id": "LNX-02-L03-Q02",
+      "prompt": "Una búsqueda acotada devuelve 40 ficheros que cumplen el predicado temporal. ¿Cuál es la conclusión más defendible?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Son candidatos que cumplen la condición; hace falta correlacionar con otras fuentes antes de atribuir intención"
+        },
+        {
+          "id": "B",
+          "text": "Los 40 ficheros son maliciosos y deben aislarse de inmediato"
+        },
+        {
+          "id": "C",
+          "text": "El predicado no sirve porque ha devuelto demasiados resultados"
+        },
+        {
+          "id": "D",
+          "text": "El fichero con la marca temporal más reciente es necesariamente el causante"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB02](../../05_RECURSOS/LABORATORIOS/LNX-LAB02.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F16**: [Linux find(1)](https://man7.org/linux/man-pages/man1/find.1.html). Predicados de búsqueda, acotación del recorrido y límites.\n- **F05**: [Linux inode(7)](https://man7.org/linux/man-pages/man7/inode.7.html). Marcas temporales del inodo sobre las que se apoya el predicado.\n- **F46**: [GNU coreutils, manual `stat`](https://www.gnu.org/software/coreutils/manual/html_node/stat-invocation.html). Consulta de metadatos para verificar un candidato sin modificarlo.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "e8b4357abc8e72ecfdf29a4c"
+}

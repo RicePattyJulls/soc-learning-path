@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-26-L03",
+  "title": "Diagnóstico MAC sin inventar autoría",
+  "sourceHash": "67533074b8095e508c9bbe76c4e6ec3d7af01aa772f39c998a52d035bcf9dde7",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-26-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDistinguir una denegación MAC de un fallo DAC o de sandbox, y sostener el diagnóstico sin atribuir autoría que la evidencia no demuestra.\n\nPrerrequisitos: `LNX-26-L02` (AppArmor: aprender sin desproteger).\n\n## 2. Comprende el mecanismo\n\nCuando un acceso falla, hay al menos cuatro capas candidatas: **DAC**, **MAC**, **sandbox de la unidad** y la propia lógica de la aplicación. Un diagnóstico correcto las separa en orden y descarta antes de atribuir. Un diagnóstico perezoso elige la capa que más se nombra en las noticias y llama ataque a lo que era una etiqueta mal puesta.\n\nEl orden recomendado empieza por el **DAC**. `stat` y `namei -l` dicen si el sujeto podía atravesar el camino y si la clase de permiso concedía la operación. Si el DAC ya deniega, no hace falta invocar MAC: el fallo está explicado sin ella. Este paso evita el error frecuente de editar un perfil cuando el problema era una ACL con máscara vacía.\n\nDespués se comprueba el **MAC**. En SELinux, modo, contexto y evento AVC. En AppArmor, perfil, modo y `DENIED`. La diferencia entre ambos se refleja en la evidencia: tipos frente a rutas. Si el sistema no tiene LSM activo, la conclusión debe decirlo en lugar de inventar una denegación que no existe.\n\nEn tercer lugar aparece el **sandbox del servicio**. `ProtectSystem`, `ProtectHome`, `PrivateTmp`, `ReadWritePaths` y `CapabilityBoundingSet` pueden producir un `EACCES` o un `EPERM` sin que haya ningún evento MAC. Un servicio con `ProtectHome=yes` no ve `/home` aunque los permisos sean correctos. Confundir esto con SELinux lleva a ajustar la política equivocada.\n\nLa cuarta capa es la **aplicación**. Un programa puede registrar «permiso denegado» por su propia lógica, por un fichero de configuración o por una ruta que construye mal. El mensaje del servicio no es un veredicto del kernel.\n\nSobre la **autoría**, la regla es estricta. Una denegación MAC indica que una operación no estaba permitida; no dice quién la intentó, con qué intención ni si fue un atacante. Un cambio de etiqueta puede venir de un despliegue, de un traslado manual o de una actualización. Atribuir requiere correlacionar identidad, proceso, hora, cambio aprobado y persistencia. Sin eso, la conclusión correcta es «denegación observada con esta causa técnica».\n\nLa regla de la lección: descarta capas en orden y separa causa técnica de autoría. El límite: el diagnóstico explica por qué falló una operación en un momento; no reconstruye la intención ni demuestra que no haya habido otras acciones no observadas.\n\n### Vocabulario de apoyo\n\n- **Diagnóstico diferencial**: descartar capas candidatas antes de atribuir una causa.\n- **Sandbox de unidad**: restricciones de systemd que limitan rutas, privilegios o visibilidad.\n- **`ProtectHome`**: opción que oculta los directorios de usuario al servicio.\n- **`ReadWritePaths`**: lista de rutas escribibles permitidas bajo un sandbox estricto.\n- **Causa técnica**: mecanismo que produjo el fallo, sin juicio sobre intención.\n- **Autoría**: atribución de una acción a una persona o proceso, que exige evidencia adicional.\n- **Evento negativo**: ausencia de registro que no prueba ausencia de acción.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-26-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un servicio de laboratorio deja de leer un archivo de configuración tras un despliegue. El archivo tiene modo `640` y pertenece a `root:svc`. El servicio corre como `svc`. Aparece un `DENIED` de AppArmor en el journal. El informe concluye que hubo un intento de acceso no autorizado y señala al equipo de despliegue como responsable.\n\nEl informe mezcla tres afirmaciones de distinta fuerza. La denegación MAC está observada: hay un `DENIED` con perfil y ruta. La causa técnica probable es que la nueva ruta no está contemplada por el perfil, algo habitual tras un despliegue. La atribución de responsabilidad no está sostenida: un cambio de ruta en un despliegue produce exactamente ese evento sin que nadie haya intentado nada indebido.\n\nLa lectura correcta recorre las capas: DAC correcto para `svc`, MAC con perfil que no incluye la ruta nueva, sandbox sin restricción adicional y aplicación que informa del fallo. Después se corrige el perfil con la regla mínima y se vuelve a `enforce`. El límite: el evento explica el fallo, no la intención; sin ticket, historial y correlación de identidad, hablar de autoría es especulación.\n\n"
+    },
+    {
+      "id": "LNX-26-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Descartar DAC, MAC y sandbox en orden antes de describir una causa y una autoría.\n- Red Team autorizado: Reproducir el fallo en VM propia y documentar la capa que lo produce.\n- Evidencia de la etapa: Comprobaciones DAC, modo y evento MAC, opciones de la unidad y ventana temporal.\n- Criterio de dominio: Explica la causa técnica y se abstiene de atribuir autoría sin evidencia adicional.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB34](../../05_RECURSOS/LABORATORIOS/LNX-LAB34.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F106**: [Linux Kernel: LSM usage](https://cdn.kernel.org/doc/html/latest/admin-guide/LSM/index.html). Qué LSM está activo y cómo se combinan con otras capas.\n- **F107**: [Red Hat RHEL 9 Using SELinux](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/pdf/using_selinux/troubleshooting-problems-related-to-selinux_using-selinux). Diagnóstico de AVC y contextos.\n- **F108**: [Ubuntu Server: AppArmor](https://ubuntu.com/server/docs/how-to/security/apparmor/). Perfiles, modos y eventos `DENIED`.\n- **F137**: [Red Hat: policy SELinux y diagnósticos](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/10/html/using_selinux/troubleshooting-problems-related-to-selinux). Corrección de etiquetas y verificación posterior.\n- **F109**: [Linux Kernel: Yama](https://docs.kernel.org/admin-guide/LSM/Yama.html). Restricciones de observación que acotan lo que se puede concluir.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-26-L03-P01",
+    "prompt": "Un servicio de laboratorio deja de leer un archivo de configuración tras un despliegue. El archivo es `640`, propiedad de `root:svc`, y el servicio corre como `svc`; aparece un `DENIED` de AppArmor. El informe concluye que hubo un intento de acceso no autorizado y señala al equipo de despliegue. Explica cómo descartarías las capas DAC, MAC y sandbox, qué sostiene realmente el evento y cuál es el límite de tu conclusión.",
+    "markdown": "## 4. Práctica individual\n\nUn servicio de laboratorio deja de leer un archivo de configuración tras un despliegue. El archivo es `640`, propiedad de `root:svc`, y el servicio corre como `svc`; aparece un `DENIED` de AppArmor. El informe concluye que hubo un intento de acceso no autorizado y señala al equipo de despliegue. Explica cómo descartarías las capas DAC, MAC y sandbox, qué sostiene realmente el evento y cuál es el límite de tu conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber diagnosticado un host ni haber atribuido un incidente real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-26-L03-Q01",
+      "prompt": "Un servicio con `ProtectHome=yes` no puede leer un archivo en `/home`. ¿Qué capa explica el fallo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Una regla de SELinux mal etiquetada, aunque no haya eventos AVC"
+        },
+        {
+          "id": "B",
+          "text": "Una ACL con máscara vacía sobre el archivo"
+        },
+        {
+          "id": "C",
+          "text": "Un cambio de umask aplicado al servicio en tiempo de ejecución"
+        },
+        {
+          "id": "D",
+          "text": "El sandbox de la unidad, que oculta esa ruta con independencia de los permisos DAC"
+        }
+      ]
+    },
+    {
+      "id": "LNX-26-L03-Q02",
+      "prompt": "¿Qué permite afirmar un evento `DENIED` de AppArmor por sí solo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que una operación fue bloqueada por el perfil, sin identificar autoría ni intención"
+        },
+        {
+          "id": "B",
+          "text": "Que un atacante intentó acceder al recurso"
+        },
+        {
+          "id": "C",
+          "text": "Que el archivo tenía permisos incorrectos"
+        },
+        {
+          "id": "D",
+          "text": "Que el perfil estaba en `complain` en ese momento"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB34](../../05_RECURSOS/LABORATORIOS/LNX-LAB34.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F106**: [Linux Kernel: LSM usage](https://cdn.kernel.org/doc/html/latest/admin-guide/LSM/index.html). Qué LSM está activo y cómo se combinan con otras capas.\n- **F107**: [Red Hat RHEL 9 Using SELinux](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/pdf/using_selinux/troubleshooting-problems-related-to-selinux_using-selinux). Diagnóstico de AVC y contextos.\n- **F108**: [Ubuntu Server: AppArmor](https://ubuntu.com/server/docs/how-to/security/apparmor/). Perfiles, modos y eventos `DENIED`.\n- **F137**: [Red Hat: policy SELinux y diagnósticos](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/10/html/using_selinux/troubleshooting-problems-related-to-selinux). Corrección de etiquetas y verificación posterior.\n- **F109**: [Linux Kernel: Yama](https://docs.kernel.org/admin-guide/LSM/Yama.html). Restricciones de observación que acotan lo que se puede concluir.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "3b3f650c111156567358299a"
+}

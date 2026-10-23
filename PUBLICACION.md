@@ -1,8 +1,8 @@
 # Copia de publicación y GitHub Pages
 
-Esta copia contiene código, ambas academias, simulador, contenido educativo preparado, pruebas y documentación. Se creó separadamente del proyecto de trabajo; no modifica su original.
+Esta copia contiene código, los seis cursos (SC-200, Splunk, Redes, Windows + AD, Linux y Mundo SOC), el Repaso SOC, el simulador, contenido educativo preparado, pruebas y documentación. Se creó separadamente del proyecto de trabajo; no modifica su original.
 
-Se excluyen secretos/archivos de credenciales, configuraciones de entorno, dependencias, cachés, temporales, respaldos, capturas, logs y resultados históricos de pruebas. Los catálogos de `src/generated/` y los payloads de `public/` se incluyen expresamente, aunque el .gitignore histórico los excluya para regeneración.
+Se excluyen secretos/archivos de credenciales, configuraciones de entorno, dependencias, cachés, temporales, respaldos, capturas, logs, resultados históricos de pruebas y las notas de trabajo internas de `references/`. Los catálogos de `src/generated/` y `src/<mundo>/generated/` y los payloads de `public/` se incluyen expresamente, aunque el .gitignore histórico los excluya para regeneración.
 
 ## Ejecutar la copia
 
@@ -21,7 +21,7 @@ npm run preview
 
 La previsualización está en `http://127.0.0.1:4174/soc-learning-path/`.
 
-`npm run dev`, `npm test` y `npm run build` conservan sus prehooks originales: preparan SC-200 desde una fuente externa. El repositorio no incorpora ese archivo ajeno al directorio del proyecto. `build:pages` utiliza los catálogos y payloads versionados de ambas academias y del simulador; no regenera ni modifica sus revisiones. Las guardias y varios tests históricos necesitan respaldos de `output/`, excluidos deliberadamente de esta publicación. No se han desactivado esas pruebas ni se afirma que un clon sin dichos archivos pueda superar toda la batería. Las rutas documentales a evidencias locales omitidas son referencias históricas.
+`npm run dev`, `npm test` y `npm run build` conservan sus prehooks originales: preparan SC-200 desde una fuente externa y regeneran Redes, Windows + AD, Linux y Mundo SOC desde `*_MASTER_RESEARCH/`. El repositorio no incorpora ese archivo ajeno al directorio del proyecto. `build:pages` utiliza los catálogos y payloads versionados de todos los mundos y del simulador; no regenera ni modifica sus revisiones. Las guardias y varios tests históricos necesitan respaldos de `output/`, excluidos deliberadamente de esta publicación. No se han desactivado esas pruebas ni se afirma que un clon sin dichos archivos pueda superar toda la batería. Las rutas documentales a evidencias locales omitidas son referencias históricas.
 
 ## Despliegue automático
 
@@ -31,6 +31,10 @@ URL: **https://ricepattyjulls.github.io/soc-learning-path/**
 
 - SC-200: `#/ruta`.
 - Splunk: `#/splunk/ruta`.
+- Redes: `#/redes/ruta`.
+- Windows + AD: `#/windows-ad/ruta`.
+- Linux: `#/linux/ruta`.
+- Mundo SOC: `#/soc/ruta`; Repaso SOC: `#/soc/repaso_soc`.
 - Simulador: `#/simulador/microsoft` y `#/simulador/splunk`.
 
 `vite.config.ts` fija `base: '/soc-learning-path/'`. Vite adapta el icono y los scripts de `index.html`, los estilos y los imports diferidos. Los lectores SC-200/Splunk, los recursos Splunk y los escenarios ya anteponen `import.meta.env.BASE_URL` a sus archivos locales. La navegación utiliza hashes, por lo que recargar una lección o un caso no requiere reglas de servidor ni un `404.html` de redirección.

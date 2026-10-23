@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 1,
+  "courseId": "soc",
+  "id": "N2-15",
+  "sourceHash": "96958e5bfd5bca8855bfa7351af92fc274e8f0781b1c70b030c6bf298c45fce1",
+  "revision": "2d38895d93a07ed7682af013",
+  "hipotesis": [
+    "Datos codificados en labels DNS para comunicarse o extraer pequeños fragmentos vía dominio controlado (T1071.004).",
+    "Telemetry/observability, verificación ACME, DKIM, CDNs, anti-tracking o servicios de actualización que usan subdominios largos o efímeros.",
+    "DGA produce muchos nombres y NXDOMAIN, parecido al tunneling sin que necesariamente haya transferencia de datos.",
+    "Error de configuración DNS (search suffix) crea gran cantidad de consultas fallidas con cadenas largas.",
+    "La telemetría solo muestra el resolver, no cliente individual por NAT/caché, por lo que atribución requiere logs cliente o resolver con IP origen."
+  ],
+  "pasos": [
+    {
+      "fase": "1 · Validar datasource DNS",
+      "accion": "Verificar index/sourcetype, campos `src`, `query`, `query_type`, `reply_code` en Splunk, tiempo UTC, porcentaje de captura, recursión, caché y si hay visibilidad de IP cliente. Si solo existe firewall 53/UDP sin QNAME no puedes evaluar longitud de labels."
+    },
+    {
+      "fase": "2 · Construir línea base",
+      "accion": "Agrupar por equipo y zona consultada: queries totales, nombres únicos, máximo/mediana de longitud, respuesta NXDOMAIN, proporción TXT y distribución horaria en 7–30 días. Los umbrales de ejemplo son didácticos."
+    },
+    {
+      "fase": "3 · Filtrar candidatos por etiquetas",
+      "accion": "Extraer subdominios largos, altos recuentos de nombres únicos, una zona dominante, primeras etiquetas extensas y diversidad de cadenas. Comparar dominios registrados con listas de permitidos/tickets y servicios autorizados."
+    },
+    {
+      "fase": "4 · Analizar ritmo y volumen",
+      "accion": "Observar si hay ráfagas programadas o comunicación bidireccional, consultas periódicas, picos al ejecutarse scripts, consultas TXT, respuestas con tamaños altos y payloads encadenados. Alta entropía es un indicador adicional, no prueba autónoma."
+    },
+    {
+      "fase": "5 · Verificar respuestas y fallos",
+      "accion": "Correlacionar NXDOMAIN, respuestas positivas y tamaño de respuesta; NXDOMAIN alto puede indicar DGA o error de DNS, no asegura túnel. Comparar con tráfico DNS de hosts equivalentes."
+    },
+    {
+      "fase": "6 · Atribuir al endpoint",
+      "accion": "Pivotar desde IP fuente a DHCP, VPN, host y proceso DNS cuando sensor lo ofrezca, aplicaciones instaladas, tareas y conexiones directas a resolvers externos. Una IP de recursor central no identifica por sí sola estación víctima."
+    },
+    {
+      "fase": "7 · Investigación de un dominio",
+      "accion": "Para `tunnel.example.com` (placeholder), revisar registros crudos de subdominios, timestamps, autoritativos, reputación/historial y otros clientes; no enviar a herramientas públicas posibles datos sensibles codificados."
+    },
+    {
+      "fase": "8 · Decisión y contención",
+      "accion": "Si se demuestra canal no autorizado o hay señales concurrentes de malware/exfiltración, priorizar contención host/resolver y bloqueo del dominio bajo playbook, verificando que no use DoH/DoT o un resolver alternativo para reanudar. No bloquear `*.example.com` en producción como demostración."
+    },
+    {
+      "fase": "9 · Afinar detección y documentación",
+      "accion": "Definir baseline por perfil de endpoint, listas permitidas con caducidad, reglas por zona conocida, exclusiones de software legitimado y alertas de cobertura; registrar qué logs permiten atribuir bytes extraídos, que habitualmente DNS por sí solo no cuantifica."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "Splunk CIM Network Resolution (DNS): src, query, query_type, reply_code",
+      "lectura": "Necesita normalización; consultas que solo buscan query no ven trama codificada si no se ingesta QNAME."
+    },
+    {
+      "dato": "Longitud de QNAME y primera etiqueta, nombres únicos por zona",
+      "lectura": "Valores anómalos pueden expresar datos, DGA o CDN; combinar con baseline y otras señales."
+    },
+    {
+      "dato": "Recuentos TXT, NXDOMAIN y respuestas",
+      "lectura": "Características útiles pero inespecíficas; DGA/mala configuración suelen elevar NXDOMAIN."
+    },
+    {
+      "dato": "Host + proceso EDR y registros de DNS client",
+      "lectura": "Separa uso normal del navegador/agente y script/servicio desconocido."
+    },
+    {
+      "dato": "Firewall/NDR/NetFlow a UDP/TCP 53, DoH/DoT",
+      "lectura": "Relaciona fuente con resolver y posibles rutas alternativas; cifrado de DoH oculta QNAME a network-only."
+    },
+    {
+      "dato": "Azure DNSQueryLogs: SourceIpAddress, QueryName, ResponseCode",
+      "lectura": "Opción específica de Azure DNS Resolver Policies, no una tabla genérica disponible en todos los Sentinel."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Sentinel / Azure DNS Resolver · muchas consultas únicas y NXDOMAIN",
+      "entorno": "Azure Monitor DNSQueryLogs poblada por Azure DNS resolver policies. Usa columnas SourceIpAddress, QueryName y ResponseCode (entero).",
+      "consulta": "DNSQueryLogs\n| where TimeGenerated >= ago(1d)\n| where isnotempty(QueryName)\n| extend Nombre=tolower(trim_end(@\"\\.$\", QueryName)),\n         PrimeraEtiqueta=extract(@\"^([^.]+)\", 1, QueryName)\n| summarize Consultas=count(), NombresUnicos=dcount(Nombre),\n            NXDOMAIN=countif(ResponseCode == 3),\n            LongitudMedia=round(avg(strlen(Nombre)),1),\n            PrimeraEtiquetaMax=max(strlen(PrimeraEtiqueta))\n    by SourceIpAddress, bin(TimeGenerated,15m)\n| where Consultas >= 100 and NombresUnicos >= 60\n| extend PorcentajeNX=round(100.0*NXDOMAIN/Consultas,1)\n| order by NombresUnicos desc",
+      "interpretacion": "Busca alto ritmo y diversidad por cliente; inspeccionar dominios/etiquetas y compararlos con baseline.",
+      "limitaciones": "100, 60 y 15m son ejemplos. El resolver puede agrupar origen y el caché suprimir consultas. DNSQueryLogs requiere recurso específico; no confundir con DnsEvents."
+    },
+    {
+      "nombre": "Sentinel / Azure DNS Resolver · foco zona sospechosa",
+      "entorno": "DNSQueryLogs disponible; reemplazar la zona didáctica por dominio observado y autorizado a investigar.",
+      "consulta": "DNSQueryLogs\n| where TimeGenerated >= ago(7d)\n| extend Nombre=tolower(trim_end(@\"\\.$\", QueryName))\n| where Nombre endswith \".tunnel.example.com\"\n    or Nombre == \"tunnel.example.com\"\n| summarize Total=count(), Unicos=dcount(Nombre),\n            Codigos=make_set(ResponseCode,10),\n            Tipos=make_set(QueryType,10),\n            Muestras=make_set(Nombre,5)\n    by SourceIpAddress, bin(TimeGenerated,1h)\n| order by Total desc",
+      "interpretacion": "Permite investigar clientes, tipos de registro y nombres contra una zona candidata.",
+      "limitaciones": "tunnel.example.com es ejemplo RFC, no indicador real. La subzona no incluye subdominios con otra terminación y requiere validar fuente/resolver."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk · candidatos por longitud, unicidad y NXDOMAIN",
+      "entorno": "index=dns contiene logs de resolución con src, query, reply_code, query_type; estructura CIM o TA equivalente.",
+      "consulta": "index=dns earliest=-24h\n| eval q=lower(rtrim(query,\".\"))\n| eval etiqueta=mvindex(split(q,\".\"),0)\n| eval qlen=len(q), llen=len(etiqueta)\n| bin _time span=15m\n| stats count as consultas dc(q) as unicos max(llen) as max_label\n    avg(qlen) as media_qname count(eval(reply_code=\"NXDOMAIN\" OR reply_code=\"3\")) as nxdomain\n    by src _time\n| eval pct_nxdomain=round(100*nxdomain/max(consultas,1),1)\n| where consultas>=100 AND unicos>=60 AND max_label>=40\n| sort - unicos",
+      "interpretacion": "Busca grupos de alta cardinalidad, etiquetas largas y fracción de consultas inexistentes.",
+      "limitaciones": "rtrim elimina caracteres del conjunto final: aquí solo punto. Valores/normalización de reply_code varían. No mide entropía ni demuestra exfiltración. Cambiar thresholds por baseline."
+    },
+    {
+      "nombre": "Splunk · secuencia cruda por una subzona concreta",
+      "entorno": "index=dns contiene QNAME de cliente y el dominio candidato ha sido contrastado; túnel ficticio para práctica.",
+      "consulta": "index=dns earliest=-24h\n| eval q=lower(rtrim(query,\".\"))\n| where q=\"tunnel.example.com\" OR like(q,\"%.tunnel.example.com\")\n| stats count as consultas dc(q) as unicos values(query_type) as tipos\n    values(reply_code) as respuestas min(_time) as primero max(_time) as ultimo\n    by src\n| convert ctime(primero) ctime(ultimo)\n| sort - consultas",
+      "interpretacion": "Evalúa volumen por origen y zona, diversidad de nombres y tipos/errores para investigar.",
+      "limitaciones": "No reconstruye payload ni prueba extracción. No conviene volcar todos los QNAME potencialmente sensibles en informes fuera de la plataforma."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Windows PowerShell — observación local",
+      "proposito": "Listar servidores DNS configurados en host investigado para comprobar resolver esperado.",
+      "comando": "Get-DnsClientServerAddress -AddressFamily IPv4 |\n  Select-Object InterfaceAlias,ServerAddresses"
+    },
+    {
+      "entorno": "Windows PowerShell — observación local",
+      "proposito": "Consultar caché DNS si está disponible; la ausencia por expiración no descarta consultas anteriores.",
+      "comando": "Get-DnsClientCache | Select-Object Entry,RecordType,Status,TimeToLive"
+    },
+    {
+      "entorno": "Linux — solo lectura",
+      "proposito": "En servidor Linux, observar configuración y caché/consultas cuando el resolvedor es systemd-resolved.",
+      "comando": "resolvectl status\nresolvectl statistics"
+    }
+  ],
+  "contencion": "Una detección basada en QNAME no autoriza bloquear miles de subdominios sin contexto. Si se verifica DNS como canal C2/exfiltración y hay riesgo activo, coordinar aislamiento del origen y restricciones en DNS/proxy/egress según arquitectura, mantener resolución esencial y observar alternativas DoH/DoT. Documentar cambios y confirmar descenso de consultas sospechosas. La estimación de «datos robados» debe basarse en evidencia de contenido o volumen confiable, no solo en cantidad de consultas.",
+  "escalation": [
+    "Consulta sostenida a subzona no reconocida desde host crítico con proceso desconocido.",
+    "Patrones de etiquetas largas y diversidad anómala junto a tipo TXT/volumen de respuesta inusual.",
+    "Evidencias concurrentes de ejecución, persistencia, credenciales o comunicaciones fuera del resolver corporativo.",
+    "Múltiples endpoints afectados o dominio controlado por infraestructura maliciosa confirmada.",
+    "Actividad anómala continúa tras intervención y hay ruta alternativa de salida DNS/DoH."
+  ],
+  "falsos_positivos": [
+    "CDN, anti-tracking, protección contra fraude o rastreadores legítimos.",
+    "ACME challenge, DKIM, SPF y validadores DNS.",
+    "Agentes de monitorización/observabilidad que etiquetan recursos en subdominios.",
+    "Servicios de actualización y paquetes con identificadores largos.",
+    "Resolver mal configurado con search suffix y numerosos NXDOMAIN.",
+    "DGA no equivale automáticamente a DNS tunneling y puede requerir un caso distinto."
+  ],
+  "errores": [
+    "Confundir NXDOMAIN alto con prueba de exfiltración.",
+    "Asumir que todas las etiquetas largas tienen payload malicioso.",
+    "No diferenciar IP del resolver recursivo de IP de estación real.",
+    "Usar `DNSQueryLogs` como si existiera por defecto en Sentinel.",
+    "Bloquear solo una IP y declarar que el atacante no puede cambiar de resolver.",
+    "No registrar cobertura DoH/DoT ni condiciones para disminuir falsos positivos."
+  ],
+  "perspectiva_red_team": "DNS puede transportar etiquetas controladas por un cliente hacia una zona autoritativa; un defensor observa consultas y respuestas si su resolver/telemetría captura QNAME. Cifrado, caché y servicios legítimos con subdominios largos complican el análisis. La defensa eficaz agrupa por origen y dominio, revisa patrones temporales/tipos y confirma que existe actividad maliciosa antes de cuantificar exfiltración.",
+  "respuesta_entrevista": "Empezaría por comprobar qué logs DNS existen y si contienen `src`, QNAME, tipo, respuesta y hora. En Splunk mediría consultas/15 minutos, nombres únicos, longitud de la etiqueta inicial, NXDOMAIN y TXT por cliente/zona, contrastados con baseline. Haría pivot desde IP al equipo/proceso y revisaría resolvers externos y posibles DoH. Distinguiría CDN, ACME, observabilidad y DNS mal configurado antes de concluir tunneling. Si hay evidencia de canal no autorizado, escalaría IR y coordinaría contención del origen y salida DNS, comprobando el resultado.",
+  "criterios_evaluacion": [
+    "Comprueba fuente y campos CIM reales.",
+    "Sabe combinar longitud, unicidad, tasa, NXDOMAIN y tipo DNS.",
+    "Introduce baseline y falsos positivos antes de alertar.",
+    "No equipara QNAME largo con datos exfiltrados.",
+    "Identifica cliente real frente a resolver/NAT.",
+    "Conoce límites DoH/DoT, contenido y umbrales."
+  ],
+  "mitre": [
+    "T1071.004 — Application Layer Protocol: DNS (si C2)"
+  ],
+  "fuentes": [
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/dnsquerylogs",
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/dnsevents",
+    "https://help.splunk.com/en/splunk-cloud-platform/common-information-model/6.0/data-models/cim-fields-per-associated-data-model",
+    "https://csrc.nist.gov/pubs/sp/800/61/r3/final"
+  ]
+}

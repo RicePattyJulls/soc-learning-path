@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M09-L01",
+  "title": "VLAN y access ports",
+  "sourceHash": "e4d2c6396ee7098f6d00fd74720077b7311c67bda3bb59e79e66c014a618cffe",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M09-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nAsignar un puerto de acceso y distinguir pertenencia de autorización.\n\nPrerrequisitos: [RED-M02-L04](../RED-E01/RED-M02-L04.md), [RED-M08-L04](../RED-E02/RED-M08-L04.md).\n\n## 2. Comprende el mecanismo\n\nUn puerto de acceso suele asociar las tramas sin etiqueta de un equipo a una VLAN configurada. El nombre de la VLAN es administrativo; lo que importa para la pertenencia es su identificación y tratamiento efectivo. Una VLAN de voz puede introducir reglas adicionales en un puerto con teléfono y equipo, según plataforma. Asignar VLAN no equivale a autenticar al usuario ni a impedir todo acceso a otros segmentos. Documentar dirección del gateway y política L3 permite comprobar la función real de esa segmentación.\n\n### Vocabulario de apoyo\n\n- **Access y trunk**: Puerto de acceso para una VLAN de datos y enlace que transporta varias VLAN, según configuración.\n- **802.1Q y VLAN nativa**: Etiquetado de VLAN y tratamiento configurado para tráfico sin etiqueta en ciertos trunks.\n- **SVI**: Interfaz de capa 3 asociada a una VLAN para funciones IP.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M09-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Diseño: PC-A en VLAN20. Estado docente: p5 access VLAN10; DHCP devuelve ámbito de VLAN10.\n\nEl puerto introduce al cliente en otro dominio de broadcast. La dirección recibida es coherente con la configuración efectiva, aunque contradice el diseño.\n\n"
+    },
+    {
+      "id": "RED-M09-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Correlacionar VLAN con zonas y rutas.\n- Red Team autorizado: Comprobar de forma mínima el aislamiento entre segmentos.\n- Evidencia del módulo: Matriz VLAN, config/estado y flujos permitidos.\n- Criterio del módulo: Aislamiento y conectividad autorizada comprobados.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L04](../../05_RECURSOS/LABORATORIOS/RED-L04.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **BRIDGE**: [Ethernet Bridging](https://docs.kernel.org/networking/bridge.html). Learning, forwarding, VLAN y controles de bridge; kAPI no se presenta como estable.\n- **STP**: [Understand Rapid Spanning Tree Protocol](https://www.cisco.com/c/en/us/support/docs/lan-switching/spanning-tree-protocol/24062-146.html). Roles, estados y comparación de convergencia RSTP.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M09-L01-P01",
+    "prompt": "El puerto se corrige a VLAN20, pero el equipo conserva concesión de VLAN10. ¿Qué estado debe comprobarse después?",
+    "markdown": "## 4. Práctica individual\n\nEl puerto se corrige a VLAN20, pero el equipo conserva concesión de VLAN10. ¿Qué estado debe comprobarse después?\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M09-L01-Q01",
+      "prompt": "¿Qué determina la pertenencia efectiva del ejemplo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El nombre administrativo VLAN20 sin asignarlo al puerto"
+        },
+        {
+          "id": "B",
+          "text": "La VLAN indicada en el diseño aunque p5 tenga otra configuración"
+        },
+        {
+          "id": "C",
+          "text": "La subred que esperaba recibir el usuario antes de conectar"
+        },
+        {
+          "id": "D",
+          "text": "La VLAN de acceso configurada en p5"
+        }
+      ]
+    },
+    {
+      "id": "RED-M09-L01-Q02",
+      "prompt": "¿Qué explica recibir DHCP de VLAN10?",
+      "options": [
+        {
+          "id": "A",
+          "text": "VLAN20 no puede usar IPv4"
+        },
+        {
+          "id": "B",
+          "text": "El cliente está conectado efectivamente a VLAN10"
+        },
+        {
+          "id": "C",
+          "text": "El DNS modificó la etiqueta"
+        },
+        {
+          "id": "D",
+          "text": "Todas las VLAN comparten siempre DHCP sin relay"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L04](../../05_RECURSOS/LABORATORIOS/RED-L04.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **BRIDGE**: [Ethernet Bridging](https://docs.kernel.org/networking/bridge.html). Learning, forwarding, VLAN y controles de bridge; kAPI no se presenta como estable.\n- **STP**: [Understand Rapid Spanning Tree Protocol](https://www.cisco.com/c/en/us/support/docs/lan-switching/spanning-tree-protocol/24062-146.html). Roles, estados y comparación de convergencia RSTP.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "4672e76462a6bd21a7970024"
+}

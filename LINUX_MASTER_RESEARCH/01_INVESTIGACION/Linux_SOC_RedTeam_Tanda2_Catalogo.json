@@ -1,0 +1,1321 @@
+{
+  "schema_version": "1.0.0",
+  "project": "Linux para SOC + Red Team",
+  "batch": 2,
+  "total_batches": 5,
+  "title": "Arranque, systemd, servicios y gestión de paquetes",
+  "language": "es-ES",
+  "research_date": "2026-10-18",
+  "based_on": {
+    "filename": "linux(1).txt",
+    "source_scope": "Arranque, systemd, servicios y gestión de paquetes",
+    "source_original_blocks": 11,
+    "source_is_outline": true
+  },
+  "companion_markdown": "Linux_SOC_RedTeam_Tanda2_Informe.md",
+  "learning_objectives": [
+    "Reconstruir la cadena de arranque sin modificarla",
+    "Distinguir runtime, unit enablement y load state",
+    "Resolver configuración efectiva y dependencias de systemd",
+    "Investigar disparadores no evidentes",
+    "Crear y limpiar unidad y timer de usuario inocuos",
+    "Validar seguridad y limitaciones de directivas",
+    "Analizar procedencia, versionado y verificación local de paquetes",
+    "Construir triage con hallazgos y límites para SOC y Red Team autorizado"
+  ],
+  "execution_policy": {
+    "allowed_environments": [
+      "VM propia",
+      "host propio no productivo",
+      "laboratorio autorizado"
+    ],
+    "forbidden_without_explicit_authorization": [
+      "modificar bootloader/ESP/UEFI",
+      "instalar persistencia en otros sistemas",
+      "deshabilitar firmas de repos",
+      "exfiltrar datos",
+      "modificar servicios de producción",
+      "borrar evidencia no preservada"
+    ],
+    "ethics": "All Red Team exercises are benign and confined to user-level lab units, without evasion, escalation or outbound communications",
+    "evidence_integrity": "Local SHA256 demonstrates later integrity of the captured bytes, not original host trust"
+  },
+  "labs": [
+    {
+      "id": "L01",
+      "title": "Reconstruir la cadena de arranque",
+      "category": "boot",
+      "difficulty": "fundamental",
+      "duration_minutes_estimate": 45,
+      "score_points": 15,
+      "prerequisites": [
+        "VM con systemd PID 1",
+        "Acceso shell sin sudo",
+        "Herramientas ps/findmnt disponibles"
+      ],
+      "scope": "Virtual machine or personally-owned Linux host; no production modifications",
+      "safety_constraints": [
+        "Prohibido editar bootloader, ESP o initramfs",
+        "El archivo de evidencia contiene solo datos del host propio"
+      ],
+      "procedure": [
+        {
+          "id": "1",
+          "action": "Registrar identidad y punto temporal",
+          "commands": [
+            "date -u -Is",
+            "cat /etc/os-release",
+            "uname -a",
+            "cat /proc/sys/kernel/random/boot_id"
+          ]
+        },
+        {
+          "id": "2",
+          "action": "Observar el estado del arranque",
+          "commands": [
+            "ps -p 1 -o pid,comm,args",
+            "cat /proc/cmdline",
+            "findmnt /",
+            "systemctl get-default"
+          ]
+        },
+        {
+          "id": "3",
+          "action": "Analizar tiempos y fallos",
+          "commands": [
+            "systemd-analyze time",
+            "systemd-analyze critical-chain",
+            "systemctl --failed",
+            "journalctl --list-boots"
+          ]
+        },
+        {
+          "id": "4",
+          "action": "Crear evidencia",
+          "commands": [
+            "mkdir -p \"$HOME/soc-t2/L01\"",
+            "sha256sum \"$HOME/soc-t2/L01/\"*.txt > \"$HOME/soc-t2/L01/SHA256SUMS\""
+          ],
+          "note": "Se presupone que observaciones.txt y cadena.txt ya se han generado como en el informe."
+        }
+      ],
+      "deliverables": [
+        "Diagrama de arranque real con >= 5 hitos",
+        "Archivo de observaciones y hashes",
+        "Matriz 5 hechos, 3 inferencias y >= 2 limitaciones",
+        "Dos hipótesis de fallo y consulta segura"
+      ],
+      "acceptance_criteria": [
+        "Distingue cargador vs PID 1",
+        "Interpreta initramfs y rootfs",
+        "No asume que un hash local garantiza integridad del host",
+        "No ejecuta cambios de arranque"
+      ],
+      "cleanup_and_rollback": [
+        "No hay modificaciones del sistema; conservar solo artefactos bajo ~/soc-t2/L01"
+      ],
+      "references": [
+        "F01",
+        "F02",
+        "F03",
+        "F22"
+      ],
+      "mitre_attack": []
+    },
+    {
+      "id": "L02",
+      "title": "Estados, precedencia y dependencias",
+      "category": "systemd",
+      "difficulty": "fundamental",
+      "duration_minutes_estimate": 40,
+      "score_points": 15,
+      "prerequisites": [
+        "VM con systemd",
+        "Un servicio existente elegido con systemctl list-unit-files --type=service"
+      ],
+      "scope": "Virtual machine or personally-owned Linux host; no production modifications",
+      "safety_constraints": [
+        "Solo comandos de lectura",
+        "No parar ni reiniciar servicios"
+      ],
+      "procedure": [
+        {
+          "id": "1",
+          "action": "Elegir servicio observado, sin inventar nombre",
+          "commands": [
+            "systemctl list-unit-files --type=service",
+            "systemctl status NOMBRE.service --no-pager"
+          ]
+        },
+        {
+          "id": "2",
+          "action": "Comparar estado de ejecución y habilitación",
+          "commands": [
+            "systemctl is-active NOMBRE.service",
+            "systemctl is-enabled NOMBRE.service",
+            "systemctl show NOMBRE.service -p LoadState -p ActiveState -p SubState -p UnitFileState"
+          ]
+        },
+        {
+          "id": "3",
+          "action": "Resolver configuración y origen",
+          "commands": [
+            "systemctl cat NOMBRE.service",
+            "systemctl show NOMBRE.service -p FragmentPath -p DropInPaths -p ExecStart -p User -p TriggeredBy"
+          ]
+        },
+        {
+          "id": "4",
+          "action": "Inspeccionar relaciones",
+          "commands": [
+            "systemctl list-dependencies NOMBRE.service",
+            "systemctl list-dependencies --reverse NOMBRE.service"
+          ]
+        }
+      ],
+      "deliverables": [
+        "Informe corto con 10 hechos y 3 límites",
+        "Diferencia entre Wants, Requires y After",
+        "FragmentPath y DropInPaths documentados"
+      ],
+      "acceptance_criteria": [
+        "No confunde enabled con active",
+        "No interpreta After como dependencia de activación",
+        "Demuestra capacidad de localizar la definición efectiva y mecanismos alternativos de activación"
+      ],
+      "cleanup_and_rollback": [
+        "Ninguna mutación. Documentar la unidad investigada y cerrar caso"
+      ],
+      "references": [
+        "F05",
+        "F06",
+        "F07"
+      ],
+      "mitre_attack": []
+    },
+    {
+      "id": "L03",
+      "title": "Servicio y timer inocuos de usuario",
+      "category": "systemd",
+      "difficulty": "intermediate",
+      "duration_minutes_estimate": 75,
+      "score_points": 20,
+      "prerequisites": [
+        "VM propia",
+        "systemctl --user operativo",
+        "Home escribible",
+        "No requerir privilegios root"
+      ],
+      "scope": "Virtual machine or personally-owned Linux host; no production modifications",
+      "safety_constraints": [
+        "El ejecutable escribe solo una fecha UTC en ~/soc-t2/L03/actividad.log",
+        "No usar sockets externos",
+        "No activar linger ni cambiar configuración global",
+        "Retirar timer al finalizar"
+      ],
+      "procedure": [
+        {
+          "id": "1",
+          "action": "Crear script que escribe marca de tiempo en HOME",
+          "commands": [
+            "mkdir -p \"$HOME/.local/libexec\" \"$HOME/.config/systemd/user\" \"$HOME/soc-t2/L03\"",
+            "chmod 700 \"$HOME/.local/libexec/soc-t2-marker.sh\""
+          ],
+          "note": "Primero crear soc-t2-marker.sh mediante heredoc literal de la sección 18 del informe; después aplicar chmod 700. El script solo añade timestamps a un fichero local."
+        },
+        {
+          "id": "2",
+          "action": "Definir soc-t2-marker.service y soc-t2-marker.timer",
+          "commands": [
+            "systemd-analyze verify \"$HOME/.config/systemd/user/soc-t2-marker.service\" \"$HOME/.config/systemd/user/soc-t2-marker.timer\""
+          ],
+          "note": "Las definiciones completas están en el informe, sección 18. Servicio: Type=oneshot, ExecStart=%h/.local/libexec/soc-t2-marker.sh. Timer: OnCalendar=hourly, Persistent=false."
+        },
+        {
+          "id": "3",
+          "action": "Activar prueba y demostrar origen",
+          "commands": [
+            "systemctl --user daemon-reload",
+            "systemctl --user start soc-t2-marker.service",
+            "systemctl --user enable --now soc-t2-marker.timer",
+            "systemctl --user list-timers --all",
+            "journalctl --user -u soc-t2-marker.service --no-pager"
+          ]
+        },
+        {
+          "id": "4",
+          "action": "Preservar y limpiar",
+          "commands": [
+            "systemctl --user disable --now soc-t2-marker.timer",
+            "systemctl --user stop soc-t2-marker.service",
+            "systemctl --user daemon-reload"
+          ],
+          "note": "Antes de borrar, copiar y hashear unidades a carpeta L03; retirar script y unidades según sección 18."
+        }
+      ],
+      "deliverables": [
+        "service y timer preservados en carpeta de evidencia",
+        "Registro de al menos una ejecución",
+        "Identidad de usuario documentada",
+        "Prueba de deshabilitación, parada y eliminación"
+      ],
+      "acceptance_criteria": [
+        "Script no usa red ni escalada",
+        "Diferencia entre start y enable",
+        "Entiende limitación de persistencia tras logout",
+        "Limpieza validada y hashes obtenidos"
+      ],
+      "cleanup_and_rollback": [
+        "disable --now timer, stop service, preservar definiciones, quitar tres archivos de laboratorio y daemon-reload",
+        "No habilitar linger"
+      ],
+      "references": [
+        "F05",
+        "F07",
+        "F09",
+        "F10",
+        "F11"
+      ],
+      "mitre_attack": [
+        "T1543.002",
+        "T1053.006"
+      ]
+    },
+    {
+      "id": "L04",
+      "title": "Drop-ins, precedencia y daemon-reload",
+      "category": "systemd",
+      "difficulty": "intermediate",
+      "duration_minutes_estimate": 50,
+      "score_points": 10,
+      "prerequisites": [
+        "VM propia",
+        "Definición inocua de L03 conservada o recreada",
+        "systemctl --user operativo"
+      ],
+      "scope": "Virtual machine or personally-owned Linux host; no production modifications",
+      "safety_constraints": [
+        "Modificar exclusivamente unidad didáctica de usuario",
+        "No ejecutar la unidad hasta comprobar impacto de ProtectHome",
+        "Copia/rollback antes de cambio"
+      ],
+      "procedure": [
+        {
+          "id": "1",
+          "action": "Crear archivo de override para unidad de laboratorio",
+          "commands": [
+            "mkdir -p \"$HOME/.config/systemd/user/soc-t2-marker.service.d\""
+          ],
+          "note": "Crear 50-lab-hardening.conf con NoNewPrivileges=true, PrivateTmp=true, ProtectHome=read-only como en sección 19."
+        },
+        {
+          "id": "2",
+          "action": "Observar antes de cargar la configuración",
+          "commands": [
+            "systemctl --user cat soc-t2-marker.service",
+            "systemctl --user show soc-t2-marker.service -p DropInPaths -p NeedDaemonReload"
+          ]
+        },
+        {
+          "id": "3",
+          "action": "Cargar y revisar valor efectivo",
+          "commands": [
+            "systemctl --user daemon-reload",
+            "systemctl --user show soc-t2-marker.service -p ProtectHome -p DropInPaths -p NeedDaemonReload"
+          ]
+        },
+        {
+          "id": "4",
+          "action": "Preservar y deshacer en VM",
+          "commands": [
+            "systemctl --user daemon-reload"
+          ],
+          "note": "Quitar solo el override creado en L04, tras preservarlo."
+        }
+      ],
+      "deliverables": [
+        "Diff base/override",
+        "Evidencia de NeedDaemonReload y propiedad cargada",
+        "Análisis de por qué el sandbox puede impedir escritura",
+        "Prueba de rollback"
+      ],
+      "acceptance_criteria": [
+        "Comprende precedence, no confunde daemon-reload con restart",
+        "Prever efecto sobre home y plataforma",
+        "No aplicar a unidades productivas"
+      ],
+      "cleanup_and_rollback": [
+        "Guardar hash del drop-in, eliminar solo 50-lab-hardening.conf y ejecutar daemon-reload"
+      ],
+      "references": [
+        "F05",
+        "F06",
+        "F12"
+      ],
+      "mitre_attack": []
+    },
+    {
+      "id": "L05",
+      "title": "Propiedad e integridad local de paquetes",
+      "category": "packages",
+      "difficulty": "intermediate",
+      "duration_minutes_estimate": 60,
+      "score_points": 15,
+      "prerequisites": [
+        "VM Debian/Parrot o Fedora/RHEL o Arch",
+        "Una versión bash instalada",
+        "Herramientas de gestor ya disponibles"
+      ],
+      "scope": "Virtual machine or personally-owned Linux host; no production modifications",
+      "safety_constraints": [
+        "No instalar, eliminar ni actualizar paquetes",
+        "No desactivar comprobaciones de firma",
+        "No interpretar salida vacía como prueba de ausencia de compromiso"
+      ],
+      "procedure": [
+        {
+          "id": "1",
+          "action": "Identificar familia del gestor",
+          "commands": [
+            "cat /etc/os-release",
+            "command -v dpkg-query || command -v rpm || command -v pacman"
+          ]
+        },
+        {
+          "id": "2",
+          "action": "Consultar paquete y propietario",
+          "commands": [
+            "dpkg-query -W bash",
+            "dpkg-query -S /usr/bin/bash"
+          ],
+          "alternative_commands": {
+            "rpm": [
+              "rpm -q bash",
+              "rpm -qf /usr/bin/bash"
+            ],
+            "pacman": [
+              "pacman -Q bash",
+              "pacman -Qo /usr/bin/bash"
+            ]
+          }
+        },
+        {
+          "id": "3",
+          "action": "Verificar contra metadatos locales",
+          "commands": [
+            "dpkg -V bash"
+          ],
+          "alternative_commands": {
+            "rpm": [
+              "rpm -V bash"
+            ],
+            "pacman": [
+              "pacman -Qkk bash"
+            ]
+          }
+        },
+        {
+          "id": "4",
+          "action": "Revisar origen y cambios",
+          "commands": [
+            "apt-cache policy bash",
+            "ls -l /var/log/apt/history.log* /var/log/dpkg.log* 2>/dev/null"
+          ],
+          "alternative_commands": {
+            "rpm": [
+              "dnf history",
+              "ls -l /etc/yum.repos.d/"
+            ],
+            "pacman": [
+              "pacman -Qi bash",
+              "ls -l /var/log/pacman.log"
+            ]
+          }
+        }
+      ],
+      "deliverables": [
+        "Tabla rutas/propietario/versión/repositorio",
+        "Salida de verificación y límites",
+        "Diferenciación entre firma de repositorio y verificación de estado actual",
+        "Dos recomendaciones de operación de parches"
+      ],
+      "acceptance_criteria": [
+        "No afirma origen criptográfico por mero dpkg -S/rpm -qf/pacman -Qo",
+        "Explica limitaciones de metadatos locales",
+        "No modifica paquetes ni repos"
+      ],
+      "cleanup_and_rollback": [
+        "Solo se crean archivos de evidencia del laboratorio, sin mutación de paquetes"
+      ],
+      "references": [
+        "F13",
+        "F14",
+        "F15",
+        "F16",
+        "F17",
+        "F18",
+        "F19"
+      ],
+      "mitre_attack": []
+    },
+    {
+      "id": "L06",
+      "title": "Triage de persistencia simulada",
+      "category": "soc_red_team",
+      "difficulty": "advanced",
+      "duration_minutes_estimate": 90,
+      "score_points": 20,
+      "prerequisites": [
+        "VM propia",
+        "Evidencia de L03 y L04",
+        "Autorización explícita del entorno",
+        "Logs de la sesión o capturas disponibles"
+      ],
+      "scope": "Virtual machine or personally-owned Linux host; no production modifications",
+      "safety_constraints": [
+        "La emulación es propia, visible e inocua",
+        "Ninguna evasión, descarga, exfiltración o privilegio root",
+        "No llamar malicioso a un artefacto por nombre o ruta"
+      ],
+      "procedure": [
+        {
+          "id": "1",
+          "action": "Consolidar cronología",
+          "commands": [
+            "stat \"$HOME/.config/systemd/user/soc-t2-marker.service\"",
+            "stat \"$HOME/.config/systemd/user/soc-t2-marker.timer\"",
+            "journalctl --user -u soc-t2-marker.service --no-pager"
+          ],
+          "note": "Si ya limpiaste, usa copias del L03 y declara qué no puede observarse."
+        },
+        {
+          "id": "2",
+          "action": "Comprobar identidad y disparadores",
+          "commands": [
+            "systemctl --user show soc-t2-marker.service -p User -p ExecStart -p TriggeredBy",
+            "systemctl --user list-timers --all",
+            "loginctl show-user \"$USER\" -p Linger"
+          ],
+          "note": "No habilitar linger."
+        },
+        {
+          "id": "3",
+          "action": "Construir detecciones conceptuales",
+          "commands": [],
+          "note": "Correlacionar creación de unidad, habilitación de timer y ejecución; señalar si FIM/auditd/EDR no estaban configurados."
+        },
+        {
+          "id": "4",
+          "action": "Emitir informe SOC y retest",
+          "commands": [],
+          "note": "Utilizar plantilla de sección 27 y documentar la retirada de artefactos."
+        }
+      ],
+      "deliverables": [
+        "Resumen <=150 palabras",
+        "8 evidencias numeradas",
+        "2 hipótesis alternativas",
+        "3 mitigaciones",
+        "Matriz cobertura observado/no medido",
+        "Plan de retest"
+      ],
+      "acceptance_criteria": [
+        "Atribución y causalidad basadas en evidencia",
+        "No asume persistencia de root",
+        "Confirma limpieza",
+        "Distingue cobertura ausente de evasión"
+      ],
+      "cleanup_and_rollback": [
+        "Desactivar timer, detener servicio, preservar y retirar unidades de usuario, volver a listar unidad y timer"
+      ],
+      "references": [
+        "F04",
+        "F05",
+        "F06",
+        "F09",
+        "F10",
+        "F11",
+        "F20"
+      ],
+      "mitre_attack": [
+        "T1543.002",
+        "T1053.006"
+      ]
+    },
+    {
+      "id": "L07",
+      "title": "Hardening con análisis de compatibilidad",
+      "category": "hardening",
+      "difficulty": "intermediate",
+      "duration_minutes_estimate": 60,
+      "score_points": 5,
+      "prerequisites": [
+        "VM propia",
+        "Unidad del laboratorio y documentación de sus necesidades"
+      ],
+      "scope": "Virtual machine or personally-owned Linux host; no production modifications",
+      "safety_constraints": [
+        "No aplicar perfiles genéricos a producción",
+        "Documentar impacto y reversión",
+        "No confundir scoring con certificación"
+      ],
+      "procedure": [
+        {
+          "id": "1",
+          "action": "Identificar permisos y requisitos reales",
+          "commands": [
+            "systemctl --user cat soc-t2-marker.service"
+          ],
+          "note": "Si unidad fue retirada, analizar copia sin ejecutar."
+        },
+        {
+          "id": "2",
+          "action": "Proponer dos perfiles restrictivos",
+          "commands": [
+            "systemd-analyze security --help"
+          ],
+          "note": "Comparar NoNewPrivileges, PrivateTmp, ProtectHome, ProtectSystem y capacidades según viabilidad de usuario."
+        },
+        {
+          "id": "3",
+          "action": "Verificar sintaxis y funcionalidad si es posible",
+          "commands": [
+            "systemd-analyze verify \"$HOME/.config/systemd/user/soc-t2-marker.service\""
+          ],
+          "note": "Solo si existe archivo. Algunas restricciones no funcionan en user managers; documentarlo."
+        }
+      ],
+      "deliverables": [
+        "Matriz control/amenaza/dependencia/coste/rollback",
+        "Perfil base y perfil reforzado",
+        "Justificación de no aplicar ajustes incompatibles"
+      ],
+      "acceptance_criteria": [
+        "Al menos cuatro controles evaluados con límites",
+        "Plan de reversión expreso",
+        "No se exponen secretos ni se modifican unidades críticas"
+      ],
+      "cleanup_and_rollback": [
+        "Eliminar override de prueba si existe, daemon-reload y comprobar estado final"
+      ],
+      "references": [
+        "F03",
+        "F12"
+      ],
+      "mitre_attack": []
+    }
+  ],
+  "labs_count": 7,
+  "labs_points_total": 100,
+  "assessment": {
+    "pass_lab_points": 80,
+    "pass_quiz_percentage": 75,
+    "critical_failure_override": true,
+    "quiz_questions": [
+      {
+        "id": "Q01",
+        "question": "¿Puede UEFI iniciar un kernel sin GRUB?",
+        "expected_reasoning": "Sí, según firmware/loader y soporte de imagen EFI; UEFI no implica GRUB",
+        "reference": "F01",
+        "points_if_separate_quiz": 1
+      },
+      {
+        "id": "Q02",
+        "question": "¿Para qué sirve initramfs y por qué varía?",
+        "expected_reasoning": "Provee entorno temprano para localizar/montar raíz; cambia por controladores, cifrado y distro",
+        "reference": "F01",
+        "points_if_separate_quiz": 1
+      },
+      {
+        "id": "Q03",
+        "question": "¿Kernel instalado y cargado son lo mismo?",
+        "expected_reasoning": "No: uname -r es el que corre; inventario de paquetes muestra los instalados",
+        "reference": "F01",
+        "points_if_separate_quiz": 1
+      },
+      {
+        "id": "Q04",
+        "question": "¿Por qué blame no determina culpabilidad?",
+        "expected_reasoning": "Ejecuta en paralelo y solo mide ciertas fases de activación; contextualizar cadena",
+        "reference": "F03",
+        "points_if_separate_quiz": 1
+      },
+      {
+        "id": "Q05",
+        "question": "¿Qué validar para leer el boot anterior?",
+        "expected_reasoning": "journalctl --list-boots y retención disponible; -b -1 puede no existir",
+        "reference": "F04",
+        "points_if_separate_quiz": 1
+      },
+      {
+        "id": "Q06",
+        "question": "¿Qué significan active/enabled/static/masked?",
+        "expected_reasoning": "Actividad, habilitación, unidad sin instrucciones habilitables y bloqueo de activación normal, respectivamente",
+        "reference": "F05",
+        "points_if_separate_quiz": 1
+      },
+      {
+        "id": "Q07",
+        "question": "¿After inicia la dependencia?",
+        "expected_reasoning": "No; solo ordena cuando ambas participan",
+        "reference": "F06",
+        "points_if_separate_quiz": 1
+      },
+      {
+        "id": "Q08",
+        "question": "¿Qué añaden Requires y After en conjunto?",
+        "expected_reasoning": "Solicita dependencia fuerte y orden posterior, con reglas específicas ante fallos",
+        "reference": "F06",
+        "points_if_separate_quiz": 1
+      },
+      {
+        "id": "Q09",
+        "question": "¿Socket puede activar servicio disabled?",
+        "expected_reasoning": "Sí si socket está operativo y su activación está configurada",
+        "reference": "F08",
+        "points_if_separate_quiz": 1
+      },
+      {
+        "id": "Q10",
+        "question": "¿Oneshot puede estar inactive y haber terminado bien?",
+        "expected_reasoning": "Sí: una ejecución única normal puede finalizar sin permanecer activa",
+        "reference": "F07",
+        "points_if_separate_quiz": 1
+      },
+      {
+        "id": "Q11",
+        "question": "¿daemon-reload reinicia procesos?",
+        "expected_reasoning": "No; relee definiciones de unidad y generadores, sin restart implícito",
+        "reference": "F05",
+        "points_if_separate_quiz": 1
+      },
+      {
+        "id": "Q12",
+        "question": "¿Por qué no modificar unidades del proveedor?",
+        "expected_reasoning": "Cambios pueden sobrescribirse; mantener drop-ins de administrador y rollback",
+        "reference": "F06",
+        "points_if_separate_quiz": 1
+      },
+      {
+        "id": "Q13",
+        "question": "¿systemctl cat refleja la misma definición que proceso vivo?",
+        "expected_reasoning": "No necesariamente si archivos cambiaron o no se reinició proceso; contrastar show y logs",
+        "reference": "F05",
+        "points_if_separate_quiz": 1
+      },
+      {
+        "id": "Q14",
+        "question": "¿Qué es un drop-in y su riesgo?",
+        "expected_reasoning": "Fragmento adicional que puede modificar ejecución/identidad sin tocar unidad base",
+        "reference": "F06",
+        "points_if_separate_quiz": 1
+      },
+      {
+        "id": "Q15",
+        "question": "¿Por qué revisar ExecStartPre/Post?",
+        "expected_reasoning": "También ejecutan comandos al ciclo de vida del servicio",
+        "reference": "F07",
+        "points_if_separate_quiz": 1
+      },
+      {
+        "id": "Q16",
+        "question": "¿Qué diferencia hay entre user y system manager?",
+        "expected_reasoning": "Distinto gestor, privilegios y condiciones de disponibilidad/sesión",
+        "reference": "F05",
+        "points_if_separate_quiz": 1
+      },
+      {
+        "id": "Q17",
+        "question": "¿Cómo probar persistencia tras logout?",
+        "expected_reasoning": "Comprobar estado del gestor de usuario, linger y ejecución tras cierre en entorno autorizado",
+        "reference": "F05",
+        "points_if_separate_quiz": 1
+      },
+      {
+        "id": "Q18",
+        "question": "¿Qué es un generador?",
+        "expected_reasoning": "Ejecutable que crea unidades dinámicas durante arranque/daemon-reload; revisar /run/systemd/generator*",
+        "reference": "F20",
+        "points_if_separate_quiz": 1
+      },
+      {
+        "id": "Q19",
+        "question": "¿systemctl --failed limpio implica host sano?",
+        "expected_reasoning": "No; no cubre servicios no gestionados, errores de app ni historia completa",
+        "reference": "F05",
+        "points_if_separate_quiz": 1
+      },
+      {
+        "id": "Q20",
+        "question": "¿Persistent=true siempre reejecuta cada cita perdida?",
+        "expected_reasoning": "No: permite recuperación limitada de OnCalendar sin garantizar cada evento perdido",
+        "reference": "F09",
+        "points_if_separate_quiz": 1
+      },
+      {
+        "id": "Q21",
+        "question": "¿Cómo diferenciar legítimo y sospechoso?",
+        "expected_reasoning": "Comparar baseline, propietario, autorización, tiempo, acciones y evidencia convergente",
+        "reference": "F10",
+        "points_if_separate_quiz": 1
+      },
+      {
+        "id": "Q22",
+        "question": "¿Firma APT equivale a dpkg -V?",
+        "expected_reasoning": "No; autenticación de metadatos/repositorio vs comparación local de archivos",
+        "reference": "F13",
+        "points_if_separate_quiz": 1
+      },
+      {
+        "id": "Q23",
+        "question": "¿Qué indica rpm -qf?",
+        "expected_reasoning": "Paquete registrado como dueño de ruta, no prueba de integridad del fichero vivo",
+        "reference": "F17",
+        "points_if_separate_quiz": 1
+      },
+      {
+        "id": "Q24",
+        "question": "¿Qué no garantiza pacman -Qkk?",
+        "expected_reasoning": "No verifica todo archivo ajeno al paquete ni cadena externa completa de confianza",
+        "reference": "F18",
+        "points_if_separate_quiz": 1
+      },
+      {
+        "id": "Q25",
+        "question": "¿Cómo analizar repos sin alterar índices?",
+        "expected_reasoning": "Leer config en /etc, Signed-By/keys, metadata ya local y archivos de log",
+        "reference": "F14",
+        "points_if_separate_quiz": 1
+      },
+      {
+        "id": "Q26",
+        "question": "¿Qué pasa si librería actualizada está en proceso viejo?",
+        "expected_reasoning": "Proceso puede retener código anterior hasta reinicio gestionado",
+        "reference": "F19",
+        "points_if_separate_quiz": 1
+      },
+      {
+        "id": "Q27",
+        "question": "¿Por qué ProtectSystem=strict puede romper apps?",
+        "expected_reasoning": "Bloquea escritura en filesystem salvo excepciones; evaluar StateDirectory y paths",
+        "reference": "F12",
+        "points_if_separate_quiz": 1
+      },
+      {
+        "id": "Q28",
+        "question": "¿systemd-analyze security certifica ausencia de riesgo?",
+        "expected_reasoning": "No; solo scoring heurístico de sandbox/configuración y depende del entorno",
+        "reference": "F03",
+        "points_if_separate_quiz": 1
+      },
+      {
+        "id": "Q29",
+        "question": "¿Por qué kill PID no basta para contener?",
+        "expected_reasoning": "Unidades, sockets y timers pueden reactivar; además se pierde contexto volátil",
+        "reference": "F05",
+        "points_if_separate_quiz": 1
+      },
+      {
+        "id": "Q30",
+        "question": "¿Qué campos necesitas para detectar T1543.002?",
+        "expected_reasoning": "Cambios FS, unidad, exe, UID, cgroup, timestamps, disparadores, change ticket y eventos exec",
+        "reference": "F10",
+        "points_if_separate_quiz": 1
+      }
+    ],
+    "quiz_count": 30,
+    "rubric": [
+      {
+        "lab_id": "L01",
+        "points": 15
+      },
+      {
+        "lab_id": "L02",
+        "points": 15
+      },
+      {
+        "lab_id": "L03",
+        "points": 20
+      },
+      {
+        "lab_id": "L04",
+        "points": 10
+      },
+      {
+        "lab_id": "L05",
+        "points": 15
+      },
+      {
+        "lab_id": "L06",
+        "points": 20
+      },
+      {
+        "lab_id": "L07",
+        "points": 5
+      }
+    ]
+  },
+  "detections": [
+    {
+      "id": "D01",
+      "title": "Nueva unidad de sistema no aprobada",
+      "attack": [
+        "T1543.002"
+      ],
+      "logic": "Nueva o cambiada *.service en rutas de systemd y posterior activación, sin cambio autorizado",
+      "required_telemetry": [
+        "file integrity monitor OR auditd/eBPF file changes",
+        "systemd activation logs or process exec",
+        "change management records"
+      ],
+      "false_positives": [
+        "deploys legítimos",
+        "parches",
+        "administración manual aprobada"
+      ],
+      "limitations": [
+        "journal alone may not capture file writes"
+      ],
+      "severity_initial": "medium"
+    },
+    {
+      "id": "D02",
+      "title": "Override de ejecución en drop-in",
+      "attack": [
+        "T1543.002"
+      ],
+      "logic": "Nuevo *.service.d/*.conf que cambia ExecStart/ExecStartPre/ExecStartPost o User y se correlaciona con daemon-reload y restart",
+      "required_telemetry": [
+        "FIM/exec telemetry",
+        "baseline of effective unit",
+        "audit of deployment"
+      ],
+      "false_positives": [
+        "hardening/reconfig",
+        "actualizaciones"
+      ],
+      "limitations": [
+        "daemon-reload no implica proceso relanzado"
+      ],
+      "severity_initial": "high_when_privileged_execution"
+    },
+    {
+      "id": "D03",
+      "title": "Timer desconocido de nueva instalación",
+      "attack": [
+        "T1053.006"
+      ],
+      "logic": "Nuevos .timer + .service habilitados y ejecución con identidad sensible o ruta anómala",
+      "required_telemetry": [
+        "FIM",
+        "unit enable/start events",
+        "exec telemetry"
+      ],
+      "false_positives": [
+        "backups",
+        "agent maintenance",
+        "package scheduled tasks"
+      ],
+      "limitations": [
+        "user and transient managers may escape basic scan"
+      ],
+      "severity_initial": "medium"
+    },
+    {
+      "id": "D04",
+      "title": "Desviación de integridad de archivo de paquete",
+      "attack": [],
+      "logic": "Diferencia de archivo registrado + ausencia de cambio autorizado + posible ejecución",
+      "required_telemetry": [
+        "verification results",
+        "package metadata",
+        "external trusted baseline",
+        "change records"
+      ],
+      "false_positives": [
+        "config edits",
+        "vendor customizations"
+      ],
+      "limitations": [
+        "local database may be compromised"
+      ],
+      "severity_initial": "medium"
+    },
+    {
+      "id": "D05",
+      "title": "Repositorios/llaves modificados",
+      "attack": [],
+      "logic": "Cambio a sources.list.d/*.repo o keyrings fuera de procedimiento + transacción posterior",
+      "required_telemetry": [
+        "FIM",
+        "package transactions",
+        "releases and repository policy"
+      ],
+      "false_positives": [
+        "migration",
+        "new vendor agent",
+        "legitimate key rotation"
+      ],
+      "limitations": [
+        "not necessarily malicious without context"
+      ],
+      "severity_initial": "medium"
+    }
+  ],
+  "detection_count": 5,
+  "package_management_matrix": {
+    "debian_parrot": {
+      "owner": "dpkg-query -S /usr/bin/bash",
+      "version": "dpkg-query -W bash",
+      "verify": "dpkg -V bash",
+      "origin": "apt-cache policy bash",
+      "history": "/var/log/apt/history.log* ; /var/log/dpkg.log*",
+      "repo": "/etc/apt/sources.list ; /etc/apt/sources.list.d",
+      "critical_trust_limit": "apt-secure authenticates signed release metadata and linked hashes, not a post-install proof"
+    },
+    "fedora_rhel": {
+      "owner": "rpm -qf /usr/bin/bash",
+      "version": "rpm -q bash",
+      "verify": "rpm -V bash",
+      "origin": "dnf info bash",
+      "history": "dnf history OR dnf5 history list",
+      "repo": "/etc/yum.repos.d/*.repo",
+      "critical_trust_limit": "rpm verification relies on local RPM database; dnf4/dnf5 differ"
+    },
+    "arch": {
+      "owner": "pacman -Qo /usr/bin/bash",
+      "version": "pacman -Q bash",
+      "verify": "pacman -Qkk bash",
+      "origin": "pacman -Si bash",
+      "history": "/var/log/pacman.log",
+      "repo": "/etc/pacman.conf",
+      "critical_trust_limit": "Qkk checks metadata where available; not complete external integrity assurance"
+    }
+  },
+  "hardening_controls": [
+    {
+      "control": "User/Group",
+      "goal": "Run as restricted principal",
+      "limitation": "May require explicit file and resource permissions"
+    },
+    {
+      "control": "DynamicUser",
+      "goal": "Ephemeral service identity",
+      "limitation": "Persistent state paths need planned management"
+    },
+    {
+      "control": "NoNewPrivileges",
+      "goal": "Disallow gaining new privileges via execve",
+      "limitation": "Does not remove currently-held privileges"
+    },
+    {
+      "control": "CapabilityBoundingSet",
+      "goal": "Restrict capability set",
+      "limitation": "Must understand actual capabilities needed"
+    },
+    {
+      "control": "ProtectSystem",
+      "goal": "Make filesystem portions read only",
+      "limitation": "Exceptions and namespace limits; validate writes"
+    },
+    {
+      "control": "ProtectHome",
+      "goal": "Restrict access to homes",
+      "limitation": "Potential disruption if script reads or writes HOME"
+    },
+    {
+      "control": "PrivateTmp",
+      "goal": "Separate temp namespace",
+      "limitation": "Not complete system sandbox"
+    },
+    {
+      "control": "PrivateDevices",
+      "goal": "Restrict device access",
+      "limitation": "Applications can legitimately need device nodes"
+    },
+    {
+      "control": "SystemCallFilter",
+      "goal": "Restrict syscall families",
+      "limitation": "Seccomp/kernel support and compatibility"
+    },
+    {
+      "control": "RestrictAddressFamilies",
+      "goal": "Restrict socket families",
+      "limitation": "Must enumerate networking and unix sockets"
+    }
+  ],
+  "case_studies": [
+    {
+      "id": "CASE-01",
+      "title": "Servicio «activo» pero aplicación no disponible",
+      "lead": "Type=simple permite aparente activación antes de health readiness",
+      "expected_investigation": [
+        "Verificar readiness externa",
+        "Logs de app",
+        "Dependencias de red y disco"
+      ],
+      "do_not_assume": "active = application ready"
+    },
+    {
+      "id": "CASE-02",
+      "title": "Timer activo; service no habilitado",
+      "lead": "Socket/timer can activate service despite disabled unit",
+      "expected_investigation": [
+        "list-timers",
+        "TriggeredBy",
+        "Unit=",
+        "UnitFileState"
+      ],
+      "do_not_assume": "disabled = never executes"
+    },
+    {
+      "id": "CASE-03",
+      "title": "APT muestra versión anterior a upstream",
+      "lead": "Distribuciones pueden retroportar fixes",
+      "expected_investigation": [
+        "Advisory vendor",
+        "Revision installed",
+        "Running process/kernel"
+      ],
+      "do_not_assume": "Old upstream version string = unpatched"
+    },
+    {
+      "id": "CASE-04",
+      "title": "Unidad sospechosa en /etc",
+      "lead": "Likely admin override, package or emulation; not inherently malicious",
+      "expected_investigation": [
+        "Frag/DropIns",
+        "Ownership",
+        "Change ticket",
+        "hash",
+        "process context"
+      ],
+      "do_not_assume": "Admin path = attacker"
+    },
+    {
+      "id": "CASE-05",
+      "title": "Servicio con muchas reinicializaciones",
+      "lead": "Could be crash loop, watchdog or deployment",
+      "expected_investigation": [
+        "Restart policy",
+        "StartLimit",
+        "Logs",
+        "Cause of exit"
+      ],
+      "do_not_assume": "RestartCount positive = intrusion"
+    }
+  ],
+  "soc_evidence_template": {
+    "fields": [
+      "case_id",
+      "authorization",
+      "hostname",
+      "boot_id",
+      "timezone",
+      "os_version",
+      "kernel_running",
+      "unit_name",
+      "manager_scope",
+      "fragment_path",
+      "drop_in_paths",
+      "active_state",
+      "unit_file_state",
+      "triggered_by",
+      "effective_user",
+      "real_executable",
+      "package_owner",
+      "package_version",
+      "repository",
+      "trans_action_id",
+      "hash_sha256",
+      "log_source",
+      "event_time_utc",
+      "sensor_coverage",
+      "alternate_explanations",
+      "containment_approval",
+      "rollback_plan",
+      "retest_result"
+    ]
+  },
+  "references": [
+    {
+      "id": "F01",
+      "title": "systemd: bootup",
+      "url": "https://www.freedesktop.org/software/systemd/man/257/bootup.html",
+      "theme": "boot",
+      "source_type": "official_docs"
+    },
+    {
+      "id": "F02",
+      "title": "systemd: systemd-boot",
+      "url": "https://www.freedesktop.org/software/systemd/man/257/systemd-boot.html",
+      "theme": "boot",
+      "source_type": "official_docs"
+    },
+    {
+      "id": "F03",
+      "title": "systemd: systemd-analyze",
+      "url": "https://www.freedesktop.org/software/systemd/man/257/systemd-analyze.html",
+      "theme": "operation",
+      "source_type": "official_docs"
+    },
+    {
+      "id": "F04",
+      "title": "systemd: journalctl",
+      "url": "https://www.freedesktop.org/software/systemd/man/257/journalctl.html",
+      "theme": "soc",
+      "source_type": "official_docs"
+    },
+    {
+      "id": "F05",
+      "title": "systemd: systemctl",
+      "url": "https://www.freedesktop.org/software/systemd/man/257/systemctl.html",
+      "theme": "operation",
+      "source_type": "official_docs"
+    },
+    {
+      "id": "F06",
+      "title": "systemd: systemd.unit",
+      "url": "https://www.freedesktop.org/software/systemd/man/257/systemd.unit.html",
+      "theme": "operation",
+      "source_type": "official_docs"
+    },
+    {
+      "id": "F07",
+      "title": "systemd: systemd.service",
+      "url": "https://www.freedesktop.org/software/systemd/man/257/systemd.service.html",
+      "theme": "operation",
+      "source_type": "official_docs"
+    },
+    {
+      "id": "F08",
+      "title": "systemd: systemd.socket",
+      "url": "https://www.freedesktop.org/software/systemd/man/257/systemd.socket.html",
+      "theme": "operation",
+      "source_type": "official_docs"
+    },
+    {
+      "id": "F09",
+      "title": "systemd: systemd.timer",
+      "url": "https://www.freedesktop.org/software/systemd/man/257/systemd.timer.html",
+      "theme": "operation",
+      "source_type": "official_docs"
+    },
+    {
+      "id": "F10",
+      "title": "MITRE ATT&CK: T1543.002 systemd service",
+      "url": "https://attack.mitre.org/techniques/T1543/002/",
+      "theme": "red_team",
+      "source_type": "threat_framework"
+    },
+    {
+      "id": "F11",
+      "title": "MITRE ATT&CK: T1053.006 systemd timers",
+      "url": "https://attack.mitre.org/techniques/T1053/006/",
+      "theme": "red_team",
+      "source_type": "threat_framework"
+    },
+    {
+      "id": "F12",
+      "title": "systemd: systemd.exec",
+      "url": "https://www.freedesktop.org/software/systemd/man/257/systemd.exec.html",
+      "theme": "hardening",
+      "source_type": "official_docs"
+    },
+    {
+      "id": "F13",
+      "title": "Debian: apt-secure",
+      "url": "https://manpages.debian.org/trixie/apt/apt-secure.8.en.html",
+      "theme": "packages",
+      "source_type": "official_docs"
+    },
+    {
+      "id": "F14",
+      "title": "Debian: sources.list",
+      "url": "https://manpages.debian.org/trixie/apt/sources.list.5.en.html",
+      "theme": "packages",
+      "source_type": "official_docs"
+    },
+    {
+      "id": "F15",
+      "title": "Debian: dpkg",
+      "url": "https://manpages.debian.org/trixie/dpkg/dpkg.1.en.html",
+      "theme": "packages",
+      "source_type": "official_docs"
+    },
+    {
+      "id": "F16",
+      "title": "DNF5: history",
+      "url": "https://dnf5.readthedocs.io/en/stable/commands/history.8.html",
+      "theme": "packages",
+      "source_type": "official_docs"
+    },
+    {
+      "id": "F17",
+      "title": "RPM: rpm manual",
+      "url": "https://rpm.org/docs/4.20.x/man/rpm.8.html",
+      "theme": "packages",
+      "source_type": "official_docs"
+    },
+    {
+      "id": "F18",
+      "title": "Arch: pacman",
+      "url": "https://man.archlinux.org/man/pacman.8.en",
+      "theme": "packages",
+      "source_type": "official_docs"
+    },
+    {
+      "id": "F19",
+      "title": "Ubuntu: automatic updates",
+      "url": "https://ubuntu.com/server/docs/how-to/software/automatic-updates/",
+      "theme": "packages",
+      "source_type": "official_docs"
+    },
+    {
+      "id": "F20",
+      "title": "systemd: generators",
+      "url": "https://www.freedesktop.org/software/systemd/man/257/systemd.generator.html",
+      "theme": "operation",
+      "source_type": "official_docs"
+    },
+    {
+      "id": "F21",
+      "title": "systemd: targets and special units",
+      "url": "https://www.freedesktop.org/software/systemd/man/257/systemd.special.html",
+      "theme": "operation",
+      "source_type": "official_docs"
+    },
+    {
+      "id": "F22",
+      "title": "Linux Kernel: initrd",
+      "url": "https://docs.kernel.org/admin-guide/initrd.html",
+      "theme": "boot",
+      "source_type": "official_docs"
+    },
+    {
+      "id": "F23",
+      "title": "systemd: transient units",
+      "url": "https://www.freedesktop.org/software/systemd/man/257/systemd-run.html",
+      "theme": "soc",
+      "source_type": "official_docs"
+    },
+    {
+      "id": "F24",
+      "title": "systemd: path units",
+      "url": "https://www.freedesktop.org/software/systemd/man/latest/systemd.path.html",
+      "theme": "operation",
+      "source_type": "official_docs"
+    }
+  ],
+  "references_count": 24,
+  "quality_assurance": {
+    "no_dangerous_operations_required": true,
+    "no_pdf": true,
+    "citations_are_links_within_markdown": true,
+    "not_claiming_live_labs_executed": true,
+    "os_version_compatibility_required": true,
+    "lab_commands_have_environment_preconditions": true
+  },
+  "status": "ready_for_study_not_executed",
+  "next_batch": "Tanda 3 de 5: almacenamiento, sistemas de archivos, backups y recuperación"
+}

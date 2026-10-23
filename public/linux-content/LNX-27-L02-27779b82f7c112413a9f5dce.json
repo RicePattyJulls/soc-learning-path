@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-27-L02",
+  "title": "Controles recomendados con alcance explícito",
+  "sourceHash": "bd4692f71a23ddf3e48235ee77f0298e0718894401a6e559a078e4994a43fbb3",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-27-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nRedactar controles de hardening con alcance, verificación y efecto secundario declarados, de modo que otro equipo pueda aplicarlos y revertirlos sin interpretar intenciones.\n\nPrerrequisitos: `LNX-27-L01` (Prioridad de remediación por contexto).\n\n## 2. Comprende el mecanismo\n\nUn control sin alcance es una intención. «Endurecer SSH» o «restringir permisos» no dice qué host, qué servicio, qué ruta ni qué se considera terminado. La diferencia entre una recomendación útil y una frase de diapositiva está en cuatro datos: **alcance**, **verificación**, **efecto secundario** y **reversión**.\n\nEl **alcance** responde a dónde se aplica y a dónde no. Un control sobre `/etc/ssh/sshd_config` en un grupo de servidores declara el patrón de host, la unidad afectada y las exclusiones justificadas. Sin exclusiones explícitas, el lector asume que aplica a todo, y el primer host que se rompa convertirá el control en un incidente.\n\nLa **verificación** es la prueba de que el control quedó activo y de que no rompió lo que debía seguir funcionando. Debe ser observable y repetible: una consulta de configuración efectiva, un evento generado a propósito, una prueba positiva y otra negativa. «Revisar que esté bien» no es verificación.\n\nEl **efecto secundario** se declara antes de aplicar. `ProtectSystem=strict` puede impedir escrituras que el servicio necesitaba; `NoNewPrivileges` puede romper un binario que dependía de SUID; una ACL más estrecha puede dejar fuera a un consumidor legítimo. Un control que no nombra su coste obliga al operador a descubrirlo en producción.\n\nLa **reversión** convierte el control en algo aplicable. Guardar el estado previo, conocer el comando o el fichero que deshace el cambio y definir la señal que dispara la vuelta atrás. Sin reversión, la ventana de cambio se alarga y la decisión se vuelve política en lugar de técnica.\n\nUn control también necesita **propietario y evidencia de cierre**. El propietario decide excepciones y valida la prueba; la evidencia permite auditar después qué se cambió, cuándo y con qué resultado. Un control aplicado sin registro se convierte en configuración heredada que nadie sabe justificar.\n\nLa regla de la lección: todo control se escribe con alcance, verificación, efecto secundario y reversión. El límite: aplicar el control demuestra que la configuración cambió; no demuestra que el riesgo desapareciera ni que el servicio siga siendo seguro frente a otras vías.\n\n### Vocabulario de apoyo\n\n- **Alcance**: hosts, unidades y rutas donde aplica un control, con exclusiones justificadas.\n- **Verificación observable**: prueba repetible de que el control está activo y el servicio sigue funcionando.\n- **Efecto secundario**: consecuencia operativa conocida de aplicar el control.\n- **Reversión**: procedimiento documentado para volver al estado anterior.\n- **Excepción**: host o servicio excluido con motivo y propietario.\n- **Prueba negativa**: comprobación de que el control bloquea lo que debe bloquear.\n- **Evidencia de cierre**: registro del cambio, su resultado y quién lo validó.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-27-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un equipo recibe la recomendación «aplicar `ProtectSystem=strict` a todos los servicios». La aplica a un servicio de laboratorio que escribe en `/var/lib/servicio-lab`. El servicio arranca, pero deja de procesar trabajos y no registra error de permisos. El informe concluye que el control «no era compatible» y lo retira de todos los hosts.\n\nEl control estaba mal redactado, no era incompatible. Le faltaba el alcance de escritura: con `ProtectSystem=strict`, el servicio solo puede escribir en las rutas declaradas, y `ReadWritePaths` debía incluir su directorio de trabajo. También le faltaba la verificación: una prueba funcional habría mostrado el fallo antes de generalizar. Y le faltaba el efecto secundario declarado, que en este caso era precisamente la restricción de escritura.\n\nLa lectura correcta escribe el control completo: alcance en el grupo de laboratorio, `ReadWritePaths` con la ruta legítima, verificación con un trabajo de prueba y comprobación de que una escritura fuera de ruta sigue bloqueada, reversión retirando el drop-in y recargando la unidad. El límite: la prueba demuestra que este servicio funciona con este sandbox; no garantiza que otro servicio con otras rutas se comporte igual.\n\n"
+    },
+    {
+      "id": "LNX-27-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Exigir alcance, verificación y reversión en cada recomendación que llegue a un ticket.\n- Red Team autorizado: Probar el control en VM propia y documentar qué rutas o privilegios rompe.\n- Evidencia de la etapa: Control redactado, estado previo, prueba positiva y negativa, resultado y propietario.\n- Criterio de dominio: Escribe controles que otro equipo pueda aplicar y revertir sin adivinar el contexto.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB38](../../05_RECURSOS/LABORATORIOS/LNX-LAB38.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F112**: [RHEL 9 Security hardening](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html-single/security_hardening/index). Catálogo de controles y su verificación.\n- **F110**: [systemd.exec(5)](https://man7.org/linux/man-pages/man5/systemd.exec.5.html). Opciones de sandbox, rutas escribibles y efectos sobre el servicio.\n- **F104**: [ACL(5)](https://man7.org/linux/man-pages/man5/acl.5.html). Semántica de permisos extendidos al restringir acceso.\n- **F103**: [sudoers(5)](https://man7.org/linux/man-pages/man5/sudoers.5.html). Reglas de delegación y su alcance por comando y usuario.\n- **F133**: [Docker resource constraints](https://docs.docker.com/engine/containers/resource_constraints/). Límites de recursos como control con efecto secundario declarado.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-27-L02-P01",
+    "prompt": "Un equipo recibe la recomendación «aplicar `ProtectSystem=strict` a todos los servicios» y la aplica a un servicio de laboratorio que escribe en `/var/lib/servicio-lab`; el servicio arranca pero deja de procesar trabajos. Explica cómo reescribirías el control con alcance, verificación, efecto secundario y reversión, y cuál es el límite de la prueba.",
+    "markdown": "## 4. Práctica individual\n\nUn equipo recibe la recomendación «aplicar `ProtectSystem=strict` a todos los servicios» y la aplica a un servicio de laboratorio que escribe en `/var/lib/servicio-lab`; el servicio arranca pero deja de procesar trabajos. Explica cómo reescribirías el control con alcance, verificación, efecto secundario y reversión, y cuál es el límite de la prueba.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber modificado una unidad systemd real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-27-L02-Q01",
+      "prompt": "¿Qué le falta a la recomendación «aplicar `ProtectSystem=strict` a todos los servicios» para ser un control aplicable?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Una herramienta comercial que la firme"
+        },
+        {
+          "id": "B",
+          "text": "Un listado de vulnerabilidades asociadas"
+        },
+        {
+          "id": "C",
+          "text": "Un aumento del nivel de severidad en el informe"
+        },
+        {
+          "id": "D",
+          "text": "Alcance con exclusiones, verificación funcional, efecto secundario y reversión"
+        }
+      ]
+    },
+    {
+      "id": "LNX-27-L02-Q02",
+      "prompt": "Un servicio arranca tras aplicar un sandbox pero deja de procesar trabajos. ¿Qué lectura es correcta?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Falta declarar la ruta de escritura legítima y verificar con una prueba funcional antes de generalizar"
+        },
+        {
+          "id": "B",
+          "text": "El sandbox es incompatible con Linux y debe retirarse del inventario"
+        },
+        {
+          "id": "C",
+          "text": "El servicio estaba comprometido y el sandbox lo detectó"
+        },
+        {
+          "id": "D",
+          "text": "Hay que desactivar SELinux para descartar capas"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB38](../../05_RECURSOS/LABORATORIOS/LNX-LAB38.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F112**: [RHEL 9 Security hardening](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html-single/security_hardening/index). Catálogo de controles y su verificación.\n- **F110**: [systemd.exec(5)](https://man7.org/linux/man-pages/man5/systemd.exec.5.html). Opciones de sandbox, rutas escribibles y efectos sobre el servicio.\n- **F104**: [ACL(5)](https://man7.org/linux/man-pages/man5/acl.5.html). Semántica de permisos extendidos al restringir acceso.\n- **F103**: [sudoers(5)](https://man7.org/linux/man-pages/man5/sudoers.5.html). Reglas de delegación y su alcance por comando y usuario.\n- **F133**: [Docker resource constraints](https://docs.docker.com/engine/containers/resource_constraints/). Límites de recursos como control con efecto secundario declarado.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "27779b82f7c112413a9f5dce"
+}

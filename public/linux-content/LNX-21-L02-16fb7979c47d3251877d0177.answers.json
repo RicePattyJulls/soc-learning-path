@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-21-L02",
+  "sourceHash": "6ce63d2519b1507a2961f9043c19c7035a0b4c84f74a0a12a56c25f210f989c5",
+  "questions": [
+    {
+      "id": "LNX-21-L02-Q01",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «La 5-tupla, los tiempos y los tamaños, pero no el contenido cifrado ni el proceso que lo originó».\n\nEl PCAP expone metadatos del flujo, no el contenido del canal SSH ni el PID del proceso. La atribución al proceso requiere otra evidencia. No muestra comandos, ni proceso, ni el destino final de un reenvío."
+    },
+    {
+      "id": "LNX-21-L02-Q02",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Porque NAT, offloading o terminación de TLS cambian lo que cada punto observa».\n\nLa posición del sensor decide qué se ve: una traducción NAT o una terminación de TLS hacen que dos puntos describan el mismo flujo de forma distinta. No es que uno esté mal configurado, ni que el PCAP reescriba direcciones, ni una cuestión de familia IP."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "El sensor de red ve la **5-tupla**, los tiempos, las banderas y los tamaños del flujo cifrado hacia el puerto 22, pero no el contenido del canal ni el destino final de un posible reenvío. Dentro de ese canal puede haber una sesión interactiva, un túnel o una transferencia, y el sensor no los distingue porque el tráfico está cifrado.\n\nPara completar la descripción hay que añadir evidencia de otros puntos: el registro de `sshd` en el bastión, los sockets en el host y la telemetría de proceso. Así se pasa de «existe un flujo cifrado» a «esta sesión y este reenvío concretos», sin saltar a atribuir quién lo originó.\n\nLímite: desde un solo sensor no se puede afirmar que «no ocurrió nada más»; solo se describe la parte del flujo que ese punto observa.",
+    "rubric": [
+      {
+        "criterion": "Enumera qué muestra el sensor",
+        "evidence": "5-tupla, tiempos y tamaños."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Señala que el contenido cifrado y el destino final quedan fuera de su alcance."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Propone evidencia adicional del bastión y del host."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Declara que un solo sensor da una vista parcial."
+      }
+    ]
+  },
+  "revision": "16fb7979c47d3251877d0177"
+}

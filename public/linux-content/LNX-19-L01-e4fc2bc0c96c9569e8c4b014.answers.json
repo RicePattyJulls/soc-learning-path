@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-19-L01",
+  "sourceHash": "436c050b25eca02968e5a43fbfc159e1f3ea8b4a9613d6f15e63173ce95cf8f4",
+  "questions": [
+    {
+      "id": "LNX-19-L01-Q01",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Que la aplicación local no cerró su lado de la conexión».\n\n`CLOSE-WAIT` indica que el extremo local recibió el cierre remoto y aún no cerró su lado. Apunta a la aplicación, no al firewall, a un ataque de saturación ni al ámbito de una dirección."
+    },
+    {
+      "id": "LNX-19-L01-Q02",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Puede ser normal tras cerrar muchas conexiones y no es por sí solo un ataque».\n\n`TIME-WAIT` es el estado de espera tras cerrar; es frecuente en servidores concurridos. No prueba exfiltración, pérdida de rutas ni ausencia de escucha. Solo con contexto se puede valorar."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "`TIME-WAIT` aparece tras cerrar conexiones y es habitual en servidores de alta concurrencia; no indica ataque por sí mismo. `CLOSE-WAIT` persistente apunta a una aplicación que no cerró su lado de la conexión, lo que puede ser un defecto del servicio o una lectura incorrecta de la aplicación, no necesariamente un atacante. Ambos estados describen el ciclo de TCP, no la intención de nadie.\n\nLa conclusión de «denegación de servicio» exige contexto: volumen comparado con una línea base, contadores, logs de la aplicación y correlación con otros sensores. Un `RST` o un *timeout* tampoco serían concluyentes por sí solos.\n\nLímite: desde una sola instantánea de `ss` puedes describir estados, pero no atribuir causa ni intención; eso requiere serie temporal y contexto.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Explica `CLOSE-WAIT` como falta de cierre por la aplicación local."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Interpreta `TIME-WAIT` como normal en alta concurrencia."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Rechaza nombrar «ataque» sin línea base ni correlación."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Declara el límite de una instantánea única."
+      }
+    ]
+  },
+  "revision": "e4fc2bc0c96c9569e8c4b014"
+}

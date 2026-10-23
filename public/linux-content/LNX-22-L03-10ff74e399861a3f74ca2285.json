@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-22-L03",
+  "title": "Bloquear un destino no es contener el incidente",
+  "sourceHash": "b548e82616492186980a0a1806ad6501777b029d5f084e6780d84a322ce40fee",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-22-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDistinguir bloquear un destino puntual de contener un incidente, y elegir un control de egreso comprobable y reversible.\n\nPrerrequisitos: `LNX-22-L02` (Reglas de muestra en namespace de laboratorio).\n\n## 2. Comprende el mecanismo\n\nAnte una salida anómala, la reacción instintiva es bloquear el destino observado. Es una medida útil, pero **no equivale a contener el incidente**. Conviene separar lo que ese bloqueo consigue de lo que deja sin resolver.\n\nBloquear una **IP remota** frena ese flujo hacia esa IP en ese punto de control. No impide que el actor use otra IP, direcciones **IPv6**, otro nombre **DNS**, otro protocolo, otro host, un proxy o credenciales ya robadas. La contención completa no la da una sola dirección bloqueada.\n\nOtras medidas tienen efectos colaterales. Bloquear el **puerto 443** puede frenar servicios críticos legítimos y no resuelve la salida por otros puertos. Matar un **PID** puede interrumpir una transferencia observada, pero también perder evidencia volátil y forzar un reintento; además, ese proceso podría ser un componente legítimo abusado. Borrar un `crontab` es una mutación que destruye evidencia y no cubre timers de systemd ni otras persistencias.\n\nLa decisión sigue un árbol operativo. Primero se confirma la **alerta y el alcance**: host, origen, destino, servicio, volumen medido, hora y sensor. Después se **declara el incidente** y se escala con autorización. La contención se aplica en el **punto apropiado**: aislamiento en EDR, egress *deny* en firewall perimetral, segmento o identidad de *workload*, proxy o segmentación de red.\n\nSiempre que sea seguro y no retrase la contención, se captura el **mínimo volátil**: hora UTC, sockets, rutas, procesos, relaciones y registros. Si la contención debe ser inmediata, se registra esa prioridad y se recoge evidencia después. No hay una receta universal de sesenta segundos: la decisión depende de autoridad, criticidad y plan de respuesta.\n\nContener exige **comprobarlo**. Se verifica desde dos niveles (host y red o EDR) que la tasa de salida descienda y que el flujo no se haya desplazado a IPv6, a otro proceso o a otra máquina. Una regla por segmento o identidad suele resistir mejor el cambio de IP que una regla por dirección puntual.\n\nLa regla es contener en el punto adecuado y verificar el efecto. El límite: ningún control local contiene por sí solo todos los canales sin diseñar límites de red, IPv4 e IPv6, excepciones y comunicaciones de respuesta.\n\n### Vocabulario de apoyo\n\n- **Contención**: limitar la propagación o el impacto de un incidente.\n- **Egress deny**: regla que bloquea tráfico de salida en un punto de control.\n- **Segmento o identidad de workload**: agrupación que resiste mejor el cambio de IP.\n- **Evidencia volátil**: datos que se pierden al reiniciar o al terminar procesos.\n- **Cron/timer**: mecanismo de persistencia que un borrado apresurado destruye.\n- **Verificación de contención**: comprobar que el flujo cesó y no se desplazó.\n- **Canal alternativo**: otra vía (IPv6, DNS, otro puerto) que evita el bloqueo.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-22-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: a las 03:00 UTC un sensor declara una salida de gran volumen hacia `203.0.113.50:443`. Un analista bloquea esa IP, ve que la tasa baja y declara el incidente contenido, sin revisar IPv6, otros destinos ni otras máquinas.\n\nLa conclusión confunde un bloqueo puntual con la contención. La regla frena esa IP en ese punto, pero el actor podría usar otra dirección, una ruta IPv6, otro nombre DNS, otro protocolo u otro host con las mismas credenciales. Tampoco se ha comprobado si el flujo se desplazó a otro canal.\n\nLa lectura correcta contiene en un punto adecuado (por segmento o identidad), verifica desde dos niveles que la salida cesó y no se trasladó, y preserva el mínimo volátil antes de corregir. El límite: una tasa descendente en una ventana no demuestra erradicación; quedan hipótesis abiertas hasta cerrar el vector y rotar credenciales.\n\n"
+    },
+    {
+      "id": "LNX-22-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Elegir el punto de contención adecuado y verificar el efecto en dos niveles.\n- Red Team autorizado: Simular un egreso sospechoso solo con datos ficticios y destino propio del laboratorio.\n- Evidencia de la etapa: Alcance confirmado, medida aplicada, verificación posterior y evidencia preservada.\n- Criterio de dominio: Distingue bloquear de contener y comprueba que el flujo no se desplaza.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB29](../../05_RECURSOS/LABORATORIOS/LNX-LAB29.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F91**: [conntrack — Netfilter](https://conntrack-tools.netfilter.org/). Estado de los flujos y límites de su seguimiento.\n- **F92**: [Firewall — Ubuntu Server](https://documentation.ubuntu.com/server/how-to/security/firewalls/index.html). Política de egreso y cautelas del gestor.\n- **F93**: [firewalld — RHEL 9](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/configuring_firewalls_and_packet_filters/using-and-configuring-firewalld_firewall-packet-filters). Zonas y distinción entre runtime y permanente.\n- **F94**: [Ubuntu Security — Linux Firewall](https://documentation.ubuntu.com/security/security-features/network/firewall/). Controles de red y su alcance real.\n- **F90**: [nft(8) — netfilter manual](https://netfilter.org/projects/nftables/manpage.html). Sintaxis para expresar controles de egreso reversibles.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-22-L03-P01",
+    "prompt": "A las 03:00 UTC un sensor declara una salida de gran volumen hacia `203.0.113.50:443`; bloqueas esa IP, ves que la tasa baja y declaras el incidente contenido, sin revisar IPv6, otros destinos ni otras máquinas. Explica qué frena y qué no frena tu medida, cómo comprobarías la contención y cuál es el límite de tu conclusión.",
+    "markdown": "## 4. Práctica individual\n\nA las 03:00 UTC un sensor declara una salida de gran volumen hacia `203.0.113.50:443`; bloqueas esa IP, ves que la tasa baja y declaras el incidente contenido, sin revisar IPv6, otros destinos ni otras máquinas. Explica qué frena y qué no frena tu medida, cómo comprobarías la contención y cuál es el límite de tu conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber contenido un incidente real ni haber generado tráfico de exfiltración.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-22-L03-Q01",
+      "prompt": "¿Qué implica bloquear una única IP de destino ante una posible exfiltración?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que se frena ese flujo hacia esa IP en ese punto, pero el actor podría usar otra IP, IPv6, DNS, otro protocolo u otro host"
+        },
+        {
+          "id": "B",
+          "text": "Que el incidente queda contenido por completo"
+        },
+        {
+          "id": "C",
+          "text": "Que se han eliminado las credenciales robadas"
+        },
+        {
+          "id": "D",
+          "text": "Que se cifra el tráfico saliente restante"
+        }
+      ]
+    },
+    {
+      "id": "LNX-22-L03-Q02",
+      "prompt": "¿Qué conviene verificar inmediatamente después de contener un flujo de egreso anómalo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que el usuario haya cerrado sesión en el panel web"
+        },
+        {
+          "id": "B",
+          "text": "Que se hayan borrado todos los `crontab` del host"
+        },
+        {
+          "id": "C",
+          "text": "Que el antivirus tenga la última firma"
+        },
+        {
+          "id": "D",
+          "text": "Que la tasa de salida descienda y que el flujo no se desplace a IPv6, a otro proceso o a otra máquina"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB29](../../05_RECURSOS/LABORATORIOS/LNX-LAB29.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F91**: [conntrack — Netfilter](https://conntrack-tools.netfilter.org/). Estado de los flujos y límites de su seguimiento.\n- **F92**: [Firewall — Ubuntu Server](https://documentation.ubuntu.com/server/how-to/security/firewalls/index.html). Política de egreso y cautelas del gestor.\n- **F93**: [firewalld — RHEL 9](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/configuring_firewalls_and_packet_filters/using-and-configuring-firewalld_firewall-packet-filters). Zonas y distinción entre runtime y permanente.\n- **F94**: [Ubuntu Security — Linux Firewall](https://documentation.ubuntu.com/security/security-features/network/firewall/). Controles de red y su alcance real.\n- **F90**: [nft(8) — netfilter manual](https://netfilter.org/projects/nftables/manpage.html). Sintaxis para expresar controles de egreso reversibles.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "10ff74e399861a3f74ca2285"
+}

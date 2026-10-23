@@ -1,0 +1,172 @@
+{
+  "schemaVersion": 1,
+  "courseId": "soc",
+  "id": "N2-06",
+  "sourceHash": "5911df899b130a7c0a8c9cdc08c7282f9b13503c738bade2dc8581c40b4901b0",
+  "revision": "7aaebf76806c5c2c8e93b71b",
+  "hipotesis": [
+    "Posible Kerberoasting T1558.003: un principal autenticado solicita muchos TGS para SPN cuya clave protege el ticket; posteriormente podría intentar adivinar la contraseña offline.",
+    "Escenario legítimo: aplicación o administrador ejecuta una prueba de conectividad o despliegue que solicita numerosos servicios en poco tiempo.",
+    "Una ráfaga de autenticaciones delegadas de un proxy o servicio puede generar muchos 4769 desde el mismo cliente sin ser atacante.",
+    "El ticket 0x17 (RC4-HMAC) puede reflejar compatibilidad heredada o configuración criptográfica; no equivale a explotación confirmada.",
+    "Eventos 4769 no garantizan que el adversario haya obtenido texto claro de una contraseña de servicio; esa fase no suele verse directamente en el DC."
+  ],
+  "pasos": [
+    {
+      "fase": "1 · Verificar alarma y cobertura",
+      "accion": "Confirmar que los eventos proceden de DC y pertenecen a auditoría de Kerberos Service Ticket Operations (éxito); comprobar plazo de retención, retraso de ingesta, zona horaria, DC cubiertos, versiones y formato de los campos."
+    },
+    {
+      "fase": "2 · Extraer sujeto y línea base",
+      "accion": "Agrupar 4769 por solicitante, ClientAddress, DC, SPN y TicketEncryptionType. Comparar con el mismo turno durante 7–30 días y con estaciones del mismo rol; no imponer umbral universal."
+    },
+    {
+      "fase": "3 · Enriquecer SPN y riesgo de cuentas",
+      "accion": "Resolver el SPN a identidad propietaria en un DC/estación administrada; recopilar grupos privilegiados, tipo cuenta (gMSA vs usuario), fecha de rotación, AES/RC4 admitido, dependencias y usos aprobados. La cuenta que solicita TGS no es necesariamente la cuenta que ejecuta el servicio."
+    },
+    {
+      "fase": "4 · Evaluar señales combinadas",
+      "accion": "Priorizar fuente nunca vista, muchos SPN únicos, muchas cuentas servicio, ventanas cortas, RC4 atípico, actividad fuera de despliegue, secuencia de reconocimiento LDAP y procesos/PowerShell sospechosos en el origen."
+    },
+    {
+      "fase": "5 · Examinar 4769 a nivel de campo",
+      "accion": "Relacionar AccountName/TargetUserName, ServiceName, ClientAddress, Status y TicketEncryptionType conforme al esquema real. 0x17=RC4, 0x11=AES128, 0x12=AES256; validar que se trate del campo del cifrado del ticket (no clave de sesión)."
+    },
+    {
+      "fase": "6 · Pivotar a endpoint y AD",
+      "accion": "Revisar procesos hijos, consultas LDAP/AD, logons 4624, tickets asociados, posible creación de archivos de salida, herramientas sin autorizar, historial de ejecución y alertas de identidad. No ejecutar muestras sospechosas."
+    },
+    {
+      "fase": "7 · Estimar impacto",
+      "accion": "Clasificar cuentas de servicio expuestas: privilegios, acceso a SQL o backups, reutilización de secretos, antigüedad de contraseña y control de logon interactivo. Verificar uso posterior de esas cuentas desde equipos no habituales."
+    },
+    {
+      "fase": "8 · Contener y erradicar coordinadamente",
+      "accion": "Si las evidencias apoyan ataque: aislar estación origen y cortar acceso no autorizado mediante playbook, preservar evidencia y coordinar con propietarios rotación segura de secretos de servicio, revisión de SPN y retirada de RC4 cuando sea compatible."
+    },
+    {
+      "fase": "9 · Cerrar con criterio",
+      "accion": "Confirmar si hubo solicitud masiva anómala, pero documentar explícitamente como desconocido el éxito de un descifrado offline; cerrar como benigno solo tras contrastar despliegue, propietario y trazabilidad."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "4769 en DC: AccountName/TargetUserName, ServiceName, ClientAddress, TicketEncryptionType, Status",
+      "lectura": "Número y diversidad de servicios por origen. Comprobar roles y estado de éxito; muchos tickets ≠ ataque por sí solo."
+    },
+    {
+      "dato": "SPN → servicio → cuenta de directorio",
+      "lectura": "Determina exposición real y permisos; no confundir SPN mostrado con identidad de la cuenta que solicitó el ticket."
+    },
+    {
+      "dato": "Cifrado de ticket 0x17 frente a 0x11/0x12",
+      "lectura": "RC4 puede aumentar preocupación por ataque offline según política y entornos heredados; no certifica cracking."
+    },
+    {
+      "dato": "LDAP y actividad del endpoint fuente",
+      "lectura": "Inventario de SPN seguido de numerosos 4769 más herramientas desconocidas incrementa confianza."
+    },
+    {
+      "dato": "Historial de autenticaciones de cuentas servicio",
+      "lectura": "Uso nuevo de la credencial de servicio después de la ráfaga eleva prioridad; revisar cronología y host."
+    },
+    {
+      "dato": "CMDB, cambios autorizados, rotaciones",
+      "lectura": "Permite resolver falsos positivos por despliegue, pruebas o aplicaciones Kerberos de alto volumen."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Sentinel / WindowsEvent · diversidad SPN y RC4 por solicitante",
+      "entorno": "Log Analytics con WindowsEvent y eventos 4769 recolectados de TODOS los DC pertinentes. EventData debe incluir claves TargetUserName, ServiceName, IpAddress, TicketEncryptionType, Status (ajustar tras inspeccionar 1 evento).",
+      "consulta": "WindowsEvent\n| where TimeGenerated > ago(24h) and EventID == 4769\n| extend User=tostring(EventData.TargetUserName),\n         SPN=tostring(EventData.ServiceName),\n         Origen=tostring(EventData.IpAddress),\n         Enc=toupper(tostring(EventData.TicketEncryptionType)),\n         Estado=tostring(EventData.Status)\n| where isnotempty(User) and isnotempty(SPN)\n| summarize tickets=count(), spn_unicos=dcount(SPN),\n            rc4=countif(Enc == \"0X17\"),\n            muestra_spn=make_set(SPN, 15), dcs=make_set(Computer, 10)\n  by bin(TimeGenerated, 10m), User, Origen\n| where tickets >= 20 or spn_unicos >= 10\n| order by spn_unicos desc, tickets desc",
+      "interpretacion": "Identifica clientes/usuarios con numerosas solicitudes y diversidad de servicios, destacando RC4 para revisión.",
+      "limitaciones": "Los umbrales (20/10) son didácticos y requieren baseline. Los campos de EventData y representación de Status/Enc varían; algunos DC generan nuevos campos y otros conectores los normalizan diferente."
+    },
+    {
+      "nombre": "Sentinel / WindowsEvent · cronología de un origen",
+      "entorno": "Misma fuente WindowsEvent; sustituir IP por origen confirmado. Valida que el campo IpAddress represente origen, posiblemente IPv6 ::ffff:IPv4.",
+      "consulta": "let origen = \"10.60.10.25\";\nWindowsEvent\n| where TimeGenerated > ago(12h) and EventID == 4769\n| extend Origen=tostring(EventData.IpAddress),\n         Usuario=tostring(EventData.TargetUserName),\n         Servicio=tostring(EventData.ServiceName),\n         Cifrado=tostring(EventData.TicketEncryptionType),\n         Estado=tostring(EventData.Status)\n| where Origen contains origen\n| project TimeGenerated, Computer, Origen, Usuario, Servicio, Cifrado, Estado, EventRecordId\n| order by TimeGenerated asc",
+      "interpretacion": "Reconstruye orden de los TGS e identifica SPN llamativos o secuencias automatizadas.",
+      "limitaciones": "No busca por ejecutable; agregar EDR para atribución de proceso. Estado exitoso depende del código real de la versión."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk Windows Security 4769 · diversidad y RC4",
+      "entorno": "Índice `wineventlog`, sourcetype `XmlWinEventLog:Security` o equivalente. Exige normalizar a los alias `user`, `spn`, `src`, `ticket_etype`, `status`; revisar extracción real del TA de Windows.",
+      "consulta": "index=wineventlog earliest=-24h (EventCode=4769 OR EventID=4769)\n| eval usuario=coalesce(TargetUserName,Account_Name,AccountName),\n       spn=coalesce(ServiceName,Service_Name),\n       origen=coalesce(IpAddress,Client_Address,ClientAddress),\n       cifrado=upper(coalesce(TicketEncryptionType,Ticket_Encryption_Type,\"\"))\n| where isnotnull(usuario) AND isnotnull(spn)\n| bin _time span=10m\n| stats count as tickets dc(spn) as spn_unicos\n        count(eval(cifrado=\"0X17\")) as rc4\n        values(spn) as spn_ejemplo by _time usuario origen\n| where tickets>=20 OR spn_unicos>=10\n| sort - spn_unicos - tickets",
+      "interpretacion": "Agregación equivalente a KQL para hunting e investigación de ráfagas.",
+      "limitaciones": "EventCode, EventID y alias son dependientes del TA; count(eval()) calcula solo RC4 reconocido. Para alto volumen limitar values()."
+    },
+    {
+      "nombre": "Splunk Windows Security 4769 · SPN y horas con RC4",
+      "entorno": "Mismo índice con eventos 4769 y extracción de tipo de cifrado disponible.",
+      "consulta": "index=wineventlog earliest=-7d (EventCode=4769 OR EventID=4769)\n| eval cuenta=coalesce(TargetUserName,Account_Name,AccountName),\n       servicio=coalesce(ServiceName,Service_Name),\n       origen=coalesce(IpAddress,Client_Address,ClientAddress),\n       enc=upper(coalesce(TicketEncryptionType,Ticket_Encryption_Type,\"\"))\n| where enc=\"0X17\" AND isnotnull(servicio)\n| timechart span=1h count by origen limit=12 useother=t",
+      "interpretacion": "Busca periodos e IP de origen con tickets RC4, contextualizados contra la línea base.",
+      "limitaciones": "Tener RC4 no significa compromiso; timechart oculta detalle SPN. Enriquecer con CMDB y correlacionar origen."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Windows PowerShell — solo lectura / AD",
+      "proposito": "Consultar SPN, tipo de cuenta y flags criptográficos sobre una cuenta identificada; requiere RSAT y permisos de consulta.",
+      "comando": "Get-ADUser -Identity 'svc-sql' -Properties ServicePrincipalName,PasswordLastSet,MemberOf,msDS-SupportedEncryptionTypes |\n  Select-Object SamAccountName,ServicePrincipalName,PasswordLastSet,msDS-SupportedEncryptionTypes,MemberOf"
+    },
+    {
+      "entorno": "Windows PowerShell — solo lectura / DC",
+      "proposito": "Extraer los últimos 4769 del DC afectado sin modificar auditoría.",
+      "comando": "Get-WinEvent -ComputerName DC01 -FilterHashtable @{LogName='Security'; Id=4769; StartTime=(Get-Date).AddHours(-2)} -MaxEvents 30 |\n  Select-Object TimeCreated,MachineName,Id,Message"
+    },
+    {
+      "entorno": "Windows CMD — solo lectura",
+      "proposito": "Comprobar tickets almacenados en la sesión actual autorizada; no extrae claves.",
+      "comando": "klist tickets"
+    }
+  ],
+  "contencion": "Priorizar preservar registros de DC y telemetría del host, bloquear ejecución/actividad maliciosa en origen y restringir su acceso si existe confianza suficiente. No eliminar el SPN ni cambiar la contraseña de una cuenta SQL crítica sin conocer dependencias: puede provocar indisponibilidad. Coordinar rotación a credenciales largas o gMSA, restringir privilegios y retirar RC4 por política tras evaluar compatibilidad. No confundir el usuario solicitante con servicio atacado.",
+  "escalation": [
+    "Origen usuario/host anómalo con numerosos SPN y RC4 fuera de línea base.",
+    "Cuentas de servicio privilegiadas con contraseñas antiguas o de alto impacto.",
+    "Evidencia EDR de enumeración SPN + herramientas no autorizadas y uso posterior de servicio.",
+    "Cambios de privilegio, persistencia o conexiones laterales después del TGS.",
+    "Ausencia de cobertura de DC impide determinar alcance."
+  ],
+  "falsos_positivos": [
+    "Despliegue de ERP o migración autenticada contra múltiples servicios.",
+    "Aplicación con Kerberos constrained delegation o proxy que solicita muchos TGS.",
+    "Escáner de inventario/monitorización aprobado y documentado.",
+    "SPN mal configurados o cliente heredado sin AES.",
+    "Tráfico replicado de varias herramientas de colección que duplica eventos."
+  ],
+  "errores": [
+    "Decir que cada evento 4769 implica Kerberoasting.",
+    "Interpretar 0x17 como prueba de contraseña descifrada.",
+    "Confundir TGS 4769 con TGT 4768 o pedir únicamente logs de estaciones.",
+    "Aplicar bloqueo global de RC4 o reset masivo sin analizar dependencias.",
+    "No comprobar diversidad de SPN ni comportamiento del solicitante frente a baseline.",
+    "Tratar éxito de login con cuenta de servicio como hecho derivado de 4769."
+  ],
+  "perspectiva_red_team": "Kerberoasting abusa de una funcionalidad normal de Kerberos: solicitudes TGS para SPN. La fase de cracking posterior puede producirse fuera de los sistemas monitorizados; por eso el DC aporta intención posible, no prueba del resultado. Una defensa madura combina identidades con credenciales resistentes, tipo de cifrado, SPN y monitoreo de cambios de comportamiento sin bloquear ticketing legítimo.",
+  "respuesta_entrevista": "Validaría en los DC el evento 4769 y agruparía por usuario, IP origen, número de SPN distintos, intervalo y cifrado del ticket. Compararía con línea base y despliegues autorizados, y resolvería SPN a cuentas de servicio y sus privilegios. Un ticket RC4 o muchos 4769 solos no confirman Kerberoasting. Correlacionaría los endpoints, LDAP, autenticaciones posteriores y EDR; si hay indicios sólidos, escalaría, contendría la estación, preservaría pruebas y planificaría rotación segura de credenciales con los dueños del servicio.",
+  "criterios_evaluacion": [
+    "Distingue TGS de TGT y 4769 de 4768.",
+    "Sabe interpretar 0x17, 0x11, 0x12 sin sobreatribuir.",
+    "Agrupa por origen, sujeto, diversidad SPN y baseline.",
+    "Investiga riesgo y propietario real de la cuenta de servicio.",
+    "Busca actividad posterior y evidencia de endpoint.",
+    "Coordina credenciales y disponibilidad antes de rotar."
+  ],
+  "mitre": [
+    "T1558.003 — Kerberoasting (hipótesis)",
+    "T1087.002 — Domain Account Discovery (si evidencia LDAP/AD)",
+    "T1078 — Valid Accounts (si uso posterior acreditado)"
+  ],
+  "fuentes": [
+    "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4769",
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/windowsevent",
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/securityevent",
+    "https://attack.mitre.org/techniques/T1558/003/",
+    "https://csrc.nist.gov/pubs/sp/800/61/r3/final"
+  ]
+}

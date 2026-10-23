@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-27-L03",
+  "title": "Presión de recursos y diagnóstico",
+  "sourceHash": "db7d274240f5bb9835d697eb3e732ff7cd7f04146cd634cc30e750c830b244d2",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-27-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nInterpretar PSI, carga, memoria y límites de cgroup para separar una avería de rendimiento de una intrusión, con mediciones acotadas y reversibles.\n\nPrerrequisitos: `LNX-27-L02` (Controles recomendados con alcance explícito).\n\n## 2. Comprende el mecanismo\n\nLa frase «CPU al cien por cien, debe ser malware» es el atajo más caro del diagnóstico. Un host puede estar lento por contienda de disco con la CPU libre, y un ataque puede degradar un servicio sin mover un promedio de cinco minutos. Antes de atribuir, hay que medir qué recurso está **esperando**.\n\n**PSI** (*Pressure Stall Information*) responde a esa pregunta. Expone en `/proc/pressure/cpu`, `/proc/pressure/memory` y `/proc/pressure/io` dos líneas por recurso: `some` mide el tiempo en que al menos una tarea estuvo detenida esperando, y `full` el tiempo en que todas las tareas ejecutables estuvieron detenidas. Los porcentajes son acumulados de los últimos 10, 60 y 300 segundos. Un `full` alto en memoria con CPU baja describe un problema distinto de un `some` alto en CPU.\n\nLa **carga media** (`/proc/loadavg`) cuenta tareas ejecutables y en espera no interrumpible. En un host con almacenamiento lento, la carga puede subir por procesos bloqueados en IO sin que falte CPU. Interpretar `loadavg` como «CPU saturada» es un error de lectura, no una medida.\n\nLa **memoria** se lee con matices. `free -h` muestra `available`, que incluye caché recuperable; mirar solo `free` produce la falsa alarma de «memoria agotada» en un sistema sano. La presión real aparece en PSI de memoria, en `vmstat` con swap activo y en los mensajes del OOM killer del kernel, que dicen **qué proceso** se mató y bajo qué política de cgroup.\n\nLos **límites de cgroup v2** explican por qué un contenedor sufre con números que en el host parecen holgados. `cpu.max`, `memory.max`, `io.max` y los contadores `memory.events` (`oom`, `oom_kill`, `high`) acotan lo que ve el proceso. Un servicio dentro de un cgroup con `memory.max` bajo puede ser terminado mientras el host tiene memoria libre: el problema es el límite, no el hardware. Las **herramientas de observación** que se usan para confirmarlo tienen coste y requieren autorización: `strace` y `perf` modifican tiempos, pueden exponer argumentos y datos, y necesitan `ptrace` o privilegios. Se usan con PID objetivo, sesión corta, redacción de datos sensibles y registro de lo ejecutado.\n\nLa medición debe ser **acotada y reversible**. Para reproducir presión en un laboratorio propio se usa una carga pequeña, con duración y concurrencia declaradas, sobre una VM desechable, y se retira al terminar. Provocar presión sostenida en un host compartido no es una prueba: es una interrupción de servicio.\n\nLa regla de la lección: mide el recurso que espera, no el que más se nombra. El límite: PSI y los contadores describen **cuánto** se espera y **quién** consume; no dicen si la causa es un fallo, una carga legítima o una acción maliciosa. Eso exige correlacionar proceso, identidad, hora y cambios.\n\n### Vocabulario de apoyo\n\n- **PSI**: información de presión que mide tiempo de espera por CPU, memoria o IO.\n- **`some` / `full`**: al menos una tarea detenida / todas las tareas ejecutables detenidas.\n- **`loadavg`**: media de tareas ejecutables y bloqueadas, no un porcentaje de CPU.\n- **`available`**: memoria estimada recuperable, incluida caché, no memoria libre bruta.\n- **OOM killer**: mecanismo del kernel que termina procesos bajo presión de memoria.\n- **cgroup v2**: jerarquía que aplica límites de CPU, memoria e IO a un grupo de procesos.\n- **`memory.events`**: contadores de eventos de un cgroup, incluidos `oom` y `oom_kill`.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-27-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: a las 03:00 un servicio de laboratorio deja de responder. El panel muestra CPU al 22 % y carga media de 14 en un host de cuatro núcleos. El turno anterior concluyó «sin consumo anómalo de CPU, probable ataque de red». El journal registra `oom_kill` para el proceso del servicio y `/proc/pressure/io` marca `full avg300` alto.\n\nLa conclusión anterior no se sostiene con esos datos. La carga alta con CPU baja apunta a tareas bloqueadas, y PSI de IO lo confirma: el recurso que espera es el almacenamiento. El `oom_kill` explica la caída del servicio, pero no su causa: si el cgroup tenía `memory.max` ajustado y el proceso acumulaba páginas sucias por la lentitud del disco, el límite se alcanzó antes de que el host mostrara falta de memoria.\n\nLa lectura correcta ordena: ventana UTC, unidad y cgroup, PSI de los tres recursos, procesos en estado no interrumpible, límites efectivos y eventos del kernel. Después se correlaciona con cambios de esa noche: un trabajo de copia, una actualización o un proceso ajeno escribiendo. El límite: la evidencia muestra presión de IO y un OOM; no identifica autoría ni descarta que otro proceso haya contribuido. Para afirmarlo hace falta el árbol de procesos y la ventana completa.\n\n"
+    },
+    {
+      "id": "LNX-27-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Medir PSI y límites de cgroup antes de etiquetar un pico como ataque o como avería.\n- Red Team autorizado: Reproducir presión con carga pequeña, temporal y declarada solo en VM propia.\n- Evidencia de la etapa: Ventana UTC, valores de PSI, límites efectivos, procesos bloqueados y eventos OOM.\n- Criterio de dominio: Distingue recurso que espera de recurso que consume, y no atribuye autoría con métricas solas.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB38](../../05_RECURSOS/LABORATORIOS/LNX-LAB38.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F123**: [Linux Kernel: Pressure Stall Information](https://docs.kernel.org/accounting/psi.html). Fundamento de `some`/`full` y su lectura.\n- **F125**: [proc_pressure(5)](https://docs.kernel.org/accounting/psi.html#pressure-interface). Formato exacto de los ficheros de presión.\n- **F134**: [Linux Kernel: cgroup v2](https://docs.kernel.org/admin-guide/cgroup-v2.html). Límites y contadores que explican el comportamiento de un servicio.\n- **F124**: [strace(1)](https://man7.org/linux/man-pages/man1/strace.1.html). Observación de syscalls con coste y precauciones.\n- **F133**: [Docker resource constraints](https://docs.docker.com/engine/containers/resource_constraints/). Límites de recursos y sus efectos observables en contenedores.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-27-L03-P01",
+    "prompt": "A las 03:00 un servicio de laboratorio deja de responder; el panel muestra CPU al 22 % y carga media de 14 en un host de cuatro núcleos, y el journal registra `oom_kill` mientras `/proc/pressure/io` marca `full` alto. Explica cómo diagnosticarías el caso, qué mides primero y cuál es el límite de tu conclusión.",
+    "markdown": "## 4. Práctica individual\n\nA las 03:00 un servicio de laboratorio deja de responder; el panel muestra CPU al 22 % y carga media de 14 en un host de cuatro núcleos, y el journal registra `oom_kill` mientras `/proc/pressure/io` marca `full` alto. Explica cómo diagnosticarías el caso, qué mides primero y cuál es el límite de tu conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber provocado presión ni haber diagnosticado un host real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-27-L03-Q01",
+      "prompt": "Un host tiene carga media alta y CPU mayormente desocupada. ¿Qué lectura es coherente con PSI?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Hay tareas bloqueadas esperando un recurso, probablemente IO; la carga no mide saturación de CPU"
+        },
+        {
+          "id": "B",
+          "text": "El contador de carga está corrupto porque la CPU no está al cien por cien"
+        },
+        {
+          "id": "C",
+          "text": "Un atacante está minando criptomoneda con prioridad baja"
+        },
+        {
+          "id": "D",
+          "text": "La memoria está agotada y el kernel está intercambiando siempre"
+        }
+      ]
+    },
+    {
+      "id": "LNX-27-L03-Q02",
+      "prompt": "¿Qué describe `memory.events` de un cgroup con `oom_kill` mayor que cero?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que el host completo se quedó sin memoria física"
+        },
+        {
+          "id": "B",
+          "text": "Que el kernel terminó un proceso dentro de ese cgroup al alcanzar su límite de memoria"
+        },
+        {
+          "id": "C",
+          "text": "Que el proceso sufrió un error de segmentación por permisos"
+        },
+        {
+          "id": "D",
+          "text": "Que el servicio fue reiniciado por su unidad de systemd"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB38](../../05_RECURSOS/LABORATORIOS/LNX-LAB38.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F123**: [Linux Kernel: Pressure Stall Information](https://docs.kernel.org/accounting/psi.html). Fundamento de `some`/`full` y su lectura.\n- **F125**: [proc_pressure(5)](https://docs.kernel.org/accounting/psi.html#pressure-interface). Formato exacto de los ficheros de presión.\n- **F134**: [Linux Kernel: cgroup v2](https://docs.kernel.org/admin-guide/cgroup-v2.html). Límites y contadores que explican el comportamiento de un servicio.\n- **F124**: [strace(1)](https://man7.org/linux/man-pages/man1/strace.1.html). Observación de syscalls con coste y precauciones.\n- **F133**: [Docker resource constraints](https://docs.docker.com/engine/containers/resource_constraints/). Límites de recursos y sus efectos observables en contenedores.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "bc419c005492457f14057007"
+}

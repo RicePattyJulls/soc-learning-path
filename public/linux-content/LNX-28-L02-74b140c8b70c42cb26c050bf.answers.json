@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-28-L02",
+  "sourceHash": "976523611f07b58595686d203ede682c15d2bf96e7c0b3877ae0ee5109fe842f",
+  "questions": [
+    {
+      "id": "LNX-28-L02-Q01",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Nada sobre entrega: el emisor no sabe si el receptor recibió el mensaje».\n\nUDP no confirma entrega ni cifra ni retiene. Las otras opciones describen garantías que UDP no ofrece."
+    },
+    {
+      "id": "LNX-28-L02-Q02",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Un mensaje canario que se busca en cada salto: fichero local, cola, acción remota y destino».\n\nEl canario aísla el salto que falla. Reiniciar el host, subir severidades o desactivar TLS no localizan la pérdida y pueden empeorar la evidencia."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "El recorrido se hace por saltos y cada uno tiene su prueba. Primero se genera un mensaje canario con identificador conocido y se busca en el fichero local: si no aparece, el fallo está en la entrada, el parseo o el filtro. Si aparece, se revisa la cola de la acción remota y sus contadores: una cola llena explica pérdida sin que el destino tenga culpa. Después se comprueba la conectividad y el estado de TLS contra el colector autorizado, y por último se busca el canario en el índice del SIEM.\n\nQue el servicio esté activo solo indica que el proceso corre. Que el fichero local crezca solo indica que la entrada y el parseo reciben mensajes. Ninguna de las dos cosas demuestra que `omfwd` entregue. La duplicación de eventos, si aparece, puede venir de journald reenviando y rsyslog leyendo el journal a la vez: es arquitectura, no manipulación.\n\nLímite: localizar el salto roto explica la ausencia de eventos nuevos. No demuestra que nadie haya borrado eventos anteriores ni que el host esté libre de compromiso.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Recorre entrada, parseo, reglas, cola y acción remota con una prueba por salto."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Distingue servicio activo de canal funcionando de extremo a extremo."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Explica qué garantiza y qué no el transporte elegido."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Declara que un canal sano no certifica el contenido ni la ausencia de borrado previo."
+      }
+    ]
+  },
+  "revision": "74b140c8b70c42cb26c050bf"
+}

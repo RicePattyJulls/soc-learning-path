@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-25-L03",
+  "title": "PAM/sudoers como superficie de identidad",
+  "sourceHash": "a08571105cac60ec2660a73896d1de1bb74a4f76f2236a14ad06d7cbc20c71c9",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-25-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nTratar PAM y sudoers como una superficie de identidad única, distinguir regla escrita de regla efectiva y reconocer qué evidencia sostiene un cambio.\n\nPrerrequisitos: `LNX-25-L02` (Auditoría de PAM sin cambiar políticas).\n\n## 2. Comprende el mecanismo\n\n**PAM** decide quién entra. **sudoers** decide qué puede hacer después. Vistos por separado son dos ficheros de configuración; vistos juntos son una sola **superficie de identidad**, con un flujo continuo desde la autenticación hasta la ejecución privilegiada. Los incidentes rara vez respetan esa división, y por eso conviene analizarlos como cadena.\n\nLa primera parte de la cadena es la autenticación y la autorización de cuenta. Una identidad puede superar `auth` y quedar retenida en `account`, o entrar con un factor y sin otro según el servicio. El resultado no es un atributo de la persona: es el resultado de una política aplicada por una aplicación concreta en un momento concreto. La misma cuenta puede entrar por consola y no por SSH sin contradicción.\n\nLa segunda parte es la **delegación**. Una regla de sudoers asigna a un sujeto la capacidad de ejecutar comandos como otro usuario. La regla efectiva se compone de varias fuentes: el fichero principal, `include_dir`, grupos, alias y el orden de evaluación, donde la última coincidencia suele prevalecer. Leer una línea y llamarla «la política» omite el resto del conjunto.\n\nLa tercera parte es el **alcance real** del comando delegado. Delegar `systemctl restart servicio` es distinto de delegar un editor, un intérprete o una herramienta que acepta rutas y argumentos libres. `NOEXEC` limita la ejecución de binarios hijos, pero no convierte un comando peligroso en seguro. `NOPASSWD` elimina una fricción legítima y también una señal: sin solicitud de contraseña, la ejecución privilegiada deja menos rastro interactivo.\n\nLa cuarta parte es la **evidencia**. Un cambio en estas rutas debería dejar rastro en auditoría de escritura, en los registros de sudo y en el historial de cambios aprobado. La ausencia de un evento no demuestra que no hubo cambio: puede faltar la regla de auditoría, el registro puede haberse rotado o el sensor puede estar incompleto. La conclusión correcta distingue «no observado» de «no ocurrido».\n\nLa quinta parte es la **atribución**. Que una sesión haya ejecutado `sudo` no implica que la persona fuera el atacante, ni que el comando hiciera lo que su nombre sugiere. Hay que correlacionar identidad de login, identidad efectiva, proceso padre, hora y resultado. La superficie de identidad produce eventos, no culpables.\n\nLa regla de la lección: recorre la cadena completa y describe la regla efectiva antes de evaluar el riesgo. El límite: sin registros de la ventana y sin el conjunto completo de configuración, cualquier afirmación sobre lo que un usuario podía hacer es una inferencia, no una prueba.\n\n### Vocabulario de apoyo\n\n- **Superficie de identidad**: conjunto de políticas que deciden autenticación, autorización y ejecución privilegiada.\n- **Regla efectiva**: resultado de aplicar todas las fuentes y el orden de sudoers.\n- **`include_dir`**: directorio cuyas reglas se incorporan a la política principal.\n- **`NOPASSWD`**: etiqueta que autoriza sin solicitar contraseña.\n- **`NOEXEC`**: restricción que impide ejecutar binarios hijos desde el comando delegado.\n- **No observado**: ausencia de evento que no equivale a ausencia de acción.\n- **Identidad de login**: cuenta que inició la sesión, distinta de la identidad efectiva del proceso.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-25-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en una VM de laboratorio, la cuenta `analista` ejecuta `sudo` sobre una herramienta de inventario y el registro muestra la ejecución como `root`. El equipo concluye que la cuenta tenía privilegios de root y que hubo un uso indebido, porque no encuentra un ticket asociado a esa hora.\n\nLa conclusión confunde delegación con identidad. `sudo` ejecuta el comando con otra identidad efectiva, pero eso no convierte a `analista` en root ni implica acceso total: la regla puede limitarse a un comando concreto. Tampoco la falta de ticket demuestra abuso; puede ser una tarea de guardia, una automatización o un cambio no documentado. El registro de sudo aporta sujeto, comando y resultado, no intención.\n\nLa lectura correcta reconstruye la cadena: qué política PAM permitió la sesión, qué regla de sudoers autorizó ese comando, con qué alcance y qué evidencia de cambio existe. Después se pregunta si el alcance era el previsto. El límite: sin el conjunto completo de reglas y sin la ventana de registros, la afirmación sostenible es «ejecución delegada observada», no «privilegios de root» ni «uso indebido demostrado».\n\n"
+    },
+    {
+      "id": "LNX-25-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Correlacionar autenticación, delegación y ejecución antes de calificar un uso como indebido.\n- Red Team autorizado: Documentar el alcance de una regla sin aprovechar el comando delegado para elevar privilegios.\n- Evidencia de la etapa: Política PAM del servicio, regla efectiva de sudoers y eventos de la ventana.\n- Criterio de dominio: Distingue delegación de identidad y ausencia de evidencia de ausencia de acción.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB32](../../05_RECURSOS/LABORATORIOS/LNX-LAB32.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F103**: [sudoers(5)](https://man7.org/linux/man-pages/man5/sudoers.5.html). Fuentes, orden de evaluación, `NOPASSWD`, `NOEXEC` y alias.\n- **F101**: [Linux-PAM pam.d(5)](https://man7.org/linux/man-pages/man5/pam.d.5.html). Autenticación y autorización de cuenta previas a la delegación.\n- **F135**: [MITRE ATT&CK T1548.003](https://attack.mitre.org/techniques/T1548/003/). Abuso de delegación y valor de la caché de credenciales.\n- **F110**: [systemd.exec(5)](https://man7.org/linux/man-pages/man5/systemd.exec.5.html). Identidad y restricciones del servicio que ejecuta el comando.\n- **F102**: [Linux-PAM pam_exec(8)](https://man7.org/linux/man-pages/man8/pam_exec.8.html). Invocaciones externas que amplían la superficie de identidad.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-25-L03-P01",
+    "prompt": "En una VM de laboratorio, la cuenta `analista` ejecuta `sudo` sobre una herramienta de inventario y el registro muestra la ejecución como `root`. El equipo concluye que la cuenta tenía privilegios de root y que hubo un uso indebido, porque no encuentra un ticket asociado. Explica qué distingue delegación de identidad, cómo reconstruirías la regla efectiva y cuál es el límite de tu conclusión.",
+    "markdown": "## 4. Práctica individual\n\nEn una VM de laboratorio, la cuenta `analista` ejecuta `sudo` sobre una herramienta de inventario y el registro muestra la ejecución como `root`. El equipo concluye que la cuenta tenía privilegios de root y que hubo un uso indebido, porque no encuentra un ticket asociado. Explica qué distingue delegación de identidad, cómo reconstruirías la regla efectiva y cuál es el límite de tu conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber ejecutado `sudo` ni haber investigado un incidente real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-25-L03-Q01",
+      "prompt": "¿Qué describe con mayor precisión una entrada de sudoers que autoriza un comando concreto?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Una delegación limitada a ese comando, cuya efectividad depende de todas las fuentes y del orden de evaluación"
+        },
+        {
+          "id": "B",
+          "text": "Un privilegio de root completo para la cuenta autorizada"
+        },
+        {
+          "id": "C",
+          "text": "Una regla de PAM que sustituye la autenticación por contraseña"
+        },
+        {
+          "id": "D",
+          "text": "Un permiso de sistema de archivos que se aplica a cualquier ruta"
+        }
+      ]
+    },
+    {
+      "id": "LNX-25-L03-Q02",
+      "prompt": "No aparece ningún evento de cambio de sudoers en la ventana investigada. ¿Qué conclusión es correcta?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que el fichero no cambió en ningún momento"
+        },
+        {
+          "id": "B",
+          "text": "Que no se observó el cambio, lo que puede deberse a una regla ausente, rotación o cobertura incompleta"
+        },
+        {
+          "id": "C",
+          "text": "Que la ausencia de evento demuestra que la política es la original"
+        },
+        {
+          "id": "D",
+          "text": "Que el sensor de auditoría estaba necesariamente activo y completo"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB32](../../05_RECURSOS/LABORATORIOS/LNX-LAB32.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F103**: [sudoers(5)](https://man7.org/linux/man-pages/man5/sudoers.5.html). Fuentes, orden de evaluación, `NOPASSWD`, `NOEXEC` y alias.\n- **F101**: [Linux-PAM pam.d(5)](https://man7.org/linux/man-pages/man5/pam.d.5.html). Autenticación y autorización de cuenta previas a la delegación.\n- **F135**: [MITRE ATT&CK T1548.003](https://attack.mitre.org/techniques/T1548/003/). Abuso de delegación y valor de la caché de credenciales.\n- **F110**: [systemd.exec(5)](https://man7.org/linux/man-pages/man5/systemd.exec.5.html). Identidad y restricciones del servicio que ejecuta el comando.\n- **F102**: [Linux-PAM pam_exec(8)](https://man7.org/linux/man-pages/man8/pam_exec.8.html). Invocaciones externas que amplían la superficie de identidad.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "fc262197ff0e38c65ef28131"
+}

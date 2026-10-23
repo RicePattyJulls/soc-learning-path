@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-14-L02",
+  "title": "Autenticación selectiva y SID filtering",
+  "sourceHash": "ea22a863526fe3ee8f855069c462a3e71f08de6ff67df1b48b1f1fc48fd49edf",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-14-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nExplicar qué restringen la autenticación selectiva y el filtrado de SID en una confianza.\n\nPrerrequisitos: `WAD-14-L01` (dirección y transitividad de trust).\n\n## 2. Comprende el mecanismo\n\nUna confianza es útil porque permite cooperar entre dominios, pero también abre una superficie. Dos controles restringen esa superficie y conviene no confundirlos: la **autenticación selectiva** limita **quién** puede autenticarse contra **qué** recurso, y el **filtrado de SID** limita **qué SIDs** se aceptan en el token de una identidad que cruza. Restringen cosas distintas y se complementan.\n\nPor defecto, muchas confianzas nacen amplias: cualquier identidad autenticada del lado confiado puede autenticarse contra los recursos del lado que confía, y el acceso queda a merced de los permisos. En una confianza de bosque esto significa que toda cuenta del bosque socio se convierte en candidata a autenticarse en el otro bosque. Es cómodo, pero deja la superficie tan ancha como el padrón del socio.\n\nLa **autenticación selectiva**, aplicable en confianzas de bosque y externas del sentido saliente, invierte ese comportamiento. Al habilitarla, las identidades del lado confiado no pueden autenticarse por defecto en los recursos del lado que confía: cada equipo al que necesiten llegar debe concederles de forma explícita el derecho de autenticación. El resultado es un control objeto por objeto. Conviene recordar que la autenticación selectiva restringe **autenticar**, no **autorizar**: además del derecho de autenticación, el recurso debe conceder permisos.\n\nEl **filtrado de SID** (atributo de cuarentena del dominio) actúa en otro plano. Todo token de acceso lleva SIDs, incluidos los del **historial de SID**, que se usa en migraciones para conservar accesos previos. Un dominio confiado malicioso o comprometido podría añadir a un historial de SID un SID que no le pertenece —por ejemplo, uno correspondiente a un grupo privilegiado del dominio que confía— y presentarlo para obtener acceso indebido. El filtrado de SID descarta los SIDs que quedan fuera del espacio de nombres del dominio confiado, de modo que el token no puede exhibir SIDs ajenos. Está activo por defecto en las confianzas externas.\n\nLos dos controles dicen cosas distintas y ninguno basta solo. La autenticación selectiva reduce a qué recursos puede llegar cada identidad del socio; el filtrado de SID reduce qué identidades puede reclamar el socio. Aun así, ninguno decide el acceso efectivo: eso sigue dependiendo de permisos y pertenencias. Antes de concluir que una confianza está «restringida» hay que comprobar el estado real de cada control y recordar que una restricción de autenticación no documenta por sí sola el acceso.\n\n### Vocabulario de apoyo\n\n- **Autenticación selectiva**: control que exige conceder el derecho de autenticación en cada recurso del lado que confía.\n- **Filtrado de SID (cuarentena)**: control que descarta los SIDs ajenos al espacio de nombres del dominio confiado.\n- **Historial de SID (SID history)**: SIDs previos que un objeto conserva, por ejemplo tras una migración.\n- **Token de acceso**: estructura que describe la identidad y los derechos efectivos de un proceso.\n- **Confianza de bosque**: confianza transitiva entre dos bosques.\n- **Derecho de autenticación**: permiso de un recurso para que una identidad del socio pueda autenticarse contra él.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-14-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: durante una revisión en `ad.lab.test` se inspecciona el token de una cuenta migrada desde `socio.lab.test` y aparece un SID del dominio de `ad.lab.test` dentro de su historial de SID, mientras la confianza tiene la cuarentena desactivada.\n\nEl hallazgo se explica porque la confianza no aplica **filtrado de SID**: al estar la cuarentena desactivada, el dominio que confía acepta SIDs que no pertenecen al espacio de nombres de `socio.lab.test`, y esos SIDs viajan en el historial de la cuenta. La mitigación es activar la cuarentena para descartar los SIDs ajenos. La conclusión acota lo observable —«el token presenta un SID que no corresponde al dominio confiado»— y reconoce un límite: el hallazgo describe una ruta posible, no prueba que el acceso se haya usado, y activar el filtrado puede afectar a usuarios migrados legítimos, así que la decisión exige revisar antes de cambiar.\n\n"
+    },
+    {
+      "id": "WAD-14-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Reconocer los dos controles evita confundir una restricción de autenticación con una concesión de acceso.\n- Red Team autorizado: Saber qué restringe cada control permite describir con precisión la superficie real de una confianza.\n- Evidencia de la etapa: Ficha de la confianza con el estado de la autenticación selectiva y de la cuarentena.\n- Criterio de dominio: Se distingue qué restringe cada control y qué no alcanza a restringir.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB24](../../05_RECURSOS/LABORATORIOS/WAD-LAB24.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **SECIDENT**: [Security identifiers](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/understand-security-identifiers). Qué identifica un SID y por qué su procedencia importa.\n- **NTTRUST**: [netdom trust](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/netdom-trust). Cómo se consulta la cuarentena y la autenticación selectiva de una confianza.\n- **AUTONOMY**: [Autonomy vs. isolation](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/autonomy-vs.-isolation). Qué se gana y qué se pierde al restringir una confianza.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-14-L02-P01",
+    "prompt": "Para la confianza entre `ad.lab.test` y `socio.lab.test` decides evaluar dos controles. Explica qué restringe la autenticación selectiva, qué restringe el filtrado de SID y en qué se diferencian al analizar quién puede cruzar la confianza y qué puede reclamar.",
+    "markdown": "## 4. Práctica individual\n\nPara la confianza entre `ad.lab.test` y `socio.lab.test` decides evaluar dos controles. Explica qué restringe la autenticación selectiva, qué restringe el filtrado de SID y en qué se diferencian al analizar quién puede cruzar la confianza y qué puede reclamar.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber habilitado la autenticación selectiva ni la cuarentena en un entorno real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-14-L02-Q01",
+      "prompt": "¿Qué restringe principalmente la autenticación selectiva en una relación de confianza?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que las identidades del lado confiado deban recibir el derecho de autenticación en cada recurso del lado que confía para poder autenticarse contra él"
+        },
+        {
+          "id": "B",
+          "text": "Los SIDs ajenos al espacio de nombres del dominio confiado que puedan viajar en un token"
+        },
+        {
+          "id": "C",
+          "text": "El número de controladores de dominio que atienden la confianza"
+        },
+        {
+          "id": "D",
+          "text": "La vigencia del secreto de confianza entre ambos dominios"
+        }
+      ]
+    },
+    {
+      "id": "WAD-14-L02-Q02",
+      "prompt": "¿Contra qué protege principalmente el filtrado de SID (cuarentena) en una confianza?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Contra el correo no deseado que llega al personal del dominio"
+        },
+        {
+          "id": "B",
+          "text": "Contra un retraso en la replicación entre controladores del mismo dominio"
+        },
+        {
+          "id": "C",
+          "text": "Contra identidades que presentan SIDs ajenos al espacio de nombres del dominio confiado, por ejemplo en su historial de SID"
+        },
+        {
+          "id": "D",
+          "text": "Contra el uso de NTLM en lugar de Kerberos dentro de un mismo dominio"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB24](../../05_RECURSOS/LABORATORIOS/WAD-LAB24.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **SECIDENT**: [Security identifiers](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/understand-security-identifiers). Qué identifica un SID y por qué su procedencia importa.\n- **NTTRUST**: [netdom trust](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/netdom-trust). Cómo se consulta la cuarentena y la autenticación selectiva de una confianza.\n- **AUTONOMY**: [Autonomy vs. isolation](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/autonomy-vs.-isolation). Qué se gana y qué se pierde al restringir una confianza.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "4e466d4e5d24d47cabd7d033"
+}

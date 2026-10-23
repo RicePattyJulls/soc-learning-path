@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-08-L02",
+  "title": "Esquema, LDAP y GC",
+  "sourceHash": "cb3ecd35444e5b8d228c49d6e05da8a11521a86b0673591fc82faf4c05740280",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-08-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nExplicar qué guarda el esquema, cómo se consulta el directorio por LDAP y qué papel cumple el catálogo global.\n\nPrerrequisitos: `WAD-08-L01` (bosque, dominio, OU y particiones).\n\n## 2. Comprende el mecanismo\n\nEl **esquema** es el diccionario del directorio: define qué **clases de objeto** existen (usuario, grupo, equipo, OU, etc.) y qué **atributos** puede llevar cada clase. No guarda personas ni equipos; guarda las reglas con las que esos objetos se describen. Es único por bosque y se replica a todos sus dominios.\n\nExtender el esquema (añadir una clase o un atributo) es una operación **delicada**: el cambio se replica a todo el bosque, es difícil de revertir y puede afectar a aplicaciones que ya leen el directorio. Por eso no es una decisión de laboratorio: si existe un atributo razonable para lo que se quiere guardar, se usa ese antes de plantear una extensión.\n\n**LDAP** es el protocolo con el que se consulta y modifica el directorio. Las operaciones de **lectura** (buscar, listar, filtrar, leer atributos) no cambian nada; las de **escritura** (añadir, modificar, eliminar) sí. Al documentar, se trabaja en modo lectura: se consulta y se anota lo observado.\n\nCada objeto se nombra con un **nombre distinguido** (DN), una ruta jerárquica como `CN=Ana Ruiz,OU=Soporte,DC=ad,DC=lab,DC=test`. Leer ese nombre ya sitúa al objeto: qué OU lo contiene y a qué dominio pertenece.\n\n**ADSI** es la interfaz de programación de Windows para acceder a servicios de directorio. Simplifica el acceso a LDAP desde scripts y herramientas, pero no cambia el modelo: sigue siendo lectura o escritura según la operación que se invoque.\n\nEl **catálogo global** resuelve un problema de las particiones. Como cada dominio replica solo su propia partición, un controlador de un dominio no tiene copia completa de los demás. El catálogo global es un controlador que mantiene, además, una **réplica parcial** de todos los dominios del bosque: los atributos que se usan con más frecuencia. Con eso puede resolver un nombre o localizar un objeto sin preguntar dominio por dominio.\n\nAdemás, el catálogo global es el que conoce las **pertenencias a grupos universales**, cuyos miembros pueden venir de cualquier dominio del bosque. Por eso una consulta de pertenencia a un grupo universal puede quedar incompleta si el catálogo global no está disponible: es un dato repartido por el bosque.\n\nResumen operativo para leer sin tocar:\n\n- El esquema dice lo que **puede** existir; no dice quién existe.\n- LDAP **consulta**; leer no modifica.\n- El catálogo global es una **réplica parcial** del bosque, no una copia completa de cada dominio.\n\n### Vocabulario de apoyo\n\n- **Esquema**: definiciones de clases de objeto y de atributos que el bosque admite.\n- **LDAP**: protocolo de consulta y modificación del directorio.\n- **Catálogo global**: controlador con una réplica parcial de los atributos de todos los dominios del bosque.\n- **Partición de directorio**: almacén lógico de datos del directorio con su propio alcance de replicación.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-08-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test` un equipo quiere registrar una etiqueta de «turno» por persona y propone extender el esquema del bosque para crear un atributo nuevo. La misma consulta de lectura devuelve `CN=Ana Ruiz,OU=Soporte,DC=ad,DC=lab,DC=test` con sus atributos actuales.\n\nLa consulta de lectura ya da el DN, que sitúa al objeto en la OU `Soporte` del dominio `ad.lab.test`; con eso se sabe en qué partición de dominio vive y se puede documentar sin tocar nada. Extender el esquema, en cambio, es un cambio único por bosque que se replica a todos los dominios y es difícil de revertir; el objetivo —una etiqueta de turno— no lo justifica. Antes de proponerlo se comprueba si existe un atributo estándar que sirva para esa etiqueta; si no existe, la decisión se documenta como propuesta con su alcance y no se ejecuta. La conclusión se limita a describir el modelo del directorio y a señalar el coste de modificarlo: no se ha alterado el esquema ni los datos.\n\n"
+    },
+    {
+      "id": "WAD-08-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Saber que leer por LDAP no modifica nada permite documentar identidades y pertenencias sin alterar el directorio.\n- Red Team autorizado: Reconocer qué atributos expone el directorio y qué requiere el catálogo global ordena la enumeración de identidades dentro del alcance autorizado.\n- Evidencia de la etapa: Consulta de lectura con su DN, atributos observados y la partición o el catálogo global implicado.\n- Criterio de dominio: Distingue lo que define el esquema, lo que resuelve LDAP y lo que aporta el catálogo global.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB05](../../05_RECURSOS/LABORATORIOS/WAD-LAB05.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **ADSCHEMA**: [Schema](https://learn.microsoft.com/en-us/windows/win32/ad/schema). Clases de objeto, atributos y su alcance en el bosque.\n- **GC**: [Global catalog](https://learn.microsoft.com/en-us/windows/win32/ad/global-catalog). Réplica parcial y resolución de pertenencias a grupos universales.\n- **ADSI**: [Active Directory Service Interfaces](https://learn.microsoft.com/en-us/windows/win32/adsi/active-directory-service-interfaces-adsi). Interfaz de acceso al directorio para consultas y operaciones.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-08-L02-P01",
+    "prompt": "En `ad.lab.test` una consulta LDAP sintética devuelve el objeto `CN=Equipo Soporte 01,OU=Soporte,DC=ad,DC=lab,DC=test` con sus atributos. Documenta qué dice el esquema sobre esa clase de objeto, qué operación usarías para leer sin modificar, cuándo necesitarías el catálogo global en lugar de un solo dominio y qué no debes tocar para no alterar el directorio.",
+    "markdown": "## 4. Práctica individual\n\nEn `ad.lab.test` una consulta LDAP sintética devuelve el objeto `CN=Equipo Soporte 01,OU=Soporte,DC=ad,DC=lab,DC=test` con sus atributos. Documenta qué dice el esquema sobre esa clase de objeto, qué operación usarías para leer sin modificar, cuándo necesitarías el catálogo global en lugar de un solo dominio y qué no debes tocar para no alterar el directorio.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber consultado ni modificado un directorio real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-08-L02-Q01",
+      "prompt": "¿Qué guarda el esquema de Active Directory?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Las cuentas y los grupos de cada dominio"
+        },
+        {
+          "id": "B",
+          "text": "Las definiciones de clases de objeto y de atributos que el bosque admite"
+        },
+        {
+          "id": "C",
+          "text": "Una réplica parcial de los atributos de todos los dominios del bosque"
+        },
+        {
+          "id": "D",
+          "text": "Las confianzas establecidas entre bosques distintos"
+        }
+      ]
+    },
+    {
+      "id": "WAD-08-L02-Q02",
+      "prompt": "¿Para qué sirve principalmente el catálogo global?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Para guardar una copia completa de todas las particiones de todos los dominios"
+        },
+        {
+          "id": "B",
+          "text": "Para sustituir a LDAP en las consultas del dominio local"
+        },
+        {
+          "id": "C",
+          "text": "Para definir las clases de objeto que el bosque admite"
+        },
+        {
+          "id": "D",
+          "text": "Para mantener una réplica parcial de los atributos de todos los dominios del bosque y resolver las pertenencias a grupos universales"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB05](../../05_RECURSOS/LABORATORIOS/WAD-LAB05.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **ADSCHEMA**: [Schema](https://learn.microsoft.com/en-us/windows/win32/ad/schema). Clases de objeto, atributos y su alcance en el bosque.\n- **GC**: [Global catalog](https://learn.microsoft.com/en-us/windows/win32/ad/global-catalog). Réplica parcial y resolución de pertenencias a grupos universales.\n- **ADSI**: [Active Directory Service Interfaces](https://learn.microsoft.com/en-us/windows/win32/adsi/active-directory-service-interfaces-adsi). Interfaz de acceso al directorio para consultas y operaciones.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "40f9f7e2c8bad3bc84434c40"
+}

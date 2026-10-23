@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M10-L04",
+  "title": "LACP/port channels",
+  "sourceHash": "d86f9d0e3e06b9a95ca6936c28f3efd5b6c85c5ba4262aea2ee9267fceaab924",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M10-L04-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nInterpretar agregación LACP y sus límites por flujo.\n\nPrerrequisitos: [RED-M10-L03](../RED-E02/RED-M10-L03.md).\n\n## 2. Comprende el mecanismo\n\nLACP negocia pertenencia de enlaces a una agregación; modos y parámetros deben ser compatibles. La distribución habitual usa un hash de campos del flujo para mantener orden, por lo que un único flujo no obtiene necesariamente la suma de velocidades de todos los miembros. VLAN, MTU y modo L2/L3 del agregado deben ser coherentes según plataforma. Un miembro suspendido puede reflejar incompatibilidad, no cable roto. Para validar, comprueba membresía, capacidad agregada con varios flujos y comportamiento al perder un enlace.\n\n### Vocabulario de apoyo\n\n- **STP, root y BPDU**: Protocolo para evitar bucles L2, puente de referencia y mensajes usados por ese control.\n- **LACP**: Protocolo que negocia qué enlaces pertenecen a una agregación.\n- **Convergencia**: Adaptación del estado de red tras un cambio; la recuperación de servicio también debe medirse.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M10-L04-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Agregado docente: 2 enlaces de 1 Gb/s; un flujo TCP usa uno y mide 900 Mb/s; varios flujos se distribuyen.\n\nEl resultado es compatible con balanceo por flujo. No demuestra que LACP haya fallado ni que un único flujo deba alcanzar 2 Gb/s.\n\n"
+    },
+    {
+      "id": "RED-M10-L04-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Reconocer pérdida/duplicación por convergencia.\n- Red Team autorizado: Ensayar controles solo en switches simulados.\n- Evidencia del módulo: Estados de puerto, cambios y pruebas de recuperación.\n- Criterio del módulo: Restaurar la topología y justificar árbol activo.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L04](../../05_RECURSOS/LABORATORIOS/RED-L04.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **STP**: [Understand Rapid Spanning Tree Protocol](https://www.cisco.com/c/en/us/support/docs/lan-switching/spanning-tree-protocol/24062-146.html). Roles, estados y comparación de convergencia RSTP.\n- **BRIDGE**: [Ethernet Bridging](https://docs.kernel.org/networking/bridge.html). Learning, forwarding, VLAN y controles de bridge; kAPI no se presenta como estable.\n- **BONDING**: [Linux Ethernet Bonding Driver HOWTO](https://docs.kernel.org/networking/bonding.html). Agregación y modos de reparto; verificar soporte por implementación.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M10-L04-P01",
+    "prompt": "Uno de los miembros tiene otra MTU y queda excluido. Describe la evidencia que conservarías.",
+    "markdown": "## 4. Práctica individual\n\nUno de los miembros tiene otra MTU y queda excluido. Describe la evidencia que conservarías.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M10-L04-Q01",
+      "prompt": "¿Qué limita normalmente el ancho de banda de un único flujo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Su asignación a un miembro mediante el hash"
+        },
+        {
+          "id": "B",
+          "text": "La prioridad del root únicamente"
+        },
+        {
+          "id": "C",
+          "text": "El número de registros DNS"
+        },
+        {
+          "id": "D",
+          "text": "La suma obligatoria de todos los miembros"
+        }
+      ]
+    },
+    {
+      "id": "RED-M10-L04-Q02",
+      "prompt": "¿Qué demuestra medir 900 Mb/s en el caso?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que ambos cables están rotos"
+        },
+        {
+          "id": "B",
+          "text": "Fracaso seguro de LACP"
+        },
+        {
+          "id": "C",
+          "text": "Un resultado compatible con un flujo sobre un miembro de 1 Gb/s"
+        },
+        {
+          "id": "D",
+          "text": "Una capacidad de 2 Gb/s para cualquier flujo"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L04](../../05_RECURSOS/LABORATORIOS/RED-L04.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **STP**: [Understand Rapid Spanning Tree Protocol](https://www.cisco.com/c/en/us/support/docs/lan-switching/spanning-tree-protocol/24062-146.html). Roles, estados y comparación de convergencia RSTP.\n- **BRIDGE**: [Ethernet Bridging](https://docs.kernel.org/networking/bridge.html). Learning, forwarding, VLAN y controles de bridge; kAPI no se presenta como estable.\n- **BONDING**: [Linux Ethernet Bonding Driver HOWTO](https://docs.kernel.org/networking/bonding.html). Agregación y modos de reparto; verificar soporte por implementación.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "12ed0427882a83606606d301"
+}

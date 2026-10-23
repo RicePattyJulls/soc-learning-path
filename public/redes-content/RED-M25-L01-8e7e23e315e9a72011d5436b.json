@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M25-L01",
+  "title": "VNet/VPC, subredes y tablas",
+  "sourceHash": "abf9c2c8c6f021bfb935629af3ada83a3d883bdfa02df08e2f3ff775c58bc72b",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M25-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nSeguir routing de una red cloud sin suponer conectividad por proximidad.\n\nPrerrequisitos: [RED-M18-L04](../RED-E03/RED-M18-L04.md), [RED-M20-L04](../RED-E04/RED-M20-L04.md), [RED-M21-L04](../RED-E04/RED-M21-L04.md), [RED-M22-L04](../RED-E04/RED-M22-L04.md).\n\n## 2. Comprende el mecanismo\n\nVPC y VNet delimitan recursos de red de proveedores concretos, con tablas, subredes y servicios que no son idénticos entre plataformas. Una subred privada se caracteriza por sus rutas y exposición, no solo por una IP de rango privado. Asociar una tabla equivocada puede desviar tráfico hacia una appliance o dejarlo sin salida. Switching virtual y overlays como VXLAN añaden encapsulación, pero la experiencia del usuario depende del routing y de controles efectivos. Revisa también prefijos solapados entre cloud y sede.\n\n### Vocabulario de apoyo\n\n- **VPC y VNet**: Recursos de red virtual de AWS y Azure con contratos y controles propios.\n- **Security group, NACL y NSG**: Controles concretos de AWS o Azure; no se presume que compartan evaluación o estado.\n- **Peering y flow logs**: Interconexión de redes y registros de metadatos de tráfico con cobertura definida por producto.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M25-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso docente: dos subredes usan tablas diferentes; solo la tabla A apunta al gateway híbrido para el prefijo de la sede.\n\nLa conectividad desde A no demuestra conectividad desde B. Las asociaciones de tablas son parte del camino que debe verificarse.\n\n"
+    },
+    {
+      "id": "RED-M25-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Analizar fuentes cloud con procedencia explícita.\n- Red Team autorizado: Validar acceso remoto sin desplegar infraestructura real.\n- Evidencia del módulo: Plano y controles por proveedor etiquetados; supuestos de coste.\n- Criterio del módulo: Identifica rutas y puntos de inspección; no presupone equivalencias.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L12](../../05_RECURSOS/LABORATORIOS/RED-L12.md)\n- [Guía de laboratorio RED-L19](../../05_RECURSOS/LABORATORIOS/RED-L19.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **AWS-ACL**: [Control subnet traffic with network ACLs](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-network-acls.html). Semántica stateless y reglas de NACL.\n- **AZ-NSG**: [Azure network security groups overview](https://learn.microsoft.com/en-us/azure/virtual-network/network-security-groups-overview). Semántica stateful y prioridades de NSG.\n- **AWS-FLOW**: [Logging IP traffic using VPC Flow Logs](https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs.html). Cobertura y límites de registros de flujo; no PCAP.\n- **AZ-FLOW**: [Virtual Network Flow Logs](https://learn.microsoft.com/en-us/azure/network-watcher/vnet-flow-logs-overview). Producto de registro de flujo y alcance por servicio.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M25-L01-P01",
+    "prompt": "Una sede y la cloud usan el mismo prefijo interno. Explica el problema antes de crear una VPN.",
+    "markdown": "## 4. Práctica individual\n\nUna sede y la cloud usan el mismo prefijo interno. Explica el problema antes de crear una VPN.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M25-L01-Q01",
+      "prompt": "¿Qué define que una subred tenga determinada salida?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Sus rutas y asociaciones efectivas"
+        },
+        {
+          "id": "B",
+          "text": "Solo que su prefijo tenga formato de dirección privada"
+        },
+        {
+          "id": "C",
+          "text": "Solo el nombre asignado a la subred en el portal"
+        },
+        {
+          "id": "D",
+          "text": "Que otra subred de la misma red virtual tenga una ruta funcional"
+        }
+      ]
+    },
+    {
+      "id": "RED-M25-L01-Q02",
+      "prompt": "¿Qué explica la diferencia A/B?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Asociación con tablas de routing diferentes"
+        },
+        {
+          "id": "B",
+          "text": "Todas las subredes cloud son aisladas siempre"
+        },
+        {
+          "id": "C",
+          "text": "El tráfico no utiliza IP"
+        },
+        {
+          "id": "D",
+          "text": "La VPN elimina tablas automáticamente"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L12](../../05_RECURSOS/LABORATORIOS/RED-L12.md)\n- [Guía de laboratorio RED-L19](../../05_RECURSOS/LABORATORIOS/RED-L19.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **AWS-ACL**: [Control subnet traffic with network ACLs](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-network-acls.html). Semántica stateless y reglas de NACL.\n- **AZ-NSG**: [Azure network security groups overview](https://learn.microsoft.com/en-us/azure/virtual-network/network-security-groups-overview). Semántica stateful y prioridades de NSG.\n- **AWS-FLOW**: [Logging IP traffic using VPC Flow Logs](https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs.html). Cobertura y límites de registros de flujo; no PCAP.\n- **AZ-FLOW**: [Virtual Network Flow Logs](https://learn.microsoft.com/en-us/azure/network-watcher/vnet-flow-logs-overview). Producto de registro de flujo y alcance por servicio.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "8e7e23e315e9a72011d5436b"
+}

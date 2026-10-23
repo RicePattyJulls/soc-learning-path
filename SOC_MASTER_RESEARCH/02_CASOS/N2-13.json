@@ -1,0 +1,179 @@
+{
+  "id": "N2-13",
+  "nivel": "N2",
+  "bloque": "Threat Hunting y SIEM",
+  "titulo": "explorer.exe con red inusual: investigar posible inyección sin sobreatribuir",
+  "pregunta": "Detectas que un proceso legítimo, como explorer.exe, realiza conexiones de red inusuales. ¿Cómo investigarías una posible inyección de procesos?",
+  "escenario": "En WS-17 el EDR indica que `explorer.exe` inició una conexión TLS a una IP no habitual a las 04:22. El ejecutable se encuentra en `C:\\Windows\\explorer.exe` y está firmado; un minuto antes se detectó un proceso poco frecuente lanzado por el usuario. Existen registros MDE de red/procesos y Sysmon parcialmente implantado. También se usan complementos de Explorer, WebDAV y recursos compartidos, por lo que el tráfico por sí solo no demuestra inyección.",
+  "objetivo": "Determinar si la instancia de explorer.exe es auténtica, si tuvo actividad de red legítima y si existe alguna evidencia adicional de acceso/escritura a memoria, hilos remotos, módulos no autorizados o comportamiento posterior compatible con una técnica de inyección. Diferenciar hipótesis, indicio y confirmación.",
+  "hipotesis": [
+    "Inyección de código en un proceso legítimo (T1055), por ejemplo hilo remoto o alteración de memoria, con posteriores conexiones de red.",
+    "Extensión de Explorer, vista previa de archivos, carpeta de red, WebDAV, sincronización o software DLP que comunica por Internet legítimamente.",
+    "Ejecutable falso que usa el nombre explorer.exe desde directorio no estándar o con firma inválida.",
+    "Conexión realmente iniciada por otro proceso al que se atribuyó de forma incorrecta por reutilización de PID o correlación solo temporal.",
+    "Software EDR/administrativo legítimo realiza inspección o accesos cross-process que se parecen a técnicas de inyección."
+  ],
+  "pasos": [
+    {
+      "fase": "1 · Confirmar telemetría y alcance",
+      "accion": "Establecer equipo, usuario, conexión saliente, destino, ActionType, PID del proceso iniciador y creation time; verificar si evento indica intento/conexión permitida y si hay más dispositivos con el mismo patrón. Registrar hora exacta y zona horaria."
+    },
+    {
+      "fase": "2 · Identificar el binario",
+      "accion": "Corroborar ruta, firma del ejecutable usando metadatos de certificado, hash SHA1/SHA256 (según sensor), versión y línea base corporativa. El nombre y una firma válida no prueban que la memoria del proceso no esté comprometida."
+    },
+    {
+      "fase": "3 · Construir árbol y vida del proceso",
+      "accion": "Revisar DeviceProcessEvents y origen de explorer.exe, comandos, usuario, logon, proceso padre, integridad y hora de creación; correlacionar por DeviceId más PID y creation time (o ProcessUniqueId si disponible)."
+    },
+    {
+      "fase": "4 · Analizar ventana anterior",
+      "accion": "Pivotar a eventos de proceso del host justo antes del evento: instancias extrañas de PowerShell, script interpreters, archivos en directorios temporales, procesos inesperados y cambios de configuración. No asumir causalidad por coincidencia."
+    },
+    {
+      "fase": "5 · Buscar evidencias específicas de inyección",
+      "accion": "Si Sysmon habilitado y configurado, consultar evento 8 CreateRemoteThread y 10 ProcessAccess contra la instancia sospechosa; revisar origen, destino, accesos, CallTrace/StartAddress cuando estén presentes. Sysmon 8/10 por sí solos tampoco demuestran ejecución maliciosa."
+    },
+    {
+      "fase": "6 · Inspección forense bajo autoridad",
+      "accion": "Consultar timeline/árbol EDR y, si el caso justifica y el equipo IR lo autoriza, solicitar adquisición forense de memoria volátil siguiendo herramientas/hashes aprobados. Un volcado del proceso afecta privacidad y puede contener secretos: custodia estricta."
+    },
+    {
+      "fase": "7 · Correlación con red y alcance",
+      "accion": "Investigar DNS/SNI, proxy, netflows, IP, puertos, bytes, periodicidad y otros hosts conectados; distinguir Microsoft/CDN legítimos de destinos anómalos. Relacionar únicamente conexiones verdaderamente iniciadas por la instancia señalada."
+    },
+    {
+      "fase": "8 · Contención informada",
+      "accion": "Si se detecta técnica de inyección con comunicaciones C2 o un payload activo, activar IR, aislar/restringir el host si está autorizado, proteger credenciales y preservar artefactos. No matar explorer.exe como única solución ni reconstruir sin evidencias."
+    },
+    {
+      "fase": "9 · Conclusión y mitigación",
+      "accion": "Documentar observaciones, nivel de confianza, huecos de Sysmon y pruebas de sistema. Reforzar reglas de ASR, control de aplicaciones, EDR y correlación proceso-red; definir falsos positivos de extensiones aprobadas."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "DeviceNetworkEvents: InitiatingProcessFileName, InitiatingProcessId, InitiatingProcessCreationTime",
+      "lectura": "Atribuye tráfico según sensor a la instancia concreta de proceso; evita unión solamente por PID."
+    },
+    {
+      "dato": "DeviceProcessEvents: FileName, FolderPath, SHA1, ProcessCreationTime, InitiatingProcess*",
+      "lectura": "Crea línea temporal de proceso y posible origen; la firma del binario no atestigua integridad de memoria."
+    },
+    {
+      "dato": "Sysmon 8: SourceImage, TargetImage, StartAddress, StartModule",
+      "lectura": "Creación observada de hilo remoto; depende de config/sensor y puede tener explicación legítima."
+    },
+    {
+      "dato": "Sysmon 10: SourceImage, TargetImage, GrantedAccess",
+      "lectura": "Apertura/acceso a otro proceso; no demuestra escritura/inyección ni ejecución de código por sí sola."
+    },
+    {
+      "dato": "Sysmon 7: carga de módulos",
+      "lectura": "En caso de habilitarlo, módulos inesperados pueden apoyar hipótesis; volumen alto y evento deshabilitado por defecto."
+    },
+    {
+      "dato": "EDR alert/process tree + memoria adquirida con autorización",
+      "lectura": "Puede aportar indicios fuertes de regiones ejecutables, hilos y módulos anómalos que una conexión sola no revela."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Defender XDR · red de explorer.exe por instancia real",
+      "entorno": "Defender XDR con MDE DeviceNetworkEvents; tabla documentada con iniciador y tiempo de creación.",
+      "consulta": "DeviceNetworkEvents\n| where Timestamp >= ago(7d)\n| where InitiatingProcessFileName =~ \"explorer.exe\"\n| summarize Eventos=count(), Destinos=dcount(RemoteIP),\n            IPs=make_set(RemoteIP,20), Puertos=make_set(RemotePort,10),\n            Primera=min(Timestamp), Ultima=max(Timestamp)\n    by DeviceId, DeviceName, InitiatingProcessId,\n       InitiatingProcessCreationTime, InitiatingProcessFolderPath\n| order by Destinos desc",
+      "interpretacion": "Prioriza instancias explorer.exe inusualmente comunicativas y sus destinos; ampliar con eventos crudos para profundizar.",
+      "limitaciones": "No observa inyección de memoria ni interpreta SSL; destino remoto desconocido no implica C2. El ProcessId puede reciclarse: se añadió la hora."
+    },
+    {
+      "nombre": "Sentinel / Sysmon · acceso y thread a explorer.exe",
+      "entorno": "WindowsEvent recolecta Microsoft-Windows-Sysmon/Operational, Sysmon ID 8 y 10 habilitados por configuración.",
+      "consulta": "WindowsEvent\n| where TimeGenerated >= ago(7d)\n| where Provider =~ \"Microsoft-Windows-Sysmon\"\n| where EventID in (8, 10)\n| extend SourceImage=tostring(EventData.SourceImage),\n         TargetImage=tostring(EventData.TargetImage),\n         SourceGuid=tostring(EventData.SourceProcessGUID),\n         TargetGuid=tostring(EventData.TargetProcessGUID)\n| where TargetImage endswith @\"\\explorer.exe\"\n| project TimeGenerated, Computer, EventID,\n          SourceImage, TargetImage, SourceGuid, TargetGuid, EventData\n| order by TimeGenerated desc",
+      "interpretacion": "Busca indicios orientativos de interacción entre procesos con destino explorer.exe, con GUID cuando disponible.",
+      "limitaciones": "Sysmon no está instalado/configurado por defecto; GUID de algunos campos puede variar. Eventos 8/10 no certifican inyección y hay herramientas legítimas que los disparan."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk · network telemetry atribuida a explorer.exe",
+      "entorno": "index=edr contiene network events con src_process_name, src_process_guid o src_process_id, dest_ip; ajustar normalización.",
+      "consulta": "index=edr earliest=-7d src_process_name=\"explorer.exe\"\n| eval instancia=coalesce(src_process_guid,src_process_id)\n| stats count as eventos dc(dest_ip) as destinos values(dest_ip) as ips\n    by host instancia src_process_name\n| sort - destinos",
+      "interpretacion": "Identifica dispositivos e instancias con actividad de red atípica; pivotar al proceso exacto.",
+      "limitaciones": "No existe index=edr universal ni campos estándar con estos nombres. Un src_process_id sin fecha es débil por reuso de PID."
+    },
+    {
+      "nombre": "Splunk · Sysmon 8/10 hacia explorer.exe",
+      "entorno": "index=sysmon con Sysmon Operational y campos EventCode, TargetImage, SourceImage.",
+      "consulta": "index=sysmon earliest=-7d (EventCode=8 OR EventCode=10)\n| search TargetImage=\"*\\\\explorer.exe\"\n| table _time host EventCode SourceImage TargetImage\n        SourceProcessGUID TargetProcessGUID GrantedAccess StartAddress\n| sort - _time",
+      "interpretacion": "Lista interacciones entre procesos para revisar causalidad contra línea temporal de red.",
+      "limitaciones": "Los GUID pueden extraerse con variantes de mayúsculas; Sysmon 8/10 requieren configuración. No prueba shellcode ejecutado."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "PowerShell autorizado — solo lectura",
+      "proposito": "Verificar ruta y metadatos del ejecutable, sin inspección invasiva ni ejecución de muestra.",
+      "comando": "$archivo = \"$env:WINDIR\\explorer.exe\"\nGet-Item -LiteralPath $archivo | Select-Object FullName,Length,LastWriteTime\nGet-AuthenticodeSignature -LiteralPath $archivo |\n  Select-Object Status,SignerCertificate"
+    },
+    {
+      "entorno": "PowerShell autorizado — solo lectura",
+      "proposito": "Corroborar las instancias explorer.exe y sus rutas.",
+      "comando": "Get-CimInstance Win32_Process -Filter \"Name='explorer.exe'\" |\n  Select-Object ProcessId,ParentProcessId,CreationDate,ExecutablePath,CommandLine"
+    },
+    {
+      "entorno": "PowerShell autorizado — solo lectura",
+      "proposito": "Consultar eventos Sysmon 8/10 relevantes en host habilitado.",
+      "comando": "Get-WinEvent -FilterHashtable @{\n  LogName='Microsoft-Windows-Sysmon/Operational'\n  Id=8,10\n  StartTime=(Get-Date).AddDays(-1)\n} -MaxEvents 200 | Where-Object Message -match 'explorer.exe' |\n  Select-Object TimeCreated,Id,RecordId,Message"
+    }
+  ],
+  "contencion": "No terminar explorer.exe por una conexión sospechosa aislada. Si hay evidencia de inyección más acciones maliciosas, priorizar aislamiento del endpoint o bloqueo del flujo mediante respuesta EDR con consentimiento/autoridad según criticidad; preservar timeline, artefactos, muestras y memoria solo por equipo forense. Restablecer confianza mediante reparación/reimagen aprobada después del análisis de persistencia y credenciales. Una firma válida no legitima necesariamente código ejecutado dentro del proceso.",
+  "escalation": [
+    "Correlación entre Sysmon 8/10, árbol sospechoso y tráfico red con la misma instancia.",
+    "Alertas EDR de inyección, memory tampering o ejecución de código en proceso legítimo.",
+    "Procesos padres improbables, módulo extraño o binario que suplanta explorer.exe.",
+    "Red a destino de alto riesgo con persistencia o repetición en varios hosts.",
+    "Privilegios elevados/sesiones administrativas comprometidas."
+  ],
+  "falsos_positivos": [
+    "Explorer accede a ubicaciones WebDAV, iconos o contenido remoto.",
+    "Complementos de terceros firmados o sincronizadores autorizados.",
+    "Software DLP, accesibilidad, EDR o inspección remota accede legítimamente a procesos.",
+    "Proxy/CDE o infraestructura CDN no inventariada.",
+    "Se atribuyó tráfico usando PID reciclado y no el inicio real del proceso."
+  ],
+  "errores": [
+    "Dar por probada inyección únicamente por una conexión de explorer.exe.",
+    "Confundir proceso firmado con memoria garantizada no manipulada.",
+    "No confirmar PID+creation time y atribuir eventos de otro proceso.",
+    "Interpretar Sysmon Event 10 como ejecución de shellcode por defecto.",
+    "Volcar memoria de usuarios sin autorización/cadena de custodia.",
+    "Matar explorer.exe o borrar binarios antes de preservar evidencia."
+  ],
+  "perspectiva_red_team": "Las técnicas de inyección pueden usar un contenedor de procesos confiable para ejecutar código sin iniciar un binario sospechoso visible, pero dejan potenciales rastros en llamadas cross-process, hilos, memoria y conducta anómala. Detectar una sola señal no basta; correlación de origen, objetivo, memoria y red eleva confianza. Existen muchas APIs y herramientas legítimas de integración que generan eventos parecidos.",
+  "respuesta_entrevista": "Primero confirmaría que el flujo salió de la instancia real de explorer.exe usando DeviceId, PID y ProcessCreationTime. Validaría ruta, firma, árbol y proceso padre. Consultaría Sysmon 8/10 si está habilitado para localizar acceso e hilos remotos, interpretando sus limitaciones, y pivotaría a eventos de red, DNS y módulos. Si apareciera una secuencia coherente de proceso sospechoso, interacción con explorer y comunicación externa, escalaría a IR, solicitaría contención y posible memoria forense bajo autorización. No concluiría inyección solo por la conexión.",
+  "criterios_evaluacion": [
+    "Distingue un indicador de red de evidencia de inyección.",
+    "Identifica proceso concreto con tiempo de creación.",
+    "Conoce Sysmon 8/10 y su ambigüedad.",
+    "Analiza firma, ruta y posibilidad de suplantación.",
+    "Conecta causa sospechosa y efecto por timeline.",
+    "Sabe cuándo solicitar memoria/forense y contener."
+  ],
+  "mitre": [
+    "T1055 — Process Injection (hipótesis, no conclusión)",
+    "T1071.001 — Web Protocols (si se demuestra comunicación con C2)"
+  ],
+  "fuentes": [
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-devicenetworkevents-table",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-deviceprocessevents-table",
+    "https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-best-practices",
+    "https://docs.splunk.com/Documentation/CIM/6.1.0/User/Endpoint",
+    "https://csrc.nist.gov/pubs/sp/800/61/r3/final"
+  ],
+  "procedencia": {
+    "lote": "tanda-07",
+    "archivo": "SOC-RESPONSES_TANDA-07_N2-11_a_N2-15.json",
+    "fechaRevision": "2026-10-18"
+  }
+}

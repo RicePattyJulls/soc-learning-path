@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-14-L01",
+  "sourceHash": "3ee7f2484f005d4d0bf78d5dec714218ac6e03ac8d71982528804e183416d484",
+  "questions": [
+    {
+      "id": "LNX-14-L01-Q01",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Que ayuda a restaurar consistencia estructural de metadatos, sin garantizar el contenido exacto de toda escritura».\n\nEl journal protege la coherencia de la estructura y, en `data=ordered`, ordena datos antes de ciertos metadatos. No asegura el contenido exacto de cada escritura, no hace inmutable el archivo ni registra de forma permanente y auditable cada operación."
+    },
+    {
+      "id": "LNX-14-L01-Q02",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Examina en modo solo lectura y no debe usarse esperando resultados fiables sobre un sistema de archivos montado y mutable».\n\n`e2fsck -n` responde que no y examina sin reparar, por lo que no es fiable sobre un sistema montado y en uso. No repara automáticamente, no sustituye a un respaldo y no borra rastros del journal."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "El journal de ext4 aporta consistencia estructural: anota metadatos para que una caída no deje la estructura incoherente, y en `data=ordered` ordena datos antes de ciertos metadatos, pero no garantiza el contenido exacto de toda escritura. Reuniría sin mutar: el mensaje exacto y su hora, las opciones de montaje, el estado y la salud del disco, y el historial de cambios o despliegues cercanos.\n\nLímite: un aviso seguido de remontaje a solo lectura no distingue por sí solo entre hardware, energía, kernel, configuración o acción deliberada; afirmar sabotaje es una hipótesis, y el journal no ofrece el relato completo que la sostendría.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Explica que el journal da consistencia estructural, no contenido exacto."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Diferencia el journal de un respaldo o de un log de auditoría."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Propone reunir mensaje, hora, salud de disco y cambios, sin mutar."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Reconoce que un error de ext4 no atribuye por sí solo un sabotaje."
+      }
+    ]
+  },
+  "revision": "2da439541c53f51e477a136f"
+}

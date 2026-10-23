@@ -1,0 +1,86 @@
+# LNX-LAB24 — nftables stateful en namespace: allow/deny/rollback
+
+Guía de laboratorio **diseñada**, no ejecutada ni validada. Ejecútala solo sobre un host propio o un laboratorio aislado y autorizado. Todo el material es **sintético**: no reproduce una captura, una ejecución real ni datos personales.
+
+## Objetivo
+
+Aplicar una **cadena `input` stateful** de nftables **dentro de la namespace `lnxlab-srv`**, validando primero la sintaxis, comprobando un flujo permitido y otro denegado con sus contadores, y **revirtiendo** solo la tabla creada para volver al estado inicial (base documental: F86, F87, F88, F89, F90, F91).
+
+## Competencia
+
+Diseño y **reversión acotada** de política nftables: distinguir `accept` de autorización final, separar contador de registro persistente y demostrar la denegación con evidencia sin tocar el host.
+
+## Nivel y prerrequisitos
+
+Avanzado. Conviene haber recorrido la etapa `LNX-22` y tener `LNX-LAB23` activo (namespaces `lnxlab-cli`/`lnxlab-srv`). Requiere `nftables` instalado, permiso `CAP_NET_ADMIN` y consola local de la VM. **No** se ejecuta sobre el ruleset del host.
+
+## Material sintético
+
+- VM de laboratorio aislada con nombre de ejemplo `lab-lnx-24`, cuenta sin privilegios `analista` y sin datos personales.
+- Las direcciones de ejemplo pertenecen **solo** a rangos de documentación (`192.0.2.0/24`, `198.51.100.0/24`, `203.0.113.0/24` y `2001:db8::/32`); no se usan IPs reales ni salida a Internet.
+- Topología de ejemplo (de `LNX-LAB23`): namespaces `lnxlab-cli` (`192.0.2.1/24`) y `lnxlab-srv` (`192.0.2.2/24`); política de ejemplo en el archivo `/tmp/lnxlab-input.nft`.
+- Directorio de trabajo aislado: `"$HOME/linux-lab/LAB24"`.
+
+## Procedimiento por pasos
+
+### Preparación
+
+1. Crea el directorio aislado: `mkdir -p "$HOME/linux-lab/LAB24"`
+2. Registra fecha y hora en **UTC** y confirma que la namespace existe y está aislada: `date -u -Is > "$HOME/linux-lab/LAB24/lab24-prep.txt"; ip netns list >> "$HOME/linux-lab/LAB24/lab24-prep.txt"` (si no existe `lnxlab-srv`, construye antes `LNX-LAB23`).
+3. Guarda el **baseline** dentro de la namespace: `sudo ip netns exec lnxlab-srv nft -a list ruleset > "$HOME/linux-lab/LAB24/lab24-baseline-ns.txt"; sudo nft -a list ruleset > "$HOME/linux-lab/LAB24/lab24-baseline-host.txt"`
+
+### Tarea (aplicar, probar, revertir)
+
+4. Crea el archivo de política **solo para la namespace**:
+   ```
+   # Archivo: /tmp/lnxlab-input.nft  (SOLO ejecutar con `ip netns exec lnxlab-srv`)
+   add table inet lnxlab
+   add chain inet lnxlab input { type filter hook input priority 0; policy drop; }
+   add rule inet lnxlab input iifname "lo" accept
+   add rule inet lnxlab input ct state established,related accept
+   add rule inet lnxlab input ip protocol icmp accept
+   add rule inet lnxlab input ip saddr 192.0.2.1 tcp dport 8080 counter accept
+   add rule inet lnxlab input counter drop
+   ```
+   (Sin `flush ruleset` en ningún caso.)
+5. **Valida la sintaxis sin aplicar**: `sudo ip netns exec lnxlab-srv nft -c -f /tmp/lnxlab-input.nft` → `"$HOME/linux-lab/LAB24/lab24-nft-check.txt"`
+6. Aplica la política y lista la tabla: `sudo ip netns exec lnxlab-srv nft -f /tmp/lnxlab-input.nft; sudo ip netns exec lnxlab-srv nft -a list ruleset > "$HOME/linux-lab/LAB24/lab24-ns-aplicado.txt"`
+7. **Flujo permitido**: con el servidor de prueba de `LNX-LAB23` escuchando en `192.0.2.2:8080`, ejecuta `sudo ip netns exec lnxlab-cli curl --max-time 3 -s http://192.0.2.2:8080/` y anota resultado y contadores (`nft -a list ruleset`) → `"$HOME/linux-lab/LAB24/lab24-test-allow.txt"`.
+8. **Flujo denegado**: usa un puerto **no permitido** con un listener de prueba controlado o demuestra el `drop` por contador; **no** confundas el `RST` de un puerto cerrado con un `drop` real. Anota contadores → `"$HOME/linux-lab/LAB24/lab24-test-deny.txt"`.
+9. Contrasta `input` frente a `output` y comprueba que **no** existe regla en el host: `sudo nft -a list ruleset > "$HOME/linux-lab/LAB24/lab24-host-despues.txt"`. Explica por qué un `accept` no es garantía en cadenas base posteriores, en `"$HOME/linux-lab/LAB24/lab24-interpretacion.md"`.
+10. Sella la evidencia: `{ date -u -Is; sha256sum "$HOME/linux-lab/LAB24"/lab24-*.*; } > "$HOME/linux-lab/LAB24/SHA256SUMS"`
+
+> **No** ejecutes `nft flush ruleset` en el host ni en la namespace. **No** combines gestores UFW/firewalld/nft en este ejercicio. **No** cargues la tabla dos veces (obtendrías error): revierte y reproduce limpio.
+
+### Verificación y limpieza
+
+11. Confirma que HTTP autorizado funciona **sin** modificar el host, que un flujo no autorizado es denegado con prueba adecuada y que los contadores cambian en la regla esperada.
+12. **Rollback**: elimina **solo** la tabla creada dentro de la namespace: `sudo ip netns exec lnxlab-srv nft delete table inet lnxlab`; comprueba el retorno al baseline con `sudo ip netns exec lnxlab-srv nft -a list ruleset > "$HOME/linux-lab/LAB24/lab24-rollback.txt"` y compara con `lab24-baseline-ns.txt`.
+13. Revalida hashes: `sha256sum -c "$HOME/linux-lab/LAB24/SHA256SUMS"`.
+
+## Evidencia a entregar
+
+- El archivo **`.nft`** y la salida de `nft -c`.
+- **Dos pruebas** (aceptación/denegación) con tiempos y contadores.
+- El **sha256** de los artefactos.
+- La **verificación de rollback** (comparación con el baseline del namespace).
+
+## Criterios de aceptación
+
+- Técnica (6): HTTP autorizado funciona y el flujo no autorizado se deniega con evidencia adecuada, sin tocar el host.
+- Interpretación y límites (3): se explica por qué `accept` no es garantía en otras cadenas base y por qué un contador no es un log persistente.
+- Evidencia (3): archivo `.nft`, `nft -c`, dos tests con contadores y hash.
+- Seguridad y reversión (2): el rollback restaura un estado comprobable.
+- **Fallo crítico:** ejecutar `nft flush ruleset` (host o namespace) o aplicar la política fuera de `lnxlab-srv`. Aquí la regla vive solo en la namespace del laboratorio.
+
+## Autorización y límites
+
+Actividad sobre una **namespace de laboratorio** con política **acotada** a `inet lnxlab`. **Prohibido** el `flush` del ruleset del host, combinar gestores y aplicar reglas sobre redes ajenas. Mantén consola local por si se comete un error. La tabla se **revierte** al terminar.
+
+## Limpieza
+
+Elimina **solo** `inet lnxlab` con `nft delete table` dentro de `lnxlab-srv` y compara con el baseline. Conserva `lab24-*.nft`, `lab24-*.txt`, `lab24-*.md` y `SHA256SUMS` como evidencia. La topología de `LNX-LAB23` se elimina en su propia limpieza.
+
+## Nota y estado declarado
+
+Este documento es un **diseño por ejecutar**: describe un laboratorio que aún no se ha corrido ni validado, y todo su contenido es sintético. La guía **no acredita** haber ejecutado el laboratorio ni certifica resultados.

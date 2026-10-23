@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-16-L01",
+  "title": "RPO/RTO, consistencia y threat model",
+  "sourceHash": "58329a93662e882a1e7930f22362a39649eaa32847751ee5250bf39b6b6d4b1e",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-16-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nTraducir una política de respaldo a objetivos medibles de pérdida y de recuperación, y evaluar la consistencia y el modelo de amenazas de una copia.\n\nPrerrequisitos: `LNX-15-L03` (LUKS/dm-crypt: confidencialidad ≠ integridad).\n\n## 2. Comprende el mecanismo\n\nUn respaldo no se diseña desde la herramienta, sino desde dos números y una pregunta. Los números son el **RPO** y el **RTO**. La pregunta es contra qué amenaza protege esa copia. Sin los tres, «tengo backups» es una afirmación sin contenido verificable.\n\nEl **RPO** (Recovery Point Objective) acota cuánta pérdida temporal de datos es aceptable: si es de una hora, la copia más reciente debe estar como mucho a una hora del fallo. El **RTO** (Recovery Time Objective) acota cuánto tiempo puede tardar la recuperación del servicio. Son magnitudes distintas: una habla de datos perdidos, la otra de tiempo de indisponibilidad. Confundirlas lleva a políticas que parecen buenas y no lo son.\n\nDiseñar también exige decidir **qué restaurar**: no solo ficheros, sino permisos, bases de datos, claves, certificados, secretos, configuración y dependencias. Y exige justificar las **exclusiones**: dejar fuera caché o datos regenerables es razonable si es una decisión explícita, no una omisión accidental.\n\nLa segunda pieza es la **consistencia**. Una copia en caliente de una base de datos activa puede capturar páginas de instantes distintos y producir un conjunto que no arranca. Un snapshot de bloque es, como mucho, consistente a nivel físico; no garantiza consistencia transaccional de la aplicación por sí solo. La copia **crash-consistent** y la **application-consistent** no son lo mismo, y la mayoría de los fallos de recuperación viven en esa diferencia.\n\nLa tercera pieza es el **modelo de amenazas**. El patrón «3-2-1» (tres copias, dos medios, una fuera de sitio) es una heurística útil, no un análisis. Una copia off-host bajo **las mismas credenciales de borrado** que el host de producción puede caer ante el mismo compromiso: si un atacante con control del host puede borrar también el destino, la copia no sobrevive. La separación de identidades de lectura, escritura y borrado importa más que repetir números.\n\nDe aquí se sigue el criterio operativo. Un respaldo bien diseñado declara su RPO y su RTO, justifica sus inclusiones y exclusiones, define su grado de consistencia y nombra la amenaza que resiste. Un respaldo sin esos datos es una copia cuya utilidad no se puede predecir.\n\nAntes de concluir, comprueba la coherencia del conjunto: objetivos, contenido, consistencia y separación de credenciales. El límite: ninguna política demuestra recuperabilidad hasta que se realiza y se mide una restauración real.\n\n### Vocabulario de apoyo\n\n- **RPO**: máxima pérdida temporal de datos aceptable; acota la antigüedad admisible de la copia.\n- **RTO**: tiempo máximo aceptable hasta recuperar el servicio.\n- **Consistencia crash-consistent**: conjunto coherente a nivel físico, sin garantía transaccional.\n- **Consistencia application-consistent**: conjunto coherente para el motor de la aplicación.\n- **Modelo de amenazas**: qué adversario o fallo debe resistir la copia y con qué privilegios.\n- **3-2-1**: heurística de copias (tres, dos medios, una fuera de sitio), no un análisis de amenazas.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-16-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un equipo respalda cada noche, guarda la copia en un servidor del mismo dominio y bajo las mismas credenciales administrativas que el host de producción. Su política declara un RPO de veinticuatro horas y afirma que la copia «está a salvo». Un auditor pregunta qué amenaza resiste ese diseño.\n\nLa afirmación no se sostiene sin matizar el modelo de amenazas. Frente a fallos de software o borrados accidentales, la copia puede servir. Frente a un adversario que obtiene control administrativo del host, no: si las mismas credenciales alcanzan el destino, ese adversario puede eliminar también la copia. La proximidad de identidades anula buena parte de la protección.\n\nRazonar así separa «existe una copia» de «la copia sobrevive a la amenaza relevante». El RPO declarado describe la pérdida admisible de datos, no la resiliencia frente al adversario. El límite de la conclusión: sin separar identidades de lectura, escritura y borrado, y sin un destino que el host comprometido no pueda destruir, la política no responde a la amenaza de supresión de la recuperación.\n\n"
+    },
+    {
+      "id": "LNX-16-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Exigir RPO, RTO, alcance y separación de credenciales al evaluar la resiliencia de un respaldo.\n- Red Team autorizado: Comprobar si una identidad comprometida puede alcanzar y destruir también el destino de las copias.\n- Evidencia de la etapa: Objetivos declarados, contenido, grado de consistencia y modelo de identidades del repositorio.\n- Criterio de dominio: Nombra la amenaza que resiste una copia y la consistencia que garantiza antes de confiar en ella.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB17](../../05_RECURSOS/LABORATORIOS/LNX-LAB17.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F57**: [restic: backing up](https://restic.readthedocs.io/en/stable/040_backup.html). Diseño de conjuntos de respaldo y su alcance.\n- **F61**: [GNU tar manual, backups e incrementales](https://www.gnu.org/software/tar/manual/tar.html). Archivo portable e incrementales como base de una política.\n- **F62**: [NIST SP 800-86, Guide to Integrating Forensic Techniques into Incident Response (2006)](https://csrc.nist.gov/pubs/sp/800/86/final). Principios de preservación y orden de actuación ante incidentes.\n- **F63**: [MITRE ATT&CK, T1490 Inhibit System Recovery](https://attack.mitre.org/techniques/T1490/). Amenaza de supresión de la capacidad de recuperación.\n- **F64**: [MITRE ATT&CK, T1485 Data Destruction](https://attack.mitre.org/techniques/T1485/). Destrucción de datos que el modelo de amenazas debe contemplar.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-16-L01-P01",
+    "prompt": "Un equipo respalda cada noche hacia un servidor del mismo dominio, usando las mismas credenciales administrativas que el host de producción, y declara que la copia está a salvo. Explica qué objetivos describen el RPO y el RTO, qué debilidad tiene el modelo de amenazas y cuál es el límite de la conclusión.",
+    "markdown": "## 4. Práctica individual\n\nUn equipo respalda cada noche hacia un servidor del mismo dominio, usando las mismas credenciales administrativas que el host de producción, y declara que la copia está a salvo. Explica qué objetivos describen el RPO y el RTO, qué debilidad tiene el modelo de amenazas y cuál es el límite de la conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber diseñado ni ejecutado respaldos reales.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-16-L01-Q01",
+      "prompt": "¿Qué distingue el RPO del RTO?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El RPO acota la pérdida temporal de datos; el RTO, el tiempo de recuperación del servicio"
+        },
+        {
+          "id": "B",
+          "text": "El RPO mide el tamaño del repositorio; el RTO, la velocidad de red"
+        },
+        {
+          "id": "C",
+          "text": "El RPO es la cifra de copias; el RTO, el número de medios distintos"
+        },
+        {
+          "id": "D",
+          "text": "Ambos miden lo mismo y solo cambian de unidad"
+        }
+      ]
+    },
+    {
+      "id": "LNX-16-L01-Q02",
+      "prompt": "Una copia en caliente de una base de datos activa se restaura y no arranca de forma consistente. ¿Cuál es la causa más probable según el diseño?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El repositorio carecía de cifrado en reposo"
+        },
+        {
+          "id": "B",
+          "text": "El hash del archivo era incorrecto"
+        },
+        {
+          "id": "C",
+          "text": "Faltaban versiones anteriores por retención insuficiente"
+        },
+        {
+          "id": "D",
+          "text": "La copia capturó páginas de instantes distintos: falta consistencia de aplicación"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB17](../../05_RECURSOS/LABORATORIOS/LNX-LAB17.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F57**: [restic: backing up](https://restic.readthedocs.io/en/stable/040_backup.html). Diseño de conjuntos de respaldo y su alcance.\n- **F61**: [GNU tar manual, backups e incrementales](https://www.gnu.org/software/tar/manual/tar.html). Archivo portable e incrementales como base de una política.\n- **F62**: [NIST SP 800-86, Guide to Integrating Forensic Techniques into Incident Response (2006)](https://csrc.nist.gov/pubs/sp/800/86/final). Principios de preservación y orden de actuación ante incidentes.\n- **F63**: [MITRE ATT&CK, T1490 Inhibit System Recovery](https://attack.mitre.org/techniques/T1490/). Amenaza de supresión de la capacidad de recuperación.\n- **F64**: [MITRE ATT&CK, T1485 Data Destruction](https://attack.mitre.org/techniques/T1485/). Destrucción de datos que el modelo de amenazas debe contemplar.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "16b498d0b91c97fbfb8e62f2"
+}

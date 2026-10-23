@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-18-L02",
+  "title": "Evidencia básica con mínima exposición",
+  "sourceHash": "b62d3469bcb1d82700db4205d4ded3eef86f8419a500ab6022b08e45a0136076",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-18-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nRecoger un paquete mínimo de evidencia de red con baja exposición y distinguirlo de una adquisición forense íntegra.\n\nPrerrequisitos: `LNX-18-L01` (Capas y controles relacionados).\n\n## 2. Comprende el mecanismo\n\nAntes de diagnosticar, conviene capturar un conjunto pequeño y ordenado. La **evidencia básica** de red responde preguntas simples —qué interfaces, rutas, sockets y resolutores hay ahora— con el mínimo de exposición de datos sensibles. No es una adquisición forense íntegra y no pretende serlo.\n\n«Mínima exposición» significa recoger lo necesario y nada más. Una salida completa de sockets puede contener nombres de host internos, direcciones privadas y usuarios; conviene revisarla y restringirla antes de compartirla. En los ejemplos usamos solo rangos de documentación (`192.0.2.0/24`, `198.51.100.0/24`, `203.0.113.0/24`) para no exponer datos reales.\n\nLa recogida no es **atómica**. Entre `ip address show`, `ip route show` y `ss`, el estado puede cambiar (una *race*): un socket se abre o se cierra, una ruta se actualiza. Por eso se registra la hora UTC y, si importa, se repite la consulta de forma controlada en lugar de fingir una foto única.\n\nLa salida humana (`ip -br`) es cómoda pero compacta; para análisis automatizado conviene el formato JSON cuando la versión lo soporta (`ip -j address`, `ip -j route`), y guardar la versión de las herramientas (`ip -V`, `ss -V`) para saber qué se observó con qué.\n\nUn **manifiesto de hashes** (`sha256sum`) aporta integridad del paquete recogido, pero no es una cadena de custodia completa: el archivo de hashes no se incluye a sí mismo y no garantiza quién manipuló el paquete después. Se registran operador, sistema, permisos, NTP y motivo para dar contexto.\n\nLa regla es sencilla: la evidencia básica documenta un estado y sus condiciones, y declara su límite. No demuestra por sí sola una conexión pasada, ni el propósito de un flujo, ni la ausencia de eventos.\n\n### Vocabulario de apoyo\n\n- **Evidencia básica**: paquete mínimo y ordenado de interfaces, rutas, sockets y resolutores.\n- **Mínima exposición**: recoger lo necesario y revisar los datos sensibles antes de compartirlos.\n- **No atómica**: la recogida no captura un instante único; el estado cambia entre comandos.\n- **Manifiesto de hashes**: lista de sumas de verificación del paquete, sin custodia completa.\n- **Hora UTC**: referencia temporal común para ordenar observaciones de varios hosts.\n- **Rango de documentación**: bloque de direcciones reservado para ejemplos (RFC 5737/3849).\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-18-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un analista ejecuta en una sola tubería `ip address show`, `ip route show` y `ss -lntup`, guarda todo en un archivo y lo presenta como «una captura forense completa» de la red del host.\n\nLa afirmación no se sostiene por tres motivos. Primero, la recogida no es atómica: mezcla salidas tomadas en instantes distintos y no describe un único estado. Segundo, no es completa: falta IPv6, la tabla de rutas de policy routing y cualquier namespace de contenedor. Tercero, un archivo plano sin hora UTC, operador ni hashes carece de contexto de custodia.\n\nLa lectura correcta separa «evidencia básica útil» de «adquisición forense íntegra». Lo primero se consigue registrando UTC, separando las salidas, calculando hashes, anotando versiones y declarando el alcance y sus límites. El límite de la conclusión: con una única instantánea no atómica puedes describir un estado verosímil, pero no reconstruir un flujo pasado ni probar su propósito.\n\n"
+    },
+    {
+      "id": "LNX-18-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Recoger un paquete mínimo, con UTC y hashes, y declarar su alcance antes de compartirlo.\n- Red Team autorizado: Documentar condiciones del sensor y del host en pruebas de exposición, sin exfiltrar datos.\n- Evidencia de la etapa: Salidas separadas, versiones de herramientas, manifiesto de hashes y notas de custodia.\n- Criterio de dominio: Distingue evidencia básica de adquisición íntegra y declara qué no puede probar la recogida.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB21](../../05_RECURSOS/LABORATORIOS/LNX-LAB21.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F79**: [tcpdump(8) — manual](https://man7.org/linux/man-pages/man8/tcpdump.8.html). Captura controlada con filtros y límites de tamaño.\n- **F73**: [ss(8) — iproute2/man7](https://man7.org/linux/man-pages/man8/ss.8.html). Instantánea de sockets y sus opciones de salida.\n- **F72**: [ip-address(8) — iproute2/man7](https://man7.org/linux/man-pages/man8/ip-address.8.html). Direcciones locales y su ámbito.\n- **F96**: [RFC 5737 — IPv4 documentación](https://www.rfc-editor.org/rfc/rfc5737). Rangos válidos para ejemplos sin exponer datos reales.\n- **F71**: [ip-route(8) — iproute2/man7](https://man7.org/linux/man-pages/man8/ip-route.8.html). Rutas coherentes con el inventario recogido.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-18-L02-P01",
+    "prompt": "Un analista guarda en un único archivo la salida de `ip address show`, `ip route show` y `ss -lntup` y la presenta como «una captura forense completa» de la red del host. Explica qué debilidades tiene esa recogida y qué debe registrar para que sea evidencia básica útil.",
+    "markdown": "## 4. Práctica individual\n\nUn analista guarda en un único archivo la salida de `ip address show`, `ip route show` y `ss -lntup` y la presenta como «una captura forense completa» de la red del host. Explica qué debilidades tiene esa recogida y qué debe registrar para que sea evidencia básica útil.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber adquirido evidencia real ni haber ejecutado una captura forense.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-18-L02-Q01",
+      "prompt": "¿Por qué se dice que la recogida de evidencia básica es «no atómica»?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Porque los hashes nunca se calculan"
+        },
+        {
+          "id": "B",
+          "text": "Porque solo funciona en IPv6"
+        },
+        {
+          "id": "C",
+          "text": "Porque requiere apagar el equipo antes de recoger"
+        },
+        {
+          "id": "D",
+          "text": "Porque el estado de red puede cambiar entre los comandos y no se captura un único instante"
+        }
+      ]
+    },
+    {
+      "id": "LNX-18-L02-Q02",
+      "prompt": "¿Qué aporta y qué no aporta un manifiesto `sha256sum` del paquete recogido?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Aporta integridad del paquete, pero no custodia completa ni se incluye a sí mismo"
+        },
+        {
+          "id": "B",
+          "text": "Aporta cadena de custodia completa y verifica además cambios externos futuros"
+        },
+        {
+          "id": "C",
+          "text": "Aporta la hora UTC exacta de cada comando"
+        },
+        {
+          "id": "D",
+          "text": "No aporta nada porque los hashes son reversibles"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB21](../../05_RECURSOS/LABORATORIOS/LNX-LAB21.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F79**: [tcpdump(8) — manual](https://man7.org/linux/man-pages/man8/tcpdump.8.html). Captura controlada con filtros y límites de tamaño.\n- **F73**: [ss(8) — iproute2/man7](https://man7.org/linux/man-pages/man8/ss.8.html). Instantánea de sockets y sus opciones de salida.\n- **F72**: [ip-address(8) — iproute2/man7](https://man7.org/linux/man-pages/man8/ip-address.8.html). Direcciones locales y su ámbito.\n- **F96**: [RFC 5737 — IPv4 documentación](https://www.rfc-editor.org/rfc/rfc5737). Rangos válidos para ejemplos sin exponer datos reales.\n- **F71**: [ip-route(8) — iproute2/man7](https://man7.org/linux/man-pages/man8/ip-route.8.html). Rutas coherentes con el inventario recogido.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "2bacc4e70bc62dca649ccb15"
+}

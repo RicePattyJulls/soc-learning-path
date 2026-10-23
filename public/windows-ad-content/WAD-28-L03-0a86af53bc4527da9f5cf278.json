@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-28-L03",
+  "title": "Backup, recuperación, retest y defensa oral",
+  "sourceHash": "f236afa7980978893658af4eea26fa47dbb537831f27da8a81bcf482a396e501",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-28-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nRecuperar, retestear y defender el expediente con evidencias.\n\nPrerrequisitos: `WAD-28-L02` (Hallazgo autorizado y respuesta local).\n\n## 2. Comprende el mecanismo\n\nEl último tramo del proyecto cierra el mundo: recuperar, volver a probar y **defender el expediente**. Lo que no se puede reproducir con evidencia no se puede defender.\n\nRecuperar empieza por una **copia confiable**: un respaldo íntegro, verificado y apartado del original, del que se puede restaurar de verdad. La **regla 3-2-1** ordena esa idea: tres copias, en dos medios distintos, con una fuera del sitio. Una **copia inmutable** no se puede modificar ni borrar durante su retención, lo que la protege incluso del propio atacante.\n\nEl plan se mide con dos objetivos. El **RPO** fija cuántos datos se acepta perder; el **RTO**, cuánto tiempo se acepta para volver a operar. Ambos se deciden antes del incidente, no durante.\n\nLa recuperación del directorio tiene su propio marco. La guía de **recuperación forestal** describe cómo reconstruir el bosque desde copias confiables y en **aislamiento**, sin permitir que un controlador restaurado se replique con uno comprometido. La **restauración autoritativa** impone el estado restaurado; la **no autoritativa** deja que el resto de las réplicas lo actualice. Elegir mal la una o la otra propaga el estado equivocado en lugar de corregirlo.\n\nCerrada la recuperación, se **retestea**: se repite la prueba que reveló el problema para confirmar que el control quedó resuelto. Un retest sin evidencia es una promesa. Después se comprueba que nada de lo que antes funcionaba se rompió.\n\nLa **defensa oral** presenta el expediente completo: la acción, el evento que la documentó, la respuesta, la recuperación y el resultado del retest, todo con hora e identidad. Hay escenarios duros —el rescate tras un ataque de **ransomware**— en los que estas decisiones se vuelven críticas y la copia apartada es el único testigo.\n\nLa regla que cierra el mundo: **copia confiable, recuperación verificada, retest reproducible y expediente defendible**. Todo en el entorno aislado `ad.lab.test`.\n\n### Vocabulario de apoyo\n\n- **Copia confiable**: respaldo íntegro, verificado y apartado del original, del que se puede recuperar.\n- **Regla 3-2-1**: estrategia de tres copias, en dos medios distintos y una fuera del sitio.\n- **Copia inmutable**: respaldo que no puede modificarse ni borrarse durante su retención.\n- **RPO / RTO**: datos que se acepta perder y tiempo que se acepta para volver a operar.\n- **Restauración autoritativa**: recuperación que impone el estado restaurado sobre el resto de las réplicas.\n- **Retest**: repetición de la prueba tras la corrección para confirmar que el control quedó resuelto.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-28-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test` un objeto del directorio se eliminó por error en el marco de una prueba. Antes de ejecutar nada se tomó una copia confiable, verificada y apartada del sistema original.\n\nLa recuperación no empieza por restaurar a ciegas: primero se comprueba la integridad de la copia y se decide si la restauración debe imponer el estado guardado o dejarlo actualizar desde las demás réplicas. Con el objeto de vuelta en su estado esperado, se retestea la condición que causó la pérdida —en este caso, la eliminación del objeto— y se confirma que el control quedó resuelto sin romper lo que ya funcionaba. El expediente reúne la línea base, el evento, la acción, la recuperación y el retest, con hora e identidad. La conclusión acota lo demostrado —«este objeto se recuperó de esta copia y el caso pasó el retest»— y reconoce su límite: recuperar un objeto no demuestra que todo el bosque se recuperaría, y el retest cubre solo la condición probada, no cualquier fallo futuro.\n\n"
+    },
+    {
+      "id": "WAD-28-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Recuperar y retestear con evidencia permite informar qué se restauró y qué quedó demostrado, sin prometer más.\n- Red Team autorizado: Cerrar la prueba con retest y expediente defendible demuestra disciplina y respeto por el alcance.\n- Evidencia de la etapa: Copia confiable, recuperación verificada, resultado del retest y expediente con hora e identidad.\n- Criterio de dominio: El proyecto cierra con evidencia reproducible: recuperación verificada, retest superado y límites declarados.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB20](../../05_RECURSOS/LABORATORIOS/WAD-LAB20.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **FORESTREC**: [Active Directory forest recovery guide](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/ad-forest-recovery-guide). Marco general para planificar la recuperación del directorio.\n- **FORESTSTEPS**: [Steps for restoring the forest](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-steps-for-restoring-the-forest). Secuencia de pasos de la restauración.\n- **RANSOMWARE**: [StopRansomware Guide (CISA)](https://www.cisa.gov/stopransomware/ransomware-guide). Escenario en el que la copia apartada es el único testigo de lo ocurrido.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-28-L03-P01",
+    "prompt": "En `ad.lab.test` un objeto del directorio se eliminó por error durante una prueba y existe una copia confiable y apartada. Describe cómo recuperas el estado esperado, cómo retesteas el control y cómo defiendes el expediente con evidencias.",
+    "markdown": "## 4. Práctica individual\n\nEn `ad.lab.test` un objeto del directorio se eliminó por error durante una prueba y existe una copia confiable y apartada. Describe cómo recuperas el estado esperado, cómo retesteas el control y cómo defiendes el expediente con evidencias.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber recuperado un directorio real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-28-L03-Q01",
+      "prompt": "En el proyecto final, ¿qué cierra correctamente la recuperación de un objeto del directorio?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Restaurar desde cualquier copia disponible, sin comprobar su integridad"
+        },
+        {
+          "id": "B",
+          "text": "Dar la recuperación por buena porque el servicio arranca"
+        },
+        {
+          "id": "C",
+          "text": "Restaurar desde una copia confiable y verificada, comprobar el estado restaurado y confirmar que nada de lo que funcionaba se rompió"
+        },
+        {
+          "id": "D",
+          "text": "Documentar la intención de recuperar aunque no se haya ejecutado"
+        }
+      ]
+    },
+    {
+      "id": "WAD-28-L03-Q02",
+      "prompt": "¿Qué sostiene la defensa oral del expediente ante una revisión?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Las evidencias reproducibles con hora e identidad, la decisión tomada, sus límites y el resultado del retest"
+        },
+        {
+          "id": "B",
+          "text": "Una narración sin datos que resuma lo que se recuerda del caso"
+        },
+        {
+          "id": "C",
+          "text": "La promesa de que el entorno no volverá a fallar"
+        },
+        {
+          "id": "D",
+          "text": "Un listado de herramientas usadas, sin la salida de ninguna"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB20](../../05_RECURSOS/LABORATORIOS/WAD-LAB20.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **FORESTREC**: [Active Directory forest recovery guide](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/ad-forest-recovery-guide). Marco general para planificar la recuperación del directorio.\n- **FORESTSTEPS**: [Steps for restoring the forest](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-steps-for-restoring-the-forest). Secuencia de pasos de la restauración.\n- **RANSOMWARE**: [StopRansomware Guide (CISA)](https://www.cisa.gov/stopransomware/ransomware-guide). Escenario en el que la copia apartada es el único testigo de lo ocurrido.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "0a86af53bc4527da9f5cf278"
+}

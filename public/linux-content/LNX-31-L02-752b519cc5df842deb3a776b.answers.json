@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-31-L02",
+  "sourceHash": "4b1a2eaa5bbf53f3db18b90ac0d7bb3fe3d58c36dcb77abb1e79b37620c7cf47",
+  "questions": [
+    {
+      "id": "LNX-31-L02-Q01",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Confirmar autorización, alcance, ventana y condiciones de parada, y capturar una línea base antes de enumerar».\n\nLa preparación y la línea base preceden a cualquier lectura del objetivo. Enumerar primero o instalar herramientas sin acuerdo convierte la actividad en no autorizada y elimina la posibilidad de distinguir cambios propios."
+    },
+    {
+      "id": "LNX-31-L02-Q02",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «El hallazgo documenta una ruta factible con evidencia; el compromiso exige un efecto observado y autorizado».\n\nEl hallazgo puede sostenerse con configuración, permisos y una prueba inocua. El compromiso requiere un efecto producido y evidenciado dentro del alcance, no una deducción a partir del propietario o de una captura."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "La ruta se convierte en hallazgo cuando se documenta con la secuencia completa: autorización y ventana, línea base previa, enumeración de identidades y permisos, hipótesis concreta («el grupo no administrador puede editar el script que ejecuta la cuenta de servicio»), prueba inocua con un marcador y registro de lo que la telemetría vio y no vio. La evidencia incluye propietario y modo del script, grupo que puede escribir, identidad de ejecución, ruta de invocación, fecha UTC, hash del artefacto y alcance autorizado.\n\nEl impacto se declara condicionado: existe una ruta de escritura sobre un artefacto ejecutado por otra identidad, pero no se ha demostrado un cambio de privilegios ni un efecto sobre el host. La remediación mínima propone propietario root, denegar la escritura al grupo, ejecutar con una identidad dedicada y añadir verificación de integridad; el retest debe comprobar que la función legítima sigue y que la escritura ya no es posible.\n\nLímite: sin una prueba aprobada que documente el cambio real de identidad, el resultado es una exposición de configuración con incertidumbre declarada, no un compromiso.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Ordena preparación, línea base, enumeración, hipótesis, prueba y cierre sin saltarse la autorización."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Nombra la ruta concreta, el artefacto, la identidad y el efecto potencial."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Distingue evidencia observada de efecto demostrado y evita afirmar un compromiso."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Propone remediación mínima y un retest positivo y negativo."
+      }
+    ]
+  },
+  "revision": "752b519cc5df842deb3a776b"
+}

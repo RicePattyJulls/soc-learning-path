@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-10-L02",
+  "title": "Paths, usuarios y superficies a inventariar",
+  "sourceHash": "7600ab46cfbb19b68de3caf8ee6e954bfa961d6964a600f59636f40a2a4d4160",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-10-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nAmpliar el inventario de superficies de ejecución a unidades de ruta, gestores de usuario, lingering y unidades transitorias.\n\nPrerrequisitos: `LNX-10-L01` (Servicios, sockets y timers).\n\n## 2. Comprende el mecanismo\n\nUn `.service` y un `.timer` no agotan la superficie. Existen unidades que activan otras por **condiciones en rutas** y **gestores de usuario** que corren al margen del gestor de sistema. Inventariar superficies exige conocer dónde buscarlas, no solo mirar los servicios de sistema.\n\nUna unidad **`.path`** vigila una ruta —su existencia, un cambio o un directorio— y puede activar otra unidad cuando se cumple la condición. Su existencia amplía la superficie de ejecución: un mecanismo que se dispara «cuando aparece un archivo» es fácil de pasar por alto si solo se listan `.service`.\n\nNo hay un único gestor. Junto al gestor de sistema puede haber **gestores de usuario** (`systemctl --user`) con unidades propias en `~/.config/systemd/user/`. Que un gestor de usuario pueda continuar sin sesión interactiva depende de la propiedad **`Linger`** (`loginctl show-user USUARIO -p Linger`); no hay que asumir que está activada.\n\nTambién existen **unidades transitorias**: `systemd-run` puede crear unidades al vuelo que no tienen por qué existir como un `.service` persistente en `/etc`. Los **generadores** crean unidades durante el arranque o una recarga, de modo que parte de la configuración efectiva puede no estar escrita a mano.\n\nEl inventario razonable enumera al menos: `.service`, `.timer`, `.socket` y `.path` nuevos o alterados; *drop-ins* que redefinen ejecución o identidad; unidades de usuario y sesiones con *lingering*; activación efímera y generadores; enlaces `.wants/` y unidades habilitadas fuera de la línea base; y dependencias que sorprenden.\n\nEl límite: encontrar una superficie es **enumerar una posibilidad**, no probar una ejecución ni atribuir intención. La presencia de un `.path` o de una unidad de usuario pide comparación contra la línea base, no una acusación automática.\n\n### Vocabulario de apoyo\n\n- **`.path`**: unidad que activa otra cuando se cumple una condición sobre una ruta.\n- **Gestor de sistema frente a gestor de usuario**: instancias distintas que administran unidades distintas.\n- **`Linger`**: propiedad que permite al gestor de usuario continuar sin sesión interactiva.\n- **Unidad transitoria**: unidad creada al vuelo, sin archivo persistente obligatorio.\n- **Generador**: componente que crea unidades durante el arranque o una recarga.\n- **Línea base**: estado de referencia contra el que se compara lo observado.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-10-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un analista revisa solo los `.service` de `/etc/systemd/system`, no encuentra nada nuevo y concluye que el host no tiene superficies de ejecución añadidas.\n\nEl inventario es demasiado estrecho. Se dejaron fuera tipos de unidad (`.path`, `.socket`, `.timer`), *drop-ins* que cambian la ejecución sin tocar el archivo base, unidades de usuario en `~/.config/systemd/user/` —que pueden sobrevivir si `Linger` está activado— y unidades transitorias creadas con `systemd-run`. Cualquiera de ellas puede activar ejecución sin aparecer en el listado consultado.\n\nEl método correcto amplía la búsqueda por gestor y por tipo, y compara contra una línea base. El límite: un inventario incompleto no demuestra ausencia; a lo sumo describe lo que se miró. Y aun completo, sigue siendo un censo de superficies, no una prueba de ejecución.\n\n"
+    },
+    {
+      "id": "LNX-10-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Inventariar por tipo de unidad y por gestor antes de afirmar que no hay superficies nuevas.\n- Red Team autorizado: Tratar una superficie de usuario como posibilidad acotada a esa cuenta, sin asumir privilegio ni persistencia tras el cierre de sesión.\n- Evidencia de la etapa: Listado de unidades por gestor, estado de `Linger` y comparación con la línea base.\n- Criterio de dominio: Enumera superficies por tipo y gestor y declara el alcance real del inventario.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB09](../../05_RECURSOS/LABORATORIOS/LNX-LAB09.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F40**: [systemd: path units](https://www.freedesktop.org/software/systemd/man/latest/systemd.path.html). Unidades que activan otras por condiciones sobre rutas.\n- **F22**: [systemd: systemd.unit](https://www.freedesktop.org/software/systemd/man/257/systemd.unit.html). Tipos de unidad, dependencias e inclusión de *drop-ins*.\n- **F26**: [MITRE ATT&CK: T1543.002 systemd service](https://attack.mitre.org/techniques/T1543/002/). Creación o modificación de servicios como superficie a inventariar.\n- **F27**: [MITRE ATT&CK: T1053.006 systemd timers](https://attack.mitre.org/techniques/T1053/006/). Ejecución periódica como superficie a inventariar.\n- **F39**: [systemd: transient units](https://www.freedesktop.org/software/systemd/man/257/systemd-run.html). Unidades efímeras sin archivo persistente.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-10-L02-P01",
+    "prompt": "Revisas solo los servicios de sistema y concluyes que no hay superficies de ejecución nuevas. Explica qué otras superficies faltaría inventariar, cómo comprobarías el gestor de usuario y cuál es el límite de un inventario.",
+    "markdown": "## 4. Práctica individual\n\nRevisas solo los servicios de sistema y concluyes que no hay superficies de ejecución nuevas. Explica qué otras superficies faltaría inventariar, cómo comprobarías el gestor de usuario y cuál es el límite de un inventario.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber enumerado unidades reales ni haber activado un gestor de usuario.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-10-L02-Q01",
+      "prompt": "¿Qué describe con más precisión el papel de una unidad `.path`?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Es una copia de un `.service` con otro nombre"
+        },
+        {
+          "id": "B",
+          "text": "Solo se evalúa una vez, al instalar el paquete"
+        },
+        {
+          "id": "C",
+          "text": "Sustituye al gestor de usuario por el de sistema"
+        },
+        {
+          "id": "D",
+          "text": "Puede activar unidades ante cambios o condiciones en rutas, ampliando la superficie de ejecución"
+        }
+      ]
+    },
+    {
+      "id": "LNX-10-L02-Q02",
+      "prompt": "¿Por qué conviene comprobar `Linger` al inventariar unidades de usuario?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Porque indica si el gestor de usuario puede seguir activo sin una sesión interactiva"
+        },
+        {
+          "id": "B",
+          "text": "Porque borra automáticamente las unidades de usuario al cerrar sesión"
+        },
+        {
+          "id": "C",
+          "text": "Porque convierte las unidades de usuario en unidades de sistema"
+        },
+        {
+          "id": "D",
+          "text": "Porque impide que `systemd-run` cree unidades transitorias"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB09](../../05_RECURSOS/LABORATORIOS/LNX-LAB09.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F40**: [systemd: path units](https://www.freedesktop.org/software/systemd/man/latest/systemd.path.html). Unidades que activan otras por condiciones sobre rutas.\n- **F22**: [systemd: systemd.unit](https://www.freedesktop.org/software/systemd/man/257/systemd.unit.html). Tipos de unidad, dependencias e inclusión de *drop-ins*.\n- **F26**: [MITRE ATT&CK: T1543.002 systemd service](https://attack.mitre.org/techniques/T1543/002/). Creación o modificación de servicios como superficie a inventariar.\n- **F27**: [MITRE ATT&CK: T1053.006 systemd timers](https://attack.mitre.org/techniques/T1053/006/). Ejecución periódica como superficie a inventariar.\n- **F39**: [systemd: transient units](https://www.freedesktop.org/software/systemd/man/257/systemd-run.html). Unidades efímeras sin archivo persistente.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "6eeb3934e9b6a2642cdef21b"
+}

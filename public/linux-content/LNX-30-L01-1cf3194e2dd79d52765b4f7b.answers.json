@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-30-L01",
+  "sourceHash": "b461401dfc93342387ce0ba7964d6e6196a0c6e123358f9044138c07e1c1fd34",
+  "questions": [
+    {
+      "id": "LNX-30-L01-Q01",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Porque quien controla el daemon puede operar con privilegios sobre el host, más allá del aislamiento del contenedor».\n\nEl socket es la interfaz del plano de control: quien lo alcanza puede pedir al daemon operaciones potentes sobre el host, como crear contenedores con montajes. No cifra volúmenes, no fuerza rootless y no impide seccomp."
+    },
+    {
+      "id": "LNX-30-L01-Q02",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «El proceso corre como root dentro del contenedor y conserva una capability añadida; el riesgo real depende del resto de la configuración y del host».\n\nUn `Config.User` vacío deja el proceso como root y `NET_ADMIN` añade una capability. `Privileged: false` solo descarta el conjunto completo; no prueba aislamiento ni ausencia de riesgo, y la capability no demuestra un escape."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "La inspección pasiva debe separar tres niveles. En el **workload**, un `Config.User` vacío indica que el proceso corre como root dentro del contenedor, y `CapAdd: [\"NET_ADMIN\"]` conserva una capability que la aplicación rara vez necesita. En el **runtime**, `Privileged: false` descarta el conjunto completo de privilegios, pero no compensa los dos datos anteriores. En el **host**, un montaje de `/srv/app` en lectura y escritura expone datos fuera del contenedor y amplía el impacto de cualquier fallo de la aplicación.\n\nLa ausencia de límites de memoria añade un riesgo de disponibilidad: sin cgroup que acote el consumo, el contenedor puede degradar al host y a sus vecinos. La verificación correcta usa la configuración declarada —usuario, privilegios, capabilities, montajes, seccomp/LSM, red y límites— y la contrasta con el estado del proceso. No requiere montar el socket, usar `--privileged` ni intentar un escape.\n\nLímite: la inspección demuestra una exposición concreta y contextualizada; no demuestra que se haya aprovechado ni que exista un escape efectivo. Sin la aplicación, el propietario y los controles del host, la conclusión se limita a lo observado.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Distingue daemon, workload e imagen y no atribuye a uno el riesgo de otro."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Interpreta `Config.User` vacío y `CapAdd` como señales de privilegio dentro del contenedor."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Relaciona el montaje de escritura y la falta de límites con impacto sobre el host."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Declara la exposición sin afirmar un compromiso ni un escape."
+      }
+    ]
+  },
+  "revision": "1cf3194e2dd79d52765b4f7b"
+}

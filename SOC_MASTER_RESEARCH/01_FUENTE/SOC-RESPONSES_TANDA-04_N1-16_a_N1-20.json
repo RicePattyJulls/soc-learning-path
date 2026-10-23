@@ -1,0 +1,968 @@
+{
+  "schema_version": "1.0.0",
+  "proyecto": "SOC-RESPONSES",
+  "lote": "tanda-04",
+  "fecha_revision": "2026-10-18",
+  "idioma": "es",
+  "nivel": "SOC N1",
+  "rango_ids": [
+    "N1-16",
+    "N1-20"
+  ],
+  "total_preguntas": 5,
+  "estado_validacion": {
+    "estructura_json": "generada_y_validada_localmente",
+    "fuentes_esquemas": "contrastadas_con_documentacion_oficial",
+    "consultas_en_tenant_o_splunk_real": "no_ejecutadas",
+    "nota": "Plantillas educativas. Requieren validar cobertura, ingesta, ActionType, mapeos CIM y fuentes en una instancia real. Acciones disruptivas solo bajo playbook y autorización."
+  },
+  "convenciones": {
+    "valores_de_ejemplo": "Los hostnames FS-01, FIN-WS-07, SRV-PAGOS-01, IPs 203.0.113.88 y 10.20.5.7, y ticket SOC-7421 son ficticios. 203.0.113.0/24 es TEST-NET-3.",
+    "KQL": "SecurityAlert/CommonSecurityLog: Sentinel Log Analytics, TimeGenerated. AlertInfo/AlertEvidence/DeviceProcessEvents/DeviceNetworkEvents/DeviceFileEvents: Defender XDR Advanced Hunting, Timestamp; no se garantiza disponibilidad cruzada.",
+    "SPL": "Modelos CIM de Endpoint.Processes, Endpoint.Filesystem, Network_Traffic.All_Traffic e Intrusion_Detection.IDS_Attacks; requieren tags, permisos, campos y alimentación adecuados. index=security_alerts es un ejemplo que debe sustituirse.",
+    "N1_y_autorizacion": "Investigación preferentemente de solo lectura. Contención, excepciones, bloqueo, aislamiento y restauración son decisiones del playbook, coordinadas con N2/IR/operaciones.",
+    "Evidencia": "Separar hechos de inferencias, registrar UTC, fuentes, evidencias, responsables y estado real de acciones. Preservar datos sensibles en repositorios autorizados.",
+    "MITRE": "Los IDs son hipótesis de TTP, excepto eventos explicados por el escenario; no representan atribución confirmada.",
+    "Umbrales": "100 eventos/5m, ventanas y severidades son didácticos, se deben ajustar a baseline y SLA del SOC."
+  },
+  "preguntas": [
+    {
+      "id": "N1-16",
+      "nivel": "N1",
+      "bloque": "Procedimientos SOC y gestión de incidentes",
+      "titulo": "Alerta crítica sin evidencia suficiente: ¿investigar o escalar?",
+      "pregunta": "Tienes una alerta de severidad crítica, pero no encuentras suficiente evidencia para confirmar el compromiso. ¿La escalas o continúas investigando?",
+      "escenario": "A las 02:51, Sentinel muestra una alerta High de posible ejecución remota sobre un servidor de pagos etiquetado como activo crítico. El evento enlazado contiene host y marca de tiempo, pero el sensor EDR está retrasado y faltan eventos de proceso. Un analista N1 dispone de 10 minutos según el SLA de escalado crítico; no existe indicio corroborado de ejecución exitosa. El servicio sigue disponible.",
+      "objetivo": "Distinguir severidad, prioridad operacional y confianza de la evidencia; hacer triaje limitado en tiempo, preservar el estado «no confirmado» y escalar oportunamente sin afirmar que hay compromiso ni cerrar prematuramente.",
+      "hipotesis": [
+        "Ataque real en fase temprana; el EDR aún no ha enviado la evidencia relevante.",
+        "Detección verdadera de un intento bloqueado sin ejecución exitosa.",
+        "Falso positivo por mantenimiento o scanner autorizado cuya firma se confunde con ejecución remota.",
+        "Error de correlación: el evento corresponde a otro host o ventana por retraso/diferencia horaria.",
+        "Falta de visibilidad por cobertura incompleta, retención, permisos, retraso de ingestión o agente offline.",
+        "Alerta duplicada o parte de un incidente mayor que ya investiga N2."
+      ],
+      "pasos": [
+        {
+          "fase": "0. Determinar riesgo inmediato",
+          "accion": "Identificar criticidad del activo, posible impacto, propagación, credenciales privilegiadas y hora de inicio. Alta severidad no equivale por sí sola a compromiso confirmado, pero exige acción rápida."
+        },
+        {
+          "fase": "1. Registrar el reloj del SLA",
+          "accion": "Anotar hora UTC en que la alerta fue vista, límite de escalado, ID estable del evento y quién está de guardia. Investigar y avisar pueden ocurrir en paralelo."
+        },
+        {
+          "fase": "2. Validar el origen de la alerta",
+          "accion": "Revisar nombre/regla, proveedor, severidad, entidad, criterios disparadores, detección concreta, ventana de origen y estado del sensor. No confundir TimeGenerated con el instante de ejecución."
+        },
+        {
+          "fase": "3. Buscar prueba mínima independiente",
+          "accion": "Consultar logs de autenticación, EDR, procesos, firewall o red del activo en ±15–30 minutos. Preguntar: ¿existe proceso/hijo, logon exitoso, flujo sospechoso, archivo creado o control preventivo aplicado?"
+        },
+        {
+          "fase": "4. Medir lagunas de cobertura",
+          "accion": "Confirmar último heartbeat EDR, ingestión, DCR/conector, permisos, filtros y retención; «cero resultados» de una tabla ausente no equivale a «cero actividad»."
+        },
+        {
+          "fase": "5. Evaluar hipótesis alternativas",
+          "accion": "Cruzar inventario/propietario y mantenimiento autorizado, proxy/VPN y detecciones previas. Si un scanner legítimo explica el patrón, pedir evidencias de aprobación, no basarse solo en declaraciones."
+        },
+        {
+          "fase": "6. Tomar la decisión según tiempo y riesgo",
+          "accion": "Si el SLA vence, el activo es crítico, hay progresión o falta una fuente imprescindible, escalar como sospecha no confirmada. Un N1 no debería retrasar el escalado esperando certezas forenses."
+        },
+        {
+          "fase": "7. Comunicar de forma precisa",
+          "accion": "Enviar ID alerta, timestamps UTC, host/identidad, hecho observado, hipótesis, fuentes consultadas, lagunas, impacto plausible y acciones realizadas/no realizadas."
+        },
+        {
+          "fase": "8. Coordinar contención autorizada",
+          "accion": "Si el riesgo es inminente, activar playbook de respuesta y autorización correspondiente; no aislar producción, bloquear accesos o cerrar tickets arbitrariamente."
+        },
+        {
+          "fase": "9. Mantener seguimiento y actualización",
+          "accion": "Indicar siguiente consulta, owner, hora de revisión y criterios de re-priorización; añadir nueva evidencia al mismo incidente para evitar duplicados."
+        }
+      ],
+      "evidencias": [
+        {
+          "dato": "SystemAlertId, AlertName, AlertSeverity, ProviderName",
+          "lectura": "Identifican alerta y proveedor; severidad es clasificación inicial, no veredicto."
+        },
+        {
+          "dato": "TimeGenerated, StartTime, EndTime",
+          "lectura": "Separan ingestión de actividad detectada: retraso temporal altera correlaciones."
+        },
+        {
+          "dato": "CompromisedEntity, Entities",
+          "lectura": "Permiten resolver host/cuenta/IP, pero entidades serializadas pueden estar incompletas."
+        },
+        {
+          "dato": "Heartbeat, último evento EDR, conectores/DCR",
+          "lectura": "Prueban visibilidad; ausencia de logs puede reflejar problema de cobertura."
+        },
+        {
+          "dato": "Proceso, autenticación, conexión o creación de fichero",
+          "lectura": "Corroboración independiente, con causalidad todavía por verificar."
+        },
+        {
+          "dato": "Inventario/CMDB y cambios autorizados",
+          "lectura": "Valor de negocio y explicación administrativa contrastable."
+        },
+        {
+          "dato": "SLA, ticket, hora de notificación y responsable",
+          "lectura": "Aseguran gestión diligente y trazabilidad incluso si la alerta resulta falsa."
+        }
+      ],
+      "kql": [
+        {
+          "nombre": "Sentinel / Log Analytics: ficha de alertas High con tiempos y entidades",
+          "entorno": "SecurityAlert presente en workspace Sentinel; TimeGenerated es hora de registro/ingesta de alerta, revisar StartTime/EndTime; ajustar ventana e ID.",
+          "consulta": "SecurityAlert\n| where TimeGenerated > ago(6h)\n| where AlertSeverity =~ \"High\"\n| project TimeGenerated, StartTime, EndTime, SystemAlertId, AlertName,\n          AlertSeverity, CompromisedEntity, ProviderName, ProductName,\n          Entities, Description, Status\n| order by TimeGenerated desc",
+          "interpretacion": "Identifica activo, proveedor, intervalo real y campos disponibles para abrir el incidente adecuado.",
+          "limites": "No concluye ejecución o compromiso. No todas las alertas contienen todas las entidades. El contenido de SecurityAlert varía según conectores."
+        },
+        {
+          "nombre": "Defender XDR Advanced Hunting: entidad afectada y fuentes de alerta",
+          "entorno": "Ejecutar en Microsoft Defender XDR Advanced Hunting (no asumir disponibilidad directa en el espacio Log Analytics). AlertInfo y AlertEvidence requieren servicios integrados.",
+          "consulta": "AlertInfo\n| where Timestamp > ago(6h)\n| where Severity =~ \"High\"\n| join kind=leftouter (\n    AlertEvidence\n    | where Timestamp > ago(6h)\n    | project AlertId, DeviceName, EntityType, EvidenceRole,\n              RemoteIP, FileName, ProcessCommandLine\n) on AlertId\n| project Timestamp, AlertId, Title, Severity, ServiceSource,\n          DeviceName, EntityType, EvidenceRole, RemoteIP, FileName, ProcessCommandLine\n| order by Timestamp desc",
+          "interpretacion": "Une alertas con artefactos para guiar búsquedas complementarias; no convierte evidencia asociada en compromiso confirmado.",
+          "limites": "Los resultados pueden multiplicarse por número de evidencias por alerta. AlertInfo.Timest​​amp y AlertEvidence.Timestamp reflejan registros distintos; filtrar por una ventana amplia."
+        }
+      ],
+      "spl": [
+        {
+          "nombre": "Splunk: alerta crítica desde un índice normalizado de alertas",
+          "entorno": "Ejemplo con índice lógico index=security_alerts y campos mapeados severity, alert_id, dest, rule_name, status. NO es un índice ni esquema universal de Splunk ES.",
+          "consulta": "index=security_alerts earliest=-6h (severity=critical OR severity=high)\n| eval asset=coalesce(dest,host), alert=coalesce(rule_name,signature)\n| stats min(_time) as primero max(_time) as ultimo\n        values(status) as estados values(source) as fuentes\n        count as eventos by alert_id, asset, alert, severity\n| convert ctime(primero) ctime(ultimo)\n| sort - eventos",
+          "interpretacion": "Ayuda a reunir duplicados, conservar IDs y detectar si existe un incidente previo.",
+          "limites": "Sustituir índice, field aliases y normalización por los campos del entorno. No presupone notables de Enterprise Security."
+        },
+        {
+          "nombre": "Splunk CIM Endpoint: actividad de procesos en un activo afectado",
+          "entorno": "CIM Endpoint.Processes disponible con procesos realmente ingeridos; ejemplo dest=SRV-PAGOS-01, ajustar FQDN.",
+          "consulta": "| tstats count min(_time) as primero max(_time) as ultimo\n  from datamodel=Endpoint.Processes\n  where earliest=-1h latest=now Endpoint.Processes.dest=\"SRV-PAGOS-01\"\n  by Endpoint.Processes.dest Endpoint.Processes.process_name\n     Endpoint.Processes.parent_process_name Endpoint.Processes.user\n| rename Endpoint.Processes.* as *\n| convert ctime(primero) ctime(ultimo)\n| sort - count",
+          "interpretacion": "Puede evidenciar ejecución y proceso padre en el activo mientras la alerta original carece de detalles.",
+          "limites": "Un dataset vacío puede significar falta de Sysmon/EDR o mappings CIM; tstats no es prueba forense de ausencia."
+        }
+      ],
+      "comandos": [
+        {
+          "entorno": "Windows — lectura de procesos recientes",
+          "proposito": "Equipo autorizado; Security 4688 exige habilitar auditoría de creación de procesos; una ventana vacía puede ser falta de auditoría.",
+          "comando": "Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4688; StartTime=(Get-Date).AddMinutes(-45)} -MaxEvents 30 | Select-Object TimeCreated, MachineName, Id, Message"
+        },
+        {
+          "entorno": "Linux — proceso y sockets actuales",
+          "proposito": "Consulta puntual en el host autorizado; no ejecuta cambios; puede perder eventos históricos.",
+          "comando": "sudo ss -tunap | head -80"
+        },
+        {
+          "entorno": "Linux — servicio EDR/forwarder",
+          "proposito": "Sustituir el nombre por el agente realmente instalado; un servicio activo no demuestra ingesta.",
+          "comando": "systemctl --no-pager --type=service --state=running | grep -Ei \"audit|sensor|agent|forwarder\""
+        }
+      ],
+      "contencion": "No borrar ni silenciar detecciones, ni declarar falso positivo sin contraste. Si el activo es crítico o hay signos de continuidad del ataque, escalar antes de agotar el SLA; el SOC/IR determina aislamiento o revocaciones conforme al playbook. Registrar explícitamente evidencia ausente y justificación.",
+      "escalation": [
+        "Cualquier alerta High/Critical que alcance el umbral temporal del procedimiento sin posibilidad de confirmación o descarte fiable.",
+        "Activo esencial, cuenta privilegiada, múltiples hosts o movimiento lateral probable.",
+        "Indicadores independientes de ejecución, persistencia, exfiltración o controles desactivados.",
+        "Fallo de telemetría durante una amenaza activa o aparente manipulación de logs.",
+        "Evidencia contradictoria con incertidumbre de impacto alto; escalar como «sospecha» con nivel de confianza explícito."
+      ],
+      "falsos_positivos": [
+        "Escaneo de seguridad aprobado sin registro en la consola del SOC.",
+        "Regla mal calibrada para una herramienta administrativa.",
+        "Intento bloqueado confundido con ejecución exitosa.",
+        "Evento duplicado por múltiples productos o integración SIEM/XDR.",
+        "Diferencias de tiempo UTC y delay de ingestión que aparentan secuencia maliciosa."
+      ],
+      "errores": [
+        "Confundir prioridad High con certeza de compromiso.",
+        "Rebajar el incidente sin evaluar valor de negocio del activo.",
+        "Retrasar escalado más allá del SLA por buscar una confirmación perfecta.",
+        "Interpretar ausencia de eventos EDR como ausencia de actividad.",
+        "Cerrar el caso solo porque una llamada telefónica lo declara legítimo.",
+        "Omitir fuentes, horas UTC, hallazgos negativos y dudas en el ticket."
+      ],
+      "perspectiva_red_team": "El adversario busca ventanas de visibilidad baja y puede operar cuando el sensor no registra todos los procesos o el SIEM retrasa la ingesta. En defensa, separar detección, ejecución confirmada y límites de observabilidad impide tanto falsas atribuciones como demoras peligrosas; no presupone técnica concreta sin artefactos verificables.",
+      "respuesta_entrevista": "Realizaría triaje inmediato de la alerta y su activo, verificaría la regla, la línea temporal y al menos una fuente independiente. Si faltan logs o la criticidad y el SLA exigen decisión, escalaría como actividad sospechosa no confirmada, describiendo exactamente qué sé, qué no sé y qué comprobé. Mantendría el ticket y solicitaría contención solo a través del playbook; no la cerraría por ausencia de prueba.",
+      "criterios_evaluacion": [
+        "Diferencia severidad, probabilidad/confianza, impacto de negocio y prioridad.",
+        "Define comprobaciones rápidas con límite temporal y fuentes independientes.",
+        "Reconoce que la ausencia de telemetría no descarta compromiso.",
+        "Escala sin exagerar la certeza y con incident ID, hora y propietario.",
+        "No ejecuta cambios disruptivos fuera de su autoridad."
+      ],
+      "mitre": [
+        "T1078 (si se detecta abuso de cuenta; no confirmado)",
+        "T1059 (si evidencia muestra intérprete; no confirmado)"
+      ],
+      "fuentes": [
+        "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+        "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/securityalert",
+        "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-alertinfo-table",
+        "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-alertevidence-table",
+        "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.4/data-models/endpoint"
+      ]
+    },
+    {
+      "id": "N1-17",
+      "nivel": "N1",
+      "bloque": "Procedimientos SOC y gestión de incidentes",
+      "titulo": "Un administrador pide cerrar una alerta: verificar, no obedecer a ciegas",
+      "pregunta": "Un administrador solicita cerrar una alerta porque asegura que la actividad es legítima. ¿Qué harías antes de cerrarla?",
+      "escenario": "Son las 11:42. Una detección indica ejecución de PowerShell con privilegios elevados en el servidor de ficheros FS-01. El administrador de turno escribe «Soy yo, cierra la alerta» y aporta un cambio abierto de mantenimiento, pero no el ID exacto del procedimiento ejecutado. El host contiene documentos internos y el script hizo una conexión HTTPS externa.",
+      "objetivo": "Verificar identidad, autorización, correspondencia técnico-temporal y consecuencias de la actividad antes de clasificar como benigno; conservar una pista auditable sin tratar la autoridad del solicitante como evidencia suficiente.",
+      "hipotesis": [
+        "Mantenimiento real debidamente autorizado y limitado al servidor indicado.",
+        "Herramienta legítima usada de forma inesperada (dual use) por un administrador.",
+        "Cuenta del administrador comprometida: el atacante intenta influir en el cierre.",
+        "Cambio autorizado que se ejecutó fuera del alcance/hora o con binario no previsto.",
+        "Conexión de actualización/telemetría del script versus envío externo no autorizado.",
+        "La persona solicitante tiene permisos de infraestructura, pero no autoridad para aceptar riesgo SOC."
+      ],
+      "pasos": [
+        {
+          "fase": "0. Mantener la alerta en estado investigable",
+          "accion": "No suprimir, cerrar ni cambiar a falso positivo por petición informal. Registrar ticket y hora de solicitud."
+        },
+        {
+          "fase": "1. Autenticar la identidad por canal confiable",
+          "accion": "Comprobar quién solicita cierre y su relación con la intervención (ticketing corporativo, callback a contacto verificado); una dirección de correo o chat no basta si existe posible compromiso."
+        },
+        {
+          "fase": "2. Revisar el cambio autorizado",
+          "accion": "Validar identificador, ventana aprobada, sistemas, cuentas, comandos o herramientas permitidas y responsable; distinguir cambio aprobado de descripción genérica."
+        },
+        {
+          "fase": "3. Correlacionar actividad observada",
+          "accion": "Comprobar PID, proceso padre, comando, usuario, token, hash/ruta/firma, tiempo, destino de red, volumen y origen de sesión. Atribución a cuenta no confirma qué humano pulsó Enter."
+        },
+        {
+          "fase": "4. Contrastar proceso y consecuencias",
+          "accion": "Si el script administra backups esperados, contrastar logs de backup y destino permitido; si descarga o envía datos fuera de alcance, investigar antes de cerrar."
+        },
+        {
+          "fase": "5. Revisar otros indicadores",
+          "accion": "Buscar mismo IOC/comando/host en otras máquinas, anomalías de autenticación, errores del EDR o ejecuciones fuera de ventana."
+        },
+        {
+          "fase": "6. Tomar decisión basada en política",
+          "accion": "Con evidencia consistente: resolver como actividad benigna/esperada conforme a taxonomía del SOC. Si existen discrepancias, pedir revisión N2/IR y mantener caso abierto."
+        },
+        {
+          "fase": "7. Preservar trazabilidad",
+          "accion": "Documentar quién pidió el cierre, cómo se validó, ticket/cambio y evidencias técnicas vinculadas a esa ejecución, no solo «admin confirmó»."
+        },
+        {
+          "fase": "8. Afinar la detección sin agujeros",
+          "accion": "Si genera ruido frecuente, proponer excepción muy concreta con aprobación, duración y reevaluación; no excluir globalmente PowerShell o el servidor."
+        },
+        {
+          "fase": "9. Informar y vigilar",
+          "accion": "Comunicar el resultado y monitorizar recurrencia; evitar que la validación puntual se reutilice como autorización perpetua."
+        }
+      ],
+      "evidencias": [
+        {
+          "dato": "Solicitud verificada y rol de autorizador",
+          "lectura": "Identidad fiable y facultad de aceptar riesgo; rol TI no implica permiso para resolver incidente de seguridad."
+        },
+        {
+          "dato": "ID del cambio, alcance y ventana",
+          "lectura": "Necesarios para contrastar la ejecución concreta, no únicamente la existencia de algún mantenimiento."
+        },
+        {
+          "dato": "Proceso, padre, CommandLine, hash y firma",
+          "lectura": "Permiten diferenciar herramienta autorizada de invocación anómala o hijacking."
+        },
+        {
+          "dato": "Timestamp UTC, hostname y User SID",
+          "lectura": "Evitan confundir una ejecución parecida en otro activo o momento."
+        },
+        {
+          "dato": "Conexiones HTTPS salientes",
+          "lectura": "Requieren destino, origen, reputación y propósito; HTTPS por sí solo no da legitimidad."
+        },
+        {
+          "dato": "Logs de autenticación y elevación",
+          "lectura": "Ayudan a confirmar patrón esperado; credenciales robadas mantienen nombre de cuenta legítimo."
+        },
+        {
+          "dato": "Ticket SOC, decisión y aprobador",
+          "lectura": "Soportan auditoría, reversión de clasificación y mejoras de detección."
+        }
+      ],
+      "kql": [
+        {
+          "nombre": "Defender XDR Advanced Hunting: PowerShell observado en FS-01",
+          "entorno": "DeviceProcessEvents en Defender XDR con cobertura MDE del servidor. Sustituir el nombre de equipo, ampliar ventana si hay retención.",
+          "consulta": "DeviceProcessEvents\n| where Timestamp > ago(24h)\n| where DeviceName startswith \"FS-01\"\n| where FileName in~ (\"powershell.exe\", \"pwsh.exe\")\n| project Timestamp, DeviceName, AccountName, FileName, ProcessCommandLine,\n          InitiatingProcessFileName, InitiatingProcessCommandLine,\n          SHA1, ProcessId, InitiatingProcessId\n| order by Timestamp desc",
+          "interpretacion": "Correlaciona ejecutable, cuenta, origen padre y comando con el cambio aprobado.",
+          "limites": "No interpreta seguridad del script ni autentica persona física. MDE puede truncar línea de comandos o no registrar todo."
+        },
+        {
+          "nombre": "Defender XDR Advanced Hunting: conexiones que iniciaron PowerShell",
+          "entorno": "DeviceNetworkEvents en Defender XDR; ajuste FS-01 y período; las conexiones registradas tienen contexto del proceso iniciador.",
+          "consulta": "DeviceNetworkEvents\n| where Timestamp > ago(24h)\n| where DeviceName startswith \"FS-01\"\n| where InitiatingProcessFileName in~ (\"powershell.exe\", \"pwsh.exe\")\n| project Timestamp, DeviceName, InitiatingProcessFileName,\n          InitiatingProcessCommandLine, RemoteIP, RemotePort, RemoteUrl,\n          Protocol, ActionType\n| order by Timestamp desc",
+          "interpretacion": "Muestra destinos que requieren cotejo con lista permitida para el mantenimiento.",
+          "limites": "La existencia de un evento de conexión no garantiza que hubo transferencia ni cuantifica bytes; consultar proxy/firewall para volumen y decisiones efectivas."
+        }
+      ],
+      "spl": [
+        {
+          "nombre": "Splunk CIM Endpoint: procesos PowerShell y padres en FS-01",
+          "entorno": "CIM Endpoint.Processes normalizado desde Sysmon, EDR o Security 4688; campos de usuario pueden estar ausentes.",
+          "consulta": "| tstats count min(_time) as primero max(_time) as ultimo\n  from datamodel=Endpoint.Processes\n  where earliest=-24h latest=now Endpoint.Processes.dest=\"FS-01\"\n  by Endpoint.Processes.process_name Endpoint.Processes.parent_process_name\n     Endpoint.Processes.user Endpoint.Processes.process\n| rename Endpoint.Processes.* as *\n| search process_name=\"powershell.exe\" OR process_name=\"pwsh.exe\"\n| convert ctime(primero) ctime(ultimo)\n| sort - ultimo",
+          "interpretacion": "Agrupa invocaciones para compararlas con script, ventana y cuenta documentados.",
+          "limites": "Las búsquedas sobre línea de comandos muy largas pueden estar truncadas. Ajustar dest al FQDN usado por el TA."
+        },
+        {
+          "nombre": "Splunk CIM Network Traffic: salidas del servidor durante el cambio",
+          "entorno": "CIM Network_Traffic.All_Traffic con src del servidor. Este flujo no liga por sí solo conexiones con un PID.",
+          "consulta": "| tstats count sum(All_Traffic.bytes_out) as BytesSalida\n  from datamodel=Network_Traffic.All_Traffic\n  where earliest=-24h latest=now All_Traffic.src=\"10.10.20.15\"\n  by All_Traffic.dest All_Traffic.dest_port All_Traffic.action\n| rename All_Traffic.* as *\n| sort - BytesSalida",
+          "interpretacion": "Destaca destinos y volumen que deben coincidir con finalidad del cambio.",
+          "limites": "La IP 10.10.20.15 es ficticia; bytes_out depende del sentido/normalización y algunos firewalls no aportan bytes."
+        }
+      ],
+      "comandos": [
+        {
+          "entorno": "Windows — revisar registro PowerShell",
+          "proposito": "Log operacional Windows PowerShell presente solo si la auditoría correspondiente está habilitada; no sustituye Script Block Logging.",
+          "comando": "Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-PowerShell/Operational'; StartTime=(Get-Date).AddHours(-24)} -MaxEvents 60 | Select-Object TimeCreated, Id, Message"
+        },
+        {
+          "entorno": "Windows — filtrar procesos creados",
+          "proposito": "Necesita evento 4688 habilitado y ejecutarse en el equipo donde se grabó la ejecución.",
+          "comando": "Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4688; StartTime=(Get-Date).AddHours(-24)} -MaxEvents 70 | Select-Object TimeCreated, Message"
+        },
+        {
+          "entorno": "Linux — alternativa de validación de ejecutable",
+          "proposito": "Si el servidor investigado fuera Linux, comprobar ruta del proceso sin alterarlo; solo aplicable a sistema autorizado.",
+          "comando": "ps -eo user,pid,ppid,lstart,args --sort=-lstart | head -35"
+        }
+      ],
+      "contencion": "En N1, no cerrar solo por estatus de quien solicita y no aplicar una exclusión amplia. Si se verifica uso de credenciales comprometidas, comandos ajenos al cambio o salida de datos, elevar a IR para contención con aprobaciones; evitar avisar al posible atacante a través de un canal sospechoso.",
+      "escalation": [
+        "La cuenta del administrador presenta inicios de sesión o MFA anómalos.",
+        "Ejecución fuera de ventana, ruta/hash diferente, padre inesperado o destino de red desconocido.",
+        "La persona solicitante no demuestra autorización o el equipo del cambio niega haberlo programado.",
+        "Actividad se extiende a hosts no incluidos o hay indicios de exfiltración/persistencia.",
+        "Duda significativa de suplantación de identidad o presión por desactivar controles de seguridad."
+      ],
+      "falsos_positivos": [
+        "Actualización de sistema mediante PowerShell en ventana autorizada.",
+        "EDR o administrador de configuración ejecutando scripts firmados.",
+        "PowerShell usado por un agente de backup o inventario.",
+        "Conexion HTTPS a repositorio corporativo legítimo.",
+        "Regla que compara rutas sin normalizar System32/SysWOW64 o alias del binario."
+      ],
+      "errores": [
+        "Cerrar por obediencia a «soy administrador».",
+        "No cotejar alcance de cambio y ventana exacta.",
+        "Suponer que usuario autenticado = operador humano legítimo.",
+        "Olvidar investigar conexiones externas y cadena de procesos.",
+        "Introducir exclusión global que silencie futuras señales reales.",
+        "Eliminar evidencia y no dejar referencia a la autorización de cierre."
+      ],
+      "perspectiva_red_team": "Una identidad privilegiada legítima puede ser abusada para ejecutar herramientas administrativas (living-off-the-land) y para dar apariencia de actividad esperada. Defenderse implica comprobar el vínculo entre identidad, cambio aprobado, ejecución real y efectos observados, sin ofrecer al presunto atacante un canal para presionar el cierre.",
+      "respuesta_entrevista": "No cerraría la alerta únicamente por la petición. Confirmaría identidad por canal confiable, validaría el cambio aprobado —horario, hosts, usuario y comandos— y contrastaría procesos, autenticación y conexiones reales. Si coincide y no hay evidencias contradictorias, documentaría el cierre según taxonomía; si difiere o hay riesgo de compromiso, mantendría abierto y escalaría.",
+      "criterios_evaluacion": [
+        "Verifica identidad y autoridad del solicitante por canal confiable.",
+        "Cruza ticket de cambio con evidencias técnicas y ventana.",
+        "Reconoce riesgos de cuentas comprometidas y herramientas dual-use.",
+        "Documenta decisión, aprobador y evidencias.",
+        "Evita excepciones permanentes y cierre basado solo en reputación."
+      ],
+      "mitre": [
+        "T1078 (abuso de cuentas válidas, como hipótesis)",
+        "T1059.001 (PowerShell, si actividad evidencia ejecución)"
+      ],
+      "fuentes": [
+        "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+        "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-deviceprocessevents-table",
+        "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-devicenetworkevents-table",
+        "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.4/data-models/endpoint",
+        "https://help.splunk.com/en/splunk-cloud-platform/common-information-model/6.1/data-models/network-traffic"
+      ]
+    },
+    {
+      "id": "N1-18",
+      "nivel": "N1",
+      "bloque": "Procedimientos SOC y gestión de incidentes",
+      "titulo": "IP maliciosa con conexiones bloqueadas: ¿incidente resuelto?",
+      "pregunta": "Detectas una IP maliciosa en los logs de firewall, pero todas las conexiones aparecen bloqueadas. ¿Considerarías el incidente resuelto?",
+      "escenario": "Un firewall perimetral registra 920 intentos bloqueados en 30 minutos desde 203.0.113.88 contra el puerto 3389 de un servidor público. El feed TI etiqueta la dirección como sospechosa. No hay sesiones permitidas en ese dispositivo durante la ventana consultada, pero la empresa tiene VPN, CDN y un segundo firewall y no se ha comprobado el histórico ni los equipos internos.",
+      "objetivo": "Diferenciar intento externo detenido por un control de compromiso de activo. Validar la eficacia de bloqueo, su cobertura, correlacionar accesos por otras rutas, reputación y contexto y cerrar o escalar conforme a evidencia y criterio de recurrencia.",
+      "hipotesis": [
+        "Escaneo automatizado oportunista bloqueado correctamente; no hay efecto observable.",
+        "Ataque repetitivo o dirigido con múltiples orígenes, no limitado a la IP del feed.",
+        "La IP tuvo conexiones permitidas antes de activar la regla o por otra ruta de entrada.",
+        "El «deny» corresponde a intento iniciado, no necesariamente a tráfico previo ya establecido.",
+        "La IP tiene mala reputación histórica/compartida, pero el intento actual no es específico.",
+        "Hay egress desde activos internos al mismo destino que no está cubierto por el firewall inspeccionado."
+      ],
+      "pasos": [
+        {
+          "fase": "0. Identificar direccionalidad",
+          "accion": "Determinar si 203.0.113.88 es origen que intenta entrar o destino al que un host interno trata de salir; cambia drásticamente la hipótesis. Identificar interfaz, zona y NAT."
+        },
+        {
+          "fase": "1. Validar acción realmente tomada",
+          "accion": "Revisar campos DeviceAction/SimplifiedDeviceAction, motivo de denegación y estado del sensor. «Alert» no es «block»; distinguir deny, reset, drop, allowed y sesión terminada."
+        },
+        {
+          "fase": "2. Acotar y ampliar tiempo",
+          "accion": "Observar primeros/últimos intentos, minutos previos y posteriores a la regla, cambios de configuración y disponibilidad del dispositivo. Buscar conexiones ya establecidas."
+        },
+        {
+          "fase": "3. Resolver exposición y destino",
+          "accion": "Confirmar puerto/servicio, si está accesible públicamente, criticidad, WAF/proxy/CDN/VPN, host real tras DNAT y otras rutas de acceso."
+        },
+        {
+          "fase": "4. Correlacionar con autenticación y endpoints",
+          "accion": "Buscar éxitos de RDP/VPN, fallos, nuevos servicios, EDR, conexiones salientes y otros indicadores desde la misma infraestructura o cuenta. No equiparar mismo IP a misma persona."
+        },
+        {
+          "fase": "5. Validar fuente de inteligencia",
+          "accion": "Comprobar fecha, confianza, contexto y uso compartido del indicador TI. La reputación de una IP no equivale a ataque exitoso."
+        },
+        {
+          "fase": "6. Medir alcance y recurrencia",
+          "accion": "Contar puertos, hosts, zonas, destinos y cambios de IP/ASN. Identificar si un host interno intenta conexiones persistentes aunque estén bloqueadas."
+        },
+        {
+          "fase": "7. Decidir estado",
+          "accion": "Si hubo solo intentos no exitosos, control efectivo, sin evidencia de compromiso y cobertura suficiente, documentar evento bloqueado según SOP. Mantener alerta o escalado si hay indicios asociados."
+        },
+        {
+          "fase": "8. Verificar detección preventiva",
+          "accion": "Pedir validación de regla y control complementario por equipos de red/IR cuando proceda; no bloquear rangos enteros sin evaluar impacto y propiedad."
+        },
+        {
+          "fase": "9. Documentar límites",
+          "accion": "Guardar dirección, puertos, volumen, rango UTC, dispositivos consultados, reglas, resultado, fuentes no disponibles y criterio de cierre/escalado."
+        }
+      ],
+      "evidencias": [
+        {
+          "dato": "DeviceAction y SimplifiedDeviceAction",
+          "lectura": "Distinguen acción ejecutada; mapear variantes y verificar política del proveedor."
+        },
+        {
+          "dato": "SourceIP, DestinationIP, puertos, SourceTranslatedAddress",
+          "lectura": "Aclaran flujo real, NAT y destino; una IP de gateway puede ocultar al origen."
+        },
+        {
+          "dato": "Rule, DeviceName, zona/interfaz",
+          "lectura": "Relacionan bloqueo con firewall concreto, su cobertura y prioridad de política."
+        },
+        {
+          "dato": "SentBytes / ReceivedBytes, estado de sesión",
+          "lectura": "Ayudan a medir tráfico observado, pero sus valores y dirección dependen del fabricante."
+        },
+        {
+          "dato": "Logs de VPN/RDP/IdP/EDR",
+          "lectura": "Revelan accesos o ejecuciones posteriores que el firewall no ve."
+        },
+        {
+          "dato": "Vigencia/confianza TI",
+          "lectura": "Reduce bloqueo por reputación caducada o infraestructura multi-tenant."
+        },
+        {
+          "dato": "Cambios de reglas y rutas alternativas",
+          "lectura": "Detectan caminos que el filtro principal no cubre."
+        }
+      ],
+      "kql": [
+        {
+          "nombre": "Sentinel / Log Analytics: acciones de firewall por IP investigada",
+          "entorno": "Tabla CommonSecurityLog (CEF) con eventos relevantes ingeridos; IP TEST-NET 203.0.113.88 como ejemplo y acción normalizada por parser.",
+          "consulta": "CommonSecurityLog\n| where TimeGenerated > ago(24h)\n| where SourceIP == \"203.0.113.88\" or DestinationIP == \"203.0.113.88\"\n| extend Accion=tolower(iff(isempty(SimplifiedDeviceAction), DeviceAction, SimplifiedDeviceAction))\n| summarize Eventos=count(), Primera=min(TimeGenerated), Ultima=max(TimeGenerated),\n            Acciones=make_set(Accion, 15), Reglas=make_set(Activity, 15)\n  by SourceIP, DestinationIP, DestinationPort, DeviceVendor, DeviceProduct\n| order by Eventos desc",
+          "interpretacion": "Expone intentos y tipos de acciones por origen/destino/puerto para contrastar «todo bloqueado».",
+          "limites": "SimplifiedDeviceAction puede ser vacío; Activity no equivale siempre a ID de regla. Revisar DeviceAction concreto para decidir bloqueos permitidos."
+        },
+        {
+          "nombre": "Sentinel / Log Analytics: búsquedas de actividad permitida o denegada en el mismo par",
+          "entorno": "CommonSecurityLog; adaptar mapeo de acciones vendor y relación NAT; la comparación es orientativa.",
+          "consulta": "CommonSecurityLog\n| where TimeGenerated > ago(7d)\n| where SourceIP == \"203.0.113.88\" or DestinationIP == \"203.0.113.88\"\n| extend Accion=tolower(iff(isempty(SimplifiedDeviceAction), DeviceAction, SimplifiedDeviceAction))\n| summarize Eventos=count(), BytesEnviados=sum(SentBytes),\n            Acciones=make_set(Accion, 20)\n  by bin(TimeGenerated, 1h), SourceIP, DestinationIP, DestinationPort\n| order by TimeGenerated asc",
+          "interpretacion": "Revela historial, intervalos previos al bloqueo, intentos repetidos y posibles transferencias.",
+          "limites": "Bytes y acción dependen de registros de sesión/parsers; cero bytes no prueba cero tráfico ni ausencia de otra ruta."
+        }
+      ],
+      "spl": [
+        {
+          "nombre": "Splunk CIM Network Traffic: intentar confirmar que tráfico fue bloqueado",
+          "entorno": "CIM Network_Traffic.All_Traffic con action mapeado a allowed/blocked/teardown (varía por TA).",
+          "consulta": "| tstats count sum(All_Traffic.bytes_out) as BytesSalida\n  from datamodel=Network_Traffic.All_Traffic\n  where earliest=-24h latest=now\n    (All_Traffic.src=\"203.0.113.88\" OR All_Traffic.dest=\"203.0.113.88\")\n  by All_Traffic.src All_Traffic.dest All_Traffic.dest_port All_Traffic.action\n| rename All_Traffic.* as *\n| sort - count",
+          "interpretacion": "Separa acciones permitidas y bloqueadas, direccionalidad y activos involucrados.",
+          "limites": "El modelo incluye reglas de red pero puede no incluir IDS, WAF ni todos los firewalls; campos normalizados requieren validación."
+        },
+        {
+          "nombre": "Splunk CIM Intrusion Detection: actividad IDS asociada a la IP",
+          "entorno": "CIM Intrusion_Detection.IDS_Attacks ingerido con signature/action; observar si IDS alertó o bloqueó.",
+          "consulta": "| tstats count min(_time) as Primero max(_time) as Ultimo\n  from datamodel=Intrusion_Detection.IDS_Attacks\n  where earliest=-7d latest=now\n    (IDS_Attacks.src=\"203.0.113.88\" OR IDS_Attacks.dest=\"203.0.113.88\")\n  by IDS_Attacks.signature IDS_Attacks.action IDS_Attacks.src IDS_Attacks.dest\n| rename IDS_Attacks.* as *\n| convert ctime(Primero) ctime(Ultimo)\n| sort - count",
+          "interpretacion": "Corrobora detecciones de patrones, sin confundir intento IDS con éxito.",
+          "limites": "IDS observa firmas y acciones separadas de reglas de conectividad; ausencia de eventos depende del sensor y de visibilidad de tráfico."
+        }
+      ],
+      "comandos": [
+        {
+          "entorno": "Linux — estado de sockets desde host protegido",
+          "proposito": "Solo si se tiene acceso autorizado al host; instantánea de conexiones actuales, sin prueba de tráfico histórico.",
+          "comando": "sudo ss -tunap | head -80"
+        },
+        {
+          "entorno": "Linux — reglas nftables",
+          "proposito": "Solo lectura; inspecciona reglas locales, no reglas del firewall perimetral/cloud.",
+          "comando": "sudo nft list ruleset | head -120"
+        },
+        {
+          "entorno": "Windows — sockets TCP existentes",
+          "proposito": "Listado puntual local; corroborar el PID en caso de sospecha.",
+          "comando": "Get-NetTCPConnection | Select-Object -First 40 LocalAddress,LocalPort,RemoteAddress,RemotePort,State,OwningProcess"
+        }
+      ],
+      "contencion": "Bloquear la IP puede ser protección complementaria, pero no asumir que cubre variantes, proxy, VPN, egress u otros orígenes. En N1 normalmente verificar regla y escalar si hay indicios de compromiso; modificaciones de firewall o aislamiento son acciones autorizadas y registradas.",
+      "escalation": [
+        "Cualquier sesión permitida previa/posterior con autenticación o ejecución asociada.",
+        "Mismo IOC como destino de tráfico saliente desde un host interno.",
+        "Origen alternativo, múltiples vectores, explotación dirigida o cuentas privilegiadas afectadas.",
+        "Fallo de cobertura o evidencia de que el bloqueo no se aplicó a rutas de red completas.",
+        "RDP/servicio crítico expuesto innecesariamente o consecuencias operacionales serias."
+      ],
+      "falsos_positivos": [
+        "Escaneo de Internet genérico totalmente detenido en un puerto expuesto.",
+        "Proveedor NAT compartido incluido por reputación antigua.",
+        "Escáner interno autorizado representado por IP pública de pasarela.",
+        "Duplicación entre registros del mismo firewall y SIEM.",
+        "Normalización errónea de `deny` como `allowed`, o sesión `teardown` mal interpretada."
+      ],
+      "errores": [
+        "Decir «blocked = resuelto» sin comprobar otras rutas o actividad previa.",
+        "Confundir IP atacante externa con IP destino de C2.",
+        "Equiparar reputación TI con certeza de intrusión.",
+        "Ignorar NAT, proxies, balanceadores y túneles.",
+        "Creer que una regla nueva detiene todas las sesiones ya existentes sin validación.",
+        "Atribuir bytes de un solo firewall a toda la transferencia del sistema."
+      ],
+      "perspectiva_red_team": "Desde el lado adversario, una IP pública puede cambiar entre intentos o un intento puede progresar por un vector distinto. El defensor debe estudiar conducta, cuenta/activo, rutas de red e indicadores de efecto, y evitar depender exclusivamente de una lista estática de IPs. Una detección bloqueada es un resultado del control, no prueba de que no exista intrusión por otro camino.",
+      "respuesta_entrevista": "Primero aclararía si la IP es origen de ataque o destino de salida y confirmaría con los campos del firewall que realmente hubo bloqueo. Ampliaría la ventana antes de la regla y correlacionaría con VPN, autenticación, EDR, IDS y otras rutas. Si solo constan intentos bloqueados, sin señales de ejecución ni accesos permitidos y la cobertura es suficiente, documentaría el bloqueo según SOP. Si hay éxitos, egress o dudas graves de cobertura, escalaría.",
+      "criterios_evaluacion": [
+        "Distingue dirección de tráfico e intento frente a compromiso.",
+        "Valida acción de control y período anterior a activación.",
+        "Busca evidencia en controles distintos y rutas alternativas.",
+        "Reconoce calidad/vigencia de TI y errores de NAT.",
+        "Decide cierre condicionado con justificación, no absoluto."
+      ],
+      "mitre": [
+        "T1110 (si existen intentos de credenciales; no inferir del puerto)",
+        "T1046 (si hay barrido de servicios; no confirmado)"
+      ],
+      "fuentes": [
+        "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+        "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/commonsecuritylog",
+        "https://help.splunk.com/en/splunk-cloud-platform/common-information-model/6.1/data-models/network-traffic",
+        "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.1/data-models/intrusion-detection"
+      ]
+    },
+    {
+      "id": "N1-19",
+      "nivel": "N1",
+      "bloque": "Procedimientos SOC y gestión de incidentes",
+      "titulo": "Traspaso de turno con un incidente abierto y relevo en cinco minutos",
+      "pregunta": "Durante tu turno detectas una posible infección y tu relevo llega en cinco minutos. ¿Qué información incluirías en el traspaso del incidente?",
+      "escenario": "Son las 06:55. La consola EDR muestra un proceso sospechoso en FIN-WS-07, y la búsqueda de red muestra un destino inusual. El último turno termina a las 07:00; no se sabe si el proceso ejecutó acciones dañinas. Hay ticket SOC-7421, EDR online y el equipo financiero trabaja a las 08:00. El relevo no participó en la investigación.",
+      "objetivo": "Garantizar continuidad de IR sin perder contexto, duplicar acciones ni dejar acciones pendientes sin responsable: transmitir hechos, incertidumbre, cronología, alcance, estado de contención, evidencias, riesgos, SLA y próximos pasos.",
+      "hipotesis": [
+        "La actividad fue bloqueada y requiere confirmación de alcance.",
+        "El equipo sigue comprometido o puede volver a comunicarse con un destino remoto.",
+        "Se ejecutó una herramienta legítima de soporte con telemetría mal interpretada.",
+        "Hay segunda máquina o identidad afectada aún sin investigar.",
+        "El evento es parte de un incidente mayor gestionado por IR/N2.",
+        "El relevo carece de permisos/visibilidad y necesita un punto de contacto."
+      ],
+      "pasos": [
+        {
+          "fase": "0. Comunicar riesgo inmediatamente si está activo",
+          "accion": "Si se confirma infección activa, propagación o exfiltración, avisar y escalar antes de esperar el relevo. El traspaso no sustituye una respuesta de emergencia."
+        },
+        {
+          "fase": "1. Entregar identificación exacta",
+          "accion": "Ticket/incidente IDs, versión, prioridad, clasificación actual (sospecha/no confirmado), hora de primera detección UTC, quién investiga y canal de comunicaciones."
+        },
+        {
+          "fase": "2. Resumir impacto y alcance",
+          "accion": "Hosts, identidades, unidad de negocio, criticidad, sistemas conectados, usuarios informados y posibles implicaciones de disponibilidad o datos sensibles."
+        },
+        {
+          "fase": "3. Exponer hechos e hipótesis separadas",
+          "accion": "Hechos: nombre del proceso, PID/ProcessGuid si existe, hash, parent, ruta, IP, puertos y eventos. Hipótesis: infección/C2/mantenimiento. Confianza explícita."
+        },
+        {
+          "fase": "4. Construir la cronología mínima",
+          "accion": "Evento inicial, autenticaciones, ejecución, comunicaciones, alertas, acciones, cambios y último indicador, siempre en UTC, con fuentes y vínculos."
+        },
+        {
+          "fase": "5. Estado de controles y decisiones",
+          "accion": "¿Host aislado? ¿Proceso detenido? ¿Conexión bloqueada? ¿Acción ejecutada, autorizada o solo sugerida? Confirmar resultados y señalar efectos secundarios."
+        },
+        {
+          "fase": "6. Indicar búsquedas hechas y ausencias",
+          "accion": "Consultas y filtros utilizados, qué dio resultado, qué no, qué log faltaba o llevaba retraso; no presentar «sin resultados» como «sin riesgo»."
+        },
+        {
+          "fase": "7. Ordenar próximos pasos accionables",
+          "accion": "Ejemplo: comprobar 24h de proceso y red, validar hash y propietario, correlacionar otras máquinas, decisión de IR sobre aislamiento y revisar backups si procede."
+        },
+        {
+          "fase": "8. Precisar responsables, deadlines y contactos",
+          "accion": "Asignar cada tarea al nuevo analista/N2/IT; incluir SLA, próxima revisión, aprobadores, dependencias y vías de escalado."
+        },
+        {
+          "fase": "9. Confirmar recepción y continuidad",
+          "accion": "Hacer entrega verbal breve con ticket actualizado, solicitar read-back de 2–3 tareas críticas y traspasar titularidad del incidente."
+        },
+        {
+          "fase": "10. Dejar evidencia preservada",
+          "accion": "Relacionar exportaciones, hashes de ficheros, capturas, eventos y cadena de custodia en repositorio autorizado; evitar adjuntar secretos o PII sin control."
+        }
+      ],
+      "evidencias": [
+        {
+          "dato": "Ticket SOC-7421, ID de alerta y estado",
+          "lectura": "Permite al relevo retomar la investigación correcta y no crear incidentes duplicados."
+        },
+        {
+          "dato": "Primera/última detección en UTC",
+          "lectura": "Permite correlación temporal y manejo de SLA."
+        },
+        {
+          "dato": "Host, IP, usuario, PID/ProcessGuid, parent, hash",
+          "lectura": "Entidades para pivotar; PID puede reutilizarse, el timestamp distingue instancias."
+        },
+        {
+          "dato": "Observables de red",
+          "lectura": "IP/dominio/puertos y dirección; reputación y exfiltración aún pueden no estar confirmadas."
+        },
+        {
+          "dato": "Acciones efectuadas y verificadas",
+          "lectura": "No es lo mismo «orden de aislamiento emitida» que «aislamiento confirmado». Guardar aprobador."
+        },
+        {
+          "dato": "Ausencias, limitaciones y decisiones pendientes",
+          "lectura": "Evita suponer que una búsqueda incompleta exonera al activo."
+        },
+        {
+          "dato": "Propietario, plazo, stakeholders y siguiente paso",
+          "lectura": "Convierte la entrega en continuidad operativa verificable."
+        }
+      ],
+      "kql": [
+        {
+          "nombre": "Sentinel / Log Analytics: ficha breve para traspaso por activo",
+          "entorno": "SecurityAlert disponible. Buscar por CompromisedEntity o usar SystemAlertId del ticket si el host no aparece.",
+          "consulta": "SecurityAlert\n| where TimeGenerated > ago(24h)\n| where CompromisedEntity contains \"FIN-WS-07\"\n| project TimeGenerated, StartTime, EndTime, SystemAlertId, AlertName,\n          AlertSeverity, Status, ProductName, CompromisedEntity,\n          Entities, Description\n| order by TimeGenerated desc",
+          "interpretacion": "Recupera IDs/ventanas de alertas para incluir en la nota de relevo.",
+          "limites": "No es el estado completo del incidente ni confirma que el equipo esté aislado; consultar entidad/incidente y consola EDR."
+        },
+        {
+          "nombre": "Defender XDR: conexiones recientes del equipo para el relevo",
+          "entorno": "DeviceNetworkEvents en Defender XDR. Ajustar FQDN/alias del host; correlacionar con DeviceProcessEvents si hay iniciador sospechoso.",
+          "consulta": "DeviceNetworkEvents\n| where Timestamp > ago(4h)\n| where DeviceName startswith \"FIN-WS-07\"\n| summarize Eventos=count(), Primera=min(Timestamp), Ultima=max(Timestamp),\n            Puertos=make_set(RemotePort, 15),\n            Procesos=make_set(InitiatingProcessFileName, 15)\n  by DeviceName, RemoteIP, RemoteUrl, ActionType\n| order by Ultima desc",
+          "interpretacion": "Produce una tabla compacta de destinos, volumen de eventos y procesos para que el relevo priorice.",
+          "limites": "Eventos no representan sesiones únicas ni bytes y no permiten declarar C2 sin contexto. Verificar que la conexión fue realmente permitida."
+        }
+      ],
+      "spl": [
+        {
+          "nombre": "Splunk CIM Endpoint: resumen de procesos observados durante el turno",
+          "entorno": "Modelo Endpoint.Processes poblado; el destino debe corresponder al hostname normalizado FIN-WS-07.",
+          "consulta": "| tstats count min(_time) as Primero max(_time) as Ultimo\n  from datamodel=Endpoint.Processes\n  where earliest=-8h latest=now Endpoint.Processes.dest=\"FIN-WS-07\"\n  by Endpoint.Processes.process_name Endpoint.Processes.parent_process_name\n     Endpoint.Processes.user\n| rename Endpoint.Processes.* as *\n| convert ctime(Primero) ctime(Ultimo)\n| sort - Ultimo",
+          "interpretacion": "Lista procesos y padres para priorizar pivotes y anotar búsquedas pendientes.",
+          "limites": "Es resumen de eventos de creación, no inventario de procesos vivos. Requiere normalización CIM."
+        },
+        {
+          "nombre": "Splunk CIM Network Traffic: conexiones salientes para el estado del relevo",
+          "entorno": "CIM Network_Traffic.All_Traffic y src como IP del host ficticio 10.20.5.7; no inferir causalidad con PID.",
+          "consulta": "| tstats count sum(All_Traffic.bytes_out) as BytesSalida\n  from datamodel=Network_Traffic.All_Traffic\n  where earliest=-8h latest=now All_Traffic.src=\"10.20.5.7\"\n  by All_Traffic.dest All_Traffic.dest_port All_Traffic.action\n| rename All_Traffic.* as *\n| sort - BytesSalida",
+          "interpretacion": "Presenta destinos, acciones y bytes observados por sensores de red.",
+          "limites": "BytesSalida puede estar ausente; fuentes NAT/proxy pueden usar IP del gateway, no de la estación."
+        }
+      ],
+      "comandos": [
+        {
+          "entorno": "Windows — ventana de últimos logs locales",
+          "proposito": "Lectura orientativa de eventos Security, requiere permisos; no cubre fuente EDR.",
+          "comando": "Get-WinEvent -FilterHashtable @{LogName='Security'; StartTime=(Get-Date).AddHours(-2)} -MaxEvents 25 | Select-Object TimeCreated, Id, MachineName, Message"
+        },
+        {
+          "entorno": "Windows — datos del sistema para identificar correctamente el equipo",
+          "proposito": "Lectura de nombre, OS y dominio; no es un IOC de infección.",
+          "comando": "Get-ComputerInfo | Select-Object CsName,CsDomain,WindowsProductName,OsVersion"
+        },
+        {
+          "entorno": "Linux — línea de tiempo de autenticación reciente",
+          "proposito": "En activo Linux autorizado con journald; no confundir hora local con UTC del ticket.",
+          "comando": "sudo journalctl --since \"2 hours ago\" --no-pager -n 60"
+        }
+      ],
+      "contencion": "El traspaso no debe interrumpir una contención urgente. Si existe riesgo activo, mantener al N2/IR en conferencia y confirmar quién tiene autoridad sobre aislamiento, revocación de credenciales o bloqueo. No enviar dumps, credenciales o información sensible a canales no aprobados.",
+      "escalation": [
+        "Contención no verificada y señal de daño activo (encriptación, exfiltración, desplazamiento lateral).",
+        "Infección potencial en servidor de alta criticidad o identidad privilegiada.",
+        "Plazo de reporte/escalado vencido o sin propietario de guardia.",
+        "Falta de cobertura crítica que impide valorar alcance y obliga a IR a decidir.",
+        "Desacuerdo entre análisis de turno anterior y nuevas pruebas del relevo."
+      ],
+      "falsos_positivos": [
+        "Script de despliegue empresarial legítimo ejecutado a primera hora.",
+        "Actualizador que conecta a infraestructura de proveedores.",
+        "Reputación transitoria de IP cloud compartida.",
+        "Eventos duplicados por sensores distintos.",
+        "Proceso suspendido que ya no existe cuando llega el relevo."
+      ],
+      "errores": [
+        "Decir «revisa el ticket» sin una prioridad ni próximo paso concreto.",
+        "No comunicar si el host está aislado realmente.",
+        "Omitir incertidumbres y presentar «posible malware» como infección confirmada.",
+        "Registrar solo hora local sin zona horaria.",
+        "Abandonar una emergencia esperando al turno siguiente.",
+        "No asignar dueño/tiempo límite o perder evidencias al finalizar sesión."
+      ],
+      "perspectiva_red_team": "La actividad adversaria no cambia de turno cuando lo hace el SOC. Los atacantes pueden prolongar sesiones o ejecutar acciones en horario de baja supervisión. La defensa eficaz exige continuidad de indicadores, entidades, evidencias y decisiones entre analistas, con objetivos y tiempos explícitos; un relevo deficiente crea brechas operativas.",
+      "respuesta_entrevista": "Entregaría ticket, clasificación y certeza, cronología UTC, activos y cuentas afectados, IoCs/IoAs, evidencia y fuentes consultadas, medidas de contención realmente verificadas y riesgos abiertos. Definiría las tres próximas acciones con responsables y vencimientos, escalaría antes si hay actividad en curso y pediría confirmación verbal de recepción al relevo.",
+      "criterios_evaluacion": [
+        "Incluye identificadores, horas, activos, hechos y dudas.",
+        "Especifica estado real de contención y aprobaciones.",
+        "No ignora escalado urgente durante cambio de turno.",
+        "Asigna tareas con dueño y plazo.",
+        "Demuestra disciplina de documentación y transferencia de evidencia."
+      ],
+      "mitre": [
+        "T1059 (si se verifica ejecución mediante intérprete)",
+        "T1071 (si hay comunicación de protocolo de aplicación; no confirmado)"
+      ],
+      "fuentes": [
+        "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+        "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/securityalert",
+        "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-devicenetworkevents-table",
+        "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.4/data-models/endpoint",
+        "https://help.splunk.com/en/splunk-cloud-platform/common-information-model/6.1/data-models/network-traffic"
+      ]
+    },
+    {
+      "id": "N1-20",
+      "nivel": "N1",
+      "bloque": "Procedimientos SOC y gestión de incidentes",
+      "titulo": "Sospecha de ransomware sin alertas SIEM: actuar sin esperar al panel",
+      "pregunta": "Un usuario informa de un posible ransomware, pero no existen alertas en el SIEM. ¿Cómo comenzarías la investigación?",
+      "escenario": "A las 09:18, el responsable de Contabilidad llama al SOC: «Mis documentos cambiaron de extensión y aparece una nota pidiendo pago». Ninguna alerta reciente aparece en el SIEM. Otros empleados comparten una unidad SMB con ese equipo; el EDR aparece con última comunicación hace 40 minutos. Todavía no se sabe si el cifrado sigue activo ni si el servidor de archivos también está afectado.",
+      "objetivo": "Tratar señales directas y verificables como posible incidente grave aunque falten alertas; activar respuesta rápida, comprobar alcance, preservar evidencia y coordinar aislamiento autorizado para reducir cifrado, movimiento lateral y exposición de copias.",
+      "hipotesis": [
+        "Ransomware activo en endpoint con acceso a unidad compartida; la propagación o el cifrado podrían continuar.",
+        "Cifrado ya terminado en el equipo pero credenciales y persistencia todavía en riesgo.",
+        "Nota de rescate creada por campaña previa, prueba controlada o broma; requiere validar artefactos antes de descartar.",
+        "Fallo de ingesta SIEM, cobertura endpoint, alerta suprimida, sensor offline o retraso.",
+        "Otro host, servidor de ficheros o cuenta comprometida es el origen real del cifrado observado.",
+        "También pudo existir exfiltración previa sin síntomas hasta el cifrado."
+      ],
+      "pasos": [
+        {
+          "fase": "0. Abrir incidente mayor y activar playbook",
+          "accion": "La modificación masiva de ficheros y nota de rescate son evidencia suficientemente grave para activar cadena de incidentes, aunque el SIEM esté silencioso; registrar hora y contacto."
+        },
+        {
+          "fase": "1. Protección inmediata, según autoridad",
+          "accion": "Indicar al usuario que deje de interactuar con ficheros y desconecte la red del equipo cuando lo indique el playbook/IR. Coordinar aislamiento EDR si está disponible; si no, con equipo de operaciones. No pedir reinicio innecesario."
+        },
+        {
+          "fase": "2. Determinar alcance inicial",
+          "accion": "Identificar equipo, usuario, directorios, discos locales, unidades mapeadas, servicios SMB y otros usuarios afectados; consultar servidores de ficheros y alertas de backup."
+        },
+        {
+          "fase": "3. Separar ausencia de detección de ausencia de ataque",
+          "accion": "Comprobar integridad del agente, último heartbeat, ingestión, permisos, retención, reglas de supresión y diferencia entre Microsoft Defender portal y Sentinel/Splunk."
+        },
+        {
+          "fase": "4. Verificar artefactos sin ejecutarlos",
+          "accion": "Pedir foto/copia segura de nombres de ficheros, nota de rescate y ejemplo de extensión; documentar rutas, hashes y marcas de tiempo. No abrir adjuntos ni ejecutar binarios sospechosos."
+        },
+        {
+          "fase": "5. Buscar precursores y cadena de procesos",
+          "accion": "Investigar procesos y padres, tareas/servicios nuevos, ejecución de herramientas de backup/vssadmin, PowerShell, cambios de Defender y orígenes de acceso. Herramientas administrativas tienen uso legítimo."
+        },
+        {
+          "fase": "6. Buscar cifrado y rutas de propagación",
+          "accion": "Con MDE/Sysmon/filesystem logs analizar ráfagas de modificaciones/renombrados, cuentas y extensiones; buscar conexiones SMB 445 y sesiones RDP/WinRM asociadas, sin equipararlos automáticamente a ataque."
+        },
+        {
+          "fase": "7. Proteger recuperación y evidencias",
+          "accion": "IR/backup valida instantáneas, copias offline/inmutables, integridad y separación de credenciales. Captura forense/snapshot/memoria según plan antes de cualquier limpieza; no restaurar sobre host no confiable."
+        },
+        {
+          "fase": "8. Evaluar riesgo de filtración",
+          "accion": "Cotejar tráfico egress, proxy, C2, accesos a datos sensibles y grandes transferencias anteriores. Cifrado no excluye robo de datos previo."
+        },
+        {
+          "fase": "9. Comunicar estado y escalado",
+          "accion": "Escalar a N2/IR, infraestructura, backup y continuidad de negocio. Documentar activos, prioridades, posibles daños, acciones verificadas y lagunas."
+        },
+        {
+          "fase": "10. Recuperar solo con autorización",
+          "accion": "No eliminar el software ni restaurar backups por iniciativa N1. IR decide erradicación, reseteo de credenciales, reconstrucción limpia, verificación de persistencia y criterios para volver a red."
+        }
+      ],
+      "evidencias": [
+        {
+          "dato": "Extensiones masivas y nota de rescate",
+          "lectura": "Síntomas de cifrado o extorsión; validar autenticidad y temporalidad sin ejecutar archivos."
+        },
+        {
+          "dato": "MDE DeviceFileEvents y filesystem/Sysmon",
+          "lectura": "Escrituras, modificaciones y renombrados masivos; no todas las acciones están instrumentadas ni son iguales."
+        },
+        {
+          "dato": "DeviceProcessEvents, Security 4688, Sysmon Event 1",
+          "lectura": "Procesos y padres, cuentas, línea de comandos, artefactos de ejecución; audit policies influyen en visibilidad."
+        },
+        {
+          "dato": "Conexiones SMB/RDP/egress",
+          "lectura": "Ayudan a delimitar propagación y posible exfiltración; correlacionar con origen de proceso y sesiones."
+        },
+        {
+          "dato": "Heartbeats de agente y retraso de ingesta",
+          "lectura": "Explican silencio del SIEM sin descartar host comprometido."
+        },
+        {
+          "dato": "Logs de backups, integridad e inmutabilidad",
+          "lectura": "Determinan capacidad de recuperación; no manipular copias antes de validación."
+        },
+        {
+          "dato": "Snapshot/memoria/hash/reloj UTC/acta",
+          "lectura": "Preservan evidencia para IR y eventual investigación legal."
+        },
+        {
+          "dato": "Otros equipos con mismo patrón",
+          "lectura": "Define alcance y prioridad de aislamiento coordinado."
+        }
+      ],
+      "kql": [
+        {
+          "nombre": "Defender XDR Advanced Hunting: ráfagas de actividad de ficheros por dispositivo",
+          "entorno": "DeviceFileEvents en equipos protegidos por MDE; acciones admitidas dependen de plataforma/versión; validar nombres en referencia de ActionType del portal.",
+          "consulta": "DeviceFileEvents\n| where Timestamp > ago(4h)\n| where ActionType in~ (\"FileCreated\", \"FileModified\", \"FileRenamed\")\n| summarize Eventos=count(), Archivos=dcount(strcat(FolderPath, \"/\", FileName)),\n            Ejemplos=make_set(FileName, 8),\n            Procesos=make_set(InitiatingProcessFileName, 8)\n  by DeviceName, bin(Timestamp, 5m)\n| where Eventos >= 100\n| order by Eventos desc",
+          "interpretacion": "Señala equipos con modificación intensiva de archivos para evaluar, no prueba ransomware.",
+          "limites": "Umbral 100 es didáctico; los eventos pueden no captar todos los cambios. Copias de seguridad, compilaciones y sincronización también modifican muchos archivos; Archivos es el número aproximado de rutas/ficheros únicos observado por el sensor, no el número real de archivos cifrados."
+        },
+        {
+          "nombre": "Defender XDR Advanced Hunting: comandos y herramientas relacionadas con recuperación",
+          "entorno": "DeviceProcessEvents de Microsoft Defender XDR; confirmar cobertura de endpoints y correlacionar con el host realmente afectado.",
+          "consulta": "DeviceProcessEvents\n| where Timestamp > ago(24h)\n| where FileName in~ (\"vssadmin.exe\", \"wbadmin.exe\", \"bcdedit.exe\", \"wevtutil.exe\")\n   or ProcessCommandLine has_any (\"shadowcopy\", \"delete shadows\", \"recoveryenabled\")\n| project Timestamp, DeviceName, AccountName, FileName, ProcessCommandLine,\n          InitiatingProcessFileName, InitiatingProcessCommandLine, SHA1\n| order by Timestamp desc",
+          "interpretacion": "Ayuda a identificar herramientas usadas para alterar copias, registros o recuperación, y buscar contexto de padre/usuario.",
+          "limites": "Aparecer en resultados no significa uso malicioso. Varios comandos son administrativos normales y ProcessCommandLine puede omitirse o truncarse."
+        }
+      ],
+      "spl": [
+        {
+          "nombre": "Splunk CIM Endpoint Filesystem: avalancha de cambios por host",
+          "entorno": "CIM Endpoint.Filesystem con eventos de ficheros realmente ingeridos; algunos EDR no generan eventos para todas las escrituras.",
+          "consulta": "| tstats count as Cambios dc(Endpoint.Filesystem.file_path) as Rutas\n  from datamodel=Endpoint.Filesystem\n  where earliest=-4h latest=now\n    (Endpoint.Filesystem.action=\"modified\" OR Endpoint.Filesystem.action=\"created\")\n  by _time span=5m Endpoint.Filesystem.dest\n| rename Endpoint.Filesystem.* as *\n| where Cambios>=100\n| sort - Cambios",
+          "interpretacion": "Identifica picos de actividad, priorizando los hosts con alteración masiva.",
+          "limites": "Umbrales y acciones didácticas, varían por TA/CIM; no sustituye comparación con baseline ni implica cifrado."
+        },
+        {
+          "nombre": "Splunk CIM Endpoint Processes: utilidades usadas frecuentemente durante incidentes",
+          "entorno": "CIM Endpoint.Processes alimentado desde logs de proceso; mirar destinos/usuarios reales antes de escalado.",
+          "consulta": "| tstats count min(_time) as Primera max(_time) as Ultima\n  from datamodel=Endpoint.Processes\n  where earliest=-24h latest=now\n  by Endpoint.Processes.dest Endpoint.Processes.user\n     Endpoint.Processes.process_name Endpoint.Processes.parent_process_name\n     Endpoint.Processes.process\n| rename Endpoint.Processes.* as *\n| search process_name IN (\"vssadmin.exe\", \"wbadmin.exe\", \"bcdedit.exe\", \"wevtutil.exe\")\n| convert ctime(Primera) ctime(Ultima)\n| sort - Ultima",
+          "interpretacion": "Detecta actividad que merece revisión cuando coincide con señales de cifrado.",
+          "limites": "No demuestra borrado de copias o ataque; examinar command line, autorización y relación temporal. Si no hay event logging la búsqueda queda vacía."
+        }
+      ],
+      "comandos": [
+        {
+          "entorno": "Windows — consultar el estado del antivirus",
+          "proposito": "Solo lectura; un endpoint comprometido podría mentir sobre su estado; no demuestra ausencia de infección.",
+          "comando": "Get-MpComputerStatus | Select-Object AMServiceEnabled,AntivirusEnabled,RealTimeProtectionEnabled,AntivirusSignatureLastUpdated"
+        },
+        {
+          "entorno": "Windows — ver ficheros recientes en carpeta afectada",
+          "proposito": "Ejecutar solo por personal autorizado, sobre rutas conocidas y sin abrir los ficheros; no tocar grandes árboles comprometidos por curiosidad.",
+          "comando": "Get-ChildItem -LiteralPath 'C:\\Users\\Public\\Documents' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 20 Name,Length,LastWriteTime"
+        },
+        {
+          "entorno": "Windows — consultar procesos de backup/shadow sin modificar",
+          "proposito": "Solo lectura; las copias pueden estar ausentes o manipuladas. Debe confirmarlo equipo de backup/IR.",
+          "comando": "vssadmin list shadows"
+        },
+        {
+          "entorno": "Windows — registros de seguridad de creación de procesos",
+          "proposito": "Requiere políticas de auditoría adecuadas y privilegios sobre Security.",
+          "comando": "Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4688; StartTime=(Get-Date).AddHours(-4)} -MaxEvents 100 | Select-Object TimeCreated, Id, Message"
+        }
+      ],
+      "contencion": "Una sospecha con archivos cifrados y nota de rescate amerita tratarse como emergencia aun sin SIEM. El aislamiento de host/red debe seguir playbook y coordinación con IR/infraestructura; en caso de propagación priorizar contención frente a investigación exhaustiva. Apagar únicamente si no puede contenerse por red y siguiendo evaluación de pérdida de memoria/evidencia. No pagar, descifrar, limpiar, ejecutar binarios ni restaurar sin instrucciones autorizadas.",
+      "escalation": [
+        "Nota de rescate verosímil junto a modificaciones masivas o ficheros inaccesibles.",
+        "Unidad compartida/servidor de ficheros con múltiples usuarios afectados.",
+        "Evidencia de propagación, abuso privilegiado, borrado de copias o EDR deshabilitado.",
+        "Posible exfiltración previa, información sensible afectada o acceso a datos regulados.",
+        "Ingestión EDR/SIEM silenciosa en medio de síntomas de cifrado; notificación directa a IR y continuidad."
+      ],
+      "falsos_positivos": [
+        "Simulación autorizada de ransomware con nota de prueba.",
+        "Cambio masivo de extensiones por migración/archivado o herramienta de sincronización.",
+        "Cifrado legítimo por software corporativo, aunque no debería generar nota de rescate.",
+        "Archivos dañados y mensaje falso no relacionado.",
+        "Falta de telemetría por agente apagado/cambio de colector, no necesariamente evasión maliciosa."
+      ],
+      "errores": [
+        "Descartar incidente porque el SIEM no alertó.",
+        "Pedir a usuario abrir nota, reenviar malware o ejecutar una «herramienta de comprobación».",
+        "Reiniciar o apagar de inmediato sin evaluar aislamiento/evidencia cuando la red puede desconectarse.",
+        "Borrar archivos maliciosos o restaurar sobre máquina comprometida antes de forense/IR.",
+        "Concluir ransomware solo por ejecutar vssadmin sin valorar el comando y contexto.",
+        "Investigar una hora mientras cifrado activo se extiende por recursos SMB.",
+        "No verificar protección de backups e identidad asociada."
+      ],
+      "perspectiva_red_team": "Un operador de ransomware puede cifrar rápidamente, intentar inutilizar backups y usar cuentas válidas o comparticiones administrativas para expandirse. Además, algunos ataques logran inhibir sensores o alertas, por lo que el reporte humano y los cambios de archivos son señales de alta importancia. Desde Blue Team, la investigación se centra en limitar impacto y reconstruir la secuencia de acceso, preparación, cifrado y eventual exfiltración.",
+      "respuesta_entrevista": "Consideraría el reporte un posible incidente crítico, activaría el playbook y escalaría inmediatamente. Con IR coordinaría aislamiento de equipo y recursos compartidos para limitar propagación, sin reiniciar ni manipular evidencia por iniciativa propia. Verificaría extensiones/notas, activos afectados, logs de ficheros y procesos, SMB, backups y última conexión de EDR. La falta de alertas del SIEM es una laguna a investigar, nunca una prueba de ausencia de ransomware.",
+      "criterios_evaluacion": [
+        "Prioriza posible cifrado activo sobre investigar alertas ausentes.",
+        "Activa escalado/aislamiento proporcional bajo autoridad y sin destruir evidencia.",
+        "Comprueba alcance de SMB, identidades y copias de seguridad.",
+        "Diferencia señales de daño de hipótesis no confirmadas.",
+        "Usa KQL/SPL para corroborar y reconoce limitaciones de fuentes."
+      ],
+      "mitre": [
+        "T1486 (Data Encrypted for Impact)",
+        "T1490 (Inhibit System Recovery)",
+        "T1021.002 (SMB/Windows Admin Shares, si hay evidencia)",
+        "T1562.001 (Impair Defenses, si se detecta)"
+      ],
+      "fuentes": [
+        "https://www.cisa.gov/stopransomware/ransomware-guide",
+        "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+        "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-devicefileevents-table",
+        "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-deviceprocessevents-table",
+        "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.4/data-models/endpoint"
+      ]
+    }
+  ],
+  "bibliografia_general": [
+    "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+    "https://help.splunk.com/en/splunk-cloud-platform/common-information-model/6.1/data-models/network-traffic",
+    "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.1/data-models/intrusion-detection",
+    "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.4/data-models/endpoint",
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/commonsecuritylog",
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/securityalert",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-alertevidence-table",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-alertinfo-table",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-devicefileevents-table",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-devicenetworkevents-table",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-deviceprocessevents-table",
+    "https://www.cisa.gov/stopransomware/ransomware-guide"
+  ]
+}

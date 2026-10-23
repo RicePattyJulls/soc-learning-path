@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-05-L02",
+  "title": "`/proc`: fuente útil, no registro histórico",
+  "sourceHash": "70d43a815b9ce69c423b3afa37fdbaefa13530df22a2a3087ae85c9bc5f2ceb6",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-05-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nLeer /proc como fuente generada al momento, distinguiendo lo que prueba, lo que sugiere y lo que no puede probar.\n\nPrerrequisitos: `LNX-05-L01` (Modelo de procesos).\n\n## 2. Comprende el mecanismo\n\n`/proc` no es un directorio con ficheros guardados: es un **sistema de ficheros virtual** que el kernel construye cuando alguien lo lee. No ocupa espacio de disco ni conserva versiones anteriores. Cada lectura pregunta al kernel «¿cómo está esto *ahora*?» y obtiene una respuesta que en el instante siguiente puede ser otra.\n\nDentro de `/proc` conviven dos familias. Una describe el sistema (memoria, CPU, módulos cargados, presión de recursos). La otra son los **directorios por proceso**: un subdirectorio por cada PID vivo, con ficheros que describen ese proceso concreto. Si el proceso termina, el subdirectorio desaparece; no queda un «expediente» consultable después.\n\nAlgunos de esos ficheros son especialmente útiles para un analista:\n\n- `cmdline`: memoria de los argumentos con los que se lanzó, que el propio proceso **puede sobrescribir**.\n- `comm` y `status`: nombre corto y estado del proceso, con identidades, PPID y máscaras de señales.\n- `environ`: entorno tal como estaba al ejecutarse el programa, con tamaño limitado.\n- `fd/`: enlaces a los recursos abiertos; un fichero borrado puede seguir apareciendo con la marca `(deleted)`.\n- `exe` y `cwd`: enlaces al ejecutable y al directorio de trabajo actuales.\n\nLa consecuencia práctica: `/proc` es una fuente de **estado**, no de **historia**. No tiene marcas temporales de lo ocurrido ni orden de eventos. Un dato como los argumentos de `cmdline` refleja lo que hay en memoria en ese momento, no necesariamente lo que se escribió al lanzar el proceso; hay programas que reescriben su propia línea de argumentos para mostrar otra cosa.\n\nAdemás, lo que ves depende de tu **identidad** y de la configuración del host: existen políticas de visibilidad que ocultan o restringen partes de `/proc` para usuarios sin privilegios, y hay procesos tan breves que ninguna lectura llega a observarlos. No ver algo en `/proc` no prueba que no existiera.\n\nRegla de trabajo: cada dato leído de `/proc` se anota **con su hora de lectura** y se acompaña de una fuente con tiempo (registro, auditoría, contador) antes de afirmar cualquier cosa sobre el pasado.\n\n### Vocabulario de apoyo\n\n- **Pseudo-fichero**: fichero cuya lectura genera contenido al vuelo; no se almacena.\n- **Directorio PID**: subconjunto de `/proc` que describe un único proceso vivo.\n- **`cmdline`**: argumentos en memoria del proceso; pueden ser reescritos por él mismo.\n- **`environ`**: entorno fijado en el momento de ejecutar el programa, con límites de tamaño.\n- **`fd/`**: descriptores abiertos del proceso, vistos como enlaces simbólicos.\n- **Política de visibilidad**: reglas del host que restringen lo que un usuario puede leer de `/proc`.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-05-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un analista lee `/proc/1180/cmdline` de un servicio y encuentra una cadena de argumentos que parece inofensiva. Concluye que el ejecutable es confiable y que no hubo modificación de parámetros.\n\nLa conclusión salta por encima de la fuente. `cmdline` muestra la memoria de argumentos **en el momento de la lectura** y el propio proceso puede reescribir ese espacio. Que hoy se lea una cadena inocua no prueba qué se pasó al arrancar ni que el binario sea el esperado. Tampoco `comm` ayuda a cerrarlo: es un nombre corto, a menudo truncado.\n\nLo que sí puedes afirmar es acotado y honesto: *en el instante de la lectura, este proceso presentaba estos argumentos*. Para avanzar hacia «el ejecutable es el esperado» necesitas el enlace de `exe`, el resumen de estado y, sobre todo, una comprobación del contenido del fichero y de su procedencia. El límite queda explícito: `/proc` describe el presente; la historia se reconstruye con otra fuente.\n\n"
+    },
+    {
+      "id": "LNX-05-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Anotar cada lectura de `/proc` con su hora y cruzarla con una fuente que conserve tiempo.\n- Red Team autorizado: Tratar los datos visibles en `/proc` como estado presente, nunca como prueba de intención.\n- Evidencia de la etapa: Extracto de `/proc` con comando de lectura, hora e identidad del observador.\n- Criterio de dominio: Declara el límite de cada dato de `/proc` antes de usarlo en una conclusión.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB04 — Snapshot limitado de procesos y `/proc`](../../05_RECURSOS/LABORATORIOS/LNX-LAB04.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F06**: [Linux proc_pid_fd(5)](https://man7.org/linux/man-pages/man5/proc_pid_fd.5.html). Descriptores del proceso y significado de los enlaces en `fd/`.\n- **F10**: [Linux proc(5)](https://man7.org/linux/man-pages/man5/procfs.5.html). Naturaleza del pseudo-sistema y políticas de visibilidad.\n- **F11**: [Linux proc_pid(5)](https://man7.org/linux/man-pages/man5/proc_pid.5.html). Ficheros del directorio de cada PID y sus límites.\n- **F12**: [Linux proc_pid_environ(5)](https://man7.org/linux/man-pages/man5/proc_pid_environ.5.html). Alcance real del entorno expuesto por un proceso.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-05-L02-P01",
+    "prompt": "En un laboratorio sintético lees `/proc/<PID>/environ` y `/proc/<PID>/cmdline` de un proceso y encuentras cadenas que parecen inocuas. Explica qué puedes concluir y qué parte de tu conclusión no se sostiene con esa fuente.",
+    "markdown": "## 4. Práctica individual\n\nEn un laboratorio sintético lees `/proc/<PID>/environ` y `/proc/<PID>/cmdline` de un proceso y encuentras cadenas que parecen inocuas. Explica qué puedes concluir y qué parte de tu conclusión no se sostiene con esa fuente.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber instrumentado un host real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-05-L02-Q01",
+      "prompt": "¿Qué caracteriza a `/proc` como fuente de observación?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Es un registro que el kernel escribe en disco y conserva ordenado por tiempo"
+        },
+        {
+          "id": "B",
+          "text": "Es una copia comprimida del estado del sistema tomada durante el arranque"
+        },
+        {
+          "id": "C",
+          "text": "Se genera al leerlo y muestra un estado momentáneo, sin historial"
+        },
+        {
+          "id": "D",
+          "text": "Solo contiene ficheros de configuración de los servicios instalados"
+        }
+      ]
+    },
+    {
+      "id": "LNX-05-L02-Q02",
+      "prompt": "Un proceso muestra en `/proc/<PID>/cmdline` una cadena distinta de la que se usó para lanzarlo. ¿Cuál es la explicación más precisa?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El kernel reescribe los argumentos cada vez que el proceso cambia de estado"
+        },
+        {
+          "id": "B",
+          "text": "El proceso puede sobrescribir la memoria de sus argumentos y `/proc` refleja lo que hay en ese instante"
+        },
+        {
+          "id": "C",
+          "text": "`cmdline` siempre muestra el nombre del binario y nunca los argumentos"
+        },
+        {
+          "id": "D",
+          "text": "La cadena proviene del historial de la shell y no del proceso observado"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB04 — Snapshot limitado de procesos y `/proc`](../../05_RECURSOS/LABORATORIOS/LNX-LAB04.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F06**: [Linux proc_pid_fd(5)](https://man7.org/linux/man-pages/man5/proc_pid_fd.5.html). Descriptores del proceso y significado de los enlaces en `fd/`.\n- **F10**: [Linux proc(5)](https://man7.org/linux/man-pages/man5/procfs.5.html). Naturaleza del pseudo-sistema y políticas de visibilidad.\n- **F11**: [Linux proc_pid(5)](https://man7.org/linux/man-pages/man5/proc_pid.5.html). Ficheros del directorio de cada PID y sus límites.\n- **F12**: [Linux proc_pid_environ(5)](https://man7.org/linux/man-pages/man5/proc_pid_environ.5.html). Alcance real del entorno expuesto por un proceso.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "0c3dd044c16d47a59fdc1c52"
+}

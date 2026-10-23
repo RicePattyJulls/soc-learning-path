@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M02-L04",
+  "title": "Diagnóstico de direcciones",
+  "sourceHash": "4020cbbb9ced04c5dea127d5fab6b5ede653db5a1d92b3725abd2b2deb3a9cbf",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M02-L04-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDiagnosticar máscara, gateway y direcciones duplicadas con evidencia.\n\nPrerrequisitos: [RED-M02-L03](../RED-E01/RED-M02-L03.md).\n\n## 2. Comprende el mecanismo\n\nEl host decide si un destino está en su enlace usando su prefijo y su tabla de rutas. Una máscara equivocada puede hacerle intentar ARP para una dirección que debería alcanzar por gateway. Un gateway debe ser alcanzable según la configuración del enlace; que su dirección parezca cercana no lo demuestra. Una dirección duplicada se investiga contrastando asignación, respuestas de vecinos y tiempo; cambios de MAC también pueden ser legítimos en alta disponibilidad. Documenta IP, prefijo, gateway, ruta seleccionada y origen de la asignación.\n\n### Vocabulario de apoyo\n\n- **CIDR**: Notación /n que expresa cuántos bits del bloque son prefijo de red.\n- **VLSM**: Asignación de subredes de tamaños distintos dentro de un bloque padre.\n- **Broadcast IPv4**: Dirección para todos los hosts del dominio correspondiente; se reserva en las subredes convencionales del ejercicio.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M02-L04-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Host A=192.0.2.10/24; diseño aprobado=/25; destino=192.0.2.200; captura docente muestra solicitudes ARP por el destino sin respuesta.\n\nLa máscara /24 hace que A trate el destino como local. El diseño /25 esperaba enviarlo al router; corregir el prefijo es una hipótesis verificable antes de culpar al DNS.\n\n"
+    },
+    {
+      "id": "RED-M02-L04-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Interpretar subredes y saltos de origen.\n- Red Team autorizado: Delimitar rangos autorizados de laboratorio.\n- Evidencia del módulo: Tabla de prefijos, asignación y pruebas de no solapamiento.\n- Criterio del módulo: Cumple capacidad, agregación y ausencia de conflictos.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L01](../../05_RECURSOS/LABORATORIOS/RED-L01.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC4632**: [RFC 4632: Classless Inter-domain Routing](https://www.rfc-editor.org/rfc/rfc4632.html). Prefijos y agregación IPv4.\n- **RFC3021**: [RFC 3021: 31-Bit Prefixes on IPv4 Point-to-Point Links](https://www.rfc-editor.org/rfc/rfc3021.html). Excepción de capacidad para /31 en enlaces apropiados.\n- **PY-IP**: [ipaddress — IPv4/IPv6 manipulation library](https://docs.python.org/3/library/ipaddress.html). Tipos, redes y errores de validación; solo operaciones offline.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M02-L04-P01",
+    "prompt": "A usa ya /25 y no alcanza ni a su gateway. Propón dos comprobaciones que distingan dirección duplicada de VLAN incorrecta.",
+    "markdown": "## 4. Práctica individual\n\nA usa ya /25 y no alcanza ni a su gateway. Propón dos comprobaciones que distingan dirección duplicada de VLAN incorrecta.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M02-L04-Q01",
+      "prompt": "¿Qué explica el ARP del ejemplo hacia 192.0.2.200?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El DNS está necesariamente caído"
+        },
+        {
+          "id": "B",
+          "text": "El host considera local el destino por su /24 en vez del /25 previsto"
+        },
+        {
+          "id": "C",
+          "text": "ARP resuelve siempre todas las redes"
+        },
+        {
+          "id": "D",
+          "text": "El destino ha autenticado al usuario"
+        }
+      ]
+    },
+    {
+      "id": "RED-M02-L04-Q02",
+      "prompt": "¿Qué dato falta para afirmar una duplicidad?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Corroboración de asignaciones y respuestas IP/MAC en el tiempo"
+        },
+        {
+          "id": "B",
+          "text": "Un cambio aislado de MAC en un gateway redundante"
+        },
+        {
+          "id": "C",
+          "text": "La discrepancia de máscara del diseño, sin contrastar vecinos"
+        },
+        {
+          "id": "D",
+          "text": "Solo la configuración IP de uno de los hosts"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L01](../../05_RECURSOS/LABORATORIOS/RED-L01.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC4632**: [RFC 4632: Classless Inter-domain Routing](https://www.rfc-editor.org/rfc/rfc4632.html). Prefijos y agregación IPv4.\n- **RFC3021**: [RFC 3021: 31-Bit Prefixes on IPv4 Point-to-Point Links](https://www.rfc-editor.org/rfc/rfc3021.html). Excepción de capacidad para /31 en enlaces apropiados.\n- **PY-IP**: [ipaddress — IPv4/IPv6 manipulation library](https://docs.python.org/3/library/ipaddress.html). Tipos, redes y errores de validación; solo operaciones offline.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "96c727e45555677fd9e922fb"
+}

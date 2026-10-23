@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-14-L01",
+  "title": "ext4: journal y límites de evidencia",
+  "sourceHash": "3ee7f2484f005d4d0bf78d5dec714218ac6e03ac8d71982528804e183416d484",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-14-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nExplicar qué hace el journal de ext4, qué no garantiza y por qué un error de ext4 no prueba por sí solo un sabotaje.\n\nPrerrequisitos: `LNX-13-L03` (Capacidad lógica: bloques, inodos, descriptores).\n\n## 2. Comprende el mecanismo\n\n**ext4** es un sistema de archivos con journal de metadatos ampliamente usado. El **journal** es una región donde se anotan cambios antes de aplicarlos, para que una caída no deje la estructura a medias. Su modos habituales son `data=ordered`, `data=writeback` y `data=journal`.\n\nEn `data=ordered` —el más común— el journal cubre **metadatos** y ordena la escritura de datos antes de ciertos metadatos, para reducir la exposición a datos obsoletos tras una caída. Eso **no** garantiza el contenido exacto de toda escritura sin una sincronización apropiada. `data=journal` registra además los datos, a cambio de coste; `data=writeback` relaja el orden.\n\nEl journal ayuda a restaurar la **consistencia estructural**, pero no es un respaldo ni un registro forense íntegro y perpetuo. Es circular y acotado: se sobrescribe, y lo que anota son operaciones para recuperar coherencia, no un historial completo de quién hizo qué. Confundir el journal con una copia o con un log de auditoría lleva a conclusiones falsas sobre lo que se puede recuperar.\n\nPara observar sin mutar, conviene comprobar el tipo y las opciones de montaje de la ruta, y —solo con la fuente correcta y privilegios— leer los metadatos del sistema de archivos con las utilidades de consulta. Esas lecturas describen configuración y estado; no modifican datos ni reparan nada.\n\nLos **mensajes de error** aportan pistas que hay que clasificar: avisos de ext4, remontaje a solo lectura por fallo, errores de checksum de metadatos o errores de entrada/salida. Ninguno de ellos prueba por sí solo un ataque: hardware, un apagón, un fallo del kernel o un despliegue pueden producirlos. La atribución requiere secuencias temporales, salud del disco y contexto.\n\nEl anti-patrón clásico es lanzar un chequeo universal sobre un sistema montado y mutable esperando un veredicto fiable. La lección: describe el comportamiento del journal con precisión, usa solo lecturas de examen y reconoce que una línea de error es evidencia técnica, no una sentencia.\n\n### Vocabulario de apoyo\n\n- **Journal**: región del sistema de archivos donde se anotan cambios para recuperar consistencia.\n- **`data=ordered`**: modo que cubre metadatos y ordena datos antes de ciertos metadatos.\n- **Consistencia estructural**: coherencia de la estructura del sistema de archivos, no del contenido exacto.\n- **Remontaje a solo lectura**: paso a modo `ro` tras detectar un fallo, para evitar más daño.\n- **Checksum de metadatos**: suma que permite detectar corrupción en estructuras del sistema de archivos.\n- **Chequeo de examen**: comprobación de solo lectura que informa sin reparar.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-14-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un host muestra un aviso de ext4 y su sistema de archivos se remonta en solo lectura. El analista concluye que fue sabotaje y busca un responsable.\n\nLa conclusión no se sostiene. Un remontaje a solo lectura por un aviso de ext4 indica que el sistema detectó un problema y se protegió; las causas posibles incluyen fallo de hardware, corte de energía, un error del kernel o un cambio de configuración, además de una acción deliberada. El síntoma no distingue entre ellas.\n\nEl análisis razonable preserva el mensaje, la hora, la salud del disco y el historial de cambios, y clasifica el incidente antes de atribuirlo. El límite: mientras no haya contexto temporal y de acceso, afirmar sabotaje es una hipótesis, y el journal no ofrece el relato completo que haría falta para sostenerla.\n\n"
+    },
+    {
+      "id": "LNX-14-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Clasificar avisos de ext4 con salud de disco y contexto antes de hablar de sabotaje.\n- Red Team autorizado: No usar la mera presencia de un error como prueba de manipulación.\n- Evidencia de la etapa: Mensaje, hora, opciones de montaje y estado del disco, sin reparar.\n- Criterio de dominio: Distingue consistencia estructural, contenido y atribución.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB16](../../05_RECURSOS/LABORATORIOS/LNX-LAB16.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F47**: [kernel Linux: administración ext4 y modos de journal](https://cdn.kernel.org/doc/html/latest/admin-guide/ext4.html). Modos `data=` y qué cubre el journal de metadatos.\n- **F48**: [Red Hat Enterprise Linux 9: checking/repairing ext y XFS](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/managing_file_systems/checking-and-repairing-a-file-system__managing-file-systems). Chequeo y reparación por familia de sistema de archivos.\n- **F62**: [NIST SP 800-86, Guide to Integrating Forensic Techniques into Incident Response (2006)](https://csrc.nist.gov/pubs/sp/800/86/final). Preservar antes de intervenir y límites de la evidencia técnica.\n- **F68**: [e2fsprogs: e2fsck(8)](https://man7.org/linux/man-pages/man8/e2fsck.8.html). Opciones de examen en solo lectura y advertencias de uso.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-14-L01-P01",
+    "prompt": "Un host muestra un aviso de ext4 y su sistema de archivos se remonta en solo lectura, y concluyes que fue sabotaje. Explica qué garantiza y qué no el journal, qué evidencia reunirías sin mutar nada y cuál es el límite de tu conclusión.",
+    "markdown": "## 4. Práctica individual\n\nUn host muestra un aviso de ext4 y su sistema de archivos se remonta en solo lectura, y concluyes que fue sabotaje. Explica qué garantiza y qué no el journal, qué evidencia reunirías sin mutar nada y cuál es el límite de tu conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber reparado ni examinado un ext4 real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-14-L01-Q01",
+      "prompt": "¿Qué garantiza el journal de ext4 en modo `data=ordered`?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que todo dato escrito esté en disco en el instante en que el programa lo pide"
+        },
+        {
+          "id": "B",
+          "text": "Que ayuda a restaurar consistencia estructural de metadatos, sin garantizar el contenido exacto de toda escritura"
+        },
+        {
+          "id": "C",
+          "text": "Que el contenido es inmutable frente a cambios privilegiados"
+        },
+        {
+          "id": "D",
+          "text": "Que cada escritura queda registrada de forma permanente y auditable"
+        }
+      ]
+    },
+    {
+      "id": "LNX-14-L01-Q02",
+      "prompt": "¿Qué es correcto sobre un chequeo de examen tipo `e2fsck -n`?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Examina en modo solo lectura y no debe usarse esperando resultados fiables sobre un sistema de archivos montado y mutable"
+        },
+        {
+          "id": "B",
+          "text": "Repara automáticamente todos los errores aunque el sistema esté en uso"
+        },
+        {
+          "id": "C",
+          "text": "Sustituye a un respaldo cuando hay corrupción"
+        },
+        {
+          "id": "D",
+          "text": "Reescribe el journal para borrar cualquier rastro de fallo"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB16](../../05_RECURSOS/LABORATORIOS/LNX-LAB16.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F47**: [kernel Linux: administración ext4 y modos de journal](https://cdn.kernel.org/doc/html/latest/admin-guide/ext4.html). Modos `data=` y qué cubre el journal de metadatos.\n- **F48**: [Red Hat Enterprise Linux 9: checking/repairing ext y XFS](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/managing_file_systems/checking-and-repairing-a-file-system__managing-file-systems). Chequeo y reparación por familia de sistema de archivos.\n- **F62**: [NIST SP 800-86, Guide to Integrating Forensic Techniques into Incident Response (2006)](https://csrc.nist.gov/pubs/sp/800/86/final). Preservar antes de intervenir y límites de la evidencia técnica.\n- **F68**: [e2fsprogs: e2fsck(8)](https://man7.org/linux/man-pages/man8/e2fsck.8.html). Opciones de examen en solo lectura y advertencias de uso.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "2da439541c53f51e477a136f"
+}

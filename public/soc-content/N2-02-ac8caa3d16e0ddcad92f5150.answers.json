@@ -1,0 +1,178 @@
+{
+  "schemaVersion": 1,
+  "courseId": "soc",
+  "id": "N2-02",
+  "sourceHash": "7b29f84ab75d075930846f83afa3dd57919e7e4660e40f97230899d149d3f601",
+  "revision": "ac8caa3d16e0ddcad92f5150",
+  "hipotesis": [
+    "Reconectar íntegramente reabre la ruta de exfiltración y el ataque puede reanudarse.",
+    "Hay una réplica limpia/failover seguro que puede recuperar funcionalidad sin usar el activo comprometido.",
+    "Se requiere tráfico mínimo por determinadas dependencias para continuidad del negocio.",
+    "El aislamiento actual desconectó la plataforma por una dependencia monolítica no prevista.",
+    "La intrusión pudo extenderse a réplicas, credenciales o backups: no todo failover es automáticamente seguro.",
+    "La cifra financiera presentada necesita validación por negocio; aun siendo real, no prueba que la reconexión sea la única alternativa."
+  ],
+  "pasos": [
+    {
+      "fase": "0. Confirmar el hecho y autoridad",
+      "accion": "Comprobar que el equipo está aislado efectivamente y qué servicios fallan. Solicitar presencia de Incident Commander, responsable de infraestructura, negocio y dueño de datos; documentar quién puede aceptar riesgos."
+    },
+    {
+      "fase": "1. Explicar impacto técnico sin absolutismos",
+      "accion": "Comunicar que reconexión plena puede reactivar exfiltración, persistencia o lateralidad. Reconocer la pérdida operativa y presentar alternativas con riesgo y tiempo aproximado, sin inventar SLA."
+    },
+    {
+      "fase": "2. Revisar alternativas de continuidad",
+      "accion": "Examinar failover a réplica validada, servicio de solo lectura si aplica y es realmente seguro, restauración desde backup verificado, activación de DR o cola de operaciones mientras se investiga."
+    },
+    {
+      "fase": "3. Diseñar mínimo egreso/ingreso",
+      "accion": "Si se debe operar el activo: segmentarlo y permitir solo flujos esenciales identificados (fuentes, destinos, puertos, identidad de servicio); denegar salida a Internet y movimiento lateral no imprescindible. Lo implementa redes bajo gestión de cambios de emergencia."
+    },
+    {
+      "fase": "4. Comprobar identidad y secretos",
+      "accion": "No reusar cuentas de servicio y secretos presuntamente comprometidos sin plan de rotación. Verificar controles de acceso, permisos, cuentas y endpoints dependientes antes de reabrir tráfico."
+    },
+    {
+      "fase": "5. Instalar controles compensatorios",
+      "accion": "Telemetría independiente en firewall/DB/app, alertas de volumen, inspección de rutas y responsable con autoridad para volver a bloquear. No depender de que el EDR siga pudiendo detener el proceso malicioso."
+    },
+    {
+      "fase": "6. Obtener una decisión documentada",
+      "accion": "El responsable de incidente coordina la decisión con el negocio y las funciones habilitadas; el analista ofrece recomendación, escenarios y nivel de incertidumbre. Si se acepta riesgo residual, registrar alcance, ventana y condiciones de reversión."
+    },
+    {
+      "fase": "7. Ejecutar restauración gradual si procede",
+      "accion": "Primero pruebas controladas, monitorizar errores, conexiones y tasas de bytes; apertura progresiva únicamente después de verificación. Si vuelve el indicador crítico, reinstaurar contención sin debate prolongado."
+    },
+    {
+      "fase": "8. Mantener evidencia e investigar",
+      "accion": "Antes de rehacer imágenes o reprovisionar, recopilar lo indispensable para investigación conforme al playbook. Documentar qué servicio fue alterado, cuándo, y si hubo contaminación de réplica/backup."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "Acción EDR y reglas de firewall con versión/ID",
+      "lectura": "Evidencia de control y límites; no basta capturar un botón marcado como aislado."
+    },
+    {
+      "dato": "Inventario de dependencias y diagrama de flujo",
+      "lectura": "Identifica servicios que realmente requieren acceso y evita excepciones globales."
+    },
+    {
+      "dato": "Salud de réplica, backups y verificación de integridad",
+      "lectura": "Evalúa failover; un backup existente no demuestra ser seguro o restaurable."
+    },
+    {
+      "dato": "IP/destino y bytes durante ventana de pruebas",
+      "lectura": "Determina si un egreso inesperado reaparece al restablecer servicio."
+    },
+    {
+      "dato": "Estado de credenciales, roles y cuentas de servicio",
+      "lectura": "Descarta rutas de autenticación innecesarias con identidades afectadas."
+    },
+    {
+      "dato": "Acta de excepción: dueño del riesgo, duración y criterios",
+      "lectura": "Traza la decisión de negocio y los controles compensatorios aprobados."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Sentinel / Log Analytics · verificación de tráfico permitido durante contingencia",
+      "entorno": "CommonSecurityLog de firewall; los valores de DeviceAction varían por fabricante. No usar listados literales Allow/Deny como verdad global.",
+      "consulta": "let src=\"10.60.5.10\";\nCommonSecurityLog\n| where TimeGenerated > ago(2h)\n| where SourceIP == src\n| summarize volumen=sum(tolong(SentBytes)), eventos=count()\n  by bin(TimeGenerated, 5m), DestinationIP, DestinationPort, DeviceAction\n| order by TimeGenerated desc, volumen desc",
+      "interpretacion": "Comprueba si aparecen destinos fuera de la lista permitida y si aumenta el volumen tras una excepción.",
+      "limitaciones": "El campo SentBytes puede representarse a fin de sesión; no usar esta consulta como prueba única ni como monitor de latencia cero."
+    },
+    {
+      "nombre": "Defender XDR · conexiones por procesos durante pruebas de servicio",
+      "entorno": "DeviceNetworkEvents de MDE sobre equipo aislado o reintroducido en modo controlado; verificar que el agente siga reportando.",
+      "consulta": "DeviceNetworkEvents\n| where Timestamp > ago(2h)\n| where DeviceName startswith \"DB-PRD-01\"\n| summarize eventos=count(), primera=min(Timestamp), ultima=max(Timestamp)\n  by RemoteIP, RemotePort, InitiatingProcessFileName,\n     InitiatingProcessAccountName, ActionType\n| order by ultima desc",
+      "interpretacion": "Permite cruzar servicio esencial esperado con proceso originador y acceso a destinos nuevos.",
+      "limitaciones": "No mide datos transmitidos ni garantiza visibilidad si el endpoint quedó offline o en aislamiento que restringe telemetría."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk CIM Network_Traffic · conexiones permitidas/bloqueadas de DB-PRD-01",
+      "entorno": "Modelo Network_Traffic CIM; src debe corresponder a IP/host real en dispositivo, NAT correctamente resuelto.",
+      "consulta": "| tstats count sum(All_Traffic.bytes_out) as bytes_fuera\n  from datamodel=Network_Traffic.All_Traffic\n  where earliest=-2h latest=now All_Traffic.src=\"10.60.5.10\"\n  by All_Traffic.dest All_Traffic.dest_port All_Traffic.action\n| rename All_Traffic.* as *\n| sort - bytes_fuera",
+      "interpretacion": "Comparación de rutas usadas mientras se mantiene operación restringida.",
+      "limitaciones": "Verificar normalización de action y contar solo fuentes adecuadas para no duplicar bytes."
+    },
+    {
+      "nombre": "Splunk CIM · evolución temporal de egreso tras cambio",
+      "entorno": "Igual fuente/índice normalizado durante todo el intervalo; ventana temporal que abarque apertura o cierre de reglas.",
+      "consulta": "| tstats sum(All_Traffic.bytes_out) as bytes_fuera count\n  from datamodel=Network_Traffic.All_Traffic\n  where earliest=-2h latest=now All_Traffic.src=\"10.60.5.10\"\n  by _time span=5m All_Traffic.dest\n| rename All_Traffic.* as *\n| timechart span=5m sum(bytes_fuera) as bytes_fuera",
+      "interpretacion": "Correlaciona volumen a lo largo del tiempo con las marcas de cambio de políticas de red.",
+      "limitaciones": "La agregación vuelve a sumar los destinos por intervalo; contrastar con métrica del firewall y reloj de cambio."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Linux — solo lectura",
+      "proposito": "Consultar sockets actuales durante recuperación controlada; no establece seguridad ni identidad por sí solo.",
+      "comando": "sudo ss -tunap"
+    },
+    {
+      "entorno": "Linux — solo lectura",
+      "proposito": "Listar reglas nftables antes de aprobar excepciones. Nunca pegar una regla genérica de ACCEPT en producción.",
+      "comando": "sudo nft list ruleset"
+    },
+    {
+      "entorno": "Linux — solo lectura",
+      "proposito": "Estado de dependencia de aplicación a nivel servicio sin reiniciar nada.",
+      "comando": "systemctl --no-pager --failed"
+    },
+    {
+      "entorno": "Windows — solo lectura",
+      "proposito": "Enumerar conexiones TCP para correlación con PID; permisos suficientes requeridos.",
+      "comando": "Get-NetTCPConnection -State Established | Select-Object LocalAddress,LocalPort,RemoteAddress,RemotePort,OwningProcess"
+    }
+  ],
+  "contencion": "No reconectar por simple presión jerárquica sin revisión del responsable de incidente y aceptación de riesgo por autoridad designada. Devolver tráfico mínimo, no Internet en general; el mecanismo puede ser firewall perimetral/NSG/ACL cuando el aislamiento EDR es demasiado amplio. Selective isolation y exclusions dependen del producto y SO; una excepción puede debilitar el aislamiento y no equivale a «modo seguro». Se recomienda recuperación por activo alternativo verificado antes que usar la máquina comprometida.",
+  "escalation": [
+    "El negocio exige un cambio contrario a contención vigente.",
+    "La restauración afectará a sistemas regulados o datos personales con potencial brecha.",
+    "Se necesita autorizar excepción temporal o aceptación formal de riesgo residual.",
+    "No existe alternativa limpia de failover y la disponibilidad es crítica.",
+    "En pruebas reaparecen destinos inusuales o identidades sospechosas."
+  ],
+  "falsos_positivos": [
+    "Destino de monitoreo o backup etiquetado como no aprobado por CMDB desactualizada.",
+    "Incremento esperado de transferencia por repoblación de cachés o replicación legítima.",
+    "Fallos de app por DNS, certificados o dependencias ocultas, no por el EDR directamente.",
+    "Error de configuración preexistente que parece consecuencia del aislamiento.",
+    "Alarmas de egreso generadas por una validación de DR ya autorizada."
+  ],
+  "errores": [
+    "Reconectar para “ver si pasa otra vez” con una ruta de egreso libre.",
+    "Negarse sin elevar y presentar alternativas concretas de continuidad.",
+    "Interpretar «miles de euros» como una autorización de seguridad.",
+    "Usar una réplica sin comprobar indicios de compromiso y estado de secretos.",
+    "Abrir excepciones indefinidas o de todo Internet para recuperar un único servicio.",
+    "No definir criterios concretos de rollback ante reaparición de exfiltración."
+  ],
+  "perspectiva_red_team": "Un atacante que ya consiguió persistencia puede beneficiarse de un restablecimiento apresurado: recupera salida hacia C2, rutas de lateralidad o credenciales válidas. Desde la defensa, la segmentación permite reducir la superficie expuesta mientras el negocio recupera una función concreta. La negociación no sustituye la aceptación formal del riesgo ni una validación técnica posterior.",
+  "respuesta_entrevista": "No reconectaría plenamente ese servidor por una solicitud verbal: explicaría el riesgo de reiniciar la exfiltración y escalaría de inmediato al comandante de incidente, negocio e infraestructura. Evaluaría un failover o restauración de entorno limpio. Si fuera necesario operar el activo, plantearía conectividad mínima con controles de egreso, seguimiento estrecho, cambio documentado y reversión inmediata si reaparece un indicador. Mi objetivo es reducir la pérdida de negocio sin convertir la restauración en un segundo compromiso.",
+  "criterios_evaluacion": [
+    "Diferencia decisión de disponibilidad y autoridad para aceptar riesgo.",
+    "Propone failover/DR/backup verificados antes de reconexión completa.",
+    "Recomienda excepción mínima y temporal, no acceso libre.",
+    "Contempla secretos comprometidos y redes laterales.",
+    "Define monitorización, rollback y responsable explícito."
+  ],
+  "mitre": [
+    "T1041 (Exfiltration Over C2 Channel, si hubo C2)",
+    "T1567 (Exfiltration Over Web Service, hipótesis)",
+    "T1078 (Valid Accounts, si hay prueba de credenciales)"
+  ],
+  "fuentes": [
+    "https://csrc.nist.gov/pubs/sp/800/61/r3/final",
+    "https://learn.microsoft.com/en-us/defender-endpoint/network-isolation-exclusions",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-devicenetworkevents-table",
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/commonsecuritylog",
+    "https://www.cisa.gov/stopransomware/ransomware-guide",
+    "https://help.splunk.com/en/splunk-enterprise/common-information-model/6.1/data-models/network-traffic"
+  ]
+}

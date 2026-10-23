@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-21-L01",
+  "title": "Túnel SSH autorizado",
+  "sourceHash": "f2793fb865d32e2314ba356a57a047cefad485d62b90aff684e6d4cf11f646ad",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-21-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDescribir el reenvío de puertos por SSH, distinguir lo que observa cada punto de la red y delimitar un túnel de laboratorio autorizado y reversible.\n\nPrerrequisitos: `LNX-20-L03` (`authorized_keys` y acceso delimitado).\n\n## 2. Comprende el mecanismo\n\nUn **túnel SSH** no es un protocolo aparte: es un **reenvío de puertos** que viaja dentro de una sesión SSH ya cifrada y autenticada. El transporte seguro ya existe; el túnel solo aprovecha sus canales para transportar otras conexiones. Por eso conviene estudiarlo como una capacidad del propio SSH y no como una herramienta nueva.\n\nEn el **reenvío local** `ssh -L puerto_local:destino:puerto user@bastion`, el cliente abre un socket en escucha en la estación local; cuando algo se conecta a ese puerto, `ssh` envía la petición por el canal cifrado y `sshd`, en el bastión, abre la conexión final al destino. El **reenvío remoto** `-R` invierte el sentido: el socket en escucha vive en el servidor. El **SOCKS dinámico** `-D` publica un proxy local, y el **jump host** `-J` encadena saltos sin publicar un puerto.\n\nLa clave para el análisis es que hay **dos sockets distintos**, y a menudo están en máquinas distintas. Uno es el socket de escucha que publica el túnel; el otro es la conexión final que abre la otra punta. Entre ambos viaja un canal cifrado. Confundir el socket local con la conexión final es el error que lleva a describir mal el flujo.\n\nCada observador ve una parte distinta. En la estación local se ve un puerto en escucha y una conexión saliente al bastión por el puerto 22; el contenido del canal está cifrado. En el bastión, `sshd` ve la autenticación, el reenvío solicitado y la conexión que él mismo abre al destino. Un sensor de red intermedio solo ve el flujo cifrado hacia el bastión, no el destino final.\n\nLa política controla qué reenvíos se permiten: `AllowTcpForwarding`, `PermitOpen`, `PermitListen` y `GatewayPorts` en `sshd_config`, más opciones de cliente como `ExitOnForwardFailure`. Ahora bien, OpenSSH advierte que desactivar `AllowTcpForwarding` **no impide** que un usuario con shell ejecute su propio software de reenvío. La política completa integra permisos, segmentación y control de egreso, no una sola directiva.\n\nDe aquí se sigue el uso responsable. Ver `ssh -L` no demuestra intención maliciosa: es una capacidad legítima de administración. Un túnel autorizado se limita a un bastión de laboratorio, un servicio de prueba propio y credenciales del propio laboratorio, y debe poder revertirse.\n\nLa regla es declarar el punto de observación antes de describir un túnel. El límite: sin el registro del bastión, el destino final puede quedar fuera de la vista, y el cifrado del canal oculta el contenido transportado.\n\n### Vocabulario de apoyo\n\n- **Reenvío local (`-L`)**: socket en escucha en el cliente que reenvía hacia el destino a través del bastión.\n- **Reenvío remoto (`-R`)**: socket en escucha en el servidor que reenvía hacia el cliente.\n- **SOCKS dinámico (`-D`)**: proxy que el cliente SSH publica localmente.\n- **Jump host (`-J`)**: encadenado de saltos SSH sin publicar un puerto.\n- **`AllowTcpForwarding`**: directiva del servidor que habilita o restringe reenvíos.\n- **`PermitOpen`**: lista de destinos de reenvío admitidos por el servidor.\n- **Sensor**: punto de observación con una vista parcial del mismo flujo.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-21-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en una estación de laboratorio se ejecuta `ssh -L 8080:192.0.2.30:80 user@bastion-lab`. Con `ss` se observa un puerto 8080 en escucha local y una conexión al bastión por el puerto 22. En el bastión, el registro de `sshd` muestra la sesión y el reenvío. Un sensor de red intermedio solo ve el flujo cifrado hacia el puerto 22.\n\nEl razonamiento correcto separa los dos sockets. El puerto 8080 en escucha está en la estación local y es el punto de entrada del túnel; la conexión al bastión por el puerto 22 es el canal cifrado. La conexión al destino `192.0.2.30:80` la abre `sshd` en el bastión, no la estación. Por eso un sensor intermedio ve tráfico hacia el puerto 22 y no el tráfico final hacia el servicio interno.\n\nEl límite de la conclusión: desde una sola observación no se puede describir todo el recorrido. Sin el registro del bastión, el destino final del reenvío queda fuera de la vista, y el contenido que viaja dentro del túnel está cifrado. Describir el túnel exige declarar qué punto de observación se está usando.\n\n"
+    },
+    {
+      "id": "LNX-21-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Registrar el reenvío en el bastión y no deducir el destino final solo desde el flujo cifrado.\n- Red Team autorizado: Medir qué ve cada sensor con bastión, servicio y credenciales propios del laboratorio.\n- Evidencia de la etapa: Punto de observación declarado, directivas de reenvío efectivas y registro de la sesión en el bastión.\n- Criterio de dominio: Declara el punto de observación y no confunde el socket local con la conexión final.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB26](../../05_RECURSOS/LABORATORIOS/LNX-LAB26.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F84**: [ssh(1) — OpenSSH/OpenBSD](https://man.openbsd.org/ssh.1). Reenvío local, remoto, dinámico y jump host.\n- **F82**: [sshd_config(5) — OpenSSH/OpenBSD](https://man.openbsd.org/sshd_config.5). Directivas de reenvío y su alcance.\n- **F83**: [sshd(8) — OpenSSH/OpenBSD](https://man.openbsd.org/sshd.8). Comportamiento del servidor ante los reenvíos.\n- **F85**: [ssh_config(5) — OpenSSH/OpenBSD](https://man.openbsd.org/ssh_config.5). Opciones de cliente relacionadas con reenvíos y saltos.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-21-L01-P01",
+    "prompt": "En una estación de laboratorio ejecutas `ssh -L 8080:192.0.2.30:80 user@bastion-lab` y observas un puerto 8080 en escucha local más una conexión al bastión por el puerto 22; un sensor intermedio solo ve tráfico cifrado hacia el puerto 22. Explica qué ve cada punto de observación, dónde se abre la conexión al destino final y cuál es el límite de tu conclusión.",
+    "markdown": "## 4. Práctica individual\n\nEn una estación de laboratorio ejecutas `ssh -L 8080:192.0.2.30:80 user@bastion-lab` y observas un puerto 8080 en escucha local más una conexión al bastión por el puerto 22; un sensor intermedio solo ve tráfico cifrado hacia el puerto 22. Explica qué ve cada punto de observación, dónde se abre la conexión al destino final y cuál es el límite de tu conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber creado túneles ni haber accedido a servicios reales.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-21-L01-Q01",
+      "prompt": "¿Qué describe correctamente `ssh -L 8080:192.0.2.30:80 user@bastion-lab`?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El bastión abre un socket en escucha en el puerto 8080 y el cliente conecta a 192.0.2.30"
+        },
+        {
+          "id": "B",
+          "text": "El cliente redirige todo el tráfico del puerto 22 hacia 192.0.2.30"
+        },
+        {
+          "id": "C",
+          "text": "El cliente abre un socket local en el puerto 8080 y el bastión establece la conexión final a 192.0.2.30:80 a través del canal cifrado"
+        },
+        {
+          "id": "D",
+          "text": "El tráfico hacia 192.0.2.30:80 viaja sin cifrar desde el cliente"
+        }
+      ]
+    },
+    {
+      "id": "LNX-21-L01-Q02",
+      "prompt": "¿Qué limita realmente desactivar `AllowTcpForwarding` en `sshd_config`?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Impide cualquier conexión SSH entrante"
+        },
+        {
+          "id": "B",
+          "text": "Cifra el canal con una clave distinta"
+        },
+        {
+          "id": "C",
+          "text": "Borra los puertos en escucha de la estación cliente"
+        },
+        {
+          "id": "D",
+          "text": "Restringe el reenvío gestionado por `sshd`, pero no impide que un usuario con shell ejecute su propio software de reenvío"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB26](../../05_RECURSOS/LABORATORIOS/LNX-LAB26.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F84**: [ssh(1) — OpenSSH/OpenBSD](https://man.openbsd.org/ssh.1). Reenvío local, remoto, dinámico y jump host.\n- **F82**: [sshd_config(5) — OpenSSH/OpenBSD](https://man.openbsd.org/sshd_config.5). Directivas de reenvío y su alcance.\n- **F83**: [sshd(8) — OpenSSH/OpenBSD](https://man.openbsd.org/sshd.8). Comportamiento del servidor ante los reenvíos.\n- **F85**: [ssh_config(5) — OpenSSH/OpenBSD](https://man.openbsd.org/ssh_config.5). Opciones de cliente relacionadas con reenvíos y saltos.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "605a1da87ddc16b83ed4d2c1"
+}

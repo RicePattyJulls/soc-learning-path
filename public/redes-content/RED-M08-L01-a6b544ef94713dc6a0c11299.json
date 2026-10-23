@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M08-L01",
+  "title": "Aprendizaje MAC y ARP",
+  "sourceHash": "04e23528dfe78780196403970c59736c97c1218fd6d944b0252d4857b2c1305f",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M08-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nRelacionar la tabla MAC con la tabla ARP sin intercambiar sus funciones.\n\nPrerrequisitos: [RED-M01-L04](../RED-E01/RED-M01-L04.md), [RED-M02-L04](../RED-E01/RED-M02-L04.md).\n\n## 2. Comprende el mecanismo\n\nUn switch aprende normalmente la MAC de origen y su puerto dentro de una VLAN. Usa la MAC destino para reenviar; si es desconocida puede inundar los puertos pertinentes de esa VLAN salvo el de entrada. ARP relaciona una dirección IPv4 de vecino con una MAC; no es una tabla de todos los puertos del campus. Las entradas pueden caducar y el movimiento de una MAC requiere contexto de movilidad, redundancia o posible error. Ver una MAC no atribuye por sí solo identidad humana.\n\n### Vocabulario de apoyo\n\n- **Tabla MAC**: Relación aprendida entre direcciones MAC, puertos y VLAN para conmutar tramas.\n- **LLDP/CDP**: Protocolos que anuncian información de vecinos del enlace; CDP corresponde a Cisco.\n- **Contador acumulativo**: Total desde su inicio o reinicio; para medir actividad reciente se comparan muestras.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M08-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Tabla docente VLAN10: MAC A→p1, MAC B→p2. Entra por p1 una trama A→B.\n\nEl destino conocido B permite reenviar por p2. Para esta decisión el switch no necesita resolver el nombre DNS del host.\n\n"
+    },
+    {
+      "id": "RED-M08-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Ubicar punto de captura y equipo probable.\n- Red Team autorizado: Inventario de activos dentro de alcance.\n- Evidencia del módulo: Plano de puertos, MAC y rutas L2.\n- Criterio del módulo: Mapa consistente con evidencias L2.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L04](../../05_RECURSOS/LABORATORIOS/RED-L04.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **BRIDGE**: [Ethernet Bridging](https://docs.kernel.org/networking/bridge.html). Learning, forwarding, VLAN y controles de bridge; kAPI no se presenta como estable.\n- **PHY**: [Troubleshoot Switch Port and Interface Problems](https://www.cisco.com/c/en/us/support/docs/switches/catalyst-6500-series-switches/12027-53.html). Dúplex, CRC, contadores y diagnóstico de interfaces; procedimientos dependientes de familia.\n- **POE**: [Troubleshoot Power over Ethernet on Catalyst 9000](https://www.cisco.com/c/en/us/support/docs/switches/catalyst-9200-series-switches/215636-troubleshooting-power-over-ethernet-poe.html). Demanda de potencia, presupuesto y diagnóstico PoE.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M08-L01-P01",
+    "prompt": "B desaparece de la tabla por caducidad. Predice el tratamiento habitual de una nueva trama hacia B.",
+    "markdown": "## 4. Práctica individual\n\nB desaparece de la tabla por caducidad. Predice el tratamiento habitual de una nueva trama hacia B.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M08-L01-Q01",
+      "prompt": "¿De qué dirección aprende normalmente el switch?",
+      "options": [
+        {
+          "id": "A",
+          "text": "De la contraseña del cliente"
+        },
+        {
+          "id": "B",
+          "text": "De la MAC origen de la trama recibida"
+        },
+        {
+          "id": "C",
+          "text": "Del registro MX"
+        },
+        {
+          "id": "D",
+          "text": "Del puerto TCP destino"
+        }
+      ]
+    },
+    {
+      "id": "RED-M08-L01-Q02",
+      "prompt": "¿Por dónde reenvía la trama A→B del ejemplo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Por otra VLAN al azar"
+        },
+        {
+          "id": "B",
+          "text": "Por p2 según su tabla MAC"
+        },
+        {
+          "id": "C",
+          "text": "Solo por el servidor DNS"
+        },
+        {
+          "id": "D",
+          "text": "Por todos los routers siempre"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L04](../../05_RECURSOS/LABORATORIOS/RED-L04.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **BRIDGE**: [Ethernet Bridging](https://docs.kernel.org/networking/bridge.html). Learning, forwarding, VLAN y controles de bridge; kAPI no se presenta como estable.\n- **PHY**: [Troubleshoot Switch Port and Interface Problems](https://www.cisco.com/c/en/us/support/docs/switches/catalyst-6500-series-switches/12027-53.html). Dúplex, CRC, contadores y diagnóstico de interfaces; procedimientos dependientes de familia.\n- **POE**: [Troubleshoot Power over Ethernet on Catalyst 9000](https://www.cisco.com/c/en/us/support/docs/switches/catalyst-9200-series-switches/215636-troubleshooting-power-over-ethernet-poe.html). Demanda de potencia, presupuesto y diagnóstico PoE.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "a6b544ef94713dc6a0c11299"
+}

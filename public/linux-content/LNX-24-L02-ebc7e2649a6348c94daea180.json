@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-24-L02",
+  "title": "SUID/SGID, sudoers y capabilities",
+  "sourceHash": "7d7f020b2ab9005c2be24ced913211aea573730fff181919c9a4ae48bd76166f",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-24-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nLeer un privilegio especial o una capability como metadato del archivo y contrastarlo con la credencial efectiva del proceso, sin ejecutar ninguna escalada.\n\nPrerrequisitos: `LNX-24-L01` (UID/GID real, efectivo, saved y filesystem).\n\n## 2. Comprende el mecanismo\n\nHay tres mecanismos que suenan parecidos y resuelven problemas distintos: el bit **SUID**, el bit **SGID** y las **capabilities**. Confundirlos produce dos errores simétricos: llamar escalada a cualquier bit especial y, al contrario, ignorar un privilegio real porque el archivo «parece normal».\n\nEl bit **SUID** en un ejecutable hace que el proceso adopte la EUID del propietario del archivo. Solo tiene efecto sobre archivos ejecutables; un SUID sobre un fichero de texto no produce privilegio. El bit **SGID** en un ejecutable adopta el GID del grupo propietario; en un **directorio**, hace que los objetos nuevos hereden el grupo del directorio en lugar del grupo primario de quien los crea. Ese segundo uso es administrativo y muy común en directorios compartidos: no es una escalada, es una política de pertenencia.\n\nLas **capabilities** dividen los privilegios de root en unidades nombradas. Un binario puede llevar `CAP_NET_BIND_SERVICE` para escuchar en un puerto bajo sin ser root, o `CAP_DAC_READ_SEARCH` para lecturas que el DAC negaría. La capability de archivo no garantiza privilegio efectivo: al ejecutar, el kernel calcula el conjunto permitido y efectivo según el **bounding set**, la herencia, `no_new_privs`, el namespace y las restricciones del LSM. Un `getcap` con resultado positivo describe una intención configurada, no un privilegio obtenido.\n\nLa delegación con **sudoers** es otra capa. Una regla de `sudo` autoriza comandos a una identidad, con o sin contraseña, y puede limitar variables o el uso de `NOEXEC`. La regla efectiva no siempre coincide con la línea escrita: los `include` y `include_dir`, el orden de evaluación y la primera coincidencia importan. Además, delegar un editor, un intérprete o un binario que acepta argumentos arbitrarios puede ampliar el alcance mucho más de lo que sugiere el nombre del comando.\n\nLa observación se hace con herramientas de lectura. `find` con `-perm -4000` y `-perm -2000` sobre un árbol propio lista bits especiales; `stat` y `ls -l` confirman dueño y tipo; `getcap -r` enumera capabilities de archivo; `getpcaps` o `/proc/PID/status` muestran las del proceso; `sudo -l` del propio usuario informa la delegación que le aplica. Ninguna de estas lecturas ejecuta el binario ni eleva privilegios.\n\nEl contexto cambia la conclusión. Un SUID en un sistema de archivos montado con `nosuid` no se aplica. Un binario con capabilities dentro de un contenedor sin esa capability en el bounding set no la obtiene. Un archivo con SUID cuyo dueño es un usuario sin privilegios no concede root. Por eso el hallazgo se describe como «metadato presente en esta ruta, con estas condiciones», no como «escalada disponible».\n\nLa regla de la lección: privilegio observado no es privilegio ejercido. El límite: sin ejecutar el binario en un entorno autorizado y medir la credencial resultante, no se puede afirmar que la escalada sea posible; y ejecutarla queda fuera del alcance de este curso.\n\n### Vocabulario de apoyo\n\n- **SUID**: bit que hace adoptar la EUID del propietario del ejecutable.\n- **SGID**: bit que adopta el GID del propietario o impone herencia de grupo en un directorio.\n- **Capability**: privilegio nombrado y acotado, separado de la identidad de root.\n- **Bounding set**: conjunto máximo de capabilities que un proceso puede llegar a tener.\n- **`no_new_privs`**: restricción que impide ganar privilegios mediante `execve`.\n- **`sudo -l`**: consulta de la delegación que se aplica al propio usuario.\n- **`nosuid`**: opción de montaje que anula el efecto de los bits SUID y SGID.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-24-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: una revisión de baseline encuentra en un directorio de laboratorio un archivo con `rwsr-xr-x`, propietario `root`, y otro con `CAP_DAC_READ_SEARCH` en `getcap`. El informe los clasifica como «dos escaladas a root confirmadas» y recomienda borrarlos de inmediato.\n\nEl informe convierte un metadato en un resultado. El primer archivo tiene SUID, pero si no es ejecutable, si vive en un montaje `nosuid` o si su dueño no es privilegiado, el efecto es nulo o distinto del supuesto. El segundo tiene una capability configurada, pero el privilegio efectivo depende del bounding set, de `no_new_privs`, del namespace y del LSM. Ninguna de las dos lecturas demuestra que se haya obtenido root.\n\nLa lectura correcta describe condiciones: ruta, dueño, tipo de archivo, modo, opciones de montaje, capability y contexto del proceso. Solo después se decide si el hallazgo es exposición, configuración esperada o riesgo a revisar. El límite: sin una prueba controlada que mida la credencial resultante, la afirmación correcta es «privilegio potencial en estas condiciones», no «escalada confirmada».\n\n"
+    },
+    {
+      "id": "LNX-24-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Clasificar hallazgos de SUID, SGID y capabilities por condiciones observadas, no por nombre del binario.\n- Red Team autorizado: Enumerar metadatos en árboles propios y documentar exposición sin ejecutar la escalada.\n- Evidencia de la etapa: Ruta, dueño, modo, opciones de montaje, capability y contexto del proceso.\n- Criterio de dominio: Distingue privilegio configurado de privilegio ejercido y nombra las condiciones que faltan.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB33](../../05_RECURSOS/LABORATORIOS/LNX-LAB33.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F126**: [MITRE ATT&CK T1548.001](https://attack.mitre.org/techniques/T1548/001/). Uso adversario de bits especiales y criterios de mitigación.\n- **F135**: [MITRE ATT&CK T1548.003](https://attack.mitre.org/techniques/T1548/003/). Abuso de delegación y caché de credenciales de sudo.\n- **F103**: [sudoers(5)](https://man7.org/linux/man-pages/man5/sudoers.5.html). Sintaxis, orden de reglas, `NOEXEC` y límites de la delegación.\n- **F04**: [Linux capabilities(7)](https://man7.org/linux/man-pages/man7/capabilities.7.html). Conjuntos permitido, efectivo, heredable y bounding.\n- **F136**: [systemd-analyze(1)](https://man7.org/linux/man-pages/man1/systemd-analyze.1.html). Análisis de exposición de unidades y opciones de sandbox.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-24-L02-P01",
+    "prompt": "Una revisión de baseline encuentra en un directorio de laboratorio un archivo con `rwsr-xr-x` propiedad de `root` y otro con `CAP_DAC_READ_SEARCH` en `getcap`. El informe los clasifica como dos escaladas a root confirmadas y recomienda borrarlos. Explica qué describe realmente cada metadato, qué condiciones faltan para hablar de privilegio efectivo y cuál es el límite de tu conclusión.",
+    "markdown": "## 4. Práctica individual\n\nUna revisión de baseline encuentra en un directorio de laboratorio un archivo con `rwsr-xr-x` propiedad de `root` y otro con `CAP_DAC_READ_SEARCH` en `getcap`. El informe los clasifica como dos escaladas a root confirmadas y recomienda borrarlos. Explica qué describe realmente cada metadato, qué condiciones faltan para hablar de privilegio efectivo y cuál es el límite de tu conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber ejecutado binarios privilegiados ni haber validado una escalada.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-24-L02-Q01",
+      "prompt": "¿Qué efecto tiene el bit SGID sobre un directorio?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Concede al directorio la identidad efectiva de root para sus lectores"
+        },
+        {
+          "id": "B",
+          "text": "Impide que cualquier usuario distinto del dueño cree archivos"
+        },
+        {
+          "id": "C",
+          "text": "Convierte cada archivo nuevo en un ejecutable con privilegios"
+        },
+        {
+          "id": "D",
+          "text": "Hace que los objetos nuevos hereden el grupo del directorio en lugar del grupo primario del creador"
+        }
+      ]
+    },
+    {
+      "id": "LNX-24-L02-Q02",
+      "prompt": "Un binario muestra `CAP_DAC_READ_SEARCH` en `getcap`. ¿Qué se puede concluir?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que la capability está configurada en el archivo, pero el privilegio efectivo depende del bounding set, `no_new_privs`, namespace y LSM"
+        },
+        {
+          "id": "B",
+          "text": "Que el binario obtendrá esa capability en toda ejecución, sin excepciones"
+        },
+        {
+          "id": "C",
+          "text": "Que el binario es equivalente a root en cualquier host y contenedor"
+        },
+        {
+          "id": "D",
+          "text": "Que la capability solo se aplica a directorios, nunca a archivos"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB33](../../05_RECURSOS/LABORATORIOS/LNX-LAB33.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F126**: [MITRE ATT&CK T1548.001](https://attack.mitre.org/techniques/T1548/001/). Uso adversario de bits especiales y criterios de mitigación.\n- **F135**: [MITRE ATT&CK T1548.003](https://attack.mitre.org/techniques/T1548/003/). Abuso de delegación y caché de credenciales de sudo.\n- **F103**: [sudoers(5)](https://man7.org/linux/man-pages/man5/sudoers.5.html). Sintaxis, orden de reglas, `NOEXEC` y límites de la delegación.\n- **F04**: [Linux capabilities(7)](https://man7.org/linux/man-pages/man7/capabilities.7.html). Conjuntos permitido, efectivo, heredable y bounding.\n- **F136**: [systemd-analyze(1)](https://man7.org/linux/man-pages/man1/systemd-analyze.1.html). Análisis de exposición de unidades y opciones de sandbox.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "ebc7e2649a6348c94daea180"
+}

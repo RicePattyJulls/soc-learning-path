@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-14-L02",
+  "title": "XFS y Btrfs: diagnóstico, COW y snapshots",
+  "sourceHash": "0388e336728c7d973d04358acaa5cc80286e3be7f7340660f6c94f6c4ef049c5",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-14-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nContrastar el diagnóstico de XFS y Btrfs, y separar verificación, reparación y snapshot como herramientas distintas.\n\nPrerrequisitos: `LNX-14-L01` (ext4: journal y límites de evidencia).\n\n## 2. Comprende el mecanismo\n\n**XFS** y **Btrfs** se comportan de forma distinta ante la comprobación y la reparación, y conviene no tratarlos como si fueran ext4 con otro nombre.\n\n**XFS** mantiene un journal de metadatos y trae herramientas propias. Su programa de chequeo habitual es en gran medida un envoltorio que no repara: confundirlo con una prueba de salud es un error. La comprobación no mutante se hace sobre el sistema **desmontado** y, si hace falta intervenir, se planifica. Descartar el log es un último recurso: puede causar pérdida de metadatos y queda fuera de estas prácticas.\n\n**Btrfs** usa **copia en escritura (COW)**, suma de verificación de datos y metadatos, **subvolúmenes** y snapshots. Su herramienta de verificación de bloques —`scrub`— lee los datos y metadatos, detecta errores de checksum y puede reparar desde **réplicas válidas** cuando hay redundancia adecuada. No es lo mismo que el chequeo estructural del sistema de archivos, y no garantiza arreglar todo daño.\n\nEn Btrfs hay matices que cambian la conclusión sobre integridad. Un archivo en modo **NOCOW** suele llevar también `NODATASUM`, de modo que sus datos pueden no tener suma de verificación; afirmar integridad total cuando hay archivos así es incorrecto. Además, un `scrub` no es un sustituto de un chequeo estructural ni de un respaldo.\n\nLos **snapshots** de Btrfs son puntos de referencia **lógicos** basados en subvolúmenes. No capturan automáticamente todos los subvolúmenes anidados, no representan un estado transaccional de una base de datos activa y **no son una copia independiente** del mismo dispositivo: comparten bloques con el origen. Para replicar, `send`/`receive` permite transportar snapshots, y el envío incremental exige snapshots de **solo lectura** adecuados y conservar la relación con el snapshot de origen.\n\nLa comparación deja una idea clara: verificación de bloques, chequeo estructural, reparación y snapshot son cuatro operaciones distintas con alcances distintos. El límite: sin saber cuál se ejecutó y bajo qué condiciones, no se puede afirmar nada sobre la integridad de los datos.\n\n### Vocabulario de apoyo\n\n- **COW (copia en escritura)**: técnica que escribe datos nuevos en lugar de sobrescribir los existentes.\n- **`scrub` (Btrfs)**: verificación de bloques con suma de comprobación y posible reparación desde réplicas.\n- **Chequeo estructural**: examen de la coherencia del sistema de archivos, distinto de la verificación de bloques.\n- **Subvolumen**: división administrable dentro de un Btrfs, base de los snapshots.\n- **Snapshot lógico**: referencia a un estado de datos que comparte bloques con su origen.\n- **NOCOW**: modo que desactiva la copia en escritura y suele desactivar también la suma de datos.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-14-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un analista ejecuta `scrub` en un Btrfs, ve que se corrigen algunos errores y concluye que todos los datos están íntegros y que el snapshot del volumen es su respaldo.\n\nLa conclusión mezcla dos errores. `scrub` verifica bloques y repara solo desde réplicas válidas con redundancia adecuada; archivos en modo NOCOW pueden no tener suma de datos, y un daño sin réplica válida no se arregla. Por otro lado, un snapshot del mismo dispositivo comparte bloques con el origen y no es una copia independiente: no protege frente a la pérdida o manipulación del propio volumen.\n\nLa lectura correcta separa verificación de bloques, chequeo estructural y respaldo. El límite: sin saber qué archivos están en NOCOW, si hay redundancia y de dónde procede una copia, no se puede afirmar integridad ni capacidad de recuperación.\n\n"
+    },
+    {
+      "id": "LNX-14-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Separar verificación de bloques, chequeo estructural y respaldo antes de concluir sobre integridad.\n- Red Team autorizado: Comprobar la independencia real de un snapshot respecto de su origen.\n- Evidencia de la etapa: Tipo de operación ejecutada, redundancia disponible y procedencia de cualquier copia.\n- Criterio de dominio: Nombra qué se verificó y qué no, y distingue snapshot de respaldo.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB16](../../05_RECURSOS/LABORATORIOS/LNX-LAB16.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F48**: [Red Hat Enterprise Linux 9: checking/repairing ext y XFS](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/managing_file_systems/checking-and-repairing-a-file-system__managing-file-systems). Particularidades del chequeo en XFS.\n- **F49**: [Btrfs: btrfs scrub](https://btrfs.readthedocs.io/en/latest/btrfs-scrub.html). Verificación de bloques y reparación desde réplicas válidas.\n- **F50**: [Btrfs: btrfs check y advertencias](https://btrfs.readthedocs.io/en/latest/btrfs-check.html). Chequeo estructural y cautelas de reparación.\n- **F51**: [Btrfs: subvolúmenes y snapshots](https://btrfs.readthedocs.io/en/latest/btrfs-subvolume.html). Naturaleza lógica de subvolúmenes y snapshots.\n- **F52**: [Btrfs: send y replicación](https://btrfs.readthedocs.io/en/latest/btrfs-send.html). Transporte de snapshots y requisitos del envío incremental.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-14-L02-P01",
+    "prompt": "Ejecutas `scrub` en un Btrfs, se corrigen algunos errores y concluyes que los datos están íntegros y que el snapshot sirve de respaldo. Explica qué verifica realmente `scrub`, por qué un snapshot no es un respaldo y cuál es el límite de tu conclusión.",
+    "markdown": "## 4. Práctica individual\n\nEjecutas `scrub` en un Btrfs, se corrigen algunos errores y concluyes que los datos están íntegros y que el snapshot sirve de respaldo. Explica qué verifica realmente `scrub`, por qué un snapshot no es un respaldo y cuál es el límite de tu conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber ejecutado `scrub` ni haber reparado un Btrfs real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-14-L02-Q01",
+      "prompt": "¿Qué diferencia hay entre `btrfs scrub` y un chequeo estructural del sistema de archivos?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Son sinónimos: ambos reparan cualquier daño sin necesidad de copias"
+        },
+        {
+          "id": "B",
+          "text": "`scrub` solo actúa sobre sistemas de archivos XFS"
+        },
+        {
+          "id": "C",
+          "text": "El chequeo estructural es una operación de respaldo incremental"
+        },
+        {
+          "id": "D",
+          "text": "`scrub` verifica bloques y puede reparar desde réplicas válidas; el chequeo estructural examina la coherencia y su reparación exige guía experta y copia"
+        }
+      ]
+    },
+    {
+      "id": "LNX-14-L02-Q02",
+      "prompt": "¿Qué es un snapshot Btrfs considerado como respaldo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Un punto de referencia lógico en el mismo dispositivo, que comparte bloques y no es una copia independiente"
+        },
+        {
+          "id": "B",
+          "text": "Una copia física completa almacenada fuera del host"
+        },
+        {
+          "id": "C",
+          "text": "Una réplica cifrada con verificación de integridad permanente"
+        },
+        {
+          "id": "D",
+          "text": "Un journal que permite reconstruir cualquier escritura pasada"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB16](../../05_RECURSOS/LABORATORIOS/LNX-LAB16.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F48**: [Red Hat Enterprise Linux 9: checking/repairing ext y XFS](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/managing_file_systems/checking-and-repairing-a-file-system__managing-file-systems). Particularidades del chequeo en XFS.\n- **F49**: [Btrfs: btrfs scrub](https://btrfs.readthedocs.io/en/latest/btrfs-scrub.html). Verificación de bloques y reparación desde réplicas válidas.\n- **F50**: [Btrfs: btrfs check y advertencias](https://btrfs.readthedocs.io/en/latest/btrfs-check.html). Chequeo estructural y cautelas de reparación.\n- **F51**: [Btrfs: subvolúmenes y snapshots](https://btrfs.readthedocs.io/en/latest/btrfs-subvolume.html). Naturaleza lógica de subvolúmenes y snapshots.\n- **F52**: [Btrfs: send y replicación](https://btrfs.readthedocs.io/en/latest/btrfs-send.html). Transporte de snapshots y requisitos del envío incremental.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "745114786e82e1202411efd7"
+}

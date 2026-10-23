@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-21-L03",
+  "title": "Calidad de evidencia y minimización",
+  "sourceHash": "f61cd28b8a064648a38df3b1b67cd7918afefe1ac0fca773e934daaaa81ae5e3",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-21-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nProducir evidencia de calidad y minimizar los datos que se recogen.\n\nPrerrequisitos: `WAD-21-L02` (Inventario AD seguro).\n\n## 2. Comprende el mecanismo\n\nEl descubrimiento no termina con una lista de superficies: termina cuando lo observado se convierte en **evidencia** que otra persona puede revisar y reproducir. Esta lección cierra la etapa con dos disciplinas que se complementan: dar calidad a la evidencia y recoger solo lo necesario.\n\nLa **calidad de la evidencia** tiene tres ingredientes. El primero es el **contexto**: qué se hizo, sobre qué identidad y con qué método. El segundo es la **marca de tiempo** en una referencia común, porque una observación sin hora no permite reconstruir la secuencia. El tercero es la **reproducibilidad**: otro analista debería poder repetir la consulta y obtener un resultado coherente.\n\nUna evidencia de calidad separa además lo **observado** de lo **interpretado**. Que un objeto exista es un dato; que ese objeto sea peligroso es una hipótesis. Mezclarlos convierte el informe en opinión. La guía de pruebas de seguridad insiste en documentar lo que se ejecutó y su resultado antes de sacar conclusiones.\n\nLa segunda disciplina es la **minimización de datos**. Recoger «todo por si acaso» aumenta el riesgo y guarda información que no se necesita para el objetivo autorizado. Se recoge lo necesario, y nada más: sin secretos, sin datos personales innecesarios y sin volcados completos.\n\nLa auditoría ayuda a sostener la evidencia. Una **política de auditoría** define qué categorías generan registro, y los eventos se leen después para confirmar lo observado. Herramientas como `auditpol` permiten comprobar qué se audita, y `Get-WinEvent` permite leer eventos concretos con su hora, sin modificarlos.\n\nEl límite que conviene declarar: la evidencia confirma lo que se ejecutó y cuándo, no lo que no se probó. Un informe completo sobre un alcance concreto no demuestra la ausencia de superficie fuera de él.\n\nLa regla que cierra la lección y la etapa: **evidencia con contexto, hora y reproducibilidad, y solo los datos necesarios para el objetivo autorizado**. Todo sobre `ad.lab.test`, de forma sintética y defensiva.\n\n### Vocabulario de apoyo\n\n- **Evidencia**: dato registrado con su contexto, hora y método, que otra persona puede revisar.\n- **Calidad de evidencia**: grado en que un dato es completo, reproducible y verificable.\n- **Marca de tiempo**: referencia temporal común que permite reconstruir la secuencia.\n- **Minimización de datos**: recoger solo lo necesario para el objetivo autorizado.\n- **Política de auditoría**: configuración que habilita qué categorías se registran.\n- **Reproducibilidad**: propiedad de repetir una observación y obtener un resultado coherente.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-21-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test` el descubrimiento terminó y hay que entregar evidencia de las superficies observadas, sin conservar datos que no se necesiten.\n\nLo razonado es registrar cada superficie con el método de consulta, la identidad usada y la hora, de modo que otra persona pueda reproducirla, y descartar los atributos que no servían al objetivo. La conclusión acota lo observable —«estas superficies se observaron en este alcance y este periodo»— y reconoce su límite: la evidencia respalda lo ejecutado, no demuestra la ausencia de superficie fuera del alcance ni el uso real de lo observado.\n\n"
+    },
+    {
+      "id": "WAD-21-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Una evidencia con contexto, hora y reproducibilidad permite revisar y correlacionar sin reconstruir la prueba a ciegas.\n- Red Team autorizado: Minimizar los datos recogidos mantiene la prueba proporcionada al objetivo y alejada de secretos.\n- Evidencia de la etapa: Registro por superficie con método, identidad y hora, y datos acotados a lo autorizado.\n- Criterio de dominio: La evidencia es reproducible y verificable, y se recoge solo lo necesario para el objetivo autorizado.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB16](../../05_RECURSOS/LABORATORIOS/WAD-LAB16.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **NIST800115**: [Technical Guide to Information Security Testing and Assessment (NIST SP 800-115)](https://csrc.nist.gov/pubs/sp/800/115/final). Marco que insiste en documentar lo ejecutado y su resultado antes de concluir.\n- **AUDITPOL**: [auditpol](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/auditpol). Comprobar qué categorías de auditoría generan registro.\n- **GETWINEVENT**: [Get-WinEvent](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.diagnostics/get-winevent). Lectura de eventos con su hora para respaldar la evidencia.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-21-L03-P01",
+    "prompt": "En `ad.lab.test` el descubrimiento autorizado ha terminado y hay que convertir lo observado en evidencia útil. Explica cómo garantizarías la calidad de la evidencia y cómo aplicarías la minimización de los datos recogidos.",
+    "markdown": "## 4. Práctica individual\n\nEn `ad.lab.test` el descubrimiento autorizado ha terminado y hay que convertir lo observado en evidencia útil. Explica cómo garantizarías la calidad de la evidencia y cómo aplicarías la minimización de los datos recogidos.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber producido evidencia de un incidente real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-21-L03-Q01",
+      "prompt": "El informe del descubrimiento autorizado en `ad.lab.test` debe apoyarse en evidencia de calidad. ¿Qué hace que una evidencia sea sólida?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que sea abundante, aunque no tenga hora ni origen identificable"
+        },
+        {
+          "id": "B",
+          "text": "Que proceda de una sola herramienta y no se repita"
+        },
+        {
+          "id": "C",
+          "text": "Que registre qué se hizo, cuándo y con qué resultado, sea reproducible y esté acotada a lo observado"
+        },
+        {
+          "id": "D",
+          "text": "Que incluya todos los datos personales disponibles para no perder detalle"
+        }
+      ]
+    },
+    {
+      "id": "WAD-21-L03-Q02",
+      "prompt": "Al recoger evidencia del directorio, ¿cómo se aplica la minimización de datos?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Copiando todos los objetos y atributos por si acaso resultan útiles después"
+        },
+        {
+          "id": "B",
+          "text": "Recogiendo solo los datos necesarios para el objetivo autorizado, evitando secretos y datos personales innecesarios"
+        },
+        {
+          "id": "C",
+          "text": "Conservando los secretos encontrados como prueba de acceso"
+        },
+        {
+          "id": "D",
+          "text": "Eliminando la evidencia después de leerla para no dejar rastro"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB16](../../05_RECURSOS/LABORATORIOS/WAD-LAB16.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **NIST800115**: [Technical Guide to Information Security Testing and Assessment (NIST SP 800-115)](https://csrc.nist.gov/pubs/sp/800/115/final). Marco que insiste en documentar lo ejecutado y su resultado antes de concluir.\n- **AUDITPOL**: [auditpol](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/auditpol). Comprobar qué categorías de auditoría generan registro.\n- **GETWINEVENT**: [Get-WinEvent](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.diagnostics/get-winevent). Lectura de eventos con su hora para respaldar la evidencia.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "781a9d55b51f85e8e693ad3c"
+}

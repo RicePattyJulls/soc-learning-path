@@ -1,0 +1,176 @@
+{
+  "schemaVersion": 1,
+  "courseId": "soc",
+  "id": "N2-19",
+  "sourceHash": "38efeeb14159f987b8d0e05ba28cc37e2e73a62816efeb8b9f223d73507badb2",
+  "revision": "c1202e7aee6a5786cb8ca4e6",
+  "hipotesis": [
+    "Ransomware ejecutándose en estación y cifrando recursos locales/remotos por SMB.",
+    "Herramientas administrativas o backup están haciendo operaciones SMB intensivas y generando anomalías no maliciosas.",
+    "Credenciales comprometidas están usándose contra shares; el proceso responsable podría ejecutarse en otro endpoint.",
+    "Existen varios focos de infección, lateral movement o despliegue simultáneo en servidores distintos.",
+    "Los cambios en archivos pertenecen a mantenimiento legítimo y alertas coinciden con tareas programadas."
+  ],
+  "pasos": [
+    {
+      "fase": "1 · Prioridad: contener daño activo",
+      "accion": "Con confirmación razonable de cifrado activo, activar IR ransomware, coordinar aislamiento EDR de equipos de origen y restricción temporal SMB por segmentos en red; no esperar a un indicador de firma perfecta. Evaluar servicios críticos y mecanismos seguros de recuperación."
+    },
+    {
+      "fase": "2 · Preservar instantánea de situación",
+      "accion": "Registrar hora UTC, alertas MDE, equipos, sesiones SMB, IP, credenciales, procesos, unidades montadas y ubicación de notas de rescate; preservar copias de logs independientes. No negociar o pagar desde consola SOC."
+    },
+    {
+      "fase": "3 · Distinguir conexión de escritura",
+      "accion": "Usar DeviceNetworkEvents para conexiones hacia puerto 445 y orígenes; correlacionar con DeviceFileEvents en equipos protegidos, FileServer audit, Sysmon 11, Security 5140/5145 si auditadas. La conexión 445 no demuestra cifrado."
+    },
+    {
+      "fase": "4 · Identificar procesos y usuarios",
+      "accion": "Cruzar InitiatingProcessId + CreationTime + DeviceId, línea de comandos, hash, ruta y cuenta; DeviceLogonEvents/Windows 4624 tipo 3 y 4672 cuando corresponda. Preguntar por backup y herramientas de despliegue aprobadas."
+    },
+    {
+      "fase": "5 · Expandir perímetro",
+      "accion": "Construir grafo host origen → destino SMB, shares, cuenta y momento. Buscar patrón idéntico de cambios de archivo, procesos o inicios de sesión en otros segmentos, incluidos sistemas sin EDR. Comprobar DC y servidores de backup."
+    },
+    {
+      "fase": "6 · Revisar posible sabotaje",
+      "accion": "Investigar intentos de borrar shadow copies, cambios de backup, detenciones de servicios y manipulación de Defender mediante telemetría. Un comando por sí solo es indicador, no prueba que se ejecutó correctamente."
+    },
+    {
+      "fase": "7 · Proteger backups y claves",
+      "accion": "Segregar cuentas privilegiadas, apagar rutas de escritura no autorizadas a repositorios de backup e identificar copias inmutables/offline. No conectar respaldos a red comprometida hasta verificación de integridad."
+    },
+    {
+      "fase": "8 · Coordinar erradicación y restauración",
+      "accion": "Con IR/forense eliminar acceso atacante y persistencia, definir equipos limpios, recuperar desde backup verificado, rotar credenciales afectadas con secuencia y probar servicios por fases en redes controladas."
+    },
+    {
+      "fase": "9 · Verificar y cerrar",
+      "accion": "Confirmar que no hay nuevas modificaciones masivas ni SMB sospechoso, validar EDR, autenticaciones y backups, cuantificar carpetas/cuentas/datos, registrar tiempos y lecciones de segmentación/ransomware."
+    }
+  ],
+  "evidencias": [
+    {
+      "dato": "MDE DeviceNetworkEvents: RemotePort 445, InitiatingProcess*",
+      "lectura": "Conexión a SMB y proceso iniciador cuando recogido; no verifica operación de escritura/cifrado."
+    },
+    {
+      "dato": "MDE DeviceFileEvents: ActionType, FolderPath, FileName, InitiatingProcess*",
+      "lectura": "Actividad de ficheros en endpoints instrumentados; debe correlacionarse con proceso, fuente y volumen."
+    },
+    {
+      "dato": "Windows Security 5140/5145 y 4624 tipo 3 si auditados",
+      "lectura": "Acceso a shares y autenticaciones; su disponibilidad requiere políticas de auditoría y permisos."
+    },
+    {
+      "dato": "Windows Sysmon ID 1/3/11 según configuración",
+      "lectura": "Creación de procesos, conexiones y ficheros; ID3 no siempre se recolecta por coste."
+    },
+    {
+      "dato": "Controlador de dominio, NAS, firewall/NetFlow y backup",
+      "lectura": "Amplía a hosts sin EDR, directorios, accesos y posibles sabotajes de backup."
+    },
+    {
+      "dato": "EDR alerts, hashes, notas de rescate, extensiones y sombra de volumen",
+      "lectura": "Conjunto de señales para distinguir cifrado malicioso de operaciones legítimas. No abrir muestras en producción."
+    }
+  ],
+  "kql": [
+    {
+      "nombre": "Defender XDR · detectar orígenes que contactan SMB 445",
+      "entorno": "DeviceNetworkEvents en Defender XDR Advanced Hunting con MDE. RemotePort es puerto del extremo remoto, no transferencia confirmada.",
+      "consulta": "DeviceNetworkEvents\n| where Timestamp >= ago(24h)\n| where RemotePort == 445\n| summarize Conexiones=count(), Destinos=dcount(RemoteIP),\n            ListaDestinos=make_set(RemoteIP, 20),\n            Procesos=make_set(InitiatingProcessFileName, 12),\n            Primera=min(Timestamp), Ultima=max(Timestamp)\n    by DeviceId, DeviceName, InitiatingProcessAccountName\n| where Conexiones >= 10\n| order by Destinos desc, Conexiones desc",
+      "interpretacion": "Prioriza equipos con fan-out SMB anómalo para correlacionar con creación/modificación de archivos y autenticaciones.",
+      "limitaciones": "El umbral 10 es ilustrativo y puede captar backup/administración. DeviceNetworkEvents no mide bytes transferidos ni prueba cifrado."
+    },
+    {
+      "nombre": "Defender XDR · movimientos de archivos en un host afectado",
+      "entorno": "DeviceFileEvents MDE del host confirmado (ficticio WS-LEGAL-01); usar telemetría de archivo disponible.",
+      "consulta": "DeviceFileEvents\n| where Timestamp >= ago(24h)\n| where DeviceName startswith \"WS-LEGAL-01\"\n| summarize Cambios=count(), Rutas=dcount(FolderPath),\n            Ejemplos=make_set(FileName, 10),\n            Tipos=make_set(ActionType, 10)\n    by bin(Timestamp, 5m), InitiatingProcessFileName,\n       InitiatingProcessAccountName\n| where Cambios >= 30\n| order by Timestamp asc",
+      "interpretacion": "Expone ráfagas de eventos de fichero por proceso/cuenta; correlacionar con 445 y extensiones.",
+      "limitaciones": "No todos los cambios de red quedan reportados en el endpoint origen; ActionType puede variar y los umbrales dependen de volumen. Los eventos no demuestran cifrado de contenido."
+    }
+  ],
+  "spl": [
+    {
+      "nombre": "Splunk · posibles orígenes con fan-out SMB",
+      "entorno": "index=firewall ejemplo con src_ip, dest_ip, dest_port y action; extraer columnas correctamente.",
+      "consulta": "index=firewall earliest=-24h dest_port=445\n| stats count as sesiones dc(dest_ip) as destinos values(dest_ip) as destinos_muestra\n        by src_ip\n| where sesiones >= 10 AND destinos >= 3\n| sort - destinos - sesiones",
+      "interpretacion": "Identifica hosts con muchas conexiones a múltiples destinos SMB para investigar progresión.",
+      "limitaciones": "No afirma éxito SMB ni cifrado: firewall puede registrar bloqueos, retransmisiones y conexiones legítimas de backup."
+    },
+    {
+      "nombre": "Splunk · picos de operaciones de archivo por proceso",
+      "entorno": "index=edr_file ejemplo con host, process_name, file_path, action (normalizados del EDR).",
+      "consulta": "index=edr_file earliest=-24h\n| bin _time span=5m\n| stats count as operaciones dc(file_path) as archivos\n        values(action) as acciones by _time host process_name\n| where operaciones > 30\n| sort 0 _time",
+      "interpretacion": "Detecta ráfagas con muchos archivos afectados para cruzar con proceso, host y SMB.",
+      "limitaciones": "La instrumentación EDR es heterogénea y el umbral 30 no es universal; depende de baseline y tipo de acción."
+    }
+  ],
+  "comandos": [
+    {
+      "entorno": "Windows PowerShell / solo lectura",
+      "proposito": "Consultar conexiones SMB en host donde se investiga, sin cerrar sesiones.",
+      "comando": "Get-NetTCPConnection -RemotePort 445 -ErrorAction SilentlyContinue |\n  Select-Object LocalAddress,LocalPort,RemoteAddress,RemotePort,State,OwningProcess"
+    },
+    {
+      "entorno": "Windows PowerShell / solo lectura",
+      "proposito": "Consultar sesiones/conexiones SMB del cliente cuando existan.",
+      "comando": "Get-SmbConnection |\n  Select-Object ServerName,ShareName,Dialect,NumOpens,UserName"
+    },
+    {
+      "entorno": "Windows PowerShell / solo lectura",
+      "proposito": "Consultar sesiones del servidor de archivos si se tiene autorización.",
+      "comando": "Get-SmbSession | Select-Object ClientComputerName,ClientUserName,NumOpens"
+    },
+    {
+      "entorno": "Procedimiento de emergencia / NO ejecutar sin autoridad",
+      "proposito": "Ejemplo de control temporal en firewall/EDR, no instrucción ejecutable genérica.",
+      "comando": "# CAMBIO DE RED: aislar SOLO hosts afectados bajo playbook.\n# No bloquear globalmente TCP/445 sin plan de continuidad.\n# Registrar regla, owner, timestamp, alcance y criterio de rollback."
+    }
+  ],
+  "contencion": "Si hay cifrado activo de alta confianza, el daño avanza más rápido que una investigación completa. Aislar endpoints de origen mediante EDR cuando sea viable y/o cortar rutas SMB hacia shares críticos a nivel de red, limitar credenciales y proteger backup. Evitar apagar masivamente DC/NAS o cortar todo 445 sin analizar dependencia. Verificar ausencia de nuevas escrituras sospechosas y coordinar con negocio restauración secuenciada desde respaldos verificados.",
+  "escalation": [
+    "Cifrado/renombre masivo en hosts y shares de producción.",
+    "Muchos destinos SMB desde una cuenta o equipo sin justificación.",
+    "Backups, DC o NAS atacados o sin aislamiento efectivo.",
+    "Credenciales privilegiadas o indicios de múltiples puntos de ejecución.",
+    "Exfiltración previa o extorsión con datos: activar equipos legales y privacidad."
+  ],
+  "falsos_positivos": [
+    "Backup incremental por SMB con acceso masivo a archivos.",
+    "Antivirus/EDR que escanea shares o indexadores de búsqueda.",
+    "Migración NAS, restauración masiva y sincronización de carpetas.",
+    "Despliegue de software vía recursos compartidos.",
+    "Actividad de carpetas de archivos de alto volumen en cierre contable."
+  ],
+  "errores": [
+    "Suponer que 445 demuestra ransomware.",
+    "Esperar horas al IoC perfecto mientras hay cifrado activo.",
+    "Bloquear SMB en toda la empresa sin evaluar servicios críticos.",
+    "Matar proceso sin preservar evidencia ni buscar otros hosts.",
+    "Reconectar backups a red comprometida antes de validar limpieza.",
+    "Olvidar shares, cuentas, servidores sin EDR y posible exfiltración previa."
+  ],
+  "perspectiva_red_team": "Los grupos de ransomware pueden aprovechar credenciales y permisos preexistentes para acceder a shares y host remotos; la propagación lateral no requiere necesariamente el mismo binario cifrador en cada host. En Blue Team hay que separar conexión al servicio SMB, autenticación, operaciones sobre archivos y evidencia de cifrado real. La correlación por grafo, cuentas y ventana temporal permite conocer el alcance sin atribuir a un único proceso todos los cambios de la red.",
+  "respuesta_entrevista": "Si confirmo indicios de cifrado activo, activaría IR y contendría de inmediato los endpoints de origen y sus rutas SMB, de forma proporcionada y coordinada con infraestructura. Usaría DeviceNetworkEvents para identificar origen y destinos 445, y DeviceFileEvents, auditoría 5140/5145, EDR, sesiones y backups para confirmar qué archivos/cuentas se afectaron. Compararía con el backup nocturno para descartar actividad legítima, ampliaría alcance a hosts sin EDR y protegería backups. Restauraría únicamente con red limpia, credenciales saneadas y verificación de ausencia de nuevas escrituras maliciosas.",
+  "criterios_evaluacion": [
+    "Prioriza detener cifrado activo con contención proporcionada.",
+    "No confunde 445 con ransomware demostrado.",
+    "Distingue red, autenticación y escrituras de ficheros.",
+    "Conoce 5140/5145 según auditoría y EDR MDE.",
+    "Protege backups, DC y servicios críticos.",
+    "Verifica ausencia de actividad antes de recuperación."
+  ],
+  "mitre": [
+    "T1486 — Data Encrypted for Impact (hipótesis)",
+    "T1021.002 — Remote Services: SMB/Windows Admin Shares (según evidencia)"
+  ],
+  "fuentes": [
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-devicenetworkevents-table",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-devicefileevents-table",
+    "https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-deviceprocessevents-table",
+    "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/securityevent",
+    "https://csrc.nist.gov/pubs/sp/800/61/r3/final"
+  ]
+}

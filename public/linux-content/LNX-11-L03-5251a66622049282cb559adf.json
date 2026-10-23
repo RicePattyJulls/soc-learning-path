@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-11-L03",
+  "title": "Controles, cambios y ventanas de parcheo",
+  "sourceHash": "276c3f582e5ca55ec825d0114534677ee7e7c8f58402301b26ada6861de83c83",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-11-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nAplicar controles de endurecimiento de forma incremental y planificar cambios y parches con ventana, verificación y retorno.\n\nPrerrequisitos: `LNX-11-L02` (Arch/pacman y comparativa).\n\n## 2. Comprende el mecanismo\n\nEndurecer una unidad y gestionar cambios comparten una misma idea: **reducir superficie sin romper disponibilidad**, y hacerlo de forma verificable y reversible. Los controles importan por lo que evitan y por lo que no resuelven.\n\nLas directivas de ejecución permiten recortar privilegio y exposición. `User=` y `Group=` evitan ejecutar como la cuenta administrativa cuando no se necesita; `DynamicUser=yes` da una identidad de vida limitada; `NoNewPrivileges=yes` impide **adquirir** privilegios nuevos por `execve`, pero no retira los ya concedidos; `CapabilityBoundingSet=` recorta capacidades; `ProtectSystem=` pone partes del sistema de archivos en solo lectura; `ProtectHome=` restringe el acceso a los *homes*; `PrivateTmp=` y `PrivateDevices=` aíslan temporales y dispositivos; `SystemCallFilter=` y `RestrictAddressFamilies=` limitan *syscalls* y familias de sockets.\n\nCada control tiene un límite y exige comprender el uso real de la aplicación. `ProtectHome=yes` falla si la app necesita leer un *home*; `PrivateDevices=yes` estorba a quien requiere nodos de dispositivo; `SystemCallFilter=` puede romper librerías si no se prueban escenarios representativos. No hay «sandbox perfecto»: hay un perfil mínimo compatible.\n\nEl método correcto es **incremental**: inventario de funciones y dependencias, perfil mínimo, añadir una o dos restricciones por iteración y, tras cada paso, probar función, disponibilidad, latencia y logs, con *rollback* documentado. Introducir muchas directivas de golpe impide saber cuál rompió qué.\n\n`systemd-analyze security` ofrece una **puntuación heurística** para comparar exposición de configuración; no es un pentest, ni un verificador de vulnerabilidades, ni una prueba de que el aislamiento funcione bajo todos los mecanismos. Su lectura es comparativa y contextual.\n\nEn cambios y parcheo, la idea central es que **instalar no es aplicar**. Un paquete actualizado no implica que el servicio se haya recargado, que el proceso use el binario nuevo ni que el kernel cargado sea el nuevo. Las actualizaciones automáticas reducen la demora, pero su interacción con reinicios y con procesos que retienen bibliotecas viejas hay que verificarla. La secuencia responsable es: inventario, aviso y severidad, impacto y dependencias, copia de seguridad comprobada, ventana y responsables, prueba en preproducción, actualización, verificación y reinicio si corresponde, y evidencias con plan de retorno.\n\n### Vocabulario de apoyo\n\n- **Endurecimiento**: reducir privilegio y exposición de una unidad sin romper su función.\n- **`NoNewPrivileges`**: impide adquirir privilegios nuevos, sin retirar los ya concedidos.\n- **`CapabilityBoundingSet`**: recorte del conjunto de capacidades del proceso.\n- **Puntuación heurística**: valor comparativo de exposición de configuración, no una prueba de seguridad.\n- **Ventana de parcheo**: periodo aprobado para aplicar cambios con verificación y retorno.\n- **Reinicio pendiente**: situación en la que un cambio aún no surte efecto en el proceso o kernel en ejecución.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-11-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un analista añade de golpe un bloque de veinte directivas de endurecimiento a un servicio; el servicio falla y concluye que «este servicio no soporta endurecimiento».\n\nLa conclusión no se sostiene. Con veinte cambios simultáneos no se sabe **cuál** causó la falla; el fracaso puede deberse a una sola directiva incompatible con el uso real de la aplicación, no a que el endurecimiento sea imposible. El método incremental —una o dos restricciones por iteración, con prueba funcional y *rollback* documentado— habría aislado la directiva culpable y conservado un perfil mínimo compatible.\n\nEl límite: los controles reducen exposición, no convierten una unidad en un «sandbox perfecto», y su eficacia depende del kernel, del soporte y de la compatibilidad de la aplicación. Una puntuación buena no garantiza ausencia de vulnerabilidades.\n\n"
+    },
+    {
+      "id": "LNX-11-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Añadir restricciones de una en una y verificar función y disponibilidad tras cada paso.\n- Red Team autorizado: Separar «paquete instalado» de «proceso o kernel actualizado en ejecución».\n- Evidencia de la etapa: Perfil de endurecimiento por iteraciones, pruebas funcionales y plan de reversión.\n- Criterio de dominio: Endurece de forma incremental y planifica el parcheo con ventana, verificación y retorno.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB12](../../05_RECURSOS/LABORATORIOS/LNX-LAB12.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F28**: [systemd: systemd.exec](https://www.freedesktop.org/software/systemd/man/257/systemd.exec.html). Directivas de ejecución, privilegio y aislamiento de servicios.\n- **F35**: [Ubuntu: automatic updates](https://ubuntu.com/server/docs/how-to/software/automatic-updates/). Actualizaciones automáticas y su interacción con reinicios y verificación.\n- **F29**: [Debian: apt-secure](https://manpages.debian.org/trixie/apt/apt-secure.8.en.html). Confianza en el origen del cambio aplicado durante una ventana.\n- **F32**: [DNF5: history](https://dnf5.readthedocs.io/en/stable/commands/history.8.html). Historial de transacciones para auditar y revertir cambios.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-11-L03-P01",
+    "prompt": "Añades de golpe un bloque de directivas de endurecimiento, el servicio falla y concluyes que no soporta endurecimiento. Explica el método incremental correcto, qué control usarías para comparar exposición y cuál es el límite de esa evaluación.",
+    "markdown": "## 4. Práctica individual\n\nAñades de golpe un bloque de directivas de endurecimiento, el servicio falla y concluyes que no soporta endurecimiento. Explica el método incremental correcto, qué control usarías para comparar exposición y cuál es el límite de esa evaluación.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber endurecido un servicio real ni haber aplicado parches.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-11-L03-Q01",
+      "prompt": "¿Qué hace `NoNewPrivileges=yes` según su intención?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Cifra los ficheros de la unidad"
+        },
+        {
+          "id": "B",
+          "text": "Reinicia el servicio tras cada actualización"
+        },
+        {
+          "id": "C",
+          "text": "Concede capacidades adicionales al proceso"
+        },
+        {
+          "id": "D",
+          "text": "Impide adquirir privilegios nuevos, pero no retira los ya concedidos"
+        }
+      ]
+    },
+    {
+      "id": "LNX-11-L03-Q02",
+      "prompt": "¿Qué describe mejor `systemd-analyze security`?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Un pentest que confirma la ausencia de vulnerabilidades"
+        },
+        {
+          "id": "B",
+          "text": "Una prueba de integridad del kernel en ejecución"
+        },
+        {
+          "id": "C",
+          "text": "Una puntuación heurística para comparar exposición de configuración, no una prueba de seguridad"
+        },
+        {
+          "id": "D",
+          "text": "Un sustituto de `daemon-reload` para aplicar cambios"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB12](../../05_RECURSOS/LABORATORIOS/LNX-LAB12.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F28**: [systemd: systemd.exec](https://www.freedesktop.org/software/systemd/man/257/systemd.exec.html). Directivas de ejecución, privilegio y aislamiento de servicios.\n- **F35**: [Ubuntu: automatic updates](https://ubuntu.com/server/docs/how-to/software/automatic-updates/). Actualizaciones automáticas y su interacción con reinicios y verificación.\n- **F29**: [Debian: apt-secure](https://manpages.debian.org/trixie/apt/apt-secure.8.en.html). Confianza en el origen del cambio aplicado durante una ventana.\n- **F32**: [DNF5: history](https://dnf5.readthedocs.io/en/stable/commands/history.8.html). Historial de transacciones para auditar y revertir cambios.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "5251a66622049282cb559adf"
+}

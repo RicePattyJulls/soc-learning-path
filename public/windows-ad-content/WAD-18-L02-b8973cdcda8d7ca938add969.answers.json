@@ -1,0 +1,39 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-18-L02",
+  "sourceHash": "13220198a8dcf052e6991868c3eeab9a0f32b5e9965c1ad0eeaa3ea38cf35f31",
+  "questions": [
+    {
+      "id": "WAD-18-L02-Q01",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «La copia debe repetirse con una frecuencia que no supere el RPO, porque ese es el máximo de datos que se acepta perder».\n\nEl RPO fija cuánto dato se tolera perder, así que la frecuencia debe ser igual o más corta que ese intervalo. Una copia anual o una cadencia impuesta por el fabricante incumplen el objetivo, y limitar el RPO a los archivos de usuario ignora al directorio."
+    },
+    {
+      "id": "WAD-18-L02-Q02",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Si el incidente cifra el almacenamiento, cifra también la instantánea; la copia confiable se guarda en un medio aparte y protegido».\n\nUna instantánea que comparte almacenamiento con la máquina cae con el original, así que no protege frente al cifrado. No es un respaldo completo, no depende del encendido y no vale más por ocupar menos si no puede restaurarse desde un medio aislado."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "El RPO de cuatro horas es el máximo de datos que se acepta perder, así que la frecuencia de copia no puede superarlo: una copia cada cuatro horas o más a menudo, en lo posible con copias incrementales intermedias para estrechar la ventana. El RTO de ocho horas fija cuánto puede tardar la restauración y conviene medirlo en una prueba, porque la frecuencia por sí sola no lo garantiza. El tipo de copia adecuado para la identidad es la copia del estado del sistema, que captura el directorio, el registro y SYSVOL del controlador, complementada con una copia completa cuando haya que reconstruir el equipo. El medio debe ser confiable: completo, apartado del original y con acceso restringido, de modo que el incidente que cifra el almacén no alcance también la copia. La copia se prueba restaurando desde ese medio aislado. El límite: sin medir una restauración real, el cumplimiento del RTO es una previsión y no un hecho comprobado.",
+    "rubric": [
+      {
+        "criterion": "Frecuencia derivada del RPO",
+        "evidence": "Propone una frecuencia igual o más corta que el RPO de cuatro horas."
+      },
+      {
+        "criterion": "Distinción RPO/RTO",
+        "evidence": "Separa el dato tolerable del tiempo de restauración y prevé medirlo."
+      },
+      {
+        "criterion": "Tipo y medio de copia",
+        "evidence": "Elige la copia del estado del sistema y un medio apartado y protegido."
+      },
+      {
+        "criterion": "Límite reconocido",
+        "evidence": "Admite que sin restaurar no se confirma el RTO."
+      }
+    ]
+  },
+  "revision": "b8973cdcda8d7ca938add969"
+}

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-24-L01",
+  "title": "UID/GID real, efectivo, saved y filesystem",
+  "sourceHash": "6689c4d2222e365d346975421579164d453f3b9f7cbe6d14b14bc19cb9f03b8d",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-24-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDistinguir las credenciales real, efectiva, saved y de sistema de archivos de un proceso, y explicar qué identidad sostiene cada conclusión.\n\nPrerrequisitos: `LNX-23-L03` (Casos: SSH, DNS y firewall).\n\n## 2. Comprende el mecanismo\n\nUn proceso no tiene «un usuario». Tiene un conjunto de credenciales numéricas que el kernel consulta en momentos distintos, y cada una responde a una pregunta diferente. Decir «esto lo hizo root» sin especificar cuál de esas credenciales se observó es una conclusión sin sujeto.\n\nLa primera pareja es la **identidad real (RUID)** y la **identidad efectiva (EUID)**. El RUID identifica a quién pertenece la sesión y suele sobrevivir a la elevación; la EUID es la que el kernel usa para la mayoría de comprobaciones de privilegio. Un proceso puede conservar RUID de `analista` y EUID de `root` al mismo tiempo. Por eso un evento con `euid=0` no demuestra que la persona root haya actuado.\n\nLa tercera pieza es la **saved set-user-ID (SUID guardado)**. Al ejecutar un binario con el bit SUID, el kernel fija la EUID al propietario del archivo y guarda el valor anterior en la credencial guardada. Esa copia permite que un programa privilegiado suba y baje de identidad de forma controlada, y explica por qué una EUID elevada puede ser temporal y no un cambio permanente de cuenta.\n\nLinux añade una cuarta capa: la **identidad de sistema de archivos (FSUID/FSGID)**. Las comprobaciones de acceso a archivos usan la FSUID, que normalmente coincide con la EUID pero puede modificarse por separado. Un proceso puede por tanto tener EUID de un usuario y FSUID de otro, y el resultado de abrir un archivo dependerá de la segunda. Ignorar esta distinción produce atribuciones erróneas sobre quién leyó o escribió un objeto.\n\nLa observación se hace en dos planos. `id` y `getent passwd` muestran la identidad resuelta por **NSS**, que puede provenir de archivos locales, LDAP o SSSD; leer solo `/etc/passwd` no refleja todas las identidades posibles. `/proc/PID/status` muestra la línea `Uid:` con cuatro valores —real, efectiva, saved y de sistema de archivos— y `CapEff`, `NoNewPrivs` y el resto del contexto del proceso. Esa línea es la evidencia primaria, no el nombre de usuario que aparece en un log.\n\nEn un servicio, la identidad tampoco se deduce del nombre de la unidad. Un servicio systemd puede declarar `User=` y `Group=`, pero además puede tener capacidades, `NoNewPrivileges` o un entorno que cambie el resultado. La pregunta correcta es qué credencial tenía el proceso en el instante del evento, no qué usuario figura en la configuración.\n\nLa regla de esta lección: separa RUID, EUID, saved y FSUID antes de atribuir una acción. El límite: las credenciales observadas describen el proceso en ese momento; no prueban quién lo lanzó, con qué intención, ni qué ocurrió dentro de un script ya terminado.\n\n### Vocabulario de apoyo\n\n- **RUID**: identidad real del proceso; suele identificar la sesión de origen.\n- **EUID**: identidad efectiva; el kernel la usa para la mayoría de comprobaciones de privilegio.\n- **Saved set-user-ID**: copia de la EUID anterior que permite subir y bajar identidad tras `execve`.\n- **FSUID**: identidad usada específicamente para comprobar acceso a archivos.\n- **Credencial**: conjunto de identidades y grupos asociados a un proceso.\n- **NSS**: mecanismo de resolución de usuarios y grupos, no limitado a `/etc/passwd`.\n- **`NoNewPrivs`**: indicador que impide ganar privilegios adicionales mediante `execve`.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-24-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en un host de laboratorio aparece un archivo nuevo propiedad de `root` dentro de un directorio de trabajo de `analista`. El registro de sesión muestra un inicio de sesión correcto de `analista` y ninguna sesión de `root`. Un analista concluye que «root creó el archivo» y cierra la revisión.\n\nLa conclusión salta de un metadato a una atribución. El propietario del archivo lo determina la FSUID del proceso que lo creó, no el nombre que figura en el registro de login. Un binario con SUID o con capacidades de archivo, o un servicio que cambia de identidad, puede producir ese resultado conservando el RUID de `analista`. La línea `Uid:` de `/proc/PID/status` habría mostrado los cuatro valores y habría hecho visible la diferencia.\n\nLa lectura correcta separa tres preguntas: quién inició la sesión, qué credencial efectiva tenía el proceso que escribió y qué identidad se usó para el acceso al sistema de archivos. Solo la correlación de las tres sostiene una atribución razonable. El límite: si el proceso ya terminó y no se conservó su estado, la conclusión queda en hipótesis; el propietario del archivo no sustituye la evidencia del proceso.\n\n"
+    },
+    {
+      "id": "LNX-24-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Leer la línea `Uid:` y las capacidades del proceso antes de atribuir una escritura a una cuenta.\n- Red Team autorizado: Documentar qué credencial efectiva tendría un proceso de prueba, sin elevar privilegios reales.\n- Evidencia de la etapa: Valores de RUID, EUID, saved y FSUID, más el origen NSS de la identidad.\n- Criterio de dominio: Nombra la credencial que sostiene cada afirmación y evita atribuir por el propietario del archivo.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB31](../../05_RECURSOS/LABORATORIOS/LNX-LAB31.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F03**: [Linux credentials(7)](https://man7.org/linux/man-pages/man7/credentials.7.html). Define RUID, EUID, saved y credenciales de sistema de archivos.\n- **F04**: [Linux capabilities(7)](https://man7.org/linux/man-pages/man7/capabilities.7.html). Privilegios del proceso que acompañan a la identidad efectiva.\n- **F02**: [GNU Bash Reference Manual](https://www.gnu.org/software/bash/manual/bash.html). Expansión y quoting para leer variables de identidad sin ambigüedad.\n- **F110**: [systemd.exec(5)](https://man7.org/linux/man-pages/man5/systemd.exec.5.html). Opciones `User=`, `Group=` y `NoNewPrivileges=` en servicios.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-24-L01-P01",
+    "prompt": "En un host de laboratorio aparece un archivo nuevo propiedad de `root` dentro del directorio de trabajo de `analista`, mientras el registro de sesión solo muestra un inicio de sesión correcto de `analista`. Explica qué credencial determina el propietario del archivo, qué habría mostrado la línea `Uid:` del proceso y cuál es el límite de tu conclusión.",
+    "markdown": "## 4. Práctica individual\n\nEn un host de laboratorio aparece un archivo nuevo propiedad de `root` dentro del directorio de trabajo de `analista`, mientras el registro de sesión solo muestra un inicio de sesión correcto de `analista`. Explica qué credencial determina el propietario del archivo, qué habría mostrado la línea `Uid:` del proceso y cuál es el límite de tu conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber inspeccionado procesos ni haber atribuido un incidente real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-24-L01-Q01",
+      "prompt": "En la línea `Uid:` de `/proc/PID/status`, ¿qué posición corresponde a la identidad efectiva?",
+      "options": [
+        {
+          "id": "A",
+          "text": "La primera, que coincide siempre con la identidad de login"
+        },
+        {
+          "id": "B",
+          "text": "La segunda, que el kernel usa para la mayoría de comprobaciones de privilegio"
+        },
+        {
+          "id": "C",
+          "text": "La tercera, que solo existe en procesos con el bit SUID activo"
+        },
+        {
+          "id": "D",
+          "text": "La cuarta, que identifica al propietario del ejecutable"
+        }
+      ]
+    },
+    {
+      "id": "LNX-24-L01-Q02",
+      "prompt": "¿Qué credencial se consulta para comprobar el acceso de un proceso a un archivo en Linux?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El RUID, porque identifica a la persona que abrió la sesión"
+        },
+        {
+          "id": "B",
+          "text": "El nombre de usuario que aparece en el registro de autenticación"
+        },
+        {
+          "id": "C",
+          "text": "La FSUID, que puede coincidir con la EUID pero se evalúa por separado"
+        },
+        {
+          "id": "D",
+          "text": "El GID primario del archivo, que sustituye a cualquier otra comprobación"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB31](../../05_RECURSOS/LABORATORIOS/LNX-LAB31.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F03**: [Linux credentials(7)](https://man7.org/linux/man-pages/man7/credentials.7.html). Define RUID, EUID, saved y credenciales de sistema de archivos.\n- **F04**: [Linux capabilities(7)](https://man7.org/linux/man-pages/man7/capabilities.7.html). Privilegios del proceso que acompañan a la identidad efectiva.\n- **F02**: [GNU Bash Reference Manual](https://www.gnu.org/software/bash/manual/bash.html). Expansión y quoting para leer variables de identidad sin ambigüedad.\n- **F110**: [systemd.exec(5)](https://man7.org/linux/man-pages/man5/systemd.exec.5.html). Opciones `User=`, `Group=` y `NoNewPrivileges=` en servicios.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "c39b341ab0a8c8a88162a5e2"
+}

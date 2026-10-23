@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M26-L01",
+  "title": "Syslog y facility/severity",
+  "sourceHash": "ba0e19b67a2119c5e49db6228158948d294b732db797e0773e60127b8dc19a80",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M26-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nInterpretar prioridad Syslog y conservar el origen del evento.\n\nPrerrequisitos: [RED-M05-L04](../RED-E01/RED-M05-L04.md), [RED-M07-L04](../RED-E02/RED-M07-L04.md), [RED-M22-L04](../RED-E04/RED-M22-L04.md).\n\n## 2. Comprende el mecanismo\n\nSyslog transporta mensajes con elementos de cabecera y contenido según formato. En RFC 5424, PRI combina facility y severity: PRI = facility × 8 + severity. Severity 0 es más urgente que 7 en esa escala; no es un nivel automático de malicia. El emisor, forwarder y colector pueden ser entidades diferentes. Guarda mensaje original, parser y transformaciones para distinguir el dato emitido de lo añadido durante ingestión. No presentar cada registro como si hubiera nacido directamente en el SIEM.\n\n### Vocabulario de apoyo\n\n- **Facility, severity y PRI**: Categoría Syslog, urgencia del mensaje y valor que las combina mediante facility × 8 + severity.\n- **Polling, trap e inform**: Consulta periódica, notificación sin confirmación equivalente y notificación con confirmación SNMP.\n- **Pipeline y lag**: Cadena de adquisición/transformación y demora de entrega o ingestión que debe medirse.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M26-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Mensaje docente RFC5424: <134>1 2026-10-18T10:00:00Z fw-a app 12 ID47 - session denied.\n\n134 dividido entre 8 da facility 16 y resto severity 6. El texto denied describe una decisión; esa prioridad informativa no prueba ni refuta un ataque.\n\n"
+    },
+    {
+      "id": "RED-M26-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Triar logs de red en SIEM.\n- Red Team autorizado: Comprobar alertas derivadas de control de acceso.\n- Evidencia del módulo: Registro con fuente, hora evento/ingesta y cobertura.\n- Criterio del módulo: Orden correcto y limitaciones cuantificadas.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L13](../../05_RECURSOS/LABORATORIOS/RED-L13.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC5424**: [RFC 5424: The Syslog Protocol](https://www.rfc-editor.org/rfc/rfc5424.html). Cabecera y fórmula facility/severity de PRI.\n- **RFC3414**: [RFC 3414: User-based Security Model for SNMPv3](https://www.rfc-editor.org/rfc/rfc3414.html). Niveles de seguridad; suites del RFC histórico no se recomiendan automáticamente.\n- **RFC3416**: [RFC 3416: Protocol Operations for SNMP](https://www.rfc-editor.org/rfc/rfc3416.html). Polling y operaciones de notificación.\n- **RFC5905**: [RFC 5905: Network Time Protocol Version 4](https://www.rfc-editor.org/rfc/rfc5905.html). Referencia temporal, offset y sincronización.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M26-L01-P01",
+    "prompt": "Un forwarder sustituye hostname por su propio nombre. ¿Qué contrato de procedencia necesitas para no perder el emisor?",
+    "markdown": "## 4. Práctica individual\n\nUn forwarder sustituye hostname por su propio nombre. ¿Qué contrato de procedencia necesitas para no perder el emisor?\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M26-L01-Q01",
+      "prompt": "¿Cuál es la severity de PRI 134?",
+      "options": [
+        {
+          "id": "A",
+          "text": "134"
+        },
+        {
+          "id": "B",
+          "text": "6"
+        },
+        {
+          "id": "C",
+          "text": "16"
+        },
+        {
+          "id": "D",
+          "text": "2"
+        }
+      ]
+    },
+    {
+      "id": "RED-M26-L01-Q02",
+      "prompt": "¿Qué implica denied con severity informativa?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Actividad maliciosa descartada por tener nivel 6"
+        },
+        {
+          "id": "B",
+          "text": "Autorización de la sesión porque no es severity 0"
+        },
+        {
+          "id": "C",
+          "text": "Compromiso confirmado del emisor"
+        },
+        {
+          "id": "D",
+          "text": "Una decisión registrada cuyo contexto aún debe investigarse"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L13](../../05_RECURSOS/LABORATORIOS/RED-L13.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC5424**: [RFC 5424: The Syslog Protocol](https://www.rfc-editor.org/rfc/rfc5424.html). Cabecera y fórmula facility/severity de PRI.\n- **RFC3414**: [RFC 3414: User-based Security Model for SNMPv3](https://www.rfc-editor.org/rfc/rfc3414.html). Niveles de seguridad; suites del RFC histórico no se recomiendan automáticamente.\n- **RFC3416**: [RFC 3416: Protocol Operations for SNMP](https://www.rfc-editor.org/rfc/rfc3416.html). Polling y operaciones de notificación.\n- **RFC5905**: [RFC 5905: Network Time Protocol Version 4](https://www.rfc-editor.org/rfc/rfc5905.html). Referencia temporal, offset y sincronización.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "0467fb39076eed032857a345"
+}

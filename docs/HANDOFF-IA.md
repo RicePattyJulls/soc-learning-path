@@ -2,6 +2,15 @@
 
 Fecha de inspección: **17/10/2026**. Raíz local: `/home/tommy/Documentos/SOC_LEARNING_PATH`. Este documento explica el proyecto instalado mediante inspección del código, catálogos, generadores y evidencias locales. No autoriza una siguiente fase de desarrollo.
 
+## Actualización 19/10/2026 · seis mundos y Mundo SOC
+
+Este documento se inspeccionó el 17/10/2026, cuando el proyecto tenía **tres áreas** (SC-200, Splunk y el simulador). Desde entonces se integraron **Redes, Windows + AD, Linux y el Mundo SOC**, y se cerró la revisión editorial del propietario del Mundo SOC. El inventario vigente, mundo por mundo, es [MAPA-MUNDOS.md](MAPA-MUNDOS.md); las secciones siguientes describen el estado del 17/10 y se conservan como historia.
+
+- **Seis cursos + simulador**, cada uno con ruta, payloads y clave de progreso propios. Conteos verificados el 19/10 en el mapa.
+- **Mundo SOC** (`#/soc/...`): 40 casos de entrevista, respuesta libre + respuesta modelo + rúbrica, y repaso espaciado. Plan y cierre en `docs/soc/`.
+- **Revisión del propietario del Mundo SOC** cerrada el 19/10/2026 sin cambios en la fuente, atada a los hashes de los 40 casos. Siguen pendientes la revisión **independiente** y la **ejecución real** de las consultas (todo el contenido es sintético).
+- Los otros mundos mantienen su revisión pendiente como declaran sus catálogos (`draft_pending_owner_review` / `pending_independent_review`).
+
 ## Autoridad documental y cómo retomar
 
 | Pregunta | Fuente de verdad |

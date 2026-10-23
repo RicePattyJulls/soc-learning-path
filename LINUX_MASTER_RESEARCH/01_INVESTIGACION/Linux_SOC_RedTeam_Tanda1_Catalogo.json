@@ -1,0 +1,588 @@
+{
+  "schema_version": "1.0.0",
+  "title": "Linux para SOC + Red Team — Tanda 1",
+  "subtitle": "Fundamentos, Bash y administración cotidiana",
+  "language": "es-ES",
+  "tanda": 1,
+  "total_tandas": 5,
+  "publication_date": "2026-10-18",
+  "source_file": "Linux_SOC_RedTeam_Tanda1_Informe.md",
+  "source_sha256": "f56e91bbfe1cacf1999d6ad18cad8bd38ed034d7599d4b142054e6e12f8f3728",
+  "source_outline": [
+    {
+      "number": 1,
+      "heading": "Mapa de aprendizaje y criterios de salida",
+      "start_line": 15,
+      "subsections": [],
+      "end_line": 35
+    },
+    {
+      "number": 2,
+      "heading": "Anatomía de Linux: de la aplicación al kernel",
+      "start_line": 36,
+      "subsections": [
+        {
+          "heading": "2.1 Componentes y límites de confianza",
+          "start_line": 38
+        },
+        {
+          "heading": "2.2 Cuatro malentendidos peligrosos",
+          "start_line": 69
+        }
+      ],
+      "end_line": 75
+    },
+    {
+      "number": 3,
+      "heading": "Reconocimiento seguro del host y línea base",
+      "start_line": 76,
+      "subsections": [],
+      "end_line": 105
+    },
+    {
+      "number": 4,
+      "heading": "Árbol de archivos: FHS, rutas y metadatos",
+      "start_line": 106,
+      "subsections": [
+        {
+          "heading": "4.1 Rutas y jerarquía",
+          "start_line": 108
+        },
+        {
+          "heading": "4.2 Enlaces, inodos y marcas temporales",
+          "start_line": 142
+        },
+        {
+          "heading": "4.3 Buscar sin provocar daños",
+          "start_line": 162
+        }
+      ],
+      "end_line": 171
+    },
+    {
+      "number": 5,
+      "heading": "Herramientas diarias, entrada/salida y composición",
+      "start_line": 172,
+      "subsections": [
+        {
+          "heading": "5.1 Caja de herramientas razonada",
+          "start_line": 174
+        },
+        {
+          "heading": "5.2 Los tres descriptores estándar",
+          "start_line": 189
+        },
+        {
+          "heading": "5.3 Tuberías y errores de interpretación",
+          "start_line": 210
+        },
+        {
+          "heading": "5.4 Los comandos que parecen equivalentes y no lo son",
+          "start_line": 222
+        }
+      ],
+      "end_line": 233
+    },
+    {
+      "number": 6,
+      "heading": "Identidades, permisos y mínimo privilegio",
+      "start_line": 234,
+      "subsections": [
+        {
+          "heading": "6.1 Usuarios y grupos",
+          "start_line": 236
+        },
+        {
+          "heading": "6.2 Permisos de modo clásico",
+          "start_line": 250
+        },
+        {
+          "heading": "6.3 Bits especiales, ACL y capacidades",
+          "start_line": 267
+        },
+        {
+          "heading": "6.4 Uso seguro de privilegios",
+          "start_line": 279
+        }
+      ],
+      "end_line": 284
+    },
+    {
+      "number": 7,
+      "heading": "Procesos: observar antes de actuar",
+      "start_line": 285,
+      "subsections": [
+        {
+          "heading": "7.1 Modelo de procesos",
+          "start_line": 287
+        },
+        {
+          "heading": "7.2 `/proc`: fuente útil, pero no un registro histórico",
+          "start_line": 302
+        },
+        {
+          "heading": "7.3 Señales y respuesta controlada",
+          "start_line": 316
+        }
+      ],
+      "end_line": 321
+    },
+    {
+      "number": 8,
+      "heading": "Bash: modelo mental de evaluación",
+      "start_line": 322,
+      "subsections": [
+        {
+          "heading": "8.1 Orden conceptual de trabajo de la shell",
+          "start_line": 324
+        },
+        {
+          "heading": "8.2 Parámetros y entorno",
+          "start_line": 337
+        },
+        {
+          "heading": "8.3 Globbing, separación y ficheros hostiles",
+          "start_line": 350
+        },
+        {
+          "heading": "8.4 Estructuras, códigos de salida y tuberías",
+          "start_line": 371
+        },
+        {
+          "heading": "8.5 Scripts que puedan auditarse",
+          "start_line": 399
+        }
+      ],
+      "end_line": 410
+    },
+    {
+      "number": 9,
+      "heading": "Administración cotidiana: procedimiento, no improvisación",
+      "start_line": 411,
+      "subsections": [
+        {
+          "heading": "9.1 Inspección diaria de bajo impacto",
+          "start_line": 413
+        },
+        {
+          "heading": "9.2 Escalado y cambios",
+          "start_line": 435
+        }
+      ],
+      "end_line": 438
+    },
+    {
+      "number": 10,
+      "heading": "Dos guiones útiles: recopilación y validación",
+      "start_line": 439,
+      "subsections": [
+        {
+          "heading": "10.1 Script A — `linux_base.sh` (solo lectura)",
+          "start_line": 441
+        },
+        {
+          "heading": "10.2 Script B — validación de un archivo conocido",
+          "start_line": 505
+        }
+      ],
+      "end_line": 520
+    },
+    {
+      "number": 11,
+      "heading": "Matriz SOC + Red Team: observación → hipótesis → comprobación",
+      "start_line": 521,
+      "subsections": [],
+      "end_line": 535
+    },
+    {
+      "number": 12,
+      "heading": "Laboratorios guiados y criterios de aceptación",
+      "start_line": 536,
+      "subsections": [
+        {
+          "heading": "Lab 1 — Identidad, límites y ficha base · 15 puntos",
+          "start_line": 540
+        },
+        {
+          "heading": "Lab 2 — Inodos, enlaces y permisos · 20 puntos",
+          "start_line": 558
+        },
+        {
+          "heading": "Lab 3 — Tuberías, stdout/stderr y código de salida · 20 puntos",
+          "start_line": 575
+        },
+        {
+          "heading": "Lab 4 — Snapshot limitado de procesos y `/proc` · 20 puntos",
+          "start_line": 594
+        },
+        {
+          "heading": "Lab 5 — Script de línea base, validación y entrega · 25 puntos",
+          "start_line": 607
+        },
+        {
+          "heading": "12.1 Rúbrica transversal (100 puntos)",
+          "start_line": 619
+        }
+      ],
+      "end_line": 629
+    },
+    {
+      "number": 13,
+      "heading": "Mini-caso de entrevista SOC y caso espejo Red Team",
+      "start_line": 630,
+      "subsections": [],
+      "end_line": 645
+    },
+    {
+      "number": 14,
+      "heading": "Evaluación de conocimientos (24 preguntas)",
+      "start_line": 646,
+      "subsections": [
+        {
+          "heading": "14.1 Respuestas razonadas",
+          "start_line": 675
+        }
+      ],
+      "end_line": 680
+    },
+    {
+      "number": 15,
+      "heading": "Hoja de consulta rápida",
+      "start_line": 681,
+      "subsections": [],
+      "end_line": 695
+    },
+    {
+      "number": 16,
+      "heading": "Fuentes contrastadas y trazabilidad",
+      "start_line": 696,
+      "subsections": [],
+      "end_line": 720
+    },
+    {
+      "number": 17,
+      "heading": "Próxima tanda y frontera de contenidos",
+      "start_line": 721,
+      "subsections": [],
+      "end_line": 725
+    }
+  ],
+  "scope": "Fundamentos de Linux, Bash y administración cotidiana; conceptos introductorios de procesos y permisos.",
+  "audiences": [
+    "SOC / Blue Team",
+    "Red Team autorizado"
+  ],
+  "evaluation": {
+    "lab_total_points": 100,
+    "minimum_lab_points": 80,
+    "knowledge_question_count": 24,
+    "knowledge_minimum_correct": 18,
+    "critical_safety_failures_allowed": 0,
+    "constraints": [
+      "VM Linux dedicada, dentro de un alcance autorizado y con snapshot previo.",
+      "Proteger datos sensibles y revisar resultados antes de compartir.",
+      "No detener procesos, modificar configuraciones de terceros o afirmar ausencia de intrusión a partir de una instantánea."
+    ]
+  },
+  "prerequisites": [
+    "VM Linux propia o entorno Linux autorizado.",
+    "Usuario sin privilegios con Bash disponible.",
+    "Acceso a terminal y directorio de trabajo ~/linux-t1.",
+    "Capacidad para crear un snapshot antes de los laboratorios."
+  ],
+  "laboratories": [
+    {
+      "id": "T1-LAB-1",
+      "number": 1,
+      "title": "Identidad, límites y ficha base",
+      "points": 15,
+      "objective": "clasificar kernel, distribución, identidad y entorno sin confundir los conceptos.",
+      "procedure_steps": [],
+      "bash_commands": [
+        "mkdir -p \"$HOME/linux-t1\"\n{\n  date -u -Is\n  cat /etc/os-release\n  uname -srmo\n  id\n  ps -p $$ -o pid,ppid,comm,args\n  printf 'PATH=%s\\n' \"$PATH\"\n} > \"$HOME/linux-t1/lab1-ficha.txt\""
+      ],
+      "deliverable_and_criteria": "ficha con cinco campos clave, un párrafo diferenciando distro/kernel/shell y dos limitaciones detectadas. **Criterios (15):** identificación 5; contexto temporal 3; distinciones 4; límites 3. **Fallo crítico:** publicar una salida de entorno con credenciales; aquí solo se registra `PATH`.",
+      "criteria": "identificación 5; contexto temporal 3; distinciones 4; límites 3",
+      "full_description_markdown": "**Objetivo:** clasificar kernel, distribución, identidad y entorno sin confundir los conceptos.\n\n```bash\nmkdir -p \"$HOME/linux-t1\"\n{\n  date -u -Is\n  cat /etc/os-release\n  uname -srmo\n  id\n  ps -p $$ -o pid,ppid,comm,args\n  printf 'PATH=%s\\n' \"$PATH\"\n} > \"$HOME/linux-t1/lab1-ficha.txt\"\n```\n\n**Entregable:** ficha con cinco campos clave, un párrafo diferenciando distro/kernel/shell y dos limitaciones detectadas. **Criterios (15):** identificación 5; contexto temporal 3; distinciones 4; límites 3. **Fallo crítico:** publicar una salida de entorno con credenciales; aquí solo se registra `PATH`."
+    },
+    {
+      "id": "T1-LAB-2",
+      "number": 2,
+      "title": "Inodos, enlaces y permisos",
+      "points": 20,
+      "objective": "demostrar en VM relación entre ruta, nombre, inodo y permisos.",
+      "procedure_steps": [],
+      "bash_commands": [
+        "mkdir -p \"$HOME/linux-t1/lab2\"\nprintf 'evidencia de prueba\\n' > \"$HOME/linux-t1/lab2/original.txt\"\nln \"$HOME/linux-t1/lab2/original.txt\" \"$HOME/linux-t1/lab2/alias-duro.txt\"\nln -s original.txt \"$HOME/linux-t1/lab2/alias-simbolico.txt\"\nls -li \"$HOME/linux-t1/lab2\"\nstat \"$HOME/linux-t1/lab2/original.txt\"\nchmod 640 \"$HOME/linux-t1/lab2/original.txt\"\nstat -c '%a %A %n' \"$HOME/linux-t1/lab2/original.txt\""
+      ],
+      "deliverable_and_criteria": "captura o transcripción de inodos, explicación de por qué cambia `ctime` tras `chmod`, diferencia entre symlink/hardlink y relación de permisos de archivo/directorio. **Criterios (20):** reproducción 8; interpretación 8; precauciones 4. **Nota:** `chmod` solo se hace a un archivo creado en la VM.",
+      "criteria": "reproducción 8; interpretación 8; precauciones 4",
+      "full_description_markdown": "**Objetivo:** demostrar en VM relación entre ruta, nombre, inodo y permisos.\n\n```bash\nmkdir -p \"$HOME/linux-t1/lab2\"\nprintf 'evidencia de prueba\\n' > \"$HOME/linux-t1/lab2/original.txt\"\nln \"$HOME/linux-t1/lab2/original.txt\" \"$HOME/linux-t1/lab2/alias-duro.txt\"\nln -s original.txt \"$HOME/linux-t1/lab2/alias-simbolico.txt\"\nls -li \"$HOME/linux-t1/lab2\"\nstat \"$HOME/linux-t1/lab2/original.txt\"\nchmod 640 \"$HOME/linux-t1/lab2/original.txt\"\nstat -c '%a %A %n' \"$HOME/linux-t1/lab2/original.txt\"\n```\n\n**Entregable:** captura o transcripción de inodos, explicación de por qué cambia `ctime` tras `chmod`, diferencia entre symlink/hardlink y relación de permisos de archivo/directorio. **Criterios (20):** reproducción 8; interpretación 8; precauciones 4. **Nota:** `chmod` solo se hace a un archivo creado en la VM."
+    },
+    {
+      "id": "T1-LAB-3",
+      "number": 3,
+      "title": "Tuberías, stdout/stderr y código de salida",
+      "points": 20,
+      "objective": "evitar los errores de lectura más comunes en Bash.",
+      "procedure_steps": [],
+      "bash_commands": [
+        "mkdir -p \"$HOME/linux-t1/lab3\"\nprintf 'ssh\\ncron\\nssh\\n' > \"$HOME/linux-t1/lab3/datos.txt\"\nsort \"$HOME/linux-t1/lab3/datos.txt\" | uniq -c\nls \"$HOME/linux-t1/lab3\" /ruta-ficticia \\\n  > \"$HOME/linux-t1/lab3/out.txt\" \\\n  2> \"$HOME/linux-t1/lab3/err.txt\"\nrc=$?\nprintf 'rc=%s\\n' \"$rc\"\ngrep -Fq 'ausente' \"$HOME/linux-t1/lab3/datos.txt\"\nprintf 'grep sin coincidencia: rc=%s\\n' \"$?\""
+      ],
+      "deliverable_and_criteria": "archivos stdout/stderr, significado del código de `ls` y diferencia entre error de búsqueda y «sin coincidencia» de `grep`. **Criterios (20):** separación 7; diagnóstico 8; mitigación 5.",
+      "criteria": "separación 7; diagnóstico 8; mitigación 5",
+      "full_description_markdown": "**Objetivo:** evitar los errores de lectura más comunes en Bash.\n\n```bash\nmkdir -p \"$HOME/linux-t1/lab3\"\nprintf 'ssh\\ncron\\nssh\\n' > \"$HOME/linux-t1/lab3/datos.txt\"\nsort \"$HOME/linux-t1/lab3/datos.txt\" | uniq -c\nls \"$HOME/linux-t1/lab3\" /ruta-ficticia \\\n  > \"$HOME/linux-t1/lab3/out.txt\" \\\n  2> \"$HOME/linux-t1/lab3/err.txt\"\nrc=$?\nprintf 'rc=%s\\n' \"$rc\"\ngrep -Fq 'ausente' \"$HOME/linux-t1/lab3/datos.txt\"\nprintf 'grep sin coincidencia: rc=%s\\n' \"$?\"\n```\n\n**Entregable:** archivos stdout/stderr, significado del código de `ls` y diferencia entre error de búsqueda y «sin coincidencia» de `grep`. **Criterios (20):** separación 7; diagnóstico 8; mitigación 5."
+    },
+    {
+      "id": "T1-LAB-4",
+      "number": 4,
+      "title": "Snapshot limitado de procesos y `/proc`",
+      "points": 20,
+      "objective": "correlacionar shell, PID y PPID sin detener procesos.",
+      "procedure_steps": [],
+      "bash_commands": [
+        "ps -p $$ -o pid,ppid,user,stat,etime,comm,args\nsed -n '1,30p' \"/proc/$$/status\"\nreadlink \"/proc/$$/exe\"\nps -eo pid,ppid,comm,args --sort=pid | head -n 15"
+      ],
+      "deliverable_and_criteria": "árbol parcial de tres procesos con relación padre-hijo comprobable, tres campos de `/proc/$$/status` explicados y dos razones por las que un snapshot no equivale a historial. **Criterios (20):** datos 6; interpretación 9; límites 5. **No** consultar entornos de otros procesos con credenciales.",
+      "criteria": "datos 6; interpretación 9; límites 5",
+      "full_description_markdown": "**Objetivo:** correlacionar shell, PID y PPID sin detener procesos.\n\n```bash\nps -p $$ -o pid,ppid,user,stat,etime,comm,args\nsed -n '1,30p' \"/proc/$$/status\"\nreadlink \"/proc/$$/exe\"\nps -eo pid,ppid,comm,args --sort=pid | head -n 15\n```\n\n**Entregable:** árbol parcial de tres procesos con relación padre-hijo comprobable, tres campos de `/proc/$$/status` explicados y dos razones por las que un snapshot no equivale a historial. **Criterios (20):** datos 6; interpretación 9; límites 5. **No** consultar entornos de otros procesos con credenciales."
+    },
+    {
+      "id": "T1-LAB-5",
+      "number": 5,
+      "title": "Script de línea base, validación y entrega",
+      "points": 25,
+      "objective": "operacionalizar `linux_base.sh` sin privilegios.",
+      "procedure_steps": [
+        "Copia el Script A a `~/linux-t1/linux_base.sh`; revisa el código antes de ejecutarlo.",
+        "Ejecuta `bash -n` y confirma que no hay error de sintaxis.",
+        "Ejecútalo sobre un directorio autorizado. Inspecciona `estados.tsv` y detecta comandos con salida no satisfactoria.",
+        "Comprueba **integridad posterior** con `sha256sum -c SHA256SUMS.txt` **desde dentro del directorio de salida**. Si no aparecen fallos, explica exactamente qué garantiza y qué no garantiza esa comprobación.",
+        "Presenta informe de 1 página con evidencias seleccionadas, límites y siguiente paso recomendado para un SOC."
+      ],
+      "bash_commands": [],
+      "deliverable_and_criteria": null,
+      "criteria": "ejecución 8; códigos de retorno 5; hash y limitaciones 5; informe 7",
+      "full_description_markdown": "**Objetivo:** operacionalizar `linux_base.sh` sin privilegios.\n\n1. Copia el Script A a `~/linux-t1/linux_base.sh`; revisa el código antes de ejecutarlo.\n2. Ejecuta `bash -n` y confirma que no hay error de sintaxis.\n3. Ejecútalo sobre un directorio autorizado. Inspecciona `estados.tsv` y detecta comandos con salida no satisfactoria.\n4. Comprueba **integridad posterior** con `sha256sum -c SHA256SUMS.txt` **desde dentro del directorio de salida**. Si no aparecen fallos, explica exactamente qué garantiza y qué no garantiza esa comprobación.\n5. Presenta informe de 1 página con evidencias seleccionadas, límites y siguiente paso recomendado para un SOC.\n\n**Criterios (25):** ejecución 8; códigos de retorno 5; hash y limitaciones 5; informe 7. **No** asumir que los hashes son prueba forense completa."
+    }
+  ],
+  "scripts": [
+    {
+      "name": "linux_base.sh",
+      "report_section": "10.1",
+      "description": "Recopilación acotada de línea base con códigos de salida y SHA-256, diseñada para VM."
+    },
+    {
+      "name": "Validación de artefacto conocido",
+      "report_section": "10.2",
+      "description": "Inspección de stat y SHA-256 de archivo propio en laboratorio."
+    }
+  ],
+  "knowledge_questions": [
+    {
+      "number": 1,
+      "question": "¿Qué parte del sistema es «Linux» en sentido estricto?"
+    },
+    {
+      "number": 2,
+      "question": "¿Bash forma parte del kernel?"
+    },
+    {
+      "number": 3,
+      "question": "¿Por qué `uname -r` no demuestra por sí solo que existe una vulnerabilidad?"
+    },
+    {
+      "number": 4,
+      "question": "¿Qué diferencia existe entre UID real y efectivo?"
+    },
+    {
+      "number": 5,
+      "question": "¿Cuál es el propósito general de `/etc` y `/var/lib`?"
+    },
+    {
+      "number": 6,
+      "question": "¿Qué cambia un enlace duro frente a un enlace simbólico?"
+    },
+    {
+      "number": 7,
+      "question": "¿Qué indica `ctime` y qué **no** indica?"
+    },
+    {
+      "number": 8,
+      "question": "¿Por qué la lectura de `atime` puede ser equívoca?"
+    },
+    {
+      "number": 9,
+      "question": "¿Qué significa la `x` en permisos de un directorio?"
+    },
+    {
+      "number": 10,
+      "question": "¿Cuáles son las tres clases `u/g/o`?"
+    },
+    {
+      "number": 11,
+      "question": "¿Por qué `chmod 777` no es una solución genérica a «Permission denied»?"
+    },
+    {
+      "number": 12,
+      "question": "¿Qué añade una ACL al modelo clásico?"
+    },
+    {
+      "number": 13,
+      "question": "¿Qué puedes concluir si `/proc/1234/status` devuelve acceso denegado?"
+    },
+    {
+      "number": 14,
+      "question": "¿Qué significa un PPID y qué cautela requiere?"
+    },
+    {
+      "number": 15,
+      "question": "¿Qué diferencia operacional existe entre `SIGTERM` y `SIGKILL`?"
+    },
+    {
+      "number": 16,
+      "question": "¿Por qué `grep` con código 1 no indica siempre un error?"
+    },
+    {
+      "number": 17,
+      "question": "¿Qué hace `2>&1`, y por qué importa su orden?"
+    },
+    {
+      "number": 18,
+      "question": "¿Cuál es el riesgo de `for x in $(find ...)`?"
+    },
+    {
+      "number": 19,
+      "question": "¿Qué cambia `set -o pipefail`?"
+    },
+    {
+      "number": 20,
+      "question": "¿Qué precaución se debe tomar antes de habilitar `set -x`?"
+    },
+    {
+      "number": 21,
+      "question": "¿Qué diferencia hay entre `source script.sh` y `bash script.sh`?"
+    },
+    {
+      "number": 22,
+      "question": "¿Es suficiente un hash SHA-256 sin origen confiable para atribuir legitimidad?"
+    },
+    {
+      "number": 23,
+      "question": "En un host con proceso «sospechoso», ¿cuál es el primer paso antes de `kill`?"
+    },
+    {
+      "number": 24,
+      "question": "¿Qué tres elementos mínimos deben acompañar una evidencia SOC?"
+    }
+  ],
+  "knowledge_answer_key_as_published": "1. El kernel. 2. No; es intérprete en espacio de usuario. 3. Puede haber parches retroportados y mitigaciones; requiere contexto concreto. 4. Representan aspectos de la identidad de un proceso; el efectivo suele afectar comprobaciones de privilegios. 5. Configuración del host / estado variable de aplicaciones. 6. Mismo inodo vs archivo con ruta de destino. 7. Cambio de metadatos/estado del inodo; no fecha de creación. 8. Políticas `relatime`/`noatime` y otras condiciones. 9. Travesía/búsqueda. 10. Propietario/grupo/otros. 11. Amplía exposición sin conocer el requisito de acceso. 12. Permisos adicionales más detallados. 13. Falta visibilidad por permisos, política, namespace u otros factores; no implica rootkit. 14. PID del padre observado; puede cambiar por salida del padre y carrera temporal. 15. Petición gestionable vs terminación no capturable. 16. `grep` rc=1 indica ausencia de coincidencia. 17. Redirige stderr al destino actual de stdout; el orden afecta el destino final. 18. Rompe nombres con espacios/saltos de línea y puede generar errores de argumentos. 19. Hace que errores de órdenes anteriores influyan en el estado de pipeline conforme a sus reglas. 20. Evitar mostrar secretos expandidos. 21. Modifica la shell actual vs ejecutar en una nueva shell. 22. No; el hash requiere referencia confiable. 23. Validar PID, impacto, evidencia, autorización y playbook. 24. Contexto temporal/host, fuente/comando y limitaciones/interpretación.",
+  "references": [
+    {
+      "id": "F1",
+      "document": "Filesystem Hierarchy Standard 3.0 (13-10-2026)",
+      "url": "https://specifications.freedesktop.org/fhs/latest/",
+      "supports": "Organización de directorios y carácter convencional"
+    },
+    {
+      "id": "F2",
+      "document": "GNU Bash Reference Manual",
+      "url": "https://www.gnu.org/software/bash/manual/bash.html",
+      "supports": "Shell, quoting, expansión, redirecciones, scripts y opciones"
+    },
+    {
+      "id": "F3",
+      "document": "Linux credentials(7)",
+      "url": "https://man7.org/linux/man-pages/man7/credentials.7.html",
+      "supports": "Identidades reales/efectivas y credenciales"
+    },
+    {
+      "id": "F4",
+      "document": "Linux capabilities(7)",
+      "url": "https://man7.org/linux/man-pages/man7/capabilities.7.html",
+      "supports": "Modelo moderno de privilegios de kernel"
+    },
+    {
+      "id": "F5",
+      "document": "Linux inode(7)",
+      "url": "https://man7.org/linux/man-pages/man7/inode.7.html",
+      "supports": "Inodos, metadatos, `ctime`, `mtime`, `atime`, `btime`"
+    },
+    {
+      "id": "F6",
+      "document": "Linux proc_pid_fd(5)",
+      "url": "https://man7.org/linux/man-pages/man5/proc_pid_fd.5.html",
+      "supports": "Descriptores de proceso y `/proc/PID/fd`"
+    },
+    {
+      "id": "F7",
+      "document": "Linux passwd(5)",
+      "url": "https://man7.org/linux/man-pages/man5/passwd.5.html",
+      "supports": "Cuentas y estructura de `/etc/passwd`"
+    },
+    {
+      "id": "F8",
+      "document": "Linux shadow(5)",
+      "url": "https://man7.org/linux/man-pages/man5/shadow.5.html",
+      "supports": "Verificadores de contraseña y protección del fichero"
+    },
+    {
+      "id": "F9",
+      "document": "Linux getfacl(1)",
+      "url": "https://man7.org/linux/man-pages/man1/getfacl.1.html",
+      "supports": "Listas de control de acceso"
+    },
+    {
+      "id": "F10",
+      "document": "Linux proc(5)",
+      "url": "https://man7.org/linux/man-pages/man5/procfs.5.html",
+      "supports": "Pseudo-fs `/proc`, políticas de visibilidad"
+    },
+    {
+      "id": "F11",
+      "document": "Linux proc_pid(5)",
+      "url": "https://man7.org/linux/man-pages/man5/proc_pid.5.html",
+      "supports": "Directorios PID"
+    },
+    {
+      "id": "F12",
+      "document": "Linux proc_pid_environ(5)",
+      "url": "https://man7.org/linux/man-pages/man5/proc_pid_environ.5.html",
+      "supports": "Naturaleza inicial de `environ` y límites"
+    },
+    {
+      "id": "F13",
+      "document": "Linux signal(7)",
+      "url": "https://man7.org/linux/man-pages/man7/signal.7.html",
+      "supports": "Terminación y señales"
+    },
+    {
+      "id": "F14",
+      "document": "POSIX.1-2024, Shell Command Language",
+      "url": "https://pubs.opengroup.org/onlinepubs/9799919799/utilities/V3_chap02.html",
+      "supports": "Semántica de shell, pipelines y estados"
+    },
+    {
+      "id": "F15",
+      "document": "Linux ps(1)",
+      "url": "https://man7.org/linux/man-pages/man1/ps.1.html",
+      "supports": "Vista instantánea y columnas de proceso"
+    },
+    {
+      "id": "F16",
+      "document": "Linux find(1)",
+      "url": "https://man7.org/linux/man-pages/man1/find.1.html",
+      "supports": "Predicados de búsqueda y límites"
+    }
+  ],
+  "source_evidence_labels": {
+    "DOC": "Principio respaldado por documentación técnica citada.",
+    "PRÁCTICA": "Procedimiento reproducible que requiere validación en una VM.",
+    "ANÁLISIS": "Interpretación operativa dependiente del contexto."
+  },
+  "limitations": [
+    "Este JSON es un catálogo fiel al informe de Tanda 1; no equivale a resultados de laboratorios ejecutados.",
+    "Las secciones de las otras cuatro tandas no están desarrolladas en esta entrega.",
+    "Las afirmaciones del informe original se conservan; esta exportación no implica una nueva verificación de fuentes."
+  ]
+}

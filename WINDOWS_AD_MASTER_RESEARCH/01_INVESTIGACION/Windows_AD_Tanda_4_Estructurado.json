@@ -1,0 +1,4055 @@
+{
+  "schema_version": "4.0",
+  "tipo": "investigacion_documental_diseno_curricular_consolidado",
+  "titulo": "Windows + Active Directory — Tanda 4: Recuperación + laboratorios + currículo final propuesto",
+  "fecha_corte": "2026-10-18",
+  "idioma": "es",
+  "tanda": 4,
+  "total_tandas": 4,
+  "origen_requisitos": "adwin(1).txt",
+  "documentos_base": [
+    "Windows_AD_Tanda_1_Investigacion.md",
+    "Windows_AD_Tanda_2_Investigacion.md",
+    "Windows_AD_Tanda_3_Investigacion.md"
+  ],
+  "auditoria_155_markdown": false,
+  "sistemas_modificados": false,
+  "software_instalado": false,
+  "laboratorios_ejecutados": 0,
+  "laboratorios_empiricamente_validados": 0,
+  "estado": "diseño_documental_para_revision",
+  "fuentes_consultadas": 35,
+  "resumen_decisiones": [
+    "No confundir backup, restauración, replicación y snapshot de DC",
+    "Escenarios separados: host, objeto, DC, bosque y PKI",
+    "Bosque en aislamiento y restauración de copia confiable como último recurso",
+    "Recuperación es transversal a SOC y Red Team",
+    "Dos rutas especializadas con prerequisitos de competencia",
+    "No duplicar SPL/KQL ni modificar academia existente"
+  ],
+  "etapas": [
+    {
+      "id": "WAD-01",
+      "orden_visual": 1,
+      "titulo": "Plataformas, ediciones y arranque",
+      "bloque": "Windows",
+      "nivel": "fundamentos",
+      "prerrequisitos_reales": [],
+      "ids_previos": [
+        "WIN-01"
+      ],
+      "objetivo": "Inventariar versión, rol y cadena de arranque sin alterar sistema.",
+      "competencias": [
+        "Ediciones y ciclo de vida",
+        "UEFI, BCD, arranque y servicios base",
+        "Inventario reproducible"
+      ],
+      "lecciones_propuestas": [
+        {
+          "id": "WAD-01-L01",
+          "titulo": "Ediciones y ciclo de vida",
+          "objetivo_medible": "Explicar y verificar «ediciones y ciclo de vida» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [],
+          "contenido_nuclear": "Ediciones y ciclo de vida",
+          "practica": "Aplicar ediciones y ciclo de vida a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Ficha de host + esquema de arranque + criterios de soporte. / apartado 1",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-01-L02",
+          "titulo": "UEFI, BCD, arranque y servicios base",
+          "objetivo_medible": "Explicar y verificar «uefi, bcd, arranque y servicios base» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-01-L01"
+          ],
+          "contenido_nuclear": "UEFI, BCD, arranque y servicios base",
+          "practica": "Aplicar uefi, bcd, arranque y servicios base a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Ficha de host + esquema de arranque + criterios de soporte. / apartado 2",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-01-L03",
+          "titulo": "Inventario reproducible",
+          "objetivo_medible": "Explicar y verificar «inventario reproducible» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-01-L02"
+          ],
+          "contenido_nuclear": "Inventario reproducible",
+          "practica": "Aplicar inventario reproducible a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Ficha de host + esquema de arranque + criterios de soporte. / apartado 3",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        }
+      ],
+      "practica_y_evidencia": "Ficha de host + esquema de arranque + criterios de soporte.",
+      "evaluacion": "Caso práctico + prueba positiva + prueba negativa + breve explicación de límites.",
+      "desbloqueo": "Aprobación de las evidencias críticas de sus prerrequisitos y evaluación mínima de esta etapa; exención diagnóstica posible.",
+      "criterio_dominio": "Identifica versión/edición, dependencias de arranque y riesgos sin contradicciones.",
+      "horas_estimadas": {
+        "min": 3,
+        "max": 5
+      },
+      "fuentes_ids": [
+        "D29"
+      ]
+    },
+    {
+      "id": "WAD-02",
+      "orden_visual": 2,
+      "titulo": "Arquitectura, procesos, servicios y registro",
+      "bloque": "Windows",
+      "nivel": "fundamentos",
+      "prerrequisitos_reales": [
+        "WAD-01"
+      ],
+      "ids_previos": [
+        "WIN-02",
+        "WIN-05"
+      ],
+      "objetivo": "Distinguir servicios, procesos, memoria y persistencia administrativa legítima.",
+      "competencias": [
+        "User mode/kernel mode y procesos",
+        "Servicios, tareas y dependencias",
+        "Registro, WMI y cambios reversibles"
+      ],
+      "lecciones_propuestas": [
+        {
+          "id": "WAD-02-L01",
+          "titulo": "User mode/kernel mode y procesos",
+          "objetivo_medible": "Explicar y verificar «user mode/kernel mode y procesos» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-01"
+          ],
+          "contenido_nuclear": "User mode/kernel mode y procesos",
+          "practica": "Aplicar user mode/kernel mode y procesos a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Árbol proceso-servicio con causa y prueba de reversión. / apartado 1",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-02-L02",
+          "titulo": "Servicios, tareas y dependencias",
+          "objetivo_medible": "Explicar y verificar «servicios, tareas y dependencias» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-02-L01"
+          ],
+          "contenido_nuclear": "Servicios, tareas y dependencias",
+          "practica": "Aplicar servicios, tareas y dependencias a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Árbol proceso-servicio con causa y prueba de reversión. / apartado 2",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-02-L03",
+          "titulo": "Registro, WMI y cambios reversibles",
+          "objetivo_medible": "Explicar y verificar «registro, wmi y cambios reversibles» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-02-L02"
+          ],
+          "contenido_nuclear": "Registro, WMI y cambios reversibles",
+          "practica": "Aplicar registro, wmi y cambios reversibles a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Árbol proceso-servicio con causa y prueba de reversión. / apartado 3",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        }
+      ],
+      "practica_y_evidencia": "Árbol proceso-servicio con causa y prueba de reversión.",
+      "evaluacion": "Caso práctico + prueba positiva + prueba negativa + breve explicación de límites.",
+      "desbloqueo": "Aprobación de las evidencias críticas de sus prerrequisitos y evaluación mínima de esta etapa; exención diagnóstica posible.",
+      "criterio_dominio": "Diferencia proceso de servicio, demuestra dependencia y rollback.",
+      "horas_estimadas": {
+        "min": 5,
+        "max": 8
+      },
+      "fuentes_ids": [
+        "D21"
+      ]
+    },
+    {
+      "id": "WAD-03",
+      "orden_visual": 3,
+      "titulo": "Identidad local, tokens y seguridad",
+      "bloque": "Windows",
+      "nivel": "fundamentos",
+      "prerrequisitos_reales": [
+        "WAD-02"
+      ],
+      "ids_previos": [
+        "WIN-03"
+      ],
+      "objetivo": "Demostrar autorizaciones efectivas mediante sujeto, recurso y token.",
+      "competencias": [
+        "SAM y LSA: identidades locales",
+        "SID, token, privilegios y UAC",
+        "ACE/DACL/SACL e integridad"
+      ],
+      "lecciones_propuestas": [
+        {
+          "id": "WAD-03-L01",
+          "titulo": "SAM y LSA: identidades locales",
+          "objetivo_medible": "Explicar y verificar «sam y lsa: identidades locales» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-02"
+          ],
+          "contenido_nuclear": "SAM y LSA: identidades locales",
+          "practica": "Aplicar sam y lsa: identidades locales a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Tabla de cuentas, grupos, ACL y prueba positiva/negativa. / apartado 1",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-03-L02",
+          "titulo": "SID, token, privilegios y UAC",
+          "objetivo_medible": "Explicar y verificar «sid, token, privilegios y uac» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-03-L01"
+          ],
+          "contenido_nuclear": "SID, token, privilegios y UAC",
+          "practica": "Aplicar sid, token, privilegios y uac a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Tabla de cuentas, grupos, ACL y prueba positiva/negativa. / apartado 2",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-03-L03",
+          "titulo": "ACE/DACL/SACL e integridad",
+          "objetivo_medible": "Explicar y verificar «ace/dacl/sacl e integridad» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-03-L02"
+          ],
+          "contenido_nuclear": "ACE/DACL/SACL e integridad",
+          "practica": "Aplicar ace/dacl/sacl e integridad a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Tabla de cuentas, grupos, ACL y prueba positiva/negativa. / apartado 3",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        }
+      ],
+      "practica_y_evidencia": "Tabla de cuentas, grupos, ACL y prueba positiva/negativa.",
+      "evaluacion": "Caso práctico + prueba positiva + prueba negativa + breve explicación de límites.",
+      "desbloqueo": "Aprobación de las evidencias críticas de sus prerrequisitos y evaluación mínima de esta etapa; exención diagnóstica posible.",
+      "criterio_dominio": "Explica por qué una acción está permitida o denegada.",
+      "horas_estimadas": {
+        "min": 5,
+        "max": 8
+      },
+      "fuentes_ids": [
+        "D21"
+      ]
+    },
+    {
+      "id": "WAD-04",
+      "orden_visual": 4,
+      "titulo": "Archivos, NTFS, SMB y propietarios",
+      "bloque": "Windows",
+      "nivel": "fundamentos",
+      "prerrequisitos_reales": [
+        "WAD-03"
+      ],
+      "ids_previos": [
+        "WIN-04"
+      ],
+      "objetivo": "Determinar y corregir permisos excesivos en un recurso aislado.",
+      "competencias": [
+        "NTFS, herencia y propietario",
+        "Permiso efectivo con share SMB",
+        "Auditoría de acceso y restauración"
+      ],
+      "lecciones_propuestas": [
+        {
+          "id": "WAD-04-L01",
+          "titulo": "NTFS, herencia y propietario",
+          "objetivo_medible": "Explicar y verificar «ntfs, herencia y propietario» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-03"
+          ],
+          "contenido_nuclear": "NTFS, herencia y propietario",
+          "practica": "Aplicar ntfs, herencia y propietario a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Matriz NTFS ∩ share + acceso probado + reversión. / apartado 1",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-04-L02",
+          "titulo": "Permiso efectivo con share SMB",
+          "objetivo_medible": "Explicar y verificar «permiso efectivo con share smb» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-04-L01"
+          ],
+          "contenido_nuclear": "Permiso efectivo con share SMB",
+          "practica": "Aplicar permiso efectivo con share smb a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Matriz NTFS ∩ share + acceso probado + reversión. / apartado 2",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-04-L03",
+          "titulo": "Auditoría de acceso y restauración",
+          "objetivo_medible": "Explicar y verificar «auditoría de acceso y restauración» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-04-L02"
+          ],
+          "contenido_nuclear": "Auditoría de acceso y restauración",
+          "practica": "Aplicar auditoría de acceso y restauración a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Matriz NTFS ∩ share + acceso probado + reversión. / apartado 3",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        }
+      ],
+      "practica_y_evidencia": "Matriz NTFS ∩ share + acceso probado + reversión.",
+      "evaluacion": "Caso práctico + prueba positiva + prueba negativa + breve explicación de límites.",
+      "desbloqueo": "Aprobación de las evidencias críticas de sus prerrequisitos y evaluación mínima de esta etapa; exención diagnóstica posible.",
+      "criterio_dominio": "Sin permisos amplios residuales; explica denegaciones.",
+      "horas_estimadas": {
+        "min": 4,
+        "max": 7
+      },
+      "fuentes_ids": [
+        "D21"
+      ]
+    },
+    {
+      "id": "WAD-05",
+      "orden_visual": 5,
+      "titulo": "PowerShell para operación segura",
+      "bloque": "Windows",
+      "nivel": "fundamentos",
+      "prerrequisitos_reales": [
+        "WAD-02",
+        "WAD-03"
+      ],
+      "ids_previos": [
+        "WIN-06"
+      ],
+      "objetivo": "Automatizar inventario y mantenimiento con cambios auditables.",
+      "competencias": [
+        "Objetos, pipeline y help",
+        "CIM y administración remota autorizada",
+        "Idempotencia, logging y recuperación"
+      ],
+      "lecciones_propuestas": [
+        {
+          "id": "WAD-05-L01",
+          "titulo": "Objetos, pipeline y help",
+          "objetivo_medible": "Explicar y verificar «objetos, pipeline y help» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-02",
+            "WAD-03"
+          ],
+          "contenido_nuclear": "Objetos, pipeline y help",
+          "practica": "Aplicar objetos, pipeline y help a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Script legible, dry-run y registro de efectos. / apartado 1",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-05-L02",
+          "titulo": "CIM y administración remota autorizada",
+          "objetivo_medible": "Explicar y verificar «cim y administración remota autorizada» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-05-L01"
+          ],
+          "contenido_nuclear": "CIM y administración remota autorizada",
+          "practica": "Aplicar cim y administración remota autorizada a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Script legible, dry-run y registro de efectos. / apartado 2",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-05-L03",
+          "titulo": "Idempotencia, logging y recuperación",
+          "objetivo_medible": "Explicar y verificar «idempotencia, logging y recuperación» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-05-L02"
+          ],
+          "contenido_nuclear": "Idempotencia, logging y recuperación",
+          "practica": "Aplicar idempotencia, logging y recuperación a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Script legible, dry-run y registro de efectos. / apartado 3",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        }
+      ],
+      "practica_y_evidencia": "Script legible, dry-run y registro de efectos.",
+      "evaluacion": "Caso práctico + prueba positiva + prueba negativa + breve explicación de límites.",
+      "desbloqueo": "Aprobación de las evidencias críticas de sus prerrequisitos y evaluación mínima de esta etapa; exención diagnóstica posible.",
+      "criterio_dominio": "Script reproducible sin efectos inesperados al repetir.",
+      "horas_estimadas": {
+        "min": 6,
+        "max": 10
+      },
+      "fuentes_ids": [
+        "D21"
+      ]
+    },
+    {
+      "id": "WAD-06",
+      "orden_visual": 6,
+      "titulo": "Red de host y acceso remoto",
+      "bloque": "Windows",
+      "nivel": "fundamentos",
+      "prerrequisitos_reales": [
+        "WAD-04",
+        "WAD-05"
+      ],
+      "ids_previos": [
+        "WIN-07"
+      ],
+      "objetivo": "Diagnosticar una ruta de red sin abrir accesos indiscriminados.",
+      "competencias": [
+        "DNS cliente y conectividad",
+        "Firewall, SMB, RDP y WinRM",
+        "Diagnóstico por hipótesis"
+      ],
+      "lecciones_propuestas": [
+        {
+          "id": "WAD-06-L01",
+          "titulo": "DNS cliente y conectividad",
+          "objetivo_medible": "Explicar y verificar «dns cliente y conectividad» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-04",
+            "WAD-05"
+          ],
+          "contenido_nuclear": "DNS cliente y conectividad",
+          "practica": "Aplicar dns cliente y conectividad a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Pruebas antes/después con diagrama de dependencias. / apartado 1",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-06-L02",
+          "titulo": "Firewall, SMB, RDP y WinRM",
+          "objetivo_medible": "Explicar y verificar «firewall, smb, rdp y winrm» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-06-L01"
+          ],
+          "contenido_nuclear": "Firewall, SMB, RDP y WinRM",
+          "practica": "Aplicar firewall, smb, rdp y winrm a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Pruebas antes/después con diagrama de dependencias. / apartado 2",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-06-L03",
+          "titulo": "Diagnóstico por hipótesis",
+          "objetivo_medible": "Explicar y verificar «diagnóstico por hipótesis» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-06-L02"
+          ],
+          "contenido_nuclear": "Diagnóstico por hipótesis",
+          "practica": "Aplicar diagnóstico por hipótesis a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Pruebas antes/después con diagrama de dependencias. / apartado 3",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        }
+      ],
+      "practica_y_evidencia": "Pruebas antes/después con diagrama de dependencias.",
+      "evaluacion": "Caso práctico + prueba positiva + prueba negativa + breve explicación de límites.",
+      "desbloqueo": "Aprobación de las evidencias críticas de sus prerrequisitos y evaluación mínima de esta etapa; exención diagnóstica posible.",
+      "criterio_dominio": "Isola causa de fallo y limita corrección a su alcance.",
+      "horas_estimadas": {
+        "min": 4,
+        "max": 7
+      },
+      "fuentes_ids": [
+        "D21"
+      ]
+    },
+    {
+      "id": "WAD-07",
+      "orden_visual": 7,
+      "titulo": "Hardening, auditoría y fallo de host",
+      "bloque": "Windows",
+      "nivel": "fundamentos",
+      "prerrequisitos_reales": [
+        "WAD-03",
+        "WAD-06"
+      ],
+      "ids_previos": [
+        "WIN-08",
+        "WIN-09"
+      ],
+      "objetivo": "Aplicar y verificar un control, preservar evidencia de fallo.",
+      "competencias": [
+        "Auditoría local y eventos",
+        "Controles Defender/PowerShell",
+        "Investigación breve y respuesta segura"
+      ],
+      "lecciones_propuestas": [
+        {
+          "id": "WAD-07-L01",
+          "titulo": "Auditoría local y eventos",
+          "objetivo_medible": "Explicar y verificar «auditoría local y eventos» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-03",
+            "WAD-06"
+          ],
+          "contenido_nuclear": "Auditoría local y eventos",
+          "practica": "Aplicar auditoría local y eventos a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Baseline, evento de prueba, rollback verificado. / apartado 1",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-07-L02",
+          "titulo": "Controles Defender/PowerShell",
+          "objetivo_medible": "Explicar y verificar «controles defender/powershell» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-07-L01"
+          ],
+          "contenido_nuclear": "Controles Defender/PowerShell",
+          "practica": "Aplicar controles defender/powershell a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Baseline, evento de prueba, rollback verificado. / apartado 2",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-07-L03",
+          "titulo": "Investigación breve y respuesta segura",
+          "objetivo_medible": "Explicar y verificar «investigación breve y respuesta segura» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-07-L02"
+          ],
+          "contenido_nuclear": "Investigación breve y respuesta segura",
+          "practica": "Aplicar investigación breve y respuesta segura a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Baseline, evento de prueba, rollback verificado. / apartado 3",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        }
+      ],
+      "practica_y_evidencia": "Baseline, evento de prueba, rollback verificado.",
+      "evaluacion": "Caso práctico + prueba positiva + prueba negativa + breve explicación de límites.",
+      "desbloqueo": "Aprobación de las evidencias críticas de sus prerrequisitos y evaluación mínima de esta etapa; exención diagnóstica posible.",
+      "criterio_dominio": "No confunde ausencia de evento con ausencia de actividad.",
+      "horas_estimadas": {
+        "min": 6,
+        "max": 9
+      },
+      "fuentes_ids": [
+        "D21",
+        "D27"
+      ]
+    },
+    {
+      "id": "WAD-08",
+      "orden_visual": 8,
+      "titulo": "Directorio, objetos y límites de confianza",
+      "bloque": "AD DS",
+      "nivel": "intermedio",
+      "prerrequisitos_reales": [
+        "WAD-03",
+        "WAD-06"
+      ],
+      "ids_previos": [
+        "AD-01"
+      ],
+      "objetivo": "Modelar un bosque y sus límites administrativos y de seguridad.",
+      "competencias": [
+        "Bosque, dominio, OU y particiones",
+        "Esquema, LDAP y GC",
+        "Rol de AD DS frente a Entra ID"
+      ],
+      "lecciones_propuestas": [
+        {
+          "id": "WAD-08-L01",
+          "titulo": "Bosque, dominio, OU y particiones",
+          "objetivo_medible": "Explicar y verificar «bosque, dominio, ou y particiones» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-03",
+            "WAD-06"
+          ],
+          "contenido_nuclear": "Bosque, dominio, OU y particiones",
+          "practica": "Aplicar bosque, dominio, ou y particiones a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Diagrama de relaciones y tabla de objetos. / apartado 1",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-08-L02",
+          "titulo": "Esquema, LDAP y GC",
+          "objetivo_medible": "Explicar y verificar «esquema, ldap y gc» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-08-L01"
+          ],
+          "contenido_nuclear": "Esquema, LDAP y GC",
+          "practica": "Aplicar esquema, ldap y gc a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Diagrama de relaciones y tabla de objetos. / apartado 2",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-08-L03",
+          "titulo": "Rol de AD DS frente a Entra ID",
+          "objetivo_medible": "Explicar y verificar «rol de ad ds frente a entra id» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-08-L02"
+          ],
+          "contenido_nuclear": "Rol de AD DS frente a Entra ID",
+          "practica": "Aplicar rol de ad ds frente a entra id a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Diagrama de relaciones y tabla de objetos. / apartado 3",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        }
+      ],
+      "practica_y_evidencia": "Diagrama de relaciones y tabla de objetos.",
+      "evaluacion": "Caso práctico + prueba positiva + prueba negativa + breve explicación de límites.",
+      "desbloqueo": "Aprobación de las evidencias críticas de sus prerrequisitos y evaluación mínima de esta etapa; exención diagnóstica posible.",
+      "criterio_dominio": "Distingue OU, dominio y bosque con consecuencias reales.",
+      "horas_estimadas": {
+        "min": 4,
+        "max": 6
+      },
+      "fuentes_ids": [
+        "D31"
+      ]
+    },
+    {
+      "id": "WAD-09",
+      "orden_visual": 9,
+      "titulo": "DC, DNS, hora y equipos unidos",
+      "bloque": "AD DS",
+      "nivel": "intermedio",
+      "prerrequisitos_reales": [
+        "WAD-08",
+        "WAD-05"
+      ],
+      "ids_previos": [
+        "AD-02",
+        "AD-03"
+      ],
+      "objetivo": "Diseñar dominio reproducible y comprobar autenticación básica.",
+      "competencias": [
+        "Instalación y promoción aislada",
+        "DNS SRV, DC Locator y tiempo",
+        "Comprobaciones cliente/DC"
+      ],
+      "lecciones_propuestas": [
+        {
+          "id": "WAD-09-L01",
+          "titulo": "Instalación y promoción aislada",
+          "objetivo_medible": "Explicar y verificar «instalación y promoción aislada» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-08",
+            "WAD-05"
+          ],
+          "contenido_nuclear": "Instalación y promoción aislada",
+          "practica": "Aplicar instalación y promoción aislada a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Topología, capturas de consultas y checklist de salud. / apartado 1",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-09-L02",
+          "titulo": "DNS SRV, DC Locator y tiempo",
+          "objetivo_medible": "Explicar y verificar «dns srv, dc locator y tiempo» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-09-L01"
+          ],
+          "contenido_nuclear": "DNS SRV, DC Locator y tiempo",
+          "practica": "Aplicar dns srv, dc locator y tiempo a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Topología, capturas de consultas y checklist de salud. / apartado 2",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-09-L03",
+          "titulo": "Comprobaciones cliente/DC",
+          "objetivo_medible": "Explicar y verificar «comprobaciones cliente/dc» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-09-L02"
+          ],
+          "contenido_nuclear": "Comprobaciones cliente/DC",
+          "practica": "Aplicar comprobaciones cliente/dc a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Topología, capturas de consultas y checklist de salud. / apartado 3",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        }
+      ],
+      "practica_y_evidencia": "Topología, capturas de consultas y checklist de salud.",
+      "evaluacion": "Caso práctico + prueba positiva + prueba negativa + breve explicación de límites.",
+      "desbloqueo": "Aprobación de las evidencias críticas de sus prerrequisitos y evaluación mínima de esta etapa; exención diagnóstica posible.",
+      "criterio_dominio": "DC resoluble, cliente unido, reloj coherente.",
+      "horas_estimadas": {
+        "min": 7,
+        "max": 12
+      },
+      "fuentes_ids": [
+        "D21",
+        "D29"
+      ]
+    },
+    {
+      "id": "WAD-10",
+      "orden_visual": 10,
+      "titulo": "LDAP, ciclo de identidad y ACL",
+      "bloque": "AD DS",
+      "nivel": "intermedio",
+      "prerrequisitos_reales": [
+        "WAD-09",
+        "WAD-04"
+      ],
+      "ids_previos": [
+        "AD-04",
+        "AD-06"
+      ],
+      "objetivo": "Delegar una tarea específica sin otorgar privilegios de dominio.",
+      "competencias": [
+        "LDAP y atributos consultables",
+        "Usuarios, grupos, ciclo de vida",
+        "Delegación mínima y acceso efectivo"
+      ],
+      "lecciones_propuestas": [
+        {
+          "id": "WAD-10-L01",
+          "titulo": "LDAP y atributos consultables",
+          "objetivo_medible": "Explicar y verificar «ldap y atributos consultables» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-09",
+            "WAD-04"
+          ],
+          "contenido_nuclear": "LDAP y atributos consultables",
+          "practica": "Aplicar ldap y atributos consultables a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Matriz de delegación + prueba de permiso y denegación. / apartado 1",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-10-L02",
+          "titulo": "Usuarios, grupos, ciclo de vida",
+          "objetivo_medible": "Explicar y verificar «usuarios, grupos, ciclo de vida» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-10-L01"
+          ],
+          "contenido_nuclear": "Usuarios, grupos, ciclo de vida",
+          "practica": "Aplicar usuarios, grupos, ciclo de vida a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Matriz de delegación + prueba de permiso y denegación. / apartado 2",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-10-L03",
+          "titulo": "Delegación mínima y acceso efectivo",
+          "objetivo_medible": "Explicar y verificar «delegación mínima y acceso efectivo» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-10-L02"
+          ],
+          "contenido_nuclear": "Delegación mínima y acceso efectivo",
+          "practica": "Aplicar delegación mínima y acceso efectivo a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Matriz de delegación + prueba de permiso y denegación. / apartado 3",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        }
+      ],
+      "practica_y_evidencia": "Matriz de delegación + prueba de permiso y denegación.",
+      "evaluacion": "Caso práctico + prueba positiva + prueba negativa + breve explicación de límites.",
+      "desbloqueo": "Aprobación de las evidencias críticas de sus prerrequisitos y evaluación mínima de esta etapa; exención diagnóstica posible.",
+      "criterio_dominio": "Gestor delegado modifica solo objetos permitidos.",
+      "horas_estimadas": {
+        "min": 6,
+        "max": 10
+      },
+      "fuentes_ids": [
+        "D21"
+      ]
+    },
+    {
+      "id": "WAD-11",
+      "orden_visual": 11,
+      "titulo": "Kerberos, NTLM, SPN y cuentas servicio",
+      "bloque": "AD DS",
+      "nivel": "intermedio",
+      "prerrequisitos_reales": [
+        "WAD-09",
+        "WAD-10"
+      ],
+      "ids_previos": [
+        "AD-05",
+        "AD-09"
+      ],
+      "objetivo": "Explicar flujo de autenticación y corregir fallo SPN sintético.",
+      "competencias": [
+        "TGT/TGS y SPN",
+        "NTLM y fallbacks medidos",
+        "Servicios y gMSA"
+      ],
+      "lecciones_propuestas": [
+        {
+          "id": "WAD-11-L01",
+          "titulo": "TGT/TGS y SPN",
+          "objetivo_medible": "Explicar y verificar «tgt/tgs y spn» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-09",
+            "WAD-10"
+          ],
+          "contenido_nuclear": "TGT/TGS y SPN",
+          "practica": "Aplicar tgt/tgs y spn a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Árbol de decisión + comprobaciones sin secretos. / apartado 1",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-11-L02",
+          "titulo": "NTLM y fallbacks medidos",
+          "objetivo_medible": "Explicar y verificar «ntlm y fallbacks medidos» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-11-L01"
+          ],
+          "contenido_nuclear": "NTLM y fallbacks medidos",
+          "practica": "Aplicar ntlm y fallbacks medidos a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Árbol de decisión + comprobaciones sin secretos. / apartado 2",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-11-L03",
+          "titulo": "Servicios y gMSA",
+          "objetivo_medible": "Explicar y verificar «servicios y gmsa» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-11-L02"
+          ],
+          "contenido_nuclear": "Servicios y gMSA",
+          "practica": "Aplicar servicios y gmsa a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Árbol de decisión + comprobaciones sin secretos. / apartado 3",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        }
+      ],
+      "practica_y_evidencia": "Árbol de decisión + comprobaciones sin secretos.",
+      "evaluacion": "Caso práctico + prueba positiva + prueba negativa + breve explicación de límites.",
+      "desbloqueo": "Aprobación de las evidencias críticas de sus prerrequisitos y evaluación mínima de esta etapa; exención diagnóstica posible.",
+      "criterio_dominio": "No interpreta tickets o eventos como evidencia única de ataque.",
+      "horas_estimadas": {
+        "min": 7,
+        "max": 11
+      },
+      "fuentes_ids": [
+        "D21"
+      ]
+    },
+    {
+      "id": "WAD-12",
+      "orden_visual": 12,
+      "titulo": "GPO, SYSVOL y precedencia",
+      "bloque": "AD DS",
+      "nivel": "intermedio",
+      "prerrequisitos_reales": [
+        "WAD-10",
+        "WAD-11"
+      ],
+      "ids_previos": [
+        "AD-07"
+      ],
+      "objetivo": "Predecir y demostrar política resultante con cambio reversible.",
+      "competencias": [
+        "GPO scope, orden y herencia",
+        "Filtros y RSOP/gpresult",
+        "SYSVOL, políticas y cambio inocuo"
+      ],
+      "lecciones_propuestas": [
+        {
+          "id": "WAD-12-L01",
+          "titulo": "GPO scope, orden y herencia",
+          "objetivo_medible": "Explicar y verificar «gpo scope, orden y herencia» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-10",
+            "WAD-11"
+          ],
+          "contenido_nuclear": "GPO scope, orden y herencia",
+          "practica": "Aplicar gpo scope, orden y herencia a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Informe RSOP + alcance de GPO + rollback. / apartado 1",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-12-L02",
+          "titulo": "Filtros y RSOP/gpresult",
+          "objetivo_medible": "Explicar y verificar «filtros y rsop/gpresult» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-12-L01"
+          ],
+          "contenido_nuclear": "Filtros y RSOP/gpresult",
+          "practica": "Aplicar filtros y rsop/gpresult a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Informe RSOP + alcance de GPO + rollback. / apartado 2",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-12-L03",
+          "titulo": "SYSVOL, políticas y cambio inocuo",
+          "objetivo_medible": "Explicar y verificar «sysvol, políticas y cambio inocuo» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-12-L02"
+          ],
+          "contenido_nuclear": "SYSVOL, políticas y cambio inocuo",
+          "practica": "Aplicar sysvol, políticas y cambio inocuo a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Informe RSOP + alcance de GPO + rollback. / apartado 3",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        }
+      ],
+      "practica_y_evidencia": "Informe RSOP + alcance de GPO + rollback.",
+      "evaluacion": "Caso práctico + prueba positiva + prueba negativa + breve explicación de límites.",
+      "desbloqueo": "Aprobación de las evidencias críticas de sus prerrequisitos y evaluación mínima de esta etapa; exención diagnóstica posible.",
+      "criterio_dominio": "Política aplicada solo a las identidades esperadas.",
+      "horas_estimadas": {
+        "min": 5,
+        "max": 9
+      },
+      "fuentes_ids": [
+        "D11"
+      ]
+    },
+    {
+      "id": "WAD-13",
+      "orden_visual": 13,
+      "titulo": "Replicación, FSMO y GC",
+      "bloque": "AD DS",
+      "nivel": "intermedio",
+      "prerrequisitos_reales": [
+        "WAD-09",
+        "WAD-12"
+      ],
+      "ids_previos": [
+        "AD-08"
+      ],
+      "objetivo": "Localizar fallo replicación sin manipular FSMO destructivamente.",
+      "competencias": [
+        "Topología y vectores de replicación",
+        "FSMO y GC",
+        "dcdiag/repadmin y fallos seguros"
+      ],
+      "lecciones_propuestas": [
+        {
+          "id": "WAD-13-L01",
+          "titulo": "Topología y vectores de replicación",
+          "objetivo_medible": "Explicar y verificar «topología y vectores de replicación» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-09",
+            "WAD-12"
+          ],
+          "contenido_nuclear": "Topología y vectores de replicación",
+          "practica": "Aplicar topología y vectores de replicación a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Hipótesis, estado previo y posterior, salida de comandos. / apartado 1",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-13-L02",
+          "titulo": "FSMO y GC",
+          "objetivo_medible": "Explicar y verificar «fsmo y gc» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-13-L01"
+          ],
+          "contenido_nuclear": "FSMO y GC",
+          "practica": "Aplicar fsmo y gc a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Hipótesis, estado previo y posterior, salida de comandos. / apartado 2",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-13-L03",
+          "titulo": "dcdiag/repadmin y fallos seguros",
+          "objetivo_medible": "Explicar y verificar «dcdiag/repadmin y fallos seguros» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-13-L02"
+          ],
+          "contenido_nuclear": "dcdiag/repadmin y fallos seguros",
+          "practica": "Aplicar dcdiag/repadmin y fallos seguros a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Hipótesis, estado previo y posterior, salida de comandos. / apartado 3",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        }
+      ],
+      "practica_y_evidencia": "Hipótesis, estado previo y posterior, salida de comandos.",
+      "evaluacion": "Caso práctico + prueba positiva + prueba negativa + breve explicación de límites.",
+      "desbloqueo": "Aprobación de las evidencias críticas de sus prerrequisitos y evaluación mínima de esta etapa; exención diagnóstica posible.",
+      "criterio_dominio": "Acredita réplica convergente y causa raíz.",
+      "horas_estimadas": {
+        "min": 7,
+        "max": 12
+      },
+      "fuentes_ids": [
+        "D21",
+        "D22"
+      ]
+    },
+    {
+      "id": "WAD-14",
+      "orden_visual": 14,
+      "titulo": "Trusts y segmentación entre dominios",
+      "bloque": "AD DS",
+      "nivel": "intermedio",
+      "prerrequisitos_reales": [
+        "WAD-11",
+        "WAD-13"
+      ],
+      "ids_previos": [
+        "AD-10"
+      ],
+      "objetivo": "Analizar límites de confianza con escenarios documentales.",
+      "competencias": [
+        "Dirección/transitividad de trust",
+        "Autenticación selectiva y SID filtering",
+        "Mapa de rutas de control"
+      ],
+      "lecciones_propuestas": [
+        {
+          "id": "WAD-14-L01",
+          "titulo": "Dirección/transitividad de trust",
+          "objetivo_medible": "Explicar y verificar «dirección/transitividad de trust» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-11",
+            "WAD-13"
+          ],
+          "contenido_nuclear": "Dirección/transitividad de trust",
+          "practica": "Aplicar dirección/transitividad de trust a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Grafo de trusts y pruebas sintéticas de aislamiento. / apartado 1",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-14-L02",
+          "titulo": "Autenticación selectiva y SID filtering",
+          "objetivo_medible": "Explicar y verificar «autenticación selectiva y sid filtering» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-14-L01"
+          ],
+          "contenido_nuclear": "Autenticación selectiva y SID filtering",
+          "practica": "Aplicar autenticación selectiva y sid filtering a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Grafo de trusts y pruebas sintéticas de aislamiento. / apartado 2",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-14-L03",
+          "titulo": "Mapa de rutas de control",
+          "objetivo_medible": "Explicar y verificar «mapa de rutas de control» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-14-L02"
+          ],
+          "contenido_nuclear": "Mapa de rutas de control",
+          "practica": "Aplicar mapa de rutas de control a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Grafo de trusts y pruebas sintéticas de aislamiento. / apartado 3",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        }
+      ],
+      "practica_y_evidencia": "Grafo de trusts y pruebas sintéticas de aislamiento.",
+      "evaluacion": "Caso práctico + prueba positiva + prueba negativa + breve explicación de límites.",
+      "desbloqueo": "Aprobación de las evidencias críticas de sus prerrequisitos y evaluación mínima de esta etapa; exención diagnóstica posible.",
+      "criterio_dominio": "No confunde trust con privilegio automático.",
+      "horas_estimadas": {
+        "min": 4,
+        "max": 8
+      },
+      "fuentes_ids": [
+        "D33"
+      ]
+    },
+    {
+      "id": "WAD-15",
+      "orden_visual": 15,
+      "titulo": "Tier 0, LAPS y cuentas privilegiadas",
+      "bloque": "AD DS",
+      "nivel": "intermedio",
+      "prerrequisitos_reales": [
+        "WAD-10",
+        "WAD-12"
+      ],
+      "ids_previos": [
+        "AD-11"
+      ],
+      "objetivo": "Reducir un exceso de privilegios y demostrar recuperación segura DSRM.",
+      "competencias": [
+        "Tier 0 y separación de identidades",
+        "Control delegación y rutas administrativas",
+        "Windows LAPS/DSRM y custodia"
+      ],
+      "lecciones_propuestas": [
+        {
+          "id": "WAD-15-L01",
+          "titulo": "Tier 0 y separación de identidades",
+          "objetivo_medible": "Explicar y verificar «tier 0 y separación de identidades» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-10",
+            "WAD-12"
+          ],
+          "contenido_nuclear": "Tier 0 y separación de identidades",
+          "practica": "Aplicar tier 0 y separación de identidades a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Matriz antes/después, política LAPS y plan custodia. / apartado 1",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-15-L02",
+          "titulo": "Control delegación y rutas administrativas",
+          "objetivo_medible": "Explicar y verificar «control delegación y rutas administrativas» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-15-L01"
+          ],
+          "contenido_nuclear": "Control delegación y rutas administrativas",
+          "practica": "Aplicar control delegación y rutas administrativas a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Matriz antes/después, política LAPS y plan custodia. / apartado 2",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-15-L03",
+          "titulo": "Windows LAPS/DSRM y custodia",
+          "objetivo_medible": "Explicar y verificar «windows laps/dsrm y custodia» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-15-L02"
+          ],
+          "contenido_nuclear": "Windows LAPS/DSRM y custodia",
+          "practica": "Aplicar windows laps/dsrm y custodia a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Matriz antes/después, política LAPS y plan custodia. / apartado 3",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        }
+      ],
+      "practica_y_evidencia": "Matriz antes/después, política LAPS y plan custodia.",
+      "evaluacion": "Caso práctico + prueba positiva + prueba negativa + breve explicación de límites.",
+      "desbloqueo": "Aprobación de las evidencias críticas de sus prerrequisitos y evaluación mínima de esta etapa; exención diagnóstica posible.",
+      "criterio_dominio": "El acceso privilegiado queda acotado sin perder recuperabilidad.",
+      "horas_estimadas": {
+        "min": 6,
+        "max": 11
+      },
+      "fuentes_ids": [
+        "D19",
+        "D20"
+      ]
+    },
+    {
+      "id": "WAD-16",
+      "orden_visual": 16,
+      "titulo": "AD CS, PKI y control de certificados",
+      "bloque": "AD DS",
+      "nivel": "intermedio",
+      "prerrequisitos_reales": [
+        "WAD-11",
+        "WAD-15"
+      ],
+      "ids_previos": [
+        "AD-12"
+      ],
+      "objetivo": "Auditar plantilla sintética y dependencia de revocación.",
+      "competencias": [
+        "CA, EKU y ciclo de certificados",
+        "Plantillas, inscripción y controles",
+        "CRL/AIA y continuidad PKI"
+      ],
+      "lecciones_propuestas": [
+        {
+          "id": "WAD-16-L01",
+          "titulo": "CA, EKU y ciclo de certificados",
+          "objetivo_medible": "Explicar y verificar «ca, eku y ciclo de certificados» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-11",
+            "WAD-15"
+          ],
+          "contenido_nuclear": "CA, EKU y ciclo de certificados",
+          "practica": "Aplicar ca, eku y ciclo de certificados a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Matriz de permisos + evidencia de CRL + plan recuperación. / apartado 1",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-16-L02",
+          "titulo": "Plantillas, inscripción y controles",
+          "objetivo_medible": "Explicar y verificar «plantillas, inscripción y controles» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-16-L01"
+          ],
+          "contenido_nuclear": "Plantillas, inscripción y controles",
+          "practica": "Aplicar plantillas, inscripción y controles a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Matriz de permisos + evidencia de CRL + plan recuperación. / apartado 2",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-16-L03",
+          "titulo": "CRL/AIA y continuidad PKI",
+          "objetivo_medible": "Explicar y verificar «crl/aia y continuidad pki» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-16-L02"
+          ],
+          "contenido_nuclear": "CRL/AIA y continuidad PKI",
+          "practica": "Aplicar crl/aia y continuidad pki a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Matriz de permisos + evidencia de CRL + plan recuperación. / apartado 3",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        }
+      ],
+      "practica_y_evidencia": "Matriz de permisos + evidencia de CRL + plan recuperación.",
+      "evaluacion": "Caso práctico + prueba positiva + prueba negativa + breve explicación de límites.",
+      "desbloqueo": "Aprobación de las evidencias críticas de sus prerrequisitos y evaluación mínima de esta etapa; exención diagnóstica posible.",
+      "criterio_dominio": "Demuestra quién puede solicitar/usar certificado y cómo revocar.",
+      "horas_estimadas": {
+        "min": 7,
+        "max": 12
+      },
+      "fuentes_ids": [
+        "D16",
+        "D17",
+        "D18"
+      ]
+    },
+    {
+      "id": "WAD-17",
+      "orden_visual": 17,
+      "titulo": "Troubleshooting integral AD",
+      "bloque": "AD DS",
+      "nivel": "intermedio",
+      "prerrequisitos_reales": [
+        "WAD-13",
+        "WAD-15",
+        "WAD-16"
+      ],
+      "ids_previos": [
+        "AD-13"
+      ],
+      "objetivo": "Resolver fallos sembrados por hipótesis sin hacer cambios indiscriminados.",
+      "competencias": [
+        "Hipótesis DNS, autenticación y tiempo",
+        "Replicación/GPO y causa raíz",
+        "Impacto operacional y evidencias"
+      ],
+      "lecciones_propuestas": [
+        {
+          "id": "WAD-17-L01",
+          "titulo": "Hipótesis DNS, autenticación y tiempo",
+          "objetivo_medible": "Explicar y verificar «hipótesis dns, autenticación y tiempo» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-13",
+            "WAD-15",
+            "WAD-16"
+          ],
+          "contenido_nuclear": "Hipótesis DNS, autenticación y tiempo",
+          "practica": "Aplicar hipótesis dns, autenticación y tiempo a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Timeline, runbook, pruebas de regresión. / apartado 1",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-17-L02",
+          "titulo": "Replicación/GPO y causa raíz",
+          "objetivo_medible": "Explicar y verificar «replicación/gpo y causa raíz» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-17-L01"
+          ],
+          "contenido_nuclear": "Replicación/GPO y causa raíz",
+          "practica": "Aplicar replicación/gpo y causa raíz a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Timeline, runbook, pruebas de regresión. / apartado 2",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-17-L03",
+          "titulo": "Impacto operacional y evidencias",
+          "objetivo_medible": "Explicar y verificar «impacto operacional y evidencias» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-17-L02"
+          ],
+          "contenido_nuclear": "Impacto operacional y evidencias",
+          "practica": "Aplicar impacto operacional y evidencias a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Timeline, runbook, pruebas de regresión. / apartado 3",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        }
+      ],
+      "practica_y_evidencia": "Timeline, runbook, pruebas de regresión.",
+      "evaluacion": "Caso práctico + prueba positiva + prueba negativa + breve explicación de límites.",
+      "desbloqueo": "Aprobación de las evidencias críticas de sus prerrequisitos y evaluación mínima de esta etapa; exención diagnóstica posible.",
+      "criterio_dominio": "Causa raíz y no solo parche temporal.",
+      "horas_estimadas": {
+        "min": 6,
+        "max": 10
+      },
+      "fuentes_ids": [
+        "D21",
+        "D22"
+      ]
+    },
+    {
+      "id": "WAD-18",
+      "orden_visual": 18,
+      "titulo": "Continuidad: amenazas, RPO/RTO y backups",
+      "bloque": "Recuperación",
+      "nivel": "avanzado",
+      "prerrequisitos_reales": [
+        "WAD-12",
+        "WAD-13",
+        "WAD-15"
+      ],
+      "ids_previos": [
+        "AD-14"
+      ],
+      "objetivo": "Diseñar estrategia medible de backup distinta del snapshot.",
+      "competencias": [
+        "BIA y dependencias de identidad",
+        "RPO/RTO, frecuencia y copia confiable",
+        "System State, full/BMR y test"
+      ],
+      "lecciones_propuestas": [
+        {
+          "id": "WAD-18-L01",
+          "titulo": "BIA y dependencias de identidad",
+          "objetivo_medible": "Explicar y verificar «bia y dependencias de identidad» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-12",
+            "WAD-13",
+            "WAD-15"
+          ],
+          "contenido_nuclear": "BIA y dependencias de identidad",
+          "practica": "Aplicar bia y dependencias de identidad a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Matriz cobertura + restauración exigida + inventario respaldos. / apartado 1",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-18-L02",
+          "titulo": "RPO/RTO, frecuencia y copia confiable",
+          "objetivo_medible": "Explicar y verificar «rpo/rto, frecuencia y copia confiable» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-18-L01"
+          ],
+          "contenido_nuclear": "RPO/RTO, frecuencia y copia confiable",
+          "practica": "Aplicar rpo/rto, frecuencia y copia confiable a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Matriz cobertura + restauración exigida + inventario respaldos. / apartado 2",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-18-L03",
+          "titulo": "System State, full/BMR y test",
+          "objetivo_medible": "Explicar y verificar «system state, full/bmr y test» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-18-L02"
+          ],
+          "contenido_nuclear": "System State, full/BMR y test",
+          "practica": "Aplicar system state, full/bmr y test a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Matriz cobertura + restauración exigida + inventario respaldos. / apartado 3",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        }
+      ],
+      "practica_y_evidencia": "Matriz cobertura + restauración exigida + inventario respaldos.",
+      "evaluacion": "Caso práctico + prueba positiva + prueba negativa + breve explicación de límites.",
+      "desbloqueo": "Aprobación de las evidencias críticas de sus prerrequisitos y evaluación mínima de esta etapa; exención diagnóstica posible.",
+      "criterio_dominio": "Cada dependencia crítica tiene soporte y prueba de recuperación.",
+      "horas_estimadas": {
+        "min": 5,
+        "max": 8
+      },
+      "fuentes_ids": [
+        "D01",
+        "D03",
+        "D06",
+        "D07",
+        "D27"
+      ]
+    },
+    {
+      "id": "WAD-19",
+      "orden_visual": 19,
+      "titulo": "Recuperación de objeto y DC",
+      "bloque": "Recuperación",
+      "nivel": "avanzado",
+      "prerrequisitos_reales": [
+        "WAD-18",
+        "WAD-17"
+      ],
+      "ids_previos": [
+        "AD-14"
+      ],
+      "objetivo": "Distinguir recuperación granular de objeto y restauración de DC.",
+      "competencias": [
+        "AD Recycle Bin y borrados",
+        "DSRM y restauración no autoritativa",
+        "Criterios de restauración y replicación"
+      ],
+      "lecciones_propuestas": [
+        {
+          "id": "WAD-19-L01",
+          "titulo": "AD Recycle Bin y borrados",
+          "objetivo_medible": "Explicar y verificar «ad recycle bin y borrados» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-18",
+            "WAD-17"
+          ],
+          "contenido_nuclear": "AD Recycle Bin y borrados",
+          "practica": "Aplicar ad recycle bin y borrados a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Resultado de recuperación verificado + comparativa por caso. / apartado 1",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-19-L02",
+          "titulo": "DSRM y restauración no autoritativa",
+          "objetivo_medible": "Explicar y verificar «dsrm y restauración no autoritativa» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-19-L01"
+          ],
+          "contenido_nuclear": "DSRM y restauración no autoritativa",
+          "practica": "Aplicar dsrm y restauración no autoritativa a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Resultado de recuperación verificado + comparativa por caso. / apartado 2",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-19-L03",
+          "titulo": "Criterios de restauración y replicación",
+          "objetivo_medible": "Explicar y verificar «criterios de restauración y replicación» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-19-L02"
+          ],
+          "contenido_nuclear": "Criterios de restauración y replicación",
+          "practica": "Aplicar criterios de restauración y replicación a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Resultado de recuperación verificado + comparativa por caso. / apartado 3",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        }
+      ],
+      "practica_y_evidencia": "Resultado de recuperación verificado + comparativa por caso.",
+      "evaluacion": "Caso práctico + prueba positiva + prueba negativa + breve explicación de límites.",
+      "desbloqueo": "Aprobación de las evidencias críticas de sus prerrequisitos y evaluación mínima de esta etapa; exención diagnóstica posible.",
+      "criterio_dominio": "Criterio de restauración justificado; integridad sin divergencias.",
+      "horas_estimadas": {
+        "min": 8,
+        "max": 13
+      },
+      "fuentes_ids": [
+        "D09",
+        "D10",
+        "D12",
+        "D15",
+        "D20"
+      ]
+    },
+    {
+      "id": "WAD-20",
+      "orden_visual": 20,
+      "titulo": "Bosque, SYSVOL, PKI y reintegración",
+      "bloque": "Recuperación",
+      "nivel": "avanzado",
+      "prerrequisitos_reales": [
+        "WAD-19",
+        "WAD-16"
+      ],
+      "ids_previos": [
+        "AD-14"
+      ],
+      "objetivo": "Secuenciar recuperación de bosque y PKI con límites y validaciones.",
+      "competencias": [
+        "Recuperación forestal en aislamiento",
+        "SYSVOL/DFSR y cuentas críticas",
+        "CA, DNS, trusts y pruebas de servicio"
+      ],
+      "lecciones_propuestas": [
+        {
+          "id": "WAD-20-L01",
+          "titulo": "Recuperación forestal en aislamiento",
+          "objetivo_medible": "Explicar y verificar «recuperación forestal en aislamiento» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-19",
+            "WAD-16"
+          ],
+          "contenido_nuclear": "Recuperación forestal en aislamiento",
+          "practica": "Aplicar recuperación forestal en aislamiento a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Plan DR, decisión copia confiable, orden dependencias y tabletop. / apartado 1",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-20-L02",
+          "titulo": "SYSVOL/DFSR y cuentas críticas",
+          "objetivo_medible": "Explicar y verificar «sysvol/dfsr y cuentas críticas» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-20-L01"
+          ],
+          "contenido_nuclear": "SYSVOL/DFSR y cuentas críticas",
+          "practica": "Aplicar sysvol/dfsr y cuentas críticas a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Plan DR, decisión copia confiable, orden dependencias y tabletop. / apartado 2",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-20-L03",
+          "titulo": "CA, DNS, trusts y pruebas de servicio",
+          "objetivo_medible": "Explicar y verificar «ca, dns, trusts y pruebas de servicio» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-20-L02"
+          ],
+          "contenido_nuclear": "CA, DNS, trusts y pruebas de servicio",
+          "practica": "Aplicar ca, dns, trusts y pruebas de servicio a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Plan DR, decisión copia confiable, orden dependencias y tabletop. / apartado 3",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        }
+      ],
+      "practica_y_evidencia": "Plan DR, decisión copia confiable, orden dependencias y tabletop.",
+      "evaluacion": "Caso práctico + prueba positiva + prueba negativa + breve explicación de límites.",
+      "desbloqueo": "Aprobación de las evidencias críticas de sus prerrequisitos y evaluación mínima de esta etapa; exención diagnóstica posible.",
+      "criterio_dominio": "No mezcla acciones de producción; restaura identidad funcional en diseño.",
+      "horas_estimadas": {
+        "min": 8,
+        "max": 15
+      },
+      "fuentes_ids": [
+        "D02",
+        "D04",
+        "D05",
+        "D11",
+        "D16",
+        "D24"
+      ]
+    },
+    {
+      "id": "WAD-21",
+      "orden_visual": 21,
+      "titulo": "ROE y descubrimiento Red Team",
+      "bloque": "Red Team",
+      "nivel": "avanzado",
+      "prerrequisitos_reales": [
+        "WAD-11",
+        "WAD-15"
+      ],
+      "ids_previos": [
+        "RT-01",
+        "RT-02"
+      ],
+      "objetivo": "Inventariar superficie sin salir del scope y sin secretos.",
+      "competencias": [
+        "Autorización, alcance y parada",
+        "Inventario AD seguro",
+        "Calidad de evidencia y minimización"
+      ],
+      "lecciones_propuestas": [
+        {
+          "id": "WAD-21-L01",
+          "titulo": "Autorización, alcance y parada",
+          "objetivo_medible": "Explicar y verificar «autorización, alcance y parada» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-11",
+            "WAD-15"
+          ],
+          "contenido_nuclear": "Autorización, alcance y parada",
+          "practica": "Aplicar autorización, alcance y parada a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "ROE firmadas (ficticias) + inventario + log de consultas. / apartado 1",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-21-L02",
+          "titulo": "Inventario AD seguro",
+          "objetivo_medible": "Explicar y verificar «inventario ad seguro» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-21-L01"
+          ],
+          "contenido_nuclear": "Inventario AD seguro",
+          "practica": "Aplicar inventario ad seguro a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "ROE firmadas (ficticias) + inventario + log de consultas. / apartado 2",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-21-L03",
+          "titulo": "Calidad de evidencia y minimización",
+          "objetivo_medible": "Explicar y verificar «calidad de evidencia y minimización» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-21-L02"
+          ],
+          "contenido_nuclear": "Calidad de evidencia y minimización",
+          "practica": "Aplicar calidad de evidencia y minimización a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "ROE firmadas (ficticias) + inventario + log de consultas. / apartado 3",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        }
+      ],
+      "practica_y_evidencia": "ROE firmadas (ficticias) + inventario + log de consultas.",
+      "evaluacion": "Caso práctico + prueba positiva + prueba negativa + breve explicación de límites.",
+      "desbloqueo": "Aprobación de las evidencias críticas de sus prerrequisitos y evaluación mínima de esta etapa; exención diagnóstica posible.",
+      "criterio_dominio": "100 % consultas y objetos contenidos en alcance autorizado.",
+      "horas_estimadas": {
+        "min": 4,
+        "max": 7
+      },
+      "fuentes_ids": [
+        "D27"
+      ]
+    },
+    {
+      "id": "WAD-22",
+      "orden_visual": 22,
+      "titulo": "Rutas de control y misconfiguraciones",
+      "bloque": "Red Team",
+      "nivel": "avanzado",
+      "prerrequisitos_reales": [
+        "WAD-14",
+        "WAD-16",
+        "WAD-21"
+      ],
+      "ids_previos": [
+        "RT-03",
+        "RT-04",
+        "RT-05",
+        "RT-06"
+      ],
+      "objetivo": "Separar riesgo teórico, condición explotable y acceso probado en lab.",
+      "competencias": [
+        "ACL/delegación y rutas posibles",
+        "SPN/NTLM/trust con lectura prudente",
+        "AD CS y evidencias de configuración"
+      ],
+      "lecciones_propuestas": [
+        {
+          "id": "WAD-22-L01",
+          "titulo": "ACL/delegación y rutas posibles",
+          "objetivo_medible": "Explicar y verificar «acl/delegación y rutas posibles» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-14",
+            "WAD-16",
+            "WAD-21"
+          ],
+          "contenido_nuclear": "ACL/delegación y rutas posibles",
+          "practica": "Aplicar acl/delegación y rutas posibles a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Grafo de privilegios con grados de certeza y contrapruebas. / apartado 1",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-22-L02",
+          "titulo": "SPN/NTLM/trust con lectura prudente",
+          "objetivo_medible": "Explicar y verificar «spn/ntlm/trust con lectura prudente» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-22-L01"
+          ],
+          "contenido_nuclear": "SPN/NTLM/trust con lectura prudente",
+          "practica": "Aplicar spn/ntlm/trust con lectura prudente a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Grafo de privilegios con grados de certeza y contrapruebas. / apartado 2",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-22-L03",
+          "titulo": "AD CS y evidencias de configuración",
+          "objetivo_medible": "Explicar y verificar «ad cs y evidencias de configuración» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-22-L02"
+          ],
+          "contenido_nuclear": "AD CS y evidencias de configuración",
+          "practica": "Aplicar ad cs y evidencias de configuración a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Grafo de privilegios con grados de certeza y contrapruebas. / apartado 3",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        }
+      ],
+      "practica_y_evidencia": "Grafo de privilegios con grados de certeza y contrapruebas.",
+      "evaluacion": "Caso práctico + prueba positiva + prueba negativa + breve explicación de límites.",
+      "desbloqueo": "Aprobación de las evidencias críticas de sus prerrequisitos y evaluación mínima de esta etapa; exención diagnóstica posible.",
+      "criterio_dominio": "No afirma compromiso sin evidencia de alcance y efectos.",
+      "horas_estimadas": {
+        "min": 7,
+        "max": 12
+      },
+      "fuentes_ids": [
+        "D17",
+        "D21"
+      ]
+    },
+    {
+      "id": "WAD-23",
+      "orden_visual": 23,
+      "titulo": "Validación mínima, remediación y retest",
+      "bloque": "Red Team",
+      "nivel": "avanzado",
+      "prerrequisitos_reales": [
+        "WAD-22",
+        "WAD-20"
+      ],
+      "ids_previos": [
+        "RT-07",
+        "RT-08"
+      ],
+      "objetivo": "Verificar control corregido sin mantener persistencia.",
+      "competencias": [
+        "Controles de movimiento remoto autorizado",
+        "Prueba inocua y ventanas controladas",
+        "Informe, remediación, retest"
+      ],
+      "lecciones_propuestas": [
+        {
+          "id": "WAD-23-L01",
+          "titulo": "Controles de movimiento remoto autorizado",
+          "objetivo_medible": "Explicar y verificar «controles de movimiento remoto autorizado» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-22",
+            "WAD-20"
+          ],
+          "contenido_nuclear": "Controles de movimiento remoto autorizado",
+          "practica": "Aplicar controles de movimiento remoto autorizado a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Hallazgo completo + evidencia pre/post + firma de retest. / apartado 1",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-23-L02",
+          "titulo": "Prueba inocua y ventanas controladas",
+          "objetivo_medible": "Explicar y verificar «prueba inocua y ventanas controladas» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-23-L01"
+          ],
+          "contenido_nuclear": "Prueba inocua y ventanas controladas",
+          "practica": "Aplicar prueba inocua y ventanas controladas a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Hallazgo completo + evidencia pre/post + firma de retest. / apartado 2",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-23-L03",
+          "titulo": "Informe, remediación, retest",
+          "objetivo_medible": "Explicar y verificar «informe, remediación, retest» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-23-L02"
+          ],
+          "contenido_nuclear": "Informe, remediación, retest",
+          "practica": "Aplicar informe, remediación, retest a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Hallazgo completo + evidencia pre/post + firma de retest. / apartado 3",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        }
+      ],
+      "practica_y_evidencia": "Hallazgo completo + evidencia pre/post + firma de retest.",
+      "evaluacion": "Caso práctico + prueba positiva + prueba negativa + breve explicación de límites.",
+      "desbloqueo": "Aprobación de las evidencias críticas de sus prerrequisitos y evaluación mínima de esta etapa; exención diagnóstica posible.",
+      "criterio_dominio": "Correlación precisa entre hallazgo, acción y cierre.",
+      "horas_estimadas": {
+        "min": 6,
+        "max": 10
+      },
+      "fuentes_ids": [
+        "D27"
+      ]
+    },
+    {
+      "id": "WAD-24",
+      "orden_visual": 24,
+      "titulo": "Fuentes SOC y política de auditoría",
+      "bloque": "SOC",
+      "nivel": "avanzado",
+      "prerrequisitos_reales": [
+        "WAD-07",
+        "WAD-13"
+      ],
+      "ids_previos": [
+        "SOC-01",
+        "SOC-02"
+      ],
+      "objetivo": "Configurar una auditoría medible y verificar evento esperado.",
+      "competencias": [
+        "Security, System, Directory Service",
+        "Subcategorías de auditoría y SACL",
+        "Cobertura efectiva y pérdida"
+      ],
+      "lecciones_propuestas": [
+        {
+          "id": "WAD-24-L01",
+          "titulo": "Security, System, Directory Service",
+          "objetivo_medible": "Explicar y verificar «security, system, directory service» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-07",
+            "WAD-13"
+          ],
+          "contenido_nuclear": "Security, System, Directory Service",
+          "practica": "Aplicar security, system, directory service a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Matriz actividad→evento→condición→limitación. / apartado 1",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-24-L02",
+          "titulo": "Subcategorías de auditoría y SACL",
+          "objetivo_medible": "Explicar y verificar «subcategorías de auditoría y sacl» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-24-L01"
+          ],
+          "contenido_nuclear": "Subcategorías de auditoría y SACL",
+          "practica": "Aplicar subcategorías de auditoría y sacl a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Matriz actividad→evento→condición→limitación. / apartado 2",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-24-L03",
+          "titulo": "Cobertura efectiva y pérdida",
+          "objetivo_medible": "Explicar y verificar «cobertura efectiva y pérdida» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-24-L02"
+          ],
+          "contenido_nuclear": "Cobertura efectiva y pérdida",
+          "practica": "Aplicar cobertura efectiva y pérdida a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Matriz actividad→evento→condición→limitación. / apartado 3",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        }
+      ],
+      "practica_y_evidencia": "Matriz actividad→evento→condición→limitación.",
+      "evaluacion": "Caso práctico + prueba positiva + prueba negativa + breve explicación de límites.",
+      "desbloqueo": "Aprobación de las evidencias críticas de sus prerrequisitos y evaluación mínima de esta etapa; exención diagnóstica posible.",
+      "criterio_dominio": "Muestra al menos un caso con y otro sin visibilidad esperada.",
+      "horas_estimadas": {
+        "min": 5,
+        "max": 9
+      },
+      "fuentes_ids": [
+        "D21"
+      ]
+    },
+    {
+      "id": "WAD-25",
+      "orden_visual": 25,
+      "titulo": "Autenticación, procesos y PowerShell en SOC",
+      "bloque": "SOC",
+      "nivel": "avanzado",
+      "prerrequisitos_reales": [
+        "WAD-11",
+        "WAD-24"
+      ],
+      "ids_previos": [
+        "SOC-03",
+        "SOC-04"
+      ],
+      "objetivo": "Construir timeline reproducible de identidad y proceso sin inferir malicia automáticamente.",
+      "competencias": [
+        "Evento de identidad y contexto",
+        "Procesos/servicios y líneas de tiempo",
+        "PowerShell Logging y límites"
+      ],
+      "lecciones_propuestas": [
+        {
+          "id": "WAD-25-L01",
+          "titulo": "Evento de identidad y contexto",
+          "objetivo_medible": "Explicar y verificar «evento de identidad y contexto» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-11",
+            "WAD-24"
+          ],
+          "contenido_nuclear": "Evento de identidad y contexto",
+          "practica": "Aplicar evento de identidad y contexto a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Timeline multi-host con hipótesis alternativas. / apartado 1",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-25-L02",
+          "titulo": "Procesos/servicios y líneas de tiempo",
+          "objetivo_medible": "Explicar y verificar «procesos/servicios y líneas de tiempo» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-25-L01"
+          ],
+          "contenido_nuclear": "Procesos/servicios y líneas de tiempo",
+          "practica": "Aplicar procesos/servicios y líneas de tiempo a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Timeline multi-host con hipótesis alternativas. / apartado 2",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-25-L03",
+          "titulo": "PowerShell Logging y límites",
+          "objetivo_medible": "Explicar y verificar «powershell logging y límites» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-25-L02"
+          ],
+          "contenido_nuclear": "PowerShell Logging y límites",
+          "practica": "Aplicar powershell logging y límites a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Timeline multi-host con hipótesis alternativas. / apartado 3",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        }
+      ],
+      "practica_y_evidencia": "Timeline multi-host con hipótesis alternativas.",
+      "evaluacion": "Caso práctico + prueba positiva + prueba negativa + breve explicación de límites.",
+      "desbloqueo": "Aprobación de las evidencias críticas de sus prerrequisitos y evaluación mínima de esta etapa; exención diagnóstica posible.",
+      "criterio_dominio": "Distingue el hecho registrado de la interpretación.",
+      "horas_estimadas": {
+        "min": 6,
+        "max": 10
+      },
+      "fuentes_ids": [
+        "D21"
+      ]
+    },
+    {
+      "id": "WAD-26",
+      "orden_visual": 26,
+      "titulo": "Sysmon, WEF y preservación",
+      "bloque": "SOC",
+      "nivel": "avanzado",
+      "prerrequisitos_reales": [
+        "WAD-24",
+        "WAD-25"
+      ],
+      "ids_previos": [
+        "SOC-05",
+        "SOC-06"
+      ],
+      "objetivo": "Diseñar recolección de logs de origen y demostrar un evento en destino.",
+      "competencias": [
+        "Capacidades y filtros Sysmon",
+        "WEF/WEC, canal y transporte",
+        "UTC, retención, cadena de custodia"
+      ],
+      "lecciones_propuestas": [
+        {
+          "id": "WAD-26-L01",
+          "titulo": "Capacidades y filtros Sysmon",
+          "objetivo_medible": "Explicar y verificar «capacidades y filtros sysmon» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-24",
+            "WAD-25"
+          ],
+          "contenido_nuclear": "Capacidades y filtros Sysmon",
+          "practica": "Aplicar capacidades y filtros sysmon a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Inventario cobertura + evento sintético preservado. / apartado 1",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-26-L02",
+          "titulo": "WEF/WEC, canal y transporte",
+          "objetivo_medible": "Explicar y verificar «wef/wec, canal y transporte» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-26-L01"
+          ],
+          "contenido_nuclear": "WEF/WEC, canal y transporte",
+          "practica": "Aplicar wef/wec, canal y transporte a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Inventario cobertura + evento sintético preservado. / apartado 2",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-26-L03",
+          "titulo": "UTC, retención, cadena de custodia",
+          "objetivo_medible": "Explicar y verificar «utc, retención, cadena de custodia» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-26-L02"
+          ],
+          "contenido_nuclear": "UTC, retención, cadena de custodia",
+          "practica": "Aplicar utc, retención, cadena de custodia a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Inventario cobertura + evento sintético preservado. / apartado 3",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        }
+      ],
+      "practica_y_evidencia": "Inventario cobertura + evento sintético preservado.",
+      "evaluacion": "Caso práctico + prueba positiva + prueba negativa + breve explicación de límites.",
+      "desbloqueo": "Aprobación de las evidencias críticas de sus prerrequisitos y evaluación mínima de esta etapa; exención diagnóstica posible.",
+      "criterio_dominio": "No promete cobertura sin prueba ni extrapola evento aislado.",
+      "horas_estimadas": {
+        "min": 6,
+        "max": 10
+      },
+      "fuentes_ids": [
+        "D27"
+      ]
+    },
+    {
+      "id": "WAD-27",
+      "orden_visual": 27,
+      "titulo": "SOC contextual y Purple Team",
+      "bloque": "Integración",
+      "nivel": "avanzado",
+      "prerrequisitos_reales": [
+        "WAD-22",
+        "WAD-26"
+      ],
+      "ids_previos": [
+        "SOC-07",
+        "SOC-08"
+      ],
+      "objetivo": "Demostrar si un control impide, detecta o deja sin observar una actividad.",
+      "competencias": [
+        "Hipótesis y falsos positivos",
+        "Acción controlada→evento→respuesta",
+        "Medición de cobertura y reducción de ruido"
+      ],
+      "lecciones_propuestas": [
+        {
+          "id": "WAD-27-L01",
+          "titulo": "Hipótesis y falsos positivos",
+          "objetivo_medible": "Explicar y verificar «hipótesis y falsos positivos» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-22",
+            "WAD-26"
+          ],
+          "contenido_nuclear": "Hipótesis y falsos positivos",
+          "practica": "Aplicar hipótesis y falsos positivos a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Matriz Purple con prueba positiva/negativa y límites. / apartado 1",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-27-L02",
+          "titulo": "Acción controlada→evento→respuesta",
+          "objetivo_medible": "Explicar y verificar «acción controlada→evento→respuesta» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-27-L01"
+          ],
+          "contenido_nuclear": "Acción controlada→evento→respuesta",
+          "practica": "Aplicar acción controlada→evento→respuesta a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Matriz Purple con prueba positiva/negativa y límites. / apartado 2",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-27-L03",
+          "titulo": "Medición de cobertura y reducción de ruido",
+          "objetivo_medible": "Explicar y verificar «medición de cobertura y reducción de ruido» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-27-L02"
+          ],
+          "contenido_nuclear": "Medición de cobertura y reducción de ruido",
+          "practica": "Aplicar medición de cobertura y reducción de ruido a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Matriz Purple con prueba positiva/negativa y límites. / apartado 3",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        }
+      ],
+      "practica_y_evidencia": "Matriz Purple con prueba positiva/negativa y límites.",
+      "evaluacion": "Caso práctico + prueba positiva + prueba negativa + breve explicación de límites.",
+      "desbloqueo": "Aprobación de las evidencias críticas de sus prerrequisitos y evaluación mínima de esta etapa; exención diagnóstica posible.",
+      "criterio_dominio": "Evidencias reproducibles; no inventa alertas SIEM.",
+      "horas_estimadas": {
+        "min": 7,
+        "max": 12
+      },
+      "fuentes_ids": [
+        "D27"
+      ]
+    },
+    {
+      "id": "WAD-28",
+      "orden_visual": 28,
+      "titulo": "Proyecto final: operar, auditar y recuperar",
+      "bloque": "Integración",
+      "nivel": "integrador",
+      "prerrequisitos_reales": [
+        "WAD-20",
+        "WAD-23",
+        "WAD-27"
+      ],
+      "ids_previos": [
+        "AD-15"
+      ],
+      "objetivo": "Administrar un entorno aislado de inicio a fin con evidencias y recuperación.",
+      "competencias": [
+        "Cambios de identidad aprobados",
+        "Hallazgo autorizado y respuesta local",
+        "Backup, recuperación, retest y defensa oral"
+      ],
+      "lecciones_propuestas": [
+        {
+          "id": "WAD-28-L01",
+          "titulo": "Cambios de identidad aprobados",
+          "objetivo_medible": "Explicar y verificar «cambios de identidad aprobados» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-20",
+            "WAD-23",
+            "WAD-27"
+          ],
+          "contenido_nuclear": "Cambios de identidad aprobados",
+          "practica": "Aplicar cambios de identidad aprobados a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Expediente técnico integral + informe ejecutivo + defensa. / apartado 1",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-28-L02",
+          "titulo": "Hallazgo autorizado y respuesta local",
+          "objetivo_medible": "Explicar y verificar «hallazgo autorizado y respuesta local» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-28-L01"
+          ],
+          "contenido_nuclear": "Hallazgo autorizado y respuesta local",
+          "practica": "Aplicar hallazgo autorizado y respuesta local a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Expediente técnico integral + informe ejecutivo + defensa. / apartado 2",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        },
+        {
+          "id": "WAD-28-L03",
+          "titulo": "Backup, recuperación, retest y defensa oral",
+          "objetivo_medible": "Explicar y verificar «backup, recuperación, retest y defensa oral» en un caso sintético, registrando la condición que hace válida la conclusión.",
+          "prerrequisitos": [
+            "WAD-28-L02"
+          ],
+          "contenido_nuclear": "Backup, recuperación, retest y defensa oral",
+          "practica": "Aplicar backup, recuperación, retest y defensa oral a una ficha de laboratorio autorizada; contrastar una hipótesis y una alternativa.",
+          "evidencia": "Expediente técnico integral + informe ejecutivo + defensa. / apartado 3",
+          "criterio_dominio": "Explicación correcta, prueba observable y una limitación reconocida; no basta leer el material."
+        }
+      ],
+      "practica_y_evidencia": "Expediente técnico integral + informe ejecutivo + defensa.",
+      "evaluacion": "Caso práctico + prueba positiva + prueba negativa + breve explicación de límites.",
+      "desbloqueo": "Aprobación de las evidencias críticas de sus prerrequisitos y evaluación mínima de esta etapa; exención diagnóstica posible.",
+      "criterio_dominio": "Aprobación en controles críticos y consistencia de todos los artefactos.",
+      "horas_estimadas": {
+        "min": 10,
+        "max": 18
+      },
+      "fuentes_ids": [
+        "D01",
+        "D02",
+        "D27"
+      ]
+    }
+  ],
+  "grafo_prerrequisitos": [
+    {
+      "de": "WAD-01",
+      "a": "WAD-02"
+    },
+    {
+      "de": "WAD-02",
+      "a": "WAD-03"
+    },
+    {
+      "de": "WAD-03",
+      "a": "WAD-04"
+    },
+    {
+      "de": "WAD-02",
+      "a": "WAD-05"
+    },
+    {
+      "de": "WAD-03",
+      "a": "WAD-05"
+    },
+    {
+      "de": "WAD-04",
+      "a": "WAD-06"
+    },
+    {
+      "de": "WAD-05",
+      "a": "WAD-06"
+    },
+    {
+      "de": "WAD-03",
+      "a": "WAD-07"
+    },
+    {
+      "de": "WAD-06",
+      "a": "WAD-07"
+    },
+    {
+      "de": "WAD-03",
+      "a": "WAD-08"
+    },
+    {
+      "de": "WAD-06",
+      "a": "WAD-08"
+    },
+    {
+      "de": "WAD-08",
+      "a": "WAD-09"
+    },
+    {
+      "de": "WAD-05",
+      "a": "WAD-09"
+    },
+    {
+      "de": "WAD-09",
+      "a": "WAD-10"
+    },
+    {
+      "de": "WAD-04",
+      "a": "WAD-10"
+    },
+    {
+      "de": "WAD-09",
+      "a": "WAD-11"
+    },
+    {
+      "de": "WAD-10",
+      "a": "WAD-11"
+    },
+    {
+      "de": "WAD-10",
+      "a": "WAD-12"
+    },
+    {
+      "de": "WAD-11",
+      "a": "WAD-12"
+    },
+    {
+      "de": "WAD-09",
+      "a": "WAD-13"
+    },
+    {
+      "de": "WAD-12",
+      "a": "WAD-13"
+    },
+    {
+      "de": "WAD-11",
+      "a": "WAD-14"
+    },
+    {
+      "de": "WAD-13",
+      "a": "WAD-14"
+    },
+    {
+      "de": "WAD-10",
+      "a": "WAD-15"
+    },
+    {
+      "de": "WAD-12",
+      "a": "WAD-15"
+    },
+    {
+      "de": "WAD-11",
+      "a": "WAD-16"
+    },
+    {
+      "de": "WAD-15",
+      "a": "WAD-16"
+    },
+    {
+      "de": "WAD-13",
+      "a": "WAD-17"
+    },
+    {
+      "de": "WAD-15",
+      "a": "WAD-17"
+    },
+    {
+      "de": "WAD-16",
+      "a": "WAD-17"
+    },
+    {
+      "de": "WAD-12",
+      "a": "WAD-18"
+    },
+    {
+      "de": "WAD-13",
+      "a": "WAD-18"
+    },
+    {
+      "de": "WAD-15",
+      "a": "WAD-18"
+    },
+    {
+      "de": "WAD-18",
+      "a": "WAD-19"
+    },
+    {
+      "de": "WAD-17",
+      "a": "WAD-19"
+    },
+    {
+      "de": "WAD-19",
+      "a": "WAD-20"
+    },
+    {
+      "de": "WAD-16",
+      "a": "WAD-20"
+    },
+    {
+      "de": "WAD-11",
+      "a": "WAD-21"
+    },
+    {
+      "de": "WAD-15",
+      "a": "WAD-21"
+    },
+    {
+      "de": "WAD-14",
+      "a": "WAD-22"
+    },
+    {
+      "de": "WAD-16",
+      "a": "WAD-22"
+    },
+    {
+      "de": "WAD-21",
+      "a": "WAD-22"
+    },
+    {
+      "de": "WAD-22",
+      "a": "WAD-23"
+    },
+    {
+      "de": "WAD-20",
+      "a": "WAD-23"
+    },
+    {
+      "de": "WAD-07",
+      "a": "WAD-24"
+    },
+    {
+      "de": "WAD-13",
+      "a": "WAD-24"
+    },
+    {
+      "de": "WAD-11",
+      "a": "WAD-25"
+    },
+    {
+      "de": "WAD-24",
+      "a": "WAD-25"
+    },
+    {
+      "de": "WAD-24",
+      "a": "WAD-26"
+    },
+    {
+      "de": "WAD-25",
+      "a": "WAD-26"
+    },
+    {
+      "de": "WAD-22",
+      "a": "WAD-27"
+    },
+    {
+      "de": "WAD-26",
+      "a": "WAD-27"
+    },
+    {
+      "de": "WAD-20",
+      "a": "WAD-28"
+    },
+    {
+      "de": "WAD-23",
+      "a": "WAD-28"
+    },
+    {
+      "de": "WAD-27",
+      "a": "WAD-28"
+    }
+  ],
+  "lecciones_total_propuestas": 84,
+  "equivalencias_ids_previos": {
+    "WIN-01": [
+      "WAD-01"
+    ],
+    "WIN-02": [
+      "WAD-02"
+    ],
+    "WIN-03": [
+      "WAD-03"
+    ],
+    "WIN-04": [
+      "WAD-04"
+    ],
+    "WIN-05": [
+      "WAD-02"
+    ],
+    "WIN-06": [
+      "WAD-05"
+    ],
+    "WIN-07": [
+      "WAD-06"
+    ],
+    "WIN-08": [
+      "WAD-07"
+    ],
+    "WIN-09": [
+      "WAD-07"
+    ],
+    "AD-01": [
+      "WAD-08"
+    ],
+    "AD-02": [
+      "WAD-09"
+    ],
+    "AD-03": [
+      "WAD-09"
+    ],
+    "AD-04": [
+      "WAD-10"
+    ],
+    "AD-05": [
+      "WAD-11"
+    ],
+    "AD-06": [
+      "WAD-10"
+    ],
+    "AD-07": [
+      "WAD-12"
+    ],
+    "AD-08": [
+      "WAD-13"
+    ],
+    "AD-09": [
+      "WAD-11"
+    ],
+    "AD-10": [
+      "WAD-14"
+    ],
+    "AD-11": [
+      "WAD-15"
+    ],
+    "AD-12": [
+      "WAD-16"
+    ],
+    "AD-13": [
+      "WAD-17"
+    ],
+    "AD-14": [
+      "WAD-18",
+      "WAD-19",
+      "WAD-20"
+    ],
+    "AD-15": [
+      "WAD-28"
+    ],
+    "RT-01": [
+      "WAD-21"
+    ],
+    "RT-02": [
+      "WAD-21"
+    ],
+    "RT-03": [
+      "WAD-22"
+    ],
+    "RT-04": [
+      "WAD-22"
+    ],
+    "RT-05": [
+      "WAD-22"
+    ],
+    "RT-06": [
+      "WAD-22"
+    ],
+    "RT-07": [
+      "WAD-23"
+    ],
+    "RT-08": [
+      "WAD-23"
+    ],
+    "SOC-01": [
+      "WAD-24"
+    ],
+    "SOC-02": [
+      "WAD-24"
+    ],
+    "SOC-03": [
+      "WAD-25"
+    ],
+    "SOC-04": [
+      "WAD-25"
+    ],
+    "SOC-05": [
+      "WAD-26"
+    ],
+    "SOC-06": [
+      "WAD-26"
+    ],
+    "SOC-07": [
+      "WAD-27"
+    ],
+    "SOC-08": [
+      "WAD-27"
+    ]
+  },
+  "etapas_previas_total": 40,
+  "equivalencias_laboratorios_previos": {
+    "W01": [
+      "LAB-01"
+    ],
+    "W02": [
+      "LAB-02"
+    ],
+    "W03": [
+      "LAB-04",
+      "LAB-11"
+    ],
+    "W04": [
+      "LAB-03"
+    ],
+    "W05": [
+      "LAB-04"
+    ],
+    "W06": [
+      "LAB-17"
+    ],
+    "W07": [
+      "LAB-04",
+      "LAB-09"
+    ],
+    "W08": [
+      "LAB-20"
+    ],
+    "AD-L01": [
+      "LAB-05"
+    ],
+    "AD-L02": [
+      "LAB-05"
+    ],
+    "AD-L03": [
+      "LAB-06"
+    ],
+    "AD-L04": [
+      "LAB-06"
+    ],
+    "AD-L05": [
+      "LAB-07"
+    ],
+    "AD-L06": [
+      "LAB-08"
+    ],
+    "AD-L07": [
+      "LAB-06"
+    ],
+    "AD-L08": [
+      "LAB-09"
+    ],
+    "AD-L09": [
+      "LAB-07"
+    ],
+    "AD-L10": [
+      "EXT-04"
+    ],
+    "AD-L11": [
+      "LAB-10"
+    ],
+    "AD-L12": [
+      "LAB-11"
+    ],
+    "AD-L13": [
+      "LAB-12",
+      "LAB-14",
+      "LAB-15",
+      "EXT-03"
+    ],
+    "AD-L14": [
+      "LAB-16",
+      "LAB-20"
+    ],
+    "RT-L01": [
+      "LAB-16"
+    ],
+    "RT-L02": [
+      "LAB-16"
+    ],
+    "RT-L03": [
+      "LAB-16"
+    ],
+    "RT-L04": [
+      "LAB-07",
+      "LAB-16"
+    ],
+    "RT-L05": [
+      "LAB-19"
+    ],
+    "RT-L06": [
+      "LAB-16",
+      "EXT-04"
+    ],
+    "SOC-L01": [
+      "LAB-17"
+    ],
+    "SOC-L02": [
+      "LAB-17"
+    ],
+    "SOC-L03": [
+      "LAB-17"
+    ],
+    "SOC-L04": [
+      "LAB-17"
+    ],
+    "SOC-L05": [
+      "LAB-18"
+    ],
+    "SOC-L06": [
+      "LAB-18"
+    ],
+    "SOC-L07": [
+      "LAB-18"
+    ],
+    "SOC-L08": [
+      "LAB-17",
+      "LAB-19"
+    ],
+    "PT-L01": [
+      "LAB-19"
+    ],
+    "PT-L02": [
+      "LAB-10",
+      "LAB-19"
+    ]
+  },
+  "laboratorios_previos_total": 38,
+  "laboratorios": [
+    {
+      "id": "LAB-01",
+      "tipo": "base",
+      "nombre": "Inventario y baseline Windows",
+      "etapas": [
+        "WAD-01",
+        "WAD-02"
+      ],
+      "horas_estimadas": {
+        "min": 2,
+        "max": 3
+      },
+      "estado": "diseñado_no_ejecutado",
+      "validacion_empirica": false,
+      "sistemas_y_topologia": "1 Win11 VM",
+      "preparacion": "Identidades sintéticas; baseline inicial; snapshot de la VM no-DC.",
+      "tarea": "Inventariar servicios, tareas, inicio, sistema de archivos y salud sin cambios.",
+      "prueba_positiva": "Identificar 5 servicios con PID, estado y ruta conforme a evidencia.",
+      "prueba_negativa": "Justificar por qué un proceso conocido no demuestra legitimidad.",
+      "evidencias": "Inventory.csv; esquema user/kernel; baseline firmado.",
+      "limites_seguridad": "Solo lectura, evitar reportar secretos.",
+      "limpieza_y_restauracion": "Sin cambios; verificar estado y destruir exportación sensible.",
+      "herramientas": "Windows/PowerShell/RSAT/Windows Server Backup/eventing nativo; extras según escenario y licencia.",
+      "recursos_y_costes": "Evaluación Server 2025 180 días para aprendizaje conforme a términos; hardware/energía y disco no presupuestados, no afirmar coste cero integral.",
+      "prerrequisitos": [
+        "WAD-01",
+        "WAD-02"
+      ],
+      "criterios_aprobacion": "Resultado positivo y negativo documentados + evidencia y rollback + explicación de límites.",
+      "fuentes_ids": [
+        "D29"
+      ]
+    },
+    {
+      "id": "LAB-02",
+      "tipo": "base",
+      "nombre": "Tokens, DACL y acceso efectivo",
+      "etapas": [
+        "WAD-03",
+        "WAD-04"
+      ],
+      "horas_estimadas": {
+        "min": 2,
+        "max": 4
+      },
+      "estado": "diseñado_no_ejecutado",
+      "validacion_empirica": false,
+      "sistemas_y_topologia": "1 Win11 VM",
+      "preparacion": "Crear carpeta señuelo y 2 usuarios/grupos de laboratorio.",
+      "tarea": "Estudiar token, UAC, DACL, NTFS y share; corregir delegación excesiva.",
+      "prueba_positiva": "Usuario A entra donde hay permiso exacto.",
+      "prueba_negativa": "Usuario B no entra; revalidar no sobrepermisos.",
+      "evidencias": "Matriz identidad/objeto/permisos + pruebas testigo.",
+      "limites_seguridad": "No alterar permisos del host físico.",
+      "limpieza_y_restauracion": "Borrar usuarios y recurso señuelo; recuperar baseline.",
+      "herramientas": "Windows/PowerShell/RSAT/Windows Server Backup/eventing nativo; extras según escenario y licencia.",
+      "recursos_y_costes": "Evaluación Server 2025 180 días para aprendizaje conforme a términos; hardware/energía y disco no presupuestados, no afirmar coste cero integral.",
+      "prerrequisitos": [
+        "WAD-03",
+        "WAD-04"
+      ],
+      "criterios_aprobacion": "Resultado positivo y negativo documentados + evidencia y rollback + explicación de límites.",
+      "fuentes_ids": [
+        "D21"
+      ]
+    },
+    {
+      "id": "LAB-03",
+      "tipo": "base",
+      "nombre": "PowerShell seguro y repeatability",
+      "etapas": [
+        "WAD-05"
+      ],
+      "horas_estimadas": {
+        "min": 3,
+        "max": 4
+      },
+      "estado": "diseñado_no_ejecutado",
+      "validacion_empirica": false,
+      "sistemas_y_topologia": "1 Win11 VM",
+      "preparacion": "Preparar datos no personales y carpeta temporal.",
+      "tarea": "Construir inventario con objetos estructurados, help, captura de errores y -WhatIf donde exista.",
+      "prueba_positiva": "Dos ejecuciones con el mismo inventario válido.",
+      "prueba_negativa": "Una ejecución frente a permiso denegado falla de forma explícita.",
+      "evidencias": "Script, logs, salida JSON/CSV, plan rollback.",
+      "limites_seguridad": "No elevar derechos de forma innecesaria.",
+      "limpieza_y_restauracion": "Eliminar temporales generados.",
+      "herramientas": "Windows/PowerShell/RSAT/Windows Server Backup/eventing nativo; extras según escenario y licencia.",
+      "recursos_y_costes": "Evaluación Server 2025 180 días para aprendizaje conforme a términos; hardware/energía y disco no presupuestados, no afirmar coste cero integral.",
+      "prerrequisitos": [
+        "WAD-05"
+      ],
+      "criterios_aprobacion": "Resultado positivo y negativo documentados + evidencia y rollback + explicación de límites.",
+      "fuentes_ids": [
+        "D21"
+      ]
+    },
+    {
+      "id": "LAB-04",
+      "tipo": "base",
+      "nombre": "Servicio, DNS cliente y firewall",
+      "etapas": [
+        "WAD-06",
+        "WAD-07"
+      ],
+      "horas_estimadas": {
+        "min": 3,
+        "max": 4
+      },
+      "estado": "diseñado_no_ejecutado",
+      "validacion_empirica": false,
+      "sistemas_y_topologia": "2 hosts virtuales o 1 Win11 + servicio local",
+      "preparacion": "Reglas temporales para tráfico sintético en red virtual cerrada.",
+      "tarea": "Sembrar fallo benigno de conectividad, distinguir DNS de firewall/servicio y remediar.",
+      "prueba_positiva": "Funcionalidad vuelve con regla específica.",
+      "prueba_negativa": "Regla general «permitir todo» explícitamente rechazada.",
+      "evidencias": "Antes/después de Test-NetConnection y firewall + causa raíz.",
+      "limites_seguridad": "Nunca interferir con red anfitriona.",
+      "limpieza_y_restauracion": "Revertir reglas y servicios; comprobar conectividad original.",
+      "herramientas": "Windows/PowerShell/RSAT/Windows Server Backup/eventing nativo; extras según escenario y licencia.",
+      "recursos_y_costes": "Evaluación Server 2025 180 días para aprendizaje conforme a términos; hardware/energía y disco no presupuestados, no afirmar coste cero integral.",
+      "prerrequisitos": [
+        "WAD-06",
+        "WAD-07"
+      ],
+      "criterios_aprobacion": "Resultado positivo y negativo documentados + evidencia y rollback + explicación de límites.",
+      "fuentes_ids": [
+        "D21"
+      ]
+    },
+    {
+      "id": "LAB-05",
+      "tipo": "base",
+      "nombre": "DC aislado, DNS y cliente",
+      "etapas": [
+        "WAD-08",
+        "WAD-09"
+      ],
+      "horas_estimadas": {
+        "min": 4,
+        "max": 6
+      },
+      "estado": "diseñado_no_ejecutado",
+      "validacion_empirica": false,
+      "sistemas_y_topologia": "DC01 Server2025 + Win11 cliente en host-only",
+      "preparacion": "Dominio ficticio ad.lab.test; DNS interno; nombres/IP de ejemplo.",
+      "tarea": "Promover DC, publicar registros SRV, unir cliente y comprobar reloj.",
+      "prueba_positiva": "Join y autenticación sintética exitosos.",
+      "prueba_negativa": "Cliente sin DNS AD falla de modo explicado.",
+      "evidencias": "Mapa de topología, resultados nltest/dcdiag y DNS.",
+      "limites_seguridad": "Aislamiento: sin bridge a red corporativa/Internet de terceros.",
+      "limpieza_y_restauracion": "Destruir red y VM tras exportar inventario despersonalizado.",
+      "herramientas": "Windows/PowerShell/RSAT/Windows Server Backup/eventing nativo; extras según escenario y licencia.",
+      "recursos_y_costes": "Evaluación Server 2025 180 días para aprendizaje conforme a términos; hardware/energía y disco no presupuestados, no afirmar coste cero integral.",
+      "prerrequisitos": [
+        "WAD-08",
+        "WAD-09"
+      ],
+      "criterios_aprobacion": "Resultado positivo y negativo documentados + evidencia y rollback + explicación de límites.",
+      "fuentes_ids": [
+        "D21",
+        "D29"
+      ]
+    },
+    {
+      "id": "LAB-06",
+      "tipo": "base",
+      "nombre": "Usuarios, grupos, delegación y GPO",
+      "etapas": [
+        "WAD-10",
+        "WAD-12"
+      ],
+      "horas_estimadas": {
+        "min": 3,
+        "max": 5
+      },
+      "estado": "diseñado_no_ejecutado",
+      "validacion_empirica": false,
+      "sistemas_y_topologia": "DC01 + Win11",
+      "preparacion": "OU Operaciones, Helpdesk, usuario sin privilegios, GPO inocua.",
+      "tarea": "Crear cuentas sintéticas, delegar reseteo dentro de una OU y aplicar GPO reversible.",
+      "prueba_positiva": "Delegado solo modifica cuentas de OU; cliente recibe GPO.",
+      "prueba_negativa": "Acceso fuera de OU se deniega y una OU exenta no recibe GPO.",
+      "evidencias": "ACL delegación, gpresult/RSOP y estado final.",
+      "limites_seguridad": "Prohibido otorgar Domain Admin para «resolver» tareas.",
+      "limpieza_y_restauracion": "Revertir GPO y ACL, borrar señuelos.",
+      "herramientas": "Windows/PowerShell/RSAT/Windows Server Backup/eventing nativo; extras según escenario y licencia.",
+      "recursos_y_costes": "Evaluación Server 2025 180 días para aprendizaje conforme a términos; hardware/energía y disco no presupuestados, no afirmar coste cero integral.",
+      "prerrequisitos": [
+        "WAD-10",
+        "WAD-12"
+      ],
+      "criterios_aprobacion": "Resultado positivo y negativo documentados + evidencia y rollback + explicación de límites.",
+      "fuentes_ids": [
+        "D21"
+      ]
+    },
+    {
+      "id": "LAB-07",
+      "tipo": "base",
+      "nombre": "Kerberos, SPN y cuenta servicio",
+      "etapas": [
+        "WAD-11"
+      ],
+      "horas_estimadas": {
+        "min": 3,
+        "max": 5
+      },
+      "estado": "diseñado_no_ejecutado",
+      "validacion_empirica": false,
+      "sistemas_y_topologia": "DC01 + 1 miembro + Win11",
+      "preparacion": "SPN y servicio de ejemplo sin credenciales reutilizadas.",
+      "tarea": "Trazar autenticación sintética, consultar SPN, documentar fallback y gMSA como alternativa.",
+      "prueba_positiva": "Servicio autorizado autentica y registra hechos esperados.",
+      "prueba_negativa": "SPN ausente provoca fallo diagnosticado sin asignar culpa a ataque.",
+      "evidencias": "Flujo AS/TGS, comandos de lectura, matriz explicación.",
+      "limites_seguridad": "Nunca extraer claves, tickets ajenos ni volcar LSASS.",
+      "limpieza_y_restauracion": "Restaurar configuración SPN original.",
+      "herramientas": "Windows/PowerShell/RSAT/Windows Server Backup/eventing nativo; extras según escenario y licencia.",
+      "recursos_y_costes": "Evaluación Server 2025 180 días para aprendizaje conforme a términos; hardware/energía y disco no presupuestados, no afirmar coste cero integral.",
+      "prerrequisitos": [
+        "WAD-11"
+      ],
+      "criterios_aprobacion": "Resultado positivo y negativo documentados + evidencia y rollback + explicación de límites.",
+      "fuentes_ids": [
+        "D21"
+      ]
+    },
+    {
+      "id": "LAB-08",
+      "tipo": "base",
+      "nombre": "Replicación de dos DC sin sabotaje",
+      "etapas": [
+        "WAD-13"
+      ],
+      "horas_estimadas": {
+        "min": 4,
+        "max": 6
+      },
+      "estado": "diseñado_no_ejecutado",
+      "validacion_empirica": false,
+      "sistemas_y_topologia": "DC01 + DC02 Server2025, red host-only",
+      "preparacion": "Promoción secundaria y línea base de replicación.",
+      "tarea": "Crear objetos señuelo, medir convergencia y simular caída de enlace virtual de prueba.",
+      "prueba_positiva": "Datos convergen al recuperar enlace y repadmin evidencia estado.",
+      "prueba_negativa": "Durante aislamiento no debe concluirse corrupción por un retraso aislado.",
+      "evidencias": "repadmin /replsummary; dcdiag; línea temporal; causa.",
+      "limites_seguridad": "Nunca forzar FSMO ni restaurar snapshot a ambos DC a la vez.",
+      "limpieza_y_restauracion": "Restablecer enlace y validar convergencia.",
+      "herramientas": "Windows/PowerShell/RSAT/Windows Server Backup/eventing nativo; extras según escenario y licencia.",
+      "recursos_y_costes": "Evaluación Server 2025 180 días para aprendizaje conforme a términos; hardware/energía y disco no presupuestados, no afirmar coste cero integral.",
+      "prerrequisitos": [
+        "WAD-13"
+      ],
+      "criterios_aprobacion": "Resultado positivo y negativo documentados + evidencia y rollback + explicación de límites.",
+      "fuentes_ids": [
+        "D21",
+        "D22",
+        "D13"
+      ]
+    },
+    {
+      "id": "LAB-09",
+      "tipo": "base",
+      "nombre": "Tier 0 y custodia DSRM",
+      "etapas": [
+        "WAD-15"
+      ],
+      "horas_estimadas": {
+        "min": 3,
+        "max": 5
+      },
+      "estado": "diseñado_no_ejecutado",
+      "validacion_empirica": false,
+      "sistemas_y_topologia": "DC01 + Win11",
+      "preparacion": "Cuentas administrativas distintas en lab; roles y ACL ficticias.",
+      "tarea": "Mapear Tier 0, disminuir un permiso excesivo y diseñar custodia DSRM/LAPS.",
+      "prueba_positiva": "Admin Tier0 ejerce función permitida sin cuentas generalistas.",
+      "prueba_negativa": "Helpdesk no tiene permisos sobre DC ni lectura DSRM.",
+      "evidencias": "Matriz de roles, derechos efectivos y plan break-glass.",
+      "limites_seguridad": "No guardar contraseñas DSRM en evidencias ni repositorio.",
+      "limpieza_y_restauracion": "Revertir políticas y limpiar cuentas de prueba.",
+      "herramientas": "Windows/PowerShell/RSAT/Windows Server Backup/eventing nativo; extras según escenario y licencia.",
+      "recursos_y_costes": "Evaluación Server 2025 180 días para aprendizaje conforme a términos; hardware/energía y disco no presupuestados, no afirmar coste cero integral.",
+      "prerrequisitos": [
+        "WAD-15"
+      ],
+      "criterios_aprobacion": "Resultado positivo y negativo documentados + evidencia y rollback + explicación de límites.",
+      "fuentes_ids": [
+        "D19",
+        "D20"
+      ]
+    },
+    {
+      "id": "LAB-10",
+      "tipo": "base",
+      "nombre": "PKI de laboratorio y revocación",
+      "etapas": [
+        "WAD-16"
+      ],
+      "horas_estimadas": {
+        "min": 4,
+        "max": 7
+      },
+      "estado": "diseñado_no_ejecutado",
+      "validacion_empirica": false,
+      "sistemas_y_topologia": "CA01 Server2025 (separado de DC) + 1 cliente",
+      "preparacion": "CA y plantilla de laboratorio; datos sintéticos; reglas de emisión.",
+      "tarea": "Verificar permisos de inscripción, EKU, CRL/AIA y rechazo de petición improcedente.",
+      "prueba_positiva": "Certificado de entidad permitida y revocación verificada.",
+      "prueba_negativa": "Solicitud no autorizada se rechaza; CRL no disponible se reconoce como falla.",
+      "evidencias": "Plantilla, ACL, cadena y estado CRL + informe de controles.",
+      "limites_seguridad": "La clave privada CA no se comparte ni exporta sin necesidad.",
+      "limpieza_y_restauracion": "Desinstalar CA de lab y borrar almacenes aislados según plan.",
+      "herramientas": "Windows/PowerShell/RSAT/Windows Server Backup/eventing nativo; extras según escenario y licencia.",
+      "recursos_y_costes": "Evaluación Server 2025 180 días para aprendizaje conforme a términos; hardware/energía y disco no presupuestados, no afirmar coste cero integral.",
+      "prerrequisitos": [
+        "WAD-16"
+      ],
+      "criterios_aprobacion": "Resultado positivo y negativo documentados + evidencia y rollback + explicación de límites.",
+      "fuentes_ids": [
+        "D16",
+        "D17",
+        "D18"
+      ]
+    },
+    {
+      "id": "LAB-11",
+      "tipo": "base",
+      "nombre": "Diagnóstico de AD por fallos sembrados",
+      "etapas": [
+        "WAD-17"
+      ],
+      "horas_estimadas": {
+        "min": 4,
+        "max": 6
+      },
+      "estado": "diseñado_no_ejecutado",
+      "validacion_empirica": false,
+      "sistemas_y_topologia": "DC01 + DC02 + Win11",
+      "preparacion": "Fallas inocuas definidas por instructor: DNS cliente, hora, GPO scope.",
+      "tarea": "Investigar con hipótesis y herramientas de solo lectura antes de cambiar.",
+      "prueba_positiva": "Recupera autenticación/GPO de la OU objetivo.",
+      "prueba_negativa": "Una hipótesis refutada se documenta y no causa cambios.",
+      "evidencias": "Bitácora, diagnóstico diferencial, prueba regresión.",
+      "limites_seguridad": "Nunca probar fixes destructivos en DNS productivo.",
+      "limpieza_y_restauracion": "Revertir 3 cambios sembrados y verificar baseline.",
+      "herramientas": "Windows/PowerShell/RSAT/Windows Server Backup/eventing nativo; extras según escenario y licencia.",
+      "recursos_y_costes": "Evaluación Server 2025 180 días para aprendizaje conforme a términos; hardware/energía y disco no presupuestados, no afirmar coste cero integral.",
+      "prerrequisitos": [
+        "WAD-17"
+      ],
+      "criterios_aprobacion": "Resultado positivo y negativo documentados + evidencia y rollback + explicación de límites.",
+      "fuentes_ids": [
+        "D21",
+        "D22"
+      ]
+    },
+    {
+      "id": "LAB-12",
+      "tipo": "recuperacion",
+      "nombre": "Backup y restauración de archivo en host",
+      "etapas": [
+        "WAD-18"
+      ],
+      "horas_estimadas": {
+        "min": 2,
+        "max": 4
+      },
+      "estado": "diseñado_no_ejecutado",
+      "validacion_empirica": false,
+      "sistemas_y_topologia": "1 Win11 VM o miembro Server",
+      "preparacion": "Directorio señuelo y almacenamiento backup separado.",
+      "tarea": "Seleccionar estrategia por RPO/RTO objetivo; crear respaldo y restaurar versión comprobada.",
+      "prueba_positiva": "Archivo íntegro con hash y marca temporal esperada.",
+      "prueba_negativa": "Archivo posterior a backup no debe declararse restaurado.",
+      "evidencias": "RPO observado, hash, tiempos de operación, custodia.",
+      "limites_seguridad": "Copias no disponibles para lectura amplia de usuarios de lab.",
+      "limpieza_y_restauracion": "Borrar respaldo sintético tras verificación.",
+      "herramientas": "Windows/PowerShell/RSAT/Windows Server Backup/eventing nativo; extras según escenario y licencia.",
+      "recursos_y_costes": "Evaluación Server 2025 180 días para aprendizaje conforme a términos; hardware/energía y disco no presupuestados, no afirmar coste cero integral.",
+      "prerrequisitos": [
+        "WAD-18"
+      ],
+      "criterios_aprobacion": "Resultado positivo y negativo documentados + evidencia y rollback + explicación de límites.",
+      "fuentes_ids": [
+        "D27",
+        "D07"
+      ]
+    },
+    {
+      "id": "LAB-13",
+      "tipo": "recuperacion",
+      "nombre": "AD Recycle Bin y objeto eliminado",
+      "etapas": [
+        "WAD-19"
+      ],
+      "horas_estimadas": {
+        "min": 3,
+        "max": 5
+      },
+      "estado": "diseñado_no_ejecutado",
+      "validacion_empirica": false,
+      "sistemas_y_topologia": "DC01 aislado",
+      "preparacion": "Habilitar primero en bosque nuevo; crear usuarios/grupos prueba.",
+      "tarea": "Eliminar objeto autorizado y restaurarlo desde ADAC/PowerShell, confirmar memberships.",
+      "prueba_positiva": "Objeto y membresías presentes tras recuperación.",
+      "prueba_negativa": "Objeto borrado antes de activar la papelera no se etiqueta como recuperable.",
+      "evidencias": "Atributos pre/post, tiempo recuperación, control de identidad.",
+      "limites_seguridad": "Habilitar Papelera es irreversible; solo bosque descartable.",
+      "limpieza_y_restauracion": "Eliminar dominio descartable al concluir; no prometer disable.",
+      "herramientas": "Windows/PowerShell/RSAT/Windows Server Backup/eventing nativo; extras según escenario y licencia.",
+      "recursos_y_costes": "Evaluación Server 2025 180 días para aprendizaje conforme a términos; hardware/energía y disco no presupuestados, no afirmar coste cero integral.",
+      "prerrequisitos": [
+        "WAD-19"
+      ],
+      "criterios_aprobacion": "Resultado positivo y negativo documentados + evidencia y rollback + explicación de límites.",
+      "fuentes_ids": [
+        "D12",
+        "D35"
+      ]
+    },
+    {
+      "id": "LAB-14",
+      "tipo": "recuperacion",
+      "nombre": "DC: System State y restauración no autoritativa",
+      "etapas": [
+        "WAD-18",
+        "WAD-19"
+      ],
+      "horas_estimadas": {
+        "min": 6,
+        "max": 10
+      },
+      "estado": "diseñado_no_ejecutado",
+      "validacion_empirica": false,
+      "sistemas_y_topologia": "DC01 + DC02, clon aislamiento de la red de producción",
+      "preparacion": "Respaldos VSS compatibles probados; DSRM controlado; ejecución solo con instructor.",
+      "tarea": "Planear, ejecutar en VM desechable, validar recuperación de DC y replicación con DC saludable.",
+      "prueba_positiva": "DC restaurado inicia, SYSVOL correcto y replicación converge.",
+      "prueba_negativa": "Restauración de imagen manual o backup caducado es rechazada.",
+      "evidencias": "Acta VSS, identificación de backup, dcdiag/repadmin post, RTO observado.",
+      "limites_seguridad": "Operación de alto impacto: no ejecutar sin aislamiento y respaldo recuperable.",
+      "limpieza_y_restauracion": "Apagar y destruir rama restaurada después de exportar evidencias.",
+      "herramientas": "Windows/PowerShell/RSAT/Windows Server Backup/eventing nativo; extras según escenario y licencia.",
+      "recursos_y_costes": "Evaluación Server 2025 180 días para aprendizaje conforme a términos; hardware/energía y disco no presupuestados, no afirmar coste cero integral.",
+      "prerrequisitos": [
+        "WAD-18",
+        "WAD-19"
+      ],
+      "criterios_aprobacion": "Resultado positivo y negativo documentados + evidencia y rollback + explicación de límites.",
+      "fuentes_ids": [
+        "D06",
+        "D09",
+        "D10",
+        "D13",
+        "D15"
+      ]
+    },
+    {
+      "id": "LAB-15",
+      "tipo": "recuperacion",
+      "nombre": "Tabletop de desastre forestal",
+      "etapas": [
+        "WAD-20"
+      ],
+      "horas_estimadas": {
+        "min": 4,
+        "max": 6
+      },
+      "estado": "diseñado_no_ejecutado",
+      "validacion_empirica": false,
+      "sistemas_y_topologia": "Diagramas de 2 dominios, 3 DC y CA ficticia; sin VM obligatoria",
+      "preparacion": "Entregar mapas, backups de distintas fechas, lista de funciones y fallos.",
+      "tarea": "Seleccionar DC/backup confiable, plan aislar, recuperar primer DC/dominio, reintroducir servicios.",
+      "prueba_positiva": "Orden contempla DNS, FSMO, RID, contraseñas, trusts, CA y validación.",
+      "prueba_negativa": "Se rechaza reintegrar un DC no saneado o «restaurar todo» sin clasificar.",
+      "evidencias": "Runbook de crisis, árbol decisión, RPO/RTO estimados, roles RACI.",
+      "limites_seguridad": "No ejecutar reset krbtgt / seize / metadatos desde tabletop.",
+      "limpieza_y_restauracion": "No aplica: ejercicio documental; destruir credenciales ficticias.",
+      "herramientas": "Windows/PowerShell/RSAT/Windows Server Backup/eventing nativo; extras según escenario y licencia.",
+      "recursos_y_costes": "Evaluación Server 2025 180 días para aprendizaje conforme a términos; hardware/energía y disco no presupuestados, no afirmar coste cero integral.",
+      "prerrequisitos": [
+        "WAD-20"
+      ],
+      "criterios_aprobacion": "Resultado positivo y negativo documentados + evidencia y rollback + explicación de límites.",
+      "fuentes_ids": [
+        "D01",
+        "D02",
+        "D03",
+        "D04",
+        "D24"
+      ]
+    },
+    {
+      "id": "LAB-16",
+      "tipo": "adversarial",
+      "nombre": "Auditoría Red Team autorizada de permisos",
+      "etapas": [
+        "WAD-21",
+        "WAD-22"
+      ],
+      "horas_estimadas": {
+        "min": 3,
+        "max": 5
+      },
+      "estado": "diseñado_no_ejecutado",
+      "validacion_empirica": false,
+      "sistemas_y_topologia": "DC01 + cuentas señuelo, LDAP solo lab",
+      "preparacion": "ROE por escrito, lista de objetos, ventana y finalidad.",
+      "tarea": "Enumeración limitada de ACL/GPO/SPN/plantilla y priorización defensiva.",
+      "prueba_positiva": "Hallazgo con recurso, permiso y comprobación positiva en señuelo.",
+      "prueba_negativa": "No declarar acceso/impacto por mera presencia de SPN/ACL.",
+      "evidencias": "Grafo con grado de certeza, scripts de lectura y hallazgo redactado.",
+      "limites_seguridad": "No extracción de credenciales ni movimiento a hosts ajenos.",
+      "limpieza_y_restauracion": "Revertir delegaciones temporales; borrar datos sintéticos.",
+      "herramientas": "Windows/PowerShell/RSAT/Windows Server Backup/eventing nativo; extras según escenario y licencia.",
+      "recursos_y_costes": "Evaluación Server 2025 180 días para aprendizaje conforme a términos; hardware/energía y disco no presupuestados, no afirmar coste cero integral.",
+      "prerrequisitos": [
+        "WAD-21",
+        "WAD-22"
+      ],
+      "criterios_aprobacion": "Resultado positivo y negativo documentados + evidencia y rollback + explicación de límites.",
+      "fuentes_ids": [
+        "D17",
+        "D21"
+      ]
+    },
+    {
+      "id": "LAB-17",
+      "tipo": "soc",
+      "nombre": "Auditoría y timeline de identidad",
+      "etapas": [
+        "WAD-24",
+        "WAD-25"
+      ],
+      "horas_estimadas": {
+        "min": 4,
+        "max": 6
+      },
+      "estado": "diseñado_no_ejecutado",
+      "validacion_empirica": false,
+      "sistemas_y_topologia": "DC01 + miembro + Win11",
+      "preparacion": "GPO auditoría, cuenta sintética, plan de eventos esperado.",
+      "tarea": "Producir logons correctos/incorrectos inocuos y cambios de grupo; mapear eventos nativos.",
+      "prueba_positiva": "Timeline con fuente, host, UTC, evento y cuenta objetivo.",
+      "prueba_negativa": "Un 4769 no se declara Kerberoasting sin contexto.",
+      "evidencias": "Matriz auditpol/SACL/evento; timeline con incertidumbre.",
+      "limites_seguridad": "No capturar credenciales en claro; proteger logs.",
+      "limpieza_y_restauracion": "Eliminar usuarios sintéticos; restaurar audit policy.",
+      "herramientas": "Windows/PowerShell/RSAT/Windows Server Backup/eventing nativo; extras según escenario y licencia.",
+      "recursos_y_costes": "Evaluación Server 2025 180 días para aprendizaje conforme a términos; hardware/energía y disco no presupuestados, no afirmar coste cero integral.",
+      "prerrequisitos": [
+        "WAD-24",
+        "WAD-25"
+      ],
+      "criterios_aprobacion": "Resultado positivo y negativo documentados + evidencia y rollback + explicación de límites.",
+      "fuentes_ids": [
+        "D21"
+      ]
+    },
+    {
+      "id": "LAB-18",
+      "tipo": "soc",
+      "nombre": "Sysmon / WEF: visibilidad y huecos",
+      "etapas": [
+        "WAD-26"
+      ],
+      "horas_estimadas": {
+        "min": 4,
+        "max": 7
+      },
+      "estado": "diseñado_no_ejecutado",
+      "validacion_empirica": false,
+      "sistemas_y_topologia": "Win11 + servidor colector WEC en red virtual",
+      "preparacion": "Configuración mínima y fuente de evento inocuo aprobadas.",
+      "tarea": "Diseñar sensores, reenviar evento y registrar ausencias por permisos/filtrado.",
+      "prueba_positiva": "Evento sintético aparece con origen e intervalo verificable.",
+      "prueba_negativa": "Filtrado deliberado demuestra límite de visibilidad, no ausencia de acción.",
+      "evidencias": "Original/reenviado, horario UTC, integridad archivo, limitaciones.",
+      "limites_seguridad": "No aplicar recolección de datos personales.",
+      "limpieza_y_restauracion": "Revertir suscripciones/sensores en VM descartable.",
+      "herramientas": "Windows/PowerShell/RSAT/Windows Server Backup/eventing nativo; extras según escenario y licencia.",
+      "recursos_y_costes": "Evaluación Server 2025 180 días para aprendizaje conforme a términos; hardware/energía y disco no presupuestados, no afirmar coste cero integral.",
+      "prerrequisitos": [
+        "WAD-26"
+      ],
+      "criterios_aprobacion": "Resultado positivo y negativo documentados + evidencia y rollback + explicación de límites.",
+      "fuentes_ids": [
+        "D27"
+      ]
+    },
+    {
+      "id": "LAB-19",
+      "tipo": "integracion",
+      "nombre": "Purple: GPO, evidencia y retest",
+      "etapas": [
+        "WAD-23",
+        "WAD-27"
+      ],
+      "horas_estimadas": {
+        "min": 5,
+        "max": 8
+      },
+      "estado": "diseñado_no_ejecutado",
+      "validacion_empirica": false,
+      "sistemas_y_topologia": "DC01 + Win11 + logs locales o WEC",
+      "preparacion": "GPO inocua, RoE y guion de cambio autorizado.",
+      "tarea": "Equipo ofensivo identifica ACL delegada excesiva; administración corrige; SOC verifica eventos y límites.",
+      "prueba_positiva": "Acceso fuera de política queda revocado; evento útil se preserva.",
+      "prueba_negativa": "No afirmar detección si falta auditoría; explicar causa de ausencia.",
+      "evidencias": "Reporte hallazgo/evidencia/impacto/mitigación/retest y SOC.",
+      "limites_seguridad": "No tocar administradores reales ni ocultar cambios.",
+      "limpieza_y_restauracion": "Revertir todos los cambios; ejecutar pruebas regresión.",
+      "herramientas": "Windows/PowerShell/RSAT/Windows Server Backup/eventing nativo; extras según escenario y licencia.",
+      "recursos_y_costes": "Evaluación Server 2025 180 días para aprendizaje conforme a términos; hardware/energía y disco no presupuestados, no afirmar coste cero integral.",
+      "prerrequisitos": [
+        "WAD-23",
+        "WAD-27"
+      ],
+      "criterios_aprobacion": "Resultado positivo y negativo documentados + evidencia y rollback + explicación de límites.",
+      "fuentes_ids": [
+        "D21",
+        "D27"
+      ]
+    },
+    {
+      "id": "LAB-20",
+      "tipo": "integracion",
+      "nombre": "Proyecto final: operar, auditar y recuperar",
+      "etapas": [
+        "WAD-28"
+      ],
+      "horas_estimadas": {
+        "min": 8,
+        "max": 14
+      },
+      "estado": "diseñado_no_ejecutado",
+      "validacion_empirica": false,
+      "sistemas_y_topologia": "DC01 + DC02 + Win11 + CA opcional; red aislada",
+      "preparacion": "Topología entregada; 3 fallas inocuas, 1 permiso excesivo, backup previo.",
+      "tarea": "Operar un cambio, diagnosticar falla, investigar eventos, auditar ACL, recuperar identidad y demostrar retest.",
+      "prueba_positiva": "Servicio principal accesible; fallo diagnosticado; RPO/RTO observado.",
+      "prueba_negativa": "Cuentas fuera de alcance no se modifican; falsos positivos descartados.",
+      "evidencias": "Expediente con runbooks, matriz eventos, gráficos de dependencias, RACI y defensa.",
+      "limites_seguridad": "Separación de roles; práctica validada antes de cualquier acción de impacto.",
+      "limpieza_y_restauracion": "Restaurar baseline o descartar VMs y claves de CA.",
+      "herramientas": "Windows/PowerShell/RSAT/Windows Server Backup/eventing nativo; extras según escenario y licencia.",
+      "recursos_y_costes": "Evaluación Server 2025 180 días para aprendizaje conforme a términos; hardware/energía y disco no presupuestados, no afirmar coste cero integral.",
+      "prerrequisitos": [
+        "WAD-28"
+      ],
+      "criterios_aprobacion": "Resultado positivo y negativo documentados + evidencia y rollback + explicación de límites.",
+      "fuentes_ids": [
+        "D01",
+        "D02",
+        "D12",
+        "D27"
+      ]
+    },
+    {
+      "id": "EXT-01",
+      "tipo": "avanzado_optativo",
+      "nombre": "SYSVOL DFSR autoritativo versus no autoritativo",
+      "etapas": [
+        "WAD-20"
+      ],
+      "horas_estimadas": {
+        "min": 5,
+        "max": 9
+      },
+      "estado": "diseñado_no_ejecutado",
+      "validacion_empirica": false,
+      "sistemas_y_topologia": "2 DC descartables y backup compatible",
+      "preparacion": "Guion aprobado, observabilidad SYSVOL y respaldos fiables.",
+      "tarea": "Diseñar y ejecutar solo tras validación una recuperación de SYSVOL ajustada al caso.",
+      "prueba_positiva": "Política esperada converge, DFSR muestra estado final.",
+      "prueba_negativa": "No ejecutar sobre dominio operacional sin plan y aprobación.",
+      "evidencias": "Evidencia DFSR/SYSVOL + checks GPO + decisión técnica.",
+      "limites_seguridad": "Alto impacto: requiere instructor y restauración offline.",
+      "limpieza_y_restauracion": "Destruir red VM; nunca reintroducir clones conflictivos.",
+      "herramientas": "Windows/PowerShell/RSAT/Windows Server Backup/eventing nativo; extras según escenario y licencia.",
+      "recursos_y_costes": "Evaluación Server 2025 180 días para aprendizaje conforme a términos; hardware/energía y disco no presupuestados, no afirmar coste cero integral.",
+      "prerrequisitos": [
+        "WAD-20"
+      ],
+      "criterios_aprobacion": "Resultado positivo y negativo documentados + evidencia y rollback + explicación de límites.",
+      "fuentes_ids": [
+        "D11",
+        "D05"
+      ]
+    },
+    {
+      "id": "EXT-02",
+      "tipo": "avanzado_optativo",
+      "nombre": "Ensayo real de recuperación forestal",
+      "etapas": [
+        "WAD-20"
+      ],
+      "horas_estimadas": {
+        "min": 10,
+        "max": 18
+      },
+      "estado": "diseñado_no_ejecutado",
+      "validacion_empirica": false,
+      "sistemas_y_topologia": "Bosque desechable; >=2 DC; CA opcional",
+      "preparacion": "Backup verificado por DC y rama aislada físicamente/lógicamente.",
+      "tarea": "Recrear bosque con runbook y validación DNS, FSMO, identidades, SYSVOL y cuentas.",
+      "prueba_positiva": "Servicio funcional con métricas RTO medidas.",
+      "prueba_negativa": "No se reintegra DC viejo sin saneamiento, nunca en red puenteada.",
+      "evidencias": "Reporte desvíos, tiempos medidos, control de versiones backups.",
+      "limites_seguridad": "Riesgo alto: instructor y una ventana exclusiva.",
+      "limpieza_y_restauracion": "Destruir entorno ensayo sin redes corporativas.",
+      "herramientas": "Windows/PowerShell/RSAT/Windows Server Backup/eventing nativo; extras según escenario y licencia.",
+      "recursos_y_costes": "Evaluación Server 2025 180 días para aprendizaje conforme a términos; hardware/energía y disco no presupuestados, no afirmar coste cero integral.",
+      "prerrequisitos": [
+        "WAD-20"
+      ],
+      "criterios_aprobacion": "Resultado positivo y negativo documentados + evidencia y rollback + explicación de límites.",
+      "fuentes_ids": [
+        "D02",
+        "D03",
+        "D04",
+        "D24",
+        "D25"
+      ]
+    },
+    {
+      "id": "EXT-03",
+      "tipo": "avanzado_optativo",
+      "nombre": "Recuperación separada de AD CS",
+      "etapas": [
+        "WAD-16",
+        "WAD-20"
+      ],
+      "horas_estimadas": {
+        "min": 5,
+        "max": 9
+      },
+      "estado": "diseñado_no_ejecutado",
+      "validacion_empirica": false,
+      "sistemas_y_topologia": "CA01 VM desechable + cliente",
+      "preparacion": "Backup cifrado de BD y clave privada PFX, configuración capturada.",
+      "tarea": "Restaurar CA en clon aislado y verificar emisión, cadena y revocación.",
+      "prueba_positiva": "Mismo emisor de prueba; CRL y AIA válidas.",
+      "prueba_negativa": "Sin clave privada correcta, BD sola no recupera identidad de CA.",
+      "evidencias": "Hashes, configuración, catálogo de plantillas, prueba revocación.",
+      "limites_seguridad": "Custodia estricta del PFX de prueba; no adjuntar al informe.",
+      "limpieza_y_restauracion": "Eliminar PFX/VM laboratorio de forma segura.",
+      "herramientas": "Windows/PowerShell/RSAT/Windows Server Backup/eventing nativo; extras según escenario y licencia.",
+      "recursos_y_costes": "Evaluación Server 2025 180 días para aprendizaje conforme a términos; hardware/energía y disco no presupuestados, no afirmar coste cero integral.",
+      "prerrequisitos": [
+        "WAD-16",
+        "WAD-20"
+      ],
+      "criterios_aprobacion": "Resultado positivo y negativo documentados + evidencia y rollback + explicación de límites.",
+      "fuentes_ids": [
+        "D16",
+        "D17",
+        "D18"
+      ]
+    },
+    {
+      "id": "EXT-04",
+      "tipo": "avanzado_optativo",
+      "nombre": "Trusts y recuperación de dominio multidominio",
+      "etapas": [
+        "WAD-14",
+        "WAD-20"
+      ],
+      "horas_estimadas": {
+        "min": 5,
+        "max": 9
+      },
+      "estado": "diseñado_no_ejecutado",
+      "validacion_empirica": false,
+      "sistemas_y_topologia": "Dos dominios sintéticos; diagrama como opción sin VM",
+      "preparacion": "Matriz roles, vínculos, GC y DNS.",
+      "tarea": "Diseñar aislamiento y restauración de un dominio sin comprometer dependencias del otro.",
+      "prueba_positiva": "Runbook identifica GC, referencias y secuencia de trusts.",
+      "prueba_negativa": "No equipara restaurar dominio a restaurar bosque completo.",
+      "evidencias": "Grafo antes/después y lista de riesgos de referencias cruzadas.",
+      "limites_seguridad": "No ejecutar comandos de trust sobre terceros.",
+      "limpieza_y_restauracion": "Borrar configuración de lab independiente.",
+      "herramientas": "Windows/PowerShell/RSAT/Windows Server Backup/eventing nativo; extras según escenario y licencia.",
+      "recursos_y_costes": "Evaluación Server 2025 180 días para aprendizaje conforme a términos; hardware/energía y disco no presupuestados, no afirmar coste cero integral.",
+      "prerrequisitos": [
+        "WAD-14",
+        "WAD-20"
+      ],
+      "criterios_aprobacion": "Resultado positivo y negativo documentados + evidencia y rollback + explicación de límites.",
+      "fuentes_ids": [
+        "D33",
+        "D25"
+      ]
+    }
+  ],
+  "laboratorios_centrales": 20,
+  "laboratorios_extension": 4,
+  "niveles_progreso": [
+    {
+      "id": "G0",
+      "nombre": "Lectura",
+      "criterio": "Material leído, no implica competencia; sin desbloqueo práctico."
+    },
+    {
+      "id": "G1",
+      "nombre": "Finalización",
+      "criterio": "Tarea entregada y evidencias mínimas presentes."
+    },
+    {
+      "id": "G2",
+      "nombre": "Evaluación aprobada",
+      "criterio": "Rúbrica >= 80/100 y todos los controles críticos conformes."
+    },
+    {
+      "id": "G3",
+      "nombre": "Dominio",
+      "criterio": "Resuelve caso nuevo, contraprueba, comunica incertidumbre y repite sin guion."
+    }
+  ],
+  "evaluacion": {
+    "maximo_puntos": 100,
+    "criterios": [
+      {
+        "id": "R1",
+        "nombre": "Modelo y causa raíz",
+        "puntos": 20
+      },
+      {
+        "id": "R2",
+        "nombre": "Corrección técnica y funcionamiento",
+        "puntos": 25
+      },
+      {
+        "id": "R3",
+        "nombre": "Evidencia, procedencia y falsación",
+        "puntos": 20
+      },
+      {
+        "id": "R4",
+        "nombre": "Seguridad, ROE y no divulgación de secretos",
+        "puntos": 15
+      },
+      {
+        "id": "R5",
+        "nombre": "Reversión/recuperación y continuidad",
+        "puntos": 15
+      },
+      {
+        "id": "R6",
+        "nombre": "Comunicación operativa y conclusiones",
+        "puntos": 5
+      }
+    ],
+    "aprobacion_minima_propuesta": 80,
+    "fallos_criticos": [
+      "fuera de alcance ROE",
+      "secreto real en evidencia",
+      "cambio destructivo sin permiso",
+      "falta restauración exigida",
+      "inferir impacto sin prueba"
+    ],
+    "dominio_exige": "Nuevo caso, hipótesis alternativa, evidencia y regresión."
+  },
+  "diagnostico": [
+    {
+      "id": "DX01",
+      "tema": "Inventario Windows",
+      "etapa": "WAD-01",
+      "demostracion": "Identificar OS, arranque, roles y riesgos sin privilegios.",
+      "escala": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "minimo_para_exencion_propuesta": 2
+    },
+    {
+      "id": "DX02",
+      "tema": "Autorización local",
+      "etapa": "WAD-03",
+      "demostracion": "Resolver permiso efectivo con grupo/denegación sin lanzar ataque.",
+      "escala": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "minimo_para_exencion_propuesta": 2
+    },
+    {
+      "id": "DX03",
+      "tema": "PowerShell",
+      "etapa": "WAD-05",
+      "demostracion": "Crear consulta idempotente y evidencias de errores.",
+      "escala": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "minimo_para_exencion_propuesta": 2
+    },
+    {
+      "id": "DX04",
+      "tema": "AD DNS/DC Locator",
+      "etapa": "WAD-09",
+      "demostracion": "Localizar motivo de join fallido con DNS equivocado.",
+      "escala": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "minimo_para_exencion_propuesta": 2
+    },
+    {
+      "id": "DX05",
+      "tema": "Kerberos/GPO",
+      "etapa": "WAD-11",
+      "demostracion": "Distinguir SPN, TGS y resultado de GPO con datos sintéticos.",
+      "escala": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "minimo_para_exencion_propuesta": 2
+    },
+    {
+      "id": "DX06",
+      "tema": "Replicación",
+      "etapa": "WAD-13",
+      "demostracion": "Interpretar repadmin y distinguir latencia de inconsistencia.",
+      "escala": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "minimo_para_exencion_propuesta": 2
+    },
+    {
+      "id": "DX07",
+      "tema": "Tier0/PKI",
+      "etapa": "WAD-15",
+      "demostracion": "Identificar vía de control a CA/DC sin confundir exposición con compromiso.",
+      "escala": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "minimo_para_exencion_propuesta": 2
+    },
+    {
+      "id": "DX08",
+      "tema": "Recovery decision",
+      "etapa": "WAD-18",
+      "demostracion": "Elegir RPO/RTO y estrategia por corrupción vs borrado.",
+      "escala": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "minimo_para_exencion_propuesta": 2
+    },
+    {
+      "id": "DX09",
+      "tema": "ROE Red Team",
+      "etapa": "WAD-21",
+      "demostracion": "Delimitar scope y elevar un hallazgo sin secretos.",
+      "escala": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "minimo_para_exencion_propuesta": 2
+    },
+    {
+      "id": "DX10",
+      "tema": "SOC probatorio",
+      "etapa": "WAD-24",
+      "demostracion": "Interpretar 4769/5136 con auditoría y límites.",
+      "escala": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "minimo_para_exencion_propuesta": 2
+    },
+    {
+      "id": "DX11",
+      "tema": "Preservación",
+      "etapa": "WAD-26",
+      "demostracion": "Proponer cadena de custodia y hueco telemetría.",
+      "escala": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "minimo_para_exencion_propuesta": 2
+    },
+    {
+      "id": "DX12",
+      "tema": "Caso integral",
+      "etapa": "WAD-28",
+      "demostracion": "Defender continuidad y validación remediación-restauración.",
+      "escala": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "minimo_para_exencion_propuesta": 2
+    }
+  ],
+  "integraciones": [
+    {
+      "mundo": "Redes",
+      "etapas": [
+        "WAD-06",
+        "WAD-09",
+        "WAD-13",
+        "WAD-20"
+      ],
+      "concepto": "DNS, redes aisladas, conectividad y diagnóstico",
+      "motivo": "Reusar prerrequisitos de red y respetar alcance Windows",
+      "id_leccion_destino": null,
+      "verificado": false
+    },
+    {
+      "mundo": "Linux",
+      "etapas": [
+        "WAD-05",
+        "WAD-06",
+        "WAD-21"
+      ],
+      "concepto": "Administración y telemetría comparada, herramientas cliente",
+      "motivo": "Solo contrastar plataforma origen; no duplicar administración Linux",
+      "id_leccion_destino": null,
+      "verificado": false
+    },
+    {
+      "mundo": "Microsoft Sentinel + Defender XDR",
+      "etapas": [
+        "WAD-24",
+        "WAD-25",
+        "WAD-26",
+        "WAD-27"
+      ],
+      "concepto": "Eventos y condiciones de origen Windows/AD",
+      "motivo": "SIEM fuera de alcance WAD; reusar curso existente",
+      "id_leccion_destino": null,
+      "verificado": false
+    },
+    {
+      "mundo": "Splunk SOC",
+      "etapas": [
+        "WAD-24",
+        "WAD-25",
+        "WAD-26"
+      ],
+      "concepto": "Procedencia y calidad de eventos, timestamps",
+      "motivo": "No crear lecciones SPL",
+      "id_leccion_destino": null,
+      "verificado": false
+    },
+    {
+      "mundo": "Simulador SOC",
+      "etapas": [
+        "WAD-17",
+        "WAD-27",
+        "WAD-28"
+      ],
+      "concepto": "Fallo sembrado, evento e investigación",
+      "motivo": "Practicar decisión sin modificar simulador existente",
+      "id_leccion_destino": null,
+      "verificado": false
+    },
+    {
+      "mundo": "Microsoft / Entra ID",
+      "etapas": [
+        "WAD-08",
+        "WAD-15"
+      ],
+      "concepto": "Diferencia AD DS/Entra ID y modelos de identidad",
+      "motivo": "Evitar equivalencia incorrecta y duplicado",
+      "id_leccion_destino": null,
+      "verificado": false
+    }
+  ],
+  "recuperacion": {
+    "modelos": [
+      "restauracion_archivo_host",
+      "recuperacion_objeto_AD",
+      "restauracion_DC_no_autoritativa_o_reemplazo",
+      "sincronizacion_autoritativa_SYSVOL_especifica",
+      "forest_recovery_aislado",
+      "continuidad_AD_CS_y_PKI"
+    ],
+    "supuestos_clave": [
+      "AD Recycle Bin activada previamente, irreversible",
+      "VM-GenerationID debe demostrarse; no sustituye backup",
+      "RTO/RPO son objetivos hasta ensayar",
+      "recuperación AD no equivale a erradicar intrusión",
+      "backup confiable distinto de backup más reciente"
+    ],
+    "comandos_solo_documentados": [
+      "wbadmin start systemstatebackup",
+      "wbadmin start systemstaterecovery",
+      "repadmin /replsummary",
+      "dcdiag",
+      "Restore-ADObject",
+      "certutil -backupdb",
+      "certutil -backupkey"
+    ],
+    "acciones_de_alto_riesgo_no_ejecutadas": [
+      "seize FSMO",
+      "reset krbtgt",
+      "restore DC",
+      "autoridad SYSVOL DFSR",
+      "metadata cleanup",
+      "forest recovery",
+      "exportación/importación clave CA"
+    ],
+    "fuentes_ids": [
+      "D01",
+      "D02",
+      "D03",
+      "D05",
+      "D06",
+      "D07",
+      "D12",
+      "D13",
+      "D16",
+      "D24"
+    ]
+  },
+  "perfiles_laboratorio_estimados": [
+    {
+      "perfil": "ligero",
+      "ram_vms_gib": {
+        "min": 6,
+        "max": 9
+      },
+      "huespedes": "Windows11+1 DC",
+      "indicado_para": "Windows/AD basico"
+    },
+    {
+      "perfil": "estandar",
+      "ram_vms_gib": {
+        "min": 9,
+        "max": 13
+      },
+      "huespedes": "Windows11+2 DC",
+      "indicado_para": "replicacion/restauracion"
+    },
+    {
+      "perfil": "ampliado",
+      "ram_vms_gib": {
+        "min": 14,
+        "max": 22
+      },
+      "huespedes": "Windows11+2DC+CA+colector opcional",
+      "indicado_para": "PKI/Purple"
+    }
+  ],
+  "restricciones_de_costes": [
+    "Prueba Windows Server 2025 de 180 días sujeta a condiciones oficiales",
+    "Cliente Windows y CAL según entorno requieren verificación",
+    "Coste electricidad/hardware/almacenamiento no medido",
+    "No afirmar compatibilidad KVM VMGenID sin verificar configuración"
+  ],
+  "horas_estimadas_etapas": {
+    "min": 164,
+    "max": 279
+  },
+  "interpretacion_de_horas": "Las horas estimadas por etapa incluyen estudio y practica; las horas de laboratorios son un desglose orientativo superpuesto, no deben sumarse al total de etapas.",
+  "horas_estimadas_laboratorios_centrales": {
+    "min": 74,
+    "max": 120
+  },
+  "horas_estimadas_extensiones": {
+    "min": 25,
+    "max": 45
+  },
+  "fuentes": [
+    {
+      "id": "D01",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Active Directory forest recovery – devise a recovery plan",
+      "url_directa": "https://learn.microsoft.com/windows-server/identity/ad-ds/manage/ad-forest-recovery-guide",
+      "fecha_editorial_verificada": "2025-05-12",
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "Plan adaptado al entorno, topología, pruebas periódicas; ensayos al menos una vez al año."
+    },
+    {
+      "id": "D02",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Active Directory forest recovery – steps to restore the forest",
+      "url_directa": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-steps-for-restoring-the-forest",
+      "fecha_editorial_verificada": null,
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "Identificación, decisión, recuperación aislada, redespliegue y limpieza; último recurso."
+    },
+    {
+      "id": "D03",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Active Directory forest recovery – determine how to recover",
+      "url_directa": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-determine-how-to-recover",
+      "fecha_editorial_verificada": null,
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "Selección de copia confiable, pérdida de cambios posteriores, contraseñas DSRM y plan de aislamiento."
+    },
+    {
+      "id": "D04",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Active Directory forest recovery – perform the initial recovery",
+      "url_directa": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/ad-forest-recovery-perform-initial-recovery",
+      "fecha_editorial_verificada": null,
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "Restauración inicial de DC escribible por dominio, FSMO, metadatos, RID, DNS y verificación."
+    },
+    {
+      "id": "D05",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Active Directory forest recovery – procedures",
+      "url_directa": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-procedures",
+      "fecha_editorial_verificada": "2025-07-11",
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "Índice operativo de procedimientos de recuperación: restauración, SYSVOL, metadatos, claves y trusts."
+    },
+    {
+      "id": "D06",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Back up the system state data",
+      "url_directa": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-backing-up-system-state",
+      "fecha_editorial_verificada": null,
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "Copia del estado del sistema de un DC, herramientas Windows Server Backup y wbadmin."
+    },
+    {
+      "id": "D07",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Back up a full server",
+      "url_directa": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-backing-up-a-full-server",
+      "fecha_editorial_verificada": null,
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "Uso de Windows Server Backup y recomendación de bare-metal recovery ante desastres."
+    },
+    {
+      "id": "D08",
+      "organizacion": "Microsoft Learn",
+      "titulo": "wbadmin start systemstatebackup",
+      "url_directa": "https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/wbadmin-start-systemstatebackup",
+      "fecha_editorial_verificada": "2023-02-03",
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "Sintaxis y permisos para iniciar copia de estado del sistema."
+    },
+    {
+      "id": "D09",
+      "organizacion": "Microsoft Learn",
+      "titulo": "wbadmin start systemstaterecovery",
+      "url_directa": "https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/wbadmin-start-systemstaterecovery",
+      "fecha_editorial_verificada": null,
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "Restauración de estado del sistema con credenciales y opciones apropiadas."
+    },
+    {
+      "id": "D10",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Perform a nonauthoritative restore of AD DS",
+      "url_directa": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-perform-nonauthoritative-restore",
+      "fecha_editorial_verificada": null,
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "Restauración no autoritativa de AD DS; procedimiento condicionado al escenario."
+    },
+    {
+      "id": "D11",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Authoritative synchronization of DFSR-replicated SYSVOL",
+      "url_directa": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-authoritative-recovery-sysvol",
+      "fecha_editorial_verificada": null,
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "Diferencia entre SYSVOL replicado por DFSR y restauración de directorio; mecanismos dependientes del tipo de restore."
+    },
+    {
+      "id": "D12",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Enable and use Active Directory Recycle Bin",
+      "url_directa": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/get-started/adac/active-directory-recycle-bin",
+      "fecha_editorial_verificada": "2025-06-06",
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "Papelera deshabilitada inicialmente; activación irreversible; solo permite recuperar objetos borrados tras habilitarla."
+    },
+    {
+      "id": "D13",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Safely virtualizing Active Directory Domain Services",
+      "url_directa": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/introduction-to-active-directory-domain-services-ad-ds-virtualization-level-100",
+      "fecha_editorial_verificada": null,
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "VM-GenerationID y límites de rollback de instantáneas; snapshots no sustituyen copias AD compatibles."
+    },
+    {
+      "id": "D14",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Virtualized Domain Controller Architecture",
+      "url_directa": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/get-started/virtual-dc/virtualized-domain-controller-architecture",
+      "fecha_editorial_verificada": null,
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "Invocación ID, RID pool y protección al restaurar desde hipervisor compatible."
+    },
+    {
+      "id": "D15",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Restore a virtual domain controller",
+      "url_directa": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/virtual-dc/restore-virtualized-domain-controller",
+      "fecha_editorial_verificada": null,
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "Restauración soportada, VSS y comprobaciones para DC virtualizados."
+    },
+    {
+      "id": "D16",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Migrate a Certification Authority in Windows Server",
+      "url_directa": "https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/migrate-certification-authority",
+      "fecha_editorial_verificada": null,
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "Respaldo y restauración de base de datos, clave privada, configuración de CA y plantillas."
+    },
+    {
+      "id": "D17",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Backing Up and Restoring the Certificate Services Private Key",
+      "url_directa": "https://learn.microsoft.com/en-us/windows/win32/seccrypto/backing-up-and-restoring-the-certificate-services-private-key",
+      "fecha_editorial_verificada": null,
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "La base de datos CA no contiene la clave privada; PKCS#12/PFX requiere custodia estricta."
+    },
+    {
+      "id": "D18",
+      "organizacion": "Microsoft Learn",
+      "titulo": "certutil command reference",
+      "url_directa": "https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/certutil",
+      "fecha_editorial_verificada": null,
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "Operaciones documentadas backupdb, backupkey, restoredb y restorekey."
+    },
+    {
+      "id": "D19",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Windows LAPS architecture",
+      "url_directa": "https://learn.microsoft.com/windows-server/identity/laps/laps-concepts",
+      "fecha_editorial_verificada": null,
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "Respaldo DSRM mediante Windows LAPS en AD con cifrado y limitaciones."
+    },
+    {
+      "id": "D20",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Get started with Windows LAPS and Windows Server Active Directory",
+      "url_directa": "https://learn.microsoft.com/en-us/windows-server/identity/laps/laps-scenarios-windows-server-active-directory",
+      "fecha_editorial_verificada": null,
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "Requisitos funcionales y acceso a DSRM durante desastre: no asumir DC en línea."
+    },
+    {
+      "id": "D21",
+      "organizacion": "Microsoft Learn",
+      "titulo": "AD DS Troubleshooting",
+      "url_directa": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/ad-ds-troubleshooting",
+      "fecha_editorial_verificada": "2025-05-12",
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "dcdiag, repadmin, eventos Directory Service y rutas de troubleshooting."
+    },
+    {
+      "id": "D22",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Troubleshooting Active Directory replication",
+      "url_directa": "https://learn.microsoft.com/en-us/troubleshoot/windows-server/active-directory/troubleshoot-adreplication-guidance",
+      "fecha_editorial_verificada": null,
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "Errores de replicación por topología, DNS, autorización y almacenamiento; revisión diaria."
+    },
+    {
+      "id": "D23",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Lingering objects in an AD DS forest",
+      "url_directa": "https://learn.microsoft.com/en-us/troubleshoot/windows-server/active-directory/information-lingering-objects",
+      "fecha_editorial_verificada": null,
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "Tombstone lifetime, borrados no replicados y lingering objects."
+    },
+    {
+      "id": "D24",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Reset the krbtgt password",
+      "url_directa": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-reset-the-krbtgt-password",
+      "fecha_editorial_verificada": "2025-05-22",
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "Restablecer dos veces, separación al menos 10 horas por defecto o mayor si la política de tickets lo exige."
+    },
+    {
+      "id": "D25",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Active Directory forest recovery – cleanup",
+      "url_directa": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-cleanup",
+      "fecha_editorial_verificada": "2025-05-12",
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "Ajustar DNS, roles FSMO, recreación de objetos y trusts tras recuperar."
+    },
+    {
+      "id": "D26",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Clean metadata of removed writable DCs",
+      "url_directa": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-cleaning-metadata-of-removed-dcs",
+      "fecha_editorial_verificada": "2024-11-01",
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "Limpieza de metadatos de DC irrecuperables; acción irreversible y condicionada."
+    },
+    {
+      "id": "D27",
+      "organizacion": "CISA",
+      "titulo": "StopRansomware Guide",
+      "url_directa": "https://www.cisa.gov/stopransomware/ransomware-guide",
+      "fecha_editorial_verificada": null,
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "Copias offline, cifradas, pruebas regulares de disponibilidad e integridad."
+    },
+    {
+      "id": "D28",
+      "organizacion": "Microsoft Evaluation Center",
+      "titulo": "Windows Server 2025 Evaluation",
+      "url_directa": "https://www.microsoft.com/en-us/evalcenter/download-windows-server-2025",
+      "fecha_editorial_verificada": null,
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "Evaluación de Windows Server 2025 disponible por 180 días, sujeta a condiciones."
+    },
+    {
+      "id": "D29",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Hardware Requirements for Windows Server",
+      "url_directa": "https://learn.microsoft.com/en-us/windows-server/get-started/hardware-requirements?pivots=windows-server-2025",
+      "fecha_editorial_verificada": null,
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "Mínimos del sistema no equivalen al dimensionamiento práctico para laboratorios multiserver."
+    },
+    {
+      "id": "D30",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Active Directory forest recovery – identify the problem",
+      "url_directa": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-identify-the-problem",
+      "fecha_editorial_verificada": null,
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "Fallos de bosque, brechas y necesidad de investigar causa antes de restauración."
+    },
+    {
+      "id": "D31",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Active Directory forest recovery – prerequisites",
+      "url_directa": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-prerequisites",
+      "fecha_editorial_verificada": null,
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "Requisitos previos para forest recovery y salvedades para Server Core."
+    },
+    {
+      "id": "D32",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Active Directory forest recovery – virtualization",
+      "url_directa": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-virtualization",
+      "fecha_editorial_verificada": null,
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "Clonación posterior a recuperación, con requisitos y controles concretos."
+    },
+    {
+      "id": "D33",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Recover single domain in multidomain forest",
+      "url_directa": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-recover-single-domain-multidomain-forest",
+      "fecha_editorial_verificada": null,
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "Recuperación de un dominio en bosque multidominio y complejidades de catálogo global."
+    },
+    {
+      "id": "D34",
+      "organizacion": "Microsoft Learn",
+      "titulo": "AD forest recovery – full server recovery",
+      "url_directa": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-perform-full-server-recovery",
+      "fecha_editorial_verificada": null,
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "Restauración BMR frente a System State; limitaciones operativas."
+    },
+    {
+      "id": "D35",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Advanced AD DS management with ADAC",
+      "url_directa": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/get-started/adac/active-directory-administrative-center",
+      "fecha_editorial_verificada": null,
+      "fecha_consulta": "2026-10-18",
+      "confianza_afirmacion": "alta",
+      "soporta": "Papelera de AD, objetos borrados y límites de recuperación."
+    }
+  ],
+  "supuestos_y_limitaciones": [
+    "Propuestas de etapa/lección no son contenidos escritos completos",
+    "Sin prueba empírica de restauración ni de configuración en Windows 2025",
+    "Sin presupuesto real de hardware/hypervisor/clientes",
+    "Sin destino verificado en los mundos externos",
+    "Sin 155 apuntes personales; no forman parte del prompt correcto"
+  ],
+  "archivo_markdown": "Windows_AD_Tanda_4_Investigacion.md",
+  "sha256_markdown": "d42fbc140009de5654e1a4b021e64957bba1d461d09c6f4a3a8bc18a10b29b18"
+}

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-10-L03",
+  "title": "Qué NO inferir de un único indicio",
+  "sourceHash": "392d2f43b7fe16166dcb8d1ac79ffdcca52eda74138bba37fa93c417480519c4",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-10-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nEvitar sacar conclusiones de un único indicio, reconociendo explicaciones alternativas y correlacionando evidencias antes de atribuir una intención.\n\nPrerrequisitos: `LNX-10-L02` (Paths, usuarios y superficies a inventariar).\n\n## 2. Comprende el mecanismo\n\nUna superficie o un registro aislado no bastan para concluir compromiso. Los indicios que suelen citarse —una unidad habilitada, un `FragmentPath` bajo `/etc`, un `ExecStart` con shell, un nombre que imita a un servicio legítimo, un `mtime` reciente, logs ausentes— tienen explicaciones alternativas frecuentes. El trabajo del analista es **correlacionar**, no atribuir.\n\n`systemctl enable` en los registros **no implica compromiso** ni demuestra que el servicio haya arrancado: habilitar prepara un enlace de arranque, no ejecuta. Que el `FragmentPath` apunte a `/etc/...` indica **personalización en el sistema**, no hostilidad: administradores, paquetes y emulaciones de laboratorio escriben ahí.\n\nUn `ExecStart=/bin/sh -c ...` puede ser un patrón de mantenimiento discutible; por sí solo no prueba un *payload* malicioso. Un nombre que imita a un servicio conocido es una **anomalía que exige comparación**, no una atribución automática. Un `mtime` reciente puede venir de parcheo, despliegue, restauración o manipulación: hay que correlacionar y considerar el reloj.\n\nLa **ausencia de registros** tampoco concluye nada por sí sola: retención limitada, recolección incompleta, un journal volátil o una evasión son hipótesis distintas. «No hay logs» describe una carencia de visibilidad, no un hecho del sistema.\n\nConviene recordar dos trampas de estado: un servicio `active` no equivale a aplicación lista, y un servicio deshabilitado no equivale a «nunca ejecuta» si un socket o un timer lo activan. Los estados describen lo que describen; no hay que extrapolarlos.\n\nEl límite transversal: un único indicio sostiene una **hipótesis**, no una conclusión. La conclusión razonable acumula evidencias, formula alternativas y declara su cobertura.\n\n### Vocabulario de apoyo\n\n- **Indicio**: dato observado que orienta una hipótesis sin cerrarla.\n- **Correlación**: contraste de varios datos en el tiempo para reforzar o descartar una hipótesis.\n- **Línea base**: estado de referencia contra el que se compara lo observado.\n- **Explicación alternativa**: causa legítima que puede producir el mismo indicio.\n- **Atribución**: afirmación de causa o intención, que exige más que un indicio.\n- **Cobertura de evidencias**: qué se pudo observar y qué quedó fuera.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-10-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un analista encuentra `enable` de una unidad en los registros y un archivo de unidad en `/etc`; concluye que el host está comprometido.\n\nNinguno de los dos indicios prueba compromiso por sí solo. El `enable` indica un enlace de arranque previsto y no que la unidad se haya ejecutado; el archivo en `/etc` indica personalización administrativa —o de un paquete, o de una emulación de laboratorio—, no hostilidad. Ambos son **anomalías a comparar** contra la línea base.\n\nLa conclusión razonable sería: «hay cambios que no aparecen en la línea base; requieren correlación con propiedad, *drop-ins*, ticket de cambio, hash, contexto del proceso y ventana temporal». El límite: sin esa correlación, puedes describir el cambio, pero no afirmar su intención ni su efecto.\n\n"
+    },
+    {
+      "id": "LNX-10-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Correlacionar propiedad, *drop-ins*, tiempo y contexto antes de atribuir una intención.\n- Red Team autorizado: Formular alternativas legítimas antes de describir un hallazgo como anomalía.\n- Evidencia de la etapa: Conjunto de datos correlacionados y lista de explicaciones alternativas consideradas.\n- Criterio de dominio: Rechaza conclusiones basadas en un solo indicio y declara la cobertura de la evidencia.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB10](../../05_RECURSOS/LABORATORIOS/LNX-LAB10.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F26**: [MITRE ATT&CK: T1543.002 systemd service](https://attack.mitre.org/techniques/T1543/002/). Modelo de abuso de servicios que exige contexto, no atribución por un solo indicio.\n- **F27**: [MITRE ATT&CK: T1053.006 systemd timers](https://attack.mitre.org/techniques/T1053/006/). Tareas periódicas que pueden ser legítimas o anómalas según el conjunto.\n- **F20**: [systemd: journalctl](https://www.freedesktop.org/software/systemd/man/257/journalctl.html). Consulta de registros y de sus límites de retención y cobertura.\n- **F39**: [systemd: transient units](https://www.freedesktop.org/software/systemd/man/257/systemd-run.html). Unidades efímeras que pueden no dejar archivo persistente que comparar.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-10-L03-P01",
+    "prompt": "Encuentras un `enable` en los registros y una unidad en `/etc`. Explica por qué ninguno de esos indicios, por sí solo, prueba compromiso, qué correlacionarías y cuál es el límite de la conclusión.",
+    "markdown": "## 4. Práctica individual\n\nEncuentras un `enable` en los registros y una unidad en `/etc`. Explica por qué ninguno de esos indicios, por sí solo, prueba compromiso, qué correlacionarías y cuál es el límite de la conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber investigado un incidente real ni haber modificado unidades.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-10-L03-Q01",
+      "prompt": "Un servicio muestra su `FragmentPath` bajo `/etc/...`. ¿Qué indica esto?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que el binario fue descargado de un repositorio no firmado"
+        },
+        {
+          "id": "B",
+          "text": "Que la unidad fue personalizada en el sistema y no prueba por sí sola hostilidad"
+        },
+        {
+          "id": "C",
+          "text": "Que el servicio nunca arrancará por estar fuera del paquete"
+        },
+        {
+          "id": "D",
+          "text": "Que el paquete del servicio fue alterado de forma maliciosa"
+        }
+      ]
+    },
+    {
+      "id": "LNX-10-L03-Q02",
+      "prompt": "No hay registros de una unidad en el journal. ¿Qué conclusión es más defendible?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Puede deberse a retención, recolección incompleta, journal volátil o evasión, entre otras hipótesis"
+        },
+        {
+          "id": "B",
+          "text": "Demuestra que no ocurrió ninguna ejecución"
+        },
+        {
+          "id": "C",
+          "text": "Confirma que alguien borró todo rastro"
+        },
+        {
+          "id": "D",
+          "text": "Indica que el servicio está enmascarado"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB10](../../05_RECURSOS/LABORATORIOS/LNX-LAB10.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F26**: [MITRE ATT&CK: T1543.002 systemd service](https://attack.mitre.org/techniques/T1543/002/). Modelo de abuso de servicios que exige contexto, no atribución por un solo indicio.\n- **F27**: [MITRE ATT&CK: T1053.006 systemd timers](https://attack.mitre.org/techniques/T1053/006/). Tareas periódicas que pueden ser legítimas o anómalas según el conjunto.\n- **F20**: [systemd: journalctl](https://www.freedesktop.org/software/systemd/man/257/journalctl.html). Consulta de registros y de sus límites de retención y cobertura.\n- **F39**: [systemd: transient units](https://www.freedesktop.org/software/systemd/man/257/systemd-run.html). Unidades efímeras que pueden no dejar archivo persistente que comparar.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "c937096e9d6425b52b607a94"
+}

@@ -1,0 +1,126 @@
+# LNX-LAB40 — Seguridad de contenedores: inspección
+
+Guía de laboratorio **diseñada**, no ejecutada ni validada. Ejecútala solo sobre un host propio o un laboratorio aislado y autorizado. Todo el material es **sintético**: no reproduce una captura, una ejecución real ni datos personales.
+
+## Objetivo
+
+Inspeccionar de forma **pasiva** la configuración de seguridad de un contenedor **propio y preaprobado** —usuario, privilegios, capabilities, seccomp/LSM, montajes, red, límites y namespaces— y compararla con el modelo rootless y con Kubernetes Pod Security Standards `Restricted`, produciendo una matriz riesgo/control/prueba/retest y declarando qué se observó y qué es simulación documental (base documental: F128, F129, F130, F131, F132, F133, F134, F139).
+
+## Competencia
+
+Auditoría de contenedores sin explotar: leer la configuración efectiva, distinguir daemon rootful de rootless, interpretar namespaces y cgroups como aislamiento parcial y no confundir una imagen conocida con un contenedor seguro.
+
+## Nivel y prerrequisitos
+
+Intermedio. Conviene haber recorrido las etapas `LNX-30` y `LNX-32`. Requiere `docker` o `podman` **solo si ya está instalado** en la VM, `lsns`, lectura de `/sys/fs/cgroup` y, opcionalmente, `jq`. Si no hay runtime, bastan un editor de texto y los manifiestos sintéticos. No se requieren privilegios administrativos.
+
+## Material sintético
+
+- VM de laboratorio aislada con nombre de ejemplo `lab-lnx-40`, cuenta sin privilegios `analista` y sin datos personales.
+- Las direcciones que aparezcan, si aparecen, pertenecen **solo** a rangos de documentación (`192.0.2.0/24`, `198.51.100.0/24`, `203.0.113.0/24` y `2001:db8::/32`). No se usan IPs reales. Para loopback se escribe literalmente `localhost`.
+- Contenedor propio de laboratorio llamado `lab40-demo`, creado **antes** del ejercicio y aprobado en el alcance. Si no existe, **no se descarga ninguna imagen ni se crea uno nuevo**: se usa el camino documental con dos manifiestos YAML ficticios.
+- Manifiestos sintéticos `lab40-inseguro.yaml` y `lab40-endurecido.yaml`, nunca aplicados a un clúster ni a un runtime.
+- Directorio de trabajo aislado: `"$HOME/linux-lab/LAB40"` con subdirectorios `config`, `evidencia` y `registro`.
+
+## Procedimiento por pasos
+
+### Preparación
+
+1. Crea el árbol: `mkdir -p "$HOME/linux-lab/LAB40"/{config,evidencia,registro}`.
+2. Registra fecha **UTC**, `boot_id`, kernel, tipo de cgroup e identidad: `date -u -Is; cat /proc/sys/kernel/random/boot_id; uname -r; stat -fc %T /sys/fs/cgroup; id` → `"$HOME/linux-lab/LAB40/registro/lab40-entorno.txt"`.
+3. Detecta el runtime y su modo, sin instalar ni iniciar nada: `command -v docker; command -v podman; docker version --format '{{.Server.Version}}' 2>/dev/null || true; docker info --format '{{json .SecurityOptions}}' 2>/dev/null || true; docker info --format '{{.CgroupVersion}} {{.CgroupDriver}}' 2>/dev/null || true; docker context ls 2>/dev/null || true` → `"$HOME/linux-lab/LAB40/registro/lab40-runtime.txt"`.
+4. Declara el **alcance real**: camino A si existe el contenedor propio `lab40-demo` y el runtime responde; camino B si no hay runtime o no existe el contenedor. En el camino B no se ejecuta ninguna acción sobre contenedores y la comparación es **documental** → `"$HOME/linux-lab/LAB40/registro/lab40-alcance.md"`.
+5. Si eliges el camino A, confirma que el contenedor es tuyo y está en el alcance: `docker ps -a --filter 'name=lab40-demo' --format '{{.Names}} {{.Image}} {{.Status}}'`. Si no aparece, **detente** y pasa al camino B. No descargues imágenes de orígenes no verificados.
+
+### Tarea (inspección, comparación y contrapruebas)
+
+6. Con el contenedor propio, captura los campos de seguridad sin modificarlo: `docker inspect --format 'user={{json .Config.User}} privileged={{json .HostConfig.Privileged}}' lab40-demo; docker inspect --format 'capadd={{json .HostConfig.CapAdd}} capdrop={{json .HostConfig.CapDrop}}' lab40-demo; docker inspect --format 'secopt={{json .HostConfig.SecurityOpt}} readonly={{json .HostConfig.ReadonlyRootfs}}' lab40-demo; docker inspect --format 'mounts={{json .Mounts}}' lab40-demo; docker inspect --format 'net={{json .HostConfig.NetworkMode}} pid={{json .HostConfig.PidMode}} ipc={{json .HostConfig.IpcMode}} userns={{json .HostConfig.UsernsMode}}' lab40-demo; docker inspect --format 'res={{json .HostConfig.Resources}}' lab40-demo` → `"$HOME/linux-lab/LAB40/evidencia/lab40-inspect.txt"`. Interpreta `Config.User` vacío o `0` como UID 0; no lo supongas seguro por ser el valor por defecto.
+7. Si el contenedor está en ejecución, observa namespaces y una **única** muestra de consumo: `pid=$(docker inspect --format '{{.State.Pid}}' lab40-demo); case "$pid" in ''|0) printf 'no ejecutando: namespaces no evaluados\n' ;; *) lsns -p "$pid" 2>&1 || printf 'namespaces no legibles con esta cuenta\n' ;; esac; docker stats --no-stream --no-trunc lab40-demo 2>&1 || true` → `"$HOME/linux-lab/LAB40/evidencia/lab40-namespaces-limites.txt"`. Una muestra no es una prueba de estrés ni de rendimiento.
+8. Interpreta seccomp y LSM: si `SecurityOpt` está vacío, el runtime aplica su perfil por defecto, que **no** equivale a «sin seccomp»; si aparece `seccomp=unconfined` o un perfil LSM permisivo, regístralo como hallazgo. Distingue la configuración **solicitada** de la **efectiva**: `inspect` no demuestra por sí solo qué syscalls se permitieron.
+9. Compara el contenedor con el modelo **rootless** en cuatro puntos: daemon en contexto de usuario frente a daemon rootful; mapeo de UID dentro y fuera del namespace; acceso al socket del daemon; y puertos/volúmenes que requieren privilegios. Si `SecurityOptions` incluye `rootless`, el daemon es rootless; si no aparece, no lo afirmes sin otra evidencia. Escribe la conclusión como «observado», «no determinado» o «no aplica» → `"$HOME/linux-lab/LAB40/registro/lab40-rootless.md"`. Si `falco` existe, registra su versión y si produce eventos de runtime; **no** lo instales ni cambies su configuración.
+10. Compara con Kubernetes Pod Security Standards `Restricted` en una tabla de seis controles: `runAsNonRoot`, `allowPrivilegeEscalation: false`, `seccompProfile: RuntimeDefault`, `capabilities.drop: ["ALL"]`, `readOnlyRootFilesystem: true` y ausencia de privilegios de host. Si no hay clúster, la comparación es **contra el texto del estándar**, no una evaluación de admisión real → `"$HOME/linux-lab/LAB40/registro/lab40-pss.md"`.
+11. Redacta **cuatro diferencias de modelado de privilegios** con evidencia o marca de simulación. Ejemplos válidos: UID efectivo `0` frente a no-root; capabilities añadidas o no eliminadas; seccomp/LSM ausente o permisivo; rootfs escribible, montaje amplio o límites de memoria/CPU/PIDs ausentes. Usa columnas `hallazgo | valor observado o simulado | riesgo potencial | control | prueba | retest | punto ciego`; cada fila debe indicar `observado` o `simulado (manifiesto)` y separar **riesgo potencial** de **explotación confirmada** → `"$HOME/linux-lab/LAB40/evidencia/lab40-matriz.md"`.
+12. Crea dos manifiestos ficticios para las contrapruebas. El inseguro declara `runAsUser: 0`, `allowPrivilegeEscalation: true`, `readOnlyRootFilesystem: false`, `capabilities.add: ["NET_RAW"]` y `seccompProfile.type: Unconfined`; el endurecido declara `runAsNonRoot: true`, `runAsUser: 10001`, `allowPrivilegeEscalation: false`, `readOnlyRootFilesystem: true`, `capabilities.drop: ["ALL"]` y `seccompProfile.type: RuntimeDefault`. Ambos son documentos bajo `config/` y **no se aplican**; guárdalos como `config/lab40-inseguro.yaml` y `config/lab40-endurecido.yaml`. Un ejemplo mínimo de cada uno:
+
+```yaml
+# SINTÉTICO LAB40 — no aplicar
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lab40-inseguro
+spec:
+  containers:
+    - name: demo
+      image: lab40-demo:local
+      securityContext:
+        runAsUser: 0
+        allowPrivilegeEscalation: true
+        readOnlyRootFilesystem: false
+        capabilities:
+          add: ["NET_RAW"]
+        seccompProfile:
+          type: Unconfined
+```
+
+```yaml
+# SINTÉTICO LAB40 — no aplicar
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lab40-endurecido
+spec:
+  containers:
+    - name: demo
+      image: lab40-demo:local
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop: ["ALL"]
+        seccompProfile:
+          type: RuntimeDefault
+```
+
+13. Ejecuta una comprobación **documental** de los dos manifiestos, no un admission controller: para cada archivo, busca `runAsNonRoot: true`, `allowPrivilegeEscalation: false`, `readOnlyRootFilesystem: true`, `type: RuntimeDefault` y `drop: ["ALL"]`. Registra cuántos controles cumple cada uno → `"$HOME/linux-lab/LAB40/registro/lab40-contrapruebas.txt"`. El inseguro debe fallar al menos tres; el endurecido debe cumplir los cinco. Un `grep` no prueba cumplimiento en runtime.
+14. Para cada uno de los cuatro hallazgos, añade **control propuesto**, **prueba**, **retest** y **punto ciego**. Ejemplo: «UID 0 → `runAsNonRoot` + UID funcional → inspeccionar `Config.User` → repetir en el manifiesto endurecido; el UID interno no identifica el UID del host si hay userns».
+
+> **No** montes el socket del daemon, **no** uses el modo privilegiado, **no** intentes un escape y **no** toques el host ni workloads ajenos. Si el contenedor no existe, no lo crees ni descargues una imagen.
+
+### Verificación y limpieza
+
+15. Comprueba que no se descargó ninguna imagen ni se creó un contenedor nuevo durante el ejercicio, y que no se montó el socket del daemon ni una ruta del host. Si el camino A muestra un montaje del socket o del sistema de archivos del host, **no interactúes**: documéntalo como hallazgo y detente.
+16. Verifica que el contenedor inspeccionado no está en modo privilegiado. Si `HostConfig.Privileged` fuera verdadero, no lo uses para probar nada: regístralo y limita el ejercicio a la inspección pasiva.
+17. Revisa que cada fila de la matriz tenga valor observado o marca de simulación, y que ninguna conclusión afirme un escape, una escalada o una explotación que no se realizó.
+18. Confirma las dos contrapruebas: el manifiesto inseguro falla y el endurecido cumple, con la salvedad de que es una revisión documental.
+19. Sella la evidencia: `(cd "$HOME/linux-lab/LAB40" && find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS); (cd "$HOME/linux-lab/LAB40" && sha256sum -c SHA256SUMS)`.
+20. **Limpieza:** si creaste un contenedor propio para esta práctica, detén y elimina **solo** el identificador `lab40-demo`, con nombre explícito y después de capturar la evidencia: `docker stop lab40-demo 2>/dev/null || true; docker rm lab40-demo`. No uses `prune`, no borres contenedores ajenos y no modifiques el daemon. Si no creaste nada, no hay acción que revertir.
+
+## Evidencia a entregar
+
+- La **salida de `inspect`** con usuario, privilegios, capabilities, seccomp/LSM, montajes, red, límites y namespaces (o la declaración de no evaluado).
+- La **comparación rootless** y la tabla frente a PSS `Restricted`.
+- La **matriz de cuatro hallazgos** con riesgo, control, prueba, retest y punto ciego, separando observado de simulado.
+- Las **dos contrapruebas** documentales (inseguro/endurecido) y la explicación de sus límites.
+- **Hash**, fecha UTC y declaración de alcance real o documental.
+
+## Criterios de aceptación
+
+- Inspección (3): campos completos, namespaces y límites observados o declarados como no evaluados, sin mutar el contenedor.
+- Comparación (2): rootless y PSS `Restricted` con al menos cuatro diferencias de privilegios bien fundamentadas.
+- Matriz y contrapruebas (3): cuatro hallazgos con control, prueba y retest; una contraprueba positiva y una negativa, marcadas como documentales.
+- Límites y evidencia (2): distinción observado/simulado, sin operaciones prohibidas, hash y UTC.
+- **Fallo crítico:** montar el socket del daemon, usar el modo privilegiado, intentar un escape, descargar una imagen no verificada, tocar el host o intervenir workloads ajenos. Aquí solo se inspecciona un contenedor propio.
+
+## Autorización y límites
+
+Actividad **pasiva** sobre un contenedor **propio y preaprobado** en una VM desechable, o sobre manifiestos ficticios si no hay runtime. **Prohibido** montar el socket del daemon, usar el modo privilegiado, ejecutar escapes, descargar imágenes de orígenes no verificados, montar rutas del host y modificar workloads ajenos. No se ejecutan pruebas de carga ni de denegación de servicio. La inspección no autoriza a explotar una configuración: el hallazgo se documenta y se remedia en un entorno controlado.
+
+## Limpieza
+
+No hay cambios de host que revertir en el camino de solo lectura. Si creaste el contenedor `lab40-demo` para la práctica, elimínalo por nombre después de conservar la evidencia, sin `prune` y sin tocar otros contenedores. Conserva `evidencia/`, `registro/`, `config/` y `SHA256SUMS`. Los manifiestos ficticios no se aplican ni se envían a un clúster.
+
+## Nota y estado declarado
+
+Este documento es un **diseño por ejecutar**: describe un laboratorio que aún no se ha corrido ni validado, y todo su contenido es sintético. La guía **no acredita** haber ejecutado el laboratorio ni certifica resultados.

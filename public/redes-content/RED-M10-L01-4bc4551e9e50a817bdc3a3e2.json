@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M10-L01",
+  "title": "STP/RSTP/MSTP",
+  "sourceHash": "a0a0bb3687525f0b6e9feaac21e1794e127d447803d076ba995ce014222e6a87",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M10-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nReconocer funciones de STP y distinguir sus variantes.\n\nPrerrequisitos: [RED-M08-L04](../RED-E02/RED-M08-L04.md), [RED-M09-L04](../RED-E02/RED-M09-L04.md).\n\n## 2. Comprende el mecanismo\n\nSTP construye una topología lógica sin bucles bloqueando caminos redundantes. RSTP mejora mecanismos de convergencia y MSTP permite agrupar VLAN en instancias; sus estados y compatibilidades deben interpretarse por variante. Rapid PVST+ es una implementación por VLAN de Cisco, no un nombre genérico de todo RSTP. Un enlace físico redundante puede permanecer sin forwarding para una instancia sin estar averiado. Desactivar STP para recuperar un enlace puede introducir tormentas y duplicación de tramas.\n\n### Vocabulario de apoyo\n\n- **STP, root y BPDU**: Protocolo para evitar bucles L2, puente de referencia y mensajes usados por ese control.\n- **LACP**: Protocolo que negocia qué enlaces pertenecen a una agregación.\n- **Convergencia**: Adaptación del estado de red tras un cambio; la recuperación de servicio también debe medirse.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M10-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Triángulo docente A-B-C-A. Para una instancia, un puerto queda en discarding; el resto conserva conectividad.\n\nEl estado puede ser precisamente la protección contra el bucle. Hace falta contrastar roles y root antes de declarar el puerto defectuoso.\n\n"
+    },
+    {
+      "id": "RED-M10-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Reconocer pérdida/duplicación por convergencia.\n- Red Team autorizado: Ensayar controles solo en switches simulados.\n- Evidencia del módulo: Estados de puerto, cambios y pruebas de recuperación.\n- Criterio del módulo: Restaurar la topología y justificar árbol activo.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L04](../../05_RECURSOS/LABORATORIOS/RED-L04.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **STP**: [Understand Rapid Spanning Tree Protocol](https://www.cisco.com/c/en/us/support/docs/lan-switching/spanning-tree-protocol/24062-146.html). Roles, estados y comparación de convergencia RSTP.\n- **BRIDGE**: [Ethernet Bridging](https://docs.kernel.org/networking/bridge.html). Learning, forwarding, VLAN y controles de bridge; kAPI no se presenta como estable.\n- **BONDING**: [Linux Ethernet Bonding Driver HOWTO](https://docs.kernel.org/networking/bonding.html). Agregación y modos de reparto; verificar soporte por implementación.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M10-L01-P01",
+    "prompt": "VLAN10 y VLAN20 se agrupan en una misma instancia MST. ¿Qué debes coordinar entre switches?",
+    "markdown": "## 4. Práctica individual\n\nVLAN10 y VLAN20 se agrupan en una misma instancia MST. ¿Qué debes coordinar entre switches?\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M10-L01-Q01",
+      "prompt": "¿Qué problema evita STP?",
+      "options": [
+        {
+          "id": "A",
+          "text": "La pérdida de claves TLS"
+        },
+        {
+          "id": "B",
+          "text": "Bucles de capa 2 en la topología de forwarding"
+        },
+        {
+          "id": "C",
+          "text": "Todos los errores de aplicación"
+        },
+        {
+          "id": "D",
+          "text": "La necesidad de routing"
+        }
+      ]
+    },
+    {
+      "id": "RED-M10-L01-Q02",
+      "prompt": "¿Qué puede significar discarding en el triángulo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Fallo físico confirmado"
+        },
+        {
+          "id": "B",
+          "text": "Una sesión SSH activa"
+        },
+        {
+          "id": "C",
+          "text": "Ausencia total de VLAN"
+        },
+        {
+          "id": "D",
+          "text": "Un bloqueo lógico previsto para evitar un bucle"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L04](../../05_RECURSOS/LABORATORIOS/RED-L04.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **STP**: [Understand Rapid Spanning Tree Protocol](https://www.cisco.com/c/en/us/support/docs/lan-switching/spanning-tree-protocol/24062-146.html). Roles, estados y comparación de convergencia RSTP.\n- **BRIDGE**: [Ethernet Bridging](https://docs.kernel.org/networking/bridge.html). Learning, forwarding, VLAN y controles de bridge; kAPI no se presenta como estable.\n- **BONDING**: [Linux Ethernet Bonding Driver HOWTO](https://docs.kernel.org/networking/bonding.html). Agregación y modos de reparto; verificar soporte por implementación.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "4bc4551e9e50a817bdc3a3e2"
+}

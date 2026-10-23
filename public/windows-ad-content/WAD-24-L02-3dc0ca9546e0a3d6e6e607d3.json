@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-24-L02",
+  "title": "Subcategorías de auditoría y SACL",
+  "sourceHash": "f82b2e1f95c5ec91bc0da7473473539cac4d83199fcb54fa4ddb2943a1f44018",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-24-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nConfigurar subcategorías de auditoría y una SACL para observar una actividad concreta.\n\nPrerrequisitos: `WAD-24-L01` (Security, System y Directory Service).\n\n## 2. Comprende el mecanismo\n\nSaber dónde queda registrado un evento no basta: hay que decidir **qué se audita**. Esa decisión tiene dos partes que a menudo se confunden, la **política** y la **SACL**, y en la segunda vive el detalle del objeto.\n\nLa **política de auditoría** habilita qué categorías o **subcategorías** generan eventos. Windows ofrece una política **básica**, por categorías amplias, y una política **avanzada**, organizada en subcategorías más finas. La avanzada permite apuntar a una actividad concreta —por ejemplo, el acceso al servicio de directorio— y elegir si se auditan los **éxitos**, los **fallos** o ambos. Cuando la política avanzada cubre una subcategoría, es la que manda para ese ámbito.\n\nLa **SACL** es la segunda parte y vive en el objeto. Es una lista que declara **qué accesos se auditan** sobre ese objeto y con qué identidad, sin conceder ni denegar nada: eso lo decide la **DACL**. Añadir una entrada de auditoría a la SACL de un objeto del directorio hace que, cuando alguien lo toca del modo indicado, se escriba el evento en Security.\n\nPor eso la configuración se hace en dos pasos acoplados: habilitar la subcategoría correcta **y** poner la SACL en el objeto que interesa. Si falta una de las dos, no aparece el evento aunque la acción ocurra. Las listas de control de acceso de los objetos del directorio se pueden leer y ajustar con herramientas propias, y conviene revisar su estado antes de dar por cubierta la actividad.\n\nLa **SACL por defecto** de la mayoría de los objetos no audita nada; el sistema solo añade cobertura cuando alguien la define. Y una SACL amplia sobre un contenedor puede heredarse a sus hijos, de modo que el alcance de lo auditado crece sin que se note.\n\nLa regla que cierra la lección: **subcategoría y SACL van juntas; la SACL no concede acceso, solo marca qué se audita**. Todo se practica sobre `ad.lab.test`, sin tocar objetos de producción.\n\n### Vocabulario de apoyo\n\n- **Subcategoría de auditoría**: división fina de la política avanzada que agrupa una actividad concreta.\n- **Política de auditoría**: configuración que habilita qué categorías o subcategorías se registran.\n- **Auditar éxito / fallo**: registrar los accesos concedidos o los intentos rechazados.\n- **SACL**: lista que determina qué se audita; no decide el acceso.\n- **DACL**: lista que concede o deniega el acceso a un objeto.\n- **Herencia**: propagación de entradas de control desde un objeto padre a sus hijos.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-24-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test` se quiere saber quién lee un objeto concreto del directorio y todavía no aparece ningún evento, pese a que la actividad se ha producido.\n\nLa causa probable se busca en las dos piezas de la decisión. Primero, la subcategoría de acceso al servicio de directorio debe estar habilitada para los accesos que se quieren observar; si no lo está, la acción no se registra. Segundo, el objeto debe tener una **SACL** que declare esa lectura; la mayoría de los objetos no auditan nada por defecto. La evidencia útil es el estado de la subcategoría activa, la entrada de auditoría presente en la SACL del objeto y la reproducción de la actividad con su evento en Security. La conclusión acota lo observable —«el evento aparece cuando la subcategoría y la SACL cubren la actividad»— y reconoce su límite: la SACL declara qué se audita, no qué se permite, así que ver un acceso auditado no dice por sí solo si estaba autorizado.\n\n"
+    },
+    {
+      "id": "WAD-24-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Cubrir una actividad concreta con la subcategoría y la SACL correctas evita puntos ciegos que se descubren tarde.\n- Red Team autorizado: Saber que la SACL no concede acceso separa la auditoría del permiso y ordena la lectura del evento.\n- Evidencia de la etapa: Estado de la subcategoría activa, entrada de auditoría en la SACL del objeto y evento observado con hora.\n- Criterio de dominio: La actividad se audita combinando la subcategoría adecuada y una SACL sobre el objeto.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB17](../../05_RECURSOS/LABORATORIOS/WAD-LAB17.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **AUDITDS**: [Audit Directory Service Access](https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-directory-service-access). Auditoría del acceso al servicio de directorio y qué registra.\n- **SECAUDIT**: [Advanced security audit policy settings](https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/advanced-security-audit-policy-settings). Subcategorías de auditoría avanzada y su alcance.\n- **DSACLS**: [Dsacls](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-r2-and-2012/cc771525(v=ws.11)). Lectura y modificación de listas de control de acceso de objetos del directorio.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-24-L02-P01",
+    "prompt": "En `ad.lab.test` se quiere observar quién lee un objeto concreto del directorio y todavía no aparece ningún evento. Explica cómo configuras la subcategoría de auditoría y una SACL sobre el objeto para cubrir esa actividad.",
+    "markdown": "## 4. Práctica individual\n\nEn `ad.lab.test` se quiere observar quién lee un objeto concreto del directorio y todavía no aparece ningún evento. Explica cómo configuras la subcategoría de auditoría y una SACL sobre el objeto para cubrir esa actividad.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado la auditoría en un dominio real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-24-L02-Q01",
+      "prompt": "Para observar el acceso a un objeto del directorio, ¿qué se combina?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Habilitar la subcategoría de auditoría correspondiente y definir una SACL en el objeto, que no decide el acceso sino qué se audita"
+        },
+        {
+          "id": "B",
+          "text": "Definir solo una DACL amplia, porque la DACL ya decide qué se audita"
+        },
+        {
+          "id": "C",
+          "text": "Deshabilitar toda la auditoría y confiar en el registro System"
+        },
+        {
+          "id": "D",
+          "text": "Conceder permisos a todas las identidades para que la actividad se registre"
+        }
+      ]
+    },
+    {
+      "id": "WAD-24-L02-Q02",
+      "prompt": "¿Qué papel cumple la SACL en la auditoría de un objeto?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Concede o deniega el acceso al objeto"
+        },
+        {
+          "id": "B",
+          "text": "Reemplaza a la política de auditoría del dominio"
+        },
+        {
+          "id": "C",
+          "text": "Declara qué tipos de acceso se auditan y con qué identidad, sin decidir el acceso"
+        },
+        {
+          "id": "D",
+          "text": "Cifra los eventos antes de guardarlos en el registro"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB17](../../05_RECURSOS/LABORATORIOS/WAD-LAB17.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **AUDITDS**: [Audit Directory Service Access](https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-directory-service-access). Auditoría del acceso al servicio de directorio y qué registra.\n- **SECAUDIT**: [Advanced security audit policy settings](https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/advanced-security-audit-policy-settings). Subcategorías de auditoría avanzada y su alcance.\n- **DSACLS**: [Dsacls](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-r2-and-2012/cc771525(v=ws.11)). Lectura y modificación de listas de control de acceso de objetos del directorio.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "3dc0ca9546e0a3d6e6e607d3"
+}

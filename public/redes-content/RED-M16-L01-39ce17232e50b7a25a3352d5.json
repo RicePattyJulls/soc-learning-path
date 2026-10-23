@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M16-L01",
+  "title": "FHRP y elección",
+  "sourceHash": "0923984141c377742a7de9016fbb9887ccdb2fd9c6d83f55162b05389ee6e05b",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M16-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nExplicar qué protege una dirección de gateway virtual.\n\nPrerrequisitos: [RED-M09-L04](../RED-E02/RED-M09-L04.md), [RED-M10-L04](../RED-E02/RED-M10-L04.md), [RED-M12-L04](../RED-E03/RED-M12-L04.md).\n\n## 2. Comprende el mecanismo\n\nUn protocolo de redundancia de primer salto permite mantener una dirección de gateway para hosts mientras cambia el equipo que la atiende. VRRP y HSRP tienen mecanismos y soporte diferentes; no son nombres intercambiables de una misma implementación. Prioridades, temporizadores, preemption y seguimiento de recursos influyen en elección y recuperación. Tener dos routers no garantiza que la salida funcione si ambos dependen de un único enlace aguas arriba. La propiedad virtual debe comprobarse junto con forwarding y retorno.\n\n### Vocabulario de apoyo\n\n- **FHRP**: Familia de protocolos de redundancia del gateway de primer salto, como VRRP o HSRP.\n- **BFD**: Mecanismo de detección de continuidad integrado con otras funciones de routing.\n- **Preemption**: Recuperación del rol preferido cuando vuelve un candidato mejor, según protocolo y configuración.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M16-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso docente: gateway virtual=192.0.2.1; R1 atiende; R2 espera; falla solo la WAN de R1 y su LAN permanece activa.\n\nSi la elección solo observa la LAN, R1 puede seguir atendiendo el gateway sin salida útil. Hace falta relacionar la decisión con el recurso que se desea proteger.\n\n"
+    },
+    {
+      "id": "RED-M16-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Separar fallo previsto de anomalía.\n- Red Team autorizado: Evaluar rutas alternativas bajo fallo autorizado.\n- Evidencia del módulo: Cronología de reconvergencia, tablas y reporte.\n- Criterio del módulo: Recuperación funcional y medida; no ocultar fallos.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L08](../../05_RECURSOS/LABORATORIOS/RED-L08.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC9568**: [RFC 9568: Virtual Router Redundancy Protocol Version 3](https://www.rfc-editor.org/rfc/rfc9568.html). Gateway virtual y redundancia IPv4/IPv6.\n- **RFC5880**: [RFC 5880: Bidirectional Forwarding Detection](https://www.rfc-editor.org/rfc/rfc5880.html). Detección de continuidad; no cálculo de ruta.\n- **STP**: [Understand Rapid Spanning Tree Protocol](https://www.cisco.com/c/en/us/support/docs/lan-switching/spanning-tree-protocol/24062-146.html). Roles, estados y comparación de convergencia RSTP.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M16-L01-P01",
+    "prompt": "Diseña una prueba que distinga fallo del router de fallo de su enlace aguas arriba.",
+    "markdown": "## 4. Práctica individual\n\nDiseña una prueba que distinga fallo del router de fallo de su enlace aguas arriba.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M16-L01-Q01",
+      "prompt": "¿Qué preserva un FHRP para los hosts?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Todas las sesiones de aplicación necesariamente"
+        },
+        {
+          "id": "B",
+          "text": "Cifrado de todos los datos"
+        },
+        {
+          "id": "C",
+          "text": "Un gateway lógico mientras cambia quien lo atiende"
+        },
+        {
+          "id": "D",
+          "text": "Una dirección MAC única mundial"
+        }
+      ]
+    },
+    {
+      "id": "RED-M16-L01-Q02",
+      "prompt": "¿Qué riesgo demuestra el caso?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Un conflicto DNS probado"
+        },
+        {
+          "id": "B",
+          "text": "Ausencia obligatoria de VLAN"
+        },
+        {
+          "id": "C",
+          "text": "Un puerto TCP demasiado bajo"
+        },
+        {
+          "id": "D",
+          "text": "Gateway activo sin salida WAN funcional"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L08](../../05_RECURSOS/LABORATORIOS/RED-L08.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC9568**: [RFC 9568: Virtual Router Redundancy Protocol Version 3](https://www.rfc-editor.org/rfc/rfc9568.html). Gateway virtual y redundancia IPv4/IPv6.\n- **RFC5880**: [RFC 5880: Bidirectional Forwarding Detection](https://www.rfc-editor.org/rfc/rfc5880.html). Detección de continuidad; no cálculo de ruta.\n- **STP**: [Understand Rapid Spanning Tree Protocol](https://www.cisco.com/c/en/us/support/docs/lan-switching/spanning-tree-protocol/24062-146.html). Roles, estados y comparación de convergencia RSTP.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "39ce17232e50b7a25a3352d5"
+}

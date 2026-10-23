@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-19-L02",
+  "title": "DSRM y restauración no autoritativa",
+  "sourceHash": "762240c9e83457e0e26db7444a1742cb6b8a0124b3eff6ca3dc733fcdf2ef52e",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-19-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nExplicar la restauración no autoritativa de un controlador y el papel del modo DSRM.\n\nPrerrequisitos: `WAD-19-L01` (AD Recycle Bin y borrados).\n\n## 2. Comprende el mecanismo\n\nRestaurar un controlador no es lo mismo que restaurar un objeto. Aquí no se devuelve una cuenta o una unidad organizativa: se recupera parte del equipo —el **estado del sistema**, que incluye el directorio— desde una **copia**.\n\nLa **restauración no autoritativa** devuelve el controlador al estado que tenía la copia y confía en la replicación para ponerlo al día. Los objetos que solo existían en la copia no prevalecen: los socios imponen el estado más reciente del dominio. Por eso esta vía recupera el controlador, no el objeto borrado.\n\nPara restaurar el directorio, el controlador debe iniciarse en **modo de restauración de servicios de directorio (DSRM)**. En ese modo el servicio de directorio no está en línea y el inicio de sesión no usa cuentas del dominio, sino la **contraseña de recuperación DSRM**, una credencial local del equipo.\n\nEsa credencial debe definirse y custodiarse de antemano, porque el arranque en DSRM depende de ella. Su valor no se escribe en la lección ni en un procedimiento abierto: se trata como cualquier secreto y se guarda con el mismo rigor que las contraseñas locales administradas.\n\nLa **copia** de la que se restaura se produce con la herramienta de respaldo del sistema, que en línea de comandos permite crear y aplicar copias del estado del sistema. Una copia sin su prueba de restauración es solo una promesa: la restauración se valida antes de necesitarla.\n\nSi el controlador es una **máquina virtual**, restaurar una instantánea sin más puede devolver identificadores antiguos y provocar divergencias. La devolución de un controlador virtualizado exige el procedimiento que lo reintegra de forma segura y lo deja listo para reanudar la replicación.\n\nLa regla que cierra la lección: **primero se decide qué vía corresponde, después se restaura con la credencial custodiada y al final se verifica que el controlador vuelve a replicar**. Todo se practica sobre `ad.lab.test` con copias de laboratorio.\n\n### Vocabulario de apoyo\n\n- **Modo de restauración de servicios de directorio (DSRM)**: modo de arranque del controlador para restaurar el directorio sin que el servicio esté en línea.\n- **Contraseña de recuperación DSRM**: credencial local del controlador que permite iniciar en DSRM; su valor no se documenta.\n- **Restauración no autoritativa**: restauración que devuelve el dato al estado de la copia y deja que la replicación lo ponga al día.\n- **Restauración autoritativa**: restauración que marca el dato recuperado para que prevalezca sobre la versión que replican los socios.\n- **Estado del sistema**: conjunto de datos del equipo que incluye el directorio y se restaura junto.\n- **Instantánea de máquina virtual**: copia del estado de una máquina virtual en un instante; en un controlador exige precauciones.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-19-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test`, `DC02` (192.0.2.12) presenta un estado del directorio incorrecto tras un incidente. Existe una copia del estado del sistema de la noche anterior y ningún objeto debe recuperarse con prioridad sobre el resto del dominio.\n\nLa lectura del caso pide separar dos ideas. La primera: la copia es del estado del sistema de `DC02`, no de un objeto concreto, así que lo que se recupera es el controlador. La segunda: como no hay un objeto que deba prevalecer sobre los socios, corresponde una **restauración no autoritativa**. El procedimiento pasa por iniciar `DC02` en DSRM con la contraseña de recuperación custodiada, aplicar la copia del estado del sistema y reiniciar en modo normal para que la replicación complete lo que falte. La evidencia útil es el estado de la copia, el resultado de la restauración y el progreso posterior de la replicación. La conclusión acota lo demostrado —«`DC02` queda recuperado y vuelve a replicar»— y reconoce su límite: la copia devuelve un estado anterior, de modo que un objeto eliminado después de esa noche no vuelve por esta vía.\n\n"
+    },
+    {
+      "id": "WAD-19-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Saber qué devuelve una copia del estado del sistema evita prometer la recuperación de objetos que no estaban en ella.\n- Red Team autorizado: Entender DSRM y la custodia de su credencial delimita qué acceso permite ese modo sin tocar el entorno autorizado.\n- Evidencia de la etapa: Estado de la copia, uso de la credencial de recuperación y progreso de la replicación tras reintegrar el controlador.\n- Criterio de dominio: Se distingue la restauración del controlador de la del objeto y se verifica la vuelta al servicio.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB14](../../05_RECURSOS/LABORATORIOS/WAD-LAB14.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **NONAUTH**: [Perform a nonauthoritative restore of AD DS](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-perform-nonauthoritative-restore). Cómo devolver un controlador al servicio y dejar que la replicación lo actualice.\n- **WBADMINCMD**: [wbadmin](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/wbadmin). Utilidad de línea de comandos para crear y aplicar copias del estado del sistema.\n- **RESTOREVDC**: [Restore a virtualized domain controller](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/virtual-dc/restore-virtualized-domain-controller). Precauciones al reintegrar un controlador virtualizado tras usar una instantánea.\n- **LAPSAD**: [Windows LAPS and Windows Server Active Directory](https://learn.microsoft.com/en-us/windows-server/identity/laps/laps-scenarios-windows-server-active-directory). Custodia de contraseñas locales y de la credencial de recuperación en el directorio.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-19-L02-P01",
+    "prompt": "En `ad.lab.test` un controlador presenta un estado del directorio incorrecto y dispones de una copia del estado del sistema. Explica cómo realizarías una restauración no autoritativa, qué papel cumple el modo DSRM y qué esperas que ocurra con la replicación después.",
+    "markdown": "## 4. Práctica individual\n\nEn `ad.lab.test` un controlador presenta un estado del directorio incorrecto y dispones de una copia del estado del sistema. Explica cómo realizarías una restauración no autoritativa, qué papel cumple el modo DSRM y qué esperas que ocurra con la replicación después.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber restaurado un controlador real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-19-L02-Q01",
+      "prompt": "Un controlador de `ad.lab.test` se restaura desde una copia del estado del sistema. ¿Qué describe correctamente una restauración no autoritativa?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El controlador vuelve al estado de la copia y después recibe los cambios actuales de sus socios, de modo que la replicación lo pone al día"
+        },
+        {
+          "id": "B",
+          "text": "El controlador marca todos sus datos como autoritativos y los propaga al resto del dominio al reiniciar"
+        },
+        {
+          "id": "C",
+          "text": "La restauración sustituye el directorio de todos los controladores del dominio a la vez"
+        },
+        {
+          "id": "D",
+          "text": "La restauración desactiva la replicación de forma permanente para conservar el estado recuperado"
+        }
+      ]
+    },
+    {
+      "id": "WAD-19-L02-Q02",
+      "prompt": "Para restaurar el directorio, un controlador debe iniciar en modo de restauración de servicios de directorio (DSRM). ¿Qué exige ese arranque?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que el dominio tenga un nivel funcional determinado"
+        },
+        {
+          "id": "B",
+          "text": "Una cuenta de administrador del dominio con privilegios temporales"
+        },
+        {
+          "id": "C",
+          "text": "Un certificado emitido por la entidad de certificación del dominio"
+        },
+        {
+          "id": "D",
+          "text": "La contraseña de recuperación DSRM, definida y custodiada de antemano, porque ese modo no usa credenciales de dominio"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB14](../../05_RECURSOS/LABORATORIOS/WAD-LAB14.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **NONAUTH**: [Perform a nonauthoritative restore of AD DS](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-perform-nonauthoritative-restore). Cómo devolver un controlador al servicio y dejar que la replicación lo actualice.\n- **WBADMINCMD**: [wbadmin](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/wbadmin). Utilidad de línea de comandos para crear y aplicar copias del estado del sistema.\n- **RESTOREVDC**: [Restore a virtualized domain controller](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/virtual-dc/restore-virtualized-domain-controller). Precauciones al reintegrar un controlador virtualizado tras usar una instantánea.\n- **LAPSAD**: [Windows LAPS and Windows Server Active Directory](https://learn.microsoft.com/en-us/windows-server/identity/laps/laps-scenarios-windows-server-active-directory). Custodia de contraseñas locales y de la credencial de recuperación en el directorio.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "cc4a8033d10d5adfafd5059e"
+}

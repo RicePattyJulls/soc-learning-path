@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M26-L03",
+  "title": "UTC/NTP y delay",
+  "sourceHash": "813ab19a00236881ea7c6dd80a01c51b148404815a0a7a02b531686f3a64bd08",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M26-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDiferenciar demora de ingestión y error de reloj.\n\nPrerrequisitos: [RED-M26-L02](../RED-E05/RED-M26-L02.md).\n\n## 2. Comprende el mecanismo\n\nEl tiempo original del evento y el de recepción responden a preguntas diferentes. Un timestamp normalizado a UTC puede seguir procediendo de un reloj equivocado. Mide offset, incertidumbre y lag de transporte por fuente; conservar el dato original permite corregir una interpretación sin falsear el historial. PTP y NTP no son etiquetas intercambiables de precisión garantizada. No ordenar eventos con resolución de un segundo como si permitieran demostrar el orden de dos acciones separadas por milisegundos.\n\n### Vocabulario de apoyo\n\n- **Facility, severity y PRI**: Categoría Syslog, urgencia del mensaje y valor que las combina mediante facility × 8 + severity.\n- **Polling, trap e inform**: Consulta periódica, notificación sin confirmación equivalente y notificación con confirmación SNMP.\n- **Pipeline y lag**: Cadena de adquisición/transformación y demora de entrega o ingestión que debe medirse.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M26-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Evento docente: emisor 10:00:00Z; colector 10:04:00Z; estado NTP del emisor fiable ±1 s; cola del forwarder=240 s.\n\nLa cola respalda demora de entrega de cuatro minutos. La diferencia no debe corregirse alterando el reloj del emisor que ya tiene referencia coherente.\n\n"
+    },
+    {
+      "id": "RED-M26-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Triar logs de red en SIEM.\n- Red Team autorizado: Comprobar alertas derivadas de control de acceso.\n- Evidencia del módulo: Registro con fuente, hora evento/ingesta y cobertura.\n- Criterio del módulo: Orden correcto y limitaciones cuantificadas.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L13](../../05_RECURSOS/LABORATORIOS/RED-L13.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC5424**: [RFC 5424: The Syslog Protocol](https://www.rfc-editor.org/rfc/rfc5424.html). Cabecera y fórmula facility/severity de PRI.\n- **RFC3414**: [RFC 3414: User-based Security Model for SNMPv3](https://www.rfc-editor.org/rfc/rfc3414.html). Niveles de seguridad; suites del RFC histórico no se recomiendan automáticamente.\n- **RFC3416**: [RFC 3416: Protocol Operations for SNMP](https://www.rfc-editor.org/rfc/rfc3416.html). Polling y operaciones de notificación.\n- **RFC5905**: [RFC 5905: Network Time Protocol Version 4](https://www.rfc-editor.org/rfc/rfc5905.html). Referencia temporal, offset y sincronización.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M26-L03-P01",
+    "prompt": "La cola está vacía y se mide offset del emisor de -240 s. Reinterpreta la misma diferencia.",
+    "markdown": "## 4. Práctica individual\n\nLa cola está vacía y se mide offset del emisor de -240 s. Reinterpreta la misma diferencia.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M26-L03-Q01",
+      "prompt": "¿Qué no garantiza la representación UTC?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Una zona de referencia explícita"
+        },
+        {
+          "id": "B",
+          "text": "Que el reloj original sea exacto"
+        },
+        {
+          "id": "C",
+          "text": "Posibilidad de comparar formatos"
+        },
+        {
+          "id": "D",
+          "text": "Una fecha representada"
+        }
+      ]
+    },
+    {
+      "id": "RED-M26-L03-Q02",
+      "prompt": "¿Qué apoya el lag del caso?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Un desfase supuesto sin medir"
+        },
+        {
+          "id": "B",
+          "text": "La posición de una columna"
+        },
+        {
+          "id": "C",
+          "text": "La cola medida de 240 segundos con reloj coherente"
+        },
+        {
+          "id": "D",
+          "text": "La severity del mensaje por sí sola"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L13](../../05_RECURSOS/LABORATORIOS/RED-L13.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **RFC5424**: [RFC 5424: The Syslog Protocol](https://www.rfc-editor.org/rfc/rfc5424.html). Cabecera y fórmula facility/severity de PRI.\n- **RFC3414**: [RFC 3414: User-based Security Model for SNMPv3](https://www.rfc-editor.org/rfc/rfc3414.html). Niveles de seguridad; suites del RFC histórico no se recomiendan automáticamente.\n- **RFC3416**: [RFC 3416: Protocol Operations for SNMP](https://www.rfc-editor.org/rfc/rfc3416.html). Polling y operaciones de notificación.\n- **RFC5905**: [RFC 5905: Network Time Protocol Version 4](https://www.rfc-editor.org/rfc/rfc5905.html). Referencia temporal, offset y sincronización.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "f803ed9c04ba0cf297e686b6"
+}

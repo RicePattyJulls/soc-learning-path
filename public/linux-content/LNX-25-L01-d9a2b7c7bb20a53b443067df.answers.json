@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-25-L01",
+  "sourceHash": "2611870bef686efa5c1e795f0cf526ecd89ab651564b6b0b653822d5b3c3fa55",
+  "questions": [
+    {
+      "id": "LNX-25-L01-Q01",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «`account`, porque autoriza el uso de la cuenta en ese momento».\n\nCon la contraseña aceptada, la denegación posterior corresponde a la autorización de cuenta. `password` no comprueba el acceso, `session` abre recursos después de las decisiones y no toda negativa posterior es un fallo de credencial."
+    },
+    {
+      "id": "LNX-25-L01-Q02",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «`required` registra el fallo y continúa; `requisite` detiene la evaluación en el acto».\n\n`required` acumula el fallo para el resultado final sin cortar la pila, mientras que `requisite` la detiene de inmediato. No son sinónimos ni se reparten por grupo de gestión."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "La contraseña correcta sitúa la decisión en el grupo **`auth`**, que ya hizo su parte. La negativa posterior apunta a **`account`**, que autoriza el uso de la cuenta en ese momento por vigencia, expiración, horario o regla del servicio. `password` administra el cambio de token y `session` abre recursos; ninguno sustituye la autorización de cuenta.\n\nEl orden y los control flags permiten localizar el punto exacto: `required` registra el fallo y continúa, `requisite` detiene la pila, `sufficient` puede conceder éxito si no hubo fallos `required` previos, e `include` o `substack` insertan lógica adicional. Una línea citada sin su flujo y sin la ruta efectiva del fichero no describe la política.\n\nLímite: la lectura de la pila muestra la intención configurada. Sin el registro del servicio y una sesión de prueba, atribuir la negativa a `account` es una hipótesis razonable, no una certeza.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Asigna cada parte del acceso a su grupo de gestión."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Explica el efecto de `required`, `requisite` y `sufficient` en el orden."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Comprueba la ruta efectiva y los `include` antes de interpretar una línea."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Declara que la pila no prueba por sí sola el resultado observado."
+      }
+    ]
+  },
+  "revision": "d9a2b7c7bb20a53b443067df"
+}

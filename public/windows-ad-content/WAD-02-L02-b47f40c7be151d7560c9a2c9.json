@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-02-L02",
+  "title": "Servicios, tareas y dependencias",
+  "sourceHash": "da1a6c5c7651f3dfeea83fe3e62938f03975e406b4ce3af4318e8d8a6b3ab052",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-02-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nExplicar cómo arranca un servicio o una tarea programada, qué dependencias lo condicionan y cómo comprobarlo sin alterar el sistema.\n\nPrerrequisitos: `WAD-02-L01` (modos de ejecución y procesos).\n\n## 2. Comprende el mecanismo\n\nEl **SCM** (Service Control Manager) es el componente que carga, inicia y detiene los servicios. Cada servicio declara:\n\n- Un **tipo de inicio**: automático, automático (retardado), manual o deshabilitado.\n- Una **cuenta** con la que se ejecuta (una cuenta de sistema, de servicio o una cuenta administrada).\n- Unas **dependencias**: otros servicios o controladores que deben arrancar antes.\n\nEl SCM respeta ese orden. Si una dependencia no arranca, el servicio dependiente puede no arrancar aunque su tipo de inicio sea automático. Por eso «automático» no significa «en marcha»: puede haber fallado o estar esperando a otro componente.\n\nDe ahí salen tres ideas prácticas:\n\n- Varios servicios pueden compartir un proceso anfitrión (`svchost.exe`); la cuenta del proceso y la cuenta del servicio conviene distinguirlas.\n- Un servicio nuevo o desconocido es un **indicio** de persistencia administrativa, no una prueba de compromiso.\n- Comprobar es **observar** estado, configuración, dependencias y disparadores; no hace falta cambiar nada para entender.\n\nLas **tareas programadas** cubren lo que un servicio no hace bien: ejecutar algo en un momento o ante un evento (un disparador). Declaran una **acción** (qué se ejecuta), un **principal** (con qué cuenta, a veces SYSTEM) y unas **condiciones**. Una tarea legítima de mantenimiento y una tarea no deseada se parecen en la estructura; se diferencian por el **binario**, la **cuenta**, el **autor**, la fecha de creación y su relación con el resto de la evidencia.\n\nSi en algún momento se necesita cambiar algo, se registra primero el estado inicial para poder **revertir**. Ese es el puente con la lección siguiente.\n\n### Vocabulario de apoyo\n\n- **SCM (Service Control Manager)**: gestor que carga, inicia y detiene servicios.\n- **Tipo de inicio**: automático, automático (retardado), manual o deshabilitado.\n- **Dependencia**: servicio o controlador que debe arrancar antes que otro.\n- **Tarea programada**: acción que se ejecuta por un disparador (hora, evento, inicio de sesión).\n- **Sesión 0**: espacio aislado donde se ejecutan los servicios del sistema.\n- **Persistencia**: mecanismo que hace que algo se ejecute o sobreviva al reinicio.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta las definiciones cuando las necesites; no hace falta memorizarlas.\n\n"
+    },
+    {
+      "id": "WAD-02-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en un servidor de laboratorio aparece un servicio llamado «Update Helper» en inicio automático, ejecutado con una cuenta de sistema y con su binario en una carpeta temporal. El equipo de operaciones concluye: «es un servicio del sistema, luego es legítimo».\n\nQue algo sea un servicio describe **cómo arranca**, no **quién lo puso** ni **si debería estar**. Se registran ruta del binario, firma, cuenta, tipo de inicio, dependencias y fecha de instalación; se correlaciona con los eventos del SCM y con quién administra el host. La conclusión honesta acota la zona —«servicio de sistema con binario en una ubicación no habitual»— y propone comprobaciones; no afirma compromiso ni lo descarta.\n\n"
+    },
+    {
+      "id": "WAD-02-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Reconstruir qué arranca, con qué cuenta y desde qué ruta antes de evaluar si un servicio o una tarea es legítimo.\n- Red Team autorizado: Reconocer mecanismos de persistencia para auditarlos en laboratorio; no crear persistencia fuera de un entorno autorizado.\n- Evidencia de la etapa: Árbol proceso-servicio con tipo de inicio, cuenta, dependencias, ruta del binario y disparadores.\n- Criterio de dominio: Distingue servicio de proceso, describe dependencias y justifica por qué un mecanismo conocido no es prueba de legitimidad.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB01](../../05_RECURSOS/LABORATORIOS/WAD-LAB01.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **SVC**: [Services](https://learn.microsoft.com/en-us/windows/win32/services/services). Service Control Manager y ciclo de vida de los servicios.\n- **GETSVC**: [Get-Service](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-service). Estado y dependencias de los servicios.\n- **SCHTASKS**: [schtasks](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/schtasks). Consulta y administración de tareas programadas.\n- **AUTORUNS**: [Autoruns](https://learn.microsoft.com/en-us/sysinternals/downloads/autoruns). Revisión de puntos de arranque automático y persistencia.\n- **F12**: [Process Explorer](https://learn.microsoft.com/en-us/sysinternals/downloads/process-explorer). Relación entre procesos, cuentas y servicios hospedados.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-02-L02-P01",
+    "prompt": "Un host muestra una tarea programada que se ejecuta como SYSTEM cada diez minutos con un binario firmado. Explica qué datos registrarías para valorarla y por qué una firma válida no basta para declararla legítima.",
+    "markdown": "## 4. Práctica individual\n\nUn host muestra una tarea programada que se ejecuta como SYSTEM cada diez minutos con un binario **firmado**. Explica qué datos registrarías para valorarla y por qué una firma válida **no** basta para declararla legítima.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber ejecutado ni configurado un host real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-02-L02-Q01",
+      "prompt": "¿Qué determina si un servicio arranca automáticamente al iniciar el sistema?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El tipo de inicio configurado para ese servicio (automático, automático retardado, manual o deshabilitado)"
+        },
+        {
+          "id": "B",
+          "text": "El nombre del proceso anfitrión"
+        },
+        {
+          "id": "C",
+          "text": "La firma del binario, que fuerza su arranque"
+        },
+        {
+          "id": "D",
+          "text": "El consumo de CPU que tuvo en la sesión anterior"
+        }
+      ]
+    },
+    {
+      "id": "WAD-02-L02-Q02",
+      "prompt": "¿Qué relación hay entre un servicio y un proceso?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Cada servicio es siempre un proceso exclusivo e independiente"
+        },
+        {
+          "id": "B",
+          "text": "Varios servicios pueden compartir un proceso anfitrión y el PID pertenece al anfitrión, no al servicio"
+        },
+        {
+          "id": "C",
+          "text": "Un servicio no tiene proceso asociado en ningún caso"
+        },
+        {
+          "id": "D",
+          "text": "El PID de un servicio es fijo y no cambia aunque se reinicie"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB01](../../05_RECURSOS/LABORATORIOS/WAD-LAB01.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **SVC**: [Services](https://learn.microsoft.com/en-us/windows/win32/services/services). Service Control Manager y ciclo de vida de los servicios.\n- **GETSVC**: [Get-Service](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-service). Estado y dependencias de los servicios.\n- **SCHTASKS**: [schtasks](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/schtasks). Consulta y administración de tareas programadas.\n- **AUTORUNS**: [Autoruns](https://learn.microsoft.com/en-us/sysinternals/downloads/autoruns). Revisión de puntos de arranque automático y persistencia.\n- **F12**: [Process Explorer](https://learn.microsoft.com/en-us/sysinternals/downloads/process-explorer). Relación entre procesos, cuentas y servicios hospedados.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "b47f40c7be151d7560c9a2c9"
+}

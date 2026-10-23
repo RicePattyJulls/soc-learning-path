@@ -1,0 +1,39 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-10-L03",
+  "sourceHash": "0d959fec05251d3b513d41266566eb068cae4a0ca4297c2408cff63de3febd75",
+  "questions": [
+    {
+      "id": "WAD-10-L03-Q01",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Solo el permiso necesario sobre los objetos de esa OU, sin privilegios de dominio».\n\nEl privilegio mínimo acota el permiso a la tarea y a los objetos de esa unidad organizativa. Control total, pertenencia a Domain Admins o alcance sobre todo el bosque desbordan con creces lo necesario."
+    },
+    {
+      "id": "WAD-10-L03-Q02",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Porque otorga control sobre todo el dominio, mucho más allá de la tarea delegada, y elimina la frontera de la delegación».\n\nAñadir la cuenta a Domain Admins «para que funcione» no es delegar: concede de más y hace imposible demostrar que el delegado modifica solo lo permitido. El grupo sí existe y sí puede restablecer contraseñas, así que las demás opciones no se sostienen."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "La delegación correcta concede solo el permiso necesario sobre los objetos de OU=Helpdesk, por ejemplo el restablecimiento de contraseñas, y nada sobre el resto del dominio. Se aplica con el asistente de ADAC eligiendo la tarea sobre la OU, o ajustando el permiso con dsacls, y en ambos casos el alcance queda limitado a esa unidad organizativa. La verificación exige la prueba positiva —la cuenta delegada restablece una contraseña dentro de la OU y funciona— y la prueba negativa —la misma cuenta intenta algo fuera de su tarea, como modificar un objeto de otra OU, y no puede—; sin la negativa solo se sabe que puede, no si puede de más. No se usa Domain Admins ni ningún grupo integrado porque concede control sobre todo el dominio y borra la frontera de la delegación. El límite: el permiso mínimo se demuestra y sin la prueba negativa el criterio de dominio no queda acreditado.",
+    "rubric": [
+      {
+        "criterion": "Permiso mínimo",
+        "evidence": "Concede solo el permiso necesario sobre la OU, sin privilegios de dominio."
+      },
+      {
+        "criterion": "Aplicación",
+        "evidence": "Describe la delegación con ADAC o dsacls y su alcance sobre la OU."
+      },
+      {
+        "criterion": "Prueba positiva",
+        "evidence": "Incluye la tarea permitida que sí funciona dentro de la OU."
+      },
+      {
+        "criterion": "Límite reconocido",
+        "evidence": "Rechaza Domain Admins y explica que sin la prueba negativa no se acredita el criterio de dominio."
+      }
+    ]
+  },
+  "revision": "03989a7a5c13218f6f617dda"
+}

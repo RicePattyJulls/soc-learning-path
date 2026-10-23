@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-27-L01",
+  "sourceHash": "2d6cbca2cfbcef86a0567d03b7435221a314f1edb764fe7d3b50baef2c20005d",
+  "questions": [
+    {
+      "id": "LNX-27-L01-Q01",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Que el recurso sea alcanzable por una identidad no autorizada y permita obtener un secreto o un privilegio».\n\nLa severidad sube cuando confluyen exposición real y beneficio para el adversario. Repetir el hallazgo en varias herramientas, copiar la etiqueta del fabricante o la antigüedad del activo no describen alcanzabilidad ni privilegio obtenido."
+    },
+    {
+      "id": "LNX-27-L01-Q02",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Ordena hipótesis de riesgo con supuestos declarados; no demuestra explotación ni sustituye la validación».\n\nLa tabla es una decisión editorial sobre datos incompletos: sirve para asignar orden y propietario, no para certificar que hubo abuso. Ninguna firma externa ni el volumen de hallazgos convierten una hipótesis en evidencia."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "La prioridad no se hereda de la puntuación de la checklist. Se calcula con cuatro preguntas: qué obtiene el adversario, qué identidad mínima necesita, qué exposición real tiene el activo y qué controles compensatorios lo rodean. Con esos datos, el archivo de secretos legible por cualquier identidad local sube al primer lugar: no exige privilegio y entrega una credencial activa. La regla `sudoers` amplia sobre un editor queda segunda, porque permite ejecutar comandos arbitrarios como `root` a una cuenta de servicio que puede comprometerse sin ruido. El ruido de auditoría baja de prioridad salvo que esté ocultando eventos durante un incidente activo.\n\nLa decisión debe declarar supuestos verificables: qué contiene el archivo, quién puede iniciar sesión en el host, si la cuenta de servicio tiene acceso remoto y qué auditoría de sesiones existe. También debe valorar el coste de corregir: un cambio que exige reiniciar un servicio crítico necesita ventana y reversión, y eso puede retrasar la intervención sin rebajar la severidad.\n\nLímite: esta tabla ordena hipótesis de riesgo documentadas. No demuestra que el archivo se haya leído ni que la cuenta se haya usado; para afirmarlo hace falta evidencia de acceso, no una configuración desviada.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Ordena por alcanzabilidad e identidad mínima, no por la puntuación bruta de la herramienta."
+      },
+      {
+        "criterion": "Explica qué obtiene el adversario en cada hallazgo",
+        "evidence": "secreto, privilegio o solo ruido."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Incorpora controles compensatorios y coste de la remediación con ventana y reversión."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Declara los supuestos pendientes y el límite de la priorización."
+      }
+    ]
+  },
+  "revision": "3dd100784dc3f0f077c2ba81"
+}

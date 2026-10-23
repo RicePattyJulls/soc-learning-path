@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-06-L02",
+  "sourceHash": "d0a63358e0428b9e913fe1537f1d64eb980ddeaba5f03dc23b90ff8998ec9fd3",
+  "questions": [
+    {
+      "id": "LNX-06-L02-Q01",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Expande el parámetro y después divide el resultado en palabras según `IFS`».\n\nLa shell expande primero el valor de la variable y luego lo divide en argumentos usando `IFS`. No divide el texto literal antes de expandirlo, no entrega `$var` sin cambiar y no aplica el globbing antes de la expansión del parámetro."
+    },
+    {
+      "id": "LNX-06-L02-Q02",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Separar las opciones de las rutas con `--`, o referir la ruta como `./-l`».\n\nLa defensa consiste en evitar que el nombre se confunda con una opción: `--` marca el fin de las opciones y una ruta como `./-l` no empieza por guion. Las comillas en la salida no cambian cómo la herramienta interpreta el argumento, elevar privilegios no lo evita y la shell no detecta nombres que empiezan por guion."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "La etapa que causó el efecto es la **división en palabras**: tras expandir el parámetro, la shell parte el resultado según `IFS`, de modo que un solo nombre con un espacio se convierte en dos argumentos. La división ocurre **antes** del globbing, por eso un `$(...)` sin comillas no solo se divide: cada trozo puede reinterpretarse además como patrón.\n\nLa práctica que lo evita es tratar los nombres como **dato**: citar la expansión (`\"$nombre\"`) para impedir división y globbing, separar las opciones de las rutas con `--` —o referir la ruta como `./-l` cuando el nombre empieza por guion— y transportar los nombres entre etapas con un delimitador inequívoco, como el byte nulo, en lugar de texto libre.\n\nLímite: sin conocer el delimitador que usó la herramienta, solo puedes afirmar *que* el conteo es poco fiable, no reconstruir la lista real a partir de esa salida.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Identifica la división en palabras según `IFS` tras la expansión del parámetro."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Recuerda que la división ocurre antes del globbing."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Propone citar el dato, usar `--` y un delimitador inequívoco."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Reconoce que sin el delimitador solo puede afirmar que el conteo es poco fiable."
+      }
+    ]
+  },
+  "revision": "4d1f9c4fe38e2cb8663f8027"
+}

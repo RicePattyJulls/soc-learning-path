@@ -1,0 +1,39 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-10-L01",
+  "sourceHash": "eb877ed6d610fa9d281dca83c1cb1e20132b102a4e872bd4f0e092d5d6d51cc8",
+  "questions": [
+    {
+      "id": "WAD-10-L01-Q01",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «La consulta solo lee atributos y no cambia el estado del objeto; la modificación altera los atributos del objeto».\n\nUna consulta recupera valores sin escribir y una modificación cambia el objeto; el verbo de la operación —Get frente a Set, New o Remove— es la señal más rápida. Las demás opciones confunden el protocolo con el efecto, atan la lectura a un privilegio que no exige o intercambian qué cambia cada operación."
+    },
+    {
+      "id": "WAD-10-L01-Q02",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Que el cliente debe firmar sus operaciones para que el DC las acepte cuando el dominio lo exige».\n\nLa firma es un requisito del cliente, no del servidor, y un fallo por firma puede aparecer como una consulta sin resultados. No exige un certificado por consulta, no cifra todo el tráfico por sí sola y no exime de autenticarse."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "La revisión se hace con LDAP en modo consulta: un cmdlet como Get-ADUser recupera objetos y sus atributos sin cambiar el estado, y el verbo Get frente a Set, New o Remove indica que no se escribe. Se leen distinguishedName para localizar el objeto, sAMAccountName como identificador de inicio de sesión, memberOf para la pertenencia y objectClass para el tipo de objeto. La consulta solo lee; la modificación altera atributos, así que si algo cambió no fue la lectura. Sobre firma LDAP, el cliente debe firmar sus operaciones cuando el dominio lo exige, y un fallo de firma puede parecer «sin resultados». El límite: lo leído describe el objeto en ese instante y una ausencia puede ser un dato no configurado o no visible para la credencial, de modo que un resultado vacío no demuestra que el objeto no exista.",
+    "rubric": [
+      {
+        "criterion": "Atributos consultados",
+        "evidence": "Nombra atributos concretos como distinguishedName, sAMAccountName, memberOf u objectClass."
+      },
+      {
+        "criterion": "Consulta frente a modificación",
+        "evidence": "Distingue leer de escribir por el verbo de la operación y por su efecto sobre el estado."
+      },
+      {
+        "criterion": "Firma LDAP",
+        "evidence": "Explica que el cliente debe firmar cuando el dominio lo exige y que un fallo de firma puede parecer ausencia de datos."
+      },
+      {
+        "criterion": "Límite reconocido",
+        "evidence": "Aclara que la lectura refleja un instante y que una ausencia no prueba que el objeto no exista."
+      }
+    ]
+  },
+  "revision": "f34a64cd326b2bdb3f4b8217"
+}

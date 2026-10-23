@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-31-L02",
+  "title": "Metodología de diez pasos y hallazgo",
+  "sourceHash": "4b1a2eaa5bbf53f3db18b90ac0d7bb3fe3d58c36dcb77abb1e79b37620c7cf47",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-31-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nAplicar una metodología de diez pasos a una enumeración autorizada y convertir lo observado en un hallazgo con alcance, evidencia y límites declarados.\n\nPrerrequisitos: `LNX-31-L01` (Automatización y Bash idempotente).\n\n## 2. Comprende el mecanismo\n\nUna metodología no es una lista de comandos: es un orden de decisiones que deja rastro. Los diez pasos separan la preparación, la observación, la prueba y el cierre para que el resultado no dependa de la memoria de quien lo hizo ni de una captura aislada.\n\nEl primer paso es el **pre-engagement**. Antes de enumerar se confirman propietario, objetivos, cuentas, ventana, límites de carga, canal de notificación, artefactos permitidos, reversión y condición de parada. También se revisa qué queda prohibido: explotación, persistencia, denegación de servicio y acceso a datos sensibles. Sin ese acuerdo por escrito, la actividad no es una evaluación autorizada.\n\nEl segundo paso es la **línea base**. Se captura el estado del host, kernel, distribución, identidades, LSM, auditoría, servicios y contenedores antes de tocar nada. La línea base permite distinguir lo que ya existía de lo que cambió durante la prueba y evita atribuir a la actividad un hallazgo previo.\n\nLa **enumeración local** y la formulación de **hipótesis verificables** ocupan los pasos tres y cuatro. Se revisan usuarios, grupos, reglas propias de sudo, SUID, SGID, capabilities, procesos, rutas editables, montajes y secretos sintéticos. Una hipótesis útil es concreta: «el grupo `analista-lab` puede editar un script que se ejecuta bajo la cuenta `svc-lab`». «Root disponible» no es una hipótesis: es una conclusión sin ruta ni impacto.\n\nLos pasos cinco y seis son la **prueba de concepto inocua** y la **observabilidad**. La prueba escribe un marcador en un directorio del laboratorio, con una cuenta de bajo privilegio y sin ejecutar código privilegiado ajeno. A la vez se registra qué vieron audit, journal, EDR o SIEM: campos presentes, latencia, pérdida de eventos y redacción. Una prueba que no se observa deja un hueco que el informe debe declarar.\n\nLos pasos siete y ocho son **impacto** y **remediación mínima**. El impacto separa acceso potencial, explotación efectiva, confidencialidad, integridad, disponibilidad y alcance. La remediación corrige la causa con el cambio más pequeño razonable: propietario y permisos, identidad dedicada, capabilities, política MAC o ajuste del servicio. No se aprovecha la ruta para «demostrar más» de lo autorizado.\n\nLos pasos nueve y diez son el **retest positivo y negativo** y el **informe reproducible**. El retest comprueba que la función legítima sigue operando y que el abuso simulado ya no prospera. El informe registra paso, fuente, hash, marcas de tiempo, equipo, resultado, incertidumbre, severidad contextual y contraprueba. El límite: diez pasos ordenan la evidencia, pero no convierten una exposición en un compromiso; un efecto no observado sigue siendo una incertidumbre declarada.\n\n### Vocabulario de apoyo\n\n- **ROE (reglas de enfrentamiento)**: acuerdo que fija alcance, límites, ventana y condiciones de parada de una prueba.\n- **Línea base**: estado capturado antes de la actividad, usado para distinguir cambios propios y previos.\n- **Enumeración**: inventario de identidades, permisos, servicios y rutas dentro del alcance autorizado.\n- **Hipótesis verificable**: afirmación concreta que puede contrastarse con evidencia y que nombra una ruta y un efecto.\n- **Prueba de concepto inocua**: demostración mínima que no amplía el impacto ni ejecuta privilegios ajenos.\n- **Retest positivo y negativo**: comprobación de que la función legítima sigue y de que el abuso simulado ya no ocurre.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-31-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en una VM de laboratorio, la enumeración muestra que el script `/srv/lab/mantenimiento.sh` es editable por el grupo `analista-lab` y lo ejecuta un temporizador bajo la cuenta `svc-lab`. El equipo escribe un marcador en `/srv/lab/salida/` con una cuenta de bajo privilegio y comprueba que el cambio de permisos es posible, sin ejecutar el script ni elevar privilegios.\n\nEl resultado es un hallazgo, no un compromiso. La evidencia sostiene que existe una ruta de escritura sobre un artefacto ejecutado por otra identidad y que la ruta no está restringida por la configuración observada. No sostiene que alguien la haya usado, que la cuenta `svc-lab` tenga privilegios elevados ni que el host esté comprometido.\n\nEl informe de diez pasos enumera la autorización y la ventana, la línea base, los comandos de lectura, la hipótesis, la prueba con marcador, los eventos observados y los ausentes, el impacto condicionado, la remediación propuesta —propietario root, escritura denegada al grupo y ejecución con identidad dedicada— y el retest previsto. El límite: sin una prueba aprobada que documente un cambio real de identidad, el hallazgo describe una exposición de configuración y su incertidumbre.\n\n"
+    },
+    {
+      "id": "LNX-31-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Leer el hallazgo por su ruta, evidencia y alcance, y no elevarlo a intrusión sin un efecto observado.\n- Red Team autorizado: Detenerse en la prueba inocua, conservar la línea base y no explotar, persistir ni exfiltrar.\n- Evidencia de la etapa: Autorización, ventana, línea base, hipótesis, marcador, eventos observados y ausentes, y retest previsto.\n- Criterio de dominio: Convierte una observación en un hallazgo reproducible y declara qué parte del impacto sigue sin demostrarse.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB41](../../05_RECURSOS/LABORATORIOS/LNX-LAB41.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F121**: [NIST SP 800-61 Rev.3 (2025)](https://csrc.nist.gov/pubs/sp/800/61/r3/final). Preparación, respuesta y recuperación que enmarcan el ejercicio.\n- **F122**: [NIST SP 800-92 (log management)](https://csrc.nist.gov/pubs/sp/800/92/final). Registro y protección de la evidencia producida durante la prueba.\n- **F124**: [strace(1)](https://man7.org/linux/man-pages/man1/strace.1.html). Verificación de llamadas al sistema durante la observación.\n- **F127**: [MITRE ATT&CK Data Sources (deprecated)](https://attack.mitre.org/datasources/). Mapa conceptual de fuentes de datos para contrastar qué se observó.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-31-L02-P01",
+    "prompt": "Durante una enumeración autorizada encuentras un script de mantenimiento editable por un grupo no administrador y ejecutado por una cuenta de servicio. Explica cómo lo convertirías en un hallazgo con la metodología de diez pasos, qué evidencia reunirías y qué no podrías afirmar.",
+    "markdown": "## 4. Práctica individual\n\nDurante una enumeración autorizada encuentras un script de mantenimiento editable por un grupo no administrador y ejecutado por una cuenta de servicio. Explica cómo lo convertirías en un hallazgo con la metodología de diez pasos, qué evidencia reunirías y qué no podrías afirmar.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber ejecutado una enumeración real ni haber modificado un sistema.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-31-L02-Q01",
+      "prompt": "¿Qué corresponde hacer antes de iniciar la enumeración de un ejercicio Red Team?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Ejecutar la prueba de concepto para ver si el objetivo responde"
+        },
+        {
+          "id": "B",
+          "text": "Enumerar primero y solicitar la autorización cuando aparezca un hallazgo"
+        },
+        {
+          "id": "C",
+          "text": "Instalar las herramientas ofensivas en el host de producción"
+        },
+        {
+          "id": "D",
+          "text": "Confirmar autorización, alcance, ventana y condiciones de parada, y capturar una línea base antes de enumerar"
+        }
+      ]
+    },
+    {
+      "id": "LNX-31-L02-Q02",
+      "prompt": "¿Qué distingue un hallazgo de un compromiso demostrado?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El hallazgo exige acceso root; el compromiso se documenta con una captura de pantalla"
+        },
+        {
+          "id": "B",
+          "text": "Son sinónimos cuando la ruta implica una cuenta de servicio"
+        },
+        {
+          "id": "C",
+          "text": "El hallazgo documenta una ruta factible con evidencia; el compromiso exige un efecto observado y autorizado"
+        },
+        {
+          "id": "D",
+          "text": "El compromiso se deduce del propietario del archivo afectado"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB41](../../05_RECURSOS/LABORATORIOS/LNX-LAB41.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F121**: [NIST SP 800-61 Rev.3 (2025)](https://csrc.nist.gov/pubs/sp/800/61/r3/final). Preparación, respuesta y recuperación que enmarcan el ejercicio.\n- **F122**: [NIST SP 800-92 (log management)](https://csrc.nist.gov/pubs/sp/800/92/final). Registro y protección de la evidencia producida durante la prueba.\n- **F124**: [strace(1)](https://man7.org/linux/man-pages/man1/strace.1.html). Verificación de llamadas al sistema durante la observación.\n- **F127**: [MITRE ATT&CK Data Sources (deprecated)](https://attack.mitre.org/datasources/). Mapa conceptual de fuentes de datos para contrastar qué se observó.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "752b519cc5df842deb3a776b"
+}

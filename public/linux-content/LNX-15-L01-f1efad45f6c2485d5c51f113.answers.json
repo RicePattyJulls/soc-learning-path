@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-15-L01",
+  "sourceHash": "0c55994e7a21d9bb97b0d4e89f041ebc1332696350492f9f789d520cc1af0496",
+  "questions": [
+    {
+      "id": "LNX-15-L01-Q01",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Un volumen presentado al sistema de archivos y construido sobre un grupo de volúmenes».\n\nEl LV se recorta del VG y es lo que se presenta al sistema de archivos; no es una partición física ni una copia off-host ni un mecanismo de cifrado."
+    },
+    {
+      "id": "LNX-15-L01-Q02",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «El snapshot puede quedar inválido y no servir como punto de retorno».\n\nSi el área de escritura diferencial del snapshot clásico se agota, el snapshot deja de representar el estado anterior y queda inválido. No protege el origen, no se convierte en copia off-host ni duplica datos de forma permanente."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "El snapshot LVM es un **punto de retorno lógico** sobre el mismo LV, dependiente del origen y de un área de escritura diferencial. Sirve para un rollback acotado mientras esa área no se agote y mientras el origen siga existiendo, pero comparte el almacenamiento físico con el volumen que captura. No es una copia independiente: si el almacenamiento subyacente desaparece, desaparecen origen y snapshot.\n\nLímite: sin comprobar dónde vive físicamente el snapshot y cuánta capacidad diferencial le queda, no se puede afirmar que sea recuperable ante un fallo real del medio.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Describe LVM como capa de indirección PV→VG→LV."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Explica que el snapshot depende del origen y del área diferencial."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Distingue un punto de retorno lógico de un respaldo independiente."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Reconoce que comparte el almacenamiento físico y que puede invalidarse."
+      }
+    ]
+  },
+  "revision": "f1efad45f6c2485d5c51f113"
+}

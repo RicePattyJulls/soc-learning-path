@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-08-L03",
+  "sourceHash": "439ea085d6061f95192fe6d760c6aeedbdf0be4593ae398672e310c4b106fd9e",
+  "questions": [
+    {
+      "id": "LNX-08-L03-Q01",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Lo inicia ahora, pero no lo habilita para próximos arranques».\n\n`start` cambia la actividad ahora y no toca la habilitación. Un servicio deshabilitado sí puede iniciarse manualmente; `start` no crea enlaces de instalación persistentes."
+    },
+    {
+      "id": "LNX-08-L03-Q02",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Hace que PID 1 relea unidades y generadores, sin reiniciar por sí solo los servicios en marcha».\n\n`daemon-reload` recarga definiciones y generadores, pero no reinicia servicios por sí mismo. Reiniciar con nueva configuración, detener y arrancar, o limpiar estados de fallo son otras operaciones."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "`daemon-reload` hace que PID 1 **relea las unidades y generadores**, es decir, carga la definición nueva. No reinicia los servicios en marcha: el proceso sigue usando la configuración con la que arrancó. Cargar la definición y hacer que el proceso la use son dos pasos.\n\nEl paso adicional sería reiniciar la unidad, y solo dentro de la ventana aprobada, porque provoca un corte de servicio y puede afectar a dependencias. El límite: si la unidad se activa por socket o timer, tras reiniciar podría comportarse de forma distinta a la esperada; hay que comprobar la vía real de activación.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Explica que `daemon-reload` carga definiciones, no reinicia servicios."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Distingue el momento de definir del momento de ejecutar."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Señala el reinicio como paso adicional y su riesgo de corte."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Reconoce que la vía de activación puede alterar el resultado esperado."
+      }
+    ]
+  },
+  "revision": "bcfa046be33e42b5a2d73ca6"
+}

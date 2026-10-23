@@ -1,0 +1,39 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-13-L02",
+  "sourceHash": "c57f617d41fdec52e2dd41656f05538fa2237b43b77c2761bee153fe1232ae62",
+  "questions": [
+    {
+      "id": "WAD-13-L02-Q01",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Para que las operaciones que no toleran conflictos las atienda un único controlador cada una».\n\nLos roles existen para que las operaciones sensibles no se ejecuten en paralelo y dejen el dominio ambiguo. No reducen el número de controladores, no duplican el esquema por sitio y no sustituyen al catálogo global."
+    },
+    {
+      "id": "WAD-13-L02-Q02",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Comprobar primero el estado de los roles y la ubicación del catálogo global, y actuar solo con evidencia».\n\nUn síntoma de inicio de sesión rara vez lo causa un rol; lo prudente es leer el estado y la ubicación del catálogo global antes de decidir. Mover roles de inmediato, quitar el catálogo global o transferir el esquema añade riesgo sin diagnóstico."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "Los roles de maestro de operaciones existen porque hay operaciones que no toleran conflictos y deben atenderlas un único controlador: dos son del bosque —maestro de esquema y maestro de nombres de dominio— y tres del dominio —maestro RID, emisor de infraestructura y maestro de emulación del PDC—. El catálogo global es otra cosa: un servicio con una réplica parcial de todos los dominios del bosque para búsquedas y grupos universales, cuya ubicación se decide por diseño. Ante un error al crear objetos, la decisión no es transferir roles: primero se lee qué controlador atiende cada rol y su estado, y se acota si el problema pertenece al maestro RID o a otra causa. La evidencia es una tabla de roles por controlador, la ubicación del catálogo global por sitio y los informes de estado. El límite: un síntoma compatible con un rol no confirma la causa sin los informes, y la descripción no autoriza ninguna transferencia.",
+    "rubric": [
+      {
+        "criterion": "Roles FSMO",
+        "evidence": "Nombra los roles y los separa en del bosque y del dominio."
+      },
+      {
+        "criterion": "Catálogo global",
+        "evidence": "Distingue el catálogo global de los roles y explica su réplica parcial."
+      },
+      {
+        "criterion": "Decisión con evidencia",
+        "evidence": "Lee el estado antes de mover roles y evita manipularlos ante el síntoma."
+      },
+      {
+        "criterion": "Límite reconocido",
+        "evidence": "Admite que no se confirma una causa sin los informes de estado."
+      }
+    ]
+  },
+  "revision": "1cb102553deae2a6c65db1ac"
+}

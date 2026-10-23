@@ -1,0 +1,1902 @@
+{
+  "schema_version": "2.0",
+  "tipo": "investigacion_documental_y_diseno_curricular",
+  "titulo": "Windows + Active Directory — Tanda 2: AD DS y seguridad",
+  "fecha_corte": "2026-10-18",
+  "idioma": "es",
+  "tanda": 2,
+  "total_tandas_previstas": 4,
+  "fuente_requisitos": "adwin(1).txt",
+  "dependencia_documental": "Windows_AD_Tanda_1_Investigacion.md",
+  "investigacion_documental": true,
+  "laboratorios_ejecutados": false,
+  "validacion_empirica": false,
+  "auditoria_apuntes_155": false,
+  "no_se_modifico_sistema_o_web": true,
+  "sistemas_referencia": [
+    "Windows Server 2025",
+    "Windows 11 26H2"
+  ],
+  "decisiones_clave": [
+    {
+      "id": "DEC-01",
+      "criterio": "Bosque frontera de seguridad; OU solo administración",
+      "fuentes_ids": [
+        "A02",
+        "A21"
+      ]
+    },
+    {
+      "id": "DEC-02",
+      "criterio": "Separar AD replication y SYSVOL/DFSR",
+      "fuentes_ids": [
+        "A06",
+        "A20"
+      ]
+    },
+    {
+      "id": "DEC-03",
+      "criterio": "Diferenciar niveles funcionales y versión de DC",
+      "fuentes_ids": [
+        "A07",
+        "A08"
+      ]
+    },
+    {
+      "id": "DEC-04",
+      "criterio": "Tier 0 se decide por control efectivo y alcance de credenciales",
+      "fuentes_ids": [
+        "A21",
+        "A23"
+      ]
+    },
+    {
+      "id": "DEC-05",
+      "criterio": "AD CS se protege como servicio de identidad; verificar mapeo fuerte vigente",
+      "fuentes_ids": [
+        "A29",
+        "A30",
+        "A34"
+      ]
+    },
+    {
+      "id": "DEC-06",
+      "criterio": "Diagnosticar antes de remediar; pruebas positiva y negativa",
+      "fuentes_ids": [
+        "A09",
+        "A12"
+      ]
+    }
+  ],
+  "competencias_por_eje": {
+    "administracion": [
+      "AD DS lógico y físico",
+      "DNS/DC Locator",
+      "Replicación y FSMO",
+      "GPO, SYSVOL",
+      "Grupos, LDAP y PowerShell AD",
+      "Cuentas de servicio",
+      "CA, plantillas y PKI",
+      "Respaldo y recuperación"
+    ],
+    "soc_blue_team": [
+      "Entender actividad nativa de DC",
+      "Diagnóstico de logs de autenticación",
+      "Interpretar cambio AD sin atribución prematura",
+      "Cobertura de auditoría y SACL",
+      "Diferenciar indicio/evento/acceso"
+    ],
+    "red_team_autorizado": [
+      "Auditar rutas de control ACL/GPO",
+      "Verificar límites de delegación",
+      "Analizar trusts",
+      "Evaluar exposición de cuentas/servicios y AD CS",
+      "Demostrar impacto mínimo solo en laboratorio"
+    ]
+  },
+  "etapas_provisionales": [
+    {
+      "id": "AD-01",
+      "titulo": "Directorio, bosque/dominio/OU, esquema",
+      "prerrequisitos": [
+        "WIN-03",
+        "REDES-DNS"
+      ],
+      "prerrequisitos_originales": "WIN-03, Redes DNS",
+      "resultados_de_aprendizaje_medibles": [
+        "Explicar estructura lógica y física de AD DS",
+        "Distinguir fronteras bosque/dominio/OU/sitio"
+      ],
+      "criterio_dominio": "Dibujar relaciones y determinar fronteras de seguridad",
+      "evaluacion_sugerida": {
+        "prueba_positiva": true,
+        "prueba_negativa": true,
+        "requiere_evidencia": true,
+        "requiere_rollback": true,
+        "nota_aprobacion": 80
+      },
+      "tiempo_estimado_horas": [
+        5,
+        8
+      ],
+      "fuentes_ids": [
+        "A01",
+        "A02",
+        "A03"
+      ],
+      "laboratorios_ids": [
+        "AD-L01"
+      ],
+      "estado": "propuesta; no validado en laboratorio"
+    },
+    {
+      "id": "AD-02",
+      "titulo": "Despliegue de DC y cliente",
+      "prerrequisitos": [
+        "AD-01",
+        "WIN-07"
+      ],
+      "prerrequisitos_originales": "AD-01, WIN-07",
+      "resultados_de_aprendizaje_medibles": [
+        "Diseñar topología aislada y comprobar servicios del primer DC",
+        "Confirmar unión real de equipo miembro"
+      ],
+      "criterio_dominio": "Validar unión, DC Locator y salud inicial",
+      "evaluacion_sugerida": {
+        "prueba_positiva": true,
+        "prueba_negativa": true,
+        "requiere_evidencia": true,
+        "requiere_rollback": true,
+        "nota_aprobacion": 80
+      },
+      "tiempo_estimado_horas": [
+        6,
+        10
+      ],
+      "fuentes_ids": [
+        "A01",
+        "A04"
+      ],
+      "laboratorios_ids": [
+        "AD-L02"
+      ],
+      "estado": "propuesta; no validado en laboratorio"
+    },
+    {
+      "id": "AD-03",
+      "titulo": "DNS, GC, sitios y reloj",
+      "prerrequisitos": [
+        "AD-02"
+      ],
+      "prerrequisitos_originales": "AD-02",
+      "resultados_de_aprendizaje_medibles": [
+        "Demostrar DC Locator y vinculación de cliente a sitio",
+        "Discriminar fallo DNS, red y tiempo"
+      ],
+      "criterio_dominio": "Diagnosticar DC no óptimo y SRV/hora",
+      "evaluacion_sugerida": {
+        "prueba_positiva": true,
+        "prueba_negativa": true,
+        "requiere_evidencia": true,
+        "requiere_rollback": true,
+        "nota_aprobacion": 80
+      },
+      "tiempo_estimado_horas": [
+        6,
+        9
+      ],
+      "fuentes_ids": [
+        "A03",
+        "A04",
+        "A05"
+      ],
+      "laboratorios_ids": [],
+      "estado": "propuesta; no validado en laboratorio"
+    },
+    {
+      "id": "AD-04",
+      "titulo": "LDAP, objetos y PowerShell AD",
+      "prerrequisitos": [
+        "AD-02",
+        "WIN-06"
+      ],
+      "prerrequisitos_originales": "AD-02, WIN-06",
+      "resultados_de_aprendizaje_medibles": [
+        "Consultar objetos/atributos con módulo AD y LDAP de forma mínima",
+        "Distinguir SID, GUID, DN, UPN"
+      ],
+      "criterio_dominio": "Inventario read-only con DN/GUID/SID y filtro correcto",
+      "evaluacion_sugerida": {
+        "prueba_positiva": true,
+        "prueba_negativa": true,
+        "requiere_evidencia": true,
+        "requiere_rollback": true,
+        "nota_aprobacion": 80
+      },
+      "tiempo_estimado_horas": [
+        5,
+        8
+      ],
+      "fuentes_ids": [
+        "A01",
+        "A02"
+      ],
+      "laboratorios_ids": [
+        "AD-L03"
+      ],
+      "estado": "propuesta; no validado en laboratorio"
+    },
+    {
+      "id": "AD-05",
+      "titulo": "Kerberos, NTLM, SPN y servicios",
+      "prerrequisitos": [
+        "AD-03",
+        "AD-04"
+      ],
+      "prerrequisitos_originales": "AD-03, AD-04",
+      "resultados_de_aprendizaje_medibles": [
+        "Representar AS/TGS/AP y comprobar evidencias",
+        "Diferenciar Kerberos, NTLM y SPN incorrecto"
+      ],
+      "criterio_dominio": "Identificar protocolo y causa de un fallo de autenticación",
+      "evaluacion_sugerida": {
+        "prueba_positiva": true,
+        "prueba_negativa": true,
+        "requiere_evidencia": true,
+        "requiere_rollback": true,
+        "nota_aprobacion": 80
+      },
+      "tiempo_estimado_horas": [
+        9,
+        14
+      ],
+      "fuentes_ids": [
+        "A13",
+        "A14",
+        "A15"
+      ],
+      "laboratorios_ids": [
+        "AD-L05"
+      ],
+      "estado": "propuesta; no validado en laboratorio"
+    },
+    {
+      "id": "AD-06",
+      "titulo": "Grupos, autorización y ACL AD",
+      "prerrequisitos": [
+        "AD-04",
+        "WIN-03"
+      ],
+      "prerrequisitos_originales": "AD-04, WIN-03",
+      "resultados_de_aprendizaje_medibles": [
+        "Resolver pertenencia y derechos efectivos",
+        "Evaluar DACL/ACE heredada en OU y grupos"
+      ],
+      "criterio_dominio": "Resolver acceso efectivo y delegación mínima",
+      "evaluacion_sugerida": {
+        "prueba_positiva": true,
+        "prueba_negativa": true,
+        "requiere_evidencia": true,
+        "requiere_rollback": true,
+        "nota_aprobacion": 80
+      },
+      "tiempo_estimado_horas": [
+        7,
+        11
+      ],
+      "fuentes_ids": [
+        "A19",
+        "A22"
+      ],
+      "laboratorios_ids": [
+        "AD-L07"
+      ],
+      "estado": "propuesta; no validado en laboratorio"
+    },
+    {
+      "id": "AD-07",
+      "titulo": "GPO, SYSVOL, precedencia",
+      "prerrequisitos": [
+        "AD-03",
+        "AD-06"
+      ],
+      "prerrequisitos_originales": "AD-03, AD-06",
+      "resultados_de_aprendizaje_medibles": [
+        "Predecir precedencia, filtros e impacto",
+        "Acreditar GPC y GPT coherentes"
+      ],
+      "criterio_dominio": "Acreditar aplicación/denegación y corregir scope",
+      "evaluacion_sugerida": {
+        "prueba_positiva": true,
+        "prueba_negativa": true,
+        "requiere_evidencia": true,
+        "requiere_rollback": true,
+        "nota_aprobacion": 80
+      },
+      "tiempo_estimado_horas": [
+        8,
+        12
+      ],
+      "fuentes_ids": [
+        "A11",
+        "A12",
+        "A20"
+      ],
+      "laboratorios_ids": [
+        "AD-L04"
+      ],
+      "estado": "propuesta; no validado en laboratorio"
+    },
+    {
+      "id": "AD-08",
+      "titulo": "Replicación, FSMO y GC",
+      "prerrequisitos": [
+        "AD-03",
+        "AD-04"
+      ],
+      "prerrequisitos_originales": "AD-03, AD-04",
+      "resultados_de_aprendizaje_medibles": [
+        "Leer replicación con repadmin en dos DC",
+        "Explicar FSMO y convergencia de cambios"
+      ],
+      "criterio_dominio": "Explicar y diagnosticar desincronización entre DC",
+      "evaluacion_sugerida": {
+        "prueba_positiva": true,
+        "prueba_negativa": true,
+        "requiere_evidencia": true,
+        "requiere_rollback": true,
+        "nota_aprobacion": 80
+      },
+      "tiempo_estimado_horas": [
+        9,
+        14
+      ],
+      "fuentes_ids": [
+        "A06",
+        "A09",
+        "A10"
+      ],
+      "laboratorios_ids": [
+        "AD-L06"
+      ],
+      "estado": "propuesta; no validado en laboratorio"
+    },
+    {
+      "id": "AD-09",
+      "titulo": "Cuentas de servicio y delegación Kerberos",
+      "prerrequisitos": [
+        "AD-05",
+        "AD-06"
+      ],
+      "prerrequisitos_originales": "AD-05, AD-06",
+      "resultados_de_aprendizaje_medibles": [
+        "Restringir gMSA por host",
+        "Modelar delegación y riesgo de RBCD"
+      ],
+      "criterio_dominio": "Diseñar uso de gMSA y límites RBCD",
+      "evaluacion_sugerida": {
+        "prueba_positiva": true,
+        "prueba_negativa": true,
+        "requiere_evidencia": true,
+        "requiere_rollback": true,
+        "nota_aprobacion": 80
+      },
+      "tiempo_estimado_horas": [
+        7,
+        11
+      ],
+      "fuentes_ids": [
+        "A15",
+        "A17",
+        "A18"
+      ],
+      "laboratorios_ids": [
+        "AD-L09"
+      ],
+      "estado": "propuesta; no validado en laboratorio"
+    },
+    {
+      "id": "AD-10",
+      "titulo": "Trusts y multidominio",
+      "prerrequisitos": [
+        "AD-05",
+        "AD-06",
+        "AD-08"
+      ],
+      "prerrequisitos_originales": "AD-05, AD-08, AD-06",
+      "resultados_de_aprendizaje_medibles": [
+        "Identificar quién confía en quién",
+        "Probar acceso a recurso de prueba y denegación a tercero"
+      ],
+      "criterio_dominio": "Explicar dirección/acceso y pruebas negativas",
+      "evaluacion_sugerida": {
+        "prueba_positiva": true,
+        "prueba_negativa": true,
+        "requiere_evidencia": true,
+        "requiere_rollback": true,
+        "nota_aprobacion": 80
+      },
+      "tiempo_estimado_horas": [
+        7,
+        11
+      ],
+      "fuentes_ids": [
+        "A26",
+        "A27",
+        "A28"
+      ],
+      "laboratorios_ids": [
+        "AD-L10"
+      ],
+      "estado": "propuesta; no validado en laboratorio"
+    },
+    {
+      "id": "AD-11",
+      "titulo": "Tier 0, AdminSDHolder, LAPS",
+      "prerrequisitos": [
+        "AD-06",
+        "AD-07",
+        "AD-09"
+      ],
+      "prerrequisitos_originales": "AD-06, AD-07, AD-09",
+      "resultados_de_aprendizaje_medibles": [
+        "Clasificar controles efectivos Tier 0",
+        "Restringir administración privilegiada y lectura LAPS"
+      ],
+      "criterio_dominio": "Matriz de control Tier 0 y prueba de privilegios mínimos",
+      "evaluacion_sugerida": {
+        "prueba_positiva": true,
+        "prueba_negativa": true,
+        "requiere_evidencia": true,
+        "requiere_rollback": true,
+        "nota_aprobacion": 80
+      },
+      "tiempo_estimado_horas": [
+        9,
+        13
+      ],
+      "fuentes_ids": [
+        "A21",
+        "A22",
+        "A23",
+        "A24",
+        "A25"
+      ],
+      "laboratorios_ids": [
+        "AD-L08"
+      ],
+      "estado": "propuesta; no validado en laboratorio"
+    },
+    {
+      "id": "AD-12",
+      "titulo": "PKI, CA, plantillas y revocación",
+      "prerrequisitos": [
+        "AD-05",
+        "AD-06",
+        "AD-11"
+      ],
+      "prerrequisitos_originales": "AD-05, AD-06, AD-11",
+      "resultados_de_aprendizaje_medibles": [
+        "Inspeccionar EKU, SAN, ACL y publicación CA",
+        "Diseñar mapeo fuerte y revocación verificable"
+      ],
+      "criterio_dominio": "Auditoría de plantilla con confianza/mapeo fuerte",
+      "evaluacion_sugerida": {
+        "prueba_positiva": true,
+        "prueba_negativa": true,
+        "requiere_evidencia": true,
+        "requiere_rollback": true,
+        "nota_aprobacion": 80
+      },
+      "tiempo_estimado_horas": [
+        12,
+        18
+      ],
+      "fuentes_ids": [
+        "A29",
+        "A30",
+        "A31",
+        "A32",
+        "A33",
+        "A34"
+      ],
+      "laboratorios_ids": [
+        "AD-L11"
+      ],
+      "estado": "propuesta; no validado en laboratorio"
+    },
+    {
+      "id": "AD-13",
+      "titulo": "Diagnóstico AD integral",
+      "prerrequisitos": [
+        "AD-07",
+        "AD-08",
+        "AD-09",
+        "AD-12"
+      ],
+      "prerrequisitos_originales": "AD-07, AD-08, AD-09, AD-12",
+      "resultados_de_aprendizaje_medibles": [
+        "Correlacionar causa raíz entre DNS, GPO, Kerberos y replicación",
+        "Demostrar corrección y rollback"
+      ],
+      "criterio_dominio": "Caso multi-causa con pruebas de hipótesis",
+      "evaluacion_sugerida": {
+        "prueba_positiva": true,
+        "prueba_negativa": true,
+        "requiere_evidencia": true,
+        "requiere_rollback": true,
+        "nota_aprobacion": 80
+      },
+      "tiempo_estimado_horas": [
+        9,
+        14
+      ],
+      "fuentes_ids": [
+        "A04",
+        "A09",
+        "A12",
+        "A13"
+      ],
+      "laboratorios_ids": [
+        "AD-L12"
+      ],
+      "estado": "propuesta; no validado en laboratorio"
+    },
+    {
+      "id": "AD-14",
+      "titulo": "Recuperación AD (fundamentos)",
+      "prerrequisitos": [
+        "AD-08",
+        "AD-11",
+        "AD-12"
+      ],
+      "prerrequisitos_originales": "AD-08, AD-11, AD-12",
+      "resultados_de_aprendizaje_medibles": [
+        "Evaluar respaldo de System State, PKI, DSRM y SYSVOL",
+        "Justificar ejercicio de recuperación en aislamiento"
+      ],
+      "criterio_dominio": "Proponer plan y validaciones sin confundir snapshot/backup",
+      "evaluacion_sugerida": {
+        "prueba_positiva": true,
+        "prueba_negativa": true,
+        "requiere_evidencia": true,
+        "requiere_rollback": true,
+        "nota_aprobacion": 80
+      },
+      "tiempo_estimado_horas": [
+        7,
+        11
+      ],
+      "fuentes_ids": [
+        "A35",
+        "A36",
+        "A37",
+        "A38",
+        "A39",
+        "A40"
+      ],
+      "laboratorios_ids": [
+        "AD-L13"
+      ],
+      "estado": "propuesta; no validado en laboratorio"
+    },
+    {
+      "id": "AD-15",
+      "titulo": "Auditoría integradora de dominio",
+      "prerrequisitos": [
+        "AD-10",
+        "AD-13",
+        "AD-14"
+      ],
+      "prerrequisitos_originales": "AD-10, AD-13, AD-14",
+      "resultados_de_aprendizaje_medibles": [
+        "Integrar controles y hallazgos de arquitectura, acceso, PKI y continuidad",
+        "Entregar informe y retest"
+      ],
+      "criterio_dominio": "Informe verificable, plan de remediación y retest",
+      "evaluacion_sugerida": {
+        "prueba_positiva": true,
+        "prueba_negativa": true,
+        "requiere_evidencia": true,
+        "requiere_rollback": true,
+        "nota_aprobacion": 80
+      },
+      "tiempo_estimado_horas": [
+        10,
+        16
+      ],
+      "fuentes_ids": [
+        "A21",
+        "A30",
+        "A35"
+      ],
+      "laboratorios_ids": [
+        "AD-L14"
+      ],
+      "estado": "propuesta; no validado en laboratorio"
+    }
+  ],
+  "laboratorios_propuestos": [
+    {
+      "id": "AD-L01",
+      "nivel": "Intro",
+      "etapa": "AD-01",
+      "objetivo_medible": "Diseñar bosque/dominio/OU y justificar frontera de seguridad",
+      "topologia_propuesta": "Papel + `DC01` futuro",
+      "evidencias_y_criterio_de_aprobacion": "Diagrama + decisiones y tres anti-patrones",
+      "estimacion_horas": [
+        2,
+        3
+      ],
+      "preparacion": [
+        "Inventariar SO, nivel funcional, rol de cada VM y hora",
+        "Red aislada y datos sintéticos",
+        "Registrar estado anterior a cada cambio"
+      ],
+      "limites": [
+        "Solo laboratorio aislado autorizado",
+        "Ninguna instalación/ejecución realizada en esta investigación",
+        "No utilizar secretos reales ni exponer servicios del dominio a Internet"
+      ],
+      "pruebas": [
+        "Prueba positiva de funcionalidad esperada",
+        "Prueba negativa que evidencie ausencia de privilegios indebidos",
+        "Estado y evidencias antes/después"
+      ],
+      "limpieza_restauracion": "Registrar configuración original y rollback; respaldar DC conforme a VSS/System State si procede; snapshot no reemplaza backup.",
+      "costos_licencias": "Pendiente de verificar por edición, evaluación oficial y hardware; no inferir gratuidad.",
+      "estado": "disenado_no_ejecutado",
+      "fuentes_ids": [
+        "A01",
+        "A02",
+        "A03"
+      ]
+    },
+    {
+      "id": "AD-L02",
+      "nivel": "Básico",
+      "etapa": "AD-02",
+      "objetivo_medible": "Validar DC Locator, registros SRV y unión de W11",
+      "topologia_propuesta": "DC01 + W11-01",
+      "evidencias_y_criterio_de_aprobacion": "Consultas DNS, nltest, inicio de sesión funcional",
+      "estimacion_horas": [
+        3,
+        5
+      ],
+      "preparacion": [
+        "Inventariar SO, nivel funcional, rol de cada VM y hora",
+        "Red aislada y datos sintéticos",
+        "Registrar estado anterior a cada cambio"
+      ],
+      "limites": [
+        "Solo laboratorio aislado autorizado",
+        "Ninguna instalación/ejecución realizada en esta investigación",
+        "No utilizar secretos reales ni exponer servicios del dominio a Internet"
+      ],
+      "pruebas": [
+        "Prueba positiva de funcionalidad esperada",
+        "Prueba negativa que evidencie ausencia de privilegios indebidos",
+        "Estado y evidencias antes/después"
+      ],
+      "limpieza_restauracion": "Registrar configuración original y rollback; respaldar DC conforme a VSS/System State si procede; snapshot no reemplaza backup.",
+      "costos_licencias": "Pendiente de verificar por edición, evaluación oficial y hardware; no inferir gratuidad.",
+      "estado": "disenado_no_ejecutado",
+      "fuentes_ids": [
+        "A01",
+        "A04"
+      ]
+    },
+    {
+      "id": "AD-L03",
+      "nivel": "Básico",
+      "etapa": "AD-04",
+      "objetivo_medible": "Gestionar identidades, grupos y OU sin derechos de más",
+      "topologia_propuesta": "DC01 + W11-01",
+      "evidencias_y_criterio_de_aprobacion": "Inventario, grupo permitido/denegado, rollback",
+      "estimacion_horas": [
+        3,
+        4
+      ],
+      "preparacion": [
+        "Inventariar SO, nivel funcional, rol de cada VM y hora",
+        "Red aislada y datos sintéticos",
+        "Registrar estado anterior a cada cambio"
+      ],
+      "limites": [
+        "Solo laboratorio aislado autorizado",
+        "Ninguna instalación/ejecución realizada en esta investigación",
+        "No utilizar secretos reales ni exponer servicios del dominio a Internet"
+      ],
+      "pruebas": [
+        "Prueba positiva de funcionalidad esperada",
+        "Prueba negativa que evidencie ausencia de privilegios indebidos",
+        "Estado y evidencias antes/después"
+      ],
+      "limpieza_restauracion": "Registrar configuración original y rollback; respaldar DC conforme a VSS/System State si procede; snapshot no reemplaza backup.",
+      "costos_licencias": "Pendiente de verificar por edición, evaluación oficial y hardware; no inferir gratuidad.",
+      "estado": "disenado_no_ejecutado",
+      "fuentes_ids": [
+        "A01",
+        "A02"
+      ]
+    },
+    {
+      "id": "AD-L04",
+      "nivel": "Intermedio",
+      "etapa": "AD-07",
+      "objetivo_medible": "Configurar GPO acotada y demostrar filtro/precedencia",
+      "topologia_propuesta": "DC01 + dos clientes/OU",
+      "evidencias_y_criterio_de_aprobacion": "gpresult de ambos, aplicada/no aplicada",
+      "estimacion_horas": [
+        4,
+        6
+      ],
+      "preparacion": [
+        "Inventariar SO, nivel funcional, rol de cada VM y hora",
+        "Red aislada y datos sintéticos",
+        "Registrar estado anterior a cada cambio"
+      ],
+      "limites": [
+        "Solo laboratorio aislado autorizado",
+        "Ninguna instalación/ejecución realizada en esta investigación",
+        "No utilizar secretos reales ni exponer servicios del dominio a Internet"
+      ],
+      "pruebas": [
+        "Prueba positiva de funcionalidad esperada",
+        "Prueba negativa que evidencie ausencia de privilegios indebidos",
+        "Estado y evidencias antes/después"
+      ],
+      "limpieza_restauracion": "Registrar configuración original y rollback; respaldar DC conforme a VSS/System State si procede; snapshot no reemplaza backup.",
+      "costos_licencias": "Pendiente de verificar por edición, evaluación oficial y hardware; no inferir gratuidad.",
+      "estado": "disenado_no_ejecutado",
+      "fuentes_ids": [
+        "A11",
+        "A12",
+        "A20"
+      ]
+    },
+    {
+      "id": "AD-L05",
+      "nivel": "Intermedio",
+      "etapa": "AD-05",
+      "objetivo_medible": "Explicar ticket/servicio/SPN con evidencia",
+      "topologia_propuesta": "DC01 + W11 + servicio prueba",
+      "evidencias_y_criterio_de_aprobacion": "klist y logs; protocolo realmente usado",
+      "estimacion_horas": [
+        4,
+        6
+      ],
+      "preparacion": [
+        "Inventariar SO, nivel funcional, rol de cada VM y hora",
+        "Red aislada y datos sintéticos",
+        "Registrar estado anterior a cada cambio"
+      ],
+      "limites": [
+        "Solo laboratorio aislado autorizado",
+        "Ninguna instalación/ejecución realizada en esta investigación",
+        "No utilizar secretos reales ni exponer servicios del dominio a Internet"
+      ],
+      "pruebas": [
+        "Prueba positiva de funcionalidad esperada",
+        "Prueba negativa que evidencie ausencia de privilegios indebidos",
+        "Estado y evidencias antes/después"
+      ],
+      "limpieza_restauracion": "Registrar configuración original y rollback; respaldar DC conforme a VSS/System State si procede; snapshot no reemplaza backup.",
+      "costos_licencias": "Pendiente de verificar por edición, evaluación oficial y hardware; no inferir gratuidad.",
+      "estado": "disenado_no_ejecutado",
+      "fuentes_ids": [
+        "A13",
+        "A14",
+        "A15"
+      ]
+    },
+    {
+      "id": "AD-L06",
+      "nivel": "Intermedio",
+      "etapa": "AD-08",
+      "objetivo_medible": "Introducir DC02, site/subnet, medir convergencia",
+      "topologia_propuesta": "DC01 + DC02 + W11",
+      "evidencias_y_criterio_de_aprobacion": "repadmin, lecturas comparadas por DC, fallo sembrado",
+      "estimacion_horas": [
+        5,
+        8
+      ],
+      "preparacion": [
+        "Inventariar SO, nivel funcional, rol de cada VM y hora",
+        "Red aislada y datos sintéticos",
+        "Registrar estado anterior a cada cambio"
+      ],
+      "limites": [
+        "Solo laboratorio aislado autorizado",
+        "Ninguna instalación/ejecución realizada en esta investigación",
+        "No utilizar secretos reales ni exponer servicios del dominio a Internet"
+      ],
+      "pruebas": [
+        "Prueba positiva de funcionalidad esperada",
+        "Prueba negativa que evidencie ausencia de privilegios indebidos",
+        "Estado y evidencias antes/después"
+      ],
+      "limpieza_restauracion": "Registrar configuración original y rollback; respaldar DC conforme a VSS/System State si procede; snapshot no reemplaza backup.",
+      "costos_licencias": "Pendiente de verificar por edición, evaluación oficial y hardware; no inferir gratuidad.",
+      "estado": "disenado_no_ejecutado",
+      "fuentes_ids": [
+        "A06",
+        "A09",
+        "A10"
+      ]
+    },
+    {
+      "id": "AD-L07",
+      "nivel": "Intermedio",
+      "etapa": "AD-06",
+      "objetivo_medible": "Delegar helpdesk solo sobre OU sintética",
+      "topologia_propuesta": "DC01 + usuarios de prueba",
+      "evidencias_y_criterio_de_aprobacion": "Permiso positivo y negativa sobre cuenta protegida",
+      "estimacion_horas": [
+        4,
+        6
+      ],
+      "preparacion": [
+        "Inventariar SO, nivel funcional, rol de cada VM y hora",
+        "Red aislada y datos sintéticos",
+        "Registrar estado anterior a cada cambio"
+      ],
+      "limites": [
+        "Solo laboratorio aislado autorizado",
+        "Ninguna instalación/ejecución realizada en esta investigación",
+        "No utilizar secretos reales ni exponer servicios del dominio a Internet"
+      ],
+      "pruebas": [
+        "Prueba positiva de funcionalidad esperada",
+        "Prueba negativa que evidencie ausencia de privilegios indebidos",
+        "Estado y evidencias antes/después"
+      ],
+      "limpieza_restauracion": "Registrar configuración original y rollback; respaldar DC conforme a VSS/System State si procede; snapshot no reemplaza backup.",
+      "costos_licencias": "Pendiente de verificar por edición, evaluación oficial y hardware; no inferir gratuidad.",
+      "estado": "disenado_no_ejecutado",
+      "fuentes_ids": [
+        "A19",
+        "A22"
+      ]
+    },
+    {
+      "id": "AD-L08",
+      "nivel": "Avanzado",
+      "etapa": "AD-11",
+      "objetivo_medible": "Revisar derechos de GPO, cuentas protegidas y Tier 0",
+      "topologia_propuesta": "DC01 + cliente PAW ficticio",
+      "evidencias_y_criterio_de_aprobacion": "Grafo de permisos y plan de mínimo privilegio",
+      "estimacion_horas": [
+        4,
+        7
+      ],
+      "preparacion": [
+        "Inventariar SO, nivel funcional, rol de cada VM y hora",
+        "Red aislada y datos sintéticos",
+        "Registrar estado anterior a cada cambio"
+      ],
+      "limites": [
+        "Solo laboratorio aislado autorizado",
+        "Ninguna instalación/ejecución realizada en esta investigación",
+        "No utilizar secretos reales ni exponer servicios del dominio a Internet"
+      ],
+      "pruebas": [
+        "Prueba positiva de funcionalidad esperada",
+        "Prueba negativa que evidencie ausencia de privilegios indebidos",
+        "Estado y evidencias antes/después"
+      ],
+      "limpieza_restauracion": "Registrar configuración original y rollback; respaldar DC conforme a VSS/System State si procede; snapshot no reemplaza backup.",
+      "costos_licencias": "Pendiente de verificar por edición, evaluación oficial y hardware; no inferir gratuidad.",
+      "estado": "disenado_no_ejecutado",
+      "fuentes_ids": [
+        "A21",
+        "A22",
+        "A23",
+        "A24",
+        "A25"
+      ]
+    },
+    {
+      "id": "AD-L09",
+      "nivel": "Avanzado",
+      "etapa": "AD-09",
+      "objetivo_medible": "Diseñar y verificar gMSA en hosts designados",
+      "topologia_propuesta": "DC01 + SRV-APP",
+      "evidencias_y_criterio_de_aprobacion": "Test de host autorizado/no autorizado",
+      "estimacion_horas": [
+        4,
+        6
+      ],
+      "preparacion": [
+        "Inventariar SO, nivel funcional, rol de cada VM y hora",
+        "Red aislada y datos sintéticos",
+        "Registrar estado anterior a cada cambio"
+      ],
+      "limites": [
+        "Solo laboratorio aislado autorizado",
+        "Ninguna instalación/ejecución realizada en esta investigación",
+        "No utilizar secretos reales ni exponer servicios del dominio a Internet"
+      ],
+      "pruebas": [
+        "Prueba positiva de funcionalidad esperada",
+        "Prueba negativa que evidencie ausencia de privilegios indebidos",
+        "Estado y evidencias antes/después"
+      ],
+      "limpieza_restauracion": "Registrar configuración original y rollback; respaldar DC conforme a VSS/System State si procede; snapshot no reemplaza backup.",
+      "costos_licencias": "Pendiente de verificar por edición, evaluación oficial y hardware; no inferir gratuidad.",
+      "estado": "disenado_no_ejecutado",
+      "fuentes_ids": [
+        "A15",
+        "A17",
+        "A18"
+      ]
+    },
+    {
+      "id": "AD-L10",
+      "nivel": "Avanzado",
+      "etapa": "AD-10",
+      "objetivo_medible": "Diferenciar trust de permiso sobre recurso",
+      "topologia_propuesta": "Dos dominios/bosques aislados",
+      "evidencias_y_criterio_de_aprobacion": "Acceso permitido/denegado y explicación de dirección",
+      "estimacion_horas": [
+        5,
+        9
+      ],
+      "preparacion": [
+        "Inventariar SO, nivel funcional, rol de cada VM y hora",
+        "Red aislada y datos sintéticos",
+        "Registrar estado anterior a cada cambio"
+      ],
+      "limites": [
+        "Solo laboratorio aislado autorizado",
+        "Ninguna instalación/ejecución realizada en esta investigación",
+        "No utilizar secretos reales ni exponer servicios del dominio a Internet"
+      ],
+      "pruebas": [
+        "Prueba positiva de funcionalidad esperada",
+        "Prueba negativa que evidencie ausencia de privilegios indebidos",
+        "Estado y evidencias antes/después"
+      ],
+      "limpieza_restauracion": "Registrar configuración original y rollback; respaldar DC conforme a VSS/System State si procede; snapshot no reemplaza backup.",
+      "costos_licencias": "Pendiente de verificar por edición, evaluación oficial y hardware; no inferir gratuidad.",
+      "estado": "disenado_no_ejecutado",
+      "fuentes_ids": [
+        "A26",
+        "A27",
+        "A28"
+      ]
+    },
+    {
+      "id": "AD-L11",
+      "nivel": "Avanzado",
+      "etapa": "AD-12",
+      "objetivo_medible": "Auditar plantilla y CA, emisión autorizada",
+      "topologia_propuesta": "DC01 + CA01 + cliente",
+      "evidencias_y_criterio_de_aprobacion": "ACL/EKU/publicación, solicitud piloto, negativa",
+      "estimacion_horas": [
+        6,
+        10
+      ],
+      "preparacion": [
+        "Inventariar SO, nivel funcional, rol de cada VM y hora",
+        "Red aislada y datos sintéticos",
+        "Registrar estado anterior a cada cambio"
+      ],
+      "limites": [
+        "Solo laboratorio aislado autorizado",
+        "Ninguna instalación/ejecución realizada en esta investigación",
+        "No utilizar secretos reales ni exponer servicios del dominio a Internet"
+      ],
+      "pruebas": [
+        "Prueba positiva de funcionalidad esperada",
+        "Prueba negativa que evidencie ausencia de privilegios indebidos",
+        "Estado y evidencias antes/después"
+      ],
+      "limpieza_restauracion": "Registrar configuración original y rollback; respaldar DC conforme a VSS/System State si procede; snapshot no reemplaza backup.",
+      "costos_licencias": "Pendiente de verificar por edición, evaluación oficial y hardware; no inferir gratuidad.",
+      "estado": "disenado_no_ejecutado",
+      "fuentes_ids": [
+        "A29",
+        "A30",
+        "A31",
+        "A32",
+        "A33",
+        "A34"
+      ]
+    },
+    {
+      "id": "AD-L12",
+      "nivel": "Avanzado",
+      "etapa": "AD-13",
+      "objetivo_medible": "Diagnosticar fallos DNS/GPO/replicación mezclados",
+      "topologia_propuesta": "DC01 + DC02 + W11",
+      "evidencias_y_criterio_de_aprobacion": "Cronología, causa raíz, evidencia remediación",
+      "estimacion_horas": [
+        5,
+        8
+      ],
+      "preparacion": [
+        "Inventariar SO, nivel funcional, rol de cada VM y hora",
+        "Red aislada y datos sintéticos",
+        "Registrar estado anterior a cada cambio"
+      ],
+      "limites": [
+        "Solo laboratorio aislado autorizado",
+        "Ninguna instalación/ejecución realizada en esta investigación",
+        "No utilizar secretos reales ni exponer servicios del dominio a Internet"
+      ],
+      "pruebas": [
+        "Prueba positiva de funcionalidad esperada",
+        "Prueba negativa que evidencie ausencia de privilegios indebidos",
+        "Estado y evidencias antes/después"
+      ],
+      "limpieza_restauracion": "Registrar configuración original y rollback; respaldar DC conforme a VSS/System State si procede; snapshot no reemplaza backup.",
+      "costos_licencias": "Pendiente de verificar por edición, evaluación oficial y hardware; no inferir gratuidad.",
+      "estado": "disenado_no_ejecutado",
+      "fuentes_ids": [
+        "A04",
+        "A09",
+        "A12",
+        "A13"
+      ]
+    },
+    {
+      "id": "AD-L13",
+      "nivel": "Avanzado",
+      "etapa": "AD-14",
+      "objetivo_medible": "Diseñar backup de AD DS y PKI, ensayo aislado posterior",
+      "topologia_propuesta": "DC01 + CA01 + almacenamiento aislado",
+      "evidencias_y_criterio_de_aprobacion": "Plan de recuperación/validación y pruebas de restauración futuras",
+      "estimacion_horas": [
+        5,
+        9
+      ],
+      "preparacion": [
+        "Inventariar SO, nivel funcional, rol de cada VM y hora",
+        "Red aislada y datos sintéticos",
+        "Registrar estado anterior a cada cambio"
+      ],
+      "limites": [
+        "Solo laboratorio aislado autorizado",
+        "Ninguna instalación/ejecución realizada en esta investigación",
+        "No utilizar secretos reales ni exponer servicios del dominio a Internet"
+      ],
+      "pruebas": [
+        "Prueba positiva de funcionalidad esperada",
+        "Prueba negativa que evidencie ausencia de privilegios indebidos",
+        "Estado y evidencias antes/después"
+      ],
+      "limpieza_restauracion": "Registrar configuración original y rollback; respaldar DC conforme a VSS/System State si procede; snapshot no reemplaza backup.",
+      "costos_licencias": "Pendiente de verificar por edición, evaluación oficial y hardware; no inferir gratuidad.",
+      "estado": "disenado_no_ejecutado",
+      "fuentes_ids": [
+        "A35",
+        "A36",
+        "A37",
+        "A38",
+        "A39",
+        "A40"
+      ]
+    },
+    {
+      "id": "AD-L14",
+      "nivel": "Integrador",
+      "etapa": "AD-15",
+      "objetivo_medible": "Auditoría de postura: ACL, trust, SPN, LAPS, CA y DC",
+      "topologia_propuesta": "Topología ampliada",
+      "evidencias_y_criterio_de_aprobacion": "Informe + prioridades + retest propuesto",
+      "estimacion_horas": [
+        7,
+        11
+      ],
+      "preparacion": [
+        "Inventariar SO, nivel funcional, rol de cada VM y hora",
+        "Red aislada y datos sintéticos",
+        "Registrar estado anterior a cada cambio"
+      ],
+      "limites": [
+        "Solo laboratorio aislado autorizado",
+        "Ninguna instalación/ejecución realizada en esta investigación",
+        "No utilizar secretos reales ni exponer servicios del dominio a Internet"
+      ],
+      "pruebas": [
+        "Prueba positiva de funcionalidad esperada",
+        "Prueba negativa que evidencie ausencia de privilegios indebidos",
+        "Estado y evidencias antes/después"
+      ],
+      "limpieza_restauracion": "Registrar configuración original y rollback; respaldar DC conforme a VSS/System State si procede; snapshot no reemplaza backup.",
+      "costos_licencias": "Pendiente de verificar por edición, evaluación oficial y hardware; no inferir gratuidad.",
+      "estado": "disenado_no_ejecutado",
+      "fuentes_ids": [
+        "A21",
+        "A30",
+        "A35"
+      ]
+    }
+  ],
+  "controles_y_evidencias": [
+    {
+      "control": "Tier 0",
+      "objetivo": "Evitar que credenciales privilegiadas se usen en equipos no confiables",
+      "evidencia": "Matriz de cuentas, PAWs, inicio de sesión y admin rights",
+      "fuente_id": "A21"
+    },
+    {
+      "control": "GPO",
+      "objetivo": "Restringir editores/enlaces y auditar ámbito de filtrado",
+      "evidencia": "GPMC, ACL y prueba grupo autorizado/no autorizado",
+      "fuente_id": "A12"
+    },
+    {
+      "control": "Certificados",
+      "objetivo": "Acotar uso de plantillas y emisión de autenticación",
+      "evidencia": "Plantilla, EKU, DACL, subject/SAN, CA y prueba de emisión",
+      "fuente_id": "A30"
+    },
+    {
+      "control": "Trusts",
+      "objetivo": "Verificar sentido y permisos por recurso",
+      "evidencia": "Lectura trust + prueba de acceso y denegación",
+      "fuente_id": "A27"
+    },
+    {
+      "control": "gMSA",
+      "objetivo": "Limitar hosts que pueden usar la cuenta",
+      "evidencia": "Grupo/host, estado service account y prueba negativa",
+      "fuente_id": "A17"
+    },
+    {
+      "control": "LAPS",
+      "objetivo": "Proteger lectura y recuperación de secretos locales",
+      "evidencia": "Política, principal de descifrado y rotación de prueba",
+      "fuente_id": "A24"
+    },
+    {
+      "control": "LDAP",
+      "objetivo": "Endurecer firma y vinculación al canal TLS tras inventario",
+      "evidencia": "Clientes, logs de DC, validación piloto",
+      "fuente_id": "A16"
+    },
+    {
+      "control": "Backup",
+      "objetivo": "Ensayar restauración de directorio en red aislada",
+      "evidencia": "Backup verificable y procedimiento por etapas",
+      "fuente_id": "A36"
+    },
+    {
+      "control": "DFS Replication",
+      "objetivo": "Confirmar SYSVOL en DC distintos",
+      "evidencia": "DFSR, shares, integridad/versión GPO",
+      "fuente_id": "A20"
+    },
+    {
+      "control": "DNS",
+      "objetivo": "Comprobar registros de servicio y sitio correcto",
+      "evidencia": "Resolución SRV, DC Locator y logs",
+      "fuente_id": "A04"
+    }
+  ],
+  "eventos_de_origen_indicativos": [
+    {
+      "id": 4768,
+      "fuente": "Security - DC",
+      "condicion": "Audit Kerberos Authentication Service",
+      "limitacion": "Solicitud TGT no acredita acceso final",
+      "fuente_id": "A41"
+    },
+    {
+      "id": 4769,
+      "fuente": "Security - DC",
+      "condicion": "Audit Kerberos Service Ticket Operations",
+      "limitacion": "Solicitud TGS no prueba ejecución en servicio",
+      "fuente_id": "A41"
+    },
+    {
+      "id": 4771,
+      "fuente": "Security - DC",
+      "condicion": "Audit Kerberos Authentication Service (fallos)",
+      "limitacion": "Preautenticación fallida no demuestra ataque",
+      "fuente_id": "A41"
+    },
+    {
+      "id": 4776,
+      "fuente": "Security - DC",
+      "condicion": "Audit Credential Validation y escenario NTLM",
+      "limitacion": "Validación de credencial no demuestra sesión ni intención",
+      "fuente_id": "A41"
+    },
+    {
+      "id": 5136,
+      "fuente": "Security - DC",
+      "condicion": "Audit Directory Service Changes + SACL aplicable",
+      "limitacion": "Solo ciertos cambios según objeto/esquema; intención desconocida",
+      "fuente_id": "A42"
+    },
+    {
+      "id": 4662,
+      "fuente": "Security - DC",
+      "condicion": "Audit Directory Service Access + SACL del objeto",
+      "limitacion": "Registro condicionado por audit policy y SACL",
+      "fuente_id": "A41"
+    },
+    {
+      "id": 4887,
+      "fuente": "Security - CA",
+      "condicion": "Audit Certification Services según habilitación",
+      "limitacion": "Emisión de certificado no demuestra uso posterior",
+      "fuente_id": "A31"
+    }
+  ],
+  "referencias_cruzadas": [
+    {
+      "destino": "Tanda 1 Windows",
+      "tipo": "prerrequisito",
+      "temas": [
+        "tokens",
+        "Windows local",
+        "PowerShell",
+        "servicios",
+        "NTFS"
+      ]
+    },
+    {
+      "destino": "Redes",
+      "tipo": "prerrequisito",
+      "temas": [
+        "DNS",
+        "IPv4",
+        "TCP/UDP",
+        "latencia y segmentación"
+      ]
+    },
+    {
+      "destino": "Microsoft Sentinel + Defender XDR",
+      "tipo": "enlace_sin_duplicacion",
+      "temas": [
+        "fuentes de eventos AD",
+        "auditoría de origen",
+        "investigación de identidad"
+      ]
+    },
+    {
+      "destino": "Splunk SOC",
+      "tipo": "enlace_sin_duplicacion",
+      "temas": [
+        "registros de Windows/AD",
+        "campos y procedencia de eventos"
+      ]
+    },
+    {
+      "destino": "Linux",
+      "tipo": "enlace_futuro",
+      "temas": [
+        "Kerberos cross-platform",
+        "LDAP cliente",
+        "DNS",
+        "SSSD solo si corresponde"
+      ]
+    },
+    {
+      "destino": "Simulador SOC",
+      "tipo": "enlace",
+      "temas": [
+        "fallo LDAP vs ataque",
+        "cambio de grupo",
+        "fallos de replicación"
+      ]
+    }
+  ],
+  "rubrica_por_laboratorio": {
+    "puntos_totales": 100,
+    "criterios": [
+      {
+        "concepto": "modelo y precondiciones",
+        "puntos": 20
+      },
+      {
+        "concepto": "ejecución o diagnóstico",
+        "puntos": 25
+      },
+      {
+        "concepto": "evidencia de origen",
+        "puntos": 20
+      },
+      {
+        "concepto": "prueba negativa y acceso mínimo",
+        "puntos": 15
+      },
+      {
+        "concepto": "rollback y continuidad",
+        "puntos": 10
+      },
+      {
+        "concepto": "explicación defensa y auditoría",
+        "puntos": 10
+      }
+    ],
+    "aprobacion_propuesta_puntos": 80,
+    "criticos": [
+      "Autorización y aislamiento",
+      "No exposición de secretos",
+      "Restauración o reversibilidad",
+      "Evidencia mínima"
+    ]
+  },
+  "carga_estimativa_total_etapas_horas": [
+    116,
+    180
+  ],
+  "riesgos_pendientes": [
+    "No VM ejecutada",
+    "Sin auditoría de 155 apuntes",
+    "Licencias/costes sin validar",
+    "Migración 2025 dMSA depende de versión",
+    "Comprobar auditoría local y SACL para eventos",
+    "Comprobar compatibilidad LDAP signing/CBT",
+    "Validar PKI fuerte según KB vigente",
+    "No convertir snapshots en backup",
+    "No duplicar SIEM"
+  ],
+  "secciones_informe": [
+    {
+      "numero": 0,
+      "titulo": "Resumen ejecutivo y hallazgos de mayor importancia",
+      "contenido_markdown": "**AD DS no es un servidor ni un protocolo:** es un servicio de directorio distribuido con múltiples fronteras y dependencias: identidad, DNS, Kerberos, LDAP, RPC, tiempo, replicación, políticas, PKI, control de acceso y recuperación. Un estudiante que sabe enumerar usuarios o explotar una delegación no necesariamente sabe operar, reparar o proteger un bosque.\n\n1. **Bosque ≠ dominio ≠ OU ≠ sitio.** Un bosque comparte esquema y configuración; una OU organiza y delega dentro del dominio; un sitio representa proximidad de red, no un límite administrativo equivalente al bosque. [A01–A03]\n2. **El límite de seguridad principal de AD DS es el bosque.** La separación en dominios y OUs no sustituye una frontera forestal para requisitos estrictos de aislamiento. Los trusts hacen interoperables las identidades pero no conceden automáticamente permisos sobre recursos. [A02, A27, A28]\n3. **DNS y sincronización temporal son dependencias funcionales, no añadidos.** Un cliente puede resolver una IP y, aun así, fallar al localizar un DC apropiado, iniciar Kerberos o aplicar GPO. [A04, A05, A15]\n4. **La replicación de AD no es la replicación de SYSVOL.** AD DS distribuye objetos/atributos; las GPO mantienen componentes tanto en AD como en SYSVOL, normalmente replicado mediante DFSR. Divergencia de ambas capas puede producir políticas inconsistentes. [A06, A11, A20]\n5. **Windows Server 2025 añade un nivel funcional 2025 real.** No confundir SO del DC con nivel funcional: Server 2019/2022 tienen como máximo el nivel funcional 2016; un bosque con nivel funcional 2025 solo admite DC Server 2025. [A07]\n6. **Kerberos no es simplemente “más seguro que NTLM” en todas las circunstancias.** Es necesario entender SPN, PAC, tickets, delegación, tipos de cifrado y fallbacks, y demostrar qué protocolo se utilizó en cada caso. [A12, A13]\n7. **ACL y Tier 0 son rutas de control.** Una cuenta fuera de Domain Admins puede tener control efectivo de objetos críticos mediante permisos heredados, control de GPO, AD CS o sistemas que administran DCs. El etiquetado Tier 0 se determina por control real, no por nombre de OU. [A21–A23]\n8. **AD CS es infraestructura de identidad.** Una CA que emite credenciales de autenticación, sus claves privadas, políticas, administradores y plantillas relevantes merecen tratamiento Tier 0 cuando pueden afectar a la identidad del dominio. [A21, A29–A33]\n9. **Las modificaciones de mapeo fuerte de certificados ya entraron en aplicación obligatoria.** La referencia KB5014754 indica finalización de compatibilidad de la clave `StrongCertificateBindingEnforcement` a partir de la actualización del 09/09/2025: los tutoriales que proponen desactivar permanentemente el endurecimiento están obsoletos. [A34]\n10. **Una copia de seguridad no equivale a recuperación demostrada.** Incluye recuperación de System State, SYSVOL, CA y plan forestal, con dependencias externas y prueba en aislamiento. El tratamiento integral corresponde a la tanda 4. [A35–A38]\n\n**Decisión curricular:** primero arquitectura y operación básica de un dominio de laboratorio; después autenticación/GPO/replicación; luego delegación, PKI y hardening; por último auditoría integrada, diagnóstico y recuperación. No usar una lista de ataques como índice de aprendizaje."
+    },
+    {
+      "numero": 1,
+      "titulo": "Modelo de Active Directory: términos y fronteras",
+      "contenido_markdown": "### 1.1. Servicio, base de datos, estructura y protocolos\n\n- **AD DS:** almacén lógico distribuido de objetos (usuarios, grupos, equipos, servicios, políticas y más). Los DC ofrecen autenticación y consultas/escrituras autorizadas al directorio. [A01]\n- **Bosque:** conjunto de dominios que comparten esquema, configuración y catálogo global de alcance forestal. Limita la confianza administrativa efectiva y la capacidad de control de identidad dentro del bosque. [A02]\n- **Dominio:** ámbito de identidades, directivas de dominio y replicación de la partición de dominio. No asumir aislamiento pleno entre dominios del mismo bosque. [A02]\n- **OU:** contenedor para delegación y aplicación de políticas; no es un límite de seguridad por sí mismo. Distinto de contenedores integrados como `CN=Users` y `CN=Computers` respecto a enlaces GPO. [A02, A10]\n- **DC escribible:** aloja particiones y atiende escrituras autorizadas; DC adicionales ofrecen redundancia, pero no corrigen por sí solos errores lógicos replicados. [A01, A06]\n- **RODC:** DC de solo lectura con modelo especial de caché de contraseñas y escenarios de sucursales. Tratar como extensión avanzada, no como equivalente funcional de un DC escribible.\n- **Catálogo global (GC):** ofrece información parcial sobre objetos de otros dominios del bosque; importante en búsquedas y pertenencia a grupos universales. La existencia de GC no significa copia completa de todas las particiones. [A06]\n- **LDAP/LDAPS:** protocolo/interfaz de consulta y operaciones de directorio; LDAP no equivale a AD DS ni a autenticación Windows. LDAP con TLS y LDAP firmado no son conceptos intercambiables. [A19]\n\n### 1.2. Objetos, atributos y particiones\n\nLos objetos tienen clases y atributos definidos por el **esquema**; las particiones (`naming contexts`) separan ámbitos de replicación. Particiones base: `Schema`, `Configuration` y partición de dominio; pueden existir particiones de aplicación (por ejemplo, DNS). El atributo **`distinguishedName`** identifica la posición actual del objeto; un **`objectGUID`** identifica al objeto más establemente ante cambios de nombre/movimiento, mientras **`objectSid`** identifica al principal de seguridad cuando procede. No todos los objetos tienen SID ni todas las propiedades son modificables por cualquiera.\n\n| Concepto | Ejemplo sintético | Significado práctico |\n|---|---|---|\n| DN | `CN=Ana,OU=Ventas,DC=lab,DC=example` | Ruta del objeto en el directorio; puede cambiar |\n| UPN | `ana@lab.example` | Nombre de inicio de sesión; no necesariamente coincide con correo |\n| sAMAccountName | `ana` | Identificador de compatibilidad habitual |\n| objectGUID | GUID reservado del objeto | Seguimiento lógico de modificaciones |\n| objectSid | SID del principal | Autorización de identidades |\n| memberOf / member | Atributos de pertenencia | La pertenencia anidada exige expansión para evaluar permisos |\n| servicePrincipalName | `HTTP/app.lab.example` | Identificador de instancia de servicio para Kerberos |\n| nTSecurityDescriptor | Descriptor de seguridad | Owner/DACL/SACL y su interpretación |\n| gPLink / gPOptions | Atributos del contenedor | Enlaces GPO, herencia y alcance |\n\n**Comprobación medible:** dado un DN, reconstruir ámbito de dominio/OU; identificar qué atributos son estables y cuáles pueden cambiar, qué particiones se replican a qué DC y cuándo una lectura puede ser parcial.\n\n### 1.3. Arquitectura física\n\nSeparar **topología lógica** (dominios, OUs, identidades) de **topología física** (sitios, subredes, enlaces, DC, latencia). En un diseño con dos ubicaciones se debe documentar: redes, subredes asignadas a sitios, enlaces/costes, DC/GC/DNS por sitio, tolerancia a caída, latencia esperada y servicio durante la pérdida del enlace WAN. [A02, A03, A06]\n\n### 1.4. Niveles funcionales y compatibilidad\n\n| Nivel del bosque/dominio | DC Windows Server 2025 | DC Server 2022/2019/2016 | Consideraciones |\n|---|---|---|---|\n| 2025 | Sí | No | Todos los DC compatibles deben ser 2025; capacidades nuevas como opción de páginas 32K |\n| 2016 | Sí | Sí | Compatibilidad moderna con DC 2016–2025 |\n| 2012 R2 | **No** para DC 2025 | Depende de versión (2022/2019/2016 compatibles según matriz) | Planificar elevación antes de introducir DC 2025 |\n\n**Dato verificable:** en Server 2019/2022 no existe nivel funcional “2019/2022”; se utiliza el de 2016. Subir el nivel funcional requiere estado de replicación sano, compatibilidad de DC y plan de cambio; no elevarlo solo por usar un DC nuevo. [A07, A08]"
+    },
+    {
+      "numero": 2,
+      "titulo": "Diseño y despliegue de un dominio de laboratorio",
+      "contenido_markdown": "### 2.1. Decisiones previas\n\nUn laboratorio mínimo: `DC01` (Windows Server 2025; DNS y AD DS), `W11-01` (Windows 11), red **aislada** `LAB-AD` con salida a Internet opcional y muy controlada; expansión a `DC02`, `SRV-APP` y segundo sitio para pruebas posteriores. Usar un namespace reservado como `lab.example` **solo de forma ilustrativa**; elegir nombre DNS que no colisione con una infraestructura real y documentar resolución. Definir IP fija del DC, DNS interno del cliente, DNS forwarders si procede, NTP, credenciales de administración separadas y estrategia de snapshots/backups de laboratorio.\n\n**No se ha desplegado el laboratorio.** Los costes/licencias, recursos de RAM y compatibilidad de hipervisor dependerán del hardware y edición concreta; verificar antes de ejecutarlo.\n\n### 2.2. Promoción y validación operativa\n\nSecuencia de diseño (no ejecución): prevalidar IP/DNS/hostname/actualizaciones → instalar rol AD DS → promover a DC/crear bosque → validar registros SRV y servicios → crear OU, usuario/grupo y estación miembro → comprobar inicios de sesión, recursos, GPO y auditoría. Capturar siempre estado previo y posterior.\n\n| Validación | Herramienta orientativa de **lectura** | Evidencia esperada |\n|---|---|---|\n| Existencia y funcionalidad de DC | `Get-ADDomainController -Filter *`, `dcdiag` | DC y pruebas categorizadas; investigar fallos concretos |\n| Dominio y bosque | `Get-ADDomain`, `Get-ADForest` | FQDN, niveles, DC, GC, roles |\n| DNS del dominio | `Resolve-DnsName -Type SRV _ldap._tcp.dc._msdcs.lab.example` | Respuestas SRV plausibles y resolubles |\n| Localización DC desde cliente | `nltest /dsgetdc:lab.example` | DC encontrado; revisar sitio y flags |\n| Salud inicial replicación | `repadmin /replsummary` | Sin fallos en topología con varios DC; no aporta utilidad con un solo DC para replicación entre DC |\n| SYSVOL y NETLOGON | `Get-SmbShare` desde DC, `Test-Path \\\\DC01\\SYSVOL` | Recursos publicados y accesibles según permisos |\n| Canal seguro | `Test-ComputerSecureChannel` **desde un miembro** | Resultado saludable; no asumir que es herramienta de diagnóstico DC |\n\n**Distinción:** comandos de consulta y diagnóstico pueden requerir permisos; no deben emitirse automáticamente contra un dominio de producción sin alcance autorizado."
+    },
+    {
+      "numero": 3,
+      "titulo": "DNS, DC Locator, catálogo global, sitios y tiempo",
+      "contenido_markdown": "### 3.1. Por qué DNS es una dependencia de identidad\n\nEl **DC Locator** utiliza, entre otros mecanismos, registros SRV de DNS para descubrir servicios de directorio y un DC adecuado; Netlogon puede almacenar el resultado en caché. No basta con que `ping dc01` tenga respuesta. Registros orientativos:\n\n- `_ldap._tcp.dc._msdcs.<dominio>`: localización de DC para servicio LDAP.\n- `_kerberos._tcp.<dominio>`: descubrimiento de KDC.\n- `_ldap._tcp.<sitio>._sites.dc._msdcs.<dominio>`: selección sensible a sitio.\n- `_gc._tcp.<bosque>`: acceso a catálogo global cuando proceda.\n\n**Síntomas frecuentes:** inicio de sesión intermitente, cliente localizando DC remoto, GPO que no se aplica, unión al dominio fallida o errores de replicación. Diagnóstico ordenado: IP y adaptador → servidores DNS usados → resolución SRV/A → respuesta TCP/UDP según servicio → localización DC/sitio → hora → autenticación y política. [A04, A05]\n\n### 3.2. Sites, subnets y links\n\n- Los **sitios** agrupan subredes con conectividad razonable para optimizar afinidad de cliente y replicación.\n- Los **site links** describen rutas lógicas, costes, intervalos y calendarios entre sitios. No son el trazado físico del cable ni un firewall.\n- KCC crea conexiones de replicación y puede reajustarlas; **no se deben crear enlaces/conexiones manuales sin evidencia de necesidad**. [A06, A09]\n- Un cliente cuya subred no está asignada puede elegir DC no óptimo. Diagnosticar sitio con `nltest /dsgetsite`, y documentar la topología.\n\n### 3.3. Hora, Kerberos y sincronización\n\nLa sincronización horaria afecta a Kerberos y a la causalidad forense. Diferenciar **zona horaria**, **UTC de los logs** y **desfase de reloj real**. Revisar jerarquía de tiempo de dominio, PDC Emulator y fuente confiable. Herramientas como `w32tm /query /status` y `/query /source` sirven para evidenciar estado; no cambiar servidores NTP sin aprobación. Un fallo temporal debe demostrarse, no inferirse exclusivamente de “no puedo iniciar sesión”."
+    },
+    {
+      "numero": 4,
+      "titulo": "Replicación, FSMO, GC y SYSVOL",
+      "contenido_markdown": "### 4.1. Replicación de AD DS\n\nReplicación **multimaster** para la mayoría de escrituras, condicionada por los roles especiales FSMO. Estudiar `USN`, `invocationID`, metadatos/versionado, vectores de actualización, objetos lingering/tombstones y convergencia. `repadmin /showrepl` permite examinar conexiones entrantes y fallos por partición; `repadmin /replsummary` ofrece un resumen. No confundir un último éxito reciente con consistencia semántica universal. [A06, A09]\n\n**Diagnóstico por hipótesis** de replicación:\n\n1. Confirmar existencia y accesibilidad de ambos DC y particiones.\n2. Revisar DNS, TCP/RPC, autenticación Kerberos, tiempo, errores de red y credenciales.\n3. Relacionar mensajes de `Directory Service`, `DNS Server`, `DFS Replication` y resultado `repadmin`.\n4. Determinar alcance (un DC, una partición, un site link o todo el bosque).\n5. Proponer corrección de mínimo impacto, respaldo previo y criterio de rollback.\n6. Tras corregir, verificar convergencia con lectura desde DC distintos.\n\nMicrosoft identifica DNS, red y seguridad como causas habituales de fallos de replicación. [A09]\n\n### 4.2. Los cinco roles FSMO (no son cinco “superadministradores”)\n\n| Rol | Ámbito | Propósito / síntoma de fallo | Evidencia de diagnóstico |\n|---|---|---|---|\n| Schema Master | Bosque | Coordina modificaciones al esquema | `Get-ADForest` o `netdom query fsmo` |\n| Domain Naming Master | Bosque | Adición/eliminación de dominios o particiones según función | Dueño del rol y conectividad |\n| RID Master | Dominio | Asigna pools RID a DC para crear SIDs únicos | Errores de asignación RID; pools restantes |\n| PDC Emulator | Dominio | Funciones de referencia para contraseña/tiempo y compatibilidad | PDC, W32time, autenticación |\n| Infrastructure Master | Dominio | Actualiza referencias a objetos de otros dominios | Dependencia de GC y configuración multi-dominio |\n\n**Regla operativa:** **transferir** roles de forma controlada si el DC anterior funciona; **seize** solo tras analizar pérdida prolongada y las consecuencias de reintroducir al anterior. Las operaciones de rol son disruptivas y no pertenecen a una práctica introductoria. [A10]\n\n### 4.3. SYSVOL, DFSR y consistencia de GPO\n\nUna GPO tiene un **Group Policy Container (GPC)** en AD y un **Group Policy Template (GPT)** en SYSVOL. AD replica GPC; DFSR replica SYSVOL. Comparar versiones, permisos y accesibilidad. Un evento favorable en `repadmin` no demuestra que SYSVOL esté íntegro; revisar logs `DFS Replication`, shares y versiones de GPO. FRS es herencia tecnológica; en entornos modernos enseñar DFSR y la ruta de migración cuando proceda, no configurar FRS como norma. [A07, A11]"
+    },
+    {
+      "numero": 5,
+      "titulo": "GPO: creación, alcance, precedencia, aplicación y troubleshooting",
+      "contenido_markdown": "### 5.1. Modelo de procesamiento\n\nOrden general **L-S-D-OU**: Local → Site → Domain → OU padre → OU hija. Por defecto las aplicaciones posteriores con configuración equivalente pueden prevalecer. Sin embargo, el resultado concreto depende de enlace, orden, estado GPO, filtros de seguridad, WMI, **Enforced**, **Block Inheritance**, loopback y CSE. No enseñar «la OU siempre gana» como axioma. [A11, A12]\n\n- **Link vs objeto GPO:** la política es un objeto; su ámbito proviene de enlaces. Modificar un GPO compartido puede afectar múltiples OU.\n- **Read y Apply Group Policy:** permisos distintos; la efectividad depende de ambos y del contexto apropiado.\n- **WMI filter:** se evalúa en el dispositivo y añade coste/fragilidad si está mal diseñado.\n- **Enforced:** propiedad del enlace que modifica precedencia respecto al bloqueo de herencia.\n- **Block Inheritance:** propiedad del contenedor; no neutraliza enlaces forzados aplicables.\n- **Loopback (Merge/Replace):** políticas de usuario condicionadas por el equipo (kioscos, RDS); requiere práctica específica.\n- **Política del equipo vs del usuario:** son ámbitos diferentes; no asumir que una regla de ordenador “siempre sustituye” a una configuración de usuario de naturaleza distinta.\n\n### 5.2. Herramientas y criterios de verificación\n\n| Operación | Lectura / comprobación | Cambios (solo laboratorio) |\n|---|---|---|\n| Resultado efectivo | `gpresult /r`, `gpresult /h resultado.html`, `rsop.msc` (con límites) | Ajustes en GPMC tras diseño |\n| Actualización de políticas | Historial/eventos `Microsoft-Windows-GroupPolicy/Operational` | `gpupdate /force` cuando justificado |\n| Análisis de GPO | GPMC, `Get-GPO`, `Get-GPInheritance` | Edición con backup/rollback |\n| Capa GPT | SYSVOL, versiones y accesibilidad SMB | Corregir DFSR/ACL únicamente con plan |\n\n**Laboratorio diferencial:** GPO de firewall enlazada a OU y filtrada a un grupo. El estudiante debe predecir **quién** la recibe, evidenciar que se aplicó a un equipo permitido y no a otro, descubrir un filtro WMI erróneo y demostrar recuperación tras rectificarlo. Un `gpupdate` que termina sin error **no** demuestra que un ajuste específico tenga efecto."
+    },
+    {
+      "numero": 6,
+      "titulo": "Autenticación: Kerberos, NTLM, LDAP y cuentas",
+      "contenido_markdown": "### 6.1. Flujo Kerberos (lo que realmente hay que comprender)\n\n1. Cliente solicita un **TGT** al KDC (AS). La autenticación inicial puede incorporar diversos métodos conforme a configuración.\n2. Con TGT, solicita un **service ticket** para un SPN (TGS).\n3. Presenta el ticket al servicio; el servicio lo valida y aplica controles de autorización.\n4. El **PAC** transporta información relevante para autorización y tiene validaciones/condiciones dependientes del escenario.\n\nConceptos: KDC en DC, secreto de cuenta del servicio, `krbtgt`, SPN único, cifrados negociados, preautenticación, ticket lifetime, clock skew, delegación, PAC, `klist` y eventos de DC. Kerberos ofrece autenticación mutua en condiciones soportadas; su uso efectivo **no prueba** por sí solo que el servicio final esté bien autorizado. [A13]\n\n**Ejercicio de diagnóstico:** un acceso SMB por FQDN funciona pero por alias falla: evaluar DNS, SPN, cuenta de servicio, ámbito y protocolo efectivamente negociado; no concluir automáticamente “Kerberos roto” ni añadir SPN duplicados indiscriminadamente.\n\n### 6.2. NTLM y mecanismos de fallback\n\nNTLM opera en escenarios de compatibilidad y no ofrece todas las propiedades de Kerberos. Su presencia puede indicar legado, negociación no deseada o una dependencia legítima aún sin migrar. Investigar causa, alcance, aplicación, evento/fuente y plan de reducción gradual antes de imponer bloqueo. Un rechazo NTLM podría interrumpir aplicaciones y cuentas de servicio heredadas. No atribuir autenticación NTLM a una “brecha confirmada”. [A14]\n\n### 6.3. SPN y delegación\n\n- **SPN:** asociación entre servicio e identidad. Duplicados/ausencias causan fallos; un SPN no otorga derechos de acceso.\n- **Delegación no restringida:** servicio puede actuar por usuarios hacia múltiples destinos según mecanismo; alto impacto, evitar salvo excepcionalidad avalada.\n- **Delegación restringida clásica:** limita servicios destino, pero exige validar confianza y rutas de configuración.\n- **Resource-based constrained delegation (RBCD):** decisión de autorización en el lado del recurso destino; no equivale a «siempre segura», ya que controlar el descriptor que autoriza a los delegantes crea riesgo. [A15]\n\n**SOC/Red Team:** priorizar la identificación y justificación de relaciones de delegación, quién puede modificarlas y qué servicios/identidades quedarían expuestos; la ejecución de técnicas ofensivas queda para Tanda 3 en entorno cerrado.\n\n### 6.4. LDAP: autenticación, integridad, confidencialidad\n\nDistinguir:\n\n- LDAP en TCP 389 y LDAP sobre TLS por StartTLS según configuración/cliente.\n- LDAPS en 636 con TLS y cadena de confianza válida.\n- Firma LDAP en ciertos mecanismos SASL para integridad y protección frente a manipulación.\n- **Channel Binding Tokens (CBT)** para ligar autenticación a un canal TLS según política/cliente.\n- Simple bind sin TLS: **no aceptable** para credenciales reales; auditar y remediar por fases.\n\nLas políticas de LDAP signing y channel binding y su telemetría dependen de versión, parches y configuración. Revisar documentación oficial antes de usar IDs de evento; no memorizar un ID sin conocer contexto ni habilitación. [A16]\n\n### 6.5. Cuentas y objetos de servicio\n\n- **Usuario humano:** identidad nominativa; separar cuentas administrativas y de trabajo.\n- **Equipo:** principal de seguridad con secreto/canal seguro; unión al dominio no concede administración global.\n- **Cuenta de servicio tradicional:** rotación, uso compartido, SPN y privilegios requieren inventario; evitar contraseñas fijas reutilizadas.\n- **sMSA/gMSA:** gestionan automáticamente credenciales dentro de sus condiciones de soporte; gMSA permite escenarios de servicios en varios hosts autorizados y requiere planificación de KDS y permisos de hosts. [A17]\n- **dMSA (Server 2025):** funcionalidad posterior para migración/cuentas gestionadas delegadas; **optativa avanzada** hasta confirmar compatibilidad exacta, mitigaciones publicadas y flujo de migración vigente en la versión objetivo. [A18]"
+    },
+    {
+      "numero": 7,
+      "titulo": "Identidades, grupos, ACL y delegación administrativa",
+      "contenido_markdown": "### 7.1. Tipos y ámbitos de grupo\n\nLos ámbitos **Global**, **Universal** y **Domain Local** tienen reglas de membresía y asignación distintas, relevantes especialmente en escenarios multidominio o con trusts. El patrón **AGDLP/AGUDLP** es una **convención de diseño** (Accounts → Global → Domain Local → Permissions; con Universal cuando conviene), no una propiedad obligatoria del motor de autorización. Debe explicarse con ejemplos positivos y negativos de acceso efectivo. [A19]\n\n### 7.2. Seguridad de los objetos AD\n\nUn descriptor de seguridad contiene propietario, DACL/SACL (cuando corresponda) y ACE. Los derechos de AD sobre objetos/atributos no son idénticos a `icacls` sobre NTFS: existen derechos extendidos, permisos por propiedad/propiedad de conjunto y ACE heredadas sujetas a clase/alcance. Conceptos de alto impacto para **revisión defensiva**:\n\n| Capacidad autorizada sobre objeto | Riesgo si se delega indebidamente | Verificación segura |\n|---|---|---|\n| Cambiar miembros de grupo privilegiado | Conceder acceso de alto impacto | Leer ACE y verificar cambio denegado a identidad no autorizada |\n| Modificar DACL/propietario | Crear rutas de control persistente | Inspeccionar nTSecurityDescriptor e identificar principal y herencia |\n| Modificar GPO / sus enlaces | Alterar configuración masiva | Revisar permisos GPC+GPT y enlaces; prueba positiva/negativa |\n| Restablecer contraseña de usuario | Suplantación de identidad | Delimitar OU/objetos y prueba en usuario sintético |\n| Escribir propiedades sensibles de equipo/servicio | Cambio indirecto en autenticación/delegación | Leer metadatos, delegaciones y autoridad de modificación |\n| Controlar plantillas de AD CS | Emisión de credenciales de confianza | Inspeccionar ACL, atributos, publicación y alcance de inscripción |\n\n**Regla:** una configuración permisiva es un **indicio**; para afirmar vía explotable se requieren prerrequisitos completos y validación apropiada. No escribir listas de ataques como sustituto del razonamiento de control de acceso.\n\n### 7.3. Delegación segura: qué probar\n\nDocumentar propósito, identidad/grupo delegado, objetos de destino, derechos mínimos, duración, dueño del cambio, revocación, prueba positiva (debe poder hacer una operación permitida) y negativa (no debe modificar objetos prohibidos). **No usar Domain Admins para operaciones ordinarias** por conveniencia. Diseñar un caso de Help Desk autorizado a restablecer contraseña **solo en `OU=Usuarios-Prueba`**, pero incapaz de modificar usuarios protegidos o cuentas de otros departamentos.\n\n### 7.4. AdminSDHolder, SDProp y cuentas protegidas\n\nLos objetos protegidos no heredan permisos de modo habitual. El objeto `AdminSDHolder` actúa como plantilla; **SDProp** compara y restaura descriptores sobre cuentas/grupos protegidos periódicamente (por defecto ~60 minutos desde el DC PDC Emulator). Una delegación sobre la OU puede parecer “rota” debido a estas protecciones; no deshabilitarlas para “hacer que funcione”. El atributo `adminCount` **por sí solo** no demuestra pertenencia actual a un grupo protegido. [A22]"
+    },
+    {
+      "numero": 8,
+      "titulo": "Trusts: alcance real y análisis de la frontera",
+      "contenido_markdown": "### 8.1. Tipos y propiedades\n\nLas relaciones de confianza permiten aceptar comprobaciones de identidad entre dominios/bosques. Diferenciar **dominio que confía** (con recursos) de **dominio confiado** (identidades); la dirección de trust se expresa desde el punto de vista de una de las partes, por lo que es fácil invertirla al explicarla. Consultar `Get-ADTrust`, `netdom trust` (lectura según sintaxis) y el `trustDirection` de la especificación. [A26–A28]\n\n| Tipo | Relación habitual | Transitividad típica | Estudio recomendado |\n|---|---|---|---|\n| Parent–child | Dominios de un árbol | Transitiva | Central |\n| Tree-root | Árboles de un bosque | Transitiva | Central |\n| Forest trust | Entre bosques | Transitiva bajo su modelo | Avanzado central |\n| External trust | Dominios de bosques distintos | No transitiva | Avanzado |\n| Shortcut trust | Dominios de un bosque | Transitiva según configuración | Optativo |\n| Realm trust | AD ↔ reino Kerberos externo | Depende del diseño | Optativo |\n\n**Confianza no implica permisos sobre un share, base de datos o DC.** Es necesario comprobar autenticación autorizada y ACL en el recurso final. La autenticación selectiva, SID filtering, `SIDHistory`, resolución de nombres y la dirección de flujo necesitan comprobaciones independientes. [A27]\n\n### 8.2. Escenario pedagógico\n\nBosque A (recursos) y bosque B (usuarios). Requerimiento: usuarios B pueden acceder únicamente a un recurso de prueba en A. Verificar trust, DNS entre bosques, autenticación selectiva cuando proceda, grupo de autorización del recurso y denegación para un usuario B no permitido. No crear trusts reales ni emitir credenciales desde una red que no sea íntegramente de laboratorio."
+    },
+    {
+      "numero": 9,
+      "titulo": "Tier 0, separación de funciones, hardening y postura",
+      "contenido_markdown": "### 9.1. El verdadero alcance de Tier 0\n\nTier 0 comprende activos que controlan el **plano de identidad** (DC, cuentas/grupos privilegiados, administradores de hypervisor de DC, sistemas de backup con capacidad de restaurar DC, CA con credenciales relevantes, servidores que controlan agentes privilegiados, Entra Connect según privilegios). Tier 1 administra servidores/aplicaciones; Tier 2, puestos y usuarios ordinarios. Es un modelo de confianza de credenciales y control, no simplemente tres VLAN. [A21]\n\nEl **Enterprise Access Model** amplía el alcance a entornos híbridos, separando plano de control, administración, cargas de trabajo y acceso de usuarios/aplicaciones. Para el mundo AD DS, enseñar el modelo de tiers como base, y la extensión híbrida como enlace al mundo Microsoft; **AD DS no es Entra ID**. [A23]\n\n### 9.2. Controles mínimos a auditar\n\n| Riesgo | Control razonado | Evidencia requerida | Riesgo residual |\n|---|---|---|---|\n| Uso diario de Domain Admin | Cuentas separadas, PAW y roles delegados | Logon de identidad privilegiada restringido y pruebas negativas | Compromiso de PAW / procesos Tier 0 |\n| Contraseñas admin locales repetidas | Windows LAPS en AD DS | Rotación y acceso de recuperación según ACL; cifrado cuando soportado | Lectura por operadores mal autorizados |\n| SPN/cuentas servicio sin gobernanza | Inventario, mínimo privilegio, gMSA cuando soportado | Titular, hosts permitidos, SPN, fecha/rol | Aplicación incompatible o permisos heredados |\n| LDAP simple bind sin protección | Migración a firma/TLS y CBT | Clients inventariados, eventos y pruebas con clientes reales | Dependencia heredada no remediada |\n| GPO modificable por grupos amplios | Restricción de DACL/GPT; control de cambios | Inventario de delegados y resultado de prueba negativa | Credenciales de administradores de GPO |\n| CA o plantillas sobreprivilegiadas | Segregación de rol, plantillas mínimas, auditoría | ACL, solicitudes, emisores, claves y logs | Dependencia de clave privada/backup CA |\n| DC sin backup verificable | Backup System State/BMR y ensayo de restore | Recuperación en red aislada y RTO medido | Pérdida de cambios posteriores |\n\nNo hacer del endurecimiento una lista universal de interruptores: cada control requiere compatibilidad, prueba piloto, cobertura y rollback.\n\n### 9.3. Windows LAPS\n\nWindows LAPS puede respaldar contraseñas locales administradas a AD DS; **el cifrado del secreto en AD exige nivel funcional de dominio 2016 o superior**, con condiciones de versión. Diferenciar ACL que protege una contraseña almacenada sin cifrar del cifrado integrado, derechos de lectura y capacidad de descifrado. Para DC se contempla gestión de contraseña DSRM bajo condiciones específicas; tener únicamente la contraseña en AD no resuelve un fallo completo de todos los DC sin respaldo externo. [A24, A25]"
+    },
+    {
+      "numero": 10,
+      "titulo": "Active Directory Certificate Services y PKI",
+      "contenido_markdown": "### 10.1. Qué hay que comprender antes de auditar AD CS\n\nUna **PKI** combina emisión, validación, revocación y ciclo de vida de claves/certificados. Un certificado no es una contraseña; su riesgo depende de usos (EKU, identidad vinculada, aplicación, confianza, posesión de clave privada, revocación, mapeo y políticas). Conceptos obligatorios: CA raíz vs emisora, CA offline/online, clave privada, cadena, almacenes Windows, EKU, Key Usage, CSR, plantillas, SAN, autoenrollment, CRL, CDP, AIA, OCSP, `certutil`, `certreq`, `certlm.msc`, `certmgr.msc`, PKINIT y trust anchors. [A29–A33]\n\n### 10.2. Enterprise CA frente a Standalone CA\n\n- **Enterprise CA:** integrada con AD DS, utiliza plantillas de certificado que residen en el directorio; puede habilitar inscripción automática según diseño.\n- **Standalone CA:** no necesita AD DS ni usa plantillas empresariales; proceso de solicitud/administración diferente.\n- **Raíz offline + CA emisora online:** patrón de separación de confianza/operación a valorar, no obligación universal para cualquier laboratorio de una sola VM. [A29]\n\n### 10.3. Plantillas, permisos y riesgos de identidad\n\nExaminar conjuntamente: quién puede **leer**, **enroll** o **autoenroll**; quién puede **modificar** la plantilla; quién decide el **subject/SAN**; qué EKU permite autenticación; si hacen falta aprobaciones/agentes autorizados; en qué CAs está **publicada**; qué políticas de mapeo y parches existen; qué CA se considera confiable para autenticación.\n\n| Elemento | Pregunta de control | Evidencia de aceptación |\n|---|---|---|\n| EKU | ¿Permite autenticación de cliente u otra capacidad sensible? | EKU y dependencia real de la aplicación |\n| Subject/SAN | ¿Quién aporta la identidad del certificado? | Configuración y prueba de emisión en piloto |\n| DACL plantilla | ¿Quién puede modificar o inscribirse? | DACL, grupo esperado, pruebas positiva/negativa |\n| Publicación CA | ¿CA realmente emite la plantilla? | Lista de plantillas de CA y solicitud piloto |\n| Mapeo usuario-certificado | ¿Existe un vínculo fuerte aprobado con la cuenta? | Resultado del KDC, compatibilidad y eventos |\n| Revocación | ¿CRL/OCSP disponibles cuando una aplicación lo exige? | Verificación de rutas CDP/AIA y respuesta según política |\n| Clave privada CA | ¿Está bajo control, backup y segregación? | Evidencia de custodia y ensayo de recuperación autorizado |\n| Roles operativos | ¿CA admin, certificate manager, enrollment agent y auditor segregados? | Matriz de roles y autorizaciones efectivas |\n\n**No equivale** “plantilla permite enrolar” a “se puede suplantar cualquier usuario”; se necesitan condiciones y una ruta concreta de confianza/autenticación. No extrapolar clasificaciones técnicas de herramientas ofensivas a vulnerabilidad demostrada sin verificar precondiciones. [A30, A31]\n\n### 10.4. Endurecimiento moderno del mapeo de certificados\n\nMicrosoft publicó KB5014754 para introducir mapeo fuerte en autenticación basada en certificados después de vulnerabilidades de suplantación. El modo de compatibilidad que se describía en artículos antiguos **ya no es una solución persistente soportada después de septiembre de 2025**. Para un laboratorio 2026 hay que explicar SID extension/mapeo explícito fuerte y distinguir certificados emitidos antes/después, CA Microsoft/no Microsoft, vigencia de parches y logs del KDC. [A34]\n\n### 10.5. Revocación y continuidad\n\nRevocar un certificado, publicar CRL y comprobar que el consumidor ejecuta comprobaciones de revocación son **tres hechos distintos**. Planificar disponibilidad de CDP/OCSP, expiraciones, renovación, revocación, publicación y restauración de CA. No exponer clave privada CA en ejercicios, incluso si se usa un entorno de laboratorio compartido. [A32]"
+    },
+    {
+      "numero": 11,
+      "titulo": "Diagnóstico transversal: escenarios y árbol de decisión",
+      "contenido_markdown": "| Síntoma | Hipótesis inicial | Pruebas de lectura | Error habitual a evitar |\n|---|---|---|---|\n| No se puede unir cliente a dominio | DNS equivocado / credenciales / servicio DC | DNS del cliente, SRV, `nltest`, conectividad | Abrir todos los puertos del firewall |\n| Usuario inicia sesión solo con DC01 | Replicación o DC Locator | `repadmin`, consultas fijando `-Server`, DNS y site | Resetear cuentas indiscriminadamente |\n| GPO “no funciona” | Scope, Read/Apply, WMI, CSE, SYSVOL | `gpresult`, GroupPolicy/Operational, GPMC y DFSR | Repetir `gpupdate /force` sin diagnóstico |\n| Acceso por IP pero no FQDN | DNS/SPN o diferencia de autenticación | `klist`, DNS/SPN, eventos y contexto de recurso | Añadir SPNs sin revisar duplicados |\n| Cuenta de servicio falla tras rotación | Secreto, SPN o permisos de host | Identity de servicio, gMSA, logs | Revertir a contraseña estática compartida |\n| DCs muestran grupos distintos | Replicación / consulta a GC parcial | `repadmin /showrepl`, consulta explícita por DC | Concluir intrusión por inconsistencias |\n| Solicitud certificado denegada | ACL plantilla, publicación, policy, compatibilidad | CA + plantilla + principal + logs | Dar Enrollment a Authenticated Users |\n| Certificado emitido no autentica | Cadena, EKU, mapeo fuerte, reloj o revocación | KDC, CA, almacén, CRL y eventos | Desactivar endurecimiento del KDC |\n| Permiso delegado se revierte | AdminSDHolder/SDProp | Permisos objeto protegido, pertenencia, `adminCount` contextual | Modificar AdminSDHolder sin plan |\n| Fallo al recuperar DC virtualizado | VM GenID, backup, replicación o SYSVOL | Inventario de backups, logs, DC compañero | Usar snapshot como única estrategia de backup |\n\n**Método obligatorio del estudiante:** síntoma → hipótesis falsable → datos precisos (host/DC, fecha UTC, cuenta, versión, error exacto) → prueba reproducible → conclusión **con incertidumbre** → remediación reversible → prueba positiva/negativa → registro final."
+    },
+    {
+      "numero": 12,
+      "titulo": "Aproximación SOC y Red Team: conexión sin duplicar la tanda 3",
+      "contenido_markdown": "### 12.1. Matriz de observabilidad en origen\n\n| Actividad nativa AD | Fuente típica | Límite probatorio que debe enseñarse |\n|---|---|---|\n| Autenticación Kerberos | Security DC (4768, 4769, 4771), según política/configuración | Solicitud de ticket ≠ acceso exitoso al recurso |\n| Validación NTLM | Security DC (4776), según escenario | Validación ≠ prueba completa de sesión maliciosa |\n| Cambios de usuario/grupo | Security DC (4720, 4726, 4728, 4732, 4756, 4738...), según auditoría | Diferenciar grupo global/local/universal y tipo de cambio |\n| Cambios de objeto directorio | Security DC (5136; auditoría DS Changes) | Requiere configuración; evento no explica intención |\n| Acceso a objetos sensibles | Security DC (4662 con SACL adecuada) | Depende de SACL, permisos, volumen y contexto |\n| GPO | AD + GroupPolicy/Operational en cliente, SYSVOL/DFSR | Un cambio AD no demuestra aplicación efectiva |\n| CA | Security CA (p. ej., 4886/4887, si se habilitan auditorías apropiadas) | Solicitud o emisión ≠ autenticación real con certificado |\n| LDAP signing/CBT | Directory Service DC | IDs específicos y semántica cambian según versiones/documentación |\n| Replicación fallida | Directory Service, DFS Replication, `repadmin` | Error operativo no confirma sabotaje |\n\nEstos eventos son **puntos de investigación**, no reglas SIEM ni una garantía universal. La tanda 3 precisará prerequisitos, campos, sesgos y pruebas de cobertura; las consultas SPL/KQL quedan en mundos existentes.\n\n### 12.2. Perspectiva Red Team autorizada\n\nEl evaluador aprende a describir **rutas de control** (permisos de OU/GPO, credenciales de servicios, delegaciones, trusts y certificados) con un grafo explicativo y sin tocar recursos fuera de alcance. Todo hallazgo debe etiquetarse: **configuración → indicio → condición verificable → acceso demostrado en laboratorio → impacto confirmado**. La existencia de una cuenta privilegiada o un SPN no prueba una ruta explotable. El análisis técnico ofensivo operativo irá en la tanda 3."
+    },
+    {
+      "numero": 13,
+      "titulo": "Diseño curricular provisional: etapas secuenciales",
+      "contenido_markdown": "Cada etapa es provisional. La numeración `AD-xx` se integra con las `WIN-01…WIN-09` de la Tanda 1. Las horas son **estimaciones**, no valores observados; no equivalen a horarios oficiales de Microsoft. Se distingue **lectura**, **práctica hecha**, **evaluación superada** y **dominio** (competencia repetible con nueva evidencia).\n\n| ID | Etapa | Prerrequisitos | Evidencia de dominio | Dedicación estimada |\n|---|---|---|---|---|\n| AD-01 | Directorio, bosque/dominio/OU, esquema | WIN-03, Redes DNS | Dibujar relaciones y determinar fronteras de seguridad | 5–8 h |\n| AD-02 | Despliegue de DC y cliente | AD-01, WIN-07 | Validar unión, DC Locator y salud inicial | 6–10 h |\n| AD-03 | DNS, GC, sitios y reloj | AD-02 | Diagnosticar DC no óptimo y SRV/hora | 6–9 h |\n| AD-04 | LDAP, objetos y PowerShell AD | AD-02, WIN-06 | Inventario read-only con DN/GUID/SID y filtro correcto | 5–8 h |\n| AD-05 | Kerberos, NTLM, SPN y servicios | AD-03, AD-04 | Identificar protocolo y causa de un fallo de autenticación | 9–14 h |\n| AD-06 | Grupos, autorización y ACL AD | AD-04, WIN-03 | Resolver acceso efectivo y delegación mínima | 7–11 h |\n| AD-07 | GPO, SYSVOL, precedencia | AD-03, AD-06 | Acreditar aplicación/denegación y corregir scope | 8–12 h |\n| AD-08 | Replicación, FSMO y GC | AD-03, AD-04 | Explicar y diagnosticar desincronización entre DC | 9–14 h |\n| AD-09 | Cuentas de servicio y delegación Kerberos | AD-05, AD-06 | Diseñar uso de gMSA y límites RBCD | 7–11 h |\n| AD-10 | Trusts y multidominio | AD-05, AD-08, AD-06 | Explicar dirección/acceso y pruebas negativas | 7–11 h |\n| AD-11 | Tier 0, AdminSDHolder, LAPS | AD-06, AD-07, AD-09 | Matriz de control Tier 0 y prueba de privilegios mínimos | 9–13 h |\n| AD-12 | PKI, CA, plantillas y revocación | AD-05, AD-06, AD-11 | Auditoría de plantilla con confianza/mapeo fuerte | 12–18 h |\n| AD-13 | Diagnóstico AD integral | AD-07, AD-08, AD-09, AD-12 | Caso multi-causa con pruebas de hipótesis | 9–14 h |\n| AD-14 | Recuperación AD (fundamentos) | AD-08, AD-11, AD-12 | Proponer plan y validaciones sin confundir snapshot/backup | 7–11 h |\n| AD-15 | Auditoría integradora de dominio | AD-10, AD-13, AD-14 | Informe verificable, plan de remediación y retest | 10–16 h |\n\n**Carga orientativa de estas 15 etapas:** 116–180 horas, dependiente de experiencia y complejidad de los labs (intervalo sumado, no duración real validada). El proyecto final y plan definitivo se consolidan en la Tanda 4.\n\n### 13.1. Diagnóstico para perfiles con experiencia\n\nProponer **prueba diagnóstica opcional** a quien ya hace Red Team/Blue Team:\n\n- Dibujar `bosque → dominio → OU → sitio → DC` y justificar qué constituye frontera de control.\n- Con un SPN y una lista de eventos, reconstruir el flujo Kerberos sin tratar el ticket como acceso confirmado.\n- Deducir por qué una GPO no se aplica combinando filtros, enlace, CSE y SYSVOL.\n- Dada una DACL, identificar quién puede cambiar un grupo privilegiado o modificar una plantilla.\n- Con informes contradictorios de dos DC, proponer pruebas de replicación y DNS.\n- Justificar una CA Tier 0, sus rutas de recuperación y riesgos de certificados de autenticación.\n\n**Convalidación conceptual:** si supera diagnóstico + práctica nueva + evaluación de caso con evidencia, no repetir una lección dominada; la práctica de recuperación/operación **no** se convalida por conocer técnicas ofensivas."
+    },
+    {
+      "numero": 14,
+      "titulo": "Laboratorios propuestos (diseñados, no ejecutados)",
+      "contenido_markdown": "### Reglas comunes\n\n- Todos los nombres/usuarios/dominios son **sintéticos** y aislados; consentimiento formal para entornos ajenos.\n- Topología base con `DC01`, `W11-01`; expansión con `DC02` y `CA01`. Evitar salida hacia redes domésticas, corporativas o VPN. No publicar DC, LDAP, SMB, RPC o CA en Internet.\n- Registrar versión, edición, build, parche, nivel funcional, DNS, red y hora. Identificar recursos y licencias **antes** de reservar VMs; no afirmar coste cero universal.\n- Baselines previos, snapshots solo como herramienta auxiliar de laboratorio, nunca como reemplazo de backup de DC; respaldos de System State cuando aplique.\n- Cada práctica exige **una prueba positiva, una negativa, evidencia antes/después, y limpieza/rollback**.\n\n| Lab | Nivel | Objetivo medible | Topología | Evidencia / aprobación | Horas est. |\n|---|---|---|---|---|---|\n| AD-L01 | Intro | Diseñar bosque/dominio/OU y justificar frontera de seguridad | Papel + `DC01` futuro | Diagrama + decisiones y tres anti-patrones | 2–3 |\n| AD-L02 | Básico | Validar DC Locator, registros SRV y unión de W11 | DC01 + W11-01 | Consultas DNS, nltest, inicio de sesión funcional | 3–5 |\n| AD-L03 | Básico | Gestionar identidades, grupos y OU sin derechos de más | DC01 + W11-01 | Inventario, grupo permitido/denegado, rollback | 3–4 |\n| AD-L04 | Intermedio | Configurar GPO acotada y demostrar filtro/precedencia | DC01 + dos clientes/OU | gpresult de ambos, aplicada/no aplicada | 4–6 |\n| AD-L05 | Intermedio | Explicar ticket/servicio/SPN con evidencia | DC01 + W11 + servicio prueba | klist y logs; protocolo realmente usado | 4–6 |\n| AD-L06 | Intermedio | Introducir DC02, site/subnet, medir convergencia | DC01 + DC02 + W11 | repadmin, lecturas comparadas por DC, fallo sembrado | 5–8 |\n| AD-L07 | Intermedio | Delegar helpdesk solo sobre OU sintética | DC01 + usuarios de prueba | Permiso positivo y negativa sobre cuenta protegida | 4–6 |\n| AD-L08 | Avanzado | Revisar derechos de GPO, cuentas protegidas y Tier 0 | DC01 + cliente PAW ficticio | Grafo de permisos y plan de mínimo privilegio | 4–7 |\n| AD-L09 | Avanzado | Diseñar y verificar gMSA en hosts designados | DC01 + SRV-APP | Test de host autorizado/no autorizado | 4–6 |\n| AD-L10 | Avanzado | Diferenciar trust de permiso sobre recurso | Dos dominios/bosques aislados | Acceso permitido/denegado y explicación de dirección | 5–9 |\n| AD-L11 | Avanzado | Auditar plantilla y CA, emisión autorizada | DC01 + CA01 + cliente | ACL/EKU/publicación, solicitud piloto, negativa | 6–10 |\n| AD-L12 | Avanzado | Diagnosticar fallos DNS/GPO/replicación mezclados | DC01 + DC02 + W11 | Cronología, causa raíz, evidencia remediación | 5–8 |\n| AD-L13 | Avanzado | Diseñar backup de AD DS y PKI, ensayo aislado posterior | DC01 + CA01 + almacenamiento aislado | Plan de recuperación/validación y pruebas de restauración futuras | 5–9 |\n| AD-L14 | Integrador | Auditoría de postura: ACL, trust, SPN, LAPS, CA y DC | Topología ampliada | Informe + prioridades + retest propuesto | 7–11 |\n\n**Importante:** las 13+ prácticas son un catálogo provisional de la Tanda 2; se consolidará con los laboratorios Windows (Tanda 1) y SOC/Red Team (Tanda 3), sin multiplicar artificialmente ejercicios."
+    },
+    {
+      "numero": 15,
+      "titulo": "Rúbrica, dependencias, seguridad y riesgos curriculares",
+      "contenido_markdown": "### 15.1. Rúbrica propuesta (100 puntos por práctica)\n\n- **20:** modelo y precondiciones (versión, nivel funcional, DNS, permisos).\n- **25:** ejecución/diagnóstico reproducible y justificación del mecanismo.\n- **20:** evidencia suficiente (host/DC, hora UTC, comando de consulta, resultado claro).\n- **15:** control de acceso y prueba negativa (lo prohibido debe seguir prohibido).\n- **10:** rollback, continuidad y ausencia de efectos colaterales.\n- **10:** explicación SOC/Red Team sin confundir actividad con atribución.\n\nAprobación sugerida ≥80/100 **y** requisitos críticos superados: autorización, aislamiento, reversibilidad, evidencia mínima y no divulgación de claves. Una práctica que viola esas condiciones no puede considerarse superada por puntos.\n\n### 15.2. Grafo esencial de dependencias\n\n```text\nWIN-03 + Redes(DNS) ---> AD-01 ---> AD-02 ---> AD-03 ------> AD-05 ----> AD-09\n                                  |          |                |              |\nWIN-06 --------------------------> AD-04 ----+---> AD-06 ---> AD-07 ----------+--> AD-13\n                                                 |        |                   |\n                                                 +------> AD-11 ---> AD-12 ----+\n                                  AD-03 + AD-04 --> AD-08 ----> AD-10 ----------+\n                                                          +--> AD-14 ---> AD-15\n```\n\nLas dependencias reales pueden ser múltiples y no necesariamente lineales; el mapa final usará desbloqueos fundamentados y rutas alternativas por diagnóstico.\n\n### 15.3. Riesgos y preguntas pendientes antes de implementación\n\n1. **No se probó ninguna VM ni comando** en Windows Server 2025 y Windows 11 26H2: los ejemplos son conceptuales/documentales.\n2. **No se dispuso de los 155 apuntes** del documento diferente `adwin.txt`. No se hace auditoría de corpus ni se atribuyen afirmaciones a notas no vistas.\n3. **Sin topología real del alumno:** CPU, RAM, almacenamiento, hipervisor y derechos de evaluación no verificados; ninguna cifra de costes está confirmada.\n4. **DMSA y nuevas funciones 2025:** requieren verificación de parches/hardening específicos justo antes de una guía práctica, por su vigencia cambiante. [A18]\n5. **No todos los eventos aparecen por defecto:** distinguir habilitación de auditoría, SACL, emisión real, cobertura, pérdida y retención.\n6. **La guía de recuperación de bosque puede describir procedimientos históricos** aunque su cabecera marque Server 2025. Verificar aplicabilidad de cada paso contra el entorno concreto. [A35–A38]\n7. **LDAP signing/CBT:** no imponer bloqueo sin inventario de aplicaciones heredadas, prueba piloto y plan de reversión. [A16]\n8. **No asumir que trust forestal = frontera segura suficiente**: revisar administración cruzada, SID filtering, recursos y opciones de autenticación selectiva.\n9. **AD CS:** distinguir problema de seguridad reproducible de recomendaciones genéricas, y evitar la enseñanza de bypass del mapeo fuerte basado en documentación anterior a 09/2025.\n10. **Diferenciación SOC/Red Team:** solo instrumentación y superficies AD de origen ahora; explotación autorizada y análisis detallado de eventos se documentarán en Tanda 3.\n11. **Alcance AD DS, no Entra:** las relaciones híbridas son referencia cruzada, no sustitución del modelo del directorio local.\n12. **Un lab no es una validación:** hasta ejecutarlo con evidencia reproducible, su estado es `diseñado`."
+    },
+    {
+      "numero": 16,
+      "titulo": "Matriz de cobertura y aceptación de la Tanda 2",
+      "contenido_markdown": "| Requisito de `adwin(1).txt` | Secciones | Estado |\n|---|---|---|\n| AD: DNS, sitios, replicación, FSMO, GPO | 3–5 | Investigado/diseñado, no validado en VM |\n| AD: Kerberos, NTLM, LDAP, cuentas de servicio | 6 | Investigado/diseñado |\n| Seguridad: delegación, ACL, privilegios, tiers, trusts | 7–9 | Investigado/diseñado |\n| AD CS/PKI: arquitectura, permisos, riesgos, auditoría, hardening | 10 | Investigado/diseñado |\n| Backup, recuperación y continuidad | 4, 11, 14 + referencias | Fundamentos; profundización operativa Tanda 4 |\n| Red Team autorizado en AD | 7–10, 12 | Superficies; metodología/técnicas controladas Tanda 3 |\n| SOC nativo en AD | 11–12 | Fuentes y límites; investigación pormenorizada Tanda 3 |\n| Laboratorios seguros | 14 | Catorce diseños provisionales, no ejecutados |\n| Secuencia y evaluaciones | 13–15 | 15 etapas provisionales y rúbrica; integración final Tanda 4 |\n\n### Criterio de aceptación\n\n**Cumplido documentalmente:** mapa conceptual AD DS, decisiones de seguridad, prerrequisitos, 15 etapas, 14 laboratorios diseñados, matriz de fuentes y riesgos pendientes. **No cumplido empíricamente:** ejecución, test de versiones/comandos, coste real, medición de resultados de los labs y auditoría de corpus personal. **Próxima tanda:** Red Team + SOC en Windows/AD, usando los conceptos aquí establecidos y la telemetría del sistema como origen, sin rehacer cursos de Sentinel o Splunk."
+    }
+  ],
+  "fuentes": [
+    {
+      "id": "A01",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Active Directory Domain Services overview",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/get-started/virtual-dc/active-directory-domain-services-overview",
+      "afirmaciones_que_respalda": "AD DS service, objects and replication",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A02",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Understanding the Active Directory Logical Model",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/understanding-the-active-directory-logical-model",
+      "afirmaciones_que_respalda": "Forest, domain, OU, scope of administration",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A03",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Designing the Site Topology",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/designing-the-site-topology",
+      "afirmaciones_que_respalda": "Sites, subnets, site links and topology",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A04",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Locating AD Domain Controllers (DC Locator)",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/dc-locator",
+      "afirmaciones_que_respalda": "DNS SRV, discovery, site-aware locator",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A05",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Site functions",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/site-functions",
+      "afirmaciones_que_respalda": "Client affinity, replication, SYSVOL",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A06",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Active Directory Replication Concepts",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/get-started/replication/active-directory-replication-concepts",
+      "afirmaciones_que_respalda": "KCC, sites, connection objects, global catalog",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A07",
+      "organizacion": "Microsoft Learn",
+      "titulo": "AD DS functional levels",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/active-directory-functional-levels",
+      "afirmaciones_que_respalda": "Functional levels and supported DC versions",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A08",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Raise domain and forest functional levels",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/raise-domain-forest-functional-levels",
+      "afirmaciones_que_respalda": "Version prerequisites, safety before raising functional level",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A09",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Troubleshooting Active Directory Replication Problems",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/troubleshoot/troubleshooting-active-directory-replication-problems",
+      "afirmaciones_que_respalda": "Repadmin, replication failures and diagnostic hypotheses",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A10",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Transfer FSMO roles",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/manage-fsmo-roles",
+      "afirmaciones_que_respalda": "Five operations master roles and role transfer",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A11",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Group Policy overview",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/group-policy/group-policy-overview",
+      "afirmaciones_que_respalda": "Group Policy infrastructure and client side extensions",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A12",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Group Policy processing",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/group-policy/group-policy-processing",
+      "afirmaciones_que_respalda": "LSDOU, enforcement, blocking, loopback and filtering",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A13",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Kerberos authentication overview",
+      "url": "https://learn.microsoft.com/en-us/windows-server/security/kerberos/kerberos-authentication-overview",
+      "afirmaciones_que_respalda": "KDC, TGT, TGS, PAC, mutual authentication",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A14",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Windows Authentication Overview",
+      "url": "https://learn.microsoft.com/en-us/windows-server/security/windows-authentication/windows-authentication-overview",
+      "afirmaciones_que_respalda": "Authentication protocols including NTLM",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A15",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Kerberos Constrained Delegation Overview",
+      "url": "https://learn.microsoft.com/en-us/windows-server/security/kerberos/kerberos-constrained-delegation-overview",
+      "afirmaciones_que_respalda": "Classical constrained delegation and RBCD",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A16",
+      "organizacion": "Microsoft Learn",
+      "titulo": "LDAP signing for AD DS",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/ldap-signing",
+      "afirmaciones_que_respalda": "LDAP signing, CBT, version-sensitive audit events",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A17",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Manage group Managed Service Accounts",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/group-managed-service-accounts/group-managed-service-accounts/manage-group-managed-service-accounts",
+      "afirmaciones_que_respalda": "gMSA, KDS root key, host restrictions",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A18",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Setting up delegated Managed Service Accounts in Server 2025",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/delegated-managed-service-accounts/delegated-managed-service-accounts-set-up-dmsa",
+      "afirmaciones_que_respalda": "dMSA and migration prerequisites; optional until checked",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A19",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Active Directory Security Groups",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/understand-security-groups",
+      "afirmaciones_que_respalda": "Group scopes, special and privileged groups",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A20",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Migrate SYSVOL replication from FRS to DFSR",
+      "url": "https://learn.microsoft.com/en-us/windows-server/storage/dfs-replication/migrate-sysvol-to-dfsr",
+      "afirmaciones_que_respalda": "SYSVOL current replication engine and FRS legacy migration",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A21",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Tier model for Active Directory Domain Services",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/tier-model",
+      "afirmaciones_que_respalda": "Tier 0/1/2 control, PAWs, dependencies",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A22",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Appendix C: Protected Accounts and Groups",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/appendix-c--protected-accounts-and-groups-in-active-directory",
+      "afirmaciones_que_respalda": "AdminSDHolder, SDProp and protected groups",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A23",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Enterprise access model",
+      "url": "https://learn.microsoft.com/en-us/security/privileged-access-workstations/privileged-access-access-model",
+      "afirmaciones_que_respalda": "Cloud/hybrid extension of AD tiering",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A24",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Windows LAPS with Active Directory",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/laps/laps-scenarios-windows-server-active-directory",
+      "afirmaciones_que_respalda": "AD-backed local admin passwords, DFL requirement",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A25",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Windows LAPS architecture",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/laps/laps-concepts",
+      "afirmaciones_que_respalda": "Encrypted secrets, DSRM and recovery dependencies",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A26",
+      "organizacion": "Microsoft Open Specifications",
+      "titulo": "[MS-ADTS]: trustDirection",
+      "url": "https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/5026a939-44ba-47b2-99cf-386a9e674b04",
+      "afirmaciones_que_respalda": "Direction and semantics of trustDirection bits",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A27",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Windows Authentication Concepts",
+      "url": "https://learn.microsoft.com/en-us/windows-server/security/windows-authentication/windows-authentication-concepts",
+      "afirmaciones_que_respalda": "Trust relationships, direction and authorization",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A28",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Design a Multi-Domain or Multi-Forest Active Directory Environment",
+      "url": "https://learn.microsoft.com/en-us/training/modules/design-multi-domain-forest-trust/",
+      "afirmaciones_que_respalda": "Trust design, selective authentication and SID filtering",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A29",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Certification Authority role service",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/certification-authority-role",
+      "afirmaciones_que_respalda": "Enterprise vs standalone CA",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A30",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Manage AD CS certificate templates",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/manage-certificate-templates",
+      "afirmaciones_que_respalda": "Templates, ACL, enrollment and publication",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A31",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Secure, Delegate and Audit CA Administration",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/secure-delegate-audit-certification-authority",
+      "afirmaciones_que_respalda": "Certificate managers, Enrollment Agents and CA audit",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A32",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Operate revocation, CRL and CDP",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/operate-certificate-revocation-crl-cdp",
+      "afirmaciones_que_respalda": "CRL publication, revocation and validation",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A33",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Request and Renew AD CS Certificates",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/request-renew-certificates-certificates-mmc",
+      "afirmaciones_que_respalda": "Requests, stores and actual issuance prerequisites",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A34",
+      "organizacion": "Microsoft Support",
+      "titulo": "KB5014754: Certificate-based authentication changes",
+      "url": "https://support.microsoft.com/en-us/servicing/os/windows-server/2022/05/kb5014754-certificate-based-authentication-changes-on-windows-domain-controllers",
+      "afirmaciones_que_respalda": "Strong certificate mapping enforcement timeline to 2025-09-09",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A35",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Forest Recovery: Back up System State",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-backing-up-system-state",
+      "afirmaciones_que_respalda": "System State backups",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A36",
+      "organizacion": "Microsoft Learn",
+      "titulo": "AD Forest Recovery: Steps to restore",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-steps-for-restoring-the-forest",
+      "afirmaciones_que_respalda": "Forest recovery in isolation and redevelopment",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A37",
+      "organizacion": "Microsoft Learn",
+      "titulo": "AD Forest Recovery: Determine how to recover",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/forest-recovery-guide/ad-forest-recovery-determine-how-to-recover",
+      "afirmaciones_que_respalda": "Trusted backup selection and data loss",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A38",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Safely virtualizing Active Directory Domain Services",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/introduction-to-active-directory-domain-services-ad-ds-virtualization-level-100",
+      "afirmaciones_que_respalda": "VM Generation ID safeguards and limits of snapshots",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A39",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Enable and use Active Directory Recycle Bin",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/get-started/adac/active-directory-recycle-bin",
+      "afirmaciones_que_respalda": "Recovering deleted objects and prerequisites",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A40",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Devise an AD forest recovery plan",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/ad-forest-recovery-guide",
+      "afirmaciones_que_respalda": "Forest recovery planning and rehearsal",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A41",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Advanced Audit Policy Configuration",
+      "url": "https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/advanced-audit-policy-configuration",
+      "afirmaciones_que_respalda": "Kerberos security audit event families",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A42",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Audit Directory Service Changes",
+      "url": "https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-directory-service-changes",
+      "afirmaciones_que_respalda": "Events 5136–5141, SACL and event coverage limits",
+      "confianza": "alta_fuente_primaria",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    },
+    {
+      "id": "A43",
+      "organizacion": "Microsoft Learn",
+      "titulo": "Group Policy Storage (historical document)",
+      "url": "https://learn.microsoft.com/en-us/previous-versions/windows/desktop/policy/group-policy-storage",
+      "afirmaciones_que_respalda": "GPC and GPT architecture; FRS references are obsolete for modern SYSVOL",
+      "confianza": "alta_para_historia_no_actual",
+      "fecha_consulta": "2026-10-18",
+      "fecha_version": "segun pagina; no se fija cuando no consta en los metadatos recopilados",
+      "estado_acceso": "pagina localizada en consulta; revisar accesibilidad antes de implementar"
+    }
+  ]
+}

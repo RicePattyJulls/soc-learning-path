@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-06-L01",
+  "title": "DNS cliente y conectividad",
+  "sourceHash": "9d8e2220457ab65a73ce64ab96655f9f93714c9c99386a0c8594d8ab13290683",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-06-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nOrdenar el diagnóstico de conectividad y aislar los fallos de resolución de nombres.\n\nPrerrequisitos: `WAD-04-L03` (auditoría de acceso y restauración) y `WAD-05-L03` (idempotencia, logging y recuperación).\n\n## 2. Comprende el mecanismo\n\nCasi todo «no tengo conexión» se resuelve separando **capas** en lugar de probando cosas al azar. El orden importa porque cada capa **depende** de la anterior:\n\n1. **Interfaz y direccionamiento**: el equipo tiene una dirección utilizable y una configuración coherente.\n2. **Ruta**: existe un camino hacia el destino.\n3. **Resolución de nombres**: el nombre se traduce a una dirección.\n4. **Puerto y servicio**: el puerto concreto está abierto y algo lo atiende.\n\nLa **resolución de nombres** es la capa que más confunde, porque su fallo se disfraza de fallo de red. Si un recurso responde **por su dirección** pero **no por su nombre**, la red funciona: lo que falla es la traducción del nombre. Ese contraste —dirección sí, nombre no— es la prueba que aísla la capa.\n\nEl cliente resuelve nombres en un orden conocido: primero lo que está definido localmente, después la **caché**, después el **servidor de nombres consultado**. Si el servidor configurado está equivocado o inalcanzable, todo lo que dependa de nombres falla de golpe, mientras que el tráfico por dirección sigue funcionando. Eso da una firma reconocible.\n\nLa consecuencia práctica es de disciplina: **un síntoma de nombres no se arregla tocando el firewall**. Y al revés: un fallo de puerto no se arregla cambiando el servidor de nombres. Diagnóstico por capas significa no corregir la capa que no ha fallado.\n\nEn los ejemplos se usan direcciones de documentación, reservadas para material didáctico, nunca direcciones reales de una organización.\n\n### Vocabulario de apoyo\n\n- **Resolución de nombres**: traducción de un nombre a una dirección.\n- **Servidor de nombres**: servicio que responde a las consultas de traducción.\n- **Caché de resolución**: respuestas guardadas temporalmente en el cliente.\n- **Ruta**: camino definido hacia un destino.\n- **Puerto**: punto de servicio concreto en un equipo.\n- **Dirección de documentación**: rango reservado para ejemplos, no enrutable en internet.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-06-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un usuario no alcanza un recurso por su nombre, pero responde sin problema cuando usa la dirección `198.51.100.20`. La propuesta del equipo es revisar las reglas de firewall.\n\nLa propuesta apunta a la capa equivocada. La prueba —dirección sí, nombre no— demuestra que hay ruta y que el puerto responde: lo que falla es la **resolución de nombres** en el cliente, no el filtrado. Se comprueba la configuración del servidor de nombres y la caché del cliente antes de tocar nada más. La conclusión acota la zona —«fallo de resolución, conectividad correcta»— y evita un cambio de firewall que no habría corregido el síntoma y sí habría ampliado la superficie.\n\n"
+    },
+    {
+      "id": "WAD-06-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Una firma del tipo «dirección sí, nombre no» permite descartar capas y centrar la investigación.\n- Red Team autorizado: Conocer el orden de resolución evita atribuir a la red lo que es configuración del cliente.\n- Evidencia de la etapa: Registro de la capa aislada con la prueba que la separa de las demás.\n- Criterio de dominio: No corrige una capa distinta de la que ha fallado.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB04](../../05_RECURSOS/LABORATORIOS/WAD-LAB04.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **RESOLVEDNS**: [Resolve-DnsName](https://learn.microsoft.com/en-us/powershell/module/dnsclient/resolve-dnsname). Consulta de resolución de nombres desde el cliente.\n- **TESTNET**: [Test-NetConnection](https://learn.microsoft.com/en-us/powershell/module/nettcpip/test-netconnection). Comprobación de ruta y de puerto.\n- **NETTCP**: [Get-NetTCPConnection](https://learn.microsoft.com/en-us/powershell/module/nettcpip/get-nettcpconnection). Conexiones y puertos en escucha.\n- **NETROUTE**: [Get-NetRoute](https://learn.microsoft.com/en-us/powershell/module/nettcpip/get-netroute). Tabla de rutas del equipo.\n- **DNSBASICS**: [Troubleshooting DNS clients](https://learn.microsoft.com/en-us/windows-server/networking/dns/troubleshoot/troubleshoot-dns-client). Orden de resolución y caché en el cliente.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-06-L01-P01",
+    "prompt": "Un usuario dice que «no alcanza el servidor de archivos». No responde por su nombre, pero sí responde por su dirección. Explica por capas dónde está el fallo, qué pruebas harías en orden para confirmarlo y por qué no tocarías el firewall. Indica qué evidencia registrarías en cada paso y qué observación te haría cambiar de hipótesis.",
+    "markdown": "## 4. Práctica individual\n\nUn usuario dice que «no alcanza el servidor de archivos». **No** responde por su **nombre**, pero **sí** responde por su **dirección**. Explica por capas dónde está el fallo, qué pruebas harías **en orden** para confirmarlo y por qué **no** tocarías el firewall. Indica qué evidencia registrarías en cada paso y qué observación te haría cambiar de hipótesis.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber ejecutado el diagnóstico en una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-06-L01-Q01",
+      "prompt": "¿Qué prueba confirma que el problema está en la resolución de nombres?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que el recurso responde por su dirección y no por su nombre"
+        },
+        {
+          "id": "B",
+          "text": "Que el firewall del equipo está activado"
+        },
+        {
+          "id": "C",
+          "text": "Que el equipo se ha reiniciado recientemente"
+        },
+        {
+          "id": "D",
+          "text": "Que el disco del servidor está lleno"
+        }
+      ]
+    },
+    {
+      "id": "WAD-06-L01-Q02",
+      "prompt": "¿Qué orden describe mejor el diagnóstico de conectividad?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Empezar reinstalando el sistema operativo del cliente"
+        },
+        {
+          "id": "B",
+          "text": "Interfaz y direccionamiento, ruta, resolución de nombres y, por último, puerto y servicio"
+        },
+        {
+          "id": "C",
+          "text": "Desactivar el firewall y probar todos los cambios a la vez"
+        },
+        {
+          "id": "D",
+          "text": "Cambiar la contraseña de la cuenta que accede"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB04](../../05_RECURSOS/LABORATORIOS/WAD-LAB04.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **RESOLVEDNS**: [Resolve-DnsName](https://learn.microsoft.com/en-us/powershell/module/dnsclient/resolve-dnsname). Consulta de resolución de nombres desde el cliente.\n- **TESTNET**: [Test-NetConnection](https://learn.microsoft.com/en-us/powershell/module/nettcpip/test-netconnection). Comprobación de ruta y de puerto.\n- **NETTCP**: [Get-NetTCPConnection](https://learn.microsoft.com/en-us/powershell/module/nettcpip/get-nettcpconnection). Conexiones y puertos en escucha.\n- **NETROUTE**: [Get-NetRoute](https://learn.microsoft.com/en-us/powershell/module/nettcpip/get-netroute). Tabla de rutas del equipo.\n- **DNSBASICS**: [Troubleshooting DNS clients](https://learn.microsoft.com/en-us/windows-server/networking/dns/troubleshoot/troubleshoot-dns-client). Orden de resolución y caché en el cliente.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "83834d33140893fc31ce6f45"
+}

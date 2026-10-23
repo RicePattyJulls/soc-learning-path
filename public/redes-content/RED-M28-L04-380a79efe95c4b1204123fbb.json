@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M28-L04",
+  "title": "Captura parcial, checksum/offload",
+  "sourceHash": "ac7f0acc8ef95bdeace76df1f32663d5ea4376dbf980fbb5a30c982601a03459",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M28-L04-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDistinguir artefactos de captura y errores del tráfico real.\n\nPrerrequisitos: [RED-M28-L03](../RED-E05/RED-M28-L03.md).\n\n## 2. Comprende el mecanismo\n\nChecksum offload puede hacer que una captura local vea cabeceras antes de que la NIC complete su cálculo, produciendo apariencias de checksum incorrecto. Captura truncada, inicio tardío, segmentación/offload y pérdida del sensor alteran reconstrucción. Estas posibilidades no autorizan ignorar todos los errores: deben contrastarse con otra ubicación y contadores pertinentes. No equiparar pérdida de adquisición con pérdida de red. El archivo y su hash preservan los datos recibidos, no garantizan que reflejen todos los bytes del medio físico.\n\n### Vocabulario de apoyo\n\n- **Stream y request ID**: Conversación en un archivo analizado e identificador de petición en un contexto de aplicación.\n- **Offload**: Trabajo delegado a la interfaz de red que puede completarse después del punto de captura local.\n- **DC y ticket de servicio**: Controlador de dominio y credencial Kerberos para un servicio; no equivalen a autorización final del recurso.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M28-L04-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Captura docente local marca checksum saliente inválido; captura en otro punto ve checksum válido para el paquete correlacionado.\n\nLa comparación es compatible con offload antes de la transmisión. No evidencia corrupción del paquete en el enlace para ese caso.\n\n"
+    },
+    {
+      "id": "RED-M28-L04-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Análisis en profundidad de sesión sospechosa.\n- Red Team autorizado: Confirmar visibilidad de ensayo mínimo.\n- Evidencia del módulo: Flujos reconstruidos, hechos y límites de visibilidad.\n- Criterio del módulo: Localiza evidencia favorable y contraria.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L15](../../05_RECURSOS/LABORATORIOS/RED-L15.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **WIRESHARK**: [Wireshark User’s Guide](https://www.wireshark.org/docs/wsug_html_chunked/). Filtros, captura, streams, metadatos y límites de observación.\n- **CHECKSUM**: [Checksums](https://www.wireshark.org/docs/wsug_html_chunked/ChAdvChecksums.html). Artefactos de checksum y offload.\n- **RFC4120**: [RFC 4120: Kerberos Network Authentication Service V5](https://www.rfc-editor.org/rfc/rfc4120.html). Tickets, tiempo y separación de autenticación y acceso al recurso.\n- **EV4769**: [4769: A Kerberos service ticket was requested](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4769). Solicitud de ticket y resultado; nota de actualización de evento desde enero 2025.\n- **SMB**: [SMB Security Enhancements](https://learn.microsoft.com/en-us/windows-server/storage/file-server/smb-security). Diferencia entre firma y cifrado; condiciones por versión.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M28-L04-P01",
+    "prompt": "Ahora ambos puntos muestran errores y aumentan CRC físicos. ¿Qué hipótesis gana relevancia?",
+    "markdown": "## 4. Práctica individual\n\nAhora ambos puntos muestran errores y aumentan CRC físicos. ¿Qué hipótesis gana relevancia?\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M28-L04-Q01",
+      "prompt": "¿Qué puede provocar checksum aparente inválido en captura local?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El uso de una máscara /24"
+        },
+        {
+          "id": "B",
+          "text": "Siempre un ataque de red"
+        },
+        {
+          "id": "C",
+          "text": "Offload que completa el cálculo después del punto de captura"
+        },
+        {
+          "id": "D",
+          "text": "Todo mensaje TLS"
+        }
+      ]
+    },
+    {
+      "id": "RED-M28-L04-Q02",
+      "prompt": "¿Qué favorece la comparación de dos puntos del caso?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Ausencia del paquete transmitido"
+        },
+        {
+          "id": "B",
+          "text": "Un intento de autenticación fallido"
+        },
+        {
+          "id": "C",
+          "text": "Corrupción física demostrada en tránsito"
+        },
+        {
+          "id": "D",
+          "text": "Un artefacto de observación local compatible con offload"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L15](../../05_RECURSOS/LABORATORIOS/RED-L15.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **WIRESHARK**: [Wireshark User’s Guide](https://www.wireshark.org/docs/wsug_html_chunked/). Filtros, captura, streams, metadatos y límites de observación.\n- **CHECKSUM**: [Checksums](https://www.wireshark.org/docs/wsug_html_chunked/ChAdvChecksums.html). Artefactos de checksum y offload.\n- **RFC4120**: [RFC 4120: Kerberos Network Authentication Service V5](https://www.rfc-editor.org/rfc/rfc4120.html). Tickets, tiempo y separación de autenticación y acceso al recurso.\n- **EV4769**: [4769: A Kerberos service ticket was requested](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4769). Solicitud de ticket y resultado; nota de actualización de evento desde enero 2025.\n- **SMB**: [SMB Security Enhancements](https://learn.microsoft.com/en-us/windows-server/storage/file-server/smb-security). Diferencia entre firma y cifrado; condiciones por versión.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "380a79efe95c4b1204123fbb"
+}

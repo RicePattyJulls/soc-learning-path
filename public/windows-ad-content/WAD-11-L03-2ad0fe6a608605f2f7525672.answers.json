@@ -1,0 +1,43 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-11-L03",
+  "sourceHash": "36b789e3c41be2e775c2e0af9495ae1b305a8ee78a4f36a3602cbc83384e58e2",
+  "questions": [
+    {
+      "id": "WAD-11-L03-Q01",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «El dominio administra la contraseña y la rota automáticamente, sin que ningún operador necesite conocerla».\n\nEse es el rasgo que distingue a una gMSA de una cuenta de usuario dedicada: desaparece el secreto que alguien tendría que custodiar. El SPN sigue siendo necesario, Kerberos sigue siendo el mecanismo esperado y el equipo debe continuar unido al dominio."
+    },
+    {
+      "id": "WAD-11-L03-Q02",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «Dejar el SPN en una sola cuenta, la que ejecuta el servicio, y retirarlo de la otra».\n\nUn SPN duplicado impide al dominio decidir a qué cuenta dirigir el ticket, así que la corrección consiste en ajustar el registro del nombre. Extraer claves, copiar tickets ajenos o volcar la memoria del proceso de seguridad son prácticas prohibidas que además no resuelven la ambigüedad."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "El fallo es de registro y no de credencial: el SPN está publicado en dos cuentas, la que ejecuta el servicio y una antigua sin retirar, de modo que el dominio no puede decidir a qué cuenta dirigir el ticket de servicio y Kerberos falla. La corrección es dejar el SPN únicamente en la cuenta que ejecuta el servicio y retirarlo de la otra, antes comprobando que la cuenta antigua no responde por ningún otro nombre en uso. En adelante convendría una gMSA, porque el dominio administra la contraseña y la rota automáticamente sin que ningún operador la conozca y solo los equipos autorizados pueden usarla, lo que elimina el secreto compartido de la cuenta de usuario dedicada. Descartaría extraer claves, copiar tickets ajenos o volcar la memoria del proceso de seguridad: ninguna de esas acciones forma parte de una corrección de SPN. La prueba es doble: un cliente obtiene su ticket de servicio y conecta (positiva) y el duplicado ya no existe (negativa). El límite: esto explica este servicio y no certifica el resto del dominio.",
+    "rubric": [
+      {
+        "criterion": "Diagnóstico del SPN duplicado",
+        "evidence": "Señala la ambigüedad del nombre repartido entre dos cuentas como causa del fallo de autenticación."
+      },
+      {
+        "criterion": "Corrección propuesta",
+        "evidence": "Deja el SPN en la cuenta que ejecuta el servicio y lo retira de la antigua, sin tocar credenciales."
+      },
+      {
+        "criterion": "Elección de cuenta justificada",
+        "evidence": "Recomienda una gMSA por la rotación automática de la contraseña y la ausencia de secreto conocido por el operador."
+      },
+      {
+        "criterion": "Acciones descartadas",
+        "evidence": "Rechaza extraer claves, copiar tickets ajenos y volcar la memoria del proceso de seguridad."
+      },
+      {
+        "criterion": "Límite reconocido",
+        "evidence": "Incluye prueba positiva y negativa y acota la conclusión a este servicio."
+      }
+    ]
+  },
+  "revision": "2ad0fe6a608605f2f7525672"
+}

@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-07-L01",
+  "sourceHash": "37f418b3fee430463d45d73dc542dcdaac66cf1686044a81ab33c5ffd3df09f9",
+  "questions": [
+    {
+      "id": "LNX-07-L01-Q01",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «El initramfs, un sistema de archivos inicial que el kernel extrae para preparar la raíz real».\n\nEl initramfs es la imagen inicial que el kernel extrae en memoria para preparar el acceso a la raíz definitiva. El firmware no monta la raíz, el cargador no actúa como PID 1 y el target no descarga imágenes desde la red."
+    },
+    {
+      "id": "LNX-07-L01-Q02",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Que la salida de consola se redujo, no que no ocurrieran eventos».\n\n`quiet` disminuye los mensajes de consola, pero no elimina los pasos del arranque. No autoriza a afirmar ausencia de eventos ni un orden estrictamente serial, y Secure Boot no valida cada unidad del sistema."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "La cadena se reconstruye como etapas encadenadas: firmware → cargador → kernel (con parámetros e imagen inicial) → initramfs → cambio a la raíz definitiva → PID 1 → unidades. Para situar el fallo en una etapa concreta, la evidencia clave es **hasta dónde llegó** el sistema: si no alcanzó PID 1, la hipótesis apunta al firmware, al cargador, al kernel, al initramfs o a la raíz; si llegó a PID 1, apunta a unidades y dependencias.\n\nEl último mensaje de consola no es prueba suficiente: `quiet` reduce la salida, pero muchos pasos ocurren sin mostrar texto. Registrar la etapa alcanzada, los parámetros del kernel y el montaje efectivo permite descartar la hipótesis equivocada.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Reconstruye al menos cinco hitos de la cadena y respeta su orden lógico."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Sitúa el fallo en una etapa concreta y explica cómo lo comprobaría."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Rechaza atribuir la causa al último mensaje de consola por sí solo."
+      },
+      {
+        "criterion": "Reconoce el límite",
+        "evidence": "sin evidencia de la etapa alcanzada solo describe el síntoma."
+      }
+    ]
+  },
+  "revision": "2d5b5d67c2a8888dce562353"
+}

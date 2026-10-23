@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-06-L03",
+  "title": "Diagnóstico por hipótesis",
+  "sourceHash": "9a61f30fbf274a5389c1618d616a940ce7e9c7dfec952c5e95bb7266741b4507",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-06-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDiagnosticar y corregir con hipótesis ordenadas y cambios de uno en uno.\n\nPrerrequisitos: `WAD-06-L02` (firewall, SMB, RDP y WinRM).\n\n## 2. Comprende el mecanismo\n\nDiagnosticar bien es un método, no una habilidad misteriosa. Consiste en **enunciar hipótesis** y **predecir** qué se observaría si cada una fuese cierta. Si la observación no coincide, la hipótesis se **descarta**; si coincide, se confirma y se sigue. El valor está en que cada paso reduce las posibilidades en vez de acumular cambios.\n\nDe ese método se derivan tres reglas que marcan la diferencia:\n\n- **Un cambio cada vez.** Si se cambian tres cosas y funciona, no se sabe cuál lo arregló; y si empeora, no se sabe qué deshacer. Cambiar de uno en uno permite **atribuir** el efecto.\n- **Distinguir causa de síntoma.** «El servicio no responde» es un síntoma; la causa puede estar en la capa de nombres, en la ruta, en el puerto o en el propio servicio. Corregir el síntoma sin causa deja el problema vivo.\n- **Corrección mínima, reversible y documentada.** El cambio que arreglo debe poder describirse, revertirse y compararse con el estado anterior.\n\nUn **diagrama de dependencias** ayuda antes de tocar nada: nombre resuelto → ruta disponible → puerto abierto → servicio que atiende → identidad autorizada. Recorrerlo en orden evita «arreglar» capas que no fallaban y evita también el atajo peligroso de reiniciar todo, que borra el estado que servía como evidencia.\n\nLos datos de los ejemplos son sintéticos y usan direcciones de documentación.\n\n### Vocabulario de apoyo\n\n- **Hipótesis**: explicación provisional que se puede probar.\n- **Predicción**: observación esperada si la hipótesis es cierta.\n- **Atribución**: poder asignar un efecto al cambio que lo produjo.\n- **Síntoma**: manifestación observable, no necesariamente la causa.\n- **Corrección mínima**: cambio más pequeño que resuelve la causa.\n- **Diagrama de dependencias**: orden de capas y sus dependencias.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Estos términos se reutilizan al cerrar la etapa.\n\n"
+    },
+    {
+      "id": "WAD-06-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un recurso compartido no responde en un equipo recién reiniciado. La primera reacción del operador es reiniciar todos los equipos implicados «por si acaso».\n\nReiniciar todo destruye la evidencia y no permite atribuir nada. En su lugar se recorren las hipótesis en orden: la **resolución de nombres** responde, la **ruta** está disponible, el **puerto** no contesta. Al comprobar el destino, se observa que el servicio de archivos **no está en ejecución**: la causa estaba en la última capa, no en la red. Se arranca el servicio, se verifica con una prueba positiva y una negativa, y se registra el cambio. La conclusión acota la zona —«servicio detenido, red correcta»— y evita el reinicio indiscriminado que habría borrado el estado útil.\n\n"
+    },
+    {
+      "id": "WAD-06-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Un diagnóstico por hipótesis deja rastro de qué se descartó y con qué prueba, y eso es parte de la evidencia.\n- Red Team autorizado: Cambiar de uno en uno mantiene la operación dentro del alcance y permite revertir con precisión.\n- Evidencia de la etapa: Secuencia de hipótesis, pruebas y corrección mínima con antes/después.\n- Criterio de dominio: Distingue causa de síntoma y no reinicia ni reconfigura en bloque.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB04](../../05_RECURSOS/LABORATORIOS/WAD-LAB04.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **DIAG**: [Troubleshoot network connectivity](https://learn.microsoft.com/en-us/windows-server/networking/technologies/netsh/netsh-contexts). Contexto de diagnóstico de red en Windows.\n- **TESTNET**: [Test-NetConnection](https://learn.microsoft.com/en-us/powershell/module/nettcpip/test-netconnection). Prueba de ruta y de puerto.\n- **NETTCP**: [Get-NetTCPConnection](https://learn.microsoft.com/en-us/powershell/module/nettcpip/get-nettcpconnection). Estado del puerto y del servicio.\n- **RESOLVEDNS**: [Resolve-DnsName](https://learn.microsoft.com/en-us/powershell/module/dnsclient/resolve-dnsname). Comprobación de la capa de nombres.\n- **NETROUTE**: [Get-NetRoute](https://learn.microsoft.com/en-us/powershell/module/nettcpip/get-netroute). Comprobación de la capa de ruta.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-06-L03-P01",
+    "prompt": "Diseña el diagnóstico completo de «no puedo acceder al recurso compartido». Enuncia las hipótesis en orden, la prueba de cada una, la observación que las confirmaría o descartaría, y la corrección mínima con su secuencia antes/después. Explica por qué cada paso permite atribuir el efecto y qué evidencia conservarías para documentar el cierre.",
+    "markdown": "## 4. Práctica individual\n\nDiseña el diagnóstico completo de «no puedo acceder al recurso compartido». Enuncia las **hipótesis en orden**, la **prueba** de cada una, la observación que las confirmaría o descartaría, y la **corrección mínima** con su secuencia **antes/después**. Explica por qué cada paso permite **atribuir** el efecto y qué evidencia conservarías para documentar el cierre.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber ejecutado el diagnóstico en una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-06-L03-Q01",
+      "prompt": "¿Por qué se cambia una sola cosa a la vez durante un diagnóstico?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Para que el diagnóstico dure más tiempo"
+        },
+        {
+          "id": "B",
+          "text": "Para poder atribuir el efecto al cambio que realmente lo produjo"
+        },
+        {
+          "id": "C",
+          "text": "Porque el sistema no admite más de un cambio"
+        },
+        {
+          "id": "D",
+          "text": "Para evitar que se generen registros"
+        }
+      ]
+    },
+    {
+      "id": "WAD-06-L03-Q02",
+      "prompt": "¿Qué aporta un diagrama de dependencias antes de corregir?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Mejora la presentación del informe"
+        },
+        {
+          "id": "B",
+          "text": "Ordena las capas a comprobar y evita corregir fuera de la causa"
+        },
+        {
+          "id": "C",
+          "text": "Sustituye la necesidad de hacer pruebas"
+        },
+        {
+          "id": "D",
+          "text": "Amplía automáticamente los permisos necesarios"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB04](../../05_RECURSOS/LABORATORIOS/WAD-LAB04.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **DIAG**: [Troubleshoot network connectivity](https://learn.microsoft.com/en-us/windows-server/networking/technologies/netsh/netsh-contexts). Contexto de diagnóstico de red en Windows.\n- **TESTNET**: [Test-NetConnection](https://learn.microsoft.com/en-us/powershell/module/nettcpip/test-netconnection). Prueba de ruta y de puerto.\n- **NETTCP**: [Get-NetTCPConnection](https://learn.microsoft.com/en-us/powershell/module/nettcpip/get-nettcpconnection). Estado del puerto y del servicio.\n- **RESOLVEDNS**: [Resolve-DnsName](https://learn.microsoft.com/en-us/powershell/module/dnsclient/resolve-dnsname). Comprobación de la capa de nombres.\n- **NETROUTE**: [Get-NetRoute](https://learn.microsoft.com/en-us/powershell/module/nettcpip/get-netroute). Comprobación de la capa de ruta.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "5de3285998d48eb92f5b406a"
+}

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-09-L02",
+  "title": "Investigar la procedencia",
+  "sourceHash": "c2cf5fb38b2eca2303a576cdbed9f206ace24cf893238535a3920bdc3cf2c6f8",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-09-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nTrazar la procedencia efectiva de una unidad y de su ejecutable, y acotar qué demuestra cada consulta de propiedad.\n\nPrerrequisitos: `LNX-09-L01` (Archivos, drop-ins y rutas).\n\n## 2. Comprende el mecanismo\n\nInvestigar la procedencia es responder a «¿de dónde salió esto y qué confianza merece?». Se hace en pasos, y cada paso **acota** en lugar de demostrar por completo.\n\nEl primer paso es localizar la **definición efectiva**: qué archivo base se lee, qué drop-ins se aplican y cuál es la ruta del fragmento. Eso sitúa la unidad en el mapa. La ruta del fragmento —por ejemplo, bajo la administración del sistema— sugiere personalización o despliegue, pero **no** prueba que sea hostil ni que el paquete original haya desaparecido.\n\nEl segundo paso es encontrar el **ejecutable real**: resolver la ruta efectiva, revisar propietario y permisos, y registrar marcas temporales y un hash sobre una copia preservada cuando sea viable. La ruta puede ser un enlace; el ejecutable real es el destino.\n\nEl tercer paso es consultar el **paquete propietario** de esa ruta, si existe: la herramienta de la distribución revela qué paquete registra la ruta. Aquí hay un límite importante: estas consultas usan una **base de datos local**. Que una ruta esté registrada **no prueba** que su contenido actual coincida con el original; que **no** esté registrada tampoco demuestra malicia, porque el software propio, las rutas locales y los instaladores manuales pueden ser legítimos.\n\nEl cuarto paso es **correlacionar** con el despliegue autorizado: transacción de paquete, cambio de configuración, ticket y horario. Un cambio reciente puede venir de un parche, una restauración o una manipulación; el dato temporal orienta, no sentencia.\n\nConviene además leer los **registros de la unidad** para ver qué se ejecutó y cuándo, con el límite de que el journal no captura necesariamente todos los syscalls, ficheros ni conexiones. La conclusión razonable encadena estos pasos y declara su límite: describe procedencia **efectiva** y confianza **relativa**, no una prueba absoluta de integridad.\n\n### Vocabulario de apoyo\n\n- **Definición efectiva**: archivo base más drop-ins realmente aplicados a la unidad.\n- **Ejecutable real**: destino de la ruta tras resolver enlaces.\n- **Paquete propietario**: paquete que registra una ruta en la base local.\n- **Base de datos local**: registro del host, alterable; no equivale a verdad externa.\n- **Cadena de suministro**: origen y verificación de los artefactos desplegados.\n- **Correlación temporal**: contrastar cambios con despliegues y horarios conocidos.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-09-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: una unidad tiene su fragmento en la ruta de la administración del sistema. Un analista consulta el paquete propietario del ejecutable, recibe la ruta registrada y concluye que «el binario es auténtico».\n\nLa conclusión no se sostiene por completo. La consulta de propiedad usa la **base de datos local**, que el propio host mantiene y que, en un sistema comprometido, podría estar alterada. Además, registra **propiedad**, no **coincidencia del contenido**: el archivo en disco podría haberse modificado sin cambiar su registro.\n\nLa lectura correcta trata la base local como **indicio**, no como prueba: aporta qué paquete declara la ruta, no que el contenido actual sea el original. El límite: para afirmar integridad haría falta comparar contra una referencia externa confiable o una copia preservada, algo que la consulta local no ofrece.\n\n"
+    },
+    {
+      "id": "LNX-09-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Encadenar definición efectiva, ejecutable real, propiedad y correlación temporal antes de concluir.\n- Red Team autorizado: Evitar afirmar compromiso por una ruta o un registro: describir el alcance real y sus límites.\n- Evidencia de la etapa: Ruta efectiva, propietario, permisos, hash en copia preservada y ticket asociado.\n- Criterio de dominio: Distingue procedencia efectiva de prueba de integridad al informar.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB08](../../05_RECURSOS/LABORATORIOS/LNX-LAB08.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F22**: [systemd: systemd.unit](https://www.freedesktop.org/software/systemd/man/257/systemd.unit.html). Rutas y propiedades que identifican la definición efectiva.\n- **F36**: [systemd: generators](https://www.freedesktop.org/software/systemd/man/257/systemd.generator.html). Unidades generadas sin archivo escrito a mano, relevantes al rastrear procedencia.\n- **F39**: [systemd: transient units](https://www.freedesktop.org/software/systemd/man/257/systemd-run.html). Unidades al vuelo que no provienen de un archivo persistente.\n- **F20**: [systemd: journalctl](https://www.freedesktop.org/software/systemd/man/257/journalctl.html). Registros de la unidad para correlacionar ejecución y tiempo.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-09-L02-P01",
+    "prompt": "Una unidad tiene su fragmento en la ruta de la administración del sistema y el ejecutable aparece registrado por un paquete. Explica qué demuestra la consulta de propiedad, qué no demuestra y qué haría falta para elevar tu conclusión sobre la procedencia.",
+    "markdown": "## 4. Práctica individual\n\nUna unidad tiene su fragmento en la ruta de la administración del sistema y el ejecutable aparece registrado por un paquete. Explica qué demuestra la consulta de propiedad, qué no demuestra y qué haría falta para elevar tu conclusión sobre la procedencia.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber realizado un análisis forense real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-09-L02-Q01",
+      "prompt": "`systemctl show X.service -p FragmentPath` devuelve una ruta bajo la administración del sistema. ¿Qué permite concluir?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que el archivo es malicioso por no estar en la ruta de la distribución"
+        },
+        {
+          "id": "B",
+          "text": "Que la definición efectiva proviene de esa ruta, que es una personalización o despliegue, no necesariamente hostil"
+        },
+        {
+          "id": "C",
+          "text": "Que el paquete original fue borrado del disco"
+        },
+        {
+          "id": "D",
+          "text": "Que la unidad no tiene drop-ins aplicados"
+        }
+      ]
+    },
+    {
+      "id": "LNX-09-L02-Q02",
+      "prompt": "En un sistema confirmado como comprometido, ¿por qué la consulta de paquete propietario no basta para afirmar integridad?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Porque consulta una base de datos local que podría haberse alterado y registra propiedad, no coincidencia del contenido actual"
+        },
+        {
+          "id": "B",
+          "text": "Porque esas herramientas solo funcionan en una única distribución"
+        },
+        {
+          "id": "C",
+          "text": "Porque nunca listan rutas de binarios"
+        },
+        {
+          "id": "D",
+          "text": "Porque verifican la firma criptográfica de cada archivo en cada lectura"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB08](../../05_RECURSOS/LABORATORIOS/LNX-LAB08.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F22**: [systemd: systemd.unit](https://www.freedesktop.org/software/systemd/man/257/systemd.unit.html). Rutas y propiedades que identifican la definición efectiva.\n- **F36**: [systemd: generators](https://www.freedesktop.org/software/systemd/man/257/systemd.generator.html). Unidades generadas sin archivo escrito a mano, relevantes al rastrear procedencia.\n- **F39**: [systemd: transient units](https://www.freedesktop.org/software/systemd/man/257/systemd-run.html). Unidades al vuelo que no provienen de un archivo persistente.\n- **F20**: [systemd: journalctl](https://www.freedesktop.org/software/systemd/man/257/journalctl.html). Registros de la unidad para correlacionar ejecución y tiempo.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "b9fc44bbcdfa5da0e9ffbbae"
+}

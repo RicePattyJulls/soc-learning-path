@@ -1,4 +1,9 @@
 import {simulatorChange} from './simulator-reconciliation.mjs';
+import {redesChange} from './redes-reconciliation.mjs';
+import {windowsAdChange} from './windows-ad-reconciliation.mjs';
+import {linuxChange} from './linux-reconciliation.mjs';
+import {socChange} from './soc-reconciliation.mjs';
+import {repasoSocChange} from './repaso-soc-reconciliation.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import path from 'node:path';
@@ -18,7 +23,7 @@ export async function checkV20Protected(root=ROOT){
   const changed=Object.keys(current).filter(file=>current[file]!==inventory.original[file]);
   for(const file of changed)assert.ok(v20Change(file,inventory.original[file],current[file]),`Cambio no autorizado: ${file}`);
   // These may never be included in the extension allowlist.
-  for(const file of Object.keys(current).filter(f=>(f.startsWith('src/')&&!f.startsWith('src/splunk/')&&!f.startsWith('src/generated/splunk/'))||f.startsWith('public/content/')||['src/splunk/progress.ts','src/splunk/useSplunk.ts','src/splunk/data.ts','src/splunk/PremiumWorld.tsx','src/splunk/RegionScene.tsx','src/splunk/premium-world.css'].includes(f)))assert.ok(current[file]===inventory.original[file]||['src/App.tsx','src/components/AcademySelector.tsx'].includes(file)&&simulatorChange(file,inventory.original[file],current[file]),file);
+  for(const file of Object.keys(current).filter(f=>(f.startsWith('src/')&&!f.startsWith('src/splunk/')&&!f.startsWith('src/generated/splunk/'))||f.startsWith('public/content/')||['src/splunk/progress.ts','src/splunk/useSplunk.ts','src/splunk/data.ts','src/splunk/PremiumWorld.tsx','src/splunk/RegionScene.tsx','src/splunk/premium-world.css'].includes(f)))assert.ok(current[file]===inventory.original[file]||['src/App.tsx','src/components/AcademySelector.tsx'].includes(file)&&(simulatorChange(file,inventory.original[file],current[file])||redesChange(file,inventory.original[file],current[file])||windowsAdChange(file,inventory.original[file],current[file])||linuxChange(file,inventory.original[file],current[file])||socChange(file,inventory.original[file],current[file])||repasoSocChange(file,inventory.original[file],current[file])),file);
   const generated=await buildSplunk(root);
   assert.equal(generated.catalog.regions.length,11);assert.equal(generated.catalog.lessons.length,80);
   for(const [file,text] of generated.outputs)assert.equal(await readFile(path.join(root,file),'utf8'),text,`Derivado no determinista: ${file}`);

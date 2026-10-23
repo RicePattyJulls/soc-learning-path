@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-05-L01",
+  "title": "Modelo de procesos",
+  "sourceHash": "e6a683a6ffcd19a5efd428671afba49489403cbbf8b368a8d8c8c5038e5563bb",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-05-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDescribir un proceso por su identidad, su relación padre-hijo y su estado para leer un snapshot sin inventar una historia.\n\nPrerrequisitos: `LNX-04-L03` (Uso seguro de privilegios).\n\n## 2. Comprende el mecanismo\n\nUn **proceso** es un programa en ejecución con estado propio: identidad, memoria asignada, descriptores de fichero y una posición en el planificador del kernel. El fichero del programa en disco no cambia mientras el proceso corre; lo que cambia es la ejecución. Esa distinción evita atribuir a un binario comportamiento que en realidad pertenece a un proceso concreto.\n\nTodo proceso nace de otro. En el modelo clásico de Unix, un proceso **clona** su propia imagen (`fork`) y ese clon **reemplaza** su contenido por otro programa (`exec`). De esa mecánica queda una relación **padre-hijo**: cada proceso tiene un identificador (PID) y, salvo el primero, un padre (PPID). Un proceso cuyo padre desaparece queda adoptado por otro; su PPID puede apuntar a un proceso que ya no reconoces.\n\nEl kernel no ejecuta todos los procesos a la vez: los turna. Por eso cada proceso tiene un **estado** instantáneo: en ejecución o listo (R), dormido de forma interrumpible (S), esperando una operación que no se puede interrumpir (D), detenido (T) o terminado y aún no recogido (Z). El estado describe el momento de la lectura, no un historial de lo ocurrido.\n\nCada proceso lleva además una **identidad**: usuario real y efectivo, grupos suplementarios y capacidades. Dos procesos del mismo binario lanzados por usuarios distintos son procesos distintos a ojos del kernel. Igual que en la autorización sobre ficheros, la pregunta correcta no es «qué programa es» sino «con qué identidad corre».\n\nUn proceso hereda de su padre descriptores de fichero (0, 1, 2 y los siguientes) que apuntan a ficheros, sockets o tuberías. Esa herencia explica que un servicio pueda seguir sosteniendo un socket abierto mucho después de que el cliente que lo originó haya terminado, sin que exista ninguna conspiración detrás.\n\nEl dato clave: un **PID no es una identidad permanente**. El kernel reutiliza los identificadores cuando se liberan, y una captura de estado —por ejemplo, la de `ps`— es una **foto**, no un registro cronológico. Ver el mismo PID y el mismo nombre en dos capturas distintas no demuestra continuidad; para sostener «qué pasó» necesitas una fuente que conserve tiempo: registros, auditoría o contadores acumulativos.\n\n### Vocabulario de apoyo\n\n- **Proceso**: programa en ejecución, con identidad, memoria y estado propios.\n- **PID / PPID**: identificador del proceso y de su proceso padre.\n- **`fork` y `exec`**: clonar la imagen del proceso y sustituirla por otro programa.\n- **Estado del proceso**: situación instantánea (R, S, D, T, Z) que muestra la captura.\n- **Descriptor de fichero**: referencia numérica a un recurso abierto, heredable del padre.\n- **Identidad efectiva**: UID/GID con los que el kernel autoriza al proceso.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-05-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un analista compara dos listados de procesos tomados con un minuto de diferencia. En ambos aparece el PID 4312 con el nombre `syncagent`, y concluye que «el proceso lleva un minuto ejecutándose sin interrupción».\n\nLa conclusión no se sostiene con esos datos. Las dos capturas comparten PID y nombre, pero un PID se reutiliza cuando el proceso anterior termina y el nombre de la columna puede estar truncado a un número fijo de caracteres. Que el mismo número aparezca dos veces solo autoriza a decir: *en ambos instantes existía un proceso con ese PID y ese nombre visible*.\n\nPara pasar de la coincidencia a la continuidad hace falta un dato con tiempo: la hora de arranque del proceso, su tiempo acumulado de CPU, o una entrada de registro que lo mencione. El límite de la conclusión es claro: un snapshot responde «qué hay ahora», no «qué ha habido». Confundir ambos planos lleva a afirmar permanencia donde solo hay una foto repetida.\n\n"
+    },
+    {
+      "id": "LNX-05-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Registrar PID, PPID e identidad efectiva junto al instante exacto de la observación.\n- Red Team autorizado: Separar el hecho de que un proceso exista de la conclusión sobre quién lo lanzó.\n- Evidencia de la etapa: Ficha de proceso con PID, PPID, estado, identidad y origen del dato.\n- Criterio de dominio: Explica la relación padre-hijo y el estado antes de atribuir una causa.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB04 — Snapshot limitado de procesos y `/proc`](../../05_RECURSOS/LABORATORIOS/LNX-LAB04.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F03**: [Linux credentials(7)](https://man7.org/linux/man-pages/man7/credentials.7.html). Identidad real y efectiva con la que el kernel autoriza a cada proceso.\n- **F10**: [Linux proc(5)](https://man7.org/linux/man-pages/man5/procfs.5.html). Vista del kernel y de los procesos como sistema de ficheros virtual.\n- **F11**: [Linux proc_pid(5)](https://man7.org/linux/man-pages/man5/proc_pid.5.html). Qué expone el directorio de cada PID y sus límites.\n- **F15**: [Linux ps(1)](https://man7.org/linux/man-pages/man1/ps.1.html). Captura instantánea de procesos y significado de sus columnas.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-05-L01-P01",
+    "prompt": "Un snapshot sintético muestra un proceso con estado Z (zombi) y un PPID que ya no aparece en la lista. Explica qué puedes afirmar sobre ese proceso y qué dato adicional necesitarías para describirlo como manipulación.",
+    "markdown": "## 4. Práctica individual\n\nUn snapshot sintético muestra un proceso con estado Z (zombi) y un PPID que ya no aparece en la lista. Explica qué puedes afirmar sobre ese proceso y qué dato adicional necesitarías para describirlo como manipulación.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber inspeccionado procesos en un host real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-05-L01-Q01",
+      "prompt": "¿Por qué un PID observado en dos instantes distintos no prueba por sí solo que sea el mismo proceso?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Porque `ps` solo muestra los procesos del usuario que lo ejecuta"
+        },
+        {
+          "id": "B",
+          "text": "Porque el kernel reutiliza los identificadores y cada captura es una foto sin continuidad"
+        },
+        {
+          "id": "C",
+          "text": "Porque los procesos cambian de nombre al entrar en estado Z"
+        },
+        {
+          "id": "D",
+          "text": "Porque el PPID se sobrescribe en cada captura"
+        }
+      ]
+    },
+    {
+      "id": "LNX-05-L01-Q02",
+      "prompt": "Un proceso con estado Z (zombi) permanece en la tabla de procesos. ¿Qué describe mejor esa situación?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Sigue consumiendo CPU mientras espera ser atendido"
+        },
+        {
+          "id": "B",
+          "text": "Fue detenido por una señal y puede reanudarse después"
+        },
+        {
+          "id": "C",
+          "text": "Ya terminó, pero su padre aún no ha recogido su código de salida"
+        },
+        {
+          "id": "D",
+          "text": "Está esperando que el usuario escriba en la terminal"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB04 — Snapshot limitado de procesos y `/proc`](../../05_RECURSOS/LABORATORIOS/LNX-LAB04.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F03**: [Linux credentials(7)](https://man7.org/linux/man-pages/man7/credentials.7.html). Identidad real y efectiva con la que el kernel autoriza a cada proceso.\n- **F10**: [Linux proc(5)](https://man7.org/linux/man-pages/man5/procfs.5.html). Vista del kernel y de los procesos como sistema de ficheros virtual.\n- **F11**: [Linux proc_pid(5)](https://man7.org/linux/man-pages/man5/proc_pid.5.html). Qué expone el directorio de cada PID y sus límites.\n- **F15**: [Linux ps(1)](https://man7.org/linux/man-pages/man1/ps.1.html). Captura instantánea de procesos y significado de sus columnas.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "9eb2beebe0be6edd1b01ceeb"
+}

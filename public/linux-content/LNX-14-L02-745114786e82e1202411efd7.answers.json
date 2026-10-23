@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-14-L02",
+  "sourceHash": "0388e336728c7d973d04358acaa5cc80286e3be7f7340660f6c94f6c4ef049c5",
+  "questions": [
+    {
+      "id": "LNX-14-L02-Q01",
+      "correctOptionId": "D",
+      "explanation": "La opción correcta es «`scrub` verifica bloques y puede reparar desde réplicas válidas; el chequeo estructural examina la coherencia y su reparación exige guía experta y copia».\n\n`scrub` comprueba sumas y, si hay redundancia, repara desde réplicas válidas. El chequeo estructural es otra operación, y su reparación no es rutina. No son sinónimos, `scrub` no es exclusivo de XFS y el chequeo estructural no es un respaldo incremental."
+    },
+    {
+      "id": "LNX-14-L02-Q02",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Un punto de referencia lógico en el mismo dispositivo, que comparte bloques y no es una copia independiente».\n\nUn snapshot de Btrfs referencia un estado de los datos y comparte bloques con el origen: no es una copia física, ni un respaldo independiente, ni un journal capaz de reconstruir cualquier escritura."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "`scrub` lee datos y metadatos, detecta errores de suma de comprobación y puede reparar desde réplicas válidas cuando hay redundancia adecuada; no examina la coherencia estructural completa ni arregla daños sin réplica válida, y los archivos en NOCOW pueden no tener suma de datos. Un snapshot Btrfs es un punto de referencia lógico en el mismo dispositivo que comparte bloques con el origen, así que no protege frente a la pérdida o manipulación del volumen.\n\nLímite: sin saber qué archivos están en NOCOW, si hay redundancia y de dónde procede una copia verdaderamente independiente, no puedo afirmar integridad ni capacidad de recuperación.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Explica que `scrub` verifica bloques y repara solo desde réplicas válidas."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Distingue verificación de bloques de chequeo estructural."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Señala que un snapshot comparte bloques y no es copia independiente."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Reconoce el caso NOCOW/NODATASUM y el límite de la conclusión."
+      }
+    ]
+  },
+  "revision": "745114786e82e1202411efd7"
+}

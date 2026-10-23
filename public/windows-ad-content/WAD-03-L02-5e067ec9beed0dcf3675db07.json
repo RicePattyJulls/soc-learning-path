@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-03-L02",
+  "title": "SID, token, privilegios y UAC",
+  "sourceHash": "e4c84ee56b64b531c537e166cbe4809f5f19ade50f0f1b5f2ed0b6c4f4a35a85",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-03-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nExplicar cómo se construye el token de acceso, qué son los privilegios y qué cambia UAC al elevar una operación.\n\nPrerrequisitos: `WAD-03-L01` (SAM, LSA e identidades locales).\n\n## 2. Comprende el mecanismo\n\nCuando una identidad inicia sesión, el sistema no trabaja con la contraseña: trabaja con un **token de acceso**. El token es la respuesta a «quién eres y con qué fuerzas actúas» y contiene:\n\n- El **SID del usuario** y los **SID de sus grupos**.\n- Los **privilegios** concedidos a esa identidad.\n- Un **nivel de integridad** que condiciona qué puede tocar (lo verás en la lección siguiente).\n\nA partir de ahí, el error más común se cae solo: **las operaciones no se comprueban contra la contraseña ni contra el nombre, sino contra el token del proceso**. Dos procesos del mismo usuario pueden tener tokens distintos y, por tanto, derechos distintos.\n\nConviene separar dos ideas que se confunden a menudo:\n\n- **Permisos**: qué puedes hacer sobre un recurso concreto (un archivo, una clave). Los decide el objeto.\n- **Privilegios**: capacidades que el sistema concede a una identidad y que van más allá de un objeto (por ejemplo, copias de seguridad, depuración o tomar posesión). Los concede la política de la cuenta.\n\n**UAC** (User Account Control) explica por qué «ser administrador» no es una respuesta binaria. Aunque la cuenta pertenezca al grupo de administradores, sus procesos se inician con un **token filtrado**, más limitado. Cuando una operación necesita el nivel completo, el sistema pide **consentimiento** y, si se concede, actúa con un **token completo**. Por eso el mismo usuario puede realizar una acción desde una consola elevada y no desde otra sin elevar.\n\nConsecuencia práctica para el análisis: antes de afirmar «este usuario puede» o «no puede», hay que preguntar **en qué proceso y con qué token**. Se comprueba en solo lectura con utilidades que muestran la identidad, los grupos y los privilegios efectivos de la sesión.\n\n### Vocabulario de apoyo\n\n- **Token de acceso**: estructura que describe la identidad y los derechos efectivos de un proceso.\n- **Privilegio**: capacidad concedida a una identidad (copias, depuración, tomar posesión…).\n- **Permiso**: autorización sobre un recurso concreto.\n- **Token filtrado**: token reducido con el que corren por defecto los procesos de un administrador.\n- **Elevación**: obtención de un token completo mediante UAC tras consentimiento.\n- **Integridad (nivel)**: etiqueta del token que condiciona qué objetos puede modificar.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Estos términos se vuelven a usar en la etapa de permisos; consúltalos sin prisa.\n\n"
+    },
+    {
+      "id": "WAD-03-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: dos procesos del mismo usuario administrador se comportan distinto: uno escribe en una carpeta protegida y el otro no. El equipo pide «arreglar la cuenta del usuario».\n\nNo hay nada que arreglar en la cuenta. La diferencia más probable está en el **token**: el proceso que falla corre con un token **filtrado** y el que funciona con uno **completo** (elevado). Se comprueba observando la identidad y los privilegios efectivos de cada proceso y, si procede, comparando sus niveles de integridad. La conclusión acota la zona —«diferencia de token, no de cuenta»— y propone la comprobación; no atribuye el fallo a un permiso mal puesto sin mirar el token.\n\n"
+    },
+    {
+      "id": "WAD-03-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Antes de afirmar que una acción es posible o imposible, identificar el token del proceso, no solo la cuenta.\n- Red Team autorizado: Comprender la elevación ayuda a diseñar pruebas de acceso en laboratorio; no implica elevar fuera de alcance.\n- Evidencia de la etapa: Tabla de identidades y tokens con privilegios efectivos observados.\n- Criterio de dominio: Distingue permiso de privilegio y explica la diferencia entre token filtrado y completo.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB02](../../05_RECURSOS/LABORATORIOS/WAD-LAB02.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **TOKEN**: [Access tokens](https://learn.microsoft.com/en-us/windows/win32/secauthz/access-tokens). Contenido y uso del token de acceso.\n- **UAC**: [How User Account Control works](https://learn.microsoft.com/en-us/windows/security/application-security/application-control/user-account-control/how-it-works). Tokens filtrados y elevación.\n- **SECIDENT**: [Security identifiers](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/understand-security-identifiers). SID de usuario y de grupos integrados.\n- **WHOAMI**: [whoami](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/whoami). Grupos y privilegios efectivos de la sesión.\n- **F12**: [Process Explorer](https://learn.microsoft.com/en-us/sysinternals/downloads/process-explorer). Contexto de seguridad de un proceso.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-03-L02-P01",
+    "prompt": "Explica por qué dos procesos del mismo usuario administrador pueden tener derechos distintos, y describe qué evidencia recogerías para demostrar cuál corre con un token filtrado y cuál elevado. Indica, además, un privilegio y un permiso para mostrar que no son lo mismo.",
+    "markdown": "## 4. Práctica individual\n\nExplica por qué dos procesos del mismo usuario administrador pueden tener derechos distintos, y describe qué evidencia recogerías para demostrar cuál corre con un token filtrado y cuál elevado. Indica, además, un **privilegio** y un **permiso** para mostrar que no son lo mismo.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber ejecutado ni elevado un sistema real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-03-L02-Q01",
+      "prompt": "¿Contra qué se comprueba realmente una operación sobre un recurso?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Contra la contraseña del usuario"
+        },
+        {
+          "id": "B",
+          "text": "Contra el token de acceso del proceso que la ejecuta"
+        },
+        {
+          "id": "C",
+          "text": "Contra el nombre de la cuenta"
+        },
+        {
+          "id": "D",
+          "text": "Contra la fecha del último inicio de sesión"
+        }
+      ]
+    },
+    {
+      "id": "WAD-03-L02-Q02",
+      "prompt": "¿Qué hace UAC al elevar una operación?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Cambia la contraseña del usuario"
+        },
+        {
+          "id": "B",
+          "text": "Reemplaza el token filtrado por un token completo, previa aprobación"
+        },
+        {
+          "id": "C",
+          "text": "Desactiva el firewall durante la operación"
+        },
+        {
+          "id": "D",
+          "text": "Concede todos los privilegios de forma permanente"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB02](../../05_RECURSOS/LABORATORIOS/WAD-LAB02.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **TOKEN**: [Access tokens](https://learn.microsoft.com/en-us/windows/win32/secauthz/access-tokens). Contenido y uso del token de acceso.\n- **UAC**: [How User Account Control works](https://learn.microsoft.com/en-us/windows/security/application-security/application-control/user-account-control/how-it-works). Tokens filtrados y elevación.\n- **SECIDENT**: [Security identifiers](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/understand-security-identifiers). SID de usuario y de grupos integrados.\n- **WHOAMI**: [whoami](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/whoami). Grupos y privilegios efectivos de la sesión.\n- **F12**: [Process Explorer](https://learn.microsoft.com/en-us/sysinternals/downloads/process-explorer). Contexto de seguridad de un proceso.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "5e067ec9beed0dcf3675db07"
+}

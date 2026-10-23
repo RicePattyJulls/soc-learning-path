@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-29-L03",
+  "title": "Runbooks y timeline de triaje",
+  "sourceHash": "8b87db6dcb7950ff7284b5ef005d3c5ecac00e6dafe92f4f94500dab3a007b70",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-29-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nConstruir un runbook de triaje y una timeline correlacionada que declaren fuentes, huecos y límites, sin convertir la secuencia de eventos en una atribución de autoría.\n\nPrerrequisitos: `LNX-29-L02` (Primera intervención y registro de evidencia).\n\n## 2. Comprende el mecanismo\n\nUn **runbook** no es una lista de comandos: es una secuencia de decisiones con entradas, salidas y criterios de parada. Cada paso dice qué se busca, qué se hace si el resultado es A y qué si es B. Un runbook que solo enumera herramientas obliga al analista a improvisar justo cuando tiene menos tiempo.\n\nUn buen runbook empieza por **contexto y autorización**: qué alerta, qué activo, quién decide, qué se puede tocar y qué no. Después fija la **ventana** en UTC y el **booteo**. Sin esos dos datos, cualquier timeline mezcla días y reinicios. El runbook declara también qué fuentes están disponibles y cuáles no: journal, audit, syslog, EDR, red, hipervisor.\n\nLa **timeline** se construye por correlación, no por acumulación. Cada línea lleva hora UTC, fuente, identidad, proceso o unidad, evento y evidencia que lo sostiene. Dos eventos con la misma hora no son necesariamente la misma acción; dos fuentes pueden describir el mismo hecho con distinta granularidad. La timeline ordena, no concluye.\n\nLos **huecos** son parte del producto. Si audit perdió eventos, si el journal estaba en memoria, si el SIEM tuvo retraso o si una fuente no cubre ese host, la timeline debe mostrarlo. Un hueco declarado permite acotar la conclusión; un hueco oculto la invalida sin que el lector lo sepa.\n\nLa **correlación de identidades** exige cuidado. `auid` puede persistir tras elevar privilegios, `uid` y `euid` describen otra cosa, y una cuenta de servicio no equivale a una persona. La timeline anota la identidad tal como aparece y separa lo observado de la interpretación. «La cuenta `svc-backup` escribió el archivo» es observación; «el administrador de respaldos lo hizo» es una inferencia que necesita más datos. La **secuencia** no es causalidad: que un login preceda a una escritura no prueba que la causara. Para sostener causalidad hacen falta mecanismos compatibles, ventana ajustada y ausencia de explicaciones alternativas razonables. La timeline ayuda a formular hipótesis; no las convierte en hechos.\n\nEl **cierre** del runbook incluye decisión, acciones tomadas, evidencia preservada, pendientes y propietario. También incluye la **revisión posterior**: qué faltó en la detección, qué fuente habría acortado el triaje y qué cambio reduce el tiempo de la próxima vez. Un runbook que no se revisa envejece en silencio.\n\nLa regla de la lección: contexto, ventana, fuentes, correlación y huecos declarados. El límite: una timeline bien construida describe lo registrado y su orden; no demuestra intención, no cubre lo no registrado y no sustituye la atribución basada en evidencia adicional.\n\n### Vocabulario de apoyo\n\n- **Runbook**: secuencia de decisiones con criterios de entrada, salida y parada.\n- **Timeline**: orden correlacionado de eventos con hora, fuente y evidencia.\n- **Hueco de telemetría**: periodo o fuente sin registro, que debe declararse.\n- **Correlación**: unir registros de distintas fuentes que describen el mismo hecho.\n- **Causalidad**: relación de causa sostenida con mecanismo y alternativas descartadas.\n- **Criterio de parada**: condición que indica que el paso o el triaje puede cerrarse.\n- **Revisión posterior**: análisis de qué faltó y qué mejorar tras el cierre.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-29-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un runbook de laboratorio indica «revisar journal y audit» y el analista presenta una timeline con cuatro eventos: login a las 02:10, escritura en `/etc/sudoers.d/` a las 02:12, ejecución privilegiada a las 02:15 y cierre de sesión a las 02:40. Concluye que la persona que inició sesión modificó sudoers y escaló privilegios.\n\nLa secuencia es compatible con esa hipótesis, pero no la demuestra. Falta saber si la escritura la hizo el mismo proceso, con qué identidad efectiva, si hubo un cambio autorizado en esa ventana y si el journal cubría todo el periodo. También falta declarar si audit perdió eventos: un `lost` mayor que cero abre la posibilidad de acciones no registradas entre los hitos.\n\nLa lectura correcta convierte la secuencia en timeline con fuente por línea, identidad observada, proceso y evidencia. Después añade los huecos y las explicaciones alternativas: tarea programada, despliegue, gestor de configuración. El runbook se corrige para incluir la comprobación de `auditctl -s`, la ventana de cambio y el propietario del activo. El límite: la timeline revisada sigue sin probar autoría; solo acota qué ocurrió, cuándo y con qué respaldo documental.\n\n"
+    },
+    {
+      "id": "LNX-29-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Publicar runbooks con criterios de parada, fuentes disponibles y huecos esperados.\n- Red Team autorizado: Validar en VM propia que cada paso del runbook produce la evidencia que promete.\n- Evidencia de la etapa: Timeline con fuente por línea, ventana UTC, identidades observadas y limitaciones.\n- Criterio de dominio: Ordena sin confundir secuencia con causalidad y declara lo que la evidencia no sostiene.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB37](../../05_RECURSOS/LABORATORIOS/LNX-LAB37.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F121**: [NIST SP 800-61 Rev.3 (2025)](https://csrc.nist.gov/pubs/sp/800/61/r3/final). Fases de respuesta y criterios de decisión.\n- **F127**: [MITRE ATT&CK Data Sources (deprecated)](https://attack.mitre.org/datasources/). Qué permite afirmar cada fuente de datos.\n- **F118**: [ausearch(8)](https://man7.org/linux/man-pages/man8/ausearch.8.html). Extracción de eventos para la timeline.\n- **F114**: [journalctl(1)](https://man7.org/linux/man-pages/man1/journalctl.1.html). Consulta reproducible por ventana y unidad.\n- **F02**: [GNU Bash Reference Manual](https://www.gnu.org/software/bash/manual/bash.html). Automatización acotada de consultas y formato de salida.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-29-L03-P01",
+    "prompt": "Un runbook indica «revisar journal y audit» y el analista arma una timeline con login, escritura en `/etc/sudoers.d/`, ejecución privilegiada y cierre de sesión, y concluye que la persona que inició sesión escaló privilegios. Explica cómo construirías el runbook y la timeline, qué huecos declararías y cuál es el límite de la conclusión.",
+    "markdown": "## 4. Práctica individual\n\nUn runbook indica «revisar journal y audit» y el analista arma una timeline con login, escritura en `/etc/sudoers.d/`, ejecución privilegiada y cierre de sesión, y concluye que la persona que inició sesión escaló privilegios. Explica cómo construirías el runbook y la timeline, qué huecos declararías y cuál es el límite de la conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber triado un incidente ni haber atribuido autoría real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-29-L03-Q01",
+      "prompt": "¿Qué convierte una lista de eventos en una timeline útil para triaje?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que todos los eventos provengan de la misma fuente"
+        },
+        {
+          "id": "B",
+          "text": "Que tenga hora UTC, fuente, identidad, evidencia por línea y huecos declarados"
+        },
+        {
+          "id": "C",
+          "text": "Que los eventos estén ordenados por severidad estimada"
+        },
+        {
+          "id": "D",
+          "text": "Que incluya una conclusión de autoría al final"
+        }
+      ]
+    },
+    {
+      "id": "LNX-29-L03-Q02",
+      "prompt": "Un login precede a una escritura privilegiada en la timeline. ¿Qué se puede afirmar?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que el login causó la escritura"
+        },
+        {
+          "id": "B",
+          "text": "Que la misma persona realizó ambas acciones"
+        },
+        {
+          "id": "C",
+          "text": "Que la secuencia es compatible con esa hipótesis, pero la causalidad exige mecanismo y descartar alternativas"
+        },
+        {
+          "id": "D",
+          "text": "Que hubo escalada de privilegios confirmada"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB37](../../05_RECURSOS/LABORATORIOS/LNX-LAB37.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F121**: [NIST SP 800-61 Rev.3 (2025)](https://csrc.nist.gov/pubs/sp/800/61/r3/final). Fases de respuesta y criterios de decisión.\n- **F127**: [MITRE ATT&CK Data Sources (deprecated)](https://attack.mitre.org/datasources/). Qué permite afirmar cada fuente de datos.\n- **F118**: [ausearch(8)](https://man7.org/linux/man-pages/man8/ausearch.8.html). Extracción de eventos para la timeline.\n- **F114**: [journalctl(1)](https://man7.org/linux/man-pages/man1/journalctl.1.html). Consulta reproducible por ventana y unidad.\n- **F02**: [GNU Bash Reference Manual](https://www.gnu.org/software/bash/manual/bash.html). Automatización acotada de consultas y formato de salida.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "bc56260a81969ac0ab94ccdb"
+}

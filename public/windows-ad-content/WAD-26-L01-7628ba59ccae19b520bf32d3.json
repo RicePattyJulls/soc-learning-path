@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-26-L01",
+  "title": "Capacidades y filtros de Sysmon",
+  "sourceHash": "55f9c9dc43d31a67c52013e453633e84246615d092a5b4bfe83377c7a9d48dbc",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-26-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nConocer las capacidades y los filtros de Sysmon para la recolección.\n\nPrerrequisitos: `WAD-24-L03` (Cobertura efectiva y pérdida) y `WAD-25-L03` (PowerShell Logging y límites).\n\n## 2. Comprende el mecanismo\n\nLa auditoría nativa registra identidades y accesos, pero deja fuera mucho de lo que ocurre dentro del equipo. Para reconstruir la actividad de proceso hace falta más detalle del que el registro de seguridad ofrece por defecto: qué imagen se ejecutó, con qué línea de comandos, quién fue su proceso padre y con qué destinos de red habló. Sysmon aporta ese detalle.\n\n**Sysmon** es un servicio con un controlador que se instala en el equipo y escribe en un **canal propio** dentro del registro de eventos, distinto del de seguridad. Al arrancar con el sistema, registra actividad desde fases muy tempranas, incluso antes de que un usuario inicie sesión.\n\nSus **capacidades** se agrupan por tipo de evento. Los más usados describen la **creación de procesos** —imagen, línea de comandos, proceso padre y una huella del binario—, las **conexiones de red** con su origen y destino, la **carga de imágenes** y los **cambios en el registro** o en archivos concretos. Cada tipo tiene un identificador de evento que permite filtrarlo.\n\nEl punto que decide la cobertura es la **configuración**. Sysmon no registra «todo»: lee un archivo de reglas donde se declara, por cada tipo de evento, qué se **incluye** y qué se **excluye** según condiciones sobre sus campos. Una regla de exclusión demasiado amplia crea un **punto ciego**: el evento no se genera y no se puede recuperar después.\n\nPor eso la configuración es una decisión de recolección, no un ajuste menor. Incluir de más llena el registro y diluye la señal; excluir de más deja fuera lo que interesa observar. El equilibrio se documenta y se prueba, porque **solo se ve aquello que la regla admite**.\n\nLa lectura posterior se hace con las mismas herramientas que cualquier otro canal: consultando los eventos por hora, origen e identificador. La regla que cierra la lección: **la configuración define el alcance y la evidencia lo confirma**; un evento aislado no se extrapola a todo el equipo. Todo se practica sobre `ad.lab.test`, un laboratorio aislado.\n\n### Vocabulario de apoyo\n\n- **Sysmon**: servicio y controlador que registra actividad detallada del equipo en un canal propio.\n- **Canal de eventos**: registro con nombre donde se acumulan los eventos de un origen o rol.\n- **Regla de inclusión / exclusión**: condición que decide qué eventos se registran y cuáles se descartan.\n- **Línea de comandos**: texto con el que se invocó un proceso; ayuda a entender qué se ejecutó.\n- **Proceso padre**: proceso que creó a otro; sitúa el evento en un árbol de ejecución.\n- **Punto ciego**: zona sin cobertura por una decisión de configuración.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-26-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test` se despliega Sysmon en `WKS01` con una configuración que excluye de la creación de procesos a una utilidad administrativa muy ruidosa. Días después se revisa el canal y no aparece ningún evento de esa utilidad.\n\nLa ausencia es coherente con la exclusión, no con que la utilidad no se ejecutara. La evidencia muestra que el canal contiene los demás eventos de proceso, así que el filtro funciona; lo que no existe es el registro de la utilidad excluida, y ese hueco no se puede reconstruir a posteriori. La conclusión acota lo observable —«la configuración explica la ausencia de ese evento concreto»— y reconoce su límite: la falta de un evento no demuestra que la actividad no ocurriera, solo que la regla no la registró.\n\n"
+    },
+    {
+      "id": "WAD-26-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Distinguir el hecho registrado de su interpretación evita tratar un evento aislado de Sysmon como prueba de compromiso.\n- Red Team autorizado: Conocer qué excluye la configuración permite describir los puntos ciegos sin tocar el entorno.\n- Evidencia de la etapa: Configuración de Sysmon, canal consultado y eventos observados con su hora.\n- Criterio de dominio: La cobertura declarada se respalda con la configuración y con eventos comprobados, no con supuestos.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB18](../../05_RECURSOS/LABORATORIOS/WAD-LAB18.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **SYSMON**: [Sysmon](https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon). Capacidades del servicio y formato de su configuración de filtros.\n- **GETWINEVENT**: [Get-WinEvent](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.diagnostics/get-winevent). Consulta de los eventos del canal con su hora.\n- **WEVTUTIL**: [wevtutil](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/wevtutil). Consulta y exportación de los registros de eventos.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-26-L01-P01",
+    "prompt": "En el laboratorio `ad.lab.test`, quieres recolectar la actividad de procesos de `WKS01` con Sysmon. Explica qué capacidades aprovechas, cómo decides las reglas de filtrado y qué límite reconoces antes de concluir.",
+    "markdown": "## 4. Práctica individual\n\nEn el laboratorio `ad.lab.test`, quieres recolectar la actividad de procesos de `WKS01` con Sysmon. Explica qué capacidades aprovechas, cómo decides las reglas de filtrado y qué límite reconoces antes de concluir.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber desplegado Sysmon en un entorno real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-26-L01-Q01",
+      "prompt": "Al preparar la recolección con Sysmon en `WKS01`, ¿qué determina realmente qué eventos quedan registrados?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El tamaño del disco del equipo, porque el registro crece hasta llenarlo"
+        },
+        {
+          "id": "B",
+          "text": "El número de usuarios que inicien sesión durante la jornada"
+        },
+        {
+          "id": "C",
+          "text": "La versión del sistema operativo, que activa todos los eventos por defecto"
+        },
+        {
+          "id": "D",
+          "text": "Las reglas de filtrado de la configuración de Sysmon, que deciden qué se incluye y qué se excluye"
+        }
+      ]
+    },
+    {
+      "id": "WAD-26-L01-Q02",
+      "prompt": "¿Qué límite conviene reconocer al interpretar un evento aislado de Sysmon sobre la creación de un proceso?",
+      "options": [
+        {
+          "id": "A",
+          "text": "El evento demuestra por sí solo que hubo un compromiso del equipo"
+        },
+        {
+          "id": "B",
+          "text": "El evento solo muestra lo que la configuración permitió registrar y requiere contexto y correlación antes de concluir"
+        },
+        {
+          "id": "C",
+          "text": "El evento es fiable sin comprobar la hora ni el origen, porque Sysmon no puede filtrar"
+        },
+        {
+          "id": "D",
+          "text": "El evento sustituye a la política de auditoría del dominio y la vuelve innecesaria"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB18](../../05_RECURSOS/LABORATORIOS/WAD-LAB18.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **SYSMON**: [Sysmon](https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon). Capacidades del servicio y formato de su configuración de filtros.\n- **GETWINEVENT**: [Get-WinEvent](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.diagnostics/get-winevent). Consulta de los eventos del canal con su hora.\n- **WEVTUTIL**: [wevtutil](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/wevtutil). Consulta y exportación de los registros de eventos.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "7628ba59ccae19b520bf32d3"
+}

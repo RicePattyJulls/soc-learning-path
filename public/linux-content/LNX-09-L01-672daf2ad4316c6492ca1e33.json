@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-09-L01",
+  "title": "Archivos, drop-ins y rutas",
+  "sourceHash": "61e9a3d396de4c84c18115e106203817574c031f61e7b3616bd99b99d3b421a6",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-09-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nUbicar las rutas de las unidades, reconocer los drop-ins y entender cómo se compone la definición efectiva desde fragmentos.\n\nPrerrequisitos: `LNX-08-L03` (Operaciones y efectos diferenciados).\n\n## 2. Comprende el mecanismo\n\nLa definición de una unidad no vive en un único lugar. Systemd busca archivos en **varias rutas**, y la configuración efectiva es el resultado de **fusionar fragmentos** según precedencia. Entender esa composición es lo que permite saber qué se está ejecutando de verdad.\n\nEntre las rutas habituales están las definiciones de la administración del sistema —donde se colocan personalizaciones—, las definiciones de la distribución o de los paquetes, las de tiempo de ejecución y las del gestor de usuario. No es una lista exhaustiva ni un orden que se pueda deducir contando archivos: la precedencia depende de las reglas documentadas y de la composición concreta.\n\nUn **drop-in** es un fragmento, normalmente un archivo dentro de un directorio `unidad.service.d/`, que **añade o sobrescribe** directivas sin reemplazar el archivo base. Es la forma recomendada de personalizar una unidad del paquete sin editarla. Varios drop-ins se aplican en un orden definido por su nombre.\n\nTambién existen **generadores**: programas que se ejecutan durante el arranque o al recargar y que escriben unidades **efímeras** en tiempo de ejecución. Estas unidades pueden no estar en las rutas habituales ni tener un archivo escrito a mano, lo que sorprende a quien busca solo en las carpetas conocidas.\n\nPor último, las **unidades transitorias** creadas al vuelo no tienen por qué aparecer como un archivo persistente. Sumadas a los generadores, amplían el conjunto de unidades que existen sin un archivo fuente evidente. Inventariar no es «listar un directorio»: es componer lo que el gestor conoce.\n\nLa idea que ordena todo: **no deduzcas la precedencia del orden de un listado**. Consulta la composición efectiva de la unidad y la documentación de la versión instalada.\n\n### Vocabulario de apoyo\n\n- **Fragmento**: archivo que aporta directivas a la definición de una unidad.\n- **Drop-in**: fragmento en `unidad.service.d/` que añade o sobrescribe sin sustituir el base.\n- **Ruta de unidad**: ubicación donde systemd busca definiciones, con distinta precedencia.\n- **Generador**: programa que escribe unidades efímeras al arrancar o al recargar.\n- **Unidad transitoria**: unidad creada al vuelo, sin archivo persistente.\n- **Composición efectiva**: resultado de fusionar fragmentos y sobrescrituras.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-09-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un analista lista las unidades del paquete y no encuentra un cambio esperado. Concluye que «la personalización no se aplicó», aunque existe un drop-in en otro directorio.\n\nLa conclusión es prematura. La definición efectiva **fusiona** el fragmento base con los drop-ins: un cambio puede estar en un drop-in y no en el archivo base. Mirar solo el archivo del paquete es mirar una parte.\n\nLa comprobación correcta consulta la **composición efectiva**: qué archivos se leen para esa unidad y qué directivas resultan. El límite: incluso viendo los archivos, puede existir una discrepancia temporal si el gestor no ha recargado; y puede haber unidades generadas o transitorias que no provienen de un archivo escrito a mano.\n\n"
+    },
+    {
+      "id": "LNX-09-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Inventariar drop-ins y unidades generadas, no solo los archivos de las rutas habituales.\n- Red Team autorizado: Recordar que la personalización legítima y la manipulación usan los mismos mecanismos.\n- Evidencia de la etapa: Lista de fragmentos que componen la unidad y su procedencia.\n- Criterio de dominio: Explica la composición efectiva de una unidad antes de afirmar qué se ejecuta.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB08](../../05_RECURSOS/LABORATORIOS/LNX-LAB08.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F22**: [systemd: systemd.unit](https://www.freedesktop.org/software/systemd/man/257/systemd.unit.html). Precedencia de rutas y composición de la definición efectiva.\n- **F36**: [systemd: generators](https://www.freedesktop.org/software/systemd/man/257/systemd.generator.html). Unidades efímeras escritas durante el arranque o la recarga.\n- **F39**: [systemd: transient units](https://www.freedesktop.org/software/systemd/man/257/systemd-run.html). Unidades creadas al vuelo sin archivo persistente.\n- **F23**: [systemd: systemd.service](https://www.freedesktop.org/software/systemd/man/257/systemd.service.html). Directivas de servicio que un drop-in puede sobrescribir.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-09-L01-P01",
+    "prompt": "Un cambio esperado en una unidad no aparece en el archivo del paquete y un analista concluye que la personalización no se aplicó. Explica qué otras fuentes componen la definición efectiva, dónde buscarías y qué límite tendría tu conclusión.",
+    "markdown": "## 4. Práctica individual\n\nUn cambio esperado en una unidad no aparece en el archivo del paquete y un analista concluye que la personalización no se aplicó. Explica qué otras fuentes componen la definición efectiva, dónde buscarías y qué límite tendría tu conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber creado drop-ins reales.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-09-L01-Q01",
+      "prompt": "¿Dónde coloca típicamente un administrador una personalización de una unidad del paquete?",
+      "options": [
+        {
+          "id": "A",
+          "text": "En la ruta de la distribución, sobrescribiendo el archivo del paquete"
+        },
+        {
+          "id": "B",
+          "text": "En el directorio de generadores, creando un generador nuevo"
+        },
+        {
+          "id": "C",
+          "text": "En la ruta de la administración del sistema, o en un `unidad.service.d/*.conf` como drop-in"
+        },
+        {
+          "id": "D",
+          "text": "En el directorio HOME del usuario, sin importar el gestor"
+        }
+      ]
+    },
+    {
+      "id": "LNX-09-L01-Q02",
+      "prompt": "¿Qué es un drop-in `unidad.service.d/*.conf`?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Un archivo que reemplaza por completo a la unidad base"
+        },
+        {
+          "id": "B",
+          "text": "Una unidad transitoria creada al vuelo"
+        },
+        {
+          "id": "C",
+          "text": "Un generador que escribe unidades en tiempo de ejecución"
+        },
+        {
+          "id": "D",
+          "text": "Un fragmento que añade o sobrescribe directivas según precedencia, sin sustituir el archivo base"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB08](../../05_RECURSOS/LABORATORIOS/LNX-LAB08.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F22**: [systemd: systemd.unit](https://www.freedesktop.org/software/systemd/man/257/systemd.unit.html). Precedencia de rutas y composición de la definición efectiva.\n- **F36**: [systemd: generators](https://www.freedesktop.org/software/systemd/man/257/systemd.generator.html). Unidades efímeras escritas durante el arranque o la recarga.\n- **F39**: [systemd: transient units](https://www.freedesktop.org/software/systemd/man/257/systemd-run.html). Unidades creadas al vuelo sin archivo persistente.\n- **F23**: [systemd: systemd.service](https://www.freedesktop.org/software/systemd/man/257/systemd.service.html). Directivas de servicio que un drop-in puede sobrescribir.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "672daf2ad4316c6492ca1e33"
+}

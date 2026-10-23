@@ -1,4 +1,9 @@
 import {simulatorChange} from './simulator-reconciliation.mjs';
+import {redesChange} from './redes-reconciliation.mjs';
+import {windowsAdChange} from './windows-ad-reconciliation.mjs';
+import {linuxChange} from './linux-reconciliation.mjs';
+import {socChange} from './soc-reconciliation.mjs';
+import {repasoSocChange} from './repaso-soc-reconciliation.mjs';
 import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import path from 'node:path';
@@ -13,6 +18,11 @@ function edits(){
   return JSON.parse(bytes);
 }
 export function v20Change(file,expected,actual){
+  if(redesChange(file,expected,actual))return true;
+  if(windowsAdChange(file,expected,actual))return true;
+  if(linuxChange(file,expected,actual))return true;
+  if(socChange(file,expected,actual))return true;
+  if(repasoSocChange(file,expected,actual))return true;
   if(simulatorChange(file,expected,actual))return true;
   const change=edits()[file];return !!change&&change.before.includes(expected)&&change.after===actual;
 }

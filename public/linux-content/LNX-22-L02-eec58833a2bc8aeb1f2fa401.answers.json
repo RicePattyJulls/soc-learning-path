@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-22-L02",
+  "sourceHash": "ab18eb22c757942a22dadef465d02aff13a97026426313b86a4f319343a3f8d8",
+  "questions": [
+    {
+      "id": "LNX-22-L02-Q01",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Validar la sintaxis con `nft -c -f` sin aplicar, y confirmar que el namespace existe y está aislado».\n\nEl modo `-c` comprueba el archivo sin cargarlo, y el aislamiento garantiza que la prueba no afecta a otras redes. No se reinicia el host, no se limpia con `flush ruleset` ni se borran tablas de otros gestores."
+    },
+    {
+      "id": "LNX-22-L02-Q02",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Eliminando únicamente la tabla creada con `nft delete table`, ejecutado dentro del namespace».\n\nLa reversión acotada borra solo la tabla del laboratorio. `nft flush ruleset` en el host, reiniciar el sistema o borrar interfaces del host son medidas desproporcionadas o destructivas."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "La prueba debe hacerse en un **namespace de laboratorio aislado** unido por una veth, sin ruta a redes externas, y no en el host de trabajo. El archivo de reglas se **valida** con `nft -c -f` antes de cargarlo, para detectar errores de sintaxis sin aplicar nada, y se comprueba que el namespace existe y está aislado.\n\n`nft flush ruleset` en el host es una mala práctica porque borra el conjunto de tablas, incluidas las de otros gestores, y puede cortar la conectividad sin reversión sencilla. La prueba se hace con una cadena de entrada acotada, se mide con contadores y se revierte eliminando **solo** la tabla creada dentro del namespace.\n\nLímite: que la prueba funcione en un namespace aislado no demuestra que la misma política sea correcta o suficiente en un host real con otras cadenas, gestores y servicios.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Sitúa la prueba en un namespace aislado en lugar del host."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Exige validar con `nft -c -f` antes de aplicar."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Rechaza `nft flush ruleset` en el host como práctica de limpieza."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Revierte eliminando solo la tabla del namespace y declara el límite."
+      }
+    ]
+  },
+  "revision": "eec58833a2bc8aeb1f2fa401"
+}

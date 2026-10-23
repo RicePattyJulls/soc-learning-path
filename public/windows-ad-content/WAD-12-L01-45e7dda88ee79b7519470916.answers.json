@@ -1,0 +1,39 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-12-L01",
+  "sourceHash": "c2da993dcce90b799557000d5210febfa506af987e17c636d65872986bf34271",
+  "questions": [
+    {
+      "id": "WAD-12-L01-Q01",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «El vínculo, el orden de procesamiento y la herencia que alcanzan a cada identidad».\n\nEl alcance lo deciden dónde está vinculada la GPO, en qué orden se procesa y qué herencia recibe la identidad. El número de ajustes, la fecha de creación o el nombre no cambian a quién llega."
+    },
+    {
+      "id": "WAD-12-L01-Q02",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Que configurado no equivale a aplicado: hay que comprobar el alcance y el resultado efectivo en esa identidad».\n\nLo configurado describe la intención de quien administra; solo la política resultante de esa identidad confirma si se aplica. Dar por hecho el efecto o suponer una eliminación no se sostiene con los datos."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "`GPO-Puestos` alcanza solo a las identidades dentro de la OU `Puestos`, porque su vínculo apunta a esa OU, y `GPO-Lab` alcanza a todo el dominio, porque su vínculo está en la raíz. El orden de procesamiento va de lo general a lo particular —local, sitio, dominio y luego las OU, de la más cercana a la raíz a la más cercana al objeto—, así que al no haber bloqueo de herencia la OU recibe primero la directiva del dominio y después la suya, y lo procesado más tarde gana si ambas fijan el mismo ajuste. La evidencia es una tabla de vínculos, el orden esperado por identidad y la política resultante de un equipo de cada OU, que muestra qué GPO ganó y de dónde viene cada ajuste. El límite: sin el resultado efectivo de una identidad concreta, y sin descartar marcas de forzar o filtros, la conclusión queda en el terreno de lo esperado.",
+    "rubric": [
+      {
+        "criterion": "Alcance por vínculo",
+        "evidence": "Distingue que `GPO-Puestos` alcanza la OU `Puestos` y `GPO-Lab` alcanza el dominio."
+      },
+      {
+        "criterion": "Orden y herencia",
+        "evidence": "Ordena local, sitio, dominio y OU, y aplica que lo procesado más tarde gana sin bloqueo de herencia."
+      },
+      {
+        "criterion": "Evidencia propuesta",
+        "evidence": "Nombra la política resultante por identidad y el origen de cada ajuste."
+      },
+      {
+        "criterion": "Límite reconocido",
+        "evidence": "Admite que predecir el orden no sustituye el resultado efectivo observado."
+      }
+    ]
+  },
+  "revision": "45e7dda88ee79b7519470916"
+}

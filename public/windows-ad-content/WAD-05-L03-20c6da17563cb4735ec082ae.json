@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-05-L03",
+  "title": "Idempotencia, logging y recuperación",
+  "sourceHash": "c5d85c8c7d51921c69bfc4d9d47a7b1d98a926949e54f9d9c470de9f9b530b00",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-05-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDiseñar operaciones repetibles, registradas y recuperables.\n\nPrerrequisitos: `WAD-05-L02` (CIM y administración remota autorizada).\n\n## 2. Comprende el mecanismo\n\nAutomatizar no es solo «que funcione una vez». Tres propiedades separan una automatización de confianza de un riesgo:\n\n- **Idempotencia**: ejecutar la operación **dos veces** deja el sistema igual que ejecutarla una, sin duplicar objetos ni fallar por «ya existe». Se consigue **comprobando el estado antes de cambiar**: si el objeto ya está en el estado deseado, no se toca.\n- **Ejecución en seco**: antes de aplicar un cambio se puede pedir al comando que **muestre lo que haría** sin hacerlo. Esto permite revisar el alcance y el efecto previsto, y es la versión automatizada de la disciplina de antes/después de la etapa 2.\n- **Registro y error explícito**: una operación que no deja rastro no es auditable. Se registra **qué** se hizo, **cuándo** en UTC, **sobre qué** y **con qué resultado**; y los errores se tratan de forma explícita en lugar de ignorarse, para que un fallo a mitad no pase por éxito.\n\nLa **recuperación** cierra el diseño: si la operación falla a mitad, ¿queda el sistema en un estado consistente? La respuesta exige alcance mínimo, un plan de vuelta atrás y, cuando es posible, una instantánea previa. No se guardan credenciales dentro del script: se opera con la sesión autorizada.\n\n### Vocabulario de apoyo\n\n- **Idempotencia**: propiedad de repetir una operación sin efectos adicionales.\n- **Ejecución en seco**: mostrar el efecto previsto sin aplicarlo.\n- **Registro de operación**: rastro de qué se hizo y con qué resultado.\n- **Error explícito**: fallo tratado y reportado, no silenciado.\n- **Reversión**: vuelta al estado inicial previo al cambio.\n- **Alcance mínimo**: limitar la operación a lo estrictamente necesario.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Estos términos reaparecen en la etapa de hardening.\n\n"
+    },
+    {
+      "id": "WAD-05-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un script que «crea un grupo de laboratorio» funciona la primera vez y falla la segunda con un error de objeto ya existente. El equipo lo considera un fallo del sistema.\n\nNo es un fallo del sistema: es **falta de idempotencia**. El script no comprobaba el estado antes de crear, así que la segunda ejecución choca con lo que ya existe. La corrección conceptual es comprobar primero si el grupo existe y no volver a crearlo —y registrar que ya estaba— de modo que repetir sea seguro. La conclusión acota la zona —«el diseño no era repetible»— y no introduce permisos ni exenciones para «que pase».\n\n"
+    },
+    {
+      "id": "WAD-05-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Una automatización idempotente y registrada permite repetir tareas sin acumular estado inconsistente y deja rastro auditable.\n- Red Team autorizado: La ejecución en seco reduce el riesgo de cambios no previstos fuera del alcance.\n- Evidencia de la etapa: Descripción del script con comprobación previa, ejecución en seco, registro y reversión.\n- Criterio de dominio: Repetir la operación es seguro y el resultado queda registrado.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB03](../../05_RECURSOS/LABORATORIOS/WAD-LAB03.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **PWSH**: [What is PowerShell?](https://learn.microsoft.com/en-us/powershell/scripting/overview). Modelo general de automatización.\n- **WHATIF**: [about_CommonParameters](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_commonparameters). Ejecución en seco y confirmación.\n- **TRY**: [about_Try_Catch_Finally](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_try_catch_finally). Tratamiento explícito de errores.\n- **TRANSCRIPT**: [Start-Transcript](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.host/start-transcript). Registro de la sesión de trabajo.\n- **ERRORS**: [about_Preference_Variables](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_preference_variables). Control del comportamiento ante errores.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-05-L03-P01",
+    "prompt": "Diseña, sin ejecutarlo, un script de mantenimiento idempotente y auditable para un host de laboratorio: qué comprueba antes de cambiar, cómo muestra en seco lo que haría, cómo registra el resultado con hora en UTC y sobre qué objeto, cómo trata un error a mitad y cómo vuelve atrás si falla. Indica también qué no debe contener el script.",
+    "markdown": "## 4. Práctica individual\n\nDiseña, sin ejecutarlo, un **script de mantenimiento idempotente y auditable** para un host de laboratorio: qué **comprueba antes** de cambiar, cómo muestra en seco lo que haría, cómo **registra** el resultado con hora en UTC y sobre qué objeto, cómo trata un error a mitad y cómo **vuelve atrás** si falla. Indica también qué no debe contener el script.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber ejecutado el script en un sistema real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-05-L03-Q01",
+      "prompt": "¿Qué significa que una operación sea idempotente?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que se ejecuta una sola vez en la vida del sistema"
+        },
+        {
+          "id": "B",
+          "text": "Que repetirla produce el mismo resultado sin efectos adicionales"
+        },
+        {
+          "id": "C",
+          "text": "Que no requiere permisos"
+        },
+        {
+          "id": "D",
+          "text": "Que no genera ningún registro"
+        }
+      ]
+    },
+    {
+      "id": "WAD-05-L03-Q02",
+      "prompt": "¿Para qué sirve la ejecución en seco?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Para ejecutar de verdad pero sin informar"
+        },
+        {
+          "id": "B",
+          "text": "Para mostrar qué haría la operación sin aplicar cambios"
+        },
+        {
+          "id": "C",
+          "text": "Para conceder permisos temporales"
+        },
+        {
+          "id": "D",
+          "text": "Para comprimir la salida del comando"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB03](../../05_RECURSOS/LABORATORIOS/WAD-LAB03.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **PWSH**: [What is PowerShell?](https://learn.microsoft.com/en-us/powershell/scripting/overview). Modelo general de automatización.\n- **WHATIF**: [about_CommonParameters](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_commonparameters). Ejecución en seco y confirmación.\n- **TRY**: [about_Try_Catch_Finally](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_try_catch_finally). Tratamiento explícito de errores.\n- **TRANSCRIPT**: [Start-Transcript](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.host/start-transcript). Registro de la sesión de trabajo.\n- **ERRORS**: [about_Preference_Variables](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_preference_variables). Control del comportamiento ante errores.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "20c6da17563cb4735ec082ae"
+}

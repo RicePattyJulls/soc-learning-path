@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-03-L01",
+  "title": "Caja de herramientas y tres descriptores",
+  "sourceHash": "670fda916a6155ca02bc14d034ec51ef24b5be0fbaa9ff90f9a4a40647178390",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-03-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nReconocer cómo el shell localiza una herramienta y distinguir los tres descriptores estándar para saber qué produce cada salida.\n\nPrerrequisitos: `LNX-02-L03` (Buscar sin provocar daños).\n\n## 2. Comprende el mecanismo\n\nLa caja de herramientas de un host Linux no es una lista fija: es el conjunto de programas que el **shell** es capaz de encontrar y lanzar. Cuando escribes un nombre como `ls` o `grep`, el shell no ejecuta «el comando»: busca ese nombre en las rutas declaradas en la variable `PATH`, de izquierda a derecha, y lanza el primer fichero ejecutable que coincide. El nombre es una etiqueta de búsqueda, no la identidad del programa.\n\nPor eso dos equipos con el mismo comando escrito pueden ejecutar **programas distintos**: basta que una ruta anterior en `PATH` contenga otro fichero con ese nombre. Un analista que solo anota «se ejecutó `ps`» describe una intención, no un hecho verificado. El hecho verificable es *qué fichero se resolvió y desde dónde*.\n\nUn programa, ya en ejecución, trabaja con **descriptores de fichero**: números pequeños que apuntan a flujos abiertos. Todo proceso recibe tres por defecto y los hereda de quien lo lanzó:\n\n- **0 — entrada estándar (`stdin`)**: de dónde lee sus datos.\n- **1 — salida estándar (`stdout`)**: adónde escribe su resultado útil.\n- **2 — salida de error (`stderr`)**: adónde escribe sus diagnósticos y avisos.\n\nEsta separación es una decisión de diseño, no un detalle cosmético: permite que el **resultado** y el **diagnóstico** viajen por caminos distintos, aunque ambos aparezcan juntos en la pantalla de una terminal.\n\nLa **redirección** cambia el destino de un descriptor sin cambiar el programa. `> fichero` reasigna solo el descriptor 1; los mensajes que el programa escriba en 2 siguen saliendo por su camino original. Si no se tiene esto en cuenta, es fácil creer que un programa «no imprimió nada» cuando en realidad imprimió por el descriptor que no se estaba observando.\n\nLa vista de esa asignación es inspeccionable: el pseudo-sistema `/proc` expone, por proceso, las entradas de sus descriptores. Observar ahí equivale a preguntarle al kernel *a dónde apunta de verdad cada flujo* de un proceso concreto.\n\nAntes de concluir nada sobre una salida, conviene fijar tres datos: **qué programa** se resolvió, **qué descriptor** llevaba cada texto y **qué estado** devolvió el proceso al terminar. Sin ellos, cualquier afirmación sobre «lo que hizo el comando» queda sin respaldo.\n\n### Vocabulario de apoyo\n\n- **`PATH`**: lista ordenada de rutas donde el shell busca los programas.\n- **Descriptor de fichero**: número que identifica un flujo abierto en un proceso.\n- **`stdout` (1)**: flujo donde el programa escribe su resultado útil.\n- **`stderr` (2)**: flujo donde el programa escribe avisos y diagnósticos.\n- **Redirección**: reasignación del destino de un descriptor.\n- **Resolución de comando**: decisión del shell sobre qué fichero corresponde a un nombre.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-03-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un analista redirige a un fichero la salida de una herramienta de inventario. Al abrir el fichero lo encuentra vacío, pero por la terminal siguen apareciendo avisos del mismo comando. Concluye que «la herramienta no produjo nada».\n\nLa conclusión mezcla dos hechos que el caso mantiene separados. La redirección `>` reasignó únicamente el descriptor **1**: el resultado útil. Los avisos seguían escritos en el descriptor **2** y por eso continuaron llegando a la terminal. El fichero vacío significa *«el descriptor 1 no recibió texto»*, no *«la herramienta no hizo nada»*.\n\nLa lectura defendible es que la herramienta sí se ejecutó y emitió diagnósticos, y que el analista observó un flujo mientras el otro seguía su cauce. Para reunir ambos haría falta redirigir también el descriptor 2, o registrar por separado lo que cada uno recibe, además del estado de salida del proceso.\n\nEl límite de la conclusión: aun reuniendo ambos flujos, no se puede afirmar *por qué* la herramienta falló ni *qué datos faltan* sin leer el contenido de los avisos. La evidencia de descriptores dice **por dónde** habló el programa, no **qué** dijo ni cuál era el estado real del host.\n\n"
+    },
+    {
+      "id": "LNX-03-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Registrar qué programa se resolvió, por qué descriptor salió cada texto y qué estado devolvió antes de interpretar una salida.\n- Red Team autorizado: Distinguir la etiqueta de un comando de la identidad real del programa ejecutado.\n- Evidencia de la etapa: Ficha con comando, ruta resuelta y separación entre resultado y diagnóstico.\n- Criterio de dominio: Explica qué descriptor llevaba cada texto y qué fichero se resolvió antes de concluir.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB03](../../05_RECURSOS/LABORATORIOS/LNX-LAB03.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F01**: [Filesystem Hierarchy Standard 3.0](https://specifications.freedesktop.org/fhs/latest/). Organización de directorios y carácter convencional de las rutas.\n- **F02**: [GNU Bash Reference Manual](https://www.gnu.org/software/bash/manual/bash.html). Shell, expansión de nombres y redirecciones de descriptores.\n- **F06**: [Linux proc_pid_fd(5)](https://man7.org/linux/man-pages/man5/proc_pid_fd.5.html). Descriptores de un proceso vistos desde `/proc/PID/fd`.\n- **F14**: [POSIX.1-2024, Shell Command Language](https://pubs.opengroup.org/onlinepubs/9799919799/utilities/V3_chap02.html). Semántica de shell, resolución de comandos y descriptores estándar.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-03-L01-P01",
+    "prompt": "En un host de laboratorio rediriges la salida de una herramienta a un fichero y el fichero queda vacío, mientras la terminal sí muestra mensajes del mismo comando. Explica qué descriptor llevaba cada texto y qué origen conviene registrar para saber qué programa se ejecutó de verdad.",
+    "markdown": "## 4. Práctica individual\n\nEn un host de laboratorio rediriges la salida de una herramienta a un fichero y el fichero queda vacío, mientras la terminal sí muestra mensajes del mismo comando. Explica qué descriptor llevaba cada texto y qué origen conviene registrar para saber qué programa se ejecutó de verdad.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber redirigido descriptores en un host real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-03-L01-Q01",
+      "prompt": "Al analizar un host, el nombre visible de un comando no basta para saber qué programa se ejecutó. ¿Cuál es la razón más precisa?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Los comandos son componentes del kernel y no se pueden inspeccionar"
+        },
+        {
+          "id": "B",
+          "text": "El shell busca el nombre en las rutas de `PATH` y puede resolverlo a un fichero distinto del que esperas"
+        },
+        {
+          "id": "C",
+          "text": "El nombre del comando cambia según el usuario que lo ejecuta"
+        },
+        {
+          "id": "D",
+          "text": "Los comandos se copian siempre a `/tmp` antes de ejecutarse"
+        }
+      ]
+    },
+    {
+      "id": "LNX-03-L01-Q02",
+      "prompt": "Un comando imprime el resultado útil y, además, un aviso de error. ¿Cómo describir la salida con mayor precisión?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Son flujos distintos: el resultado suele ir a `stdout` (1) y el diagnóstico a `stderr` (2), y puedes verlos separados en `/proc/PID/fd`"
+        },
+        {
+          "id": "B",
+          "text": "Todo lo que aparece en pantalla es `stdout`, porque comparten el mismo texto"
+        },
+        {
+          "id": "C",
+          "text": "Los avisos se guardan en `/proc` y el resultado útil en el disco"
+        },
+        {
+          "id": "D",
+          "text": "Ambos textos solo pueden separarse reiniciando la shell"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB03](../../05_RECURSOS/LABORATORIOS/LNX-LAB03.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F01**: [Filesystem Hierarchy Standard 3.0](https://specifications.freedesktop.org/fhs/latest/). Organización de directorios y carácter convencional de las rutas.\n- **F02**: [GNU Bash Reference Manual](https://www.gnu.org/software/bash/manual/bash.html). Shell, expansión de nombres y redirecciones de descriptores.\n- **F06**: [Linux proc_pid_fd(5)](https://man7.org/linux/man-pages/man5/proc_pid_fd.5.html). Descriptores de un proceso vistos desde `/proc/PID/fd`.\n- **F14**: [POSIX.1-2024, Shell Command Language](https://pubs.opengroup.org/onlinepubs/9799919799/utilities/V3_chap02.html). Semántica de shell, resolución de comandos y descriptores estándar.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "d62d39759a36124696371de2"
+}

@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-27-L01",
+  "title": "Hipótesis y falsos positivos",
+  "sourceHash": "078728b06072c1882d7362e52e1c28a1e75a2ee2f7c94f271964caa826b36903",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-27-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nFormular hipótesis y descartar falsos positivos con evidencia reproducible.\n\nPrerrequisitos: `WAD-22-L03` (AD CS y evidencias de configuración) y `WAD-26-L03` (UTC, retención, cadena de custodia).\n\n## 2. Comprende el mecanismo\n\nEl **equipo púrpura** une la mirada ofensiva y la defensiva: quien ejecuta una acción controlada y quien debe verla trabajan sobre la misma hipótesis. Esta etapa no busca «detectar todo», sino demostrar si un control **impide**, **detecta** o **deja sin observar** una actividad concreta.\n\nTodo empieza con una **hipótesis**: una explicación provisional que se puede probar. «Si un administrador crea una tarea programada, el registro debe mostrar un evento con esa identidad y esa hora» es una hipótesis. «Hay un intruso» es una conclusión sin prueba, y no sirve como punto de partida.\n\nLa dificultad es que la actividad legítima se parece a la que se considera sospechosa. Crear una tarea programada, dar de alta una cuenta o consultar el directorio son operaciones rutinarias que, vistas fuera de contexto, recuerdan a una técnica de persistencia o de reconocimiento. Por eso el primer trabajo del analista es descartar el **falso positivo**: un evento que parece una amenaza pero se explica por una causa conocida.\n\nPara descartarlo no basta con opinar. Se recoge **evidencia reproducible**: se repite la misma acción en el laboratorio y se comprueba si el mismo evento vuelve a aparecer, con la misma identidad, el mismo origen y la misma hora. Si la acción conocida produce el evento observado, la hipótesis benigna se sostiene. Si el evento aparece sin que nadie ejecute esa acción, la hipótesis se debilita.\n\nLa reproducción se apoya en **eventos nativos** de Windows, no en una alarma inventada. La **auditoría** decide qué categorías se registran y la lectura se hace sobre el registro del propio equipo. Nada de esto es destructivo: la prueba es **inocua**, reversible y se ejecuta dentro de la ventana autorizada.\n\nQueda un límite que conviene decir en voz alta. Reproducir una acción conocida explica **un** evento, no toda la actividad del entorno: que este caso sea un falso positivo no demuestra que no haya otros. Y al revés: que algo no aparezca puede significar que no ocurrió o que no estaba cubierto. La regla que cierra la lección: **hipótesis primero, evidencia reproducible después; el falso positivo se descarta, no se supone**.\n\n### Vocabulario de apoyo\n\n- **Equipo púrpura (Purple Team)**: colaboración entre las miradas ofensiva y defensiva para mejorar la detección.\n- **Hipótesis**: explicación provisional que se confirma o se descarta con una prueba.\n- **Falso positivo**: evento que parece una amenaza pero se explica por una causa conocida.\n- **Evento nativo**: evento que produce Windows por sí mismo, sin sensor adicional.\n- **Prueba inocua**: comprobación acotada, reversible y sin efectos destructivos.\n- **Evidencia reproducible**: dato que otra persona puede volver a obtener repitiendo el mismo paso.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-27-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test`, `WKS01` registra a las 09:14 la creación de una tarea programada ejecutada por una identidad administrativa. La forma del evento coincide con una técnica de persistencia conocida.\n\nLa primera hipótesis es que se trate de una acción administrativa aprobada: un alta planificada de mantenimiento. Para ponerla a prueba se reproduce la misma acción en el laboratorio y se comprueba si el evento vuelve a aparecer con la misma identidad, el mismo origen y una hora coherente; además se revisa si existe un registro de cambio que la respalde. La segunda hipótesis es la maliciosa: alguien persistió sin autorización, en cuyo caso la identidad o el objeto destino no encajarían con la actividad aprobada. La conclusión acota lo observable —«el evento es consistente con una acción administrativa conocida y reproducible»— y reconoce su límite: explica este evento concreto, no descarta otras tareas parecidas en el dominio, y si el registro de cambio faltara, la lectura benigna se debilitaría y la hipótesis maliciosa volvería a la mesa.\n\n"
+    },
+    {
+      "id": "WAD-27-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Separar la hipótesis de la conclusión evita tratar como incidente una actividad administrativa rutinaria y ahorra trabajo de respuesta.\n- Red Team autorizado: Ejecutar acciones controladas y reproducibles permite medir si el control defensivo las ve, sin dañar el entorno.\n- Evidencia de la etapa: Hipótesis escrita, acción de prueba acotada y evento observado con su identidad y su hora.\n- Criterio de dominio: El falso positivo se descarta con reproducción y evidencia, no con una suposición.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB19](../../05_RECURSOS/LABORATORIOS/WAD-LAB19.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **ATTACK**: [MITRE ATT&CK](https://attack.mitre.org/). Catálogo de técnicas que ayuda a nombrar la actividad que se va a probar.\n- **AUDITPOL**: [auditpol](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/auditpol). Configuración de las categorías de auditoría que deciden qué se registra.\n- **ADSOCMON**: [Monitoring Active Directory for signs of compromise](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/monitoring-active-directory-for-signs-of-compromise). Señales que orientan una hipótesis sin darla por confirmada.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-27-L01-P01",
+    "prompt": "En `ad.lab.test` observas en `WKS01` un evento de creación de tarea programada que coincide con una técnica de persistencia conocida. Formula la hipótesis, decide qué evidencia reproducible recogerías y explica cómo descartarías el falso positivo.",
+    "markdown": "## 4. Práctica individual\n\nEn `ad.lab.test` observas en `WKS01` un evento de creación de tarea programada que coincide con una técnica de persistencia conocida. Formula la hipótesis, decide qué evidencia reproducible recogerías y explica cómo descartarías el falso positivo.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber confirmado un incidente real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-27-L01-Q01",
+      "prompt": "Antes de declarar sospechoso un evento en `WKS01`, ¿qué conviene hacer para descartar un falso positivo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Asumir que todo evento parecido a una amenaza es un incidente ya confirmado"
+        },
+        {
+          "id": "B",
+          "text": "Formular una hipótesis, repetir la actividad conocida en el laboratorio y comprobar si el mismo evento aparece con la misma identidad y hora"
+        },
+        {
+          "id": "C",
+          "text": "Borrar el evento para que el panel quede más limpio"
+        },
+        {
+          "id": "D",
+          "text": "Escalar el caso como incidente sin recoger ninguna evidencia"
+        }
+      ]
+    },
+    {
+      "id": "WAD-27-L01-Q02",
+      "prompt": "Cuando reproduces una actividad administrativa en el laboratorio y el evento aparece igual, ¿qué has demostrado y qué no?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Has demostrado que el equipo está comprometido"
+        },
+        {
+          "id": "B",
+          "text": "Has demostrado que no existe ninguna otra actividad parecida en el dominio"
+        },
+        {
+          "id": "C",
+          "text": "Has demostrado que el evento nunca podría ser un falso positivo en otro caso"
+        },
+        {
+          "id": "D",
+          "text": "Has demostrado que ese evento concreto se explica por una actividad conocida y reproducible, pero no que toda la actividad del entorno esté explicada"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB19](../../05_RECURSOS/LABORATORIOS/WAD-LAB19.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **ATTACK**: [MITRE ATT&CK](https://attack.mitre.org/). Catálogo de técnicas que ayuda a nombrar la actividad que se va a probar.\n- **AUDITPOL**: [auditpol](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/auditpol). Configuración de las categorías de auditoría que deciden qué se registra.\n- **ADSOCMON**: [Monitoring Active Directory for signs of compromise](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/security-best-practices/monitoring-active-directory-for-signs-of-compromise). Señales que orientan una hipótesis sin darla por confirmada.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "c2956323a815c39a19892e0a"
+}

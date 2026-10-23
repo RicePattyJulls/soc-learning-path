@@ -1,0 +1,43 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-09-L03",
+  "sourceHash": "1dc844acb872b1a400874e8baa620b1bf127e09122a2e9423266d70050d79396",
+  "questions": [
+    {
+      "id": "WAD-09-L03-Q01",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Que el canal seguro con el dominio es válido y un inicio de sesión de dominio queda registrado».\n\nLa autenticación real se demuestra con el canal seguro en pie y un evento de inicio de sesión. Aparecer en la lista, responder al ping o compartir red con el DC no prueban que el equipo autentique."
+    },
+    {
+      "id": "WAD-09-L03-Q02",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Para ejecutar pruebas de salud del controlador de dominio y de su registro DNS».\n\n`dcdiag` verifica el estado del DC y de los componentes de los que depende. No une equipos, no cambia el nivel funcional y no sincroniza el reloj del cliente."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "Que el equipo figure en la lista solo prueba que existe su cuenta de equipo, no que autentique. La comprobación se hace por capas: primero resolución, con el cliente resolviendo `ad.lab.test`, requisito para que el Localizador de DC lea los registros SRV; después el canal seguro, con una comprobación como `Test-ComputerSecureChannel` que indica si el vínculo entre el equipo y el DC sigue válido; luego la salud del servidor, con `dcdiag` sobre el DC y su registro DNS; y por último la evidencia de inicio de sesión, un evento de acceso de dominio que sin registro no prueba nada. La conclusión se sostiene si las capas concuerdan, y su límite es que un único inicio de sesión correcto no garantiza que el canal siga sano después.",
+    "rubric": [
+      {
+        "criterion": "Cuenta frente a autenticación",
+        "evidence": "Distingue la existencia de la cuenta de equipo de la autenticación real."
+      },
+      {
+        "criterion": "Resolución",
+        "evidence": "Comprueba la resolución del nombre de dominio antes de diagnosticar el resto."
+      },
+      {
+        "criterion": "Canal seguro",
+        "evidence": "Usa una comprobación del canal seguro y no solo la apariencia en la lista del dominio."
+      },
+      {
+        "criterion": "Salud del DC y evento",
+        "evidence": "Emplea `dcdiag` e incluye el evento del inicio de sesión como evidencia."
+      },
+      {
+        "criterion": "Límite reconocido",
+        "evidence": "Admite que una única autenticación correcta no garantiza la salud futura del canal."
+      }
+    ]
+  },
+  "revision": "c0947a5bfca7ffa2a63a37ae"
+}

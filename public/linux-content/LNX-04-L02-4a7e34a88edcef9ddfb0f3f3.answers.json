@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-04-L02",
+  "sourceHash": "5b1d2eaf8deb5d66af320e21696bbb99c3b98cb36758e013a2d8eb823645bdf4",
+  "questions": [
+    {
+      "id": "LNX-04-L02-Q01",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Que el fichero tiene entradas ACL además del modo clásico».\n\nEl `+` delata mecanismos de ACL fuera de los tres tríos, por eso conviene revisar `getfacl`. No indica un enlace simbólico, no activa el bit setuid y no implica varios grupos propietarios."
+    },
+    {
+      "id": "LNX-04-L02-Q02",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Que el proceso que lo ejecuta adopta el UID efectivo del propietario durante la ejecución».\n\nEl bit setuid hace que el proceso adopte temporalmente el UID de su propietario al ejecutarse, lo que puede elevar su privilegio. No permite modificar el contenido sin ser el propietario, no elimina los tríos y no concede todas las capacidades de forma permanente."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "El mecanismo que decide no es la entrada con nombre, sino la **máscara** de la ACL. La entrada `user:beto:rwx` concede `rwx`, pero la máscara `r--` recorta el permiso **efectivo** de las entradas con nombre y del trío de grupo, de modo que `beto` queda limitado a leer. La entrada no es el permiso final: la máscara se aplica sobre ella.\n\nEl dato que lo confirma es el volcado completo de `getfacl`, que muestra la máscara junto a las entradas; el `+` al final del modo ya advertía de que había mecanismos fuera del modo clásico, y por eso el análisis no puede detenerse en los tres tríos.\n\nLímite: con solo las entradas, sin leer la máscara ni el resto de la ACL, no se fija el acceso efectivo; y aun fijándolo se describe configuración declarada, no una lectura observada.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Nombra la máscara de la ACL como tope que recorta la entrada con nombre."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Interpreta el `+` como aviso de mecanismos fuera del modo clásico."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Propone el `getfacl` completo, con máscara, como dato confirmatorio."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Reconoce que la entrada no es el permiso final y que se describe configuración, no una lectura."
+      }
+    ]
+  },
+  "revision": "4a7e34a88edcef9ddfb0f3f3"
+}

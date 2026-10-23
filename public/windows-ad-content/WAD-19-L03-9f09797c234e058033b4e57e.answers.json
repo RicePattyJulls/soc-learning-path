@@ -1,0 +1,39 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-19-L03",
+  "sourceHash": "87d293f9d347f48d28be9ffcac4724850d68493cf883f84d554d60969e8e1624",
+  "questions": [
+    {
+      "id": "WAD-19-L03-Q01",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Marcar el objeto como autoritativo en la restauración, para que su versión recuperada prevalezca sobre la copia de los demás controladores».\n\nPara que un objeto recuperado sobreviva hay que marcarlo como autoritativo y acotar su alcance; sin esa marca la replicación vuelve a propagar el borrado. No marcar nada, detener la replicación de forma permanente o recrear el objeto con otro nombre no resuelven el conflicto de versiones."
+    },
+    {
+      "id": "WAD-19-L03-Q02",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Revisar el estado de los socios y de las particiones, confirmar que la replicación progresa y que SYSVOL converge, y comparar lo recuperado con el estado esperado».\n\nLa convergencia se demuestra leyendo el estado de los socios y las particiones, comprobando el progreso de la replicación y la convergencia de SYSVOL, y comparando el resultado con lo esperado. Arrancar sin mirar a los socios, esperar sin medir o mirar solo el registro del controlador restaurado no permiten descartar divergencias."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "El caso pide que un dato recuperado prevalezca, así que la restauración no autoritativa no basta: la replicación reintroduciría el borrado y el objeto desaparecería otra vez. Corresponde una restauración autoritativa, aplicada sobre el objeto o la rama afectada y no sobre todo el directorio, porque marcar de más propaga versiones antiguas que pisan cambios recientes. Después hay que hacer converger SYSVOL, ya que las políticas se replican por su propio servicio. La verificación usa las pruebas de estado del controlador y la lectura de la replicación: estado de los socios y de las particiones, progreso de la replicación, convergencia de SYSVOL y comparación con el estado esperado. El límite: la convergencia se afirma sobre las particiones y las identidades comprobadas, no sobre todo el bosque de forma indefinida.",
+    "rubric": [
+      {
+        "criterion": "Criterio justificado",
+        "evidence": "Elige la restauración autoritativa porque un dato debe prevalecer."
+      },
+      {
+        "criterion": "Alcance acotado",
+        "evidence": "Limita la marca al objeto o la rama afectada en lugar de todo el directorio."
+      },
+      {
+        "criterion": "SYSVOL y virtualización",
+        "evidence": "Incluye la convergencia de SYSVOL y la comprobación del controlador virtualizado."
+      },
+      {
+        "criterion": "Límite reconocido",
+        "evidence": "Verifica la replicación y acota la convergencia a lo observado."
+      }
+    ]
+  },
+  "revision": "9f09797c234e058033b4e57e"
+}

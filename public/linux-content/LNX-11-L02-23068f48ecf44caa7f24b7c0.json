@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-11-L02",
+  "title": "Arch/pacman y comparativa",
+  "sourceHash": "0a68e269b41108901d794a80482e0edccf0bb57a6b36c1c1c3ecf102b59fbb78",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-11-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nUsar pacman para las preguntas de paquete en Arch y comparar las familias Debian, RPM y Arch sin aplicar el comando equivocado.\n\nPrerrequisitos: `LNX-11-L01` (APT/dpkg y DNF/RPM).\n\n## 2. Comprende el mecanismo\n\n**pacman** es el gestor de paquetes de Arch y derivados, y responde a las mismas preguntas que otras familias con comandos propios. Saber *qué pregunta* quieres responder evita aplicar el comando equivocado y sacar una conclusión falsa.\n\n`pacman -Q` consulta la versión instalada; `pacman -Qo` responde a qué paquete pertenece una ruta; `pacman -Qkk` comprueba ampliamente los metadatos de los archivos frente a la base; `pacman -Qm` lista paquetes que no están en repositorios sincronizados; `pacman -Qi` muestra detalles del paquete. El historial de transacciones se conserva en `/var/log/pacman.log` y los repositorios y firmas se asocian a `/etc/pacman.conf` y a la infraestructura de llaves.\n\nLa comparativa entre familias es una tabla de equivalencias, no una receta universal. Versión instalada: `dpkg-query -W` / `rpm -q` / `pacman -Q`. Propiedad de una ruta: `dpkg -S` / `rpm -qf` / `pacman -Qo`. Integridad local: `dpkg -V` / `rpm -V` / `pacman -Qkk`. Origen: `apt-cache policy` / `dnf info` / `pacman -Si`. Historial: logs de APT y dpkg / `dnf history` / `pacman.log`. Aplicar el comando de una familia a otra solo produce error, no información.\n\nHay un riesgo propio del modelo Arch: hacer `pacman -Sy` y, mucho después, instalar paquetes sueltos. Esa **actualización parcial** puede mezclar bases de datos y binarios de revisiones distintas y romper la consistencia; el patrón recomendado es sincronizar y actualizar el sistema como una transacción coherente.\n\nEl límite, igual que en las otras familias, es la **verificación local**: se hace contra los metadatos guardados por el propio host y da falsos positivos y falsos negativos. En un sistema posiblemente comprometido, hay que validar contra una referencia externa y preservar evidencia apropiada.\n\n### Vocabulario de apoyo\n\n- **pacman**: gestor de paquetes de Arch y derivados.\n- **`-Qo`**: consulta que responde a qué paquete pertenece una ruta.\n- **`-Qkk`**: comprobación amplia de metadatos de los archivos de un paquete.\n- **`-Qm`**: listado de paquetes ausentes de los repositorios sincronizados.\n- **Actualización parcial**: sincronizar bases y no actualizar el sistema de forma coherente.\n- **Comparativa**: tabla de equivalencias entre familias, no una receta intercambiable.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-11-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: para saber a qué paquete pertenece `/usr/bin/bash` en un host Arch, el analista ejecuta `rpm -qf /usr/bin/bash`, obtiene un error y concluye que la ruta no pertenece a ningún paquete.\n\nLa conclusión no se sostiene porque la **herramienta no corresponde a la familia**. `rpm` consulta la base de RPM, que no es la de Arch; su error describe la ausencia de RPM, no la ausencia de dueño. La pregunta correcta se responde con `pacman -Qo`, que consulta la base de pacman.\n\nEl razonamiento correcto parte de identificar la distribución —por ejemplo con `/etc/os-release`— y elegir el comando de esa familia. El límite: incluso con el comando correcto, la respuesta describe la base **local** del host; si esa base fue alterada, el resultado hereda ese límite.\n\n"
+    },
+    {
+      "id": "LNX-11-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Elegir el comando de la familia correcta antes de interpretar su ausencia de resultado.\n- Red Team autorizado: Distinguir «no existe el dueño» de «no existe la herramienta correcta».\n- Evidencia de la etapa: Distribución identificada, comando de familia elegido y resultado de propiedad observado.\n- Criterio de dominio: Responde la pregunta con la herramienta de la familia y declara el límite de la base local.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB11](../../05_RECURSOS/LABORATORIOS/LNX-LAB11.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F34**: [Arch: pacman](https://man.archlinux.org/man/pacman.8.en). Consultas de versión, propiedad, integridad y actualización transaccional.\n- **F33**: [RPM: rpm manual](https://rpm.org/docs/4.20.x/man/rpm.8.html). Consulta de la familia RPM para contrastar equivalencias.\n- **F31**: [Debian: dpkg](https://manpages.debian.org/trixie/dpkg/dpkg.1.en.html). Consulta de la familia Debian dentro de la comparativa.\n- **F29**: [Debian: apt-secure](https://manpages.debian.org/trixie/apt/apt-secure.8.en.html). Qué autentica la firma de repositorio frente a la verificación local.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-11-L02-P01",
+    "prompt": "Aplicas en un host Arch una comprobación pensada para otra familia, no obtienes resultado y concluyes que la ruta no pertenece a ningún paquete. Explica por qué esa conclusión no se sostiene, cómo elegirías la comprobación correcta y cuál es el límite de la verificación local.",
+    "markdown": "## 4. Práctica individual\n\nAplicas en un host Arch una comprobación pensada para otra familia, no obtienes resultado y concluyes que la ruta no pertenece a ningún paquete. Explica por qué esa conclusión no se sostiene, cómo elegirías la comprobación correcta y cuál es el límite de la verificación local.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber instalado, actualizado ni desinstalado paquetes reales.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-11-L02-Q01",
+      "prompt": "En un host Arch, ¿cómo averiguas a qué paquete pertenece `/usr/bin/bash`?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Con `pacman -Qo`, que responde a qué paquete pertenece una ruta en Arch"
+        },
+        {
+          "id": "B",
+          "text": "Con `rpm -qf`, porque es el comando universal de todas las distribuciones"
+        },
+        {
+          "id": "C",
+          "text": "Con `dpkg -Qkk`, presente en Arch por compatibilidad"
+        },
+        {
+          "id": "D",
+          "text": "No se puede saber el dueño de una ruta en Arch"
+        }
+      ]
+    },
+    {
+      "id": "LNX-11-L02-Q02",
+      "prompt": "¿Por qué se advierte contra hacer `pacman -Sy` y, mucho después, instalar paquetes sueltos?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Porque firma los paquetes con la clave del fabricante"
+        },
+        {
+          "id": "B",
+          "text": "Porque reinicia el equipo sin avisar"
+        },
+        {
+          "id": "C",
+          "text": "Porque borra el historial de `/var/log/pacman.log`"
+        },
+        {
+          "id": "D",
+          "text": "Porque puede mezclar bases de datos y binarios de revisiones distintas y romper la consistencia"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB11](../../05_RECURSOS/LABORATORIOS/LNX-LAB11.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F34**: [Arch: pacman](https://man.archlinux.org/man/pacman.8.en). Consultas de versión, propiedad, integridad y actualización transaccional.\n- **F33**: [RPM: rpm manual](https://rpm.org/docs/4.20.x/man/rpm.8.html). Consulta de la familia RPM para contrastar equivalencias.\n- **F31**: [Debian: dpkg](https://manpages.debian.org/trixie/dpkg/dpkg.1.en.html). Consulta de la familia Debian dentro de la comparativa.\n- **F29**: [Debian: apt-secure](https://manpages.debian.org/trixie/apt/apt-secure.8.en.html). Qué autentica la firma de repositorio frente a la verificación local.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "23068f48ecf44caa7f24b7c0"
+}

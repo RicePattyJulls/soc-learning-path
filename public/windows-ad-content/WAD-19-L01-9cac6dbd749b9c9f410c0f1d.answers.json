@@ -1,0 +1,39 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-19-L01",
+  "sourceHash": "28ef1483f9df58eef478d92042827aa245d3ec3b227f0561edb573aced9e5629",
+  "questions": [
+    {
+      "id": "WAD-19-L01-Q01",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Localizar el objeto en la vista de eliminados y restaurarlo, sabiendo que la retención se agota y que conviene revisar los atributos de enlace».\n\nCon la papelera habilitada el objeto eliminado conserva atributos y pertenencias, y se restaura desde la vista de eliminados; su límite es la retención. Recrear el objeto no devuelve sus permisos, restaurar el controlador completo es un alcance desproporcionado y concluir que es irrecuperable ignora la papelera."
+    },
+    {
+      "id": "WAD-19-L01-Q02",
+      "correctOptionId": "B",
+      "explanation": "La opción correcta es «Hay que pasar a una recuperación desde copia, asumiendo un alcance mayor y acotando qué estado se devuelve».\n\nSuperada la retención, el objeto se purga y la papelera deja de ser una vía; la recuperación pasa por una copia del directorio o del estado del sistema, cuyo alcance es el de la copia. No existe la vía nula, el objeto no reaparece al reiniciar y la papelera ya no lo conserva."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "Lo primero es comprobar qué vía sigue abierta, no restaurar de inmediato. Con la papelera de reciclaje habilitada se busca el objeto en la vista de objetos eliminados del Centro de administración de Active Directory y se contrasta su fecha de borrado con la retención configurada, porque dentro de ese plazo el objeto conserva sus atributos y sus pertenencias. La evidencia que se registra es el estado previo del objeto, la marca de tiempo del borrado, la retención vigente y el resultado de la restauración con su hora. Restaurado el objeto, se revisan los atributos de enlace —las pertenencias a grupos— para confirmar que volvieron completos. El límite: si la retención se hubiera agotado, el objeto estaría purgado y esta vía ya no sería posible; habría que pasar a una recuperación desde copia, con un alcance mucho mayor que la devolución de un solo objeto.",
+    "rubric": [
+      {
+        "criterion": "Vía comprobada antes de actuar",
+        "evidence": "Comprueba si la papelera conserva el objeto antes de restaurar."
+      },
+      {
+        "criterion": "Relación con la retención",
+        "evidence": "Compara la fecha de borrado con la retención configurada para decidir si la vía sigue abierta."
+      },
+      {
+        "criterion": "Evidencia con hora",
+        "evidence": "Registra estado previo, fecha de borrado, retención y resultado de la restauración."
+      },
+      {
+        "criterion": "Límite reconocido",
+        "evidence": "Admite que agotada la retención la recuperación exige una copia y un alcance mayor."
+      }
+    ]
+  },
+  "revision": "9cac6dbd749b9c9f410c0f1d"
+}

@@ -1,0 +1,39 @@
+{
+  "courseId": "linux",
+  "id": "LNX-02-L02",
+  "sourceHash": "b5073bd7f6411c31b10bfccbada20586d3add786b59d67bc199afe162de370d3",
+  "questions": [
+    {
+      "id": "LNX-02-L02-Q01",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Comparten el mismo inodo, de modo que contenido y metadatos son comunes a ambos nombres».\n\nDos nombres que apuntan al mismo inodo son enlaces duros del mismo objeto: comparten datos y metadatos. No es coincidencia de números ni duplicación en discos distintos, y un enlace simbólico tendría su propio inodo."
+    },
+    {
+      "id": "LNX-02-L02-Q02",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «Algo cambió los metadatos del inodo, como permisos o propietario, sin tocar el contenido».\n\nEl `ctime` registra el último cambio del inodo, y un ajuste de permisos o de propietario lo mueve sin alterar el contenido. No hay una regla que fuerce `ctime` posterior a `mtime`, el reloj no explica el patrón y reemplazar el inodo implicaría otro número de inodo."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "Los dos nombres con el mismo número de inodo comparten objeto: eso es compatible con un **enlace duro**, de modo que contenido y metadatos son comunes. El tercer nombre, cuyo contenido es una ruta, es un **enlace simbólico**: tiene su propio inodo y el kernel sigue esa ruta al abrirlo, pudiendo apuntar a algo inexistente o cruzando sistemas de ficheros. El cuarto, con `mtime` antiguo y `ctime` reciente pero contenido idéntico a la referencia, indica un cambio en los **metadatos del inodo** —permisos o propietario, por ejemplo— y no en el contenido.\n\nLo que confirmaría cada relación es la identidad del inodo: `stat` con número de inodo, contador de enlaces y marcas temporales, y una comparación del contenido o su hash para separar metadato de dato.\n\nLímite: con estos datos puedes afirmar *que* los metadatos cambiaron, pero no *qué* metadato cambió ni *quién* lo hizo; eso exigiría una fuente adicional, como un registro de auditoría del sistema.",
+    "rubric": [
+      {
+        "criterion": "Criterio 1",
+        "evidence": "Distingue enlace duro (mismo inodo) de enlace simbólico (contenido es una ruta)."
+      },
+      {
+        "criterion": "Criterio 2",
+        "evidence": "Interpreta el `ctime` reciente como cambio de metadatos, no de contenido."
+      },
+      {
+        "criterion": "Criterio 3",
+        "evidence": "Propone inodo, contador de enlaces y comparación de contenido/hash como dato confirmatorio."
+      },
+      {
+        "criterion": "Criterio 4",
+        "evidence": "Reconoce que sin una fuente con tiempo no puede atribuir autoría ni el metadato concreto."
+      }
+    ]
+  },
+  "revision": "147872c12e1ca340148ee0be"
+}

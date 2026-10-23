@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "windows-ad",
+  "id": "WAD-10-L03",
+  "title": "Delegación mínima y acceso efectivo",
+  "sourceHash": "0d959fec05251d3b513d41266566eb068cae4a0ca4297c2408cff63de3febd75",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "WAD-10-L03-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDelegar una tarea concreta sobre una OU sin conceder privilegios de dominio.\n\nPrerrequisitos: `WAD-10-L02` (usuarios, grupos, ciclo de vida).\n\n## 2. Comprende el mecanismo\n\nDelegar es pasar una tarea a otra identidad y, a la vez, limitarla. La **Delegación** concede a alguien la capacidad de hacer algo concreto sobre un conjunto concreto de objetos, y nada más. En un directorio, el conjunto suele ser una unidad organizativa y la tarea, una operación acotada como restablecer contraseñas.\n\nEl asistente de **ADAC** —el Centro de administración de Active Directory— permite delegar sobre una OU eligiendo la tarea. Por debajo escribe permisos sobre los objetos, y `dsacls` deja ver y ajustar esos permisos con precisión. Delegar bien es escribir el permiso más pequeño que basta para la función.\n\nEl error que hay que reconocer de inmediato es resolver con un grupo integrado. Añadir la cuenta delegada a un grupo de administradores «para que funcione» concede control sobre todo el dominio. Eso no es delegar: es otorgar de más y borrar la frontera que la delegación debía crear. Si la tarea es restablecer contraseñas en `OU=Helpdesk`, el permiso va sobre esa OU, no sobre el dominio.\n\nUna delegación se comprueba con dos pruebas, no con una:\n\n- **Prueba positiva**: la identidad delegada hace la tarea permitida —restablecer una contraseña dentro de la OU— y funciona.\n- **Prueba negativa**: la misma identidad intenta algo fuera de su tarea —modificar un objeto de otra OU, cambiar la pertenencia de un grupo— y no puede.\n\nSin la prueba negativa solo se sabe que puede; no se sabe si puede **de más**. Y el permiso mínimo no se presume: se demuestra con el intento que falla.\n\nLa auditoría de accesos de `WAD-04-L03` encaja aquí: registrar quién cambió qué permite atribuir el efecto a la delegación correcta y detectar si alguien se excedió. Todo esto describe un laboratorio sintético; no convierte la delegación en una práctica sobre un dominio real.\n\n### Vocabulario de apoyo\n\n- **Delegación**: traslado de una tarea concreta a otra identidad sin concederle privilegios de más.\n- **Grupo de seguridad**: objeto que agrupa identidades para concederles acceso.\n- **Atributo**: dato del objeto sobre el que actúa el permiso delegado.\n- **Ciclo de vida de identidad**: estados por los que pasa una cuenta, que la delegación debe respetar.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "WAD-10-L03-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: en `ad.lab.test` se delega en una cuenta de soporte el restablecimiento de contraseñas de `OU=Helpdesk`. Al no funcionar, un operador añade la cuenta a Domain Admins y da el problema por resuelto.\n\nLa tarea pasó a funcionar por una vía que no era la delegación: se concedió control sobre todo el dominio para una operación que solo afectaba a una OU. La vía correcta era ajustar el permiso sobre esa OU —con ADAC o `dsacls`— hasta que la tarea permitida funcionara, y confirmar después con una **prueba negativa** que esa cuenta no puede actuar fuera de `OU=Helpdesk`. La conclusión acota el hallazgo —«delegación demasiado amplia resuelta con un grupo integrado»— y reconoce el límite: como no se retiró el privilegio excesivo, la obtención del permiso no demuestra el criterio de dominio. La comprobación que falta es justamente la que separa delegar de otorgar de más.\n\n"
+    },
+    {
+      "id": "WAD-10-L03-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Comprobar una delegación con prueba positiva y negativa distingue un permiso acotado de un privilegio excesivo.\n- Red Team autorizado: En una prueba autorizada, una delegación demasiado amplia es un hallazgo de escalada; documentar su alcance evita sobrevalorarlo.\n- Evidencia de la etapa: Permiso delegado con su alcance y el resultado de la prueba positiva y de la negativa.\n- Criterio de dominio: El gestor delegado modifica solo los objetos permitidos y nada fuera de su OU.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB06](../../05_RECURSOS/LABORATORIOS/WAD-LAB06.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **DSACLS**: [Dsacls](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-r2-and-2012/cc771525(v=ws.11)). Consulta y ajuste de permisos del directorio.\n- **ADAC**: [Active Directory Administrative Center](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/get-started/adac/active-directory-administrative-center). Asistente para delegar tareas sobre una OU.\n- **GETADCOMPUTER**: [Get-ADComputer](https://learn.microsoft.com/en-us/powershell/module/activedirectory/get-adcomputer). Consulta de cuentas de equipo para verificar el alcance.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n"
+    }
+  ],
+  "practice": {
+    "id": "WAD-10-L03-P01",
+    "prompt": "En `ad.lab.test` hay que delegar en una cuenta de soporte el restablecimiento de contraseñas de `OU=Helpdesk` sin dar privilegios de dominio. Describe el permiso mínimo, cómo lo aplicarías con ADAC o `dsacls` y qué prueba positiva y qué prueba negativa harías para verificarlo. Explica por qué no usarías Domain Admins y señala el límite de tu conclusión.",
+    "markdown": "## 4. Práctica individual\n\nEn `ad.lab.test` hay que delegar en una cuenta de soporte el restablecimiento de contraseñas de `OU=Helpdesk` sin dar privilegios de dominio. Describe el permiso mínimo, cómo lo aplicarías con ADAC o `dsacls` y qué prueba positiva y qué prueba negativa harías para verificarlo. Explica por qué no usarías Domain Admins y señala el límite de tu conclusión.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber delegado permisos en un dominio real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "WAD-10-L03-Q01",
+      "prompt": "Al delegar el restablecimiento de contraseñas en una OU, ¿qué concede el enfoque de privilegio mínimo?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Control total sobre el dominio entero"
+        },
+        {
+          "id": "B",
+          "text": "Pertenencia al grupo Domain Admins"
+        },
+        {
+          "id": "C",
+          "text": "Solo el permiso necesario sobre los objetos de esa OU, sin privilegios de dominio"
+        },
+        {
+          "id": "D",
+          "text": "Permiso sobre cualquier objeto del bosque"
+        }
+      ]
+    },
+    {
+      "id": "WAD-10-L03-Q02",
+      "prompt": "¿Por qué no conviene añadir la cuenta delegada a Domain Admins «para resolverlo»?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Porque otorga control sobre todo el dominio, mucho más allá de la tarea delegada, y elimina la frontera de la delegación"
+        },
+        {
+          "id": "B",
+          "text": "Porque Domain Admins no puede restablecer contraseñas"
+        },
+        {
+          "id": "C",
+          "text": "Porque ese grupo no existe en un dominio"
+        },
+        {
+          "id": "D",
+          "text": "Porque impide que el delegado inicie sesión"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio WAD-LAB06](../../05_RECURSOS/LABORATORIOS/WAD-LAB06.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **DSACLS**: [Dsacls](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-r2-and-2012/cc771525(v=ws.11)). Consulta y ajuste de permisos del directorio.\n- **ADAC**: [Active Directory Administrative Center](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/get-started/adac/active-directory-administrative-center). Asistente para delegar tareas sobre una OU.\n- **GETADCOMPUTER**: [Get-ADComputer](https://learn.microsoft.com/en-us/powershell/module/activedirectory/get-adcomputer). Consulta de cuentas de equipo para verificar el alcance.\n\nConsulta editorial: 18/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni un despliegue real del fabricante.\n",
+  "revision": "03989a7a5c13218f6f617dda"
+}

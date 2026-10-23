@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "redes",
+  "id": "RED-M38-L04",
+  "title": "Rollback y auditoría",
+  "sourceHash": "a41625aa091c802f001b052007c72fbaadf22760e104c25080bfe4c214ae4543",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "RED-M38-L04-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDefinir rollback con precondiciones y verificación de recuperación.\n\nPrerrequisitos: [RED-M38-L03](../RED-E07/RED-M38-L03.md).\n\n## 2. Comprende el mecanismo\n\nRollback devuelve un estado controlado, pero no toda operación es reversible ni una configuración anterior sigue siendo válida tras cambios externos. Define disparador, responsable, método, acceso, dependencias y pruebas de retorno. Diferencia reversión de configuración y recuperación del servicio: sesiones o datos pueden requerir pasos adicionales. Mantén una bitácora de qué se aplicó realmente para no revertir activos que nunca cambiaron. Un informe debe señalar cualquier desvío respecto al estado inicial y los riesgos residuales.\n\n### Vocabulario de apoyo\n\n- **Precheck y canary**: Comprobación previa y despliegue inicial limitado que debe representar los riesgos relevantes.\n- **Rollback**: Retorno controlado con disparador, alcance real, acceso y pruebas de recuperación definidos.\n\n[Glosario por módulos](../../05_RECURSOS/GLOSARIO.md). Estas definiciones sirven de consulta; no necesitas memorizar todas las siglas antes de resolver.\n\n"
+    },
+    {
+      "id": "RED-M38-L04-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Lote docente: A y B cambiados; C falló antes de aplicar. Rollback propuesto restaura A/B/C con un backup genérico distinto del estado de C.\n\nIncluir C puede introducir una modificación nueva no necesaria. La reversión debe usar el estado y alcance real de cada activo.\n\n"
+    },
+    {
+      "id": "RED-M38-L04-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Asegurar continuidad de fuentes de eventos.\n- Red Team autorizado: Retest de controles tras actualización.\n- Evidencia del módulo: Playbook conceptual, test previo/post y rollback documentado.\n- Criterio del módulo: Valida estado antes/después y camino de gestión.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L18](../../05_RECURSOS/LABORATORIOS/RED-L18.md)\n- [Guía de laboratorio RED-L19](../../05_RECURSOS/LABORATORIOS/RED-L19.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **ANSIBLE**: [Ansible Network Examples](https://docs.ansible.com/projects/ansible/latest/network/user_guide/network_best_practices_2.5.html). Inventario, tareas y prácticas de automatización; verificar contrato de cada módulo.\n- **GIT**: [git diff](https://git-scm.com/docs/git-diff). Comparar cambios; la comparación no demuestra corrección operativa.\n- **RFC6241**: [RFC 6241: Network Configuration Protocol NETCONF](https://www.rfc-editor.org/rfc/rfc6241.html). Capacidades y operaciones NETCONF; opcionales no universales.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n"
+    }
+  ],
+  "practice": {
+    "id": "RED-M38-L04-P01",
+    "prompt": "Tras rollback, configuración coincide y la aplicación sigue sin responder. Define el estado del cierre.",
+    "markdown": "## 4. Práctica individual\n\nTras rollback, configuración coincide y la aplicación sigue sin responder. Define el estado del cierre.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión o cálculo, y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber configurado o intervenido una red real.\n\n"
+  },
+  "questions": [
+    {
+      "id": "RED-M38-L04-Q01",
+      "prompt": "¿Qué debe guiar el alcance de rollback?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Todos los equipos por tener nombres parecidos"
+        },
+        {
+          "id": "B",
+          "text": "La lista completa sin estados de ejecución"
+        },
+        {
+          "id": "C",
+          "text": "Cambios realmente aplicados y estado previo de cada activo"
+        },
+        {
+          "id": "D",
+          "text": "Solo un archivo genérico"
+        }
+      ]
+    },
+    {
+      "id": "RED-M38-L04-Q02",
+      "prompt": "¿Qué riesgo introduce restaurar C en el caso?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Conservar su configuración previa"
+        },
+        {
+          "id": "B",
+          "text": "Modificar un activo que no había cambiado con un estado ajeno"
+        },
+        {
+          "id": "C",
+          "text": "Distinguir fases del lote"
+        },
+        {
+          "id": "D",
+          "text": "Registrar un error antes de aplicar"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio RED-L18](../../05_RECURSOS/LABORATORIOS/RED-L18.md)\n- [Guía de laboratorio RED-L19](../../05_RECURSOS/LABORATORIOS/RED-L19.md)\n\nLas guías enlazadas pueden integrar otros módulos; consulta sus previos antes de ejecutarlas.\n\n- **ANSIBLE**: [Ansible Network Examples](https://docs.ansible.com/projects/ansible/latest/network/user_guide/network_best_practices_2.5.html). Inventario, tareas y prácticas de automatización; verificar contrato de cada módulo.\n- **GIT**: [git diff](https://git-scm.com/docs/git-diff). Comparar cambios; la comparación no demuestra corrección operativa.\n- **RFC6241**: [RFC 6241: Network Configuration Protocol NETCONF](https://www.rfc-editor.org/rfc/rfc6241.html). Capacidades y operaciones NETCONF; opcionales no universales.\n\nConsulta editorial: 18/10/2026. Las recomendaciones del ejercicio son una adaptación docente; los ejemplos no reproducen un despliegue del fabricante. Para practicar configuración, usa la guía de laboratorio vinculada al módulo con plataforma/versiones compatibles.\n",
+  "revision": "4ba07c9d0c53630ce0259210"
+}

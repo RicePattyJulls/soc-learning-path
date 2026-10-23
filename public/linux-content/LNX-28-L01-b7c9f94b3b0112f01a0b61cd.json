@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-28-L01",
+  "title": "journald: estructurado, booteos y retención",
+  "sourceHash": "eb2ce20ea939b4536ed67dfa248ccae9b72c8b938aa695e414036491e7dad9ca",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-28-L01-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nLeer el journal como registro estructurado, delimitar la evidencia por booteo y ventana temporal, y estimar la retención real sin confundir límite de espacio con garantía de días.\n\nPrerrequisitos: `LNX-27-L03` (Presión de recursos y diagnóstico).\n\n## 2. Comprende el mecanismo\n\nEl journal de systemd no es un fichero de texto con líneas: es un almacén de entradas con **campos** y marcas de tiempo. Cada entrada lleva el mensaje y metadatos añadidos por quien la escribe: `_SYSTEMD_UNIT`, `_PID`, `_UID`, `_BOOT_ID`, `SYSLOG_IDENTIFIER`, `__REALTIME_TIMESTAMP` y `__MONOTONIC_TIMESTAMP`. Leer esos campos cambia la pregunta de «¿qué dice la línea?» a «¿quién la emitió, en qué booteo y con qué identidad?».\n\nEl primer delimitador es el **booteo**. `journalctl --list-boots` muestra los arranques registrados y su identificador. Sin fijar el booteo, una consulta por unidad puede mezclar reinicios y hacer parecer que un servicio falló una vez cuando falló tres. `-b` selecciona el actual y `-b -1` el anterior, siempre que el journal conserve ese booteo.\n\nEl segundo delimitador es la **ventana temporal**. `--since` y `--until` con zona horaria explícita evitan el error clásico de comparar horas locales de hosts distintos. `--utc` normaliza la salida. Una ventana de incidente debe declararse antes de leer y no ampliarse hasta encontrar algo que confirme la hipótesis.\n\nEl tercer punto es la **estructura**. `-o json` expone los campos y permite filtrar por ellos. Ahí aparecen dos categorías que conviene no mezclar: campos con prefijo `_` añadidos por journald desde el kernel o el proceso, y campos sin prefijo enviados por la aplicación, que son **datos declarados por el emisor** y no una verificación. Un `SYSLOG_IDENTIFIER` puede ser inventado por el programa; `_PID` y `_UID` los completa el sistema.\n\nLa **retención** tiene dos capas. `Storage=persistent` solicita guardar el journal en disco si `/var/log` es utilizable; `volatile` lo deja en memoria y lo pierde al reiniciar. `SystemMaxUse` y `SystemKeepFree` limitan espacio, y la rotación y el `RateLimit` recortan volumen. De ahí se sigue la trampa: `SystemMaxUse=1G` no significa «un mes de logs»; significa «hasta un gigabyte», que puede ser una tarde en un host ruidoso. La retención efectiva se estima con tasa de eventos, tamaño medio y picos, no con el número configurado.\n\nLa **verificación** del almacén (`journalctl --verify`) busca problemas estructurales en los ficheros. No acredita autoría ni demuestra que nadie manipuló el contenido; sin un mecanismo de integridad independiente, solo informa de coherencia interna. Un journal corrupto detectado es una pista, no una conclusión sobre quién lo corrompió.\n\nLa regla de la lección: booteo, ventana y campos antes de interpretar; espacio configurado no es retención garantizada. El límite: el journal contiene lo que las fuentes enviaron y journald conservó; un hueco puede deberse a rate limit, rotación, caída del servicio o ausencia de emisión, y distinguirlos exige comparar con otra capa.\n\n### Vocabulario de apoyo\n\n- **Entrada de journal**: registro con mensaje y campos de metadatos, no una línea de texto plano.\n- **`_BOOT_ID`**: identificador del arranque al que pertenece una entrada.\n- **Campo con prefijo `_`**: metadato añadido por journald desde el sistema.\n- **Campo sin prefijo**: dato declarado por la aplicación emisora, no verificado.\n- **`Storage`**: política de almacenamiento del journal (`volatile`, `persistent`, `auto`).\n- **`SystemMaxUse`**: límite de espacio del journal, no de días de retención.\n- **Rate limit**: límite de mensajes por intervalo que puede descartar entradas.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-28-L01-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: un analista busca un fallo de autenticación y ejecuta una consulta por unidad sin fijar booteo ni ventana. Obtiene tres bloques de errores y concluye que hubo tres intentos en la misma noche. El journal del host está configurado con `Storage=volatile` y `SystemMaxUse=200M`; el servicio genera unas 40 000 entradas por hora en pico.\n\nLa conclusión mezcla dos problemas. Los tres bloques pueden pertenecer a tres booteos distintos: sin `--list-boots` y sin `-b`, la consulta los presenta juntos y la línea de tiempo es ficticia. Además, con `Storage=volatile` el journal vive en memoria y desaparece al reiniciar, de modo que la evidencia disponible depende de cuánto tiempo lleva el sistema encendido, no de una política de retención.\n\nLa lectura correcta fija primero el booteo y la ventana UTC, después filtra por unidad y campos, y finalmente declara cuánta historia existe. Con 40 000 entradas por hora y un límite de 200 MB, la retención puede medirse en horas, no en días. El límite: la consulta corregida dice qué se registró en esa ventana; no prueba que no ocurrieran otros intentos fuera de ella ni que el emisor no haya omitido datos.\n\n"
+    },
+    {
+      "id": "LNX-28-L01-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Declarar booteo, ventana UTC y campos usados antes de citar una entrada del journal.\n- Red Team autorizado: Distinguir campos verificados por journald de los declarados por la aplicación al reconstruir actividad.\n- Evidencia de la etapa: Rango de booteos disponibles, política de almacenamiento, tasa de eventos y consulta exacta.\n- Criterio de dominio: Separa «no hay entrada» de «no se conservó» y no confunde límite de espacio con retención.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB35](../../05_RECURSOS/LABORATORIOS/LNX-LAB35.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F113**: [journald.conf(5)](https://man7.org/linux/man-pages/man5/journald.conf.5.html). Opciones de almacenamiento, límites y rate limit.\n- **F114**: [journalctl(1)](https://man7.org/linux/man-pages/man1/journalctl.1.html). Selección por booteo, ventana, unidad y formato de salida.\n- **F122**: [NIST SP 800-92 (log management)](https://csrc.nist.gov/pubs/sp/800/92/final). Gestión de registros, retención y protección de evidencia.\n- **F120**: [syslog protocol RFC 5424](https://www.rfc-editor.org/rfc/rfc5424). Estructura de mensajes y campos de origen.\n- **F127**: [MITRE ATT&CK Data Sources (deprecated)](https://attack.mitre.org/datasources/). Qué se puede y qué no se puede sostener con una fuente de datos.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-28-L01-P01",
+    "prompt": "Un analista consulta errores de autenticación sin fijar booteo ni ventana, ve tres bloques y concluye que hubo tres intentos la misma noche; el host usa `Storage=volatile` y genera unas 40 000 entradas por hora en pico. Explica cómo delimitarías la evidencia, qué campos usarías y cuál es el límite de la conclusión sobre retención.",
+    "markdown": "## 4. Práctica individual\n\nUn analista consulta errores de autenticación sin fijar booteo ni ventana, ve tres bloques y concluye que hubo tres intentos la misma noche; el host usa `Storage=volatile` y genera unas 40 000 entradas por hora en pico. Explica cómo delimitarías la evidencia, qué campos usarías y cuál es el límite de la conclusión sobre retención.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber consultado un journal real ni haber medido retención en producción.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-28-L01-Q01",
+      "prompt": "¿Qué hace `journalctl -b -1` en una investigación?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Filtra las entradas del booteo anterior, si el journal aún lo conserva"
+        },
+        {
+          "id": "B",
+          "text": "Reinicia el servicio de journald para recargar la configuración"
+        },
+        {
+          "id": "C",
+          "text": "Limita la salida a la última hora de eventos"
+        },
+        {
+          "id": "D",
+          "text": "Convierte las marcas de tiempo a la zona local del analista"
+        }
+      ]
+    },
+    {
+      "id": "LNX-28-L01-Q02",
+      "prompt": "¿Qué garantiza `SystemMaxUse=1G` sobre la retención del journal?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Un mes completo de historia en cualquier host"
+        },
+        {
+          "id": "B",
+          "text": "Que el journal se replica automáticamente fuera del host"
+        },
+        {
+          "id": "C",
+          "text": "Que no se descartará ninguna entrada por rate limit"
+        },
+        {
+          "id": "D",
+          "text": "Nada sobre días: fija un techo de espacio que puede agotarse en horas según la tasa de eventos"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB35](../../05_RECURSOS/LABORATORIOS/LNX-LAB35.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F113**: [journald.conf(5)](https://man7.org/linux/man-pages/man5/journald.conf.5.html). Opciones de almacenamiento, límites y rate limit.\n- **F114**: [journalctl(1)](https://man7.org/linux/man-pages/man1/journalctl.1.html). Selección por booteo, ventana, unidad y formato de salida.\n- **F122**: [NIST SP 800-92 (log management)](https://csrc.nist.gov/pubs/sp/800/92/final). Gestión de registros, retención y protección de evidencia.\n- **F120**: [syslog protocol RFC 5424](https://www.rfc-editor.org/rfc/rfc5424). Estructura de mensajes y campos de origen.\n- **F127**: [MITRE ATT&CK Data Sources (deprecated)](https://attack.mitre.org/datasources/). Qué se puede y qué no se puede sostener con una fuente de datos.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "b7c9f94b3b0112f01a0b61cd"
+}

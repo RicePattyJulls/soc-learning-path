@@ -1,0 +1,39 @@
+{
+  "courseId": "windows-ad",
+  "id": "WAD-16-L02",
+  "sourceHash": "9109a52a89e1cdff43b6970f825eee299443f7eb1d987df9e23d5631aef54589",
+  "questions": [
+    {
+      "id": "WAD-16-L02-Q01",
+      "correctOptionId": "C",
+      "explanation": "La opción correcta es «El permiso de inscripción (Enroll) concedido a una identidad sobre la plantilla».\n\nEl permiso de inscripción es el que autoriza a solicitar un certificado con la plantilla. El registro de eventos, el recurso compartido y el permiso de administrador local no gobiernan la inscripción."
+    },
+    {
+      "id": "WAD-16-L02-Q02",
+      "correctOptionId": "A",
+      "explanation": "La opción correcta es «Que cualquier identidad de ese grupo puede solicitar el certificado y debe revisarse si ese alcance es necesario».\n\nEl permiso de inscripción de un grupo amplio alcanza a todas sus identidades, así que procede revisar si ese alcance se justifica. La plantilla no queda inutilizable, la CA no rechaza por defecto y el permiso sí afecta a los solicitantes."
+    }
+  ],
+  "practice": {
+    "referenceAnswer": "La auditoría empieza por el EKU: qué propósito concede la plantilla y si coincide con el servicio al que se destina, porque un EKU más amplio del necesario concede más de lo previsto. Después se lee la lista de control de acceso, en particular el permiso de inscripción: si lo tiene un grupo amplio, cualquier identidad de ese grupo puede solicitar el certificado y ese alcance supera el uso previsto. Se revisan también el permiso de administración de la plantilla, que no debería estar en las mismas manos que inscribe, y si hace falta aprobación de la CA. La recomendación es acotar la inscripción al grupo del servicio y separar la administración de la inscripción. El límite: la ficha demuestra el alcance del permiso, no quién lo usó ni cuántos certificados se emitieron.",
+    "rubric": [
+      {
+        "criterion": "EKU y uso previsto",
+        "evidence": "Revisa el EKU y lo compara con el uso del servicio destinatario."
+      },
+      {
+        "criterion": "Permiso de inscripción",
+        "evidence": "Identifica el permiso de inscripción y el grupo al que alcanza."
+      },
+      {
+        "criterion": "Separación de controles",
+        "evidence": "Distingue inscripción de administración de la plantilla."
+      },
+      {
+        "criterion": "Límite reconocido",
+        "evidence": "Admite que el permiso muestra el alcance y no el uso efectivo."
+      }
+    ]
+  },
+  "revision": "6ade7358ed3630818ce17408"
+}

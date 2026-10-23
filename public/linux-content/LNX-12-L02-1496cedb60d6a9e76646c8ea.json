@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "courseId": "linux",
+  "id": "LNX-12-L02",
+  "title": "Comandos iniciales sin mutación",
+  "sourceHash": "e8df97d0469a461ba98119e6901de8a0853726ef7053a3c142cb7c53a7753b5f",
+  "practicalStatus": "not_assessed",
+  "study": [
+    {
+      "id": "LNX-12-L02-S01",
+      "title": "Comprende el mecanismo",
+      "markdown": "## 1. Objetivo\n\nDistinguir las consultas de solo lectura de las operaciones que mutan estado al inventariar almacenamiento, y acotar qué demuestra cada lectura.\n\nPrerrequisitos: `LNX-12-L01` (Modelo de capas y seguridad).\n\n## 2. Comprende el mecanismo\n\nEl primer reflejo al investigar almacenamiento es consultar, no cambiar. Hay familias de comandos que solo leen —listan dispositivos, montajes, uso y metadatos— y otras que alteran estado: montar, desmontar, crear sistemas de archivos, reparar o actualizar índices. Confundirlas convierte un triaje en una intervención irreversible.\n\n`lsblk` describe dispositivos y sus relaciones; su salida por defecto no es un contrato estable para scripts, así que conviene fijar columnas o pedir una estructura explícita. `findmnt` explica el montaje efectivo de una ruta y su origen, no el contenido que se supone dentro. `df -hT` mide bloques según el sistema de archivos y `df -i` cuantifica inodos cuando la plataforma los expone.\n\nLas mediciones a menudo divergen, y esa divergencia es información, no un error. `df` y `du` pueden no coincidir por reserva del sistema de archivos, ficheros borrados aún abiertos, montajes solapados, cuotas, ficheros dispersos o deduplicación. Interpretar la diferencia como «datos ocultos» es saltar a una conclusión.\n\nLa observación también tiene contexto. `/proc/self/mountinfo` muestra la tabla de montajes de la namespace del analista; un servicio o un contenedor puede ver otra. Antes de afirmar «esto no está montado», hay que decidir desde qué proceso se observa.\n\nAlgunos comandos de lectura pueden requerir privilegios para dar datos completos, y una etiqueta o un identificador leído no prueba integridad ni origen legítimo. Documentar qué se pudo y qué no se pudo leer forma parte de la evidencia.\n\nLa conclusión razonable cita la lectura, su alcance y su límite. Sin comparar contra una línea base, una lectura aislada describe un estado presente, no una tendencia.\n\n### Vocabulario de apoyo\n\n- **Consulta de solo lectura**: comando que observa estado sin modificarlo.\n- **Mutación**: operación que altera dispositivos, montajes o datos (montar, crear, reparar).\n- **`lsblk`**: inventario de dispositivos de bloque y sus relaciones.\n- **`findmnt`**: explicación del montaje efectivo de una ruta y su origen.\n- **Divergencia `df`/`du`**: diferencia de medición entre bloques del sistema de archivos y contenido accesible.\n- **Namespace de montaje**: vista de la tabla de montajes propia de un conjunto de procesos.\n\n[Glosario](../../05_RECURSOS/GLOSARIO.md). Consulta los términos que necesites.\n\n"
+    },
+    {
+      "id": "LNX-12-L02-S02",
+      "title": "Sigue el caso resuelto",
+      "markdown": "## 3. Caso resuelto\n\n**Datos sintéticos para análisis; no son una captura ni una ejecución real.**\n\n> Caso sintético: `df` indica que un volumen está casi lleno, mientras que `du` sobre su árbol suma mucho menos. El analista concluye que hay datos ocultos y planea borrarlos.\n\nLa conclusión es prematura. La divergencia entre bloques del sistema de archivos y contenido accesible tiene varias explicaciones: reserva para uso privilegiado, ficheros ya borrados pero aún abiertos por un proceso, montajes solapados que ocultan rutas o cuotas que limitan la escritura. Ninguna de ellas es «datos ocultos» por defecto.\n\nLa comprobación razonable añade lecturas sin mutar: `df -i`, `findmnt` sobre la ruta y localización de procesos con ficheros abiertos. El límite: sin atribuir la diferencia a una causa concreta, borrar sería destruir posibles datos válidos y la propia evidencia; la lectura aislada no decide qué está ocurriendo.\n\n"
+    },
+    {
+      "id": "LNX-12-L02-S03",
+      "title": "Conecta con tu trabajo",
+      "markdown": "## 6. Aplicación profesional\n\n- SOC: Preferir lecturas reproducibles y registrar su alcance antes de intervenir.\n- Red Team autorizado: Separar la observación de inventario de cualquier acción que modifique el estado.\n- Evidencia de la etapa: Volcado de `lsblk`, `findmnt` y `df` con columnas fijas y contexto de namespace.\n- Criterio de dominio: Justifica cada conclusión con una lectura de solo lectura y su límite.\n\n## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB13](../../05_RECURSOS/LABORATORIOS/LNX-LAB13.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F41**: [util-linux lsblk(8)](https://man7.org/linux/man-pages/man8/lsblk.8.html). Inventario de dispositivos y estructura de columnas de la salida.\n- **F42**: [util-linux findmnt(8)](https://man7.org/linux/man-pages/man8/findmnt.8.html). Montaje efectivo y origen declarado de una ruta.\n- **F43**: [util-linux fstab(5)](https://man7.org/linux/man-pages/man5/fstab.5.html). Especificaciones de montaje persistentes y su interpretación.\n- **F46**: [GNU coreutils, manual stat](https://www.gnu.org/software/coreutils/manual/html_node/stat-invocation.html). Metadatos de archivo y de sistema de archivos desde la línea de comandos.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n"
+    }
+  ],
+  "practice": {
+    "id": "LNX-12-L02-P01",
+    "prompt": "Observas que `df` indica un volumen casi lleno mientras que `du` sobre su árbol suma mucho menos, y concluyes que hay datos ocultos. Explica por qué esa diferencia no basta para concluir, qué lecturas adicionales harías sin mutar nada y cuál es el límite.",
+    "markdown": "## 4. Práctica individual\n\nObservas que `df` indica un volumen casi lleno mientras que `du` sobre su árbol suma mucho menos, y concluyes que hay datos ocultos. Explica por qué esa diferencia no basta para concluir, qué lecturas adicionales harías sin mutar nada y cuál es el límite.\n\nEntrega una respuesta razonada: identifica los datos que utilizas, la decisión y el límite de tu conclusión. Resuelve antes de consultar el solucionario. Esta práctica es de análisis documental; su resolución no acredita haber montado ni reparado sistemas de archivos reales.\n\n"
+  },
+  "questions": [
+    {
+      "id": "LNX-12-L02-Q01",
+      "prompt": "¿Qué característica hace que la salida por defecto de `lsblk` no sea fiable para un script?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Que solo funciona con privilegios administrativos completos"
+        },
+        {
+          "id": "B",
+          "text": "Que omite siempre los dispositivos de tipo loop de forma silenciosa"
+        },
+        {
+          "id": "C",
+          "text": "Que cifra los identificadores de cada dispositivo al listarlos"
+        },
+        {
+          "id": "D",
+          "text": "Que su conjunto y formato de columnas no está garantizado como estable y conviene fijarlo explícitamente"
+        }
+      ]
+    },
+    {
+      "id": "LNX-12-L02-Q02",
+      "prompt": "Un `df` muy lleno y un `du` del mismo árbol mucho menor. ¿Qué explica mejor esa divergencia?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Puede deberse a reserva del sistema de archivos, ficheros borrados aún abiertos u otros factores, no necesariamente a datos ocultos"
+        },
+        {
+          "id": "B",
+          "text": "Prueba de forma concluyente que existe un montaje malicioso"
+        },
+        {
+          "id": "C",
+          "text": "Indica que el sistema de archivos está cifrado por completo"
+        },
+        {
+          "id": "D",
+          "text": "Demuestra que `du` leyó una copia distinta del contenido"
+        }
+      ]
+    }
+  ],
+  "referencesMarkdown": "## 7. Referencias y ampliación\n\n- [Guía de laboratorio LNX-LAB13](../../05_RECURSOS/LABORATORIOS/LNX-LAB13.md)\n\nLas guías enlazadas pueden integrar otras etapas; consulta sus previos antes de ejecutarlas.\n\n- **F41**: [util-linux lsblk(8)](https://man7.org/linux/man-pages/man8/lsblk.8.html). Inventario de dispositivos y estructura de columnas de la salida.\n- **F42**: [util-linux findmnt(8)](https://man7.org/linux/man-pages/man8/findmnt.8.html). Montaje efectivo y origen declarado de una ruta.\n- **F43**: [util-linux fstab(5)](https://man7.org/linux/man-pages/man5/fstab.5.html). Especificaciones de montaje persistentes y su interpretación.\n- **F46**: [GNU coreutils, manual stat](https://www.gnu.org/software/coreutils/manual/html_node/stat-invocation.html). Metadatos de archivo y de sistema de archivos desde la línea de comandos.\n\nConsulta editorial: 19/10/2026. Los ejemplos son una adaptación docente y no reproducen una captura ni una ejecución real.\n",
+  "revision": "1496cedb60d6a9e76646c8ea"
+}
